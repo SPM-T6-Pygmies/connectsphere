@@ -14,6 +14,9 @@ const boundaries = [
   {
     // The hexagon. Depends on nothing but itself and pure language-level libs.
     files: ["src/core/**"],
+    // A test suite is a driving adapter: it plugs doubles into ports, so it is
+    // outside the hexagon even when the file sits next to what it tests.
+    ignores: ["src/core/**/*.test.ts"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
