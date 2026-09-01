@@ -114,16 +114,33 @@ If you're unsure whether an operation is reversible, stop and ask. Prefer revers
 
 ## 6. Architecture: Ports & Adapters
 
-This codebase targets a **Ports & Adapters** (Hexagonal) architecture. The full
-conventions, layout, and current debt list live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — read it before adding or refactoring code that touches an external system.
+This codebase is built as **Ports & Adapters** (Hexagonal). The reasoning,
+vocabulary, layout, worked example, and review checklist live in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — read it before adding or
+refactoring code that touches an external system.
 
 The rules in short:
 
-- **Imports point inward.** No SDK / driver / `httpx` / `fetch` import in the core (`domain/`, use cases, hooks). The core depends on ports (interfaces); adapters depend on the core.
-- **Port only at real boundaries** — network, process, SDK, filesystem, browser. Reconcile with §2: do _not_ add interfaces for internal single-use logic.
-- **Routes and components stay thin:** parse → call use case/service → shape result. No Cypher, PostgREST, or `anthropic` calls in a route; no endpoint strings or DTO shapes in a hook.
-- Current direct-coupling code (inline Cypher in routes, direct `supabase_db`/`anthropic` calls, hooks embedding endpoints) is **debt** — refactor it toward the target when you touch it, don't copy it.
-- When you do refactor debt toward the target, keep that refactor in its **own commit**, separate from the feature change. Mixing them makes both diffs unreviewable.
+- **Imports point inward.** No SDK, driver, or `fetch` in `src/core`. The core
+  defines ports (interfaces); adapters implement them. This is enforced by
+  `pnpm lint`, not by review — see the zones in `eslint.config.mjs`.
+- **Port only at real boundaries** — network, process, SDK, filesystem, clock,
+  randomness, browser. Reconcile with §2: do _not_ add interfaces for internal
+  single-use logic. `docs/ARCHITECTURE.md` §11 is the arbiter.
+- **Business rules live in `src/core/domain`.** Use cases orchestrate; they do
+  not decide. If a use case body contains a decision about the business, move it
+  inward.
+- **Routes and components stay thin:** parse → call a use case → translate the
+  result. No PostgREST calls in a Server Action; no endpoint strings or DTO
+  shapes in a component.
+- **All wiring lives in `src/composition`.** It is the only module allowed to
+  import both a port and an adapter.
+- New driven ports ship with an in-memory adapter, so use cases stay testable
+  without infrastructure.
+
+If you ever do refactor existing code toward the target, keep that refactor in
+its **own commit**, separate from the feature change. Mixing them makes both
+diffs unreviewable.
 
 ---
 

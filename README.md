@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# connectsphere
 
-## Getting Started
+Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/ui, on Supabase,
+built as a **Ports & Adapters** (hexagonal) application.
 
-First, run the development server:
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env.local   # fill in your Supabase project credentials
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Requires Node `>=22.12` (or `>=20.19`) — Vite 8, which Vitest 4 is built on,
+does not support earlier 22.x releases.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Apply `supabase/schema.sql` to your Supabase project before using
+`/connections`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Commands
 
-## Learn More
+| Command          | What it does                                        |
+| ---------------- | --------------------------------------------------- |
+| `pnpm dev`       | Dev server                                          |
+| `pnpm build`     | Production build                                    |
+| `pnpm lint`      | Next.js rules **plus architecture import boundaries** |
+| `pnpm typecheck` | `tsc --noEmit`                                      |
+| `pnpm test`      | Vitest — core and adapters, no database needed      |
 
-To learn more about Next.js, take a look at the following resources:
+## Architecture
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before adding code that
+touches an external system.** The short version:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/core/         the hexagon — domain + use cases. No framework, no SDK, no I/O.
+src/adapters/     implementations of the core's ports (Supabase, in-memory, …)
+src/composition/  the only module that wires the two together
+src/app/          Next.js — driving adapters only
+```
 
-## Deploy on Vercel
+Imports point inward, and `pnpm lint` fails if they don't.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`src/core/use-cases/send-connection-request.ts` is the worked reference
+implementation the document is written against.
