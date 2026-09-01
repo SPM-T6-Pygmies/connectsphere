@@ -1,0 +1,252 @@
+{
+  "configuration" : { },
+  "description" : "Reference model. L1 system context: who uses the system and what crosses its boundary.",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2026-09-01T19:16:04Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "1",
+      "name" : "Event Coordinator",
+      "properties" : {
+        "structurizr.dsl.identifier" : "coordinator"
+      },
+      "relationships" : [ {
+        "description" : "Reviews and approves requests, requests venue + equipment, confirms and cancels events.",
+        "destinationId" : "7",
+        "id" : "11",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Owns the venue catalogue and availability. Decides booking requests, blocks venues, prepares the room.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "2",
+      "name" : "Venue Staff",
+      "properties" : {
+        "structurizr.dsl.identifier" : "venue_staff"
+      },
+      "relationships" : [ {
+        "description" : "Approves or rejects venue bookings, maintains the catalogue, blocks venues.",
+        "destinationId" : "7",
+        "id" : "12",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Owns the equipment catalogue. Checks availability, reserves equipment, supports events on site.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "3",
+      "name" : "Technical Support Staff",
+      "properties" : {
+        "structurizr.dsl.identifier" : "tech_staff"
+      },
+      "relationships" : [ {
+        "description" : "Checks and reserves equipment, records defects, supports events.",
+        "destinationId" : "7",
+        "id" : "13",
+        "sourceId" : "3",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Assigns and reassigns Event Coordinators. Follows an SOP kept outside the system.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "4",
+      "name" : "Event Operations Manager [?]",
+      "properties" : {
+        "structurizr.dsl.identifier" : "ops_manager"
+      },
+      "relationships" : [ {
+        "description" : "Assigns and reassigns Event Coordinators.",
+        "destinationId" : "7",
+        "id" : "14",
+        "sourceId" : "4",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Client representative. Submits the event request, supplies requirements, requests changes.",
+      "group" : "Client & participants (external)",
+      "id" : "5",
+      "name" : "Event Organiser",
+      "properties" : {
+        "structurizr.dsl.identifier" : "organiser"
+      },
+      "relationships" : [ {
+        "description" : "Submits event and change requests; views confirmed arrangements.",
+        "destinationId" : "7",
+        "id" : "9",
+        "sourceId" : "5",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Participant. Registers for a confirmed event, may join the waiting list, may withdraw.",
+      "group" : "Client & participants (external)",
+      "id" : "6",
+      "name" : "Attendee",
+      "properties" : {
+        "structurizr.dsl.identifier" : "attendee"
+      },
+      "relationships" : [ {
+        "description" : "Registers for confirmed events, joins the waiting list, withdraws.",
+        "destinationId" : "7",
+        "id" : "10",
+        "sourceId" : "6",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "Single platform for event requests, venue booking, equipment, registration, changes and reporting.",
+      "documentation" : { },
+      "id" : "7",
+      "name" : "Event Planning and Venue Booking System",
+      "properties" : {
+        "structurizr.dsl.identifier" : "epvbs"
+      },
+      "relationships" : [ {
+        "description" : "Sends notifications and reminders. Event-driven.",
+        "destinationId" : "8",
+        "id" : "15",
+        "sourceId" : "7",
+        "tags" : "Relationship",
+        "technology" : "Email"
+      } ],
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Carries outbound email notifications. Provider not chosen.",
+      "documentation" : { },
+      "id" : "8",
+      "name" : "Email Delivery Service [?]",
+      "properties" : {
+        "structurizr.dsl.identifier" : "email"
+      },
+      "tags" : "Element,Software System,External"
+    } ]
+  },
+  "name" : "ConnectSphere — Event Planning and Venue Booking System",
+  "properties" : {
+    "structurizr.inspection.error" : "7",
+    "structurizr.dsl" : "d29ya3NwYWNlICJDb25uZWN0U3BoZXJlIOKAlCBFdmVudCBQbGFubmluZyBhbmQgVmVudWUgQm9va2luZyBTeXN0ZW0iICJSZWZlcmVuY2UgbW9kZWwuIEwxIHN5c3RlbSBjb250ZXh0OiB3aG8gdXNlcyB0aGUgc3lzdGVtIGFuZCB3aGF0IGNyb3NzZXMgaXRzIGJvdW5kYXJ5LiIgewoKICAgICMgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgIyBQUk9WRU5BTkNFICDigJQgcmVhZCBiZWZvcmUgZWRpdGluZwogICAgIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAgICAjIFNvdXJjZTogLi4vLi4vc3BtLWJyYWluCiAgICAjICAgQnJpZWYgICAgICAgICBzcG0tYnJhaW4vcmF3L0N1c3RvbWVyIEJyaWVmIG5vLiAxLm1kCiAgICAjICAgQ2xhcmlmaWVkIGJ5ICBzcG0tYnJhaW4vd2lraS9jb25jZXB0cy8qLm1kICAgKCIjTiIgPSBJUzIxMiBkaXNjdXNzaW9uIGFuc3dlciBuby4pCiAgICAjIERvbWFpbiB0ZXJtczogICAuLi9HTE9TU0FSWS5tZAogICAgIwogICAgIyBOT1RISU5HIEhFUkUgSVMgVkVSSUZJRUQgQUdBSU5TVCBDT0RFLiBUaGUgc3lzdGVtIGlzIG5vdCBidWlsdCB5ZXQsIHNvIHRoaXMgbWFwCiAgICAjIHN0YXRlcyAqaW50ZW5kZWQgc2NvcGUqIGZyb20gdGhlIHJlcXVpcmVtZW50cywgbm90IG9ic2VydmVkIHN0cnVjdHVyZS4gVHJlYXQgZXZlcnkKICAgICMgZWxlbWVudCBhcyByZXF1aXJlbWVudHMtZGVyaXZlZDsgWz9dIG1hcmtzIHdoYXQgaXMgdW5zZXR0bGVkIGV2ZW4gaW4gdGhlIHJlcXVpcmVtZW50cy4KICAgICMKICAgICMgTDEgbW9kZWxsaW5nIGRlY2lzaW9ucwogICAgIyAgLSBObyBleHRlcm5hbCBzeXN0ZW0gaW50ZWdyYXRpb25zIGFyZSBpbiBzY29wZSAoIzc5LCAjMTIpLiBUaGUgaW5jdW1iZW50IHRvb2xpbmcKICAgICMgICAgKGVtYWlsLCBzcHJlYWRzaGVldHMsIHNoYXJlZCBjYWxlbmRhcnMsIG1lc3NhZ2luZyBhcHBzLCBtYW51YWwgZG9jdW1lbnRzKSBpcwogICAgIyAgICBSRVBMQUNFRCwgbm90IGludGVncmF0ZWQg4oCUIHNvIGl0IGlzIGRlbGliZXJhdGVseSBub3QgZHJhd24gYXMgYW4gZXh0ZXJuYWwgc3lzdGVtLgogICAgIyAgLSBDb250cmFjdHMgYW5kIHBheW1lbnRzICgjMjQpLCB0aGUgY29vcmRpbmF0b3ItYXNzaWdubWVudCBTT1AgKCM5MykgYW5kIHRoZQogICAgIyAgICBwb3N0LWV2ZW50IGVxdWlwbWVudCBoZWFsdGggY2hlY2tsaXN0ICgjODUpIGFyZSBoYW5kbGVkIG91dHNpZGUgdGhlIHN5c3RlbToKICAgICMgICAgcmVhbC13b3JsZCBwcm9jZXNzZXMsIG5vIHNvZnR3YXJlIHN5c3RlbSB0byBkcmF3LgogICAgIyAgLSBBdXRoZW50aWNhdGlvbiBpcyByZXF1aXJlZCBidXQgdGhlIG1ldGhvZCBpcyB1bmRlY2lkZWQgKCM2MikuIE5vIGlkZW50aXR5CiAgICAjICAgIHByb3ZpZGVyIGlzIG1vZGVsbGVkIOKAlCBkcmF3aW5nIG9uZSB3b3VsZCBpbnZlbnQgYW4gaW50ZWdyYXRpb24uCiAgICAjICAtIE9ubHkgYWN0b3IgLT4gc3lzdGVtIGVkZ2VzIGFyZSBkcmF3bi4gSW4tYXBwIG5vdGlmaWNhdGlvbnMgZmxvdyBiYWNrIHRvIGV2ZXJ5CiAgICAjICAgIGFjdG9yOyBzaXggcmV0dXJuIGVkZ2VzIHdvdWxkIG5vdCBzdXJ2aXZlIGF0IEwxIChzZWUgdGhlIGVtYWlsIGVkZ2UgYmVsb3cpLgogICAgIyAgLSBObyBjb250YWluZXJzIHlldDogdGhlIGludGVybmFsIHN0cnVjdHVyZSBoYXMgbm90IGJlZW4gZGVzaWduZWQsIGFuZCBndWVzc2luZyBpdAogICAgIyAgICB3b3VsZCBiZSBpbnZlbnRpb24uIEwyL0wzIGxhbmQgaGVyZSBvbmNlIHRoZSBhcmNoaXRlY3R1cmUgaXMgZGVjaWRlZC4KICAgICMgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKICAgIG1vZGVsIHsKCiAgICAgICAgIWlkZW50aWZpZXJzIGhpZXJhcmNoaWNhbAoKICAgICAgICAjIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICAgICAgICMgQUNUT1JTIOKAlCB0aGUgZml2ZSBicmllZmVkIHJvbGVzIChicmllZiBzMyksIHBsdXMgb25lIGZyb20gY2xhcmlmaWNhdGlvbgogICAgICAgICMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgogICAgICAgIGdyb3VwICJDb25uZWN0U3BoZXJlIChpbnRlcm5hbCkiIHsKCiAgICAgICAgICAgIGNvb3JkaW5hdG9yID0gcGVyc29uICJFdmVudCBDb29yZGluYXRvciIgIkFzc2lnbmVkIG93bmVyIG9mIGFuIGV2ZW50LiBSZXZpZXdzIHJlcXVlc3RzLCByYWlzZXMgdmVudWUgKyBlcXVpcG1lbnQgbmVlZHMsIHRyYWNrcyByZWFkaW5lc3MsIGNvbmZpcm1zLiIKCiAgICAgICAgICAgIHZlbnVlX3N0YWZmID0gcGVyc29uICJWZW51ZSBTdGFmZiIgIk93bnMgdGhlIHZlbnVlIGNhdGFsb2d1ZSBhbmQgYXZhaWxhYmlsaXR5LiBEZWNpZGVzIGJvb2tpbmcgcmVxdWVzdHMsIGJsb2NrcyB2ZW51ZXMsIHByZXBhcmVzIHRoZSByb29tLiIKCiAgICAgICAgICAgIHRlY2hfc3RhZmYgPSBwZXJzb24gIlRlY2huaWNhbCBTdXBwb3J0IFN0YWZmIiAiT3ducyB0aGUgZXF1aXBtZW50IGNhdGFsb2d1ZS4gQ2hlY2tzIGF2YWlsYWJpbGl0eSwgcmVzZXJ2ZXMgZXF1aXBtZW50LCBzdXBwb3J0cyBldmVudHMgb24gc2l0ZS4iCgogICAgICAgICAgICAjIFs/XSBBYnNlbnQgZnJvbSB0aGUgYnJpZWYncyByb2xlIHRhYmxlLCBmZWF0dXJlIGxpc3QgYW5kIDE0LXN0ZXAgcHJvY2Vzcy4KICAgICAgICAgICAgIyBFc3RhYmxpc2hlZCBvbmx5IGJ5IGNsYXJpZmljYXRpb24gKCM3MyBhc3NpZ25zLCAjOTMgU09QIG91dHNpZGUgdGhlIHN5c3RlbSwKICAgICAgICAgICAgIyAjOTQgcmVhc3NpZ25tZW50KS4gVGhlIHRlYW0gbXVzdCBzdGlsbCBkZWNpZGUgd2hldGhlciB0aGlzIGlzIGEgZGlzdGluY3QKICAgICAgICAgICAgIyBzeXN0ZW0gcm9sZSwgYSBzZW5pb3ItY29vcmRpbmF0b3IgcGVybWlzc2lvbiwgb3IgYW4gb3V0LW9mLXN5c3RlbSBhY3Rvci4KICAgICAgICAgICAgb3BzX21hbmFnZXIgPSBwZXJzb24gIkV2ZW50IE9wZXJhdGlvbnMgTWFuYWdlciBbP10iICJBc3NpZ25zIGFuZCByZWFzc2lnbnMgRXZlbnQgQ29vcmRpbmF0b3JzLiBGb2xsb3dzIGFuIFNPUCBrZXB0IG91dHNpZGUgdGhlIHN5c3RlbS4iCiAgICAgICAgfQoKICAgICAgICBncm91cCAiQ2xpZW50ICYgcGFydGljaXBhbnRzIChleHRlcm5hbCkiIHsKCiAgICAgICAgICAgIG9yZ2FuaXNlciA9IHBlcnNvbiAiRXZlbnQgT3JnYW5pc2VyIiAiQ2xpZW50IHJlcHJlc2VudGF0aXZlLiBTdWJtaXRzIHRoZSBldmVudCByZXF1ZXN0LCBzdXBwbGllcyByZXF1aXJlbWVudHMsIHJlcXVlc3RzIGNoYW5nZXMuIgoKICAgICAgICAgICAgYXR0ZW5kZWUgPSBwZXJzb24gIkF0dGVuZGVlIiAiUGFydGljaXBhbnQuIFJlZ2lzdGVycyBmb3IgYSBjb25maXJtZWQgZXZlbnQsIG1heSBqb2luIHRoZSB3YWl0aW5nIGxpc3QsIG1heSB3aXRoZHJhdy4iCiAgICAgICAgfQoKICAgICAgICAjIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogICAgICAgICMgU1lTVEVNIFVOREVSIEZPQ1VTCiAgICAgICAgIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KCiAgICAgICAgZXB2YnMgPSBzb2Z0d2FyZVN5c3RlbSAiRXZlbnQgUGxhbm5pbmcgYW5kIFZlbnVlIEJvb2tpbmcgU3lzdGVtIiAiU2luZ2xlIHBsYXRmb3JtIGZvciBldmVudCByZXF1ZXN0cywgdmVudWUgYm9va2luZywgZXF1aXBtZW50LCByZWdpc3RyYXRpb24sIGNoYW5nZXMgYW5kIHJlcG9ydGluZy4iCgogICAgICAgICMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAgICAgICAgIyBFWFRFUk5BTFMKICAgICAgICAjIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKICAgICAgICAjIFs/XSBFeGlzdGVuY2UgaXMgY29uZmlybWVkIOKAlCBub3RpZmljYXRpb25zIGdvIG91dCBvdmVyIGluLWFwcCBBTkQgZW1haWwsCiAgICAgICAgIyBjb25maWd1cmFibGUgcGVyIG5vdGlmaWNhdGlvbiB0eXBlICgjMzcpIOKAlCBidXQgbm8gcHJvdmlkZXIgaXMgY2hvc2VuLCBhbmQgIzc5CiAgICAgICAgIyBmcmFtZXMgZW1haWwgYXMgYSBub3RpZmljYXRpb24tY2hhbm5lbCByZXF1aXJlbWVudCwgbm90IGEgZ2VuZXJhbCBpbnRlZ3JhdGlvbi4KICAgICAgICBlbWFpbCA9IHNvZnR3YXJlU3lzdGVtICJFbWFpbCBEZWxpdmVyeSBTZXJ2aWNlIFs/XSIgIkNhcnJpZXMgb3V0Ym91bmQgZW1haWwgbm90aWZpY2F0aW9ucy4gUHJvdmlkZXIgbm90IGNob3Nlbi4iICJFeHRlcm5hbCIKCiAgICAgICAgIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICAgICAgICAjIFJFTEFUSU9OU0hJUFMKICAgICAgICAjIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKICAgICAgICBvcmdhbmlzZXIgICAtPiBlcHZicyAiU3VibWl0cyBldmVudCBhbmQgY2hhbmdlIHJlcXVlc3RzOyB2aWV3cyBjb25maXJtZWQgYXJyYW5nZW1lbnRzLiIKICAgICAgICBhdHRlbmRlZSAgICAtPiBlcHZicyAiUmVnaXN0ZXJzIGZvciBjb25maXJtZWQgZXZlbnRzLCBqb2lucyB0aGUgd2FpdGluZyBsaXN0LCB3aXRoZHJhd3MuIgogICAgICAgIGNvb3JkaW5hdG9yIC0+IGVwdmJzICJSZXZpZXdzIGFuZCBhcHByb3ZlcyByZXF1ZXN0cywgcmVxdWVzdHMgdmVudWUgKyBlcXVpcG1lbnQsIGNvbmZpcm1zIGFuZCBjYW5jZWxzIGV2ZW50cy4iCiAgICAgICAgdmVudWVfc3RhZmYgLT4gZXB2YnMgIkFwcHJvdmVzIG9yIHJlamVjdHMgdmVudWUgYm9va2luZ3MsIG1haW50YWlucyB0aGUgY2F0YWxvZ3VlLCBibG9ja3MgdmVudWVzLiIKICAgICAgICB0ZWNoX3N0YWZmICAtPiBlcHZicyAiQ2hlY2tzIGFuZCByZXNlcnZlcyBlcXVpcG1lbnQsIHJlY29yZHMgZGVmZWN0cywgc3VwcG9ydHMgZXZlbnRzLiIKICAgICAgICBvcHNfbWFuYWdlciAtPiBlcHZicyAiQXNzaWducyBhbmQgcmVhc3NpZ25zIEV2ZW50IENvb3JkaW5hdG9ycy4iCgogICAgICAgICMgSW4tYXBwIG5vdGlmaWNhdGlvbnMgcmVhY2ggYWxsIHNpeCBhY3RvcnM7IG9ubHkgdGhlIGVtYWlsIGNoYW5uZWwgY3Jvc3NlcyB0aGUKICAgICAgICAjIHN5c3RlbSBib3VuZGFyeSwgc28gb25seSBlbWFpbCBpcyBkcmF3biBoZXJlLgogICAgICAgIGVwdmJzIC0+IGVtYWlsICJTZW5kcyBub3RpZmljYXRpb25zIGFuZCByZW1pbmRlcnMuIEV2ZW50LWRyaXZlbi4iICJFbWFpbCIKICAgIH0KCiAgICB2aWV3cyB7CgogICAgICAgIHN5c3RlbUNvbnRleHQgZXB2YnMgImNvbnRleHQiICJXaG8gdXNlcyB0aGUgRXZlbnQgUGxhbm5pbmcgYW5kIFZlbnVlIEJvb2tpbmcgU3lzdGVtLCBhbmQgd2hhdCBjcm9zc2VzIGl0cyBib3VuZGFyeS4iIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgICAgIGF1dG9MYXlvdXQgbHIKICAgICAgICAgICAgZGVmYXVsdAogICAgICAgIH0KCiAgICAgICAgc3R5bGVzIHsKCiAgICAgICAgICAgIGVsZW1lbnQgIlBlcnNvbiIgewogICAgICAgICAgICAgICAgc2hhcGUgcGVyc29uCiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICIjZmZmMmNjIgogICAgICAgICAgICAgICAgc3Ryb2tlICIjZDZiNjU2IgogICAgICAgICAgICAgICAgc3Ryb2tlV2lkdGggMgogICAgICAgICAgICAgICAgY29sb3IgIiM3ZjYwMDAiCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGVsZW1lbnQgIlNvZnR3YXJlIFN5c3RlbSIgewogICAgICAgICAgICAgICAgc2hhcGUgUm91bmRlZEJveAogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAiI2RhZThmYyIKICAgICAgICAgICAgICAgIHN0cm9rZSAiIzZjOGViZiIKICAgICAgICAgICAgICAgIHN0cm9rZVdpZHRoIDIKICAgICAgICAgICAgICAgIGNvbG9yICIjMWYzODY0IgogICAgICAgICAgICB9CgogICAgICAgICAgICBlbGVtZW50ICJFeHRlcm5hbCIgewogICAgICAgICAgICAgICAgYmFja2dyb3VuZCAiI2U4ZjhmNSIKICAgICAgICAgICAgICAgIHN0cm9rZSAiIzFhYmM5YyIKICAgICAgICAgICAgICAgIHN0cm9rZVdpZHRoIDIKICAgICAgICAgICAgICAgIGNvbG9yICIjMGU2NjU1IgogICAgICAgICAgICB9CgogICAgICAgICAgICBlbGVtZW50ICJFeHRlcm5hbCBVbmtub3duIiB7CiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kICIjZmRlY2VhIgogICAgICAgICAgICAgICAgc3Ryb2tlICIjZTc0YzNjIgogICAgICAgICAgICAgICAgc3Ryb2tlV2lkdGggMgogICAgICAgICAgICAgICAgY29sb3IgIiM5MjJiMjEiCiAgICAgICAgICAgICAgICBib3JkZXIgZGFzaGVkCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGVsZW1lbnQgIkdyb3VwOkNvbm5lY3RTcGhlcmUgKGludGVybmFsKSIgewogICAgICAgICAgICAgICAgY29sb3IgIiM3ZjdmN2YiCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGVsZW1lbnQgIkdyb3VwOkNsaWVudCAmIHBhcnRpY2lwYW50cyAoZXh0ZXJuYWwpIiB7CiAgICAgICAgICAgICAgICBjb2xvciAiIzFhYmM5YyIKICAgICAgICAgICAgfQoKICAgICAgICAgICAgcmVsYXRpb25zaGlwICJSZWxhdGlvbnNoaXAiIHsKICAgICAgICAgICAgICAgIHRoaWNrbmVzcyAyCiAgICAgICAgICAgICAgICBjb2xvciAiIzY2NjY2NiIKICAgICAgICAgICAgICAgIHJvdXRpbmcgT3J0aG9nb25hbAogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQp9",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "configuration" : {
+      "defaultView" : "context",
+      "styles" : {
+        "elements" : [ {
+          "background" : "#e8f8f5",
+          "color" : "#0e6655",
+          "stroke" : "#1abc9c",
+          "strokeWidth" : 2,
+          "tag" : "External"
+        }, {
+          "background" : "#fdecea",
+          "border" : "Dashed",
+          "color" : "#922b21",
+          "stroke" : "#e74c3c",
+          "strokeWidth" : 2,
+          "tag" : "External Unknown"
+        }, {
+          "color" : "#1abc9c",
+          "tag" : "Group:Client & participants (external)"
+        }, {
+          "color" : "#7f7f7f",
+          "tag" : "Group:ConnectSphere (internal)"
+        }, {
+          "background" : "#fff2cc",
+          "color" : "#7f6000",
+          "shape" : "Person",
+          "stroke" : "#d6b656",
+          "strokeWidth" : 2,
+          "tag" : "Person"
+        }, {
+          "background" : "#dae8fc",
+          "color" : "#1f3864",
+          "shape" : "RoundedBox",
+          "stroke" : "#6c8ebf",
+          "strokeWidth" : 2,
+          "tag" : "Software System"
+        } ],
+        "relationships" : [ {
+          "color" : "#666666",
+          "routing" : "Orthogonal",
+          "tag" : "Relationship",
+          "thickness" : 2
+        } ]
+      },
+      "terminology" : { }
+    },
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Who uses the Event Planning and Venue Booking System, and what crosses its boundary.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "context",
+      "name" : "System Context View: Event Planning and Venue Booking System",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "10"
+      }, {
+        "id" : "11"
+      }, {
+        "id" : "12"
+      }, {
+        "id" : "13"
+      }, {
+        "id" : "14"
+      }, {
+        "id" : "15"
+      }, {
+        "id" : "9"
+      } ],
+      "softwareSystemId" : "7"
+    } ]
+  }
+}
