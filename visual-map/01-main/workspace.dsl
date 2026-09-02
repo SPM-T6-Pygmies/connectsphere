@@ -21,8 +21,9 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
     #    real-world processes, no software system to draw.
     #  - Authentication is required but the method is undecided (#62). No identity
     #    provider is modelled — drawing one would invent an integration.
-    #  - Only actor -> system edges are drawn. In-app notifications flow back to every
-    #    actor; six return edges would not survive at L1 (see the email edge below).
+    #  - In-app notification return edges are in the model but excluded from the "context"
+    #    view: five extra edges would not survive at L1. They are modelled because they are
+    #    the handoffs the journey workspaces sequence (see 02-workflow).
     #  - No containers yet: the internal structure has not been designed, and guessing it
     #    would be invention. L2/L3 land here once the architecture is decided.
     # =========================================================================
@@ -83,8 +84,16 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         tech_staff  -> epvbs "Checks and reserves equipment, records defects, supports events."
         ops_manager -> epvbs "Assigns and reassigns Event Coordinators."
 
-        # In-app notifications reach all six actors; only the email channel crosses the
-        # system boundary, so only email is drawn here.
+        # In-app notifications back to the actors. These carry the workflow handoffs, so
+        # they are modelled — but excluded from the "context" view below to keep L1 legible.
+        # No edge to the Operations Manager: nothing in the brief notifies that role.
+        epvbs -> organiser   "Notifies of clarification requests, decisions, confirmation and changes. Event-driven." "In-app" "Notification"
+        epvbs -> coordinator "Notifies of assignment, venue and equipment decisions, and readiness gaps. Event-driven." "In-app" "Notification"
+        epvbs -> venue_staff "Notifies of booking requests and changes affecting a venue. Event-driven." "In-app" "Notification"
+        epvbs -> tech_staff  "Notifies of equipment requirements and changes affecting a reservation. Event-driven." "In-app" "Notification"
+        epvbs -> attendee    "Notifies of registration opening, confirmation and event changes. Event-driven." "In-app" "Notification"
+
+        # Only the email channel crosses the system boundary, so only email is drawn at L1.
         epvbs -> email "Sends notifications and reminders. Event-driven." "Email"
     }
 
@@ -92,6 +101,9 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
 
         systemContext epvbs "context" "Who uses the Event Planning and Venue Booking System, and what crosses its boundary." {
             include *
+            # Notification return edges live in the model for the journey workspaces; at L1
+            # they only add noise, so the context view keeps just the actor -> system edges.
+            exclude "epvbs -> organiser" "epvbs -> coordinator" "epvbs -> venue_staff" "epvbs -> tech_staff" "epvbs -> attendee"
             autoLayout lr
             default
         }
@@ -141,6 +153,13 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                 thickness 2
                 color "#666666"
                 routing Orthogonal
+            }
+
+            # System -> actor notifications: dashed teal, so a handoff reads differently
+            # from a user action on the journey diagrams.
+            relationship "Notification" {
+                color "#1abc9c"
+                style dashed
             }
         }
     }

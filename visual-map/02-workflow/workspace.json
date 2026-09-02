@@ -1,0 +1,673 @@
+{
+  "configuration" : { },
+  "description" : "Journey lens. The 14-step path an event takes from an Organiser's draft to a closed event, as a sequence of interactions across the system boundary.",
+  "documentation" : { },
+  "id" : 2,
+  "lastModifiedDate" : "2026-09-01T19:52:12Z",
+  "model" : {
+    "people" : [ {
+      "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "1",
+      "name" : "Event Coordinator",
+      "properties" : {
+        "structurizr.dsl.identifier" : "coordinator"
+      },
+      "relationships" : [ {
+        "description" : "Reviews and approves requests, requests venue + equipment, confirms and cancels events.",
+        "destinationId" : "7",
+        "id" : "11",
+        "sourceId" : "1",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Owns the venue catalogue and availability. Decides booking requests, blocks venues, prepares the room.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "2",
+      "name" : "Venue Staff",
+      "properties" : {
+        "structurizr.dsl.identifier" : "venue_staff"
+      },
+      "relationships" : [ {
+        "description" : "Approves or rejects venue bookings, maintains the catalogue, blocks venues.",
+        "destinationId" : "7",
+        "id" : "12",
+        "sourceId" : "2",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Owns the equipment catalogue. Checks availability, reserves equipment, supports events on site.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "3",
+      "name" : "Technical Support Staff",
+      "properties" : {
+        "structurizr.dsl.identifier" : "tech_staff"
+      },
+      "relationships" : [ {
+        "description" : "Checks and reserves equipment, records defects, supports events.",
+        "destinationId" : "7",
+        "id" : "13",
+        "sourceId" : "3",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Assigns and reassigns Event Coordinators. Follows an SOP kept outside the system.",
+      "group" : "ConnectSphere (internal)",
+      "id" : "4",
+      "name" : "Event Operations Manager [?]",
+      "properties" : {
+        "structurizr.dsl.identifier" : "ops_manager"
+      },
+      "relationships" : [ {
+        "description" : "Assigns and reassigns Event Coordinators.",
+        "destinationId" : "7",
+        "id" : "14",
+        "sourceId" : "4",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Client representative. Submits the event request, supplies requirements, requests changes.",
+      "group" : "Client & participants (external)",
+      "id" : "5",
+      "name" : "Event Organiser",
+      "properties" : {
+        "structurizr.dsl.identifier" : "organiser"
+      },
+      "relationships" : [ {
+        "description" : "Submits event and change requests; views confirmed arrangements.",
+        "destinationId" : "7",
+        "id" : "9",
+        "sourceId" : "5",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    }, {
+      "description" : "Participant. Registers for a confirmed event, may join the waiting list, may withdraw.",
+      "group" : "Client & participants (external)",
+      "id" : "6",
+      "name" : "Attendee",
+      "properties" : {
+        "structurizr.dsl.identifier" : "attendee"
+      },
+      "relationships" : [ {
+        "description" : "Registers for confirmed events, joins the waiting list, withdraws.",
+        "destinationId" : "7",
+        "id" : "10",
+        "sourceId" : "6",
+        "tags" : "Relationship"
+      } ],
+      "tags" : "Element,Person"
+    } ],
+    "softwareSystems" : [ {
+      "description" : "Single platform for event requests, venue booking, equipment, registration, changes and reporting.",
+      "documentation" : { },
+      "id" : "7",
+      "name" : "Event Planning and Venue Booking System",
+      "properties" : {
+        "structurizr.dsl.identifier" : "epvbs"
+      },
+      "relationships" : [ {
+        "description" : "Notifies of clarification requests, decisions, confirmation and changes. Event-driven.",
+        "destinationId" : "5",
+        "id" : "15",
+        "sourceId" : "7",
+        "tags" : "Relationship,Notification",
+        "technology" : "In-app"
+      }, {
+        "description" : "Notifies of assignment, venue and equipment decisions, and readiness gaps. Event-driven.",
+        "destinationId" : "1",
+        "id" : "16",
+        "sourceId" : "7",
+        "tags" : "Relationship,Notification",
+        "technology" : "In-app"
+      }, {
+        "description" : "Notifies of booking requests and changes affecting a venue. Event-driven.",
+        "destinationId" : "2",
+        "id" : "17",
+        "sourceId" : "7",
+        "tags" : "Relationship,Notification",
+        "technology" : "In-app"
+      }, {
+        "description" : "Notifies of equipment requirements and changes affecting a reservation. Event-driven.",
+        "destinationId" : "3",
+        "id" : "18",
+        "sourceId" : "7",
+        "tags" : "Relationship,Notification",
+        "technology" : "In-app"
+      }, {
+        "description" : "Notifies of registration opening, confirmation and event changes. Event-driven.",
+        "destinationId" : "6",
+        "id" : "19",
+        "sourceId" : "7",
+        "tags" : "Relationship,Notification",
+        "technology" : "In-app"
+      }, {
+        "description" : "Sends notifications and reminders. Event-driven.",
+        "destinationId" : "8",
+        "id" : "20",
+        "sourceId" : "7",
+        "tags" : "Relationship",
+        "technology" : "Email"
+      } ],
+      "tags" : "Element,Software System"
+    }, {
+      "description" : "Carries outbound email notifications. Provider not chosen.",
+      "documentation" : { },
+      "id" : "8",
+      "name" : "Email Delivery Service [?]",
+      "properties" : {
+        "structurizr.dsl.identifier" : "email"
+      },
+      "tags" : "Element,Software System,External"
+    } ]
+  },
+  "name" : "ConnectSphere — Event Request Workflow",
+  "properties" : {
+    "structurizr.inspection.error" : "7",
+    "structurizr.inspection.info" : "0",
+    "structurizr.inspection.ignore" : "0",
+    "structurizr.inspection.warning" : "0"
+  },
+  "views" : {
+    "configuration" : {
+      "defaultView" : "journey",
+      "styles" : {
+        "elements" : [ {
+          "background" : "#e8f8f5",
+          "color" : "#0e6655",
+          "stroke" : "#1abc9c",
+          "strokeWidth" : 2,
+          "tag" : "External"
+        }, {
+          "background" : "#fdecea",
+          "border" : "Dashed",
+          "color" : "#922b21",
+          "stroke" : "#e74c3c",
+          "strokeWidth" : 2,
+          "tag" : "External Unknown"
+        }, {
+          "color" : "#1abc9c",
+          "tag" : "Group:Client & participants (external)"
+        }, {
+          "color" : "#7f7f7f",
+          "tag" : "Group:ConnectSphere (internal)"
+        }, {
+          "background" : "#fff2cc",
+          "color" : "#7f6000",
+          "shape" : "Person",
+          "stroke" : "#d6b656",
+          "strokeWidth" : 2,
+          "tag" : "Person"
+        }, {
+          "background" : "#dae8fc",
+          "color" : "#1f3864",
+          "shape" : "RoundedBox",
+          "stroke" : "#6c8ebf",
+          "strokeWidth" : 2,
+          "tag" : "Software System"
+        } ],
+        "relationships" : [ {
+          "color" : "#1abc9c",
+          "style" : "Dashed",
+          "tag" : "Notification"
+        }, {
+          "color" : "#666666",
+          "routing" : "Orthogonal",
+          "tag" : "Relationship",
+          "thickness" : 2
+        } ]
+      },
+      "terminology" : { }
+    },
+    "dynamicViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "The 14-step typical process, one interaction per step.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "journey",
+      "name" : "Dynamic View",
+      "order" : 2,
+      "relationships" : [ {
+        "description" : "Step 1 — Draft: saves an event request with initial requirements.",
+        "id" : "9",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "Step 2 — Submission: submits the request. Mandatory fields and lead time undecided [?].",
+        "id" : "9",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "Step 3 — Assignment: assigns an Event Coordinator. Manual, no acceptance step.",
+        "id" : "14",
+        "order" : "3",
+        "response" : false
+      }, {
+        "description" : "Step 4 — Review: requests clarification where information is incomplete or unclear.",
+        "id" : "11",
+        "order" : "4",
+        "response" : false
+      }, {
+        "description" : "Step 5 — Initial approval: decides whether planning may proceed. Decision recorded either way.",
+        "id" : "11",
+        "order" : "5",
+        "response" : false
+      }, {
+        "description" : "Step 6 — Venue identification: searches venues by date, capacity, layout, accessibility.",
+        "id" : "11",
+        "order" : "6",
+        "response" : false
+      }, {
+        "description" : "Step 7 — Venue request: approves, rejects, or suggests an alternative.",
+        "id" : "12",
+        "order" : "7",
+        "response" : false
+      }, {
+        "description" : "Step 8 — Technical requirements: confirms and reserves what can be provided.",
+        "id" : "13",
+        "order" : "8",
+        "response" : false
+      }, {
+        "description" : "Step 9 — Preparation: tracks outstanding actions while staff update progress.",
+        "id" : "11",
+        "order" : "9",
+        "response" : false
+      }, {
+        "description" : "Step 10 — Confirmation: confirms once essential arrangements are complete.",
+        "id" : "11",
+        "order" : "10",
+        "response" : false
+      }, {
+        "description" : "Step 11 — Registration: registers within the permitted period, subject to capacity.",
+        "id" : "10",
+        "order" : "11",
+        "response" : false
+      }, {
+        "description" : "Step 12 — Changes: requests a change; the Coordinator assesses the impact.",
+        "id" : "9",
+        "order" : "12",
+        "response" : false
+      }, {
+        "description" : "Step 13 — Delivery: prepares the room; Technical Support prepares the equipment.",
+        "id" : "12",
+        "order" : "13",
+        "response" : false
+      }, {
+        "description" : "Step 14 — Completion: records attendance, notes and issues, then closes the event.",
+        "id" : "11",
+        "order" : "14",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Steps 1-5. Draft, submission, coordinator assignment, clarification, initial approval.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "intake",
+      "name" : "Dynamic View",
+      "order" : 3,
+      "relationships" : [ {
+        "description" : "Step 1 — Draft: saves an event request. Name, type, dates, attendance, requirements.",
+        "id" : "9",
+        "order" : "1",
+        "response" : false
+      }, {
+        "description" : "Step 2 — Submission: submits the request. Mandatory fields and lead time undecided [?].",
+        "id" : "9",
+        "order" : "2",
+        "response" : false
+      }, {
+        "description" : "Step 3 — Assignment: assigns an Event Coordinator. Manual, follows an SOP kept outside the system.",
+        "id" : "14",
+        "order" : "3",
+        "response" : false
+      }, {
+        "description" : "Notifies the assignee. No acceptance step and no decline path.",
+        "id" : "16",
+        "order" : "3.1",
+        "response" : false
+      }, {
+        "description" : "Step 4 — Review: requests clarification where information is incomplete or unclear.",
+        "id" : "11",
+        "order" : "4",
+        "response" : false
+      }, {
+        "description" : "Notifies of the clarification request.",
+        "id" : "15",
+        "order" : "4.1",
+        "response" : false
+      }, {
+        "description" : "Answers. The exchange is retained on the event record.",
+        "id" : "9",
+        "order" : "4.2",
+        "response" : false
+      }, {
+        "description" : "Records a technical question. The Coordinator stays the liaison and owns the reply.",
+        "id" : "13",
+        "order" : "4.3",
+        "response" : false
+      }, {
+        "description" : "Step 5 — Initial approval: decides whether planning may proceed. Commits nothing.",
+        "id" : "11",
+        "order" : "5",
+        "response" : false
+      }, {
+        "description" : "Notifies of the decision. Approved, returned or rejected, all recorded.",
+        "id" : "15",
+        "order" : "5.1",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Steps 6-10. Venue booking, equipment reservation, preparation tracking, confirmation.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "arrangement",
+      "name" : "Dynamic View",
+      "order" : 4,
+      "relationships" : [ {
+        "description" : "Step 6 — Venue identification: searches by date, capacity, layout, accessibility, facilities.",
+        "id" : "11",
+        "order" : "6",
+        "response" : false
+      }, {
+        "description" : "Step 7 — Venue request: submits a booking. Venues book in AM / PM / Night slots.",
+        "id" : "11",
+        "order" : "7",
+        "response" : false
+      }, {
+        "description" : "Notifies of the booking request.",
+        "id" : "17",
+        "order" : "7.1",
+        "response" : false
+      }, {
+        "description" : "Approves, rejects, or suggests an alternative venue.",
+        "id" : "12",
+        "order" : "7.2",
+        "response" : false
+      }, {
+        "description" : "Notifies of the booking decision.",
+        "id" : "16",
+        "order" : "7.3",
+        "response" : false
+      }, {
+        "description" : "Step 8 — Technical requirements: notifies of the requested equipment and support.",
+        "id" : "18",
+        "order" : "8",
+        "response" : false
+      }, {
+        "description" : "Confirms what can be provided and reserves it. Per session where sessions differ.",
+        "id" : "13",
+        "order" : "8.1",
+        "response" : false
+      }, {
+        "description" : "Notifies of the equipment outcome.",
+        "id" : "16",
+        "order" : "8.2",
+        "response" : false
+      }, {
+        "description" : "Step 9 — Preparation: tracks outstanding actions, aggregated across every session.",
+        "id" : "11",
+        "order" : "9",
+        "response" : false
+      }, {
+        "description" : "Updates venue preparation progress.",
+        "id" : "12",
+        "order" : "9.1",
+        "response" : false
+      }, {
+        "description" : "Updates equipment preparation progress.",
+        "id" : "13",
+        "order" : "9.2",
+        "response" : false
+      }, {
+        "description" : "Step 10 — Confirmation: confirms once essential arrangements are complete.",
+        "id" : "11",
+        "order" : "10",
+        "response" : false
+      }, {
+        "description" : "Notifies of confirmation. Confirmed arrangements become viewable.",
+        "id" : "15",
+        "order" : "10.1",
+        "response" : false
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Steps 11-14. Attendee registration, changes before the event, delivery, completion.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalBoundariesVisible" : false,
+      "key" : "delivery",
+      "name" : "Dynamic View",
+      "order" : 5,
+      "relationships" : [ {
+        "description" : "Step 11 — Registration: notifies that registration has opened.",
+        "id" : "19",
+        "order" : "11",
+        "response" : false
+      }, {
+        "description" : "Registers within the permitted period, subject to capacity.",
+        "id" : "10",
+        "order" : "11.1",
+        "response" : false
+      }, {
+        "description" : "Step 12 — Changes: requests a change before the event.",
+        "id" : "9",
+        "order" : "12",
+        "response" : false
+      }, {
+        "description" : "Notifies of the change request.",
+        "id" : "16",
+        "order" : "12.1",
+        "response" : false
+      }, {
+        "description" : "Assesses impact on venue, equipment and registrations. Edit vs impacting change [?].",
+        "id" : "11",
+        "order" : "12.2",
+        "response" : false
+      }, {
+        "description" : "Notifies registered attendees of a confirmed change.",
+        "id" : "19",
+        "order" : "12.3",
+        "response" : false
+      }, {
+        "description" : "Step 13 — Delivery: prepares the room and records readiness.",
+        "id" : "12",
+        "order" : "13",
+        "response" : false
+      }, {
+        "description" : "Sets up equipment and records readiness.",
+        "id" : "13",
+        "order" : "13.1",
+        "response" : false
+      }, {
+        "description" : "Step 14 — Completion: records attendance, operational notes and issues, then closes.",
+        "id" : "11",
+        "order" : "14",
+        "response" : false
+      } ]
+    } ],
+    "systemContextViews" : [ {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "description" : "Who uses the Event Planning and Venue Booking System, and what crosses its boundary.",
+      "elements" : [ {
+        "id" : "1",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "2",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "3",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "4",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "5",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "7",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "8",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "context",
+      "name" : "System Context View: Event Planning and Venue Booking System",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "10"
+      }, {
+        "id" : "11"
+      }, {
+        "id" : "12"
+      }, {
+        "id" : "13"
+      }, {
+        "id" : "14"
+      }, {
+        "id" : "20"
+      }, {
+        "id" : "9"
+      } ],
+      "softwareSystemId" : "7"
+    } ]
+  }
+}
