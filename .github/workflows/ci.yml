@@ -47,3 +47,4 @@ jobs:
         if: ${{ always() }}
         continue-on-error: false
         run: pnpm build
+        
