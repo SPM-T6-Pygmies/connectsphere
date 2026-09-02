@@ -3,7 +3,7 @@
   "description" : "Journey lens. The 14-step path an event takes from an Organiser's draft to a closed event, as a sequence of interactions across the system boundary.",
   "documentation" : { },
   "id" : 2,
-  "lastModifiedDate" : "2026-09-01T19:52:12Z",
+  "lastModifiedDate" : "2026-09-02T11:16:51Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",

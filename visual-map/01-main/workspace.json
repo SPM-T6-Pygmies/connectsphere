@@ -3,7 +3,7 @@
   "description" : "Reference model. L1 system context: who uses the system and what crosses its boundary.",
   "documentation" : { },
   "id" : 1,
-  "lastModifiedDate" : "2026-09-01T19:50:44Z",
+  "lastModifiedDate" : "2026-09-02T11:16:44Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
