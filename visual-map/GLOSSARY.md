@@ -6,8 +6,9 @@ ConnectSphere Event Services.
 **Source:** `spm-brain/raw/Customer Brief no. 1.md` (IS212 AY2026/27 T1 customer briefing).
 Terms are taken from the brief's own wording so the maps trace back to the customer's language.
 
-**Status:** initial pass. `01-main/workspace.dsl` is not yet authored, so this glossary currently runs
-*ahead* of the model rather than describing it. Two consequences:
+**Status:** `01-main/workspace.dsl` now models L1-L3, so the vocabulary below is partly *in* the map
+and partly still ahead of it — the venue, equipment and reporting sections describe modules the map
+names but has not designed. Two consequences:
 
 - The brief is **deliberately ambiguous** by design — business rules are to be settled in the
   customer Q&A sessions. Terms whose existence, rules, or shape the brief leaves open carry `[?]`
@@ -190,14 +191,41 @@ customer confirms it.
 
 ## Naming legend (artifact identifiers in the DSL)
 
-**Provisional** — `01-main/workspace.dsl` has not been authored yet, so nothing below is in use.
-Record the real legend here once the model exists (see [`CONVENTIONS.md`](CONVENTIONS.md) → Naming).
-The suffixes follow the implementation repo's Ports & Adapters layout (`src/core/ports`,
-`src/core/use-cases`, `src/core/domain`, `src/adapters`, `src/composition`).
+**In use** since `01-main/workspace.dsl` gained its L2/L3 model. The suffixes follow the
+implementation repo's Ports & Adapters layout (`src/core/ports`, `src/core/use-cases`,
+`src/core/domain`, `src/adapters`, `src/composition`) — see
+[`../docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) and
+[`CONVENTIONS.md`](CONVENTIONS.md) → Naming.
 
-| Prefix / pattern | Kind |
-| --- | --- |
-| `_port` suffix | Domain port interface (`src/core/ports`). |
-| `_uc` suffix | Use-case component (`src/core/use-cases`). |
-| `_e` suffix | Domain entity group component (`src/core/domain`). |
-| `_t` suffix | Database table component. |
+| Suffix | Kind | Example identifier |
+| --- | --- | --- |
+| `_ui` | Driving adapter — page, Server Action, route handler (`src/app`). | `event_form_ui` |
+| `_uc` | Use case (`src/core/use-cases`). | `submit_request_uc` |
+| `_e` | Domain entity, value object or rule set (`src/core/domain`). | `event_request_e` |
+| `_port` | Port the core owns (`src/core/ports`). | `event_repository_port` |
+| `_ad` | Driven adapter implementing a port (`src/adapters/outbound`). | `supabase_events_ad` |
+| `_t` | Database table component. | not yet used — the schema is undesigned |
+| `_placeholder` | A module the brief names that nothing has designed yet. | `venues_placeholder` |
+
+Display names carry the artifact name the code will use (`SubmitEventRequestUseCase`,
+`EventRepository`, `SupabaseEventRepository`); the identifier is the short handle.
+
+## Module colours (this project)
+
+One colour per module group, applied to the group boundary. Modules with no ticket share a muted
+grey, so the map reads at a glance as *built here, named but not designed there*.
+
+| Module group | Colour | State |
+| --- | --- | --- |
+| `Shared Platform` | grey `#7f7f7f` | Composition root, clock, test doubles |
+| `Identity & Access` | purple `#9673a6` | Sprint 1 |
+| `Events` | red `#b85450` | Sprint 1 |
+| `Registration` | green `#82b366` | Sprint 1 |
+| `Notifications [?]` | teal `#1abc9c` | Port only; no delivery channel built |
+| `Venues [?]` | muted `#b3b3b3` | Named by the brief, no ticket |
+| `Equipment [?]` | muted `#b3b3b3` | Named by the brief, no ticket |
+| `Reporting [?]` | muted `#b3b3b3` | Named by the brief, no ticket |
+
+Ring tags (`Driving Adapter`, `Use Case`, `Domain`, `Port`, `Driven Adapter`, `Composition Root`)
+cut across these groups and carry their own colours — see [`CONVENTIONS.md`](CONVENTIONS.md) →
+Tags & styles.
