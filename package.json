@@ -4,16 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:secrets": "infisical run --env=dev -- pnpm dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "pretypecheck": "next typegen",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.12.5",
-    "@supabase/supabase-js": "^2.112.4",
+    "@supabase/ssr": "^0.12.6",
+    "@supabase/supabase-js": "^2.115.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.39.0",
