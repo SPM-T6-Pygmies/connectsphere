@@ -1,0 +1,14 @@
+{
+  "$schema": "https://claude.com",
+  "permissions": {
+    "deny": [
+      "Bash(*infisical secrets*)",
+      "Bash(*infisical export*)",
+      "Bash(*printenv*)",
+      "Read(./.env*)",
+      "Read(~/.infisical/**)"
+    ],
+    "ask": ["Bash(*infisical run*)"],
+    "allow": ["Bash(git status)", "Bash(git diff)"]
+  }
+}
