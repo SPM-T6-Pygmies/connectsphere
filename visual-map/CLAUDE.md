@@ -16,7 +16,7 @@ UI files, message handlers…), so **accuracy matters more than completeness**.
 | Path | What it is |
 | --- | --- |
 | `01-main/workspace.dsl` | The whole system (people, externals, all modules). The **reference model** — match its style. |
-| `NN-<journey>/workspace.dsl` | A per-journey / per-lens workspace. Uses `workspace extends ../01-main/workspace.dsl` + **dynamic views** only — no new model elements (those go upstream in `01-main/`). |
+| `NN-<lens>/workspace.dsl` | A per-journey / per-cycle / per-lens workspace. Uses `workspace extends ../01-main/workspace.dsl` + **views only** — a dynamic view for a journey, or a static view filtered to the lens. No new model elements; those go upstream in `01-main/`. |
 | `SYNTAX.md` | Authoritative Structurizr DSL **language reference**. |
 | `CONVENTIONS.md` | House style for authoring the DSL. |
 | `GLOSSARY.md` | Domain vocabulary for the system being mapped. |

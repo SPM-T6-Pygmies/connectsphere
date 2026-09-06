@@ -1,9 +1,9 @@
 {
   "configuration" : { },
-  "description" : "Journey lens. The 14-step path an event takes from an Organiser's draft to a closed event, as a sequence of interactions across the system boundary.",
+  "description" : "Cycle lens. The part of the reference model Sprint 1 (6-20 Sep) actually builds, and the order it can be built in.",
   "documentation" : { },
-  "id" : 2,
-  "lastModifiedDate" : "2026-09-05T19:48:13Z",
+  "id" : 3,
+  "lastModifiedDate" : "2026-09-05T19:48:42Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -992,7 +992,7 @@
       "tags" : "Element,Software System,External"
     } ]
   },
-  "name" : "ConnectSphere — Event Request Workflow",
+  "name" : "ConnectSphere — Sprint 1 Build Slice",
   "properties" : {
     "structurizr.inspection.error" : "63",
     "structurizr.inspection.info" : "0",
@@ -1246,9 +1246,441 @@
       }, {
         "id" : "99"
       } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "What Sprint 1 builds: Identity & Access, Events, Registration, and the shared platform under them.",
+      "elements" : [ {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "14",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "16",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "22",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "24",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "25",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "26",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "33",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "37",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "38",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "39",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "40",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "44",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "45",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "sprint1-components",
+      "name" : "Component View: Event Planning and Venue Booking System - Web Application",
+      "order" : 4,
+      "relationships" : [ {
+        "id" : "100"
+      }, {
+        "id" : "101"
+      }, {
+        "id" : "102"
+      }, {
+        "id" : "103"
+      }, {
+        "id" : "104"
+      }, {
+        "id" : "105"
+      }, {
+        "id" : "106"
+      }, {
+        "id" : "107"
+      }, {
+        "id" : "108"
+      }, {
+        "id" : "109"
+      }, {
+        "id" : "110"
+      }, {
+        "id" : "111"
+      }, {
+        "id" : "112"
+      }, {
+        "id" : "113"
+      }, {
+        "id" : "114"
+      }, {
+        "id" : "115"
+      }, {
+        "id" : "116"
+      }, {
+        "id" : "117"
+      }, {
+        "id" : "118"
+      }, {
+        "id" : "119"
+      }, {
+        "id" : "120"
+      }, {
+        "id" : "121"
+      }, {
+        "id" : "67"
+      }, {
+        "id" : "68"
+      }, {
+        "id" : "69"
+      }, {
+        "id" : "70"
+      }, {
+        "id" : "71"
+      }, {
+        "id" : "72"
+      }, {
+        "id" : "73"
+      }, {
+        "id" : "74"
+      }, {
+        "id" : "75"
+      }, {
+        "id" : "76"
+      }, {
+        "id" : "77"
+      }, {
+        "id" : "78"
+      }, {
+        "id" : "79"
+      }, {
+        "id" : "80"
+      }, {
+        "id" : "81"
+      }, {
+        "id" : "82"
+      }, {
+        "id" : "83"
+      }, {
+        "id" : "84"
+      }, {
+        "id" : "85"
+      }, {
+        "id" : "86"
+      }, {
+        "id" : "87"
+      }, {
+        "id" : "88"
+      }, {
+        "id" : "89"
+      }, {
+        "id" : "90"
+      }, {
+        "id" : "91"
+      }, {
+        "id" : "92"
+      }, {
+        "id" : "93"
+      }, {
+        "id" : "94"
+      }, {
+        "id" : "95"
+      }, {
+        "id" : "96"
+      }, {
+        "id" : "97"
+      }, {
+        "id" : "98"
+      }, {
+        "id" : "99"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "The hexagon interior: buildable and fully testable with no database, no auth service and no server.",
+      "elements" : [ {
+        "id" : "9",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "16",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "26",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "37",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "39",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "sprint1-core",
+      "name" : "Component View: Event Planning and Venue Booking System - Web Application",
+      "order" : 5,
+      "relationships" : [ {
+        "id" : "104"
+      }, {
+        "id" : "105"
+      }, {
+        "id" : "106"
+      }, {
+        "id" : "107"
+      }, {
+        "id" : "108"
+      }, {
+        "id" : "109"
+      }, {
+        "id" : "110"
+      }, {
+        "id" : "111"
+      }, {
+        "id" : "112"
+      }, {
+        "id" : "113"
+      }, {
+        "id" : "114"
+      }, {
+        "id" : "115"
+      }, {
+        "id" : "116"
+      }, {
+        "id" : "117"
+      }, {
+        "id" : "75"
+      }, {
+        "id" : "76"
+      }, {
+        "id" : "77"
+      }, {
+        "id" : "78"
+      }, {
+        "id" : "79"
+      }, {
+        "id" : "80"
+      }, {
+        "id" : "81"
+      }, {
+        "id" : "82"
+      }, {
+        "id" : "83"
+      }, {
+        "id" : "84"
+      }, {
+        "id" : "85"
+      }, {
+        "id" : "86"
+      }, {
+        "id" : "87"
+      }, {
+        "id" : "88"
+      }, {
+        "id" : "89"
+      }, {
+        "id" : "90"
+      }, {
+        "id" : "91"
+      }, {
+        "id" : "92"
+      }, {
+        "id" : "93"
+      }, {
+        "id" : "94"
+      }, {
+        "id" : "95"
+      }, {
+        "id" : "96"
+      }, {
+        "id" : "97"
+      } ]
     } ],
     "configuration" : {
-      "defaultView" : "journey",
+      "defaultView" : "sprint1-components",
       "styles" : {
         "elements" : [ {
           "background" : "#eef5fd",
@@ -1443,389 +1875,6 @@
         "id" : "66"
       } ],
       "softwareSystemId" : "7"
-    } ],
-    "dynamicViews" : [ {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "description" : "The 14-step typical process, one interaction per step.",
-      "elements" : [ {
-        "id" : "1",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "2",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "3",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "4",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "5",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "6",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "7",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "externalBoundariesVisible" : false,
-      "key" : "journey",
-      "name" : "Dynamic View",
-      "order" : 4,
-      "relationships" : [ {
-        "description" : "Step 1 — Draft: saves an event request with initial requirements.",
-        "id" : "47",
-        "order" : "1",
-        "response" : false
-      }, {
-        "description" : "Step 2 — Submission: submits the request. Mandatory fields and lead time undecided [?].",
-        "id" : "47",
-        "order" : "2",
-        "response" : false
-      }, {
-        "description" : "Step 3 — Assignment: assigns an Event Coordinator. Manual, no acceptance step.",
-        "id" : "52",
-        "order" : "3",
-        "response" : false
-      }, {
-        "description" : "Step 4 — Review: requests clarification where information is incomplete or unclear.",
-        "id" : "49",
-        "order" : "4",
-        "response" : false
-      }, {
-        "description" : "Step 5 — Initial approval: decides whether planning may proceed. Decision recorded either way.",
-        "id" : "49",
-        "order" : "5",
-        "response" : false
-      }, {
-        "description" : "Step 6 — Venue identification: searches venues by date, capacity, layout, accessibility.",
-        "id" : "49",
-        "order" : "6",
-        "response" : false
-      }, {
-        "description" : "Step 7 — Venue request: approves, rejects, or suggests an alternative.",
-        "id" : "50",
-        "order" : "7",
-        "response" : false
-      }, {
-        "description" : "Step 8 — Technical requirements: confirms and reserves what can be provided.",
-        "id" : "51",
-        "order" : "8",
-        "response" : false
-      }, {
-        "description" : "Step 9 — Preparation: tracks outstanding actions while staff update progress.",
-        "id" : "49",
-        "order" : "9",
-        "response" : false
-      }, {
-        "description" : "Step 10 — Confirmation: confirms once essential arrangements are complete.",
-        "id" : "49",
-        "order" : "10",
-        "response" : false
-      }, {
-        "description" : "Step 11 — Registration: registers within the permitted period, subject to capacity.",
-        "id" : "48",
-        "order" : "11",
-        "response" : false
-      }, {
-        "description" : "Step 12 — Changes: requests a change; the Coordinator assesses the impact.",
-        "id" : "47",
-        "order" : "12",
-        "response" : false
-      }, {
-        "description" : "Step 13 — Delivery: prepares the room; Technical Support prepares the equipment.",
-        "id" : "50",
-        "order" : "13",
-        "response" : false
-      }, {
-        "description" : "Step 14 — Completion: records attendance, notes and issues, then closes the event.",
-        "id" : "49",
-        "order" : "14",
-        "response" : false
-      } ]
-    }, {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "description" : "Steps 1-5. Draft, submission, coordinator assignment, clarification, initial approval.",
-      "elements" : [ {
-        "id" : "1",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "3",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "4",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "5",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "7",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "externalBoundariesVisible" : false,
-      "key" : "intake",
-      "name" : "Dynamic View",
-      "order" : 5,
-      "relationships" : [ {
-        "description" : "Step 1 — Draft: saves an event request. Name, type, dates, attendance, requirements.",
-        "id" : "47",
-        "order" : "1",
-        "response" : false
-      }, {
-        "description" : "Step 2 — Submission: submits the request. Mandatory fields and lead time undecided [?].",
-        "id" : "47",
-        "order" : "2",
-        "response" : false
-      }, {
-        "description" : "Step 3 — Assignment: assigns an Event Coordinator. Manual, follows an SOP kept outside the system.",
-        "id" : "52",
-        "order" : "3",
-        "response" : false
-      }, {
-        "description" : "Notifies the assignee. No acceptance step and no decline path.",
-        "id" : "54",
-        "order" : "3.1",
-        "response" : false
-      }, {
-        "description" : "Step 4 — Review: requests clarification where information is incomplete or unclear.",
-        "id" : "49",
-        "order" : "4",
-        "response" : false
-      }, {
-        "description" : "Notifies of the clarification request.",
-        "id" : "53",
-        "order" : "4.1",
-        "response" : false
-      }, {
-        "description" : "Answers. The exchange is retained on the event record.",
-        "id" : "47",
-        "order" : "4.2",
-        "response" : false
-      }, {
-        "description" : "Records a technical question. The Coordinator stays the liaison and owns the reply.",
-        "id" : "51",
-        "order" : "4.3",
-        "response" : false
-      }, {
-        "description" : "Step 5 — Initial approval: decides whether planning may proceed. Commits nothing.",
-        "id" : "49",
-        "order" : "5",
-        "response" : false
-      }, {
-        "description" : "Notifies of the decision. Approved, returned or rejected, all recorded.",
-        "id" : "53",
-        "order" : "5.1",
-        "response" : false
-      } ]
-    }, {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "description" : "Steps 6-10. Venue booking, equipment reservation, preparation tracking, confirmation.",
-      "elements" : [ {
-        "id" : "1",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "2",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "3",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "5",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "7",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "externalBoundariesVisible" : false,
-      "key" : "arrangement",
-      "name" : "Dynamic View",
-      "order" : 6,
-      "relationships" : [ {
-        "description" : "Step 6 — Venue identification: searches by date, capacity, layout, accessibility, facilities.",
-        "id" : "49",
-        "order" : "6",
-        "response" : false
-      }, {
-        "description" : "Step 7 — Venue request: submits a booking. Venues book in AM / PM / Night slots.",
-        "id" : "49",
-        "order" : "7",
-        "response" : false
-      }, {
-        "description" : "Notifies of the booking request.",
-        "id" : "55",
-        "order" : "7.1",
-        "response" : false
-      }, {
-        "description" : "Approves, rejects, or suggests an alternative venue.",
-        "id" : "50",
-        "order" : "7.2",
-        "response" : false
-      }, {
-        "description" : "Notifies of the booking decision.",
-        "id" : "54",
-        "order" : "7.3",
-        "response" : false
-      }, {
-        "description" : "Step 8 — Technical requirements: notifies of the requested equipment and support.",
-        "id" : "56",
-        "order" : "8",
-        "response" : false
-      }, {
-        "description" : "Confirms what can be provided and reserves it. Per session where sessions differ.",
-        "id" : "51",
-        "order" : "8.1",
-        "response" : false
-      }, {
-        "description" : "Notifies of the equipment outcome.",
-        "id" : "54",
-        "order" : "8.2",
-        "response" : false
-      }, {
-        "description" : "Step 9 — Preparation: tracks outstanding actions, aggregated across every session.",
-        "id" : "49",
-        "order" : "9",
-        "response" : false
-      }, {
-        "description" : "Updates venue preparation progress.",
-        "id" : "50",
-        "order" : "9.1",
-        "response" : false
-      }, {
-        "description" : "Updates equipment preparation progress.",
-        "id" : "51",
-        "order" : "9.2",
-        "response" : false
-      }, {
-        "description" : "Step 10 — Confirmation: confirms once essential arrangements are complete.",
-        "id" : "49",
-        "order" : "10",
-        "response" : false
-      }, {
-        "description" : "Notifies of confirmation. Confirmed arrangements become viewable.",
-        "id" : "53",
-        "order" : "10.1",
-        "response" : false
-      } ]
-    }, {
-      "automaticLayout" : {
-        "edgeSeparation" : 50,
-        "nodeSeparation" : 50,
-        "rankDirection" : "LeftRight",
-        "rankSeparation" : 100,
-        "vertices" : true
-      },
-      "description" : "Steps 11-14. Attendee registration, changes before the event, delivery, completion.",
-      "elements" : [ {
-        "id" : "1",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "2",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "3",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "5",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "6",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "7",
-        "x" : 0,
-        "y" : 0
-      } ],
-      "externalBoundariesVisible" : false,
-      "key" : "delivery",
-      "name" : "Dynamic View",
-      "order" : 7,
-      "relationships" : [ {
-        "description" : "Step 11 — Registration: notifies that registration has opened.",
-        "id" : "57",
-        "order" : "11",
-        "response" : false
-      }, {
-        "description" : "Registers within the permitted period, subject to capacity.",
-        "id" : "48",
-        "order" : "11.1",
-        "response" : false
-      }, {
-        "description" : "Step 12 — Changes: requests a change before the event.",
-        "id" : "47",
-        "order" : "12",
-        "response" : false
-      }, {
-        "description" : "Notifies of the change request.",
-        "id" : "54",
-        "order" : "12.1",
-        "response" : false
-      }, {
-        "description" : "Assesses impact on venue, equipment and registrations. Edit vs impacting change [?].",
-        "id" : "49",
-        "order" : "12.2",
-        "response" : false
-      }, {
-        "description" : "Notifies registered attendees of a confirmed change.",
-        "id" : "57",
-        "order" : "12.3",
-        "response" : false
-      }, {
-        "description" : "Step 13 — Delivery: prepares the room and records readiness.",
-        "id" : "50",
-        "order" : "13",
-        "response" : false
-      }, {
-        "description" : "Sets up equipment and records readiness.",
-        "id" : "51",
-        "order" : "13.1",
-        "response" : false
-      }, {
-        "description" : "Step 14 — Completion: records attendance, operational notes and issues, then closes.",
-        "id" : "49",
-        "order" : "14",
-        "response" : false
-      } ]
     } ],
     "systemContextViews" : [ {
       "automaticLayout" : {
