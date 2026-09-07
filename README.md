@@ -14,18 +14,38 @@ pnpm dev
 Requires Node `>=22.12` (or `>=20.19`) — Vite 8, which Vitest 4 is built on,
 does not support earlier 22.x releases.
 
+### Secrets with Infisical (optional)
+
+If you'd rather pull env vars from Infisical than manage `.env.local` by
+hand:
+
+```bash
+# macOS
+brew install infisical/get-cli/infisical
+# or via pnpm
+pnpm add -g @infisical/cli
+
+infisical login          # authenticate this machine — choose "US Cloud" when prompted
+infisical init           # link this repo to an Infisical project
+pnpm dev:secrets         # shortcut for: infisical run --env=dev -- pnpm dev
+```
+
+See the [Infisical CLI docs](https://infisical.com/docs/cli/usage) for
+`--path`/`--recursive` flags and CI usage.
+
 Apply `supabase/schema.sql` to your Supabase project before using
 `/connections`.
 
 ## Commands
 
-| Command          | What it does                                        |
-| ---------------- | --------------------------------------------------- |
-| `pnpm dev`       | Dev server                                          |
-| `pnpm build`     | Production build                                    |
+| Command          | What it does                                          |
+| ---------------- | ----------------------------------------------------- |
+| `pnpm dev`       | Dev server                                            |
+| `pnpm dev:secrets` | Dev server with env vars injected from Infisical    |
+| `pnpm build`     | Production build                                      |
 | `pnpm lint`      | Next.js rules **plus architecture import boundaries** |
-| `pnpm typecheck` | `tsc --noEmit`                                      |
-| `pnpm test`      | Vitest — core and adapters, no database needed      |
+| `pnpm typecheck` | `tsc --noEmit`                                        |
+| `pnpm test`      | Vitest — core and adapters, no database needed        |
 
 ## Architecture
 

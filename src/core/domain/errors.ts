@@ -56,3 +56,67 @@ export class DuplicateConnectionError extends DomainError {
     super(`These members already have a ${existingStatus} connection.`);
   }
 }
+
+export class InvalidEventIdError extends DomainError {
+  readonly code = "invalid_event_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable event id.`);
+  }
+}
+
+export class InvalidRegistrationIdError extends DomainError {
+  readonly code = "invalid_registration_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable registration id.`);
+  }
+}
+
+export class InvalidAttendeeNameError extends DomainError {
+  readonly code = "invalid_attendee_name";
+
+  constructor() {
+    super("A registration needs the attendee's full name.");
+  }
+}
+
+export class InvalidAttendeeEmailError extends DomainError {
+  readonly code = "invalid_attendee_email";
+
+  constructor() {
+    super("A registration needs the attendee's email address.");
+  }
+}
+
+export class EventNotFoundError extends DomainError {
+  readonly code = "event_not_found";
+
+  constructor(id: string) {
+    super(`No event exists with id ${id}.`);
+  }
+}
+
+export class EventNotOpenForRegistrationError extends DomainError {
+  readonly code = "event_not_open_for_registration";
+
+  constructor(name: string) {
+    super(`Registration for ${name} is not open.`);
+  }
+}
+
+export class EventFullError extends DomainError {
+  readonly code = "event_full";
+
+  constructor() {
+    super("This event is full.");
+  }
+}
+
+export class DuplicateRegistrationError extends DomainError {
+  readonly code = "duplicate_registration";
+
+  constructor(email: string) {
+    super(`${email} is already registered for this event.`);
+  }
+}

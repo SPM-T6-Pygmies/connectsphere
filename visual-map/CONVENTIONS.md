@@ -185,6 +185,26 @@ blue *inside* the coloured boundary. Assign one colour per module group, e.g.:
 > If a colour is reused across two different element *types* (e.g. yellow for both a `Person` shape
 > and a `Group` outline), that's fine — different shapes keep them visually distinct.
 
+**Ring tags — only when the system under focus is Ports & Adapters.** A hexagonal system has a
+second axis the module groups cannot express: how far from the centre a component sits. Carry it on
+the **tag**, so *group = module, tag = ring*, and the Dependency Rule reads as colour flowing inward.
+
+| Ring | Tag | Colour | What lives there |
+| --- | --- | --- | --- |
+| Driving adapter | `Driving Adapter` | soft orange (fill `#fde9d9`, stroke `#d79b00`) | Routes, pages, actions, CLI, the test suite |
+| Application | `Use Case` | soft blue (fill `#dae8fc`, stroke `#6c8ebf`) | Orchestration only — no business decision |
+| Domain | `Domain` | soft green (fill `#d5e8d4`, stroke `#82b366`) | Entities, invariants, rules, domain errors |
+| Port | `Port` | grey + **dashed** (fill `#f7f7f7`, stroke `#666666`) | Interfaces the core owns; dashed = a contract, not a thing |
+| Driven adapter | `Driven Adapter` | soft purple (fill `#e1d5e7`, stroke `#9673a6`) | SDK, driver, clock, in-memory test doubles |
+| Wiring | `Composition Root` | soft yellow (fill `#fff2cc`, stroke `#d6b656`) | The one module that imports both sides |
+
+Draw the adapter pointing **at** the port it satisfies (`"Implements."`). The arrow looks backwards
+against runtime control flow, and that is the point: it is dependency inversion made visible.
+
+A module the brief names but nothing has designed yet gets one `Placeholder` component (grey, dashed)
+carrying the requirement it will grow from — not a guess at its use cases. Replace it when its
+tickets are written.
+
 Shapes come from the palette in [`SYNTAX.md`](SYNTAX.md) (`Cylinder`, `Folder`, `Bucket`, `Pipe`,
 `Robot`, `WebBrowser`, …). Default C4 tags (`Element`, `Person`, `Software System`, `Container`,
 `Component`, `Relationship`) are styled in the same block — see `01-main/workspace.dsl` `styles { ... }`.

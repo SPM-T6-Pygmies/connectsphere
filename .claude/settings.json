@@ -1,0 +1,25 @@
+{
+  "$schema": "https://claude.com",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff)"
+    ],
+    "deny": [
+      "Bash(*infisical secrets*)",
+      "Bash(*infisical export*)",
+      "Bash(*printenv*)",
+      "Read(./.env*)",
+      "Read(~/.infisical/**)"
+    ],
+    "ask": [
+      "Bash(*infisical run*)"
+    ]
+  },
+  "enabledPlugins": {
+    "playwright@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true
+  }
+}
