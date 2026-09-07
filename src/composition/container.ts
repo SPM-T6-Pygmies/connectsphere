@@ -1,10 +1,24 @@
+import {
+  demoEventCatalogue,
+  demoRegistrationRepository,
+} from "@/adapters/outbound/in-memory/attendee-demo-seed";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
+import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
+import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
+import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
+import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
+import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
+import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
+import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
+import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
+import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
+import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 
 /**
  * The composition root: the one module allowed to know both sides.
@@ -26,4 +40,49 @@ export async function buildSendConnectionRequest(): Promise<SendConnectionReques
     notifier: new LoggingNotifier(),
     clock: systemClock,
   });
+}
+
+/**
+ * Whether a Supabase project is configured for this deployment.
+ *
+ * Reading `process.env` is ambient outside state, and the composition root is
+ * where the architecture puts it. The team has no project yet, so without one
+ * the attendee pages fall back to seeded in-memory adapters -- the same
+ * classes the use-case tests run against, obeying the same ports.
+ */
+function hasSupabaseProject(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
+}
+
+async function attendeeAdapters(): Promise<{
+  events: EventCatalogue;
+  registrations: RegistrationRepository;
+}> {
+  if (!hasSupabaseProject()) {
+    return { events: demoEventCatalogue, registrations: demoRegistrationRepository };
+  }
+
+  const client = await createSupabaseServerClient();
+  return {
+    events: new SupabaseEventCatalogue(client),
+    registrations: new SupabaseRegistrationRepository(client),
+  };
+}
+
+export async function buildListEventsOpenForRegistration(): Promise<ListEventsOpenForRegistration> {
+  const { events } = await attendeeAdapters();
+
+  return new ListEventsOpenForRegistrationUseCase({ events, clock: systemClock });
+}
+
+export async function buildViewEventForRegistration(): Promise<ViewEventForRegistration> {
+  const { events } = await attendeeAdapters();
+
+  return new ViewEventForRegistrationUseCase({ events, clock: systemClock });
+}
+
+export async function buildRegisterForEvent(): Promise<RegisterForEvent> {
+  const { events, registrations } = await attendeeAdapters();
+
+  return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
 }
