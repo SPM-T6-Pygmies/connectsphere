@@ -56,3 +56,19 @@ export class DuplicateConnectionError extends DomainError {
     super(`These members already have a ${existingStatus} connection.`);
   }
 }
+
+export class InvalidClientOrganisationIdError extends DomainError {
+  readonly code = "invalid_client_organisation_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable client organisation id.`);
+  }
+}
+
+export class InvalidEventIdError extends DomainError {
+  readonly code = "invalid_event_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable event id.`);
+  }
+}
