@@ -56,7 +56,7 @@ describe("ViewEventForRegistrationUseCase", () => {
   });
 
   it("rejects an event that is not confirmed", async () => {
-    const useCase = buildUseCase([event({ status: "approved" })]);
+    const useCase = buildUseCase([event({ status: "planning" })]);
 
     await expect(useCase.execute({ eventId: SUMMIT })).rejects.toBeInstanceOf(
       EventNotOpenForRegistrationError,

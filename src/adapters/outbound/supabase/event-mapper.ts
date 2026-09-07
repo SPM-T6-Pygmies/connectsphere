@@ -49,11 +49,11 @@ export function toKey(id: EventId): number | null {
   return /^\d+$/.test(id) ? Number(id) : null;
 }
 
+/** Exactly the five values `event_status_chk` allows, and nothing else. */
 const STATUSES: Readonly<Record<string, EventStatus>> = {
-  Draft: "draft",
-  Approved: "approved",
+  Planning: "planning",
+  Blocked: "blocked",
   Confirmed: "confirmed",
-  "In Progress": "in_progress",
   Completed: "completed",
   Cancelled: "cancelled",
 };

@@ -112,7 +112,7 @@ describe("RegisterForEventUseCase", () => {
 
   it("rejects registration when the event is not confirmed", async () => {
     const { useCase } = buildUseCase({
-      events: [event(SUMMIT, { status: "approved" })],
+      events: [event(SUMMIT, { status: "planning" })],
     });
 
     await expect(

@@ -90,7 +90,7 @@ const EVENTS: readonly Event[] = [
 
   // The four below must never reach an Attendee.
   event(NOT_CONFIRMED, "Quarterly Partner Forum (awaiting confirmation)", {
-    status: "approved",
+    status: "planning",
   }),
   event(REGISTRATION_DISABLED, "Board Strategy Offsite (no registration)", {
     registrationEnabled: false,

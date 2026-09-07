@@ -48,9 +48,8 @@ describe("ListEventsOpenForRegistrationUseCase", () => {
   });
 
   it.each([
-    "draft",
-    "approved",
-    "in_progress",
+    "planning",
+    "blocked",
     "completed",
     "cancelled",
   ] as const)("omits an event whose status is %s", async (status) => {

@@ -3,11 +3,17 @@ import { InvalidEventIdError } from "./errors";
 
 export type EventId = Brand<string, "EventId">;
 
+/**
+ * Mirrors the team's `event_status_chk`, one member per allowed value.
+ *
+ * Not a superset and not a guess: a status this union carries but the schema
+ * forbids is a case nothing can ever reach, and one the schema allows but this
+ * union omits crashes the mapper on real data. Widen both together.
+ */
 export type EventStatus =
-  | "draft"
-  | "approved"
+  | "planning"
+  | "blocked"
   | "confirmed"
-  | "in_progress"
   | "completed"
   | "cancelled";
 
