@@ -18,7 +18,7 @@ export function RegistrationForm({ event }: { event: AvailableEvent }) {
   const [state, formAction, pending] = useActionState(registerForEventAction, INITIAL);
 
   if (state.status === "registered") {
-    return <Confirmation event={state.event} />;
+    return <Confirmation event={state.event} registrationId={state.registrationId} />;
   }
 
   // React resets an uncontrolled form once its action settles, so a refused
@@ -78,7 +78,13 @@ export function RegistrationForm({ event }: { event: AvailableEvent }) {
  * SPM-82: name, date, time and venue, read back from what the server recorded
  * rather than echoed from the form.
  */
-function Confirmation({ event }: { event: AvailableEvent }) {
+function Confirmation({
+  event,
+  registrationId,
+}: {
+  event: AvailableEvent;
+  registrationId: string;
+}) {
   return (
     <div className="space-y-4" role="status">
       <div className="flex items-center gap-2">
@@ -105,6 +111,20 @@ function Confirmation({ event }: { event: AvailableEvent }) {
             <dd>{event.venueName ?? "Venue to be confirmed"}</dd>
           </div>
         </dl>
+      </div>
+
+      <div className="space-y-2 rounded-xl border border-dashed p-4">
+        <p className="text-sm font-medium">Save this link</p>
+        <p className="text-muted-foreground text-sm">
+          It is how you check or withdraw this registration, and it is the only copy &mdash; we
+          cannot send it to you again yet.
+        </p>
+        <Link
+          href={`/registrations/${registrationId}`}
+          className="block text-sm font-medium break-all underline underline-offset-4"
+        >
+          /registrations/{registrationId}
+        </Link>
       </div>
 
       <Button asChild variant="outline">

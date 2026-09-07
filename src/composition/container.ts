@@ -13,12 +13,16 @@ import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-ev
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
+import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
+import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
+import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
+import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
 /**
  * The composition root: the one module allowed to know both sides.
@@ -85,4 +89,16 @@ export async function buildRegisterForEvent(): Promise<RegisterForEvent> {
   const { events, registrations } = await attendeeAdapters();
 
   return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
+}
+
+export async function buildViewRegistration(): Promise<ViewRegistration> {
+  const { events, registrations } = await attendeeAdapters();
+
+  return new ViewRegistrationUseCase({ events, registrations });
+}
+
+export async function buildWithdrawRegistration(): Promise<WithdrawRegistration> {
+  const { events, registrations } = await attendeeAdapters();
+
+  return new WithdrawRegistrationUseCase({ events, registrations });
 }
