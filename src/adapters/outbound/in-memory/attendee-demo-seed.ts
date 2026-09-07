@@ -16,10 +16,18 @@ import { InMemoryRegistrationRepository } from "./in-memory-registration-reposit
  * Dates are relative to process start so the demo never goes stale.
  */
 const DAY = 24 * 60 * 60 * 1000;
+const SGT_OFFSET_HOURS = 8;
 const START = Date.now();
 
 function inDays(days: number): Date {
   return new Date(START + days * DAY);
+}
+
+/** A whole hour of Singapore time, `days` from now, so the demo reads plausibly. */
+function inDaysAt(days: number, sgtHour: number): Date {
+  const day = new Date(START + days * DAY);
+  day.setUTCHours(sgtHour - SGT_OFFSET_HOURS, 0, 0, 0);
+  return day;
 }
 
 const SUITE = "Innovation Suite, 81 Victoria Street";
@@ -31,8 +39,8 @@ function event(id: string, name: string, overrides: Partial<Event>): Event {
     name,
     description: null,
     status: "confirmed",
-    startsAt: inDays(14),
-    endsAt: inDays(14.3),
+    startsAt: inDaysAt(14, 10),
+    endsAt: inDaysAt(14, 17),
     venueName: SUITE,
     capacity: 120,
     registrationEnabled: true,
@@ -55,26 +63,26 @@ const EVENTS: readonly Event[] = [
   event(OPEN_ROOMY, "Singapore AI & Robotics Demo Night", {
     description:
       "An evening of live demos from robotics and applied-AI teams, followed by open networking.",
-    startsAt: inDays(9),
-    endsAt: inDays(9.2),
+    startsAt: inDaysAt(9, 19),
+    endsAt: inDaysAt(9, 22),
     venueName: HALL,
   }),
   event(OPEN_LAST_PLACE, "Venue Operations Walkthrough", {
     description: "A hands-on tour of setup, turnaround and equipment handling for event staff.",
-    startsAt: inDays(11),
-    endsAt: inDays(11.15),
+    startsAt: inDaysAt(11, 9),
+    endsAt: inDaysAt(11, 12),
     capacity: 3,
   }),
   event(OPEN_FULL, "Event Coordinator Masterclass", {
     description: "A full-day workshop on scheduling, arrangements and change impact.",
-    startsAt: inDays(16),
-    endsAt: inDays(16.4),
+    startsAt: inDaysAt(16, 9),
+    endsAt: inDaysAt(16, 18),
     capacity: 2,
   }),
   event(OPEN_UNCAPPED, "ConnectSphere Client Showcase", {
     description: "An open briefing on this year's programme. No registration ceiling.",
-    startsAt: inDays(21),
-    endsAt: inDays(21.25),
+    startsAt: inDaysAt(21, 14),
+    endsAt: inDaysAt(21, 17),
     capacity: null,
     venueName: HALL,
   }),
@@ -87,14 +95,14 @@ const EVENTS: readonly Event[] = [
     registrationEnabled: false,
   }),
   event(NOT_YET_OPEN, "Year-End Celebration (registration not yet open)", {
-    startsAt: inDays(60),
-    endsAt: inDays(60.2),
+    startsAt: inDaysAt(60, 18),
+    endsAt: inDaysAt(60, 23),
     registrationOpensAt: inDays(20),
     registrationClosesAt: inDays(50),
   }),
   event(ALREADY_CLOSED, "Annual General Meeting (registration closed)", {
-    startsAt: inDays(3),
-    endsAt: inDays(3.1),
+    startsAt: inDaysAt(3, 15),
+    endsAt: inDaysAt(3, 17),
     registrationOpensAt: inDays(-30),
     registrationClosesAt: inDays(-1),
   }),
