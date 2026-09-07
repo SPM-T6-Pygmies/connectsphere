@@ -1,29 +1,43 @@
 import type { AttendeeEmail } from "@/core/domain/attendee";
-import { DuplicateRegistrationError, EventFullError } from "@/core/domain/errors";
+import {
+  DuplicateRegistrationError,
+  EventAlreadyCompletedError,
+  EventFullError,
+  RegistrationAlreadyWithdrawnError,
+  RegistrationNotFoundError,
+} from "@/core/domain/errors";
 import type { EventId } from "@/core/domain/event";
 import { registrationId, type Registration, type RegistrationId } from "@/core/domain/registration";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./event-mapper";
-import { toDomain, toRegisterArgs, type RegistrationRow } from "./registration-mapper";
+import {
+  toDomain,
+  toReferenceKey,
+  toRegisterArgs,
+  type RegistrationRow,
+} from "./registration-mapper";
 
 /**
  * Registrations are reached through database functions, not through the table.
  *
  * `registration` holds attendee names and emails, which brief s8b classes as
  * protected information, and the key this client holds is publishable. So
- * `anon` has no grant on that table at all: these three functions are the whole
+ * `anon` has no grant on that table at all: these five functions are the whole
  * surface, and none of them can return a row the caller did not already
- * identify. There is no request an attendee can make that yields the attendee
- * list.
+ * identify -- by event and email, or by a 122-bit reference. There is no
+ * request an attendee can make that yields the attendee list.
  *
  * That the port is unchanged is the point -- the core still asks for a place at
  * an event and knows nothing about how the store defends itself.
  */
-/** SQLSTATEs `attendee_register` can come back with. See its migration. */
+/** SQLSTATEs the registration functions come back with. See their migrations. */
 const UNIQUE_VIOLATION = "23505";
 const EVENT_FULL = "CS001";
+const NO_SUCH_REGISTRATION = "CS002";
+const NOT_LIVE = "CS003";
+const EVENT_COMPLETED = "CS004";
 
 export class SupabaseRegistrationRepository implements RegistrationRepository {
   constructor(private readonly client: SupabaseServerClient) {}
@@ -75,6 +89,26 @@ export class SupabaseRegistrationRepository implements RegistrationRepository {
     return rows.length > 0 ? toDomain(rows[0]) : null;
   }
 
+  async findByReference(reference: RegistrationId): Promise<Registration | null> {
+    const key = toReferenceKey(reference);
+    if (key === null) {
+      return null;
+    }
+
+    // No status filter, unlike `findForAttendee`: a withdrawn registration has
+    // to come back, or the page cannot confirm a withdrawal that just happened.
+    const { data, error } = await this.client.rpc("attendee_registration", {
+      p_reference: key,
+    });
+
+    if (error) {
+      throw new Error(`Failed to look up registration: ${error.message}`, { cause: error });
+    }
+
+    const rows = (data ?? []) as unknown as RegistrationRow[];
+    return rows.length > 0 ? toDomain(rows[0]) : null;
+  }
+
   async save(registration: Registration): Promise<void> {
     const key = toKey(registration.eventId);
     if (key === null) {
@@ -97,6 +131,33 @@ export class SupabaseRegistrationRepository implements RegistrationRepository {
         throw new DuplicateRegistrationError(registration.attendeeEmail);
       }
       throw new Error(`Failed to save registration: ${error.message}`, { cause: error });
+    }
+  }
+
+  async recordWithdrawal(registration: Registration): Promise<void> {
+    const key = toReferenceKey(registration.id);
+    if (key === null) {
+      throw new RegistrationNotFoundError(registration.id);
+    }
+
+    const { error } = await this.client.rpc("attendee_withdraw", { p_reference: key });
+
+    if (error) {
+      // The same reasoning as `save`: the use case asked and was told yes, so a
+      // refusal here means the answer changed in between -- somebody withdrew
+      // first, or the coordinator marked the event completed. Translating them
+      // back into the domain's errors makes losing the race look exactly like
+      // losing it a moment earlier, rather than a 500.
+      if (error.code === NO_SUCH_REGISTRATION) {
+        throw new RegistrationNotFoundError(registration.id);
+      }
+      if (error.code === NOT_LIVE) {
+        throw new RegistrationAlreadyWithdrawnError();
+      }
+      if (error.code === EVENT_COMPLETED) {
+        throw new EventAlreadyCompletedError();
+      }
+      throw new Error(`Failed to withdraw registration: ${error.message}`, { cause: error });
     }
   }
 }

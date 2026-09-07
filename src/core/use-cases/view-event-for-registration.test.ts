@@ -63,6 +63,20 @@ describe("ViewEventForRegistrationUseCase", () => {
     );
   });
 
+  /**
+   * SPM-28 widened the attendee read policy to `('Confirmed', 'Completed')` so
+   * that a withdrawal can find the event its registration points at. That made
+   * this predicate the only thing keeping a completed event off the
+   * registration form -- until then RLS refused it first. Hence the test.
+   */
+  it("rejects an event that has already completed", async () => {
+    const useCase = buildUseCase([event({ status: "completed" })]);
+
+    await expect(useCase.execute({ eventId: SUMMIT })).rejects.toBeInstanceOf(
+      EventNotOpenForRegistrationError,
+    );
+  });
+
   it("rejects an event whose registration is disabled", async () => {
     const useCase = buildUseCase([event({ registrationEnabled: false })]);
 
