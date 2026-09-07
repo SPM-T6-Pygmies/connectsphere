@@ -1,4 +1,5 @@
 import type { AttendeeEmail } from "@/core/domain/attendee";
+import { DuplicateRegistrationError, EventFullError } from "@/core/domain/errors";
 import type { EventId } from "@/core/domain/event";
 import { registrationId, type Registration, type RegistrationId } from "@/core/domain/registration";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
@@ -20,6 +21,10 @@ import { toDomain, toRegisterArgs, type RegistrationRow } from "./registration-m
  * That the port is unchanged is the point -- the core still asks for a place at
  * an event and knows nothing about how the store defends itself.
  */
+/** SQLSTATEs `attendee_register` can come back with. See its migration. */
+const UNIQUE_VIOLATION = "23505";
+const EVENT_FULL = "CS001";
+
 export class SupabaseRegistrationRepository implements RegistrationRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
@@ -79,6 +84,18 @@ export class SupabaseRegistrationRepository implements RegistrationRepository {
     const { error } = await this.client.rpc("attendee_register", toRegisterArgs(registration, key));
 
     if (error) {
+      // The use case already asked both questions and was told yes, so a
+      // refusal here means the answer changed between the read and the write:
+      // the last place went, or the same email registered. Translating them
+      // back into the domain's own errors is what makes a lost race look to
+      // the attendee exactly like losing it a second earlier -- "this event is
+      // full", not a 500.
+      if (error.code === EVENT_FULL) {
+        throw new EventFullError();
+      }
+      if (error.code === UNIQUE_VIOLATION) {
+        throw new DuplicateRegistrationError(registration.attendeeEmail);
+      }
       throw new Error(`Failed to save registration: ${error.message}`, { cause: error });
     }
   }
