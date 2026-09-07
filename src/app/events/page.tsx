@@ -1,6 +1,16 @@
+import { Suspense } from "react";
+
 import { buildListEventsOpenForRegistration } from "@/composition/container";
 
 import { EventBrowser } from "./event-browser";
+import { EventListSkeleton } from "./event-list-skeleton";
+
+/**
+ * Which events are open depends on the time this page is asked for, so it must
+ * not be prerendered at build time. Reading from Supabase would force this
+ * anyway; declaring it keeps the page correct under the seeded adapters too.
+ */
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Events open for registration | ConnectSphere",
@@ -14,10 +24,14 @@ export const metadata = {
  * endpoint and back. Everything the page is allowed to show has already been
  * decided by the time the data arrives.
  */
-export default async function EventsPage() {
+async function EventList() {
   const listEvents = await buildListEventsOpenForRegistration();
   const { events } = await listEvents.execute();
 
+  return <EventBrowser events={events} nowIso={new Date().toISOString()} />;
+}
+
+export default function EventsPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
       <header className="mb-8">
@@ -27,7 +41,14 @@ export default async function EventsPage() {
         </p>
       </header>
 
-      <EventBrowser events={events} nowIso={new Date().toISOString()} />
+      {/*
+        The skeleton lives here rather than in a segment-level loading.tsx: that
+        file would wrap /events/[id] in a Suspense boundary too, flushing the
+        shell before notFound() can set a 404 on an event that is not open.
+      */}
+      <Suspense fallback={<EventListSkeleton />}>
+        <EventList />
+      </Suspense>
     </main>
   );
 }

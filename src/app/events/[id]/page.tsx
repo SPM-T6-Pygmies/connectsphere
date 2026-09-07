@@ -9,18 +9,24 @@ import type { AvailableEvent } from "@/core/ports/inbound/available-event";
 import { fullDate, timeRange } from "../format-event-time";
 import { RegistrationForm } from "./registration-form";
 
-async function loadEvent(id: string): Promise<AvailableEvent> {
+/**
+ * An event an attendee may not register for is reported exactly like one that
+ * does not exist -- keeping a link should not reveal that an unconfirmed event
+ * is being planned (brief s8b).
+ *
+ * `notFound()` is left to the caller: it throws a control-flow signal Next
+ * handles itself, and throwing it from inside a catch block is a good way to
+ * have it swallowed.
+ */
+async function loadEvent(id: string): Promise<AvailableEvent | null> {
   const viewEvent = await buildViewEventForRegistration();
 
   try {
     const { event } = await viewEvent.execute({ eventId: id });
     return event;
   } catch (error) {
-    // An event an attendee may not register for is indistinguishable from one
-    // that does not exist -- keeping a link should not reveal that an
-    // unconfirmed event is being planned (brief s8b).
     if (error instanceof EventNotFoundError || error instanceof EventNotOpenForRegistrationError) {
-      notFound();
+      return null;
     }
     throw error;
   }
@@ -29,6 +35,10 @@ async function loadEvent(id: string): Promise<AvailableEvent> {
 export default async function EventPage({ params }: PageProps<"/events/[id]">) {
   const { id } = await params;
   const event = await loadEvent(id);
+
+  if (event === null) {
+    notFound();
+  }
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
