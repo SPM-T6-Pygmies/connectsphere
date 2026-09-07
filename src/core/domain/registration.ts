@@ -1,7 +1,7 @@
 import type { AttendeeEmail, AttendeeName } from "./attendee";
 import type { Brand } from "./brand";
-import type { EventId } from "./event";
-import { InvalidRegistrationIdError } from "./errors";
+import { allowsWithdrawal, type Event, type EventId } from "./event";
+import { InvalidRegistrationIdError, RegistrationAlreadyWithdrawnError } from "./errors";
 
 export type RegistrationId = Brand<string, "RegistrationId">;
 
@@ -47,6 +47,11 @@ export function registerAttendee(params: {
   return { ...params, status: "registered" };
 }
 
+/** Whether this registration still holds a place. */
+export function isLive(registration: Registration): boolean {
+  return registration.status === "registered";
+}
+
 /**
  * Whether an existing registration stops the same attendee registering again.
  *
@@ -54,5 +59,31 @@ export function registerAttendee(params: {
  * a fresh one -- the same shape as `blocksNewRequest` for connections.
  */
 export function blocksNewRegistration(existing: Registration): boolean {
-  return existing.status === "registered";
+  return isLive(existing);
+}
+
+/**
+ * The single answer to "may this registration be withdrawn?" (SPM-84).
+ *
+ * Both halves matter and they fail differently, so the write path asks them
+ * separately to raise distinct errors. This conjunction exists for the read
+ * path, which only needs to know whether to offer the button at all.
+ */
+export function canWithdraw(registration: Registration, event: Event): boolean {
+  return isLive(registration) && allowsWithdrawal(event);
+}
+
+/**
+ * The one place a Registration leaves the live state.
+ *
+ * Withdrawn is terminal (SPM-84), and the invariant is enforced here rather
+ * than only in the use case for the same reason `requestConnection` throws
+ * `SelfConnectionError` from inside the constructor: a registration withdrawn
+ * twice should not be constructible at all.
+ */
+export function withdrawRegistration(existing: Registration): Registration {
+  if (!isLive(existing)) {
+    throw new RegistrationAlreadyWithdrawnError();
+  }
+  return { ...existing, status: "withdrawn" };
 }
