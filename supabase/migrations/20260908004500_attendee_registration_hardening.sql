@@ -35,9 +35,33 @@ grant select (venue_id, location) on public.venue to anon, authenticated;
 -- attendee names and emails. RLS is enabled there with no policies, so nothing
 -- got through -- but the previous migration's reasoning was that the three
 -- functions below are the entire surface, and that is only true once the table
--- grant is gone. A teammate writing the first `registration` policy for the
--- team's own roles (#56) will need to grant alongside it.
+-- grant is gone.
 revoke all on public.registration from anon, authenticated;
+
+-- READ THIS BEFORE WRITING THE FIRST `registration` POLICY.
+--
+-- Access is two gates, and both must open. The revoke above shut gate one, so
+-- a policy on its own now fails with `permission denied for table
+-- registration` -- correct policy, missing grant. Both lines are needed:
+--
+--   grant select on public.registration to authenticated;
+--   create policy "..." on public.registration for select to authenticated
+--     using ( <the role check> );
+--
+-- Letting an Event Organiser or Event Coordinator read their event's attendee
+-- list is deliberately not written here, because it cannot be yet. Those are
+-- rows in `role`, not Postgres roles: the only role PostgREST authenticates as
+-- is `authenticated`, which is every signed-in user including Attendees, so
+-- the narrowing has to live in the policy. That policy needs to join the
+-- session to a `user_account` row, and the only link -- `auth_user_id` on
+-- user_account -- is commented out pending #62. Until that is decided there is
+-- no path from auth.uid() to user_account_role, and the honest choice is a
+-- shut gate rather than a policy that cannot tell the six roles apart.
+--
+-- Once #62 lands, the check is roughly: the caller holds 'Event Organiser' or
+-- 'Event Coordinator' in user_account_role, and the registration's event has
+-- them as owning_organiser_user_account_id or
+-- assigned_coordinator_user_account_id.
 
 -- ---------------------------------------------------------------------------
 -- 2. Count places the way the event's capacity is defined.
