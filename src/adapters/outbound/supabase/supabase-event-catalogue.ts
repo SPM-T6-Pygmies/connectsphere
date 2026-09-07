@@ -2,17 +2,7 @@ import type { Event, EventId } from "@/core/domain/event";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 
 import type { SupabaseServerClient } from "./client";
-import { EVENT_COLUMNS, toDomain, type EventRow } from "./event-mapper";
-
-/**
- * The domain's `EventId` is an opaque string, which is what keeps the core from
- * knowing that this store numbers its rows. Turning it back into a key is this
- * adapter's job, and an id that was never one of ours is simply not found --
- * a hand-typed URL is a miss, not a failure.
- */
-function toKey(id: EventId): number | null {
-  return /^\d+$/.test(id) ? Number(id) : null;
-}
+import { EVENT_COLUMNS, toDomain, toKey, type EventRow } from "./event-mapper";
 
 export class SupabaseEventCatalogue implements EventCatalogue {
   constructor(private readonly client: SupabaseServerClient) {}
