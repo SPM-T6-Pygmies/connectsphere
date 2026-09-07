@@ -101,3 +101,19 @@ there is still no primary-contact role per client organisation
 automatic and organisation-wide; flagging here in case a later day's design
 has to revisit it.
 
+**Addendum — same day, after `main` moved:** a separate, already-landed
+feature (event registration/attendee-facing catalogue) independently added
+its own canonical `src/core/domain/event.ts`, with its own `Event`,
+`EventId`, `eventId`, and `InvalidEventIdError` — a different, Attendee-facing
+view of the same real-world event. Merging `main` into this branch collided
+on that path and landed with a broken (syntactically invalid) `event.ts`.
+Fix: `event.ts` is restored verbatim to the canonical version; this ticket's
+Day 1 addition is renamed and moved to a new file,
+`src/core/domain/organiser-event.ts` (`OrganiserEvent`,
+`raiseOrganiserEvent`), which imports the canonical `EventId` rather than
+redeclaring it — both are facets of the same event, so they share identity.
+`errors.ts`'s duplicated `InvalidEventIdError` class was de-duplicated to the
+one canonical declaration. Re-verified: `pnpm test` (52/52), `pnpm lint`,
+`pnpm typecheck` all clean. Day 2 onward will build the
+`ViewOrganisationEvents` use case against `OrganiserEvent`.
+

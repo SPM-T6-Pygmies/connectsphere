@@ -70,11 +70,6 @@ export class InvalidEventIdError extends DomainError {
 
   constructor(raw: string) {
     super(`"${raw}" is not a usable event id.`);
-export class InvalidEventIdError extends DomainError {
-  readonly code = "invalid_event_id";
-
-  constructor(raw: string) {
-    super(`"${raw}" is not a usable event id.`);
   }
 }
 

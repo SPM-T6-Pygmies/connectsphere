@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { eventId, raiseEvent } from "./event";
+import { eventId } from "./event";
 import { memberId } from "./member";
 import { clientOrganisationId } from "./organisation";
+import { raiseOrganiserEvent } from "./organiser-event";
 
 const NOW = new Date("2026-09-07T09:00:00.000Z");
 
@@ -16,9 +17,9 @@ function validParams() {
   };
 }
 
-describe("raiseEvent", () => {
+describe("raiseOrganiserEvent", () => {
   it("constructs an event scoped to one client organisation and one responsible Organiser", () => {
-    const event = raiseEvent(validParams());
+    const event = raiseOrganiserEvent(validParams());
 
     expect(event.clientOrganisationId).toBe("org-acme");
     expect(event.responsibleOrganiserId).toBe("member-ada");
