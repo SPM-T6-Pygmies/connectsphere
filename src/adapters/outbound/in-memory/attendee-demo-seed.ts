@@ -65,6 +65,7 @@ const EVENTS: readonly Event[] = [
       "An evening of live demos from robotics and applied-AI teams, followed by open networking.",
     startsAt: inDaysAt(9, 19),
     endsAt: inDaysAt(9, 22),
+    registrationClosesAt: inDays(8),
     venueName: HALL,
   }),
   event(OPEN_LAST_PLACE, "Venue Operations Walkthrough", {
