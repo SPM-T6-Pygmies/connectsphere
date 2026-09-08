@@ -11,7 +11,8 @@
     "pretypecheck": "next typegen",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "structurizr": "docker run -it --rm -p 8080:8080 -e AUTO_REFRESH_INTERVAL=5000 -v \"$(pwd)/visual-map\":/usr/local/structurizr structurizr/structurizr local"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.6",
