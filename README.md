@@ -46,6 +46,7 @@ Apply `supabase/schema.sql` to your Supabase project before using
 | `pnpm lint`      | Next.js rules **plus architecture import boundaries** |
 | `pnpm typecheck` | `tsc --noEmit`                                        |
 | `pnpm test`      | Vitest — core and adapters, no database needed        |
+| `pnpm structurizr` | Run Structurizr Lite locally, serving `visual-map/` at http://localhost:8080 |
 
 ## Architecture
 
