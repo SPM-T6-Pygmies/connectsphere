@@ -92,7 +92,9 @@ create table event_request (
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
   constraint event_request_status_chk
-    check (status in ('Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Returned'))
+    check (status in ('Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Returned', 'Withdrawn'))
+    -- 'Withdrawn' added 2026-09-09 (D3, #103): grounded, Coordinator-actioned,
+    -- must stay distinguishable from every other request state.
 );
 
 -- ---------------------------------------------------------------------------
@@ -232,6 +234,10 @@ create table room_layout (
 create table venue_supported_layout (
   venue_id       bigint not null references venue (venue_id) on delete cascade,
   room_layout_id bigint not null references room_layout (room_layout_id) on delete restrict,
+  capacity       integer check (capacity is null or capacity >= 0),
+    -- added 2026-09-09 (D2, #112): capacity is supplied per layout, not
+    -- estimated. venue.capacity above is untouched; whether it becomes
+    -- derived (max across layouts) or is dropped is still an open decision.
   primary key (venue_id, room_layout_id)
 );
 
@@ -315,6 +321,10 @@ create table equipment_reservation (
   session_id                bigint references session (session_id) on delete cascade,
   reviewed_by_user_account_id bigint references user_account (user_account_id) on delete restrict,
   status                    text not null default 'Requested',
+  return_date               date,
+    -- added 2026-09-09 (D1, #113): nullable, feeds the committed
+    -- Return Day + 1 availability rule. Population mechanism is an open
+    -- team decision — #113 states there is no fixed default.
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
   constraint equipment_reservation_status_chk
@@ -444,6 +454,26 @@ create table change_request (
   updated_at                 timestamptz not null default now()
 );
 
+-- significance_flag, fields_affected and coordinator_decision above are
+-- retained but stop being authoritative once a request has change_request_item
+-- rows (added 2026-09-09, D4, #104): a request may span several fields, each
+-- independently accepted or rejected, with a reason on a rejected field.
+create table change_request_item (
+  change_request_item_id bigint generated always as identity primary key,
+  change_request_id      bigint not null references change_request (change_request_id) on delete cascade,
+  field_name              text not null,
+  requested_value         text,
+  significance_flag       boolean not null default false,
+  decision                text not null default 'Pending',
+  decision_reason         text,
+  created_at              timestamptz not null default now(),
+  updated_at              timestamptz not null default now(),
+  constraint change_request_item_decision_chk
+    check (decision in ('Pending', 'Accepted', 'Rejected')),
+  constraint change_request_item_reason_chk
+    check (decision <> 'Rejected' or decision_reason is not null)
+);
+
 -- ---------------------------------------------------------------------------
 -- 16. Notification  (wiki: notification, brief §6)
 --     One nullable FK per related-object type, so the DB can enforce integrity
@@ -530,6 +560,7 @@ create index registration_session_idx           on registration (session_id);
 create index registration_attendee_idx          on registration (attendee_user_account_id);
 create index change_request_event_idx           on change_request (event_id);
 create index change_request_requester_idx       on change_request (requesting_user_account_id);
+create index change_request_item_change_request_idx on change_request_item (change_request_id);
 create index notification_recipient_idx         on notification (recipient_user_account_id);
 create index notification_status_idx            on notification (status) where status = 'Pending';
 create index audit_record_entity_idx            on audit_record (entity_type, entity_id);
@@ -544,7 +575,7 @@ begin
   foreach t in array array[
     'client_organisation', 'user_account', 'event_request', 'event', 'session',
     'venue', 'booking', 'equipment_item', 'equipment_reservation',
-    'support_request', 'registration', 'change_request'
+    'support_request', 'registration', 'change_request', 'change_request_item'
   ]
   loop
     execute format(
@@ -570,7 +601,7 @@ begin
     'venue_supported_layout', 'booking', 'booking_slot', 'equipment_item',
     'equipment_reservation', 'equipment_reservation_line', 'support_request',
     'support_request_assignment', 'registration', 'waiting_list_entry',
-    'change_request', 'notification', 'audit_record'
+    'change_request', 'change_request_item', 'notification', 'audit_record'
   ]
   loop
     execute format('alter table %I enable row level security', t);
