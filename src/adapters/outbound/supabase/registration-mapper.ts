@@ -3,6 +3,7 @@ import { eventId } from "@/core/domain/event";
 import {
   registrationId,
   type Registration,
+  type RegistrationId,
   type RegistrationStatus,
 } from "@/core/domain/registration";
 
@@ -48,6 +49,21 @@ function toStatus(raw: string): RegistrationStatus {
     throw new Error(`Unknown registration status "${raw}" in the registration table.`);
   }
   return status;
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * A reference to the key the registration functions take, or `null`.
+ *
+ * The same job as `toKey` for events, and the same reasoning: an id that was
+ * never one of ours is a miss, not a failure. Here it is not merely tidy --
+ * `p_reference` is declared `uuid`, so handing Postgres a hand-typed
+ * `/registrations/hello` raises 22P02 and surfaces as a 500 rather than the
+ * 404 it should be.
+ */
+export function toReferenceKey(reference: RegistrationId): string | null {
+  return UUID.test(reference) ? reference : null;
 }
 
 export function toDomain(row: RegistrationRow): Registration {

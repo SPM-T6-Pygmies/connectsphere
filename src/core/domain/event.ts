@@ -90,6 +90,23 @@ export function isFull(event: Event, placesTaken: number): boolean {
   return event.capacity !== null && placesTaken >= event.capacity;
 }
 
+/**
+ * Whether this event still lets an Attendee release a place.
+ *
+ * SPM-84 settled the cut-off the brief left open ("where permitted", s4): there
+ * is none before the event date, matching the absence of any general change
+ * cut-off for events (#8). A completed event is the one bar, because its
+ * attendance has become a historical record (#20) rather than a live roll.
+ *
+ * Deliberately not `isOpenForRegistration`. Registration closing is a window
+ * the coordinator sets and may extend; withdrawal outlives it, so reusing that
+ * predicate here would refuse every attendee whose event was about to happen --
+ * exactly when they most need to withdraw.
+ */
+export function allowsWithdrawal(event: Event): boolean {
+  return event.status !== "completed";
+}
+
 /** Soonest first. Sorting is a pure function, not a reason to add a port. */
 export function compareByStart(a: Event, b: Event): number {
   return a.startsAt.getTime() - b.startsAt.getTime();

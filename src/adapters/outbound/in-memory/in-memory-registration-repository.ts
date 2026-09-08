@@ -17,6 +17,15 @@ export class InMemoryRegistrationRepository implements RegistrationRepository {
     }
   }
 
+  /**
+   * Sequential and predictable, which is what makes the use-case tests able to
+   * assert on the id they will get.
+   *
+   * It is therefore *not* a bearer token: once a reference addresses a page
+   * that can withdraw (SPM-28), anyone can guess `registration-2`. Demo mode is
+   * not a security boundary and must not be treated as one -- the Supabase
+   * adapter mints a random UUID for exactly that reason.
+   */
   nextId(): RegistrationId {
     this.sequence += 1;
     return registrationId(`registration-${this.sequence}`);
@@ -32,7 +41,21 @@ export class InMemoryRegistrationRepository implements RegistrationRepository {
     );
   }
 
+  /** Every row, not just the live ones -- see the port's note on why. */
+  async findByReference(reference: RegistrationId): Promise<Registration | null> {
+    return this.rows.get(reference) ?? null;
+  }
+
   async save(registration: Registration): Promise<void> {
+    this.rows.set(registration.id, registration);
+  }
+
+  /**
+   * Same body as `save`, because a `Map` is indifferent to intent. The port is
+   * not, and the Supabase twin proves it: there this is a different function
+   * that refuses a reference it cannot find.
+   */
+  async recordWithdrawal(registration: Registration): Promise<void> {
     this.rows.set(registration.id, registration);
   }
 

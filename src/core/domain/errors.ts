@@ -120,3 +120,35 @@ export class DuplicateRegistrationError extends DomainError {
     super(`${email} is already registered for this event.`);
   }
 }
+
+export class RegistrationNotFoundError extends DomainError {
+  readonly code = "registration_not_found";
+
+  constructor(reference: string) {
+    super(`No registration exists with reference ${reference}.`);
+  }
+}
+
+/**
+ * Withdrawn is terminal (SPM-84), so a second withdrawal is a refusal rather
+ * than a no-op.
+ *
+ * Takes no argument for the same reason `EventFullError` takes none: the
+ * Supabase adapter raises this one too, when it loses the race to a withdrawal
+ * that landed first, and there it holds nothing to put in the message.
+ */
+export class RegistrationAlreadyWithdrawnError extends DomainError {
+  readonly code = "registration_already_withdrawn";
+
+  constructor() {
+    super("This registration has already been withdrawn.");
+  }
+}
+
+export class EventAlreadyCompletedError extends DomainError {
+  readonly code = "event_already_completed";
+
+  constructor() {
+    super("This event has already taken place, so the registration cannot be withdrawn.");
+  }
+}
