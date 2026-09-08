@@ -152,3 +152,35 @@ export class EventAlreadyCompletedError extends DomainError {
     super("This event has already taken place, so the registration cannot be withdrawn.");
   }
 }
+
+export class InvalidEventRequestIdError extends DomainError {
+  readonly code = "invalid_event_request_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable event request id.`);
+  }
+}
+
+export class InvalidClientOrganisationIdError extends DomainError {
+  readonly code = "invalid_client_organisation_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable client organisation id.`);
+  }
+}
+
+export class InvalidUserAccountIdError extends DomainError {
+  readonly code = "invalid_user_account_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable user account id.`);
+  }
+}
+
+export class EventRequestNotFoundError extends DomainError {
+  readonly code = "event_request_not_found";
+
+  constructor(id: string) {
+    super(`No event request exists with id ${id}.`);
+  }
+}
