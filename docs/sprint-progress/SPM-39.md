@@ -46,7 +46,7 @@ used when an Organiser's account is deactivated).
       _Value: colleagues' events can't be shown side-by-side with mine until
       "which organisation" and "who's responsible" are things the domain can
       even represent — this is the prerequisite for the whole story._
-- [ ] **Day 2 — View organisation's events (use case).** Add the
+- [x] **Day 2 — View organisation's events (use case).** Add the
       `ViewOrganisationEvents` driving port + use case + in-memory adapters,
       returning every event whose client organisation matches the caller's,
       regardless of which Organiser raised it.
@@ -116,4 +116,36 @@ redeclaring it — both are facets of the same event, so they share identity.
 one canonical declaration. Re-verified: `pnpm test` (52/52), `pnpm lint`,
 `pnpm typecheck` all clean. Day 2 onward will build the
 `ViewOrganisationEvents` use case against `OrganiserEvent`.
+
+### Day 2 — 2026-09-08
+
+**Changed:** `src/core/ports/outbound/organiser-event-repository.ts` (new —
+`OrganiserEventRepository` driven port), `src/core/ports/inbound/organisation-event.ts`
+(new — `OrganisationEvent` result DTO), `src/core/ports/inbound/view-organisation-events.ts`
+(new — `ViewOrganisationEvents` driving port, command and result),
+`src/core/use-cases/organisation-event.ts` (new — `toOrganisationEvent` mapper),
+`src/core/use-cases/view-organisation-events.ts` (new —
+`ViewOrganisationEventsUseCase`), `src/core/use-cases/view-organisation-events.test.ts`
+(new), `src/adapters/outbound/in-memory/in-memory-organiser-event-repository.ts`
+(new — in-memory adapter for the new driven port).
+
+**Why:** This is AC1 itself — "can view events belonging to any Event
+Organiser in the same client organisation" — and the story's core ask: an
+Organiser sees a colleague's raised event, not only their own. The use case
+takes the caller's own `clientOrganisationId` and returns every
+`OrganiserEvent` scoped to it, regardless of `responsibleOrganiserId`; no
+edit-access logic yet (that is AC2/AC4, Day 4), so today's slice is read-only
+and demoable end-to-end against the in-memory adapter. Followed the existing
+`ListEventsOpenForRegistration` shape (driving port + use case + in-memory
+adapter + result DTO with a mapper) rather than inventing a new one. Verified
+by `pnpm test` (56/56), `pnpm lint`, `pnpm typecheck`, all clean.
+
+**Open questions/blockers:** None new. The command takes the caller's
+organisation id directly rather than resolving it from a caller `MemberId`
+via some membership lookup — there is no such port yet, and inventing one
+before a driving adapter needs it would be speculative (CLAUDE.md §2).
+Day 3's Server Component page will decide how the signed-in Organiser's own
+organisation id is obtained and passed in. The ticket's own open question
+about a per-organisation primary contact (discussion #65) still doesn't
+apply to this slice.
 
