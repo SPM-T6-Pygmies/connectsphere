@@ -63,7 +63,7 @@ export default async function VenueDecisionPage({
             <CardContent className="space-y-4">
               <Alert variant={fits ? "default" : "warning"}>
                 {fits ? <CheckIcon /> : <AlertTriangleIcon />}
-                <AlertTitle className="line-clamp-none">
+                <AlertTitle>
                   {fits
                     ? `Capacity is sufficient — ${needed} expected, room holds ${venue.capacity}`
                     : `Over capacity — ${needed} expected, room holds ${venue.capacity}`}
@@ -134,7 +134,7 @@ export default async function VenueDecisionPage({
                   ) : (
                     <CheckIcon />
                   )}
-                  <AlertTitle className="line-clamp-none">
+                  <AlertTitle>
                     Already decided — {booking.status}
                     {booking.decidedBy ? ` by ${booking.decidedBy.name}` : ""}
                   </AlertTitle>

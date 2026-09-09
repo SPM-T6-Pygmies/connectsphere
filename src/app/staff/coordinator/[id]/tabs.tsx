@@ -594,7 +594,7 @@ export function ReadinessTab({ event }: { event: EventRecord }) {
             ) : blocking.length > 0 ? (
               <Alert variant="destructive">
                 <AlertTriangleIcon />
-                <AlertTitle className="line-clamp-none">
+                <AlertTitle>
                   Cannot confirm — {blocking.length} essential arrangement
                   {blocking.length === 1 ? "" : "s"} incomplete
                 </AlertTitle>

@@ -120,7 +120,7 @@ export default async function TechnicalReviewPage({
               {shortfall.length > 0 ? (
                 <Alert variant="warning">
                   <AlertTriangleIcon />
-                  <AlertTitle className="line-clamp-none">
+                  <AlertTitle>
                     {shortfall.length} line
                     {shortfall.length === 1 ? "" : "s"} cannot be filled in full
                   </AlertTitle>
