@@ -34,7 +34,8 @@ See the [Infisical CLI docs](https://infisical.com/docs/cli/usage) for
 `--path`/`--recursive` flags and CI usage.
 
 Apply `supabase/schema.sql` to your Supabase project before using
-`/connections`.
+`/connections` — or, for a local Postgres instead of a hosted project, see
+[docs/DATABASE.md](docs/DATABASE.md).
 
 ## Commands
 
