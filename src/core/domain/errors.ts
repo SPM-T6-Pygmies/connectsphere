@@ -184,3 +184,19 @@ export class EventRequestNotFoundError extends DomainError {
     super(`No event request exists with id ${id}.`);
   }
 }
+
+/**
+ * SPM-31 AC3: the Organiser is told exactly what is missing.
+ *
+ * Carries the field names rather than a rendered sentence, so the driving
+ * adapter can put each message against its own input. Naming the fields is not
+ * a transport concern leaking inward -- they are the domain's own field names,
+ * and the adapter is free to label them however its UI does.
+ */
+export class IncompleteEventRequestError extends DomainError {
+  readonly code = "incomplete_event_request";
+
+  constructor(readonly missing: readonly string[]) {
+    super(`This request is missing ${missing.length} required detail(s).`);
+  }
+}

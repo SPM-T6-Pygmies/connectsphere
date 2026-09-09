@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
-import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
+import { type EventRequest } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewOrganisationEventRequestsUseCase } from "./view-organisation-event-requests";
@@ -13,14 +14,11 @@ const RESPONSIBLE = userAccountId("organiser-1");
 const COLLEAGUE = userAccountId("organiser-2");
 
 function request(overrides: Partial<EventRequest> = {}): EventRequest {
-  return {
-    id: eventRequestId("request-1"),
-    eventName: "Founders' Day",
-    status: "Draft",
+  return eventRequestFixture({
     clientOrganisationId: ORG_A,
     responsibleOrganiserId: RESPONSIBLE,
     ...overrides,
-  };
+  });
 }
 
 function buildUseCase(seed: readonly EventRequest[]) {
