@@ -235,3 +235,52 @@ export interface EventRecord {
   readonly registrations: readonly RegistrationRecord[];
   readonly comments: readonly CommentRecord[];
 }
+
+/**
+ * Which surface an activity entry or comment belongs to.
+ *
+ * The wiki leaves open "whether every domain object carries its own activity
+ * trail, or all entries roll up to the owning event's record". This is the
+ * middle: one trail per event, each entry tagged with the surface it happened
+ * on, so a venue decision reads on the Venue tab without the event losing a
+ * single history.
+ */
+export type ActivitySection =
+  | "overview"
+  | "venue"
+  | "technical"
+  | "readiness"
+  | "registration";
+
+interface ActivityBase {
+  readonly id: string;
+  readonly eventId: string;
+  readonly section: ActivitySection;
+  readonly actor: Person;
+  readonly at: string;
+}
+
+/** Something the system recorded: who did what, and when (brief s8f). */
+export interface SystemActivity extends ActivityBase {
+  readonly kind: "activity";
+  readonly action: string;
+  /** Present when this is a change rather than an action: the what/from/to. */
+  readonly field?: string;
+  readonly from?: string;
+  readonly to?: string;
+}
+
+/**
+ * Something a person said.
+ *
+ * `parentId` mirrors `event_comment.parent_comment_id`. The customer left
+ * threaded-vs-flat open as a UI decision, so one level of reply is a choice,
+ * not an assumption -- deeper nesting is not something anyone asked for.
+ */
+export interface CommentActivity extends ActivityBase {
+  readonly kind: "comment";
+  readonly body: string;
+  readonly parentId: string | null;
+}
+
+export type ActivityEntry = SystemActivity | CommentActivity;

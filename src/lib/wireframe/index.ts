@@ -7,8 +7,11 @@
  */
 
 import { ACTING_AS, EVENTS, VENUES } from "./fixtures";
+import { ACTIVITY } from "./activity";
 import { notificationsFor } from "./notifications";
 import type {
+  ActivityEntry,
+  ActivitySection,
   ArrangementRecord,
   BookingRecord,
   EquipmentReservationRecord,
@@ -18,6 +21,7 @@ import type {
 } from "./types";
 
 export { ACTING_AS, EQUIPMENT_CATALOGUE, EVENTS, PEOPLE, VENUES } from "./fixtures";
+export { ACTIVITY } from "./activity";
 export * from "./notifications";
 export * from "./types";
 
@@ -294,4 +298,70 @@ export function listPaneItems(
   }
 
   return queueItemsFor(role);
+}
+
+// --- Activity and comments -------------------------------------------------
+
+/**
+ * The trail for one event, oldest first.
+ *
+ * Pass a section to narrow it to one surface -- the Venue tab wants venue
+ * activity, not the whole event's history -- and omit it for everything.
+ */
+export function activityFor(
+  eventId: string,
+  section?: ActivitySection,
+): ActivityEntry[] {
+  return ACTIVITY.filter(
+    (entry) =>
+      entry.eventId === eventId &&
+      (section === undefined || entry.section === section),
+  ).sort((a, b) => a.at.localeCompare(b.at));
+}
+
+/** A comment with the replies made to it. */
+export interface CommentThread {
+  readonly entry: Extract<ActivityEntry, { kind: "comment" }>;
+  readonly replies: ReadonlyArray<Extract<ActivityEntry, { kind: "comment" }>>;
+}
+
+/** One feed row: either something the system recorded, or a comment thread. */
+export type FeedRow =
+  | { readonly kind: "activity"; readonly entry: Extract<ActivityEntry, { kind: "activity" }> }
+  | { readonly kind: "thread"; readonly thread: CommentThread };
+
+/**
+ * The trail as it is read: system entries in place, and every comment carrying
+ * the replies made to it.
+ *
+ * One level deep. A reply to a reply is folded onto the top-level comment
+ * rather than nesting further -- the customer left threading open as a UI
+ * decision, and one level is what "reply to a comment" needs.
+ */
+export function feedRows(entries: readonly ActivityEntry[]): FeedRow[] {
+  const replies = new Map<string, Array<Extract<ActivityEntry, { kind: "comment" }>>>();
+
+  for (const entry of entries) {
+    if (entry.kind === "comment" && entry.parentId !== null) {
+      const bucket = replies.get(entry.parentId) ?? [];
+      bucket.push(entry);
+      replies.set(entry.parentId, bucket);
+    }
+  }
+
+  return entries.flatMap((entry): FeedRow[] => {
+    if (entry.kind === "activity") {
+      return [{ kind: "activity", entry }];
+    }
+    if (entry.parentId !== null) {
+      return []; // rendered under its parent
+    }
+    return [
+      { kind: "thread", thread: { entry, replies: replies.get(entry.id) ?? [] } },
+    ];
+  });
+}
+
+export function commentCount(entries: readonly ActivityEntry[]): number {
+  return entries.filter((entry) => entry.kind === "comment").length;
 }
