@@ -282,7 +282,9 @@ export function listPaneItems(
   if (section === "notifications") {
     return notificationsFor(role).map((notification) => ({
       id: notification.id,
-      href: notification.href,
+      // Through the inbox route, so opening one from the list pane does not
+      // swap the pane out from under you.
+      href: `/staff/${role}/notifications/${notification.id}`,
       title: notification.subject,
       meta: notification.receivedAt.split(" ")[0],
       teaser: notification.body,

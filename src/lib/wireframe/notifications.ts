@@ -30,6 +30,14 @@ export type NotificationTrigger =
   | "Capacity reached"
   | "Availability changed";
 
+/** Which detail view an inbox row opens. */
+export type NotificationTargetKind =
+  | "request"
+  | "assign"
+  | "event"
+  | "booking"
+  | "reservation";
+
 export interface NotificationRecord {
   readonly id: string;
   /** Who this is addressed to. */
@@ -41,6 +49,8 @@ export interface NotificationRecord {
   readonly eventName: string;
   /** The screen that owns what changed. */
   readonly href: string;
+  /** The record to open in the main pane when read from the inbox. */
+  readonly target: { readonly kind: NotificationTargetKind; readonly id: string; readonly tab?: string };
   readonly receivedAt: string;
   readonly unread: boolean;
   /** The backlog card in the wiki's recipient matrix that covers this row. */
@@ -57,6 +67,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Priya Raman submitted a request for 240 people on 10 December. No coordinator is assigned yet.",
     eventName: "Annual Client Forum",
     href: "/staff/ops/e-03",
+    target: { kind: "assign", id: "e-03" },
     receivedAt: "2026-09-08 09:14",
     unread: true,
     card: "SPM-56",
@@ -71,6 +82,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Can you confirm whether the streamed sessions need live interpretation as well as captions?",
     eventName: "Hybrid Leadership Summit",
     href: "/staff/requester/e-04",
+    target: { kind: "request", id: "e-04" },
     receivedAt: "2026-09-06 14:22",
     unread: true,
     card: "SPM-59",
@@ -83,6 +95,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "She is now your main point of contact for the Hybrid Leadership Summit.",
     eventName: "Hybrid Leadership Summit",
     href: "/staff/requester/e-04",
+    target: { kind: "request", id: "e-04" },
     receivedAt: "2026-09-02 11:05",
     unread: false,
     card: "SPM-58",
@@ -95,6 +108,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Venue, equipment and technical support are all in place. You can now see the confirmed arrangements.",
     eventName: "Autumn Product Showcase",
     href: "/staff/requester/e-06",
+    target: { kind: "request", id: "e-06" },
     receivedAt: "2026-09-01 16:40",
     unread: false,
     card: "SPM-66",
@@ -107,6 +121,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Jonas Berg approved the request on 6 September. Planning can now proceed — nothing is booked yet.",
     eventName: "Compliance Training Workshop",
     href: "/staff/requester/e-07",
+    target: { kind: "request", id: "e-07" },
     receivedAt: "2026-09-06 10:02",
     unread: false,
     card: "SPM-60",
@@ -121,6 +136,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Both rigs are out for inspection until 22 November. Three of four video-conferencing kits were reserved.",
     eventName: "Hybrid Leadership Summit",
     href: "/staff/coordinator/e-04?tab=technical",
+    target: { kind: "event", id: "e-04", tab: "technical" },
     receivedAt: "2026-09-07 15:30",
     unread: true,
     card: "SPM-65",
@@ -133,6 +149,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Committed to a contracted client for 2 October. Innovation Suite was suggested instead.",
     eventName: "Graduate Recruitment Open Day",
     href: "/staff/coordinator/e-05?tab=venue",
+    target: { kind: "event", id: "e-05", tab: "venue" },
     receivedAt: "2026-09-04 09:47",
     unread: true,
     card: "SPM-62",
@@ -145,6 +162,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Daniel Okonkwo assigned this to you. There is no acceptance step — it is yours now.",
     eventName: "Hybrid Leadership Summit",
     href: "/staff/coordinator/e-04",
+    target: { kind: "event", id: "e-04" },
     receivedAt: "2026-09-02 11:05",
     unread: false,
     card: "SPM-57",
@@ -157,6 +175,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "3 of 120 places taken. This is the notification that fires when the cap is reached.",
     eventName: "Autumn Product Showcase",
     href: "/staff/coordinator/e-06?tab=registration",
+    target: { kind: "event", id: "e-06", tab: "registration" },
     receivedAt: "2026-09-05 08:15",
     unread: false,
     card: "SPM-72",
@@ -171,6 +190,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Amara Sithole requested AM + PM for the Hybrid Leadership Summit, 180 expected.",
     eventName: "Hybrid Leadership Summit",
     href: "/staff/venue/b-02",
+    target: { kind: "booking", id: "b-02" },
     receivedAt: "2026-09-07 10:20",
     unread: true,
     card: "SPM-61",
@@ -183,6 +203,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "Jonas Berg requested the AM slot for the Compliance Training Workshop, 38 expected.",
     eventName: "Compliance Training Workshop",
     href: "/staff/venue/b-04",
+    target: { kind: "booking", id: "b-04" },
     receivedAt: "2026-09-08 13:55",
     unread: true,
     card: "SPM-61",
@@ -197,6 +218,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "One projector and two microphones requested for 3 December. Not yet reviewed.",
     eventName: "Compliance Training Workshop",
     href: "/staff/technical/er-03",
+    target: { kind: "reservation", id: "er-03" },
     receivedAt: "2026-09-06 11:30",
     unread: true,
     card: "SPM-64",
@@ -209,6 +231,7 @@ export const NOTIFICATIONS: readonly NotificationRecord[] = [
     body: "The coordinator added a stage lighting rig to the existing request.",
     eventName: "Hybrid Leadership Summit",
     href: "/staff/technical/er-02",
+    target: { kind: "reservation", id: "er-02" },
     receivedAt: "2026-09-05 16:12",
     unread: false,
     card: "SPM-64",

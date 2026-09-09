@@ -78,7 +78,7 @@ export function NotificationInbox({ role }: { role: StaffRole }) {
                   </TableCell>
                   <TableCell>
                     <Link
-                      href={notification.href}
+                      href={`/staff/${role}/notifications/${notification.id}`}
                       className={
                         notification.unread
                           ? "font-medium hover:underline"
