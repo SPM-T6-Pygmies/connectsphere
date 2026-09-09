@@ -77,7 +77,13 @@ export function RequestDetail({
   return (
     <StaffShell
       role="requester"
-      crumbs={detailCrumbs("requester", origin, "My requests", request.eventName)}
+      crumbs={detailCrumbs(
+        "requester",
+        origin,
+        "Submitted",
+        request.eventName,
+        "/staff/requester/submitted",
+      )}
     >
       <PageHeader
         title={request.eventName}

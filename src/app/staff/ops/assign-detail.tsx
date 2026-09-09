@@ -42,7 +42,13 @@ export function AssignDetail({
   return (
     <StaffShell
       role="ops"
-      crumbs={detailCrumbs("ops", origin, "Assignment queue", request.eventName)}
+      crumbs={detailCrumbs(
+        "ops",
+        origin,
+        assigned ? "Assigned" : "Unassigned",
+        request.eventName,
+        assigned ? "/staff/ops/assigned" : "/staff/ops",
+      )}
     >
       <PageHeader
         title={request.eventName}
