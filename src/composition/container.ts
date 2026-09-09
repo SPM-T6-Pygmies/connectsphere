@@ -125,6 +125,29 @@ export async function buildSubmitEventRequest(): Promise<SubmitEventRequest> {
   });
 }
 
+/**
+ * Who the organiser screens are acting as -- a stand-in until #62 settles how
+ * this system authenticates.
+ *
+ * It lives here because it is ambient outside state read from the environment,
+ * and because it is the one line that changes when a real session arrives: the
+ * Server Action asks the composition root who is calling rather than trusting
+ * a hidden input, so the browser cannot nominate someone else in the meantime.
+ *
+ * The defaults are `1`/`1` because `user_account` and `client_organisation`
+ * number their rows from one; set them to real ids from your own project if
+ * yours differ.
+ */
+export function actingOrganiser(): {
+  readonly userAccountId: string;
+  readonly clientOrganisationId: string;
+} {
+  return {
+    userAccountId: process.env.DEMO_ORGANISER_USER_ACCOUNT_ID ?? "1",
+    clientOrganisationId: process.env.DEMO_CLIENT_ORGANISATION_ID ?? "1",
+  };
+}
+
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistration> {
   const { events, registrations } = await attendeeAdapters();
 
