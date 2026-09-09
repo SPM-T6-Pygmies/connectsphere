@@ -86,23 +86,12 @@ export function eventRequestId(raw: string): EventRequestId {
 }
 
 /**
- * The proposed minimum for submission (SPM-88) -- PROVISIONAL `[?]`.
+ * Mandatory Fields are not set by the customer yet, to be refined later. These
+ * fields are placeholders for now (9 Sep 2026).
  *
- * The customer has not fixed a mandatory set and asked us to "propose an
- * appropriate set of information" (#72), so this is a proposal, not a
- * confirmed rule. The reasoning: these four are what the Coordinator's first
- * real action needs. Step 6, venue identification, searches venues by date,
- * time and capacity -- a request missing any of them cannot be actioned at
- * all, only bounced back, and "a large room" with no expected attendance is
- * the brief's own example of a wasted clarification round.
- *
- * Everything else stays optional by design. Step 4 exists precisely to chase
- * detail the organiser could not give up front, and draft-save (SPM-38) is
- * where an unready request belongs.
- *
- * This is the single home for that answer: the submit rule below, the form's
- * required markers and its submit gate all read this array. When the customer
- * settles #72, change it here and nothing else.
+ * Single home for that answer: the submit rule, the form's required markers
+ * and its submit gate all read this array, so settling #72 is a change here
+ * and nowhere else.
  */
 export const MANDATORY_SUBMISSION_FIELDS = [
   "eventName",
