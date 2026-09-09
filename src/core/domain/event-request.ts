@@ -74,6 +74,9 @@ export interface EventRequest {
  */
 export type NewEventRequest = Omit<EventRequest, "id">;
 
+/** A request that has just been submitted, so its `submittedAt` is never null. */
+export type SubmittedEventRequest = NewEventRequest & { readonly submittedAt: Date };
+
 export function eventRequestId(raw: string): EventRequestId {
   const trimmed = raw.trim();
   if (trimmed.length === 0) {
@@ -146,7 +149,7 @@ export function submitEventRequest(params: {
   clientOrganisationId: ClientOrganisationId;
   responsibleOrganiserId: UserAccountId;
   submittedAt: Date;
-}): NewEventRequest {
+}): SubmittedEventRequest {
   const missing = missingMandatoryFields(params.details);
   if (missing.length > 0) {
     throw new IncompleteEventRequestError(missing);
