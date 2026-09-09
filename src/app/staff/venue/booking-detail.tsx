@@ -201,7 +201,7 @@ export function BookingDetail({
           <ActivityPanel eventId={event.id} role="venue" section="venue" />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
           <EventContextPanel event={event} />
         </div>
       </div>

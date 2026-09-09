@@ -98,7 +98,7 @@ export function OverviewTab({ event, activity }: TabProps) {
 
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
         <Card>
           <CardHeader>
             <CardTitle>Decision</CardTitle>
@@ -542,7 +542,7 @@ export function ReadinessTab({ event, activity }: TabProps) {
         </Card>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
         <Card>
           <CardHeader>
             <CardTitle>Confirmation</CardTitle>
@@ -782,7 +782,7 @@ export function RegistrationTab({ event, activity }: TabProps) {
         </Card>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
         <Card>
           <CardHeader>
             <CardTitle>Places</CardTitle>

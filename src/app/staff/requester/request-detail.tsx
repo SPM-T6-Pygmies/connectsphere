@@ -161,7 +161,7 @@ export function RequestDetail({
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>Progress</CardTitle>
