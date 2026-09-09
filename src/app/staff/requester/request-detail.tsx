@@ -77,7 +77,13 @@ export function RequestDetail({
   return (
     <StaffShell
       role="requester"
-      crumbs={detailCrumbs("requester", origin, "My requests", request.eventName)}
+      crumbs={detailCrumbs(
+        "requester",
+        origin,
+        "Submitted",
+        request.eventName,
+        "/staff/requester/submitted",
+      )}
     >
       <PageHeader
         title={request.eventName}
@@ -147,10 +153,15 @@ export function RequestDetail({
             </Card>
           ) : null}
 
-          <ActivityPanel eventId={event.id} section="overview" commentsOnly />
+          <ActivityPanel
+            eventId={event.id}
+            role="requester"
+            section="overview"
+            commentsOnly
+          />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>Progress</CardTitle>

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { NOTIFICATIONS, type StaffRole } from "@/lib/wireframe";
 
-import { EventDetail } from "./coordinator/event-detail";
+import { CoordinatorDetail } from "./coordinator/coordinator-detail";
 import { AssignDetail } from "./ops/assign-detail";
 import { RequestDetail } from "./requester/request-detail";
 import { ReservationDetail } from "./technical/reservation-detail";
@@ -48,10 +48,11 @@ export function NotificationDetail({
       return <AssignDetail id={target.id} origin="inbox" />;
     case "event":
       return (
-        <EventDetail
+        <CoordinatorDetail
           id={target.id}
           // The notification names the tab it concerns; the reader can still
-          // move off it, so an explicit tab in the URL wins.
+          // move off it, so an explicit tab in the URL wins. Only used once
+          // CoordinatorDetail decides the event has reached the tabbed shell.
           tab={tab ?? target.tab}
           activity={activity}
           basePath={`/staff/${role}/notifications/${notificationId}`}

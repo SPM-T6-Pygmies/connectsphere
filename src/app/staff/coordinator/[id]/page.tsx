@@ -1,4 +1,4 @@
-import { EventDetail } from "../event-detail";
+import { CoordinatorDetail } from "../coordinator-detail";
 
 export default async function Page({
   params,
@@ -7,5 +7,5 @@ export default async function Page({
   const { id } = await params;
   const { tab, activity } = await searchParams;
 
-  return <EventDetail id={id} tab={tab} activity={activity} />;
+  return <CoordinatorDetail id={id} tab={tab} activity={activity} />;
 }

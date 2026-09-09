@@ -27,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import {
   blockingArrangements,
   canConfirm,
@@ -99,38 +98,19 @@ export function OverviewTab({ event, activity }: TabProps) {
 
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
         <Card>
           <CardHeader>
             <CardTitle>Decision</CardTitle>
-            <CardDescription>
-              Approving says the request holds enough information to plan
-              against. It commits no venue, equipment or staff.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             {request.decisionRecord ? (
-              <p className="bg-muted/50 rounded-lg p-3 text-sm leading-relaxed">
-                {request.decisionRecord}
+              <p className="text-sm leading-relaxed">{request.decisionRecord}</p>
+            ) : (
+              <p className="text-muted-foreground text-sm italic">
+                No decision record.
               </p>
-            ) : null}
-            <div className="space-y-1.5">
-              <Label htmlFor="decisionNote">Decision record</Label>
-              <Textarea
-                id="decisionNote"
-                placeholder="Why this was approved, returned or rejected."
-                defaultValue={request.decisionRecord ?? ""}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button>Approve — planning may proceed</Button>
-              <Button variant="outline">Return for amendment</Button>
-              <Button variant="destructive">Reject</Button>
-            </div>
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              Whether a rejected request can be resubmitted is an open question
-              the customer left to the team.
-            </p>
+            )}
           </CardContent>
         </Card>
 
@@ -154,6 +134,7 @@ export function OverviewTab({ event, activity }: TabProps) {
 
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="overview"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -321,6 +302,7 @@ export function VenueTab({ event, activity }: TabProps) {
       </Card>
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="venue"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -472,6 +454,7 @@ export function TechnicalTab({ event, activity }: TabProps) {
       </Card>
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="technical"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -559,7 +542,7 @@ export function ReadinessTab({ event, activity }: TabProps) {
         </Card>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
         <Card>
           <CardHeader>
             <CardTitle>Confirmation</CardTitle>
@@ -631,6 +614,7 @@ export function ReadinessTab({ event, activity }: TabProps) {
 
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="readiness"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -674,6 +658,7 @@ export function RegistrationTab({ event, activity }: TabProps) {
 
         <ActivityPanel
           eventId={event.id}
+          role="coordinator"
           section="registration"
           showAll={activity.showAll}
           toggleHref={activity.toggleHref}
@@ -797,7 +782,7 @@ export function RegistrationTab({ event, activity }: TabProps) {
         </Card>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
         <Card>
           <CardHeader>
             <CardTitle>Places</CardTitle>
@@ -836,6 +821,7 @@ export function RegistrationTab({ event, activity }: TabProps) {
 
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="registration"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}

@@ -40,11 +40,17 @@ export function BookingDetail({
   const needed = event.request.expectedAttendance ?? 0;
   const fits = (venue.capacity ?? 0) >= needed;
   const decided = booking.status !== "Requested";
+  const { queueLabel, queueHref } =
+    booking.status === "Requested"
+      ? { queueLabel: "Requests", queueHref: "/staff/venue" }
+      : booking.status === "Tentative Hold" || booking.status === "Confirmed"
+        ? { queueLabel: "Decided", queueHref: "/staff/venue/decided" }
+        : { queueLabel: "Archive", queueHref: "/staff/venue/archive" };
 
   return (
     <StaffShell
       role="venue"
-      crumbs={detailCrumbs("venue", origin, "Booking requests", venue.location)}
+      crumbs={detailCrumbs("venue", origin, queueLabel, venue.location, queueHref)}
     >
       <PageHeader
         title={venue.location}
@@ -192,10 +198,10 @@ export function BookingDetail({
               </div>
             </CardContent>
           </Card>
-          <ActivityPanel eventId={event.id} section="venue" />
+          <ActivityPanel eventId={event.id} role="venue" section="venue" />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
           <EventContextPanel event={event} />
         </div>
       </div>

@@ -16,11 +16,12 @@ export function detailCrumbs(
   origin: DetailOrigin,
   queueLabel: string,
   title: string,
+  queueHref: string = `/staff/${role}`,
 ): Crumb[] {
   return origin === "inbox"
     ? [
         { label: "Notifications", href: `/staff/${role}/notifications` },
         { label: title },
       ]
-    : [{ label: queueLabel, href: `/staff/${role}` }, { label: title }];
+    : [{ label: queueLabel, href: queueHref }, { label: title }];
 }

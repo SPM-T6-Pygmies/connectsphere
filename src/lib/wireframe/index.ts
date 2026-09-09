@@ -86,11 +86,47 @@ export function awaitingAssignment(): EventRecord[] {
   );
 }
 
+/** The counterpart to awaitingAssignment(): requests that already have a coordinator. */
+export function assignedRequests(): EventRecord[] {
+  return assignmentQueue().filter(
+    (event) => event.request.assignedCoordinator !== null,
+  );
+}
+
 /** Events assigned to the acting coordinator. */
 export function coordinatorEvents(
   coordinator: Person = ACTING_AS.coordinator,
 ): EventRecord[] {
   return EVENTS.filter((event) => event.coordinator?.id === coordinator.id);
+}
+
+/** Events assigned to the coordinator that are still awaiting their decision. */
+export function pendingCoordinatorRequests(
+  coordinator: Person = ACTING_AS.coordinator,
+): EventRecord[] {
+  return coordinatorEvents(coordinator).filter(
+    (event) =>
+      event.request.status === "Submitted" ||
+      event.request.status === "Under Review",
+  );
+}
+
+/** Events assigned to the coordinator that have been approved to plan. */
+export function approvedCoordinatorEvents(
+  coordinator: Person = ACTING_AS.coordinator,
+): EventRecord[] {
+  return coordinatorEvents(coordinator).filter(
+    (event) => event.request.status === "Approved",
+  );
+}
+
+/** Events assigned to the coordinator whose request was resolved without approval. */
+export function archivedCoordinatorRequests(
+  coordinator: Person = ACTING_AS.coordinator,
+): EventRecord[] {
+  return coordinatorEvents(coordinator).filter((event) =>
+    ["Rejected", "Returned", "Withdrawn"].includes(event.request.status),
+  );
 }
 
 /** Every event carrying a booking, whatever its state -- the venue queue. */
@@ -113,6 +149,26 @@ export function bookingById(
   return bookingQueue().find((entry) => entry.booking.id === id);
 }
 
+/** Bookings the venue team has not yet decided. */
+export function bookingsAwaitingDecision(): ReturnType<typeof bookingQueue> {
+  return bookingQueue().filter(({ booking }) => booking.status === "Requested");
+}
+
+/** Bookings the venue team has approved or tentatively held. */
+export function decidedBookings(): ReturnType<typeof bookingQueue> {
+  return bookingQueue().filter(
+    ({ booking }) =>
+      booking.status === "Tentative Hold" || booking.status === "Confirmed",
+  );
+}
+
+/** Bookings resolved without a live hold: rejected, released or cancelled. */
+export function archivedBookings(): ReturnType<typeof bookingQueue> {
+  return bookingQueue().filter(({ booking }) =>
+    ["Rejected", "Released", "Cancelled"].includes(booking.status),
+  );
+}
+
 /** Every event carrying an equipment reservation -- the technical queue. */
 export function technicalQueue(): Array<{
   event: EventRecord;
@@ -131,6 +187,29 @@ export function reservationById(
   id: string,
 ): { event: EventRecord; reservation: EquipmentReservationRecord } | undefined {
   return technicalQueue().find((entry) => entry.reservation.id === id);
+}
+
+/** Equipment reservations technical support has not yet reviewed. */
+export function reservationsNeedingReview(): ReturnType<typeof technicalQueue> {
+  return technicalQueue().filter(
+    ({ reservation }) => reservation.status === "Requested",
+  );
+}
+
+/** Equipment reservations technical support has already dispositioned. */
+export function reviewedReservations(): ReturnType<typeof technicalQueue> {
+  return technicalQueue().filter(({ reservation }) =>
+    ["Reserved", "Partially Reserved", "Unavailable"].includes(
+      reservation.status,
+    ),
+  );
+}
+
+/** Equipment reservations resolved and put away: released or returned. */
+export function archivedReservations(): ReturnType<typeof technicalQueue> {
+  return technicalQueue().filter(({ reservation }) =>
+    ["Released", "Returned"].includes(reservation.status),
+  );
 }
 
 /**
@@ -186,8 +265,20 @@ export function candidateVenues(event: EventRecord) {
 
 // --- Sidebar list pane -----------------------------------------------------
 
-/** The two sections every role's rail carries. */
-export type SidebarSection = "queue" | "notifications";
+/** The sections a role's rail can carry -- each role uses its own subset. */
+export type SidebarSection =
+  | "notifications"
+  | "drafts"
+  | "submitted"
+  | "unassigned"
+  | "assigned"
+  | "requests"
+  | "events"
+  | "archive"
+  | "requested"
+  | "decided"
+  | "needsReview"
+  | "reviewed";
 
 /**
  * One row of the sidebar's list pane.
@@ -206,10 +297,11 @@ export interface ListPaneItem {
   readonly unread?: boolean;
 }
 
-function queueItemsFor(role: StaffRole): ListPaneItem[] {
+function queueItemsFor(role: StaffRole, section: SidebarSection): ListPaneItem[] {
   switch (role) {
-    case "requester":
-      return requestsForOrganiser().map((event) => ({
+    case "requester": {
+      const events = section === "submitted" ? submittedRequests() : draftRequests();
+      return events.map((event) => ({
         id: event.id,
         href:
           event.request.status === "Draft"
@@ -220,9 +312,11 @@ function queueItemsFor(role: StaffRole): ListPaneItem[] {
         teaser: event.request.description ?? "Nothing filled in yet.",
         status: event.request.status,
       }));
+    }
 
-    case "ops":
-      return assignmentQueue().map((event) => ({
+    case "ops": {
+      const events = section === "assigned" ? assignedRequests() : awaitingAssignment();
+      return events.map((event) => ({
         id: event.id,
         href: `/staff/ops/${event.id}`,
         title: event.request.eventName,
@@ -232,25 +326,53 @@ function queueItemsFor(role: StaffRole): ListPaneItem[] {
           "No coordinator assigned yet.",
         status: event.request.status,
       }));
+    }
 
-    case "coordinator":
-      return coordinatorEvents().map((event) => {
-        const blocking = blockingArrangements(event);
-        return {
+    case "coordinator": {
+      if (section === "events") {
+        return approvedCoordinatorEvents().map((event) => {
+          const blocking = blockingArrangements(event);
+          return {
+            id: event.id,
+            href: `/staff/coordinator/${event.id}`,
+            title: event.name,
+            meta: event.request.preferredDate ?? "No date",
+            teaser:
+              blocking.length === 0
+                ? "Nothing outstanding."
+                : `Blocked on ${blocking.map((row) => row.label.toLowerCase()).join(", ")}.`,
+            status: event.status,
+          };
+        });
+      }
+      if (section === "archive") {
+        return archivedCoordinatorRequests().map((event) => ({
           id: event.id,
           href: `/staff/coordinator/${event.id}`,
           title: event.name,
-          meta: event.request.preferredDate ?? "No date",
-          teaser:
-            blocking.length === 0
-              ? "Nothing outstanding."
-              : `Blocked on ${blocking.map((row) => row.label.toLowerCase()).join(", ")}.`,
-          status: event.status,
-        };
-      });
+          meta: event.request.updatedAt,
+          teaser: event.request.decisionRecord ?? "No decision record.",
+          status: event.request.status,
+        }));
+      }
+      return pendingCoordinatorRequests().map((event) => ({
+        id: event.id,
+        href: `/staff/coordinator/${event.id}`,
+        title: event.name,
+        meta: event.request.submittedAt ?? "Not yet submitted",
+        teaser: event.request.description ?? "Nothing filled in yet.",
+        status: event.request.status,
+      }));
+    }
 
-    case "venue":
-      return bookingQueue().map(({ event, booking }) => ({
+    case "venue": {
+      const entries =
+        section === "decided"
+          ? decidedBookings()
+          : section === "archive"
+            ? archivedBookings()
+            : bookingsAwaitingDecision();
+      return entries.map(({ event, booking }) => ({
         id: booking.id,
         href: `/staff/venue/${booking.id}`,
         title: booking.venue.location,
@@ -258,9 +380,16 @@ function queueItemsFor(role: StaffRole): ListPaneItem[] {
         teaser: `${event.name} · ${event.request.expectedAttendance ?? "—"} expected`,
         status: booking.status,
       }));
+    }
 
-    case "technical":
-      return technicalQueue().map(({ event, reservation }) => {
+    case "technical": {
+      const entries =
+        section === "reviewed"
+          ? reviewedReservations()
+          : section === "archive"
+            ? archivedReservations()
+            : reservationsNeedingReview();
+      return entries.map(({ event, reservation }) => {
         const short = reservation.lines.filter(
           (line) => line.quantityReserved < line.quantityRequested,
         ).length;
@@ -276,6 +405,7 @@ function queueItemsFor(role: StaffRole): ListPaneItem[] {
           status: reservation.status,
         };
       });
+    }
   }
 }
 
@@ -297,7 +427,7 @@ export function listPaneItems(
     }));
   }
 
-  return queueItemsFor(role);
+  return queueItemsFor(role, section);
 }
 
 // --- Activity and comments -------------------------------------------------

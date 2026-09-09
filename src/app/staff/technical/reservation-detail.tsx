@@ -50,11 +50,17 @@ export function ReservationDetail({
   const shortfall = reservation.lines.filter(
     (line) => line.quantityReserved < line.quantityRequested,
   );
+  const { queueLabel, queueHref } =
+    reservation.status === "Requested"
+      ? { queueLabel: "Needs review", queueHref: "/staff/technical" }
+      : ["Reserved", "Partially Reserved", "Unavailable"].includes(reservation.status)
+        ? { queueLabel: "Reviewed", queueHref: "/staff/technical/reviewed" }
+        : { queueLabel: "Archive", queueHref: "/staff/technical/archive" };
 
   return (
     <StaffShell
       role="technical"
-      crumbs={detailCrumbs("technical", origin, "Equipment reviews", event.name)}
+      crumbs={detailCrumbs("technical", origin, queueLabel, event.name, queueHref)}
     >
       <PageHeader
         title={event.name}
@@ -219,10 +225,10 @@ export function ReservationDetail({
               </div>
             </CardContent>
           </Card>
-          <ActivityPanel eventId={event.id} section="technical" />
+          <ActivityPanel eventId={event.id} role="technical" section="technical" />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
           <EventContextPanel event={event} />
         </div>
       </div>

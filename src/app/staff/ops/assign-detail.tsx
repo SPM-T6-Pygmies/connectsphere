@@ -42,7 +42,13 @@ export function AssignDetail({
   return (
     <StaffShell
       role="ops"
-      crumbs={detailCrumbs("ops", origin, "Assignment queue", request.eventName)}
+      crumbs={detailCrumbs(
+        "ops",
+        origin,
+        assigned ? "Assigned" : "Unassigned",
+        request.eventName,
+        assigned ? "/staff/ops/assigned" : "/staff/ops",
+      )}
     >
       <PageHeader
         title={request.eventName}
@@ -92,10 +98,10 @@ export function AssignDetail({
               />
             </CardContent>
           </Card>
-          <ActivityPanel eventId={event.id} section="overview" />
+          <ActivityPanel eventId={event.id} role="ops" section="overview" />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>
