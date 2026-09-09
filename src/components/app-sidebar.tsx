@@ -3,6 +3,7 @@
 import {
   ArchiveIcon,
   BellIcon,
+  Building2Icon,
   CalendarCheckIcon,
   CheckIcon,
   FilePlusIcon,
@@ -90,12 +91,20 @@ function railItems(role: StaffRole): RailItem[] {
   ]
 
   if (role === "requester") {
-    items.push({
-      section: "action",
-      title: "New request",
-      url: "/staff/requester/new",
-      icon: FilePlusIcon,
-    })
+    items.push(
+      {
+        section: "action",
+        title: "Organisation events",
+        url: "/staff/requester/organisation",
+        icon: Building2Icon,
+      },
+      {
+        section: "action",
+        title: "New request",
+        url: "/staff/requester/new",
+        icon: FilePlusIcon,
+      },
+    )
   }
 
   return items
