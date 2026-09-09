@@ -19,13 +19,8 @@ import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
 import type { SubmitEventRequestResult } from "@/core/ports/inbound/submit-event-request";
 
 import { PageHeader } from "../../staff-shell";
-import {
-  EMPTY_FORM,
-  submitEventRequestAction,
-  type FormField,
-  type FormValues,
-  type SubmitRequestState,
-} from "./actions";
+import { submitEventRequestAction, type SubmitRequestState } from "./actions";
+import { EMPTY_FORM, type FormField, type FormValues } from "./form-fields";
 
 const INITIAL: SubmitRequestState = { status: "idle" };
 

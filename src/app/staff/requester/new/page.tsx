@@ -1,7 +1,7 @@
 import { eventById } from "@/lib/wireframe";
 
 import { StaffShell } from "../../staff-shell";
-import type { FormValues } from "./actions";
+import type { FormValues } from "./form-fields";
 import { NewRequestForm } from "./new-request-form";
 
 export const metadata = { title: "New event request | ConnectSphere" };
