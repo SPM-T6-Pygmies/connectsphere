@@ -1,5 +1,5 @@
 import Link from "next/link"
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -40,7 +40,11 @@ export function StaffShell({
   children: ReactNode
 }) {
   return (
-    <SidebarProvider>
+    // The two-pane sidebar is the icon rail plus a list pane, so it needs the
+    // wider track; the rail's own width comes from --sidebar-width-icon.
+    <SidebarProvider
+      style={{ "--sidebar-width": "23rem" } as CSSProperties}
+    >
       <AppSidebar role={role} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">

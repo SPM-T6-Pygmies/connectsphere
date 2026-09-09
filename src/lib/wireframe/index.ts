@@ -7,6 +7,7 @@
  */
 
 import { ACTING_AS, EVENTS, VENUES } from "./fixtures";
+import { notificationsFor } from "./notifications";
 import type {
   ArrangementRecord,
   BookingRecord,
@@ -17,6 +18,7 @@ import type {
 } from "./types";
 
 export { ACTING_AS, EQUIPMENT_CATALOGUE, EVENTS, PEOPLE, VENUES } from "./fixtures";
+export * from "./notifications";
 export * from "./types";
 
 export const ROLE_LABELS: Record<StaffRole, string> = {
@@ -176,4 +178,118 @@ export function candidateVenues(event: EventRecord) {
     venue,
     sufficientCapacity: (venue.capacity ?? 0) >= needed,
   }));
+}
+
+// --- Sidebar list pane -----------------------------------------------------
+
+/** The two sections every role's rail carries. */
+export type SidebarSection = "queue" | "notifications";
+
+/**
+ * One row of the sidebar's list pane.
+ *
+ * Every role works a queue of something -- requests, events, bookings,
+ * reservations -- so the pane takes one shape and each role supplies rows for
+ * it, rather than five panes that happen to look alike.
+ */
+export interface ListPaneItem {
+  readonly id: string;
+  readonly href: string;
+  readonly title: string;
+  readonly meta: string;
+  readonly teaser: string;
+  readonly status: string;
+  readonly unread?: boolean;
+}
+
+function queueItemsFor(role: StaffRole): ListPaneItem[] {
+  switch (role) {
+    case "requester":
+      return requestsForOrganiser().map((event) => ({
+        id: event.id,
+        href:
+          event.request.status === "Draft"
+            ? `/staff/requester/new?draft=${event.id}`
+            : `/staff/requester/${event.id}`,
+        title: event.request.eventName,
+        meta: event.request.preferredDate ?? "No date",
+        teaser: event.request.description ?? "Nothing filled in yet.",
+        status: event.request.status,
+      }));
+
+    case "ops":
+      return assignmentQueue().map((event) => ({
+        id: event.id,
+        href: `/staff/ops/${event.id}`,
+        title: event.request.eventName,
+        meta: event.request.submittedAt ?? "—",
+        teaser:
+          event.request.assignedCoordinator?.name ??
+          "No coordinator assigned yet.",
+        status: event.request.status,
+      }));
+
+    case "coordinator":
+      return coordinatorEvents().map((event) => {
+        const blocking = blockingArrangements(event);
+        return {
+          id: event.id,
+          href: `/staff/coordinator/${event.id}`,
+          title: event.name,
+          meta: event.request.preferredDate ?? "No date",
+          teaser:
+            blocking.length === 0
+              ? "Nothing outstanding."
+              : `Blocked on ${blocking.map((row) => row.label.toLowerCase()).join(", ")}.`,
+          status: event.status,
+        };
+      });
+
+    case "venue":
+      return bookingQueue().map(({ event, booking }) => ({
+        id: booking.id,
+        href: `/staff/venue/${booking.id}`,
+        title: booking.venue.location,
+        meta: `${booking.slotDate} · ${booking.slots.join(" + ")}`,
+        teaser: `${event.name} · ${event.request.expectedAttendance ?? "—"} expected`,
+        status: booking.status,
+      }));
+
+    case "technical":
+      return technicalQueue().map(({ event, reservation }) => {
+        const short = reservation.lines.filter(
+          (line) => line.quantityReserved < line.quantityRequested,
+        ).length;
+        return {
+          id: reservation.id,
+          href: `/staff/technical/${reservation.id}`,
+          title: event.name,
+          meta: event.request.preferredDate ?? "No date",
+          teaser:
+            short === 0
+              ? `${reservation.lines.length} lines, all filled.`
+              : `${short} of ${reservation.lines.length} lines short.`,
+          status: reservation.status,
+        };
+      });
+  }
+}
+
+export function listPaneItems(
+  role: StaffRole,
+  section: SidebarSection,
+): ListPaneItem[] {
+  if (section === "notifications") {
+    return notificationsFor(role).map((notification) => ({
+      id: notification.id,
+      href: notification.href,
+      title: notification.subject,
+      meta: notification.receivedAt.split(" ")[0],
+      teaser: notification.body,
+      status: notification.trigger,
+      unread: notification.unread,
+    }));
+  }
+
+  return queueItemsFor(role);
 }
