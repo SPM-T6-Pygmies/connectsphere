@@ -2,7 +2,6 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import {
   eventRequestId,
   type EventRequest,
-  type EventRequestId,
   type EventRequestStatus,
   type NewEventRequest,
 } from "@/core/domain/event-request";
@@ -37,13 +36,6 @@ export interface EventRequestRow {
   created_at: string;
   updated_at: string;
 }
-
-export const EVENT_REQUEST_COLUMNS =
-  "event_request_id, event_name, description, purpose, preferred_date, preferred_time, " +
-  "expected_attendance, venue_requirements, room_layout_preferences, accessibility_needs, " +
-  "equipment_requirements, registration_requirements, general_programme, " +
-  "other_special_arrangements, status, requesting_user_account_id, client_organisation_id, " +
-  "created_at, updated_at";
 
 /**
  * The domain's ids are opaque strings, which is what keeps the core from
@@ -114,41 +106,28 @@ export function toDomain(row: EventRequestRow): EventRequest {
 }
 
 /**
- * The insert payload. No `event_request_id`: the column is `generated always
- * as identity`, so naming it is an error rather than a hint.
+ * Arguments for `organiser_submit_event_request`.
+ *
+ * No `event_request_id`: the column is `generated always as identity`, so the
+ * store chooses it and hands it back.
  */
-export function toInsert(request: NewEventRequest): Record<string, unknown> {
+export function toSubmitArgs(request: NewEventRequest): Record<string, unknown> {
   return {
-    event_name: request.details.eventName,
-    description: request.details.description,
-    purpose: request.details.purpose,
-    preferred_date: request.details.preferredDate,
-    preferred_time: request.details.preferredTime,
-    expected_attendance: request.details.expectedAttendance,
-    venue_requirements: request.details.venueRequirements,
-    room_layout_preferences: request.details.roomLayoutPreferences,
-    accessibility_needs: request.details.accessibilityNeeds,
-    equipment_requirements: request.details.equipmentRequirements,
-    registration_requirements: request.details.registrationRequirements,
-    general_programme: request.details.generalProgramme,
-    other_special_arrangements: request.details.otherSpecialArrangements,
-    status: request.status,
-    requesting_user_account_id: toKey(request.responsibleOrganiserId),
-    client_organisation_id: toKey(request.clientOrganisationId),
+    p_event_name: request.details.eventName,
+    p_description: request.details.description,
+    p_purpose: request.details.purpose,
+    p_preferred_date: request.details.preferredDate,
+    p_preferred_time: request.details.preferredTime,
+    p_expected_attendance: request.details.expectedAttendance,
+    p_venue_requirements: request.details.venueRequirements,
+    p_room_layout_preferences: request.details.roomLayoutPreferences,
+    p_accessibility_needs: request.details.accessibilityNeeds,
+    p_equipment_requirements: request.details.equipmentRequirements,
+    p_registration_requirements: request.details.registrationRequirements,
+    p_general_programme: request.details.generalProgramme,
+    p_other_special_arrangements: request.details.otherSpecialArrangements,
+    p_status: request.status,
+    p_requesting_user_account_id: toKey(request.responsibleOrganiserId),
+    p_client_organisation_id: toKey(request.clientOrganisationId),
   };
-}
-
-export function toUpdate(request: EventRequest): Record<string, unknown> {
-  return {
-    ...toInsert(request),
-    event_request_id: keyOrThrow(request.id),
-  };
-}
-
-function keyOrThrow(id: EventRequestId): number {
-  const key = toKey(id);
-  if (key === null) {
-    throw new Error(`Event request id "${id}" is not a key this store issued.`);
-  }
-  return key;
 }
