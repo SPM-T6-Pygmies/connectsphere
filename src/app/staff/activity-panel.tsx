@@ -1,4 +1,10 @@
-import { ArrowRightIcon, CornerDownRightIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CheckCircle2Icon,
+  CircleDotIcon,
+  XCircleIcon,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -11,11 +17,14 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  ACTING_AS,
   activityFor,
   commentCount,
   feedRows,
   type ActivitySection,
   type CommentThread,
+  type StaffRole,
+  type SystemActivity,
 } from "@/lib/wireframe";
 
 function initials(name: string): string {
@@ -26,10 +35,64 @@ function initials(name: string): string {
     .join("");
 }
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, className = "size-6" }: { name: string; className?: string }) {
   return (
-    <span className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium">
+    <span
+      className={`bg-muted text-muted-foreground flex shrink-0 items-center justify-center rounded-full text-[10px] font-medium ${className}`}
+    >
       {initials(name)}
+    </span>
+  );
+}
+
+/** A same-size node for a system activity row, so it sits on the timeline rail beside comment avatars. */
+function ActivityIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return (
+    <span className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full">
+      <Icon className="size-3" />
+    </span>
+  );
+}
+
+const GOOD_VALUES = new Set([
+  "Approved",
+  "Confirmed",
+  "Reserved",
+  "Completed",
+  "Done",
+]);
+const BAD_VALUES = new Set(["Rejected", "Cancelled", "Unavailable", "Withdrawn"]);
+
+/** No field -> a plain thing-happened marker; otherwise read the outcome from what it changed to. */
+function activityIcon(entry: SystemActivity): LucideIcon {
+  if (!entry.field || !entry.to) return CircleDotIcon;
+  if (GOOD_VALUES.has(entry.to)) return CheckCircle2Icon;
+  if (BAD_VALUES.has(entry.to)) return XCircleIcon;
+  return ArrowRightIcon;
+}
+
+/** "3d ago", falling back gracefully for anything outside a day/month/year window. */
+function timeAgo(timestamp: string): string {
+  const then = new Date(timestamp.replace(" ", "T")).getTime();
+  const diffMs = Math.max(0, Date.now() - then);
+  const minute = 60_000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+  const month = 30 * day;
+  const year = 365 * day;
+
+  if (diffMs < minute) return "just now";
+  if (diffMs < hour) return `${Math.floor(diffMs / minute)}m ago`;
+  if (diffMs < day) return `${Math.floor(diffMs / hour)}h ago`;
+  if (diffMs < month) return `${Math.floor(diffMs / day)}d ago`;
+  if (diffMs < year) return `${Math.floor(diffMs / month)}mo ago`;
+  return `${Math.floor(diffMs / year)}y ago`;
+}
+
+function Timestamp({ at }: { at: string }) {
+  return (
+    <span className="text-muted-foreground text-xs" title={at}>
+      {timeAgo(at)}
     </span>
   );
 }
@@ -43,17 +106,20 @@ function Comment({
 }) {
   return (
     <div className="flex gap-3">
-      <Avatar name={thread.actor.name} />
+      <Avatar name={thread.actor.name} className={reply ? "size-5" : "size-6"} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2">
           <span className="text-sm font-medium">{thread.actor.name}</span>
-          <span className="text-muted-foreground text-xs">{thread.at}</span>
+          <Timestamp at={thread.at} />
         </div>
         <p className="mt-1 text-sm leading-relaxed">{thread.body}</p>
         {reply ? null : (
-          <Button variant="ghost" size="xs" className="mt-1 -ml-2">
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-foreground mt-1 text-xs font-medium"
+          >
             Reply
-          </Button>
+          </button>
         )}
       </div>
     </div>
@@ -65,7 +131,9 @@ function Comment({
  *
  * One feed rather than a history block and a comments block: the useful
  * question on any of these screens is "what has gone on with this", and the
- * answer interleaves the two.
+ * answer interleaves the two. Every row -- activity or comment -- sits on one
+ * continuous timeline rail, the way Linear's activity view reads as a single
+ * thread rather than separate sections.
  *
  * Scoped to the section it sits on, with a link to the whole event's trail --
  * the Venue tab wants the venue's story, not every status change the event
@@ -74,6 +142,7 @@ function Comment({
 export function ActivityPanel({
   eventId,
   section,
+  role,
   showAll = false,
   toggleHref,
   /** Comments only, for the external organiser: no internal activity. */
@@ -81,6 +150,7 @@ export function ActivityPanel({
 }: {
   eventId: string;
   section: ActivitySection;
+  role: StaffRole;
   showAll?: boolean;
   toggleHref?: string;
   commentsOnly?: boolean;
@@ -90,6 +160,7 @@ export function ActivityPanel({
     ? scoped.filter((entry) => entry.kind === "comment")
     : scoped;
   const rows = feedRows(entries);
+  const actingAs = ACTING_AS[role];
 
   return (
     <Card>
@@ -108,71 +179,74 @@ export function ActivityPanel({
         {rows.length === 0 ? (
           <p className="text-muted-foreground text-sm">Nothing here yet.</p>
         ) : (
-          <ol className="space-y-5">
-            {rows.map((row) =>
-              row.kind === "activity" ? (
-                <li
-                  key={row.entry.id}
-                  className="text-muted-foreground flex items-baseline gap-2 text-sm"
-                >
-                  <span className="bg-border mt-1.5 size-1.5 shrink-0 rounded-full" />
-                  <span className="min-w-0">
-                    <span className="text-foreground font-medium">
-                      {row.entry.actor.name}
-                    </span>{" "}
-                    {row.entry.action}
-                    {row.entry.field ? (
-                      <span className="text-foreground/70">
-                        {" — "}
-                        {row.entry.field}:{" "}
-                        <span className="line-through">{row.entry.from}</span>
-                        <ArrowRightIcon className="mx-1 inline size-3" />
-                        <span className="font-medium">{row.entry.to}</span>
-                      </span>
-                    ) : null}
-                    <span className="ml-2 text-xs">{row.entry.at}</span>
-                  </span>
-                </li>
-              ) : (
-                <li key={row.thread.entry.id} className="space-y-3">
-                  <Comment thread={row.thread.entry} />
-                  {row.thread.replies.length > 0 ? (
-                    <ul className="ml-3 space-y-3 border-l pl-4">
-                      {row.thread.replies.map((replyEntry) => (
-                        <li key={replyEntry.id} className="flex gap-2">
-                          <CornerDownRightIcon className="text-muted-foreground mt-1 size-3 shrink-0" />
-                          <div className="min-w-0 flex-1">
+          <div className="relative">
+            <div
+              aria-hidden
+              className="bg-border absolute top-3 bottom-3 left-3 w-px"
+            />
+            <ol className="space-y-5">
+              {rows.map((row) =>
+                row.kind === "activity" ? (
+                  <li key={row.entry.id} className="relative flex gap-3 text-sm">
+                    <ActivityIcon icon={activityIcon(row.entry)} />
+                    <span className="text-muted-foreground min-w-0 pt-0.5">
+                      <span className="text-foreground font-medium">
+                        {row.entry.actor.name}
+                      </span>{" "}
+                      {row.entry.action}
+                      {row.entry.field ? (
+                        <span className="text-foreground/70">
+                          {" — "}
+                          {row.entry.field}:{" "}
+                          <span className="line-through">{row.entry.from}</span>
+                          <ArrowRightIcon className="mx-1 inline size-3" />
+                          <span className="font-medium">{row.entry.to}</span>
+                        </span>
+                      ) : null}{" "}
+                      <Timestamp at={row.entry.at} />
+                    </span>
+                  </li>
+                ) : (
+                  <li key={row.thread.entry.id} className="relative space-y-3">
+                    <Comment thread={row.thread.entry} />
+                    {row.thread.replies.length > 0 ? (
+                      <ul className="border-border ml-3 space-y-3 border-l pl-4">
+                        {row.thread.replies.map((replyEntry) => (
+                          <li key={replyEntry.id}>
                             <Comment thread={replyEntry} reply />
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </li>
-              ),
-            )}
-          </ol>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                ),
+              )}
+            </ol>
+          </div>
         )}
 
-        <div className="space-y-2 border-t pt-4">
-          <Textarea placeholder="Leave a comment…" />
-          <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm">Comment</Button>
-            {toggleHref ? (
-              <Button variant="ghost" size="sm" asChild>
-                <Link href={toggleHref}>
-                  {showAll ? "Show this section only" : "Show all activity"}
-                </Link>
-              </Button>
-            ) : null}
+        <div className="flex gap-3 border-t pt-4">
+          <Avatar name={actingAs.name} />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Textarea placeholder="Leave a comment…" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm">Comment</Button>
+              {toggleHref ? (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={toggleHref}>
+                    {showAll ? "Show this section only" : "Show all activity"}
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+            {commentsOnly ? null : (
+              <p className="text-muted-foreground pt-1 text-xs leading-relaxed">
+                Comments ship in Release 1. Browsing the activity history is
+                backlog — the release requires the record to exist, not to be
+                readable here.
+              </p>
+            )}
           </div>
-          {commentsOnly ? null : (
-            <p className="text-muted-foreground pt-1 text-xs leading-relaxed">
-              Comments ship in Release 1. Browsing the activity history is
-              backlog — the release requires the record to exist, not to be
-              readable here.
-            </p>
-          )}
         </div>
       </CardContent>
     </Card>

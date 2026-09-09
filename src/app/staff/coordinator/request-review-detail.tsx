@@ -102,7 +102,7 @@ export function RequestReviewDetail({
             </CardContent>
           </Card>
 
-          <ActivityPanel eventId={event.id} section="overview" />
+          <ActivityPanel eventId={event.id} role="coordinator" section="overview" />
         </div>
 
         <div className="space-y-6">

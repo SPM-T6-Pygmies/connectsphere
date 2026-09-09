@@ -98,7 +98,7 @@ export function AssignDetail({
               />
             </CardContent>
           </Card>
-          <ActivityPanel eventId={event.id} section="overview" />
+          <ActivityPanel eventId={event.id} role="ops" section="overview" />
         </div>
 
         <div className="space-y-6">

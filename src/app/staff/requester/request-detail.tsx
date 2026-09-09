@@ -153,7 +153,12 @@ export function RequestDetail({
             </Card>
           ) : null}
 
-          <ActivityPanel eventId={event.id} section="overview" commentsOnly />
+          <ActivityPanel
+            eventId={event.id}
+            role="requester"
+            section="overview"
+            commentsOnly
+          />
         </div>
 
         <div className="space-y-6">

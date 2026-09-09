@@ -198,7 +198,7 @@ export function BookingDetail({
               </div>
             </CardContent>
           </Card>
-          <ActivityPanel eventId={event.id} section="venue" />
+          <ActivityPanel eventId={event.id} role="venue" section="venue" />
         </div>
 
         <div className="space-y-6">

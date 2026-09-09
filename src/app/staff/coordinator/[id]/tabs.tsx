@@ -134,6 +134,7 @@ export function OverviewTab({ event, activity }: TabProps) {
 
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="overview"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -301,6 +302,7 @@ export function VenueTab({ event, activity }: TabProps) {
       </Card>
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="venue"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -452,6 +454,7 @@ export function TechnicalTab({ event, activity }: TabProps) {
       </Card>
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="technical"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -611,6 +614,7 @@ export function ReadinessTab({ event, activity }: TabProps) {
 
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="readiness"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
@@ -654,6 +658,7 @@ export function RegistrationTab({ event, activity }: TabProps) {
 
         <ActivityPanel
           eventId={event.id}
+          role="coordinator"
           section="registration"
           showAll={activity.showAll}
           toggleHref={activity.toggleHref}
@@ -816,6 +821,7 @@ export function RegistrationTab({ event, activity }: TabProps) {
 
       <ActivityPanel
         eventId={event.id}
+        role="coordinator"
         section="registration"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
