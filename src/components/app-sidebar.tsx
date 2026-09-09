@@ -1,13 +1,17 @@
 "use client"
 
 import {
+  ArchiveIcon,
   BellIcon,
   CalendarCheckIcon,
+  CheckIcon,
   FilePlusIcon,
   InboxIcon,
   LayoutGridIcon,
   MapPinIcon,
   ProjectorIcon,
+  SendIcon,
+  UserCheckIcon,
   UsersIcon,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -30,7 +34,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import {
+  bookingById,
+  eventById,
   listPaneItems,
+  reservationById,
   ROLE_LABELS,
   unreadCount,
   type SidebarSection,
@@ -44,23 +51,36 @@ interface RailItem {
   readonly icon: LucideIcon
 }
 
-/** The queue each role works, named in their own vocabulary. */
-const QUEUE: Record<StaffRole, { title: string; icon: LucideIcon }> = {
-  requester: { title: "My requests", icon: InboxIcon },
-  ops: { title: "Assignment queue", icon: InboxIcon },
-  coordinator: { title: "My events", icon: CalendarCheckIcon },
-  venue: { title: "Booking requests", icon: MapPinIcon },
-  technical: { title: "Equipment reviews", icon: ProjectorIcon },
+/** The rail entries each role works, named in their own vocabulary. */
+const RAIL: Record<StaffRole, RailItem[]> = {
+  requester: [
+    { section: "drafts", title: "Drafts", url: "/staff/requester", icon: InboxIcon },
+    { section: "submitted", title: "Submitted", url: "/staff/requester/submitted", icon: SendIcon },
+  ],
+  ops: [
+    { section: "unassigned", title: "Unassigned", url: "/staff/ops", icon: InboxIcon },
+    { section: "assigned", title: "Assigned", url: "/staff/ops/assigned", icon: UserCheckIcon },
+  ],
+  coordinator: [
+    { section: "requests", title: "My requests", url: "/staff/coordinator", icon: InboxIcon },
+    { section: "events", title: "My events", url: "/staff/coordinator/events", icon: CalendarCheckIcon },
+    { section: "archive", title: "Archive", url: "/staff/coordinator/archive", icon: ArchiveIcon },
+  ],
+  venue: [
+    { section: "requested", title: "Requests", url: "/staff/venue", icon: MapPinIcon },
+    { section: "decided", title: "Decided", url: "/staff/venue/decided", icon: CheckIcon },
+    { section: "archive", title: "Archive", url: "/staff/venue/archive", icon: ArchiveIcon },
+  ],
+  technical: [
+    { section: "needsReview", title: "Needs review", url: "/staff/technical", icon: ProjectorIcon },
+    { section: "reviewed", title: "Reviewed", url: "/staff/technical/reviewed", icon: CheckIcon },
+    { section: "archive", title: "Archive", url: "/staff/technical/archive", icon: ArchiveIcon },
+  ],
 }
 
 function railItems(role: StaffRole): RailItem[] {
   const items: RailItem[] = [
-    {
-      section: "queue",
-      title: QUEUE[role].title,
-      url: `/staff/${role}`,
-      icon: QUEUE[role].icon,
-    },
+    ...RAIL[role],
     {
       section: "notifications",
       title: "Notifications",
@@ -82,6 +102,69 @@ function railItems(role: StaffRole): RailItem[] {
 }
 
 /**
+ * Which section of the rail a path belongs to.
+ *
+ * Each role's static nested routes are checked before ever treating the last
+ * path segment as a fixture id, so a section index page (e.g. "/staff/ops/
+ * assigned") is never mistaken for a detail route -- only what's left over
+ * after those checks is looked up as a record, and branched on its status.
+ */
+function currentSection(role: StaffRole, pathname: string): SidebarSection {
+  if (pathname.startsWith(`/staff/${role}/notifications`)) return "notifications"
+
+  if (role === "requester") {
+    if (pathname === "/staff/requester" || pathname.startsWith("/staff/requester/new")) {
+      return "drafts"
+    }
+    if (pathname.startsWith("/staff/requester/submitted")) return "submitted"
+    return "submitted" // only remaining shape is /staff/requester/[id], never a draft
+  }
+
+  if (role === "ops") {
+    if (pathname === "/staff/ops") return "unassigned"
+    if (pathname.startsWith("/staff/ops/assigned")) return "assigned"
+    const event = eventById(pathname.split("/")[3] ?? "")
+    return event?.request.assignedCoordinator !== null ? "assigned" : "unassigned"
+  }
+
+  if (role === "coordinator") {
+    if (pathname.startsWith("/staff/coordinator/events")) return "events"
+    if (pathname.startsWith("/staff/coordinator/archive")) return "archive"
+    if (pathname === "/staff/coordinator") return "requests"
+    const event = eventById(pathname.split("/")[3] ?? "")
+    if (!event) return "requests"
+    if (event.request.status === "Approved") return "events"
+    if (["Rejected", "Returned", "Withdrawn"].includes(event.request.status)) return "archive"
+    return "requests" // Submitted | Under Review
+  }
+
+  if (role === "venue") {
+    if (pathname === "/staff/venue") return "requested"
+    if (pathname.startsWith("/staff/venue/decided")) return "decided"
+    if (pathname.startsWith("/staff/venue/archive")) return "archive"
+    const entry = bookingById(pathname.split("/")[3] ?? "")
+    if (!entry) return "requested"
+    if (entry.booking.status === "Requested") return "requested"
+    if (entry.booking.status === "Tentative Hold" || entry.booking.status === "Confirmed") {
+      return "decided"
+    }
+    return "archive" // Rejected | Released | Cancelled
+  }
+
+  // technical
+  if (pathname === "/staff/technical") return "needsReview"
+  if (pathname.startsWith("/staff/technical/reviewed")) return "reviewed"
+  if (pathname.startsWith("/staff/technical/archive")) return "archive"
+  const entry = reservationById(pathname.split("/")[3] ?? "")
+  if (!entry) return "needsReview"
+  if (entry.reservation.status === "Requested") return "needsReview"
+  if (["Reserved", "Partially Reserved", "Unavailable"].includes(entry.reservation.status)) {
+    return "reviewed"
+  }
+  return "archive" // Released | Returned
+}
+
+/**
  * The staff shell: an icon rail, a list of what the acting role is working
  * through, and the detail beside it.
  *
@@ -95,16 +178,10 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & { role: StaffRole }) {
   const pathname = usePathname()
   const rail = railItems(role)
-
-  const section: SidebarSection = pathname.startsWith(
-    `/staff/${role}/notifications`,
-  )
-    ? "notifications"
-    : "queue"
-
+  const section = currentSection(role, pathname)
   const items = listPaneItems(role, section)
   const unread = unreadCount(role)
-  const heading = section === "notifications" ? "Notifications" : QUEUE[role].title
+  const heading = rail.find((item) => item.section === section)?.title ?? ""
 
   return (
     <Sidebar
