@@ -62,7 +62,13 @@ export function EventDetail({
   return (
     <StaffShell
       role="coordinator"
-      crumbs={detailCrumbs("coordinator", origin, "My events", event.name)}
+      crumbs={detailCrumbs(
+        "coordinator",
+        origin,
+        "My events",
+        event.name,
+        "/staff/coordinator/events",
+      )}
     >
       <PageHeader
         title={event.name}

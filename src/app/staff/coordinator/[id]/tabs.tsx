@@ -27,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import {
   blockingArrangements,
   canConfirm,
@@ -103,34 +102,15 @@ export function OverviewTab({ event, activity }: TabProps) {
         <Card>
           <CardHeader>
             <CardTitle>Decision</CardTitle>
-            <CardDescription>
-              Approving says the request holds enough information to plan
-              against. It commits no venue, equipment or staff.
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent>
             {request.decisionRecord ? (
-              <p className="bg-muted/50 rounded-lg p-3 text-sm leading-relaxed">
-                {request.decisionRecord}
+              <p className="text-sm leading-relaxed">{request.decisionRecord}</p>
+            ) : (
+              <p className="text-muted-foreground text-sm italic">
+                No decision record.
               </p>
-            ) : null}
-            <div className="space-y-1.5">
-              <Label htmlFor="decisionNote">Decision record</Label>
-              <Textarea
-                id="decisionNote"
-                placeholder="Why this was approved, returned or rejected."
-                defaultValue={request.decisionRecord ?? ""}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Button>Approve — planning may proceed</Button>
-              <Button variant="outline">Return for amendment</Button>
-              <Button variant="destructive">Reject</Button>
-            </div>
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              Whether a rejected request can be resubmitted is an open question
-              the customer left to the team.
-            </p>
+            )}
           </CardContent>
         </Card>
 
