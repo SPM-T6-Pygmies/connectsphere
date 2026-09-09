@@ -27,8 +27,13 @@ pnpm add -g @infisical/cli
 
 infisical login          # authenticate this machine — choose "US Cloud" when prompted
 infisical init           # link this repo to an Infisical project
-pnpm dev:secrets         # shortcut for: infisical run --env=dev -- pnpm dev
+pnpm dev:local           # shortcut for: supabase start && infisical run --env=dev -- pnpm dev
+pnpm dev:remote          # shortcut for: infisical run --env=prod -- pnpm dev
 ```
+
+`dev:local` also starts the local Supabase stack — see
+[docs/DATABASE.md](docs/DATABASE.md) if that's new to you. `dev:remote` runs
+against the live project — use it deliberately.
 
 See the [Infisical CLI docs](https://infisical.com/docs/cli/usage) for
 `--path`/`--recursive` flags and CI usage.
@@ -41,8 +46,9 @@ Apply `supabase/schema.sql` to your Supabase project before using
 
 | Command          | What it does                                          |
 | ---------------- | ----------------------------------------------------- |
-| `pnpm dev`       | Dev server                                            |
-| `pnpm dev:secrets` | Dev server with env vars injected from Infisical    |
+| `pnpm dev`         | Dev server, using `.env.local`                                    |
+| `pnpm dev:local`   | Dev server against local Postgres, env vars from Infisical's `dev` |
+| `pnpm dev:remote`  | Dev server against the live project, via Infisical's `prod`        |
 | `pnpm build`     | Production build                                      |
 | `pnpm lint`      | Next.js rules **plus architecture import boundaries** |
 | `pnpm typecheck` | `tsc --noEmit`                                        |

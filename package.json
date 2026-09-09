@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:secrets": "infisical run --env=dev -- pnpm dev",
+    "dev:local": "supabase start && infisical run --env=dev -- pnpm dev",
+    "dev:remote": "infisical run --env=prod -- pnpm dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
