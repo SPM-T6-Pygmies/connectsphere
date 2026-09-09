@@ -27,7 +27,7 @@ export default function CoordinatorPage() {
   const events = coordinatorEvents();
 
   return (
-    <StaffShell role="coordinator" crumbs={[{ label: "My events" }]}>
+    <StaffShell role="coordinator" crumbs={[{ label: "My events" }]} defaultOpen={false}>
       <PageHeader
         title="My events"
         description={`Events assigned to ${ACTING_AS.coordinator.name}, with what is blocking each one from being confirmed.`}

@@ -33,16 +33,27 @@ export interface Crumb {
 export function StaffShell({
   role,
   crumbs,
+  defaultOpen = true,
   children,
 }: {
   role: StaffRole
   crumbs: readonly Crumb[]
+  /**
+   * Whether the list pane starts open.
+   *
+   * Queue screens pass false: their table already shows everything at a
+   * glance, and a navigator repeating it in 20rem beside it earns nothing.
+   * Detail and inbox screens keep it, because there the pane is how you get
+   * to the next thing. The header trigger overrides either way.
+   */
+  defaultOpen?: boolean
   children: ReactNode
 }) {
   return (
     // The two-pane sidebar is the icon rail plus a list pane, so it needs the
     // wider track; the rail's own width comes from --sidebar-width-icon.
     <SidebarProvider
+      defaultOpen={defaultOpen}
       style={{ "--sidebar-width": "23rem" } as CSSProperties}
     >
       <AppSidebar role={role} />

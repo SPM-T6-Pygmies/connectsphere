@@ -25,7 +25,7 @@ export default function VenuePage() {
   ).length;
 
   return (
-    <StaffShell role="venue" crumbs={[{ label: "Booking requests" }]}>
+    <StaffShell role="venue" crumbs={[{ label: "Booking requests" }]} defaultOpen={false}>
       <PageHeader
         title="Booking requests"
         description="Requests to decide, awaiting ones first. A venue holds at most one live booking per date and slot."

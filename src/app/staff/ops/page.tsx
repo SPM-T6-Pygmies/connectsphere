@@ -23,7 +23,7 @@ export default function OpsPage() {
   const unassigned = awaitingAssignment();
 
   return (
-    <StaffShell role="ops" crumbs={[{ label: "Assignment queue" }]}>
+    <StaffShell role="ops" crumbs={[{ label: "Assignment queue" }]} defaultOpen={false}>
       <PageHeader
         title="Assignment queue"
         description="Every submitted request, unassigned first. Assigning a coordinator takes effect immediately — there is no acceptance step and no decline path."

@@ -94,7 +94,7 @@ export default function RequesterPage() {
   const submitted = submittedRequests();
 
   return (
-    <StaffShell role="requester" crumbs={[{ label: "My requests" }]}>
+    <StaffShell role="requester" crumbs={[{ label: "My requests" }]} defaultOpen={false}>
       <PageHeader
         title="My event requests"
         description={`Requests raised by ${ACTING_AS.requester.name}. A draft can be edited until it is submitted; after that, changes route through the assigned coordinator.`}

@@ -32,7 +32,7 @@ export default function TechnicalPage() {
   ).length;
 
   return (
-    <StaffShell role="technical" crumbs={[{ label: "Equipment reviews" }]}>
+    <StaffShell role="technical" crumbs={[{ label: "Equipment reviews" }]} defaultOpen={false}>
       <PageHeader
         title="Equipment reviews"
         description="Reservations to work through, unreviewed first. There is no approval workflow — the coordinator records what is needed, you reserve what exists."
