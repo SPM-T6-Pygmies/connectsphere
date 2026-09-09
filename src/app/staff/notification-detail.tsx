@@ -22,9 +22,13 @@ import { BookingDetail } from "./venue/booking-detail";
 export function NotificationDetail({
   role,
   notificationId,
+  tab,
+  activity,
 }: {
   role: StaffRole;
   notificationId: string;
+  tab?: string | string[];
+  activity?: string | string[];
 }) {
   const notification = NOTIFICATIONS.find(
     (candidate) =>
@@ -43,7 +47,17 @@ export function NotificationDetail({
     case "assign":
       return <AssignDetail id={target.id} origin="inbox" />;
     case "event":
-      return <EventDetail id={target.id} tab={target.tab} origin="inbox" />;
+      return (
+        <EventDetail
+          id={target.id}
+          // The notification names the tab it concerns; the reader can still
+          // move off it, so an explicit tab in the URL wins.
+          tab={tab ?? target.tab}
+          activity={activity}
+          basePath={`/staff/${role}/notifications/${notificationId}`}
+          origin="inbox"
+        />
+      );
     case "booking":
       return <BookingDetail id={target.id} origin="inbox" />;
     case "reservation":

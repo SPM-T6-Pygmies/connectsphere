@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { eventById, type EventRecord } from "@/lib/wireframe";
 
+import { ActivityPanel } from "../activity-panel";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { PageHeader, StaffShell } from "../staff-shell";
@@ -146,34 +147,7 @@ export function RequestDetail({
             </Card>
           ) : null}
 
-          {event.comments.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Clarifications</CardTitle>
-                <CardDescription>
-                  Your coordinator is the single point of contact for questions
-                  about this event.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {event.comments.map((comment) => (
-                  <div key={comment.id} className="border-l-2 pl-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-medium">
-                        {comment.author.name}
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {comment.createdAt}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm leading-relaxed">
-                      {comment.body}
-                    </p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ) : null}
+          <ActivityPanel eventId={event.id} section="overview" commentsOnly />
         </div>
 
         <div className="space-y-6">

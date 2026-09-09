@@ -365,7 +365,6 @@ function event(
     support: null,
     arrangements: [],
     registrations: [],
-    comments: [],
     ...overrides,
   };
 }
@@ -511,20 +510,6 @@ export const EVENTS: readonly EventRecord[] = [
         essential: false,
         complete: false,
         detail: "Invite-only -- not applicable to this event.",
-      },
-    ],
-    comments: [
-      {
-        id: "c-01",
-        author: PEOPLE.coordinatorAmara,
-        body: "Priya, can you confirm whether the streamed sessions need live interpretation as well as captions?",
-        createdAt: "2026-09-06",
-      },
-      {
-        id: "c-02",
-        author: PEOPLE.organiserPriya,
-        body: "Captions only. Interpretation is not needed this year.",
-        createdAt: "2026-09-07",
       },
     ],
   }),

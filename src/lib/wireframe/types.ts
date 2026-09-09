@@ -207,13 +207,6 @@ export interface RegistrationRecord {
   readonly registeredAt: string;
 }
 
-export interface CommentRecord {
-  readonly id: string;
-  readonly author: Person;
-  readonly body: string;
-  readonly createdAt: string;
-}
-
 export interface EventRecord {
   readonly id: string;
   readonly request: EventRequestRecord;
@@ -233,7 +226,6 @@ export interface EventRecord {
   readonly support: SupportRequestRecord | null;
   readonly arrangements: readonly ArrangementRecord[];
   readonly registrations: readonly RegistrationRecord[];
-  readonly comments: readonly CommentRecord[];
 }
 
 /**

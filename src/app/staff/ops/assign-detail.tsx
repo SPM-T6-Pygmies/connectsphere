@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { coordinatorEvents, eventById, PEOPLE } from "@/lib/wireframe";
 
+import { ActivityPanel } from "../activity-panel";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { PageHeader, StaffShell } from "../staff-shell";
@@ -91,6 +92,7 @@ export function AssignDetail({
               />
             </CardContent>
           </Card>
+          <ActivityPanel eventId={event.id} section="overview" />
         </div>
 
         <div className="space-y-6">

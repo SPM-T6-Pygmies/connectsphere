@@ -5,7 +5,7 @@ export default async function Page({
   searchParams,
 }: PageProps<"/staff/coordinator/[id]">) {
   const { id } = await params;
-  const { tab } = await searchParams;
+  const { tab, activity } = await searchParams;
 
-  return <EventDetail id={id} tab={tab} />;
+  return <EventDetail id={id} tab={tab} activity={activity} />;
 }

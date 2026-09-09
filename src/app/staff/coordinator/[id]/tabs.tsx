@@ -37,14 +37,21 @@ import {
   type EventRecord,
 } from "@/lib/wireframe";
 
+import { ActivityPanel } from "../../activity-panel";
 import { EmptyState, FieldList } from "../../field-list";
 import { StatusBadge } from "../../status-badge";
 
-export function OverviewTab({ event }: { event: EventRecord }) {
+export interface TabProps {
+  event: EventRecord;
+  activity: { showAll: boolean; toggleHref: string };
+}
+
+export function OverviewTab({ event, activity }: TabProps) {
   const request = event.request;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
         <Card>
           <CardHeader>
@@ -90,45 +97,6 @@ export function OverviewTab({ event }: { event: EventRecord }) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Clarifications</CardTitle>
-            <CardDescription>
-              You are the client&apos;s single point of contact. Technical
-              support can raise questions here, but the response to the
-              organiser comes from you.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {event.comments.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                Nothing raised yet.
-              </p>
-            ) : (
-              event.comments.map((comment) => (
-                <div key={comment.id} className="border-l-2 pl-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-medium">
-                      {comment.author.name}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {comment.createdAt}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm leading-relaxed">{comment.body}</p>
-                </div>
-              ))
-            )}
-            <div className="space-y-2 border-t pt-4">
-              <Label htmlFor="newComment">Ask the organiser something</Label>
-              <Textarea
-                id="newComment"
-                placeholder="What needs clarifying before this can be approved?"
-              />
-              <Button size="sm">Send to organiser</Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="space-y-6">
@@ -182,11 +150,19 @@ export function OverviewTab({ event }: { event: EventRecord }) {
           </CardContent>
         </Card>
       </div>
+      </div>
+
+      <ActivityPanel
+        eventId={event.id}
+        section="overview"
+        showAll={activity.showAll}
+        toggleHref={activity.toggleHref}
+      />
     </div>
   );
 }
 
-export function VenueTab({ event }: { event: EventRecord }) {
+export function VenueTab({ event, activity }: TabProps) {
   const booking = event.booking;
   const needed = event.request.expectedAttendance ?? 0;
 
@@ -343,11 +319,17 @@ export function VenueTab({ event }: { event: EventRecord }) {
           </Table>
         </CardContent>
       </Card>
+      <ActivityPanel
+        eventId={event.id}
+        section="venue"
+        showAll={activity.showAll}
+        toggleHref={activity.toggleHref}
+      />
     </div>
   );
 }
 
-export function TechnicalTab({ event }: { event: EventRecord }) {
+export function TechnicalTab({ event, activity }: TabProps) {
   const reservation = event.equipment;
   const support = event.support;
 
@@ -488,18 +470,25 @@ export function TechnicalTab({ event }: { event: EventRecord }) {
           )}
         </CardContent>
       </Card>
+      <ActivityPanel
+        eventId={event.id}
+        section="technical"
+        showAll={activity.showAll}
+        toggleHref={activity.toggleHref}
+      />
     </div>
   );
 }
 
-export function ReadinessTab({ event }: { event: EventRecord }) {
+export function ReadinessTab({ event, activity }: TabProps) {
   const blocking = blockingArrangements(event);
   const confirmable = canConfirm(event);
   const alreadyConfirmed =
     event.status === "Confirmed" || event.status === "Completed";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
         <Card>
           <CardHeader>
@@ -638,46 +627,64 @@ export function ReadinessTab({ event }: { event: EventRecord }) {
           </CardContent>
         </Card>
       </div>
+      </div>
+
+      <ActivityPanel
+        eventId={event.id}
+        section="readiness"
+        showAll={activity.showAll}
+        toggleHref={activity.toggleHref}
+      />
     </div>
   );
 }
 
-export function RegistrationTab({ event }: { event: EventRecord }) {
+export function RegistrationTab({ event, activity }: TabProps) {
   const unlocked = registrationUnlocked(event);
   const taken = liveRegistrations(event);
 
   if (!unlocked) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LockIcon className="size-4" />
-            Registration is locked
-          </CardTitle>
-          <CardDescription>
-            Attendees can register for confirmed events where registration is
-            enabled. This event is {event.status.toLowerCase()}, so there is
-            nothing to configure yet.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert variant="warning">
-            <LockIcon />
-            <AlertTitle>Confirm the event first</AlertTitle>
-            <AlertDescription>
-              <p>
-                Registration settings unlock once the event is confirmed. See
-                the Readiness tab for what is still outstanding.
-              </p>
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LockIcon className="size-4" />
+              Registration is locked
+            </CardTitle>
+            <CardDescription>
+              Attendees can register for confirmed events where registration is
+              enabled. This event is {event.status.toLowerCase()}, so there is
+              nothing to configure yet.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert variant="warning">
+              <LockIcon />
+              <AlertTitle>Confirm the event first</AlertTitle>
+              <AlertDescription>
+                <p>
+                  Registration settings unlock once the event is confirmed. See
+                  the Readiness tab for what is still outstanding.
+                </p>
+              </AlertDescription>
+            </Alert>
+            </CardContent>
+        </Card>
+
+        <ActivityPanel
+          eventId={event.id}
+          section="registration"
+          showAll={activity.showAll}
+          toggleHref={activity.toggleHref}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
         <Card>
           <CardHeader>
@@ -824,7 +831,15 @@ export function RegistrationTab({ event }: { event: EventRecord }) {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </div>
+
+      <ActivityPanel
+        eventId={event.id}
+        section="registration"
+        showAll={activity.showAll}
+        toggleHref={activity.toggleHref}
+      />
     </div>
   );
 }

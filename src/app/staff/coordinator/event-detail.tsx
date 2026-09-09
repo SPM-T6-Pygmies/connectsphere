@@ -24,10 +24,15 @@ const TABS = ["overview", "venue", "technical", "readiness", "registration"];
 export function EventDetail({
   id,
   tab,
+  activity: activityParam,
+  basePath,
   origin = "queue",
 }: {
   id: string;
   tab?: string | string[];
+  activity?: string | string[];
+  /** The route this is rendered at, so tab and activity links stay on it. */
+  basePath?: string;
   origin?: DetailOrigin;
 }) {
   const event = eventById(id);
@@ -41,6 +46,15 @@ export function EventDetail({
   // is a path segment rather than client state.
   const activeTab =
     typeof tab === "string" && TABS.includes(tab) ? tab : "overview";
+
+  // The trail is scoped to the open tab; "show all" widens it to the whole
+  // event. A search param rather than client state, like the tab itself.
+  const showAll = activityParam === "all";
+  const here = basePath ?? `/staff/coordinator/${event.id}`;
+  const activity = {
+    showAll,
+    toggleHref: `${here}?tab=${activeTab}${showAll ? "" : "&activity=all"}`,
+  };
 
   const blocking = blockingArrangements(event);
   const unlocked = registrationUnlocked(event);
@@ -76,19 +90,19 @@ export function EventDetail({
         </TabsList>
 
         <TabsContent value="overview">
-          <OverviewTab event={event} />
+          <OverviewTab event={event} activity={activity} />
         </TabsContent>
         <TabsContent value="venue">
-          <VenueTab event={event} />
+          <VenueTab event={event} activity={activity} />
         </TabsContent>
         <TabsContent value="technical">
-          <TechnicalTab event={event} />
+          <TechnicalTab event={event} activity={activity} />
         </TabsContent>
         <TabsContent value="readiness">
-          <ReadinessTab event={event} />
+          <ReadinessTab event={event} activity={activity} />
         </TabsContent>
         <TabsContent value="registration">
-          <RegistrationTab event={event} />
+          <RegistrationTab event={event} activity={activity} />
         </TabsContent>
       </Tabs>
     </StaffShell>

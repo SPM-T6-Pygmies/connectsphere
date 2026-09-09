@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { bookingById, VENUES } from "@/lib/wireframe";
 
+import { ActivityPanel } from "../activity-panel";
 import { EventContextPanel } from "../event-context";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
@@ -191,6 +192,7 @@ export function BookingDetail({
               </div>
             </CardContent>
           </Card>
+          <ActivityPanel eventId={event.id} section="venue" />
         </div>
 
         <div className="space-y-6">
