@@ -79,16 +79,24 @@ about committing them here.
 
 ## Troubleshooting: Colima
 
-If `supabase start` fails partway through with something like:
+`analytics` is disabled in `supabase/config.toml` by default, specifically
+because of Colima. Its log-shipping sidecar (`vector`) tries to bind-mount
+Colima's Docker socket in a way Colima's virtiofs setup doesn't support, and
+fails with something like:
 
 ```
 failed to start docker container "supabase_vector_connectsphere":
 ... mount source path '.../.colima/default/docker.sock': operation not supported
 ```
 
-or Colima's VM disappears mid-run (`colima status` reports "not running"),
-Colima's default VM (2 GiB memory) is too tight for the full stack. Give it
-more headroom:
+The tradeoff: nobody gets Supabase Studio's Logs explorer locally, on any
+Docker setup, not just Colima — it's a project-wide toggle, not per-machine.
+If you're on Docker Desktop and want it, flip `enabled = true` back on your
+own machine, uncommitted.
+
+**Colima's VM disappears mid-run** (`colima status` reports "not running"):
+this is a resource problem — the default VM (2 GiB memory) is too tight for
+the full stack. Give it more headroom:
 
 ```bash
 colima stop
