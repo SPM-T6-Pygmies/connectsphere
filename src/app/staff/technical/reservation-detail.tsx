@@ -50,11 +50,17 @@ export function ReservationDetail({
   const shortfall = reservation.lines.filter(
     (line) => line.quantityReserved < line.quantityRequested,
   );
+  const { queueLabel, queueHref } =
+    reservation.status === "Requested"
+      ? { queueLabel: "Needs review", queueHref: "/staff/technical" }
+      : ["Reserved", "Partially Reserved", "Unavailable"].includes(reservation.status)
+        ? { queueLabel: "Reviewed", queueHref: "/staff/technical/reviewed" }
+        : { queueLabel: "Archive", queueHref: "/staff/technical/archive" };
 
   return (
     <StaffShell
       role="technical"
-      crumbs={detailCrumbs("technical", origin, "Equipment reviews", event.name)}
+      crumbs={detailCrumbs("technical", origin, queueLabel, event.name, queueHref)}
     >
       <PageHeader
         title={event.name}
