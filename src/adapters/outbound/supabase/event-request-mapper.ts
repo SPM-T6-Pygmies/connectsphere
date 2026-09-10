@@ -21,7 +21,8 @@ export interface EventRequestRow {
   description: string | null;
   purpose: string | null;
   preferred_date: string | null;
-  preferred_time: string | null;
+  preferred_start_time: string | null;
+  preferred_end_time: string | null;
   expected_attendance: number | null;
   venue_requirements: string | null;
   room_layout_preferences: string | null;
@@ -92,7 +93,8 @@ export function toDomain(row: EventRequestRow): EventRequest {
       description: row.description,
       purpose: row.purpose,
       preferredDate: row.preferred_date,
-      preferredTime: row.preferred_time,
+      preferredStartTime: row.preferred_start_time,
+      preferredEndTime: row.preferred_end_time,
       expectedAttendance: row.expected_attendance,
       venueRequirements: row.venue_requirements,
       roomLayoutPreferences: row.room_layout_preferences,
@@ -117,7 +119,8 @@ export function toSubmitArgs(request: NewEventRequest): Record<string, unknown> 
     p_description: request.details.description,
     p_purpose: request.details.purpose,
     p_preferred_date: request.details.preferredDate,
-    p_preferred_time: request.details.preferredTime,
+    p_preferred_start_time: request.details.preferredStartTime,
+    p_preferred_end_time: request.details.preferredEndTime,
     p_expected_attendance: request.details.expectedAttendance,
     p_venue_requirements: request.details.venueRequirements,
     p_room_layout_preferences: request.details.roomLayoutPreferences,

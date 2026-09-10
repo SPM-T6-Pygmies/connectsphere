@@ -20,7 +20,8 @@ function detailsOf(command: SubmitEventRequestCommand): EventRequestDetails {
     description: command.description,
     purpose: command.purpose,
     preferredDate: command.preferredDate,
-    preferredTime: command.preferredTime,
+    preferredStartTime: command.preferredStartTime,
+    preferredEndTime: command.preferredEndTime,
     expectedAttendance: command.expectedAttendance,
     venueRequirements: command.venueRequirements,
     roomLayoutPreferences: command.roomLayoutPreferences,
@@ -54,6 +55,7 @@ export class SubmitEventRequestUseCase implements SubmitEventRequest {
       clientOrganisationId: clientOrganisationId(command.clientOrganisationId),
       responsibleOrganiserId: userAccountId(command.responsibleOrganiserId),
       submittedAt: clock.now(),
+      organiserTimeZone: command.organiserTimeZone,
     });
 
     const stored = await eventRequests.create(request);
@@ -65,7 +67,8 @@ export class SubmitEventRequestUseCase implements SubmitEventRequest {
       summary: {
         eventName: stored.details.eventName,
         preferredDate: stored.details.preferredDate,
-        preferredTime: stored.details.preferredTime,
+        preferredStartTime: stored.details.preferredStartTime,
+        preferredEndTime: stored.details.preferredEndTime,
         expectedAttendance: stored.details.expectedAttendance,
       },
     };

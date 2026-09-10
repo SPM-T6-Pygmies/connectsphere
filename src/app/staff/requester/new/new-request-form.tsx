@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
 import type { SubmitEventRequestResult } from "@/core/ports/inbound/submit-event-request";
 
-import { PageHeader } from "../../staff-shell";
+import { PageHeader } from "../../page-header";
 import { submitEventRequestAction, type SubmitRequestState } from "./actions";
 import { EMPTY_FORM, type FormField, type FormValues } from "./form-fields";
 
@@ -41,9 +41,37 @@ function isFilled(value: string): boolean {
   return value.trim().length > 0;
 }
 
+/**
+ * A real instant, built from the Organiser's own local date+time parts.
+ *
+ * The multi-arg `Date` constructor interprets `(y, m, d, h, min)` as local
+ * time in whatever timezone the code runs in -- this file is a client
+ * component, so that's the Organiser's own browser. `toISOString()` then
+ * hands the server an unambiguous UTC instant, so the `timestamptz` column
+ * ends up holding the moment the Organiser actually meant, not that clock
+ * reading reinterpreted in the server's own timezone.
+ */
+function toInstant(dateStr: string, timeStr: string): string {
+  if (!dateStr || !timeStr) {
+    return "";
+  }
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes).toISOString();
+}
+
 export function NewRequestForm({ initialValues }: { initialValues?: Partial<FormValues> }) {
   const [state, formAction, pending] = useActionState(submitEventRequestAction, INITIAL);
   const [values, setValues] = useState<FormValues>({ ...EMPTY_FORM, ...initialValues });
+  // Time-of-day only: the Organiser picks one preferred date and two times
+  // against it, not two independent instants. Composed into full
+  // preferredStartTime/preferredEndTime instants below, which is what
+  // actually gets submitted (see the hidden inputs) -- these two never are.
+  const [startTimeOnly, setStartTimeOnly] = useState("");
+  const [endTimeOnly, setEndTimeOnly] = useState("");
+  // Read once, from the browser's own Intl data -- the server has no other
+  // way to know which "today" the future-date rule should mean.
+  const [organiserTimeZone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   // SPM-31 AC5: submission does not disable the form, it replaces it. Nothing
   // the Organiser could edit with survives into this state -- no inputs, no
@@ -54,7 +82,11 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
   }
 
   const errors = state.status === "error" ? state.fieldErrors : undefined;
-  const readyToSubmit = MANDATORY_SUBMISSION_FIELDS.every((field) => isFilled(values[field]));
+
+  const preferredStartTime = toInstant(values.preferredDate, startTimeOnly);
+  const preferredEndTime = toInstant(values.preferredDate, endTimeOnly);
+  const effectiveValues: FormValues = { ...values, preferredStartTime, preferredEndTime };
+  const readyToSubmit = MANDATORY_SUBMISSION_FIELDS.every((field) => isFilled(effectiveValues[field]));
 
   function set(field: FormField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -73,8 +105,9 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
 
   return (
     <form action={formAction} className="space-y-6">
+      <input type="hidden" name="organiserTimeZone" value={organiserTimeZone} />
       <PageHeader
-        title="New event request"
+        title="Create New Event Request"
         description="Tell us what you need and submit. Once submitted, changes go through your Event Coordinator."
         actions={
           <>
@@ -99,8 +132,7 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
 
       {!readyToSubmit ? (
         <p className="text-muted-foreground text-sm">
-          Fields marked <span className="text-destructive">*</span> are needed before you can
-          submit. Everything else can be filled in later with your coordinator.
+          Fields marked <span className="text-destructive">*</span> are mandatory.
         </p>
       ) : null}
 
@@ -136,16 +168,46 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
             <CardHeader>
               <CardTitle>When and how many</CardTitle>
               <CardDescription>
-                Venues are booked in AM, PM and Night slots, so the coordinator will map your
-                times onto those.
+                Tell us your preferred date and time window
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <Field id="preferredDate" label="Preferred date" required errors={errors?.preferredDate}>
                 <Input id="preferredDate" type="date" {...field("preferredDate")} />
               </Field>
-              <Field id="preferredTime" label="Preferred time" required errors={errors?.preferredTime}>
-                <Input id="preferredTime" placeholder="09:00 - 17:00" {...field("preferredTime")} />
+              <Field
+                id="preferredStartTime"
+                label="Preferred start time"
+                required
+                hint="Combined with the preferred date above."
+                errors={errors?.preferredStartTime}
+              >
+                <Input
+                  id="preferredStartTime"
+                  type="time"
+                  required
+                  aria-invalid={errors?.preferredStartTime !== undefined}
+                  value={startTimeOnly}
+                  onChange={(event) => setStartTimeOnly(event.target.value)}
+                />
+                <input type="hidden" name="preferredStartTime" value={preferredStartTime} />
+              </Field>
+              <Field
+                id="preferredEndTime"
+                label="Preferred end time"
+                required
+                hint="Combined with the preferred date above."
+                errors={errors?.preferredEndTime}
+              >
+                <Input
+                  id="preferredEndTime"
+                  type="time"
+                  required
+                  aria-invalid={errors?.preferredEndTime !== undefined}
+                  value={endTimeOnly}
+                  onChange={(event) => setEndTimeOnly(event.target.value)}
+                />
+                <input type="hidden" name="preferredEndTime" value={preferredEndTime} />
               </Field>
               <Field
                 id="expectedAttendance"
@@ -331,7 +393,7 @@ function Acknowledgement({ result }: { result: SubmitEventRequestResult }) {
     <div className="space-y-6" role="status">
       <PageHeader
         title="Request submitted"
-        description="ConnectSphere has your request. Your coordinator will be in touch."
+        description="ConnectSphere has your request. Your Event Coordinator will be in touch."
         actions={
           <Button asChild variant="outline">
             <Link href="/staff/requester">Back to my requests</Link>
@@ -345,38 +407,73 @@ function Acknowledgement({ result }: { result: SubmitEventRequestResult }) {
             <CheckCircle2Icon aria-hidden className="size-5 shrink-0" />
             {result.summary.eventName}
           </CardTitle>
-          <CardDescription>Reference {result.eventRequestId}</CardDescription>
+          <CardDescription>Request ID: {result.eventRequestId}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <Recorded label="Status" value={result.status} />
             <Recorded
               label="Submitted"
-              value={new Date(result.submittedAt).toLocaleString("en-SG")}
+              value={`${formatInstantDate(result.submittedAt)}, ${formatInstantTime(result.submittedAt)}`}
             />
-            <Recorded label="Preferred date" value={result.summary.preferredDate} />
-            <Recorded label="Preferred time" value={result.summary.preferredTime} />
+            <Recorded
+              label="Preferred date & time"
+              value={preferredWhen(result.summary)}
+              className="sm:col-span-2"
+            />
             <Recorded
               label="Expected attendance"
               value={result.summary.expectedAttendance?.toString() ?? null}
             />
           </dl>
-
-          <p className="text-muted-foreground border-t pt-4 text-sm">
-            This request is now read-only. Any change &mdash; however small &mdash; goes through
-            your assigned Event Coordinator rather than being edited here.
-          </p>
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function Recorded({ label, value }: { label: string; value: string | null }) {
+function Recorded({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: string | null;
+  className?: string;
+}) {
   return (
-    <div>
+    <div className={className}>
       <dt className="text-muted-foreground text-xs">{label}</dt>
       <dd className="font-medium">{value ?? "—"}</dd>
     </div>
   );
+}
+
+/** `DD/MM/YYYY`, read straight off a calendar `date` string -- no `Date`, no timezone to get wrong. */
+function formatCalendarDate(isoDate: string): string {
+  const [year, month, day] = isoDate.slice(0, 10).split("-");
+  return `${day}/${month}/${year}`;
+}
+
+/** `DD/MM/YYYY`, in the viewer's own timezone -- for an instant, not a calendar date. */
+function formatInstantDate(iso: string): string {
+  const date = new Date(iso);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${day}/${month}/${date.getFullYear()}`;
+}
+
+/** `h:mm am/pm`, in the viewer's own timezone. */
+function formatInstantTime(iso: string): string {
+  return new Date(iso)
+    .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+/** One line: the calendar date the Organiser asked for, and the time span against it. */
+function preferredWhen(summary: SubmitEventRequestResult["summary"]): string | null {
+  if (!summary.preferredDate || !summary.preferredStartTime || !summary.preferredEndTime) {
+    return null;
+  }
+
+  return `${formatCalendarDate(summary.preferredDate)}, ${formatInstantTime(summary.preferredStartTime)} – ${formatInstantTime(summary.preferredEndTime)}`;
 }

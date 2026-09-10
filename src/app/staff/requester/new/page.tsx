@@ -25,7 +25,6 @@ function draftValues(id: string): Partial<FormValues> | undefined {
     description: request.description ?? "",
     purpose: request.purpose ?? "",
     preferredDate: request.preferredDate ?? "",
-    preferredTime: request.preferredTime ?? "",
     expectedAttendance: request.expectedAttendance?.toString() ?? "",
     venueRequirements: request.venueRequirements ?? "",
     roomLayoutPreferences: request.roomLayoutPreferences ?? "",

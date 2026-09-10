@@ -16,6 +16,8 @@ import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
+import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
+import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
@@ -26,6 +28,8 @@ import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
+import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
+import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
@@ -123,6 +127,14 @@ export async function buildSubmitEventRequest(): Promise<SubmitEventRequest> {
     eventRequests: await eventRequestAdapters(),
     clock: systemClock,
   });
+}
+
+export async function buildViewMyEventRequests(): Promise<ViewMyEventRequests> {
+  return new ViewMyEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
+}
+
+export async function buildViewEventRequest(): Promise<ViewEventRequest> {
+  return new ViewEventRequestUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
 /**

@@ -6,11 +6,13 @@ import { submitEventRequestSchema } from "./submit-event-request-schema";
 const FORM = {
   responsibleOrganiserId: "u-01",
   clientOrganisationId: "org-a",
+  organiserTimeZone: "Asia/Singapore",
   eventName: "Founders' Day",
   description: "",
   purpose: "",
   preferredDate: "2026-11-04",
-  preferredTime: "09:00 - 17:00",
+  preferredStartTime: "2026-11-04T09:00",
+  preferredEndTime: "2026-11-04T17:00",
   expectedAttendance: "120",
   venueRequirements: "",
   roomLayoutPreferences: "",
@@ -29,7 +31,8 @@ describe("submitEventRequestSchema", () => {
     expect(parsed.data).toMatchObject({
       eventName: "Founders' Day",
       preferredDate: "2026-11-04",
-      preferredTime: "09:00 - 17:00",
+      preferredStartTime: "2026-11-04T09:00",
+      preferredEndTime: "2026-11-04T17:00",
       expectedAttendance: 120,
     });
   });
@@ -58,7 +61,8 @@ describe("submitEventRequestSchema", () => {
       ...FORM,
       eventName: "",
       preferredDate: "",
-      preferredTime: "",
+      preferredStartTime: "",
+      preferredEndTime: "",
       expectedAttendance: "",
     });
 
@@ -66,7 +70,8 @@ describe("submitEventRequestSchema", () => {
     expect(parsed.data).toMatchObject({
       eventName: "",
       preferredDate: null,
-      preferredTime: null,
+      preferredStartTime: null,
+      preferredEndTime: null,
       expectedAttendance: null,
     });
   });
@@ -92,12 +97,55 @@ describe("submitEventRequestSchema", () => {
     expect(parsed.success).toBe(false);
   });
 
+  it("rejects a preferred time that is not a datetime-local value", () => {
+    const parsed = submitEventRequestSchema.safeParse({
+      ...FORM,
+      preferredStartTime: "2026-11-04 09:00",
+    });
+
+    expect(parsed.success).toBe(false);
+  });
+
+  it("accepts a preferred time with or without seconds", () => {
+    expect(
+      submitEventRequestSchema.safeParse({ ...FORM, preferredStartTime: "2026-11-04T09:00" })
+        .success,
+    ).toBe(true);
+    expect(
+      submitEventRequestSchema.safeParse({ ...FORM, preferredStartTime: "2026-11-04T09:00:00" })
+        .success,
+    ).toBe(true);
+  });
+
+  it("accepts the full ISO instant the form actually composes and posts", () => {
+    const parsed = submitEventRequestSchema.safeParse({
+      ...FORM,
+      preferredStartTime: "2026-11-04T01:00:00.000Z",
+      preferredEndTime: "2026-11-04T09:00:00.000+08:00",
+    });
+
+    expect(parsed.success).toBe(true);
+  });
+
   it("rejects a submission with no organiser or organisation attached", () => {
     expect(
       submitEventRequestSchema.safeParse({ ...FORM, responsibleOrganiserId: "" }).success,
     ).toBe(false);
     expect(
       submitEventRequestSchema.safeParse({ ...FORM, clientOrganisationId: "" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a submission with no timezone attached", () => {
+    expect(
+      submitEventRequestSchema.safeParse({ ...FORM, organiserTimeZone: "" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a timezone the runtime does not recognise", () => {
+    expect(
+      submitEventRequestSchema.safeParse({ ...FORM, organiserTimeZone: "Mars/Olympus_Mons" })
+        .success,
     ).toBe(false);
   });
 });

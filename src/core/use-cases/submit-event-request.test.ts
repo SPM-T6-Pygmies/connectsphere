@@ -19,6 +19,7 @@ function command(overrides: Partial<SubmitEventRequestCommand> = {}): SubmitEven
   return {
     responsibleOrganiserId: ORGANISER,
     clientOrganisationId: ORG,
+    organiserTimeZone: "UTC",
     ...eventRequestDetails(),
     ...overrides,
   };
@@ -73,7 +74,8 @@ describe("SubmitEventRequestUseCase", () => {
       description: "Annual gathering for our clients.",
       purpose: "Relationship building",
       preferredDate: "2026-11-04",
-      preferredTime: "09:00 - 17:00",
+      preferredStartTime: "2026-11-04T09:00",
+      preferredEndTime: "2026-11-04T17:00",
       expectedAttendance: 120,
       venueRequirements: "Central, step-free",
       roomLayoutPreferences: "Theatre",
@@ -95,7 +97,8 @@ describe("SubmitEventRequestUseCase", () => {
     expect(result.summary).toEqual({
       eventName: "Q4 Partner Summit",
       preferredDate: "2026-11-04",
-      preferredTime: "09:00 - 17:00",
+      preferredStartTime: "2026-11-04T09:00",
+      preferredEndTime: "2026-11-04T17:00",
       expectedAttendance: 240,
     });
   });
@@ -114,8 +117,8 @@ describe("SubmitEventRequestUseCase", () => {
     const { useCase } = buildUseCase();
 
     await expect(
-      useCase.execute(command({ eventName: "  ", preferredTime: null })),
-    ).rejects.toMatchObject({ missing: ["eventName", "preferredTime"] });
+      useCase.execute(command({ eventName: "  ", preferredStartTime: null })),
+    ).rejects.toMatchObject({ missing: ["eventName", "preferredStartTime"] });
   });
 
   it("rejects a blank organiser or organisation rather than storing an unowned request", async () => {

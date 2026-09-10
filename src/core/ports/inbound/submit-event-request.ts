@@ -9,11 +9,14 @@
 export interface SubmitEventRequestCommand {
   readonly responsibleOrganiserId: string;
   readonly clientOrganisationId: string;
+  /** IANA zone, e.g. `"Asia/Singapore"` -- read from the Organiser's own browser. */
+  readonly organiserTimeZone: string;
   readonly eventName: string;
   readonly description: string | null;
   readonly purpose: string | null;
   readonly preferredDate: string | null;
-  readonly preferredTime: string | null;
+  readonly preferredStartTime: string | null;
+  readonly preferredEndTime: string | null;
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreferences: string | null;
@@ -40,7 +43,8 @@ export interface SubmitEventRequestResult {
   readonly summary: {
     readonly eventName: string;
     readonly preferredDate: string | null;
-    readonly preferredTime: string | null;
+    readonly preferredStartTime: string | null;
+    readonly preferredEndTime: string | null;
     readonly expectedAttendance: number | null;
   };
 }

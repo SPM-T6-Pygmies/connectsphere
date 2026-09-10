@@ -1,6 +1,11 @@
 import type { Brand } from "./brand";
 import type { ClientOrganisationId } from "./client-organisation";
-import { IncompleteEventRequestError, InvalidEventRequestIdError } from "./errors";
+import {
+  IncompleteEventRequestError,
+  InvalidEventRequestIdError,
+  PreferredDateNotInFutureError,
+  PreferredEndTimeNotAfterStartError,
+} from "./errors";
 import type { UserAccountId } from "./user-account";
 
 export type EventRequestId = Brand<string, "EventRequestId">;
@@ -22,11 +27,14 @@ export type EventRequestStatus =
  * What the Event Organiser actually fills in, one member per column of
  * `event_request` in `supabase/schema.sql`.
  *
- * `preferredDate` and `preferredTime` are strings, not instants, on purpose:
- * the customer books venues in AM/PM/Night slots (#50) and the organiser is
- * stating a calendar preference, not an instant. Turning "the 4th" into a
- * moment needs a timezone the domain has no business holding an opinion
- * about -- the adapter that stores it does.
+ * `preferredDate` is a string, not an instant, on purpose: the organiser is
+ * stating a calendar preference, and a bare calendar date has no timezone to
+ * hold an opinion about. `preferredStartTime`/`preferredEndTime` are also
+ * strings crossing this boundary (never `Date` -- see
+ * `SubmitEventRequestCommand`), even though the underlying columns are
+ * `timestamptz`: parsing them into instants is deferred to the two places
+ * that actually need to compare them, in `submitEventRequest` below, rather
+ * than baked into the shape everywhere else in the domain reads it.
  *
  * `categoryType` is deliberately absent: the brief lists it under Event, not
  * Event Request, and `event_request` has no column for it. Adding it is a
@@ -38,8 +46,13 @@ export interface EventRequestDetails {
   readonly purpose: string | null;
   /** ISO calendar date, `YYYY-MM-DD`. */
   readonly preferredDate: string | null;
-  /** Free text, as the column is -- "09:00 - 17:00", "all day", "TBC". */
-  readonly preferredTime: string | null;
+  /** ISO 8601 datetime string (the column is `timestamptz`). */
+  readonly preferredStartTime: string | null;
+  /**
+   * ISO 8601 datetime string (the column is `timestamptz`). Must be after
+   * `preferredStartTime` -- see `submitEventRequest`.
+   */
+  readonly preferredEndTime: string | null;
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreferences: string | null;
@@ -86,17 +99,13 @@ export function eventRequestId(raw: string): EventRequestId {
 }
 
 /**
- * Mandatory Fields are not set by the customer yet, to be refined later. These
- * fields are placeholders for now (9 Sep 2026).
- *
- * Single home for that answer: the submit rule, the form's required markers
- * and its submit gate all read this array, so settling #72 is a change here
- * and nowhere else.
+ * Mandatory Fields are not set by the customer yet, to be refined later. These fields are placeholders for now (9 Sep 2026).
  */
 export const MANDATORY_SUBMISSION_FIELDS = [
   "eventName",
   "preferredDate",
-  "preferredTime",
+  "preferredStartTime",
+  "preferredEndTime",
   "expectedAttendance",
 ] as const satisfies ReadonlyArray<keyof EventRequestDetails>;
 
@@ -107,6 +116,25 @@ function isBlank(value: EventRequestDetails[keyof EventRequestDetails]): boolean
     return true;
   }
   return typeof value === "string" && value.trim().length === 0;
+}
+
+/**
+ * `now`'s calendar date in the Organiser's own timezone, not the server's --
+ * "later than today" means the Organiser's today, and comparing against the
+ * server's (or UTC's) would wrongly accept or refuse dates near midnight.
+ */
+function isNotInTheFuture(preferredDate: string, now: Date, organiserTimeZone: string): boolean {
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: organiserTimeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+  return preferredDate <= today;
+}
+
+function isNotAfter(start: string, end: string): boolean {
+  return new Date(end).getTime() <= new Date(start).getTime();
 }
 
 /**
@@ -138,13 +166,31 @@ export function submitEventRequest(params: {
   clientOrganisationId: ClientOrganisationId;
   responsibleOrganiserId: UserAccountId;
   submittedAt: Date;
+  /** IANA zone, e.g. `"Asia/Singapore"` -- whose "today" the future-date rule means. */
+  organiserTimeZone: string;
 }): SubmittedEventRequest {
-  const missing = missingMandatoryFields(params.details);
+  const { organiserTimeZone, ...rest } = params;
+
+  const missing = missingMandatoryFields(rest.details);
   if (missing.length > 0) {
     throw new IncompleteEventRequestError(missing);
   }
 
-  return { ...params, status: "Submitted" };
+  const { preferredDate, preferredStartTime, preferredEndTime } = rest.details;
+
+  if (preferredDate !== null && isNotInTheFuture(preferredDate, rest.submittedAt, organiserTimeZone)) {
+    throw new PreferredDateNotInFutureError(preferredDate);
+  }
+
+  if (
+    preferredStartTime !== null &&
+    preferredEndTime !== null &&
+    isNotAfter(preferredStartTime, preferredEndTime)
+  ) {
+    throw new PreferredEndTimeNotAfterStartError(preferredStartTime, preferredEndTime);
+  }
+
+  return { ...rest, status: "Submitted" };
 }
 
 export interface OrganiserContext {
