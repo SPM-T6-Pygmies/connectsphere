@@ -41,7 +41,8 @@
     "eslint-config-next": "16.3.4",
     "shadcn": "^4.19.1",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
     "vite": "^6",
     "vitest": "^4.1.11"
   },
