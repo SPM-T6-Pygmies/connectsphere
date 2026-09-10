@@ -10,6 +10,17 @@ export interface LoginState {
   message?: string;
 }
 
+function roleToDashboardPath(role: string): string {
+  const roleMap: Record<string, string> = {
+    "Event Organiser": "organiser",
+    "Event Coordinator": "coordinator",
+    "Event Operations Manager": "ops",
+    "Venue Staff": "venue",
+    "Technical Support Staff": "technical",
+  };
+  return `/staff/${roleMap[role] || "organiser"}/dashboard`;
+}
+
 export async function loginAction(
   _prevState: LoginState,
   formData: FormData
@@ -26,9 +37,11 @@ export async function loginAction(
 
   try {
     const login = await buildLogin();
-    await login.execute({ email, password });
+    const result = await login.execute({ email, password });
 
-    redirect("/");
+    const primaryRole = result.roles[0];
+    const dashboardPath = roleToDashboardPath(primaryRole);
+    redirect(dashboardPath);
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
       return {
