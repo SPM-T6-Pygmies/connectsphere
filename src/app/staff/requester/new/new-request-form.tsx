@@ -1,12 +1,14 @@
 "use client";
 
-import { CheckCircle2Icon } from "lucide-react";
+import { CheckCircle2Icon, ChevronDownIcon, ClockIcon } from "lucide-react";
+import { cn } from "cn";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -16,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
 import type { SubmitEventRequestResult } from "@/core/ports/inbound/submit-event-request";
@@ -71,6 +74,52 @@ function toInstant(dateStr: string, timeStr: string): string {
   return new Date(year, month - 1, day, hours, minutes).toISOString();
 }
 
+/**
+ * The inverse of `toInstant`: the local `HH:mm` a saved instant reads as in
+ * the Organiser's own browser, so resuming a draft (SPM-38) shows the time
+ * they actually picked rather than reinterpreting it in the server's zone.
+ */
+function toTimeOnly(iso: string | undefined): string {
+  if (!iso) {
+    return "";
+  }
+  const date = new Date(iso);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+/**
+ * "YYYY-MM-DD" -> a local `Date` at midnight, for the Calendar picker.
+ *
+ * Not `new Date(value)`: that parses a bare date as UTC midnight, which
+ * reads as the previous day west of UTC -- the same local-parts
+ * construction `toInstant` already relies on.
+ */
+function parseCalendarDate(value: string): Date | undefined {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return undefined;
+  }
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** The inverse of `parseCalendarDate`: what the Calendar picker's selection posts as. */
+function toCalendarDateString(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** "HH:mm" -> "h:mm AM/PM", the same wording `formatInstantTime` uses once submitted. */
+function formatTimeOnly(value: string): string {
+  const [hours, minutes] = value.split(":").map(Number);
+  const period = hours < 12 ? "AM" : "PM";
+  const twelveHour = hours % 12 === 0 ? 12 : hours % 12;
+  return `${twelveHour}:${String(minutes).padStart(2, "0")} ${period}`;
+}
+
 export function NewRequestForm({
   initialValues,
   initialEventRequestId,
@@ -122,8 +171,10 @@ export function NewRequestForm({
   // against it, not two independent instants. Composed into full
   // preferredStartTime/preferredEndTime instants below, which is what
   // actually gets submitted (see the hidden inputs) -- these two never are.
-  const [startTimeOnly, setStartTimeOnly] = useState("");
-  const [endTimeOnly, setEndTimeOnly] = useState("");
+  const [startTimeOnly, setStartTimeOnly] = useState(() =>
+    toTimeOnly(initialValues?.preferredStartTime),
+  );
+  const [endTimeOnly, setEndTimeOnly] = useState(() => toTimeOnly(initialValues?.preferredEndTime));
   // Read once, from the browser's own Intl data -- the server has no other
   // way to know which "today" the future-date rule should mean.
   const [organiserTimeZone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -237,7 +288,13 @@ export function NewRequestForm({
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <Field id="preferredDate" label="Preferred date" required errors={errors?.preferredDate}>
-                <Input id="preferredDate" type="date" {...field("preferredDate")} />
+                <DatePicker
+                  id="preferredDate"
+                  value={values.preferredDate}
+                  onChange={(date) => set("preferredDate", date)}
+                  aria-invalid={errors?.preferredDate !== undefined}
+                />
+                <input type="hidden" name="preferredDate" value={values.preferredDate} />
               </Field>
               <Field
                 id="preferredStartTime"
@@ -246,13 +303,11 @@ export function NewRequestForm({
                 hint="Combined with the preferred date above."
                 errors={errors?.preferredStartTime}
               >
-                <Input
+                <TimePicker
                   id="preferredStartTime"
-                  type="time"
-                  required
-                  aria-invalid={errors?.preferredStartTime !== undefined}
                   value={startTimeOnly}
-                  onChange={(event) => setStartTimeOnly(event.target.value)}
+                  onChange={setStartTimeOnly}
+                  aria-invalid={errors?.preferredStartTime !== undefined}
                 />
                 <input type="hidden" name="preferredStartTime" value={preferredStartTime} />
               </Field>
@@ -263,13 +318,11 @@ export function NewRequestForm({
                 hint="Combined with the preferred date above."
                 errors={errors?.preferredEndTime}
               >
-                <Input
+                <TimePicker
                   id="preferredEndTime"
-                  type="time"
-                  required
-                  aria-invalid={errors?.preferredEndTime !== undefined}
                   value={endTimeOnly}
-                  onChange={(event) => setEndTimeOnly(event.target.value)}
+                  onChange={setEndTimeOnly}
+                  aria-invalid={errors?.preferredEndTime !== undefined}
                 />
                 <input type="hidden" name="preferredEndTime" value={preferredEndTime} />
               </Field>
@@ -482,6 +535,96 @@ function Field({
       ) : hint ? (
         <p className="text-muted-foreground text-xs">{hint}</p>
       ) : null}
+    </div>
+  );
+}
+
+/** The preferred date, picked from a Calendar in a Popover rather than the browser's own date chrome. */
+function DatePicker({
+  id,
+  value,
+  onChange,
+  "aria-invalid": ariaInvalid,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  "aria-invalid"?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = parseCalendarDate(value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          id={id}
+          type="button"
+          variant="outline"
+          aria-invalid={ariaInvalid}
+          className="w-full justify-between font-normal"
+        >
+          {selected ? formatCalendarDate(value) : "Pick a date"}
+          <ChevronDownIcon className="text-muted-foreground size-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={selected}
+          captionLayout="dropdown"
+          defaultMonth={selected}
+          onSelect={(date) => {
+            onChange(date ? toCalendarDateString(date) : "");
+            setOpen(false);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/**
+ * A preferred start/end time. Still a real `<input type="time">` underneath
+ * -- clicking it opens the browser's own time picker, same as `DatePicker`
+ * opens a real Calendar -- but its native empty-state placeholder
+ * ("--:-- --") and locale-dependent rendering can't be restyled directly, so
+ * a formatted label sits visually on top while the actual input stays fully
+ * interactive (and transparent) underneath it.
+ */
+function TimePicker({
+  id,
+  value,
+  onChange,
+  "aria-invalid": ariaInvalid,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  "aria-invalid"?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <div
+        aria-hidden
+        className={cn(
+          "pointer-events-none flex h-8 w-full items-center justify-between rounded-lg border border-input bg-transparent px-2.5 text-base md:text-sm",
+          !value && "text-muted-foreground",
+          ariaInvalid && "border-destructive",
+        )}
+      >
+        {value ? formatTimeOnly(value) : "HH:MM AM/PM"}
+        <ClockIcon className="text-muted-foreground size-4" />
+      </div>
+      <Input
+        id={id}
+        type="time"
+        required
+        aria-invalid={ariaInvalid}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="absolute inset-0 opacity-0"
+      />
     </div>
   );
 }
