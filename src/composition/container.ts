@@ -3,7 +3,7 @@ import {
   demoEventRequestRepository,
   demoRegistrationRepository,
 } from "@/adapters/outbound/in-memory/attendee-demo-seed";
-import { demoEventRequestRepository } from "@/adapters/outbound/in-memory/organiser-demo-seed";
+import { demoEventRequestRepository as demoOrganisationEventRequestRepository } from "@/adapters/outbound/in-memory/organiser-demo-seed";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
@@ -19,6 +19,7 @@ import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-reque
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
 import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
 import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
+import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
@@ -31,6 +32,7 @@ import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
+import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
@@ -168,10 +170,18 @@ export async function buildWithdrawRegistration(): Promise<WithdrawRegistration>
 }
 
 /**
- * SPM-39: no Supabase-backed `EventRequestRepository` exists yet, so this
- * always resolves to the same seeded in-memory adapter the attendee pages
- * fall back to when `hasSupabaseProject()` is false.
+ * Every event request in the caller's client organisation, from the Supabase
+ * project when there is one.
+ *
+ * The in-memory fallback (`organiser-demo-seed.ts`) is seeded across two
+ * client organisations, so the "Viewing as" switcher on the organiser page
+ * can demonstrate both "colleagues in my organisation" and "cannot see an
+ * unrelated organisation" without a database.
  */
 export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequests> {
-  return new ViewOrganisationEventRequestsUseCase({ eventRequests: demoEventRequestRepository });
+  const eventRequests = hasSupabaseProject()
+    ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
+    : demoOrganisationEventRequestRepository;
+
+  return new ViewOrganisationEventRequestsUseCase({ eventRequests });
 }
