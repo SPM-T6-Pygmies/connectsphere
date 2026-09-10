@@ -11,8 +11,11 @@ import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-ev
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
+import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
+import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
+import type { Login } from "@/core/ports/inbound/login";
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
@@ -26,6 +29,7 @@ import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
+import { LoginUseCase } from "@/core/use-cases/login";
 import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
@@ -184,4 +188,11 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
     : demoOrganisationEventRequestRepository;
 
   return new ViewOrganisationEventRequestsUseCase({ eventRequests });
+}
+
+export async function buildLogin(): Promise<Login> {
+  return new LoginUseCase({
+    auth: new SupabaseAuthAdapter(),
+    users: new SupabaseUserRepository(),
+  });
 }
