@@ -79,7 +79,15 @@ const organiserTimeZone = z.string().trim().min(1).refine(
   { message: "Not a recognised timezone." },
 );
 
+/** Blank when the form is raising a fresh request, an id when it is finishing a saved draft (SPM-38). */
+const optionalEventRequestId = z
+  .string()
+  .trim()
+  .transform((value) => (value.length === 0 ? null : value))
+  .nullable();
+
 export const submitEventRequestSchema = z.object({
+  eventRequestId: optionalEventRequestId,
   responsibleOrganiserId: z.string().trim().min(1),
   clientOrganisationId: z.string().trim().min(1),
   organiserTimeZone,

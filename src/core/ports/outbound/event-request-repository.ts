@@ -12,4 +12,5 @@ export interface EventRequestRepository {
   /** Stores a request the core has built and hands back the id the store chose. */
   create(request: NewEventRequest): Promise<EventRequest>;
   save(request: EventRequest): Promise<void>;
+  delete(request: EventRequest): Promise<void>;
 }

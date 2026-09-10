@@ -4,6 +4,7 @@ import { submitEventRequestSchema } from "./submit-event-request-schema";
 
 /** What a browser actually posts: every field a string, blanks as "". */
 const FORM = {
+  eventRequestId: "",
   responsibleOrganiserId: "u-01",
   clientOrganisationId: "org-a",
   organiserTimeZone: "Asia/Singapore",
@@ -147,5 +148,15 @@ describe("submitEventRequestSchema", () => {
       submitEventRequestSchema.safeParse({ ...FORM, organiserTimeZone: "Mars/Olympus_Mons" })
         .success,
     ).toBe(false);
+  });
+
+  it("treats a blank eventRequestId as a fresh request, not a draft to finish (SPM-38)", () => {
+    expect(submitEventRequestSchema.parse(FORM).eventRequestId).toBeNull();
+  });
+
+  it("carries a draft's id through so submission can finish that same row (SPM-38)", () => {
+    expect(
+      submitEventRequestSchema.parse({ ...FORM, eventRequestId: "42" }).eventRequestId,
+    ).toBe("42");
   });
 });

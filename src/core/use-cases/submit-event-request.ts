@@ -1,6 +1,13 @@
-import { clientOrganisationId } from "../domain/client-organisation";
-import { submitEventRequest, type EventRequestDetails } from "../domain/event-request";
-import { userAccountId } from "../domain/user-account";
+import { clientOrganisationId, type ClientOrganisationId } from "../domain/client-organisation";
+import { DraftNotEditableError } from "../domain/errors";
+import {
+  eventRequestId,
+  submitEventRequest,
+  type EventRequest,
+  type EventRequestDetails,
+  type SubmittedEventRequest,
+} from "../domain/event-request";
+import { userAccountId, type UserAccountId } from "../domain/user-account";
 import type {
   SubmitEventRequest,
   SubmitEventRequestCommand,
@@ -49,21 +56,26 @@ export class SubmitEventRequestUseCase implements SubmitEventRequest {
 
   async execute(command: SubmitEventRequestCommand): Promise<SubmitEventRequestResult> {
     const { eventRequests, clock } = this.deps;
+    const organiser = userAccountId(command.responsibleOrganiserId);
+    const organisation = clientOrganisationId(command.clientOrganisationId);
 
-    const request = submitEventRequest({
+    const submitted = submitEventRequest({
       details: detailsOf(command),
-      clientOrganisationId: clientOrganisationId(command.clientOrganisationId),
-      responsibleOrganiserId: userAccountId(command.responsibleOrganiserId),
+      clientOrganisationId: organisation,
+      responsibleOrganiserId: organiser,
       submittedAt: clock.now(),
       organiserTimeZone: command.organiserTimeZone,
     });
 
-    const stored = await eventRequests.create(request);
+    const stored =
+      command.eventRequestId === null
+        ? await eventRequests.create(submitted)
+        : await this.submitExistingDraft(command.eventRequestId, submitted, organiser, organisation);
 
     return {
       eventRequestId: stored.id,
       status: stored.status,
-      submittedAt: request.submittedAt.toISOString(),
+      submittedAt: submitted.submittedAt.toISOString(),
       summary: {
         eventName: stored.details.eventName,
         preferredDate: stored.details.preferredDate,
@@ -72,5 +84,35 @@ export class SubmitEventRequestUseCase implements SubmitEventRequest {
         expectedAttendance: stored.details.expectedAttendance,
       },
     };
+  }
+
+  /**
+   * SPM-38: finishes the Organiser's own draft rather than raising a second,
+   * unrelated request -- the same access rule `eventRequestAccessFor` already
+   * draws (edit, hence submit, only while it is still the caller's own
+   * Draft) is checked again here because the store, not just the domain, has
+   * to enforce it.
+   */
+  private async submitExistingDraft(
+    rawId: string,
+    submitted: SubmittedEventRequest,
+    organiser: UserAccountId,
+    organisation: ClientOrganisationId,
+  ): Promise<EventRequest> {
+    const id = eventRequestId(rawId);
+    const existing = await this.deps.eventRequests.findById(id);
+
+    if (
+      existing === null ||
+      existing.status !== "Draft" ||
+      existing.responsibleOrganiserId !== organiser ||
+      existing.clientOrganisationId !== organisation
+    ) {
+      throw new DraftNotEditableError(rawId);
+    }
+
+    const updated: EventRequest = { ...submitted, id };
+    await this.deps.eventRequests.save(updated);
+    return updated;
   }
 }
