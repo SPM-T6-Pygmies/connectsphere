@@ -1,9 +1,10 @@
-import { createClient } from "@/src/lib/supabase/server";
-import type { UserRepository, UserWithRoles } from "@/src/core/ports/outbound/user-repository";
+import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
+
+import type { UserRepository, UserWithRoles } from "@/core/ports/outbound/user-repository";
 
 export class SupabaseUserRepository implements UserRepository {
   async findByAuthUserId(authUserId: string): Promise<UserWithRoles | null> {
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
 
     const { data, error } = await supabase
       .from("user_account")
@@ -25,7 +26,7 @@ export class SupabaseUserRepository implements UserRepository {
       return null;
     }
 
-    const roles = (data.user_account_role as Array<{ role: { role_name: string } }>).map(
+    const roles = ((data.user_account_role ?? []) as unknown as Array<{ role: { role_name: string } }>).map(
       (uar) => uar.role.role_name
     );
 

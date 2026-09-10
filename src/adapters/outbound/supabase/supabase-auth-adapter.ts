@@ -1,6 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
-import type { AuthPort, LoginResult } from "@/src/core/ports/outbound/auth-port";
-import type { SessionData } from "@/src/core/ports/outbound/auth-port";
+
+import type { AuthPort } from "@/core/ports/outbound/auth-port";
 
 export class SupabaseAuthAdapter implements AuthPort {
   private client = createBrowserClient(
@@ -8,7 +8,7 @@ export class SupabaseAuthAdapter implements AuthPort {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   );
 
-  async login(email: string, password: string): Promise<LoginResult> {
+  async login(email: string, password: string) {
     const { data, error } = await this.client.auth.signInWithPassword({
       email,
       password,
@@ -28,10 +28,10 @@ export class SupabaseAuthAdapter implements AuthPort {
     };
   }
 
-  async getSession(): Promise<SessionData | null> {
+  async getSession() {
     const { data } = await this.client.auth.getSession();
 
-    if (!data.session) {
+    if (!data.session || !data.session.expires_at) {
       return null;
     }
 
