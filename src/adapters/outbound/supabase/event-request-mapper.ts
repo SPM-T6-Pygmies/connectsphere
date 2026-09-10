@@ -134,3 +134,57 @@ export function toSubmitArgs(request: NewEventRequest): Record<string, unknown> 
     p_client_organisation_id: toKey(request.clientOrganisationId),
   };
 }
+
+/**
+ * Arguments for `organiser_save_event_request` (SPM-38).
+ *
+ * Unlike `toSubmitArgs`, this writes back to a row that already exists, so it
+ * carries the id and leaves `client_organisation_id` off the argument list
+ * entirely -- which organisation a request belongs to is not this path's to
+ * change. `null` means the id was not one of ours; the caller turns that into
+ * "not found" the same way `toKey` does everywhere else.
+ */
+/**
+ * Arguments for `organiser_discard_event_request_draft` (SPM-38).
+ *
+ * Ownership, not the client organisation, is the check that matters here --
+ * same reasoning as `toSaveArgs`.
+ */
+export function toDeleteArgs(request: EventRequest): Record<string, unknown> | null {
+  const key = toKey(request.id);
+  if (key === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: key,
+    p_requesting_user_account_id: toKey(request.responsibleOrganiserId),
+  };
+}
+
+export function toSaveArgs(request: EventRequest): Record<string, unknown> | null {
+  const key = toKey(request.id);
+  if (key === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: key,
+    p_event_name: request.details.eventName,
+    p_description: request.details.description,
+    p_purpose: request.details.purpose,
+    p_preferred_date: request.details.preferredDate,
+    p_preferred_start_time: request.details.preferredStartTime,
+    p_preferred_end_time: request.details.preferredEndTime,
+    p_expected_attendance: request.details.expectedAttendance,
+    p_venue_requirements: request.details.venueRequirements,
+    p_room_layout_preferences: request.details.roomLayoutPreferences,
+    p_accessibility_needs: request.details.accessibilityNeeds,
+    p_equipment_requirements: request.details.equipmentRequirements,
+    p_registration_requirements: request.details.registrationRequirements,
+    p_general_programme: request.details.generalProgramme,
+    p_other_special_arrangements: request.details.otherSpecialArrangements,
+    p_status: request.status,
+    p_requesting_user_account_id: toKey(request.responsibleOrganiserId),
+  };
+}

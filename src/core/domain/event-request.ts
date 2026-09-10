@@ -193,6 +193,34 @@ export function submitEventRequest(params: {
   return { ...rest, status: "Submitted" };
 }
 
+/**
+ * The only way to build a new Draft, or restate an existing one after edits.
+ *
+ * SPM-38: unlike `submitEventRequest`, mandatory-field completeness and the
+ * preferred-date/time rules do not apply here -- that is the point of a
+ * draft, which exists so an Organiser can save incomplete progress and come
+ * back to it. The one rule that still holds is the store's own (`event_name
+ * not null` on `event_request`): a request needs a name to be addressable in
+ * "My requests" at all.
+ */
+export function saveEventRequestDraft(params: {
+  details: EventRequestDetails;
+  clientOrganisationId: ClientOrganisationId;
+  responsibleOrganiserId: UserAccountId;
+}): NewEventRequest {
+  if (isBlank(params.details.eventName)) {
+    throw new IncompleteEventRequestError(["eventName"]);
+  }
+
+  return {
+    details: params.details,
+    clientOrganisationId: params.clientOrganisationId,
+    responsibleOrganiserId: params.responsibleOrganiserId,
+    status: "Draft",
+    submittedAt: null,
+  };
+}
+
 export interface OrganiserContext {
   readonly userAccountId: UserAccountId;
   readonly clientOrganisationId: ClientOrganisationId;

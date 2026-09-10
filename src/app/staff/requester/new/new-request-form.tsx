@@ -2,7 +2,9 @@
 
 import { CheckCircle2Icon } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,10 +21,19 @@ import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
 import type { SubmitEventRequestResult } from "@/core/ports/inbound/submit-event-request";
 
 import { PageHeader } from "../../page-header";
-import { submitEventRequestAction, type SubmitRequestState } from "./actions";
+import {
+  discardEventRequestDraftAction,
+  saveEventRequestDraftAction,
+  submitEventRequestAction,
+  type DiscardDraftState,
+  type SaveDraftState,
+  type SubmitRequestState,
+} from "./actions";
 import { EMPTY_FORM, type FormField, type FormValues } from "./form-fields";
 
 const INITIAL: SubmitRequestState = { status: "idle" };
+const DRAFT_INITIAL: SaveDraftState = { status: "idle" };
+const DISCARD_INITIAL: DiscardDraftState = { status: "idle" };
 
 /**
  * The mandatory set as a lookup, read from the core's own list.
@@ -60,9 +71,53 @@ function toInstant(dateStr: string, timeStr: string): string {
   return new Date(year, month - 1, day, hours, minutes).toISOString();
 }
 
-export function NewRequestForm({ initialValues }: { initialValues?: Partial<FormValues> }) {
+export function NewRequestForm({
+  initialValues,
+  initialEventRequestId,
+}: {
+  initialValues?: Partial<FormValues>;
+  initialEventRequestId?: string;
+}) {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(submitEventRequestAction, INITIAL);
+  const [draftState, draftFormAction, draftPending] = useActionState(
+    saveEventRequestDraftAction,
+    DRAFT_INITIAL,
+  );
+  const [discardState, discardFormAction, discardPending] = useActionState(
+    discardEventRequestDraftAction,
+    DISCARD_INITIAL,
+  );
+  // Discarding is destructive, so it asks once more before the form action
+  // actually fires, rather than acting on the first click.
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false);
   const [values, setValues] = useState<FormValues>({ ...EMPTY_FORM, ...initialValues });
+  // Blank for a fresh request; an existing draft's id when resuming one
+  // (`?draft=` on this page), so the first save updates that same row
+  // instead of raising a second request. Carried on the submit path too
+  // (SPM-38): finishing a saved draft updates it rather than inserting a
+  // second one.
+  const [eventRequestId] = useState(initialEventRequestId ?? "");
+
+  // A saved draft is written to the store, so there is nothing left on this
+  // page for the Organiser to keep doing -- send them back to the list where
+  // the draft now shows up, with a toast standing in for the confirmation
+  // the redirect itself does not carry.
+  useEffect(() => {
+    if (draftState.status === "saved") {
+      toast.success("Draft saved.");
+      router.push("/staff/requester");
+    }
+  }, [draftState, router]);
+
+  // Same reasoning as the save effect above: once the store no longer has
+  // this draft, there is nothing left here to edit.
+  useEffect(() => {
+    if (discardState.status === "discarded") {
+      toast.success("Draft discarded.");
+      router.push("/staff/requester");
+    }
+  }, [discardState, router]);
   // Time-of-day only: the Organiser picks one preferred date and two times
   // against it, not two independent instants. Composed into full
   // preferredStartTime/preferredEndTime instants below, which is what
@@ -106,6 +161,7 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
   return (
     <form action={formAction} className="space-y-6">
       <input type="hidden" name="organiserTimeZone" value={organiserTimeZone} />
+      <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <PageHeader
         title="Create New Event Request"
         description="Tell us what you need and submit. Once submitted, changes go through your Event Coordinator."
@@ -117,6 +173,24 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
           className="border-destructive/40 bg-destructive/5 text-destructive rounded-lg border px-3 py-2 text-sm"
         >
           {state.message}
+        </p>
+      ) : null}
+
+      {draftState.status === "error" ? (
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-lg border px-3 py-2 text-sm"
+        >
+          {draftState.message}
+        </p>
+      ) : null}
+
+      {discardState.status === "error" ? (
+        <p
+          role="alert"
+          className="border-destructive/40 bg-destructive/5 text-destructive rounded-lg border px-3 py-2 text-sm"
+        >
+          {discardState.message}
         </p>
       ) : null}
 
@@ -304,9 +378,41 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
             </CardContent>
           </Card>
 
-          <div className="flex justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <Button variant="outline" asChild type="button">
               <Link href="/staff/requester">Cancel</Link>
+            </Button>
+            {eventRequestId ? (
+              confirmingDiscard ? (
+                <>
+                  <span className="text-muted-foreground text-sm">Discard this draft?</span>
+                  <Button variant="outline" type="button" onClick={() => setConfirmingDiscard(false)}>
+                    Keep draft
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    type="submit"
+                    formAction={discardFormAction}
+                    formNoValidate
+                    disabled={discardPending}
+                  >
+                    {discardPending ? "Discarding…" : "Yes, discard"}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="destructive" type="button" onClick={() => setConfirmingDiscard(true)}>
+                  Discard draft
+                </Button>
+              )
+            ) : null}
+            <Button
+              variant="outline"
+              type="submit"
+              formAction={draftFormAction}
+              formNoValidate
+              disabled={draftPending}
+            >
+              {draftPending ? "Saving…" : "Save draft"}
             </Button>
             <Button type="submit" disabled={!readyToSubmit || pending}>
               {pending ? "Submitting…" : "Submit request"}

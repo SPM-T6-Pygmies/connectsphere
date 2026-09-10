@@ -2,9 +2,16 @@
 
 import { z } from "zod";
 
+import { saveEventRequestDraftSchema } from "@/adapters/inbound/save-event-request-draft-schema";
 import { submitEventRequestSchema } from "@/adapters/inbound/submit-event-request-schema";
-import { actingOrganiser, buildSubmitEventRequest } from "@/composition/container";
+import {
+  actingOrganiser,
+  buildDiscardEventRequestDraft,
+  buildSaveEventRequestDraft,
+  buildSubmitEventRequest,
+} from "@/composition/container";
 import { DomainError, IncompleteEventRequestError } from "@/core/domain/errors";
+import type { SaveEventRequestDraftResult } from "@/core/ports/inbound/save-event-request-draft";
 import type { SubmitEventRequestResult } from "@/core/ports/inbound/submit-event-request";
 
 import {
@@ -107,6 +114,9 @@ export async function submitEventRequestAction(
     // otherwise. Not a form field either: same treatment as the acting
     // organiser's ids above.
     organiserTimeZone: String(formData.get("organiserTimeZone") ?? ""),
+    // Blank for a fresh request, an id when finishing a saved draft (SPM-38).
+    // Same treatment as the two above: not something the Organiser types.
+    eventRequestId: String(formData.get("eventRequestId") ?? ""),
   };
 
   const parsed = submitEventRequestSchema.safeParse(input);
@@ -136,6 +146,97 @@ export async function submitEventRequestAction(
 
     if (error instanceof DomainError) {
       return { status: "error", message: error.message, values };
+    }
+
+    throw error;
+  }
+}
+
+export type SaveDraftState =
+  | { status: "idle" }
+  | { status: "saved"; result: SaveEventRequestDraftResult }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-38: the Event Organiser saves their progress without submitting.
+ *
+ * Same shape as `submitEventRequestAction` -- read the `FormData`, check it,
+ * call the use case, translate the outcome -- but a draft never refuses on
+ * shape (every field is optional) and the only domain refusal it can hit is
+ * a blank event name, so there is no per-field error rendering to do here.
+ */
+export async function saveEventRequestDraftAction(
+  _previous: SaveDraftState,
+  formData: FormData,
+): Promise<SaveDraftState> {
+  const values = valuesFrom(formData);
+  const organiser = actingOrganiser();
+
+  const input: z.input<typeof saveEventRequestDraftSchema> = {
+    ...values,
+    responsibleOrganiserId: organiser.userAccountId,
+    clientOrganisationId: organiser.clientOrganisationId,
+    eventRequestId: String(formData.get("eventRequestId") ?? ""),
+  };
+
+  const parsed = saveEventRequestDraftSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { status: "error", message: "Could not save this draft." };
+  }
+
+  try {
+    const saveEventRequestDraft = await buildSaveEventRequestDraft();
+    const result = await saveEventRequestDraft.execute(parsed.data);
+
+    return { status: "saved", result };
+  } catch (error) {
+    if (error instanceof IncompleteEventRequestError) {
+      return { status: "error", message: "Give the event a name before saving a draft." };
+    }
+
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+
+    throw error;
+  }
+}
+
+export type DiscardDraftState =
+  | { status: "idle" }
+  | { status: "discarded" }
+  | { status: "error"; message: string };
+
+/**
+ * Not in the original brief -- a companion to saving a draft, for an
+ * Organiser who starts one they no longer want. Only meaningful once a
+ * draft has actually been saved: a request with no id yet has nothing in
+ * the store to remove.
+ */
+export async function discardEventRequestDraftAction(
+  _previous: DiscardDraftState,
+  formData: FormData,
+): Promise<DiscardDraftState> {
+  const organiser = actingOrganiser();
+  const eventRequestId = String(formData.get("eventRequestId") ?? "");
+
+  if (eventRequestId.length === 0) {
+    return { status: "error", message: "There is no draft to discard yet." };
+  }
+
+  try {
+    const discardEventRequestDraft = await buildDiscardEventRequestDraft();
+    await discardEventRequestDraft.execute({
+      eventRequestId,
+      responsibleOrganiserId: organiser.userAccountId,
+      clientOrganisationId: organiser.clientOrganisationId,
+    });
+
+    return { status: "discarded" };
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
     }
 
     throw error;
