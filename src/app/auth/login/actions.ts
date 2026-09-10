@@ -28,7 +28,7 @@ export async function loginAction(
     const login = await buildLogin();
     await login.execute({ email, password });
 
-    redirect("/staff");
+    redirect("/");
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
       return {
