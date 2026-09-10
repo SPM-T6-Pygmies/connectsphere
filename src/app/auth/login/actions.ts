@@ -26,10 +26,8 @@ export async function loginAction(
 
   try {
     const login = await buildLogin();
-    const result = await login.execute({ email, password });
+    await login.execute({ email, password });
 
-    // Store user context for role-based redirect (Task 6)
-    // For now, just redirect to staff homepage
     redirect("/staff");
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
