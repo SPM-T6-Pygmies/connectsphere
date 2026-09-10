@@ -1,6 +1,12 @@
+import type { ClientOrganisationId } from "@/core/domain/client-organisation";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
-import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
-import { userAccountId } from "@/core/domain/user-account";
+import {
+  eventRequestId,
+  type EventRequest,
+  type EventRequestDetails,
+  type EventRequestStatus,
+} from "@/core/domain/event-request";
+import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 
 import { InMemoryEventRequestRepository } from "./in-memory-event-request-repository";
 
@@ -21,37 +27,64 @@ export const ALICE = userAccountId("organiser-alice");
 export const BEN = userAccountId("organiser-ben");
 export const CARA = userAccountId("organiser-cara");
 
-function request(overrides: Partial<EventRequest> & Pick<EventRequest, "id">): EventRequest {
+function detailsFor(eventName: string): EventRequestDetails {
   return {
-    eventName: "Untitled request",
-    status: "Draft",
-    clientOrganisationId: SUNRISE,
-    responsibleOrganiserId: ALICE,
-    ...overrides,
+    eventName,
+    description: null,
+    purpose: null,
+    preferredDate: null,
+    preferredStartTime: null,
+    preferredEndTime: null,
+    expectedAttendance: null,
+    venueRequirements: null,
+    roomLayoutPreferences: null,
+    accessibilityNeeds: null,
+    equipmentRequirements: null,
+    registrationRequirements: null,
+    generalProgramme: null,
+    otherSpecialArrangements: null,
+  };
+}
+
+function request(params: {
+  id: string;
+  eventName: string;
+  status: EventRequestStatus;
+  responsibleOrganiserId: UserAccountId;
+  clientOrganisationId?: ClientOrganisationId;
+}): EventRequest {
+  return {
+    id: eventRequestId(params.id),
+    details: detailsFor(params.eventName),
+    status: params.status,
+    clientOrganisationId: params.clientOrganisationId ?? SUNRISE,
+    responsibleOrganiserId: params.responsibleOrganiserId,
+    // Null until the request leaves Draft (see `EventRequest.submittedAt`).
+    submittedAt: params.status === "Draft" ? null : new Date(),
   };
 }
 
 const EVENT_REQUESTS: readonly EventRequest[] = [
   request({
-    id: eventRequestId("request-founders-day"),
+    id: "request-founders-day",
     eventName: "Founders' Day Celebration",
     status: "Draft",
     responsibleOrganiserId: ALICE,
   }),
   request({
-    id: eventRequestId("request-partner-forum"),
+    id: "request-partner-forum",
     eventName: "Quarterly Partner Forum",
     status: "Submitted",
     responsibleOrganiserId: BEN,
   }),
   request({
-    id: eventRequestId("request-client-showcase"),
+    id: "request-client-showcase",
     eventName: "Client Showcase",
     status: "Approved",
     responsibleOrganiserId: ALICE,
   }),
   request({
-    id: eventRequestId("request-harbour-agm"),
+    id: "request-harbour-agm",
     eventName: "Annual General Meeting",
     status: "Draft",
     clientOrganisationId: HARBOUR,
