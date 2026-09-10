@@ -69,7 +69,8 @@ create table event_request (
   description               text,
   purpose                   text,
   preferred_date            date,
-  preferred_time            text,
+  preferred_start_time      timestamptz,
+  preferred_end_time        timestamptz,
   expected_attendance       integer check (expected_attendance is null or expected_attendance >= 0),
   venue_requirements        text,
   accessibility_needs       text,
@@ -91,9 +92,15 @@ create table event_request (
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
   constraint event_request_status_chk
-    check (status in ('Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Returned', 'Withdrawn'))
+    check (status in ('Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Returned', 'Withdrawn')),
     -- 'Withdrawn' added 2026-09-09 (D3, #103): grounded, Coordinator-actioned,
     -- must stay distinguishable from every other request state.
+  constraint event_request_preferred_time_order_chk
+    check (
+      preferred_start_time is null
+      or preferred_end_time is null
+      or preferred_end_time > preferred_start_time
+    )
 );
 
 -- ---------------------------------------------------------------------------
