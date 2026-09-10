@@ -35,6 +35,8 @@ async function draftFor(
       description: details.description ?? "",
       purpose: details.purpose ?? "",
       preferredDate: details.preferredDate ?? "",
+      preferredStartTime: details.preferredStartTime ?? "",
+      preferredEndTime: details.preferredEndTime ?? "",
       expectedAttendance: details.expectedAttendance?.toString() ?? "",
       venueRequirements: details.venueRequirements ?? "",
       roomLayoutPreferences: details.roomLayoutPreferences ?? "",

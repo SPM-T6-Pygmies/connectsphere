@@ -71,6 +71,21 @@ function toInstant(dateStr: string, timeStr: string): string {
   return new Date(year, month - 1, day, hours, minutes).toISOString();
 }
 
+/**
+ * The inverse of `toInstant`: the local `HH:mm` a saved instant reads as in
+ * the Organiser's own browser, so resuming a draft (SPM-38) shows the time
+ * they actually picked rather than reinterpreting it in the server's zone.
+ */
+function toTimeOnly(iso: string | undefined): string {
+  if (!iso) {
+    return "";
+  }
+  const date = new Date(iso);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
 export function NewRequestForm({
   initialValues,
   initialEventRequestId,
@@ -122,8 +137,10 @@ export function NewRequestForm({
   // against it, not two independent instants. Composed into full
   // preferredStartTime/preferredEndTime instants below, which is what
   // actually gets submitted (see the hidden inputs) -- these two never are.
-  const [startTimeOnly, setStartTimeOnly] = useState("");
-  const [endTimeOnly, setEndTimeOnly] = useState("");
+  const [startTimeOnly, setStartTimeOnly] = useState(() =>
+    toTimeOnly(initialValues?.preferredStartTime),
+  );
+  const [endTimeOnly, setEndTimeOnly] = useState(() => toTimeOnly(initialValues?.preferredEndTime));
   // Read once, from the browser's own Intl data -- the server has no other
   // way to know which "today" the future-date rule should mean.
   const [organiserTimeZone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
