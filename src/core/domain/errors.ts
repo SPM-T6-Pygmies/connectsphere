@@ -230,3 +230,11 @@ export class PreferredEndTimeNotAfterStartError extends DomainError {
     );
   }
 }
+
+export class InvalidCredentialsError extends DomainError {
+  readonly code = "invalid_credentials";
+
+  constructor() {
+    super("Invalid credentials.");
+  }
+}
