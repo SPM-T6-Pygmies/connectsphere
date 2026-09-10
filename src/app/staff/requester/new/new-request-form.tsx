@@ -109,16 +109,6 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
       <PageHeader
         title="Create New Event Request"
         description="Tell us what you need and submit. Once submitted, changes go through your Event Coordinator."
-        actions={
-          <>
-            <Button variant="outline" asChild type="button">
-              <Link href="/staff/requester">Cancel</Link>
-            </Button>
-            <Button type="submit" disabled={!readyToSubmit || pending}>
-              {pending ? "Submitting…" : "Submit request"}
-            </Button>
-          </>
-        }
       />
 
       {state.status === "error" ? (
@@ -313,6 +303,15 @@ export function NewRequestForm({ initialValues }: { initialValues?: Partial<Form
               </Field>
             </CardContent>
           </Card>
+
+          <div className="flex justify-center gap-2">
+            <Button variant="outline" asChild type="button">
+              <Link href="/staff/requester">Cancel</Link>
+            </Button>
+            <Button type="submit" disabled={!readyToSubmit || pending}>
+              {pending ? "Submitting…" : "Submit request"}
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-6">

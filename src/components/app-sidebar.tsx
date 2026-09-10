@@ -102,14 +102,10 @@ export function AppSidebar({
   const pathname = usePathname()
   const rail = railItems(role)
 
-  const section: SidebarSection = pathname.startsWith(
-    `/staff/${role}/notifications`,
-  )
-    ? "notifications"
-    : "queue"
+  const section = currentSection(role, pathname)
 
   const items =
-    section === "queue" && queueItems !== undefined
+    section !== "notifications" && queueItems !== undefined
       ? queueItems
       : listPaneItems(role, section)
   const unread = unreadCount(role)
