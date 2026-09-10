@@ -1,10 +1,11 @@
-import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
+import { createSupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 
 import type { UserRepository, UserWithRoles } from "@/core/ports/outbound/user-repository";
 
 export class SupabaseUserRepository implements UserRepository {
   async findByAuthUserId(authUserId: string): Promise<UserWithRoles | null> {
-    const supabase = await createSupabaseServerClient();
+    const supabase = createSupabaseAdminClient();
+    console.log("[SupabaseUserRepository] Finding user by authUserId:", authUserId);
 
     const { data, error } = await supabase
       .from("user_account")
@@ -22,7 +23,13 @@ export class SupabaseUserRepository implements UserRepository {
       .eq("auth_user_id", authUserId)
       .single();
 
+    console.log("[SupabaseUserRepository] Query result:", {
+      found: !!data,
+      errorMessage: error?.message
+    });
+
     if (error || !data) {
+      console.warn("[SupabaseUserRepository] User not found for authUserId:", authUserId);
       return null;
     }
 
