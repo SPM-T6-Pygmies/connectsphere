@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  eventRequestDetails,
+  eventRequestFixture,
+} from "@/adapters/outbound/in-memory/event-request-fixture";
+
 import { clientOrganisationId } from "./client-organisation";
 import {
+  IncompleteEventRequestError,
+  PreferredDateNotInFutureError,
+  PreferredEndTimeNotAfterStartError,
+} from "./errors";
+import {
   eventRequestAccessFor,
-  eventRequestId,
+  isSubmittable,
+  missingMandatoryFields,
   reassignResponsibleOrganiser,
+  submitEventRequest,
   type EventRequest,
 } from "./event-request";
 import { userAccountId } from "./user-account";
@@ -16,14 +28,11 @@ const COLLEAGUE = userAccountId("organiser-2");
 const NEW_RESPONSIBLE = userAccountId("organiser-3");
 
 function request(overrides: Partial<EventRequest> = {}): EventRequest {
-  return {
-    id: eventRequestId("request-1"),
-    eventName: "Founders' Day",
-    status: "Draft",
+  return eventRequestFixture({
     clientOrganisationId: ORG_A,
     responsibleOrganiserId: RESPONSIBLE,
     ...overrides,
-  };
+  });
 }
 
 describe("eventRequestAccessFor", () => {
@@ -94,5 +103,158 @@ describe("reassignResponsibleOrganiser", () => {
     expect(
       eventRequestAccessFor(reassigned, { ...organisation, userAccountId: NEW_RESPONSIBLE }),
     ).toBe("edit");
+  });
+});
+
+describe("missingMandatoryFields", () => {
+  it("reports nothing missing when every mandatory field is filled", () => {
+    expect(missingMandatoryFields(eventRequestDetails())).toEqual([]);
+    expect(isSubmittable(eventRequestDetails())).toBe(true);
+  });
+
+  it.each([
+    ["eventName", { eventName: "" }],
+    ["preferredDate", { preferredDate: null }],
+    ["preferredStartTime", { preferredStartTime: null }],
+    ["preferredEndTime", { preferredEndTime: null }],
+    ["expectedAttendance", { expectedAttendance: null }],
+  ] as const)("reports %s when it is absent", (field, override) => {
+    expect(missingMandatoryFields(eventRequestDetails(override))).toEqual([field]);
+  });
+
+  it("treats whitespace as absent, so a space bar does not pass the gate", () => {
+    expect(missingMandatoryFields(eventRequestDetails({ preferredStartTime: "   " }))).toEqual([
+      "preferredStartTime",
+    ]);
+  });
+
+  it("reports every missing field at once rather than the first", () => {
+    const missing = missingMandatoryFields(
+      eventRequestDetails({ eventName: "", preferredDate: null, expectedAttendance: null }),
+    );
+
+    expect(missing).toEqual(["eventName", "preferredDate", "expectedAttendance"]);
+  });
+
+  it("does not require the optional fields the customer left open (SPM-88)", () => {
+    const bare = eventRequestDetails({
+      description: null,
+      purpose: null,
+      venueRequirements: null,
+      equipmentRequirements: null,
+    });
+
+    expect(isSubmittable(bare)).toBe(true);
+  });
+
+  it("counts zero expected attendance as given, not as absent", () => {
+    expect(missingMandatoryFields(eventRequestDetails({ expectedAttendance: 0 }))).toEqual([]);
+  });
+});
+
+describe("submitEventRequest", () => {
+  const SUBMITTED_AT = new Date("2026-09-09T10:00:00.000Z");
+
+  function submit(details = eventRequestDetails()) {
+    return submitEventRequest({
+      details,
+      clientOrganisationId: ORG_A,
+      responsibleOrganiserId: RESPONSIBLE,
+      submittedAt: SUBMITTED_AT,
+      // Fixed rather than the machine's own zone, so "today" is deterministic
+      // regardless of where the test runs.
+      organiserTimeZone: "UTC",
+    });
+  }
+
+  it("produces a Submitted request carrying what was filled in", () => {
+    const request = submit();
+
+    expect(request.status).toBe("Submitted");
+    expect(request.submittedAt).toEqual(SUBMITTED_AT);
+    expect(request.details.eventName).toBe("Founders' Day");
+    expect(request.responsibleOrganiserId).toBe(RESPONSIBLE);
+    expect(request.clientOrganisationId).toBe(ORG_A);
+  });
+
+  it("refuses an incomplete request and names every missing field (AC3)", () => {
+    expect(() =>
+      submit(eventRequestDetails({ eventName: "", preferredStartTime: null })),
+    ).toThrow(IncompleteEventRequestError);
+
+    try {
+      submit(eventRequestDetails({ eventName: "", preferredStartTime: null }));
+      expect.unreachable("submitEventRequest should have refused");
+    } catch (error) {
+      expect((error as IncompleteEventRequestError).missing).toEqual([
+        "eventName",
+        "preferredStartTime",
+      ]);
+    }
+  });
+
+  it("refuses a preferred date that is not later than today", () => {
+    expect(() => submit(eventRequestDetails({ preferredDate: "2026-09-09" }))).toThrow(
+      PreferredDateNotInFutureError,
+    );
+    expect(() => submit(eventRequestDetails({ preferredDate: "2026-09-01" }))).toThrow(
+      PreferredDateNotInFutureError,
+    );
+  });
+
+  it("uses the Organiser's own timezone for \"today\", not the server's", () => {
+    // SUBMITTED_AT is 2026-09-09T10:00 UTC. In Kiritimati (UTC+14) that's
+    // already 2026-09-10 -- a date UTC alone would still call "future" is
+    // refused once the Organiser's own zone decides "today".
+    expect(() =>
+      submitEventRequest({
+        details: eventRequestDetails({ preferredDate: "2026-09-10" }),
+        clientOrganisationId: ORG_A,
+        responsibleOrganiserId: RESPONSIBLE,
+        submittedAt: SUBMITTED_AT,
+        organiserTimeZone: "Pacific/Kiritimati",
+      }),
+    ).toThrow(PreferredDateNotInFutureError);
+
+    // The same instant, seen from UTC-12, is still 2026-09-08 -- a date UTC
+    // alone would refuse as "not later than today" is accepted.
+    expect(() =>
+      submitEventRequest({
+        details: eventRequestDetails({ preferredDate: "2026-09-09" }),
+        clientOrganisationId: ORG_A,
+        responsibleOrganiserId: RESPONSIBLE,
+        submittedAt: SUBMITTED_AT,
+        organiserTimeZone: "Etc/GMT+12",
+      }),
+    ).not.toThrow();
+  });
+
+  it("refuses a preferred end time that is not after the preferred start time", () => {
+    expect(() =>
+      submit(
+        eventRequestDetails({ preferredStartTime: "2026-11-04T09:00", preferredEndTime: "2026-11-04T09:00" }),
+      ),
+    ).toThrow(PreferredEndTimeNotAfterStartError);
+
+    expect(() =>
+      submit(
+        eventRequestDetails({ preferredStartTime: "2026-11-04T09:00", preferredEndTime: "2026-11-04T08:00" }),
+      ),
+    ).toThrow(PreferredEndTimeNotAfterStartError);
+  });
+
+  it("is submitted read-only: the Organiser keeps view access and loses edit (AC4)", () => {
+    const submitted: EventRequest = eventRequestFixture({
+      ...submit(),
+      clientOrganisationId: ORG_A,
+      responsibleOrganiserId: RESPONSIBLE,
+    });
+
+    expect(
+      eventRequestAccessFor(submitted, {
+        userAccountId: RESPONSIBLE,
+        clientOrganisationId: ORG_A,
+      }),
+    ).toBe("view");
   });
 });

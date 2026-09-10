@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { EventRequestNotFoundError } from "@/core/domain/errors";
-import { eventRequestAccessFor, eventRequestId, type EventRequest } from "@/core/domain/event-request";
+import {
+  eventRequestAccessFor,
+  eventRequestId,
+  type EventRequest,
+} from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { ChangeEventOrganiserUseCase } from "./change-event-organiser";
@@ -13,14 +18,11 @@ const OUTGOING = userAccountId("organiser-1");
 const INCOMING = userAccountId("organiser-2");
 
 function request(overrides: Partial<EventRequest> = {}): EventRequest {
-  return {
-    id: eventRequestId("request-1"),
-    eventName: "Founders' Day",
-    status: "Draft",
+  return eventRequestFixture({
     clientOrganisationId: ORG_A,
     responsibleOrganiserId: OUTGOING,
     ...overrides,
-  };
+  });
 }
 
 function buildUseCase(seed: readonly EventRequest[]) {

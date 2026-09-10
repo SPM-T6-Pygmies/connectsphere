@@ -1,5 +1,6 @@
 import {
   demoEventCatalogue,
+  demoEventRequestRepository,
   demoRegistrationRepository,
 } from "@/adapters/outbound/in-memory/attendee-demo-seed";
 import { demoEventRequestRepository } from "@/adapters/outbound/in-memory/organiser-demo-seed";
@@ -7,23 +8,29 @@ import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
+import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
+import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
-import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
+import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
+import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
+import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
+import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
-import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
+import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
+import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
@@ -98,6 +105,60 @@ export async function buildViewRegistration(): Promise<ViewRegistration> {
   const { events, registrations } = await attendeeAdapters();
 
   return new ViewRegistrationUseCase({ events, registrations });
+}
+
+/**
+ * Event requests, from the Supabase project when there is one.
+ *
+ * The in-memory fallback is the same class the use-case tests run against, so
+ * the organiser screens work on a fresh clone with no project configured --
+ * submissions just do not survive a restart. Both obey the same port, which is
+ * the only reason this substitution is safe.
+ */
+async function eventRequestAdapters(): Promise<EventRequestRepository> {
+  if (!hasSupabaseProject()) {
+    return demoEventRequestRepository;
+  }
+
+  return new SupabaseEventRequestRepository(await createSupabaseServerClient());
+}
+
+export async function buildSubmitEventRequest(): Promise<SubmitEventRequest> {
+  return new SubmitEventRequestUseCase({
+    eventRequests: await eventRequestAdapters(),
+    clock: systemClock,
+  });
+}
+
+export async function buildViewMyEventRequests(): Promise<ViewMyEventRequests> {
+  return new ViewMyEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
+}
+
+export async function buildViewEventRequest(): Promise<ViewEventRequest> {
+  return new ViewEventRequestUseCase({ eventRequests: await eventRequestAdapters() });
+}
+
+/**
+ * Who the organiser screens are acting as -- a stand-in until #62 settles how
+ * this system authenticates.
+ *
+ * It lives here because it is ambient outside state read from the environment,
+ * and because it is the one line that changes when a real session arrives: the
+ * Server Action asks the composition root who is calling rather than trusting
+ * a hidden input, so the browser cannot nominate someone else in the meantime.
+ *
+ * The defaults are `1`/`1` because `user_account` and `client_organisation`
+ * number their rows from one; set them to real ids from your own project if
+ * yours differ.
+ */
+export function actingOrganiser(): {
+  readonly userAccountId: string;
+  readonly clientOrganisationId: string;
+} {
+  return {
+    userAccountId: process.env.DEMO_ORGANISER_USER_ACCOUNT_ID ?? "1",
+    clientOrganisationId: process.env.DEMO_CLIENT_ORGANISATION_ID ?? "1",
+  };
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistration> {

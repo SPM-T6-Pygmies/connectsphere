@@ -184,3 +184,49 @@ export class EventRequestNotFoundError extends DomainError {
     super(`No event request exists with id ${id}.`);
   }
 }
+
+/**
+ * SPM-31 AC3: the Organiser is told exactly what is missing.
+ *
+ * Carries the field names rather than a rendered sentence, so the driving
+ * adapter can put each message against its own input. Naming the fields is not
+ * a transport concern leaking inward -- they are the domain's own field names,
+ * and the adapter is free to label them however its UI does.
+ */
+export class IncompleteEventRequestError extends DomainError {
+  readonly code = "incomplete_event_request";
+
+  constructor(readonly missing: readonly string[]) {
+    super(`This request is missing ${missing.length} required detail(s).`);
+  }
+}
+
+/**
+ * SPM-31: the Organiser is requesting a future event, not a past or same-day
+ * one -- "later than today" per the rule, not "today or later".
+ */
+export class PreferredDateNotInFutureError extends DomainError {
+  readonly code = "preferred_date_not_in_future";
+
+  constructor(readonly preferredDate: string) {
+    super(`Preferred date ${preferredDate} must be later than today.`);
+  }
+}
+
+/**
+ * SPM-31: replacing free-text `preferred_time` with two instants only works if
+ * they actually describe a span.
+ */
+export class PreferredEndTimeNotAfterStartError extends DomainError {
+  readonly code = "preferred_end_time_not_after_start";
+
+  constructor(
+    readonly preferredStartTime: string,
+    readonly preferredEndTime: string,
+  ) {
+    super(
+      `Preferred end time (${preferredEndTime}) must be after preferred start time ` +
+        `(${preferredStartTime}).`,
+    );
+  }
+}

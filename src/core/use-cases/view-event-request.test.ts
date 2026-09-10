@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
-import { type EventRequest } from "@/core/domain/event-request";
+import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
-import { ViewOrganisationEventRequestsUseCase } from "./view-organisation-event-requests";
+import { ViewEventRequestUseCase } from "./view-event-request";
 
 const ORG_A = clientOrganisationId("org-a");
 const ORG_B = clientOrganisationId("org-b");
@@ -22,66 +22,57 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
 }
 
 function buildUseCase(seed: readonly EventRequest[]) {
-  return new ViewOrganisationEventRequestsUseCase({
+  return new ViewEventRequestUseCase({
     eventRequests: new InMemoryEventRequestRepository(seed),
   });
 }
 
-describe("ViewOrganisationEventRequestsUseCase", () => {
-  it("lists a colleague's Draft request as view-only, not editable", async () => {
+describe("ViewEventRequestUseCase", () => {
+  it("returns the request to its own responsible Organiser", async () => {
     const useCase = buildUseCase([request()]);
 
     const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.eventRequest.id).toBe(eventRequestId("request-1"));
+  });
+
+  it("returns the request to a colleague in the same client organisation", async () => {
+    const useCase = buildUseCase([request()]);
+
+    const result = await useCase.execute({
+      id: "request-1",
       userAccountId: COLLEAGUE,
       clientOrganisationId: ORG_A,
     });
 
-    expect(result.eventRequests).toEqual([
-      { id: "request-1", eventName: "Founders' Day", status: "Draft", canEdit: false },
-    ]);
+    expect(result?.eventRequest.id).toBe(eventRequestId("request-1"));
   });
 
-  it("lets the responsible Organiser edit their own request while it is Draft", async () => {
-    const useCase = buildUseCase([request()]);
-
-    const result = await useCase.execute({
-      userAccountId: RESPONSIBLE,
-      clientOrganisationId: ORG_A,
-    });
-
-    expect(result.eventRequests[0]?.canEdit).toBe(true);
-  });
-
-  it("removes edit access from the responsible Organiser once submitted (#102)", async () => {
-    const useCase = buildUseCase([request({ status: "Submitted" })]);
-
-    const result = await useCase.execute({
-      userAccountId: RESPONSIBLE,
-      clientOrganisationId: ORG_A,
-    });
-
-    expect(result.eventRequests[0]?.canEdit).toBe(false);
-  });
-
-  it("never returns a request belonging to an unrelated client organisation", async () => {
+  it("returns null for a request belonging to an unrelated client organisation", async () => {
     const useCase = buildUseCase([request({ clientOrganisationId: ORG_B })]);
 
     const result = await useCase.execute({
+      id: "request-1",
       userAccountId: COLLEAGUE,
       clientOrganisationId: ORG_A,
     });
 
-    expect(result.eventRequests).toEqual([]);
+    expect(result).toBeNull();
   });
 
-  it("returns an empty list rather than an error when the caller's organisation has no requests", async () => {
+  it("returns null for an id that does not exist", async () => {
     const useCase = buildUseCase([]);
 
     const result = await useCase.execute({
+      id: "request-1",
       userAccountId: RESPONSIBLE,
       clientOrganisationId: ORG_A,
     });
 
-    expect(result.eventRequests).toEqual([]);
+    expect(result).toBeNull();
   });
 });

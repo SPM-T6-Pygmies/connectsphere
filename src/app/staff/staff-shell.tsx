@@ -16,7 +16,33 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { ROLE_LABELS, type StaffRole } from "@/lib/wireframe"
+import { actingOrganiser, buildViewMyEventRequests } from "@/composition/container"
+import { ROLE_LABELS, type ListPaneItem, type StaffRole } from "@/lib/wireframe"
+
+export { PageHeader } from "./page-header"
+
+/**
+ * The requester's own queue pane, from the same use case the "My event
+ * requests" screen reads -- real submitted data, not the wireframe fixtures
+ * `listPaneItems` still falls back to for every other role's queue.
+ */
+async function myRequestsQueueItems(): Promise<ListPaneItem[]> {
+  const organiser = actingOrganiser()
+  const viewMyEventRequests = await buildViewMyEventRequests()
+  const { eventRequests } = await viewMyEventRequests.execute(organiser)
+
+  return eventRequests.map((request) => ({
+    id: request.id,
+    href:
+      request.status === "Draft"
+        ? `/staff/requester/new?draft=${request.id}`
+        : `/staff/requester/${request.id}`,
+    title: request.eventName,
+    meta: request.preferredDate ?? "No date",
+    teaser: request.description ?? "Nothing filled in yet.",
+    status: request.status,
+  }))
+}
 
 export interface Crumb {
   readonly label: string
@@ -30,7 +56,7 @@ export interface Crumb {
  * them from the path: the role segment is already known statically per route,
  * and a page knows its own title better than a parser does.
  */
-export function StaffShell({
+export async function StaffShell({
   role,
   crumbs,
   defaultOpen = true,
@@ -49,6 +75,8 @@ export function StaffShell({
   defaultOpen?: boolean
   children: ReactNode
 }) {
+  const queueItems = role === "requester" ? await myRequestsQueueItems() : undefined
+
   return (
     // The two-pane sidebar is the icon rail plus a list pane, so it needs the
     // wider track; the rail's own width comes from --sidebar-width-icon.
@@ -56,7 +84,7 @@ export function StaffShell({
       defaultOpen={defaultOpen}
       style={{ "--sidebar-width": "23rem" } as CSSProperties}
     >
-      <AppSidebar role={role} />
+      <AppSidebar role={role} queueItems={queueItems} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
@@ -91,30 +119,5 @@ export function StaffShell({
         <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
-  )
-}
-
-/** Title + supporting line + optional actions, repeated on every screen. */
-export function PageHeader({
-  title,
-  description,
-  actions,
-}: {
-  title: string
-  description?: string
-  actions?: ReactNode
-}) {
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-3">
-      <div className="space-y-1">
-        <h1 className="font-heading text-xl font-semibold tracking-tight">
-          {title}
-        </h1>
-        {description ? (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        ) : null}
-      </div>
-      {actions ? <div className="flex gap-2">{actions}</div> : null}
-    </div>
   )
 }
