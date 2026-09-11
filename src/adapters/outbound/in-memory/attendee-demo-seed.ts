@@ -3,6 +3,7 @@ import { eventId, type Event } from "@/core/domain/event";
 import { registrationId, type Registration } from "@/core/domain/registration";
 
 import { InMemoryEventCatalogue } from "./in-memory-event-catalogue";
+import { InMemoryEventRequestRepository } from "./in-memory-event-request-repository";
 import { InMemoryRegistrationRepository } from "./in-memory-registration-repository";
 
 /**
@@ -133,3 +134,10 @@ const REGISTRATIONS: readonly Registration[] = [
  */
 export const demoEventCatalogue = new InMemoryEventCatalogue(EVENTS);
 export const demoRegistrationRepository = new InMemoryRegistrationRepository(REGISTRATIONS);
+
+/**
+ * Event requests start empty: the point of the organiser screens is to submit
+ * one, and a seeded row would only obscure whether the write actually worked.
+ * Configure a Supabase project and the composition root uses that instead.
+ */
+export const demoEventRequestRepository = new InMemoryEventRequestRepository();
