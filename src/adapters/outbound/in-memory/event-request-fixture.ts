@@ -45,6 +45,7 @@ export function eventRequestFixture(overrides: Partial<EventRequest> = {}): Even
     clientOrganisationId: clientOrganisationId("org-a"),
     responsibleOrganiserId: userAccountId("organiser-1"),
     submittedAt: null,
+    assignedCoordinatorUserAccountId: null,
     ...overrides,
   };
 }

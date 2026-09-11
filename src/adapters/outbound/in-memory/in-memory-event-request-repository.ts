@@ -5,6 +5,7 @@ import {
   type EventRequestId,
   type NewEventRequest,
 } from "@/core/domain/event-request";
+import type { UserAccountId } from "@/core/domain/user-account";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 
 export class InMemoryEventRequestRepository implements EventRequestRepository {
@@ -22,6 +23,12 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
   ): Promise<readonly EventRequest[]> {
     return [...this.rows.values()].filter(
       (request) => request.clientOrganisationId === clientOrganisationId,
+    );
+  }
+
+  async listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]> {
+    return [...this.rows.values()].filter(
+      (request) => request.assignedCoordinatorUserAccountId === coordinatorId,
     );
   }
 

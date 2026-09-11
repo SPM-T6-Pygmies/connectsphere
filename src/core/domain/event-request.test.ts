@@ -13,6 +13,7 @@ import {
 } from "./errors";
 import {
   eventRequestAccessFor,
+  eventRequestAccessForCoordinator,
   isSubmittable,
   missingMandatoryFields,
   reassignResponsibleOrganiser,
@@ -27,6 +28,8 @@ const ORG_B = clientOrganisationId("org-b");
 const RESPONSIBLE = userAccountId("organiser-1");
 const COLLEAGUE = userAccountId("organiser-2");
 const NEW_RESPONSIBLE = userAccountId("organiser-3");
+const COORDINATOR = userAccountId("coordinator-1");
+const OTHER_COORDINATOR = userAccountId("coordinator-2");
 
 function request(overrides: Partial<EventRequest> = {}): EventRequest {
   return eventRequestFixture({
@@ -83,6 +86,44 @@ describe("eventRequestAccessFor", () => {
   it("refuses the responsible Organiser too, once they belong to an unrelated organisation", () => {
     expect(
       eventRequestAccessFor(request(), { userAccountId: RESPONSIBLE, clientOrganisationId: ORG_B }),
+    ).toBe("none");
+  });
+});
+
+describe("eventRequestAccessForCoordinator", () => {
+  it("grants view access to the assigned coordinator", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: COORDINATOR }),
+        { userAccountId: COORDINATOR },
+      ),
+    ).toBe("view");
+  });
+
+  it("never grants edit access, even to the assigned coordinator", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: COORDINATOR }),
+        { userAccountId: COORDINATOR },
+      ),
+    ).not.toBe("edit");
+  });
+
+  it("refuses a coordinator the request is not assigned to", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: COORDINATOR }),
+        { userAccountId: OTHER_COORDINATOR },
+      ),
+    ).toBe("none");
+  });
+
+  it("refuses every coordinator while the request is unassigned", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: null }),
+        { userAccountId: COORDINATOR },
+      ),
     ).toBe("none");
   });
 });

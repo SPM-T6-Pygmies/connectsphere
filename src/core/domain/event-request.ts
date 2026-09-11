@@ -64,8 +64,9 @@ export interface EventRequestDetails {
 }
 
 /**
- * An event request as its responsible Event Organiser, and colleagues in the
- * same client organisation, are allowed to see it.
+ * An event request as its responsible Event Organiser, colleagues in the same
+ * client organisation, and (once assigned) its Event Coordinator are allowed
+ * to see it.
  */
 export interface EventRequest {
   readonly id: EventRequestId;
@@ -75,6 +76,12 @@ export interface EventRequest {
   readonly responsibleOrganiserId: UserAccountId;
   /** Null until the request leaves Draft. */
   readonly submittedAt: Date | null;
+  /**
+   * Null until the Event Operations Manager assigns a coordinator (SPM-97),
+   * which happens before the request reaches `Under Review`. Frozen once the
+   * request is `Approved` (schema.sql).
+   */
+  readonly assignedCoordinatorUserAccountId: UserAccountId | null;
 }
 
 /**
@@ -190,7 +197,7 @@ export function submitEventRequest(params: {
     throw new PreferredEndTimeNotAfterStartError(preferredStartTime, preferredEndTime);
   }
 
-  return { ...rest, status: "Submitted" };
+  return { ...rest, status: "Submitted", assignedCoordinatorUserAccountId: null };
 }
 
 /**
@@ -218,6 +225,7 @@ export function saveEventRequestDraft(params: {
     responsibleOrganiserId: params.responsibleOrganiserId,
     status: "Draft",
     submittedAt: null,
+    assignedCoordinatorUserAccountId: null,
   };
 }
 
@@ -258,6 +266,30 @@ export function eventRequestAccessFor(
   }
 
   return "view";
+}
+
+export interface CoordinatorContext {
+  readonly userAccountId: UserAccountId;
+}
+
+/**
+ * The single answer to "what may this Event Coordinator do with this
+ * request?" (SPM-32, SPM-121).
+ *
+ * Unlike the Organiser's access, there is no organisation scoping and no
+ * edit case: a Coordinator's access is purely "am I the one this was
+ * assigned to", and SPM-32 is read-only by design (decisions are SPM-33/34's
+ * job). Same not-found convention as `eventRequestAccessFor`: callers should
+ * turn `"none"` into a not-found, never a forbidden (#91).
+ */
+export function eventRequestAccessForCoordinator(
+  request: EventRequest,
+  coordinator: CoordinatorContext,
+): EventRequestAccess {
+  if (request.assignedCoordinatorUserAccountId === coordinator.userAccountId) {
+    return "view";
+  }
+  return "none";
 }
 
 /**
