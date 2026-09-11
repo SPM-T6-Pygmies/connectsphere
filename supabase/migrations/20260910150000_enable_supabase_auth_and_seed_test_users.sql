@@ -42,11 +42,6 @@ insert into user_account (name)
 values ('Test Support Staff')
 on conflict do nothing;
 
--- Test Attendee (will NOT be able to log in per business rules)
-insert into user_account (name)
-values ('Test Attendee')
-on conflict do nothing;
-
 -- Assign roles to test users
 -- Event Organiser role
 insert into user_account_role (user_account_id, role_id)
@@ -81,13 +76,6 @@ insert into user_account_role (user_account_id, role_id)
 select user_account_id, role_id
 from user_account, role
 where user_account.name = 'Test Support Staff' and role.role_name = 'Technical Support Staff'
-on conflict do nothing;
-
--- Attendee role
-insert into user_account_role (user_account_id, role_id)
-select user_account_id, role_id
-from user_account, role
-where user_account.name = 'Test Attendee' and role.role_name = 'Attendee'
 on conflict do nothing;
 
 commit;

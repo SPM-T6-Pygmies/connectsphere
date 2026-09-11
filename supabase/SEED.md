@@ -25,11 +25,11 @@ supabase migration up       # Runs migrations on cloud
 
 This will:
 - Uncomment and activate the `auth_user_id` column on `user_account`
-- Seed test user_account records with roles (Event Organiser, Coordinator, Ops Manager, Venue Staff, Support Staff, Attendee)
+- Seed test staff user_account records with roles (Event Organiser, Coordinator, Ops Manager, Venue Staff, Support Staff)
 
 **Verification (local or cloud):**
 ```sql
--- Check that test accounts were created
+-- Check that test staff accounts were created
 select ua.user_account_id, ua.name, r.role_name
 from user_account ua
 join user_account_role uar on ua.user_account_id = uar.user_account_id
@@ -37,7 +37,7 @@ join role r on uar.role_id = r.role_id
 where ua.name like 'Test%';
 ```
 
-Expected output: 6 rows (one per role)
+Expected output: 5 rows (one per staff role)
 
 ## Step 2: Seed Supabase Auth Users
 
@@ -78,9 +78,6 @@ Use these credentials to test the login flow:
 | Event Operations Manager | `ops@test.com` | `TestPass123!` |
 | Venue Staff | `venue@test.com` | `TestPass123!` |
 | Technical Support Staff | `support@test.com` | `TestPass123!` |
-| Attendee | `attendee@test.com` | `TestPass123!` |
-
-**Note:** The Attendee account exists for testing "invalid credentials" behavior — attendees cannot log in per business rules. Attempting to log in as an attendee will show the generic "Invalid credentials" error.
 
 ## Development Workflow
 

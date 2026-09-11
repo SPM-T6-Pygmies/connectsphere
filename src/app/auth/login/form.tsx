@@ -41,7 +41,6 @@ export function LoginForm() {
           id="password"
           name="password"
           type="password"
-          placeholder="••••••••"
           required
           disabled={pending}
           autoComplete="current-password"

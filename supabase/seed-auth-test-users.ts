@@ -61,12 +61,6 @@ const testUsers = [
     name: "Test Support Staff",
     role: "Technical Support Staff",
   },
-  {
-    email: "attendee@test.com",
-    password: "TestPass123!",
-    name: "Test Attendee",
-    role: "Attendee",
-  },
 ];
 
 async function seedAuthUsers() {
