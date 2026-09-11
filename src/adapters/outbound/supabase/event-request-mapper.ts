@@ -33,6 +33,7 @@ export interface EventRequestRow {
   other_special_arrangements: string | null;
   status: string;
   requesting_user_account_id: number;
+  assigned_coordinator_user_account_id: number | null;
   client_organisation_id: number;
   created_at: string;
   updated_at: string;
@@ -88,6 +89,10 @@ export function toDomain(row: EventRequestRow): EventRequest {
     clientOrganisationId: clientOrganisationId(String(row.client_organisation_id)),
     responsibleOrganiserId: userAccountId(String(row.requesting_user_account_id)),
     submittedAt: submittedAtOf(row),
+    assignedCoordinatorUserAccountId:
+      row.assigned_coordinator_user_account_id === null
+        ? null
+        : userAccountId(String(row.assigned_coordinator_user_account_id)),
     details: {
       eventName: row.event_name,
       description: row.description,

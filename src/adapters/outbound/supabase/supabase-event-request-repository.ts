@@ -4,6 +4,7 @@ import type {
   EventRequestId,
   NewEventRequest,
 } from "@/core/domain/event-request";
+import type { UserAccountId } from "@/core/domain/user-account";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 
 import type { SupabaseServerClient } from "./client";
@@ -21,10 +22,11 @@ import {
  *
  * `schema.sql` enables row level security on `event_request` and writes no
  * policy for it, and the key this client holds is publishable. So `anon` has
- * no grant on that table at all: these three functions are the whole surface,
- * and none of them can return a row the caller did not identify -- by
- * organisation, or by id. That matters because `event_request` carries
- * internal planning information brief s8b keeps away from external users.
+ * no grant on that table at all: these functions are the whole surface, and
+ * none of them can return a row the caller did not identify -- by
+ * organisation, by coordinator, or by id. That matters because
+ * `event_request` carries internal planning information brief s8b keeps away
+ * from external users.
  *
  * That the port is unchanged is the point -- the core asks for somewhere to
  * keep event requests and knows nothing about how the store defends itself.
@@ -47,6 +49,24 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     if (error) {
       throw new Error(`Failed to list event requests: ${error.message}`, { cause: error });
+    }
+
+    const rows = (data ?? []) as unknown as EventRequestRow[];
+    return rows.map(toDomain);
+  }
+
+  async listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]> {
+    const key = toKey(coordinatorId);
+    if (key === null) {
+      return [];
+    }
+
+    const { data, error } = await this.client.rpc("coordinator_event_requests", {
+      p_coordinator_user_account_id: key,
+    });
+
+    if (error) {
+      throw new Error(`Failed to list assigned event requests: ${error.message}`, { cause: error });
     }
 
     const rows = (data ?? []) as unknown as EventRequestRow[];
