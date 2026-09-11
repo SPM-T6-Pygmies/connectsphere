@@ -7,6 +7,14 @@
  * learning how to construct a `ClientOrganisationId`.
  */
 export interface SubmitEventRequestCommand {
+  /**
+   * The draft this submission completes, or `null` for one raised fresh.
+   *
+   * SPM-38: submitting a request that started life as a saved draft finishes
+   * that same row rather than inserting a second one and leaving the draft
+   * behind -- see `SubmitEventRequestUseCase`.
+   */
+  readonly eventRequestId: string | null;
   readonly responsibleOrganiserId: string;
   readonly clientOrganisationId: string;
   /** IANA zone, e.g. `"Asia/Singapore"` -- read from the Organiser's own browser. */

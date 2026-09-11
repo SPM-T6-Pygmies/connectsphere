@@ -16,6 +16,7 @@ import {
   isSubmittable,
   missingMandatoryFields,
   reassignResponsibleOrganiser,
+  saveEventRequestDraft,
   submitEventRequest,
   type EventRequest,
 } from "./event-request";
@@ -256,5 +257,70 @@ describe("submitEventRequest", () => {
         clientOrganisationId: ORG_A,
       }),
     ).toBe("view");
+  });
+});
+
+describe("saveEventRequestDraft", () => {
+  function draft(details = eventRequestDetails()) {
+    return saveEventRequestDraft({
+      details,
+      clientOrganisationId: ORG_A,
+      responsibleOrganiserId: RESPONSIBLE,
+    });
+  }
+
+  it("produces an unsubmitted Draft carrying whatever was filled in (AC1)", () => {
+    const request = draft();
+
+    expect(request.status).toBe("Draft");
+    expect(request.submittedAt).toBeNull();
+    expect(request.responsibleOrganiserId).toBe(RESPONSIBLE);
+    expect(request.clientOrganisationId).toBe(ORG_A);
+  });
+
+  it("does not enforce mandatory-field completeness (SPM-93)", () => {
+    expect(() =>
+      draft(
+        eventRequestDetails({
+          preferredDate: null,
+          preferredStartTime: null,
+          preferredEndTime: null,
+          expectedAttendance: null,
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("does not enforce the preferred-date-in-future or end-after-start rules", () => {
+    expect(() =>
+      draft(
+        eventRequestDetails({
+          preferredDate: "2020-01-01",
+          preferredStartTime: "2020-01-01T17:00",
+          preferredEndTime: "2020-01-01T09:00",
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it("still refuses a request with no name, matching the store's own constraint", () => {
+    expect(() => draft(eventRequestDetails({ eventName: "" }))).toThrow(
+      IncompleteEventRequestError,
+    );
+    expect(() => draft(eventRequestDetails({ eventName: "   " }))).toThrow(
+      IncompleteEventRequestError,
+    );
+  });
+
+  it("keeps the responsible Organiser in edit access while it stays a Draft", () => {
+    const request: EventRequest = eventRequestFixture({
+      ...draft(),
+      clientOrganisationId: ORG_A,
+      responsibleOrganiserId: RESPONSIBLE,
+    });
+
+    expect(
+      eventRequestAccessFor(request, { userAccountId: RESPONSIBLE, clientOrganisationId: ORG_A }),
+    ).toBe("edit");
   });
 });

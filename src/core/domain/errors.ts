@@ -238,3 +238,18 @@ export class InvalidCredentialsError extends DomainError {
     super("Invalid credentials.");
   }
 }
+
+/**
+ * SPM-38: a draft may only be edited by its own responsible Organiser, and
+ * only while it is still `Draft` -- the same rule `eventRequestAccessFor`
+ * already draws for viewing. Once a coordinator has taken it further, or it
+ * belongs to someone else, this is the answer for both "no such draft" and
+ * "not yours", for the same not-found-shaped reason #91 gives to viewing.
+ */
+export class DraftNotEditableError extends DomainError {
+  readonly code = "draft_not_editable";
+
+  constructor(readonly id: string) {
+    super(`Event request ${id} is not an editable draft.`);
+  }
+}

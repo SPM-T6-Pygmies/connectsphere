@@ -7,7 +7,14 @@ import type {
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toDomain, toKey, toSubmitArgs, type EventRequestRow } from "./event-request-mapper";
+import {
+  toDeleteArgs,
+  toDomain,
+  toKey,
+  toSaveArgs,
+  toSubmitArgs,
+  type EventRequestRow,
+} from "./event-request-mapper";
 
 /**
  * Event requests are reached through database functions, not through the table.
@@ -61,7 +68,12 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
     }
 
     const row = data as unknown as EventRequestRow | null;
-    return row ? toDomain(row) : null;
+    // `organiser_event_request` is a `language sql` function returning a
+    // single (non-`setof`) row: when its `select` matches nothing, Postgres
+    // hands back one row of all-null fields rather than SQL `NULL`, so a miss
+    // arrives here as a truthy object, not `null` -- checked on the primary
+    // key, the one column no real row ever has null.
+    return row && row.event_request_id !== null ? toDomain(row) : null;
   }
 
   /**
@@ -85,16 +97,49 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
   }
 
   /**
-   * Updating a stored request has no sanctioned path yet.
+   * Writes an existing request's fields back -- SPM-38's save-a-draft-again
+   * and finish-a-draft-by-submitting paths, both of which already know the
+   * request's id and only need its contents to change, never who owns it or
+   * which client organisation it belongs to.
    *
-   * The only caller is `ChangeEventOrganiserUseCase` (SPM-39), which no screen
-   * resolves, and reassignment needs an authority model that #62 has not
-   * settled -- so no function was written for it rather than one written on a
-   * guess. SPM-39 adds it alongside the policy that decides who may call it.
+   * `organiser_save_event_request` only ever touches a row that is still
+   * `Draft` and owned by the given organiser (the same edit rule
+   * `eventRequestAccessFor` draws), so this cannot be used to rewrite a
+   * request once it has moved on. Reassignment (SPM-39) changes who is
+   * responsible for a request instead of what it says, which is a different
+   * enough operation that it may still want its own function rather than
+   * this one.
    */
-  async save(): Promise<void> {
-    throw new Error(
-      "Updating a stored event request needs its own database function; see SPM-39.",
-    );
+  async save(request: EventRequest): Promise<void> {
+    const args = toSaveArgs(request);
+    if (args === null) {
+      throw new Error(`Cannot save event request with malformed id "${request.id}".`);
+    }
+
+    const { error } = await this.client.rpc("organiser_save_event_request", args);
+
+    if (error) {
+      throw new Error(`Failed to save event request: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * Removes a draft the Organiser no longer wants (SPM-38, not in the
+   * original brief).
+   *
+   * Same guard as `save`: `organiser_discard_event_request_draft` only ever
+   * touches a row that is still `Draft` and owned by the given organiser.
+   */
+  async delete(request: EventRequest): Promise<void> {
+    const args = toDeleteArgs(request);
+    if (args === null) {
+      throw new Error(`Cannot discard event request with malformed id "${request.id}".`);
+    }
+
+    const { error } = await this.client.rpc("organiser_discard_event_request_draft", args);
+
+    if (error) {
+      throw new Error(`Failed to discard event request: ${error.message}`, { cause: error });
+    }
   }
 }

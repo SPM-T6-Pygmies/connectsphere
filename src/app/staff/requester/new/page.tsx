@@ -1,4 +1,4 @@
-import { eventById } from "@/lib/wireframe";
+import { actingOrganiser, buildViewEventRequest } from "@/composition/container";
 
 import { StaffShell } from "../../staff-shell";
 import type { FormValues } from "./form-fields";
@@ -7,32 +7,45 @@ import { NewRequestForm } from "./new-request-form";
 export const metadata = { title: "New event request | ConnectSphere" };
 
 /**
- * Prefill from a wireframe draft, so the form can be walked with realistic
- * content.
+ * A saved draft, read back from wherever `SaveEventRequestDraft` put it
+ * (SPM-38) -- so "continue editing" always resumes the request the
+ * Organiser actually saved, id included, rather than raising a new one.
  *
- * Draft-save is its own card (SPM-38) and depends on this one, so there are no
- * stored drafts yet -- submitting a prefilled form raises a new request rather
- * than updating a draft. SPM-38 is where that becomes an update.
+ * `undefined` when there is no such draft, it is not this Organiser's to
+ * edit, or it has already moved past Draft -- `ViewEventRequestUseCase`
+ * already treats "not visible" the same as "not found" (#91), and a
+ * non-draft has nothing here to resume.
  */
-function draftValues(id: string): Partial<FormValues> | undefined {
-  const request = eventById(id)?.request;
-  if (request === undefined) {
+async function draftFor(
+  id: string,
+): Promise<{ eventRequestId: string; values: Partial<FormValues> } | undefined> {
+  const organiser = actingOrganiser();
+  const viewEventRequest = await buildViewEventRequest();
+  const result = await viewEventRequest.execute({ id, ...organiser });
+
+  if (result === null || result.eventRequest.status !== "Draft") {
     return undefined;
   }
 
+  const { details } = result.eventRequest;
   return {
-    eventName: request.eventName,
-    description: request.description ?? "",
-    purpose: request.purpose ?? "",
-    preferredDate: request.preferredDate ?? "",
-    expectedAttendance: request.expectedAttendance?.toString() ?? "",
-    venueRequirements: request.venueRequirements ?? "",
-    roomLayoutPreferences: request.roomLayoutPreferences ?? "",
-    accessibilityNeeds: request.accessibilityNeeds ?? "",
-    equipmentRequirements: request.equipmentRequirements ?? "",
-    registrationRequirements: request.registrationRequirements ?? "",
-    generalProgramme: request.generalProgramme ?? "",
-    otherSpecialArrangements: request.otherSpecialArrangements ?? "",
+    eventRequestId: result.eventRequest.id,
+    values: {
+      eventName: details.eventName,
+      description: details.description ?? "",
+      purpose: details.purpose ?? "",
+      preferredDate: details.preferredDate ?? "",
+      preferredStartTime: details.preferredStartTime ?? "",
+      preferredEndTime: details.preferredEndTime ?? "",
+      expectedAttendance: details.expectedAttendance?.toString() ?? "",
+      venueRequirements: details.venueRequirements ?? "",
+      roomLayoutPreferences: details.roomLayoutPreferences ?? "",
+      accessibilityNeeds: details.accessibilityNeeds ?? "",
+      equipmentRequirements: details.equipmentRequirements ?? "",
+      registrationRequirements: details.registrationRequirements ?? "",
+      generalProgramme: details.generalProgramme ?? "",
+      otherSpecialArrangements: details.otherSpecialArrangements ?? "",
+    },
   };
 }
 
@@ -40,14 +53,17 @@ export default async function NewRequestPage({
   searchParams,
 }: PageProps<"/staff/requester/new">) {
   const { draft } = await searchParams;
-  const initialValues = typeof draft === "string" ? draftValues(draft) : undefined;
+  const loaded = typeof draft === "string" ? await draftFor(draft) : undefined;
 
   return (
     <StaffShell
       role="requester"
       crumbs={[{ label: "My requests", href: "/staff/requester" }, { label: "New request" }]}
     >
-      <NewRequestForm initialValues={initialValues} />
+      <NewRequestForm
+        initialValues={loaded?.values}
+        initialEventRequestId={loaded?.eventRequestId}
+      />
     </StaffShell>
   );
 }

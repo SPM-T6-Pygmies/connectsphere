@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { eventRequestDetails } from "@/adapters/outbound/in-memory/event-request-fixture";
+import {
+  eventRequestDetails,
+  eventRequestFixture,
+} from "@/adapters/outbound/in-memory/event-request-fixture";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
-import { IncompleteEventRequestError } from "@/core/domain/errors";
-import { eventRequestAccessFor } from "@/core/domain/event-request";
+import { DraftNotEditableError, IncompleteEventRequestError } from "@/core/domain/errors";
+import { eventRequestAccessFor, eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { SubmitEventRequestCommand } from "@/core/ports/inbound/submit-event-request";
@@ -17,6 +20,7 @@ const ORG = "org-a";
 
 function command(overrides: Partial<SubmitEventRequestCommand> = {}): SubmitEventRequestCommand {
   return {
+    eventRequestId: null,
     responsibleOrganiserId: ORGANISER,
     clientOrganisationId: ORG,
     organiserTimeZone: "UTC",
@@ -151,5 +155,63 @@ describe("SubmitEventRequestUseCase", () => {
     const second = await useCase.execute(command({ eventName: "Another event" }));
 
     expect(first.eventRequestId).not.toBe(second.eventRequestId);
+  });
+
+  describe("completing an existing draft (SPM-38)", () => {
+    function seedDraft(eventRequests: InMemoryEventRequestRepository) {
+      const draft = eventRequestFixture({
+        id: eventRequestId("draft-1"),
+        status: "Draft",
+        submittedAt: null,
+        clientOrganisationId: clientOrganisationId(ORG),
+        responsibleOrganiserId: userAccountId(ORGANISER),
+      });
+      return eventRequests.save(draft).then(() => draft);
+    }
+
+    it("finishes the same row instead of raising a second one", async () => {
+      const { useCase, eventRequests } = buildUseCase();
+      const draft = await seedDraft(eventRequests);
+
+      const result = await useCase.execute(command({ eventRequestId: draft.id }));
+
+      expect(result.eventRequestId).toBe(draft.id);
+      expect(eventRequests.all()).toHaveLength(1);
+      expect(eventRequests.all()[0]?.status).toBe("Submitted");
+    });
+
+    it("refuses to complete someone else's draft", async () => {
+      const { useCase, eventRequests } = buildUseCase();
+      const draft = await seedDraft(eventRequests);
+
+      await expect(
+        useCase.execute(
+          command({ eventRequestId: draft.id, responsibleOrganiserId: "someone-else" }),
+        ),
+      ).rejects.toBeInstanceOf(DraftNotEditableError);
+    });
+
+    it("refuses to resubmit a request that has already left Draft", async () => {
+      const { useCase, eventRequests } = buildUseCase();
+      const draft = await seedDraft(eventRequests);
+      await eventRequests.save({ ...draft, status: "Submitted" });
+
+      await expect(
+        useCase.execute(command({ eventRequestId: draft.id })),
+      ).rejects.toBeInstanceOf(DraftNotEditableError);
+    });
+
+    it("still refuses an incomplete draft before writing anything", async () => {
+      const { useCase, eventRequests } = buildUseCase();
+      const draft = await seedDraft(eventRequests);
+
+      await expect(
+        useCase.execute(
+          command({ eventRequestId: draft.id, preferredDate: null, expectedAttendance: null }),
+        ),
+      ).rejects.toBeInstanceOf(IncompleteEventRequestError);
+
+      expect(eventRequests.all()[0]?.status).toBe("Draft");
+    });
   });
 });

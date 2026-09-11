@@ -16,7 +16,9 @@ import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-us
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { Login } from "@/core/ports/inbound/login";
+import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
+import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
@@ -30,7 +32,9 @@ import type { EventRequestRepository } from "@/core/ports/outbound/event-request
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { LoginUseCase } from "@/core/use-cases/login";
+import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
 import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
+import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
@@ -133,6 +137,18 @@ export async function buildSubmitEventRequest(): Promise<SubmitEventRequest> {
   return new SubmitEventRequestUseCase({
     eventRequests: await eventRequestAdapters(),
     clock: systemClock,
+  });
+}
+
+export async function buildSaveEventRequestDraft(): Promise<SaveEventRequestDraft> {
+  return new SaveEventRequestDraftUseCase({
+    eventRequests: await eventRequestAdapters(),
+  });
+}
+
+export async function buildDiscardEventRequestDraft(): Promise<DiscardEventRequestDraft> {
+  return new DiscardEventRequestDraftUseCase({
+    eventRequests: await eventRequestAdapters(),
   });
 }
 
