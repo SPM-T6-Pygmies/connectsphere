@@ -13,6 +13,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
+import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
@@ -28,6 +29,7 @@ import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
+import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
 import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
@@ -200,4 +202,17 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
     : demoOrganisationEventRequestRepository;
 
   return new ViewOrganisationEventRequestsUseCase({ eventRequests });
+}
+
+/**
+ * SPM-39 AC5: reassigns an event request's responsible Organiser, against
+ * the same store `buildViewOrganisationEventRequests` reads from so a
+ * reassignment is reflected immediately on that page.
+ */
+export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser> {
+  const eventRequests = hasSupabaseProject()
+    ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
+    : demoOrganisationEventRequestRepository;
+
+  return new ChangeEventOrganiserUseCase({ eventRequests });
 }

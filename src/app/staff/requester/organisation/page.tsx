@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import type { EventRequestStatus } from "@/lib/wireframe";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { StatusBadge } from "../../status-badge";
+import { reassignEventOrganiser } from "./actions";
 
 /**
  * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
@@ -74,6 +76,16 @@ export default async function OrganisationEventsPage({
     userAccountId: organiser.userAccountId,
     clientOrganisationId: organiser.clientOrganisationId,
   });
+
+  /**
+   * SPM-39 AC5: who the current responsible Organiser could hand a request
+   * to -- colleagues in the same client organisation, not themselves.
+   */
+  const reassignmentTargets = (Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[]).filter(
+    (candidate) =>
+      candidate !== key &&
+      DEMO_ORGANISERS[candidate].clientOrganisationId === organiser.clientOrganisationId,
+  );
 
   return (
     <StaffShell
@@ -148,7 +160,36 @@ export default async function OrganisationEventsPage({
                     </TableCell>
                     <TableCell className="text-right">
                       {request.canEdit ? (
-                        <Badge variant="success">Edit</Badge>
+                        <div className="flex items-center justify-end gap-2">
+                          <Badge variant="success">Edit</Badge>
+                          {reassignmentTargets.length > 0 && (
+                            <form
+                              action={reassignEventOrganiser}
+                              className="flex items-center gap-1"
+                            >
+                              <input type="hidden" name="eventRequestId" value={request.id} />
+                              <select
+                                name="newResponsibleOrganiserId"
+                                className="border-input bg-background rounded-md border px-1.5 py-1 text-xs"
+                                defaultValue={
+                                  DEMO_ORGANISERS[reassignmentTargets[0]].userAccountId
+                                }
+                              >
+                                {reassignmentTargets.map((candidate) => (
+                                  <option
+                                    key={candidate}
+                                    value={DEMO_ORGANISERS[candidate].userAccountId}
+                                  >
+                                    {DEMO_ORGANISERS[candidate].name}
+                                  </option>
+                                ))}
+                              </select>
+                              <Button type="submit" size="sm" variant="outline">
+                                Reassign
+                              </Button>
+                            </form>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-muted-foreground text-xs">
                           View only
