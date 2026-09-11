@@ -22,8 +22,6 @@ import { BookingDetail } from "./venue/booking-detail";
 export function NotificationDetail({
   role,
   notificationId,
-  tab,
-  activity,
 }: {
   role: StaffRole;
   notificationId: string;
@@ -48,16 +46,7 @@ export function NotificationDetail({
       return <AssignDetail id={target.id} origin="inbox" />;
     case "event":
       return (
-        <CoordinatorDetail
-          id={target.id}
-          // The notification names the tab it concerns; the reader can still
-          // move off it, so an explicit tab in the URL wins. Only used once
-          // CoordinatorDetail decides the event has reached the tabbed shell.
-          tab={tab ?? target.tab}
-          activity={activity}
-          basePath={`/staff/${role}/notifications/${notificationId}`}
-          origin="inbox"
-        />
+        <CoordinatorDetail id={target.id} origin="inbox" />
       );
     case "booking":
       return <BookingDetail id={target.id} origin="inbox" />;

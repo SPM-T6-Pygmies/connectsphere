@@ -1,25 +1,23 @@
 import { notFound } from "next/navigation";
 
-import { eventById } from "@/lib/wireframe";
+import { actingCoordinator, buildViewAssignedEventRequest } from "@/composition/container";
 
 import type { DetailOrigin } from "../detail-origin";
-import { EventDetail } from "./event-detail";
-import { RequestReviewDetail } from "./request-review-detail";
+import { AssignedRequestDetail } from "./assigned-request-detail";
 
 /**
- * Which screen a coordinator's event lands on, keyed off the request status
- * alone: the tabbed event shell only makes sense once planning has actually
- * started (Approved); anything still pending or resolved without approval
- * gets the tab-less review screen instead. One entry point for both the
- * record's own route and the notification-detail lookup, so neither can
- * drift and show the wrong shape for the same event.
+ * SPM-32: the read-only view of one event request assigned to the caller as
+ * coordinator, whatever its status. Approving/rejecting/returning (SPM-34)
+ * and the tabbed workspace an *Approved* request eventually becomes (a
+ * separate, backlog-scoped "My events" view) are both out of scope here --
+ * this renders the same submitted fields regardless of status.
+ *
+ * One entry point for both the record's own route and the notification-detail
+ * lookup, so neither can drift and show the wrong shape for the same request.
  */
-export function CoordinatorDetail({
+export async function CoordinatorDetail({
   id,
   origin = "queue",
-  tab,
-  activity,
-  basePath,
 }: {
   id: string;
   origin?: DetailOrigin;
@@ -27,25 +25,20 @@ export function CoordinatorDetail({
   activity?: string | string[];
   basePath?: string;
 }) {
-  const event = eventById(id);
+  const coordinator = actingCoordinator();
+  const viewAssignedEventRequest = await buildViewAssignedEventRequest();
+  const result = await viewAssignedEventRequest.execute({ id, ...coordinator });
 
-  if (!event) {
+  if (result === null) {
     notFound();
   }
 
-  const status = event.request.status;
-
-  if (status === "Approved") {
-    return (
-      <EventDetail id={id} tab={tab} activity={activity} basePath={basePath} origin={origin} />
-    );
-  }
-
-  if (status === "Submitted" || status === "Under Review") {
-    return <RequestReviewDetail id={id} origin={origin} />;
-  }
-
-  // Rejected | Returned | Withdrawn (Draft is unreachable here: a coordinator
-  // is never assigned to a request before it's submitted).
-  return <RequestReviewDetail id={id} origin={origin} readOnly />;
+  return (
+    <AssignedRequestDetail
+      eventRequest={result.eventRequest}
+      requestingOrganiserName={result.requestingOrganiserName}
+      clientOrganisationName={result.clientOrganisationName}
+      origin={origin}
+    />
+  );
 }
