@@ -77,7 +77,7 @@ export class SaveEventRequestDraftUseCase implements SaveEventRequestDraft {
       throw new DraftNotEditableError(command.eventRequestId);
     }
 
-    const updated: EventRequest = { ...draft, id };
+    const updated: EventRequest = { ...existing, ...draft, id };
     await eventRequests.save(updated);
     return { eventRequestId: id };
   }

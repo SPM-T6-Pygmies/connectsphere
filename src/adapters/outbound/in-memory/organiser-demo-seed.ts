@@ -59,6 +59,10 @@ function request(params: {
     status: params.status,
     clientOrganisationId: params.clientOrganisationId ?? SUNRISE,
     responsibleOrganiserId: params.responsibleOrganiserId,
+    assignedCoordinatorUserAccountId: null,
+    decisionRecord: null,
+    createdAt: new Date("2026-09-01T00:00:00.000Z"),
+    updatedAt: new Date("2026-09-01T00:00:00.000Z"),
     // Null until the request leaves Draft (see `EventRequest.submittedAt`).
     submittedAt: params.status === "Draft" ? null : new Date(),
   };

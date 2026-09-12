@@ -73,6 +73,10 @@ export interface EventRequest {
   readonly status: EventRequestStatus;
   readonly clientOrganisationId: ClientOrganisationId;
   readonly responsibleOrganiserId: UserAccountId;
+  readonly assignedCoordinatorUserAccountId: UserAccountId | null;
+  readonly decisionRecord: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
   /** Null until the request leaves Draft. */
   readonly submittedAt: Date | null;
 }
@@ -85,7 +89,14 @@ export interface EventRequest {
  * otherwise (a `nextId()` on the port) would be a lie the Supabase adapter
  * could not honour.
  */
-export type NewEventRequest = Omit<EventRequest, "id">;
+export type NewEventRequest = Omit<
+  EventRequest,
+  | "id"
+  | "assignedCoordinatorUserAccountId"
+  | "decisionRecord"
+  | "createdAt"
+  | "updatedAt"
+>;
 
 /** A request that has just been submitted, so its `submittedAt` is never null. */
 export type SubmittedEventRequest = NewEventRequest & { readonly submittedAt: Date };

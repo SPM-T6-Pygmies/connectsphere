@@ -33,6 +33,17 @@ import {
 export class SupabaseEventRequestRepository implements EventRequestRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
+  async listAll(): Promise<readonly EventRequest[]> {
+    const { data, error } = await this.client.rpc("operations_event_requests");
+
+    if (error) {
+      throw new Error(`Failed to list all event requests: ${error.message}`, { cause: error });
+    }
+
+    const rows = (data ?? []) as unknown as EventRequestRow[];
+    return rows.map(toDomain);
+  }
+
   async listByClientOrganisation(
     clientOrganisationId: ClientOrganisationId,
   ): Promise<readonly EventRequest[]> {

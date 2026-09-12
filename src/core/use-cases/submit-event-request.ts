@@ -111,7 +111,12 @@ export class SubmitEventRequestUseCase implements SubmitEventRequest {
       throw new DraftNotEditableError(rawId);
     }
 
-    const updated: EventRequest = { ...submitted, id };
+    const updated: EventRequest = {
+      ...existing,
+      ...submitted,
+      id,
+      updatedAt: submitted.submittedAt,
+    };
     await this.deps.eventRequests.save(updated);
     return updated;
   }
