@@ -37,7 +37,13 @@ describe("ViewOrganisationEventRequestsUseCase", () => {
     });
 
     expect(result.eventRequests).toEqual([
-      { id: "request-1", eventName: "Founders' Day", status: "Draft", canEdit: false },
+      {
+        id: "request-1",
+        eventName: "Founders' Day",
+        status: "Draft",
+        responsibleOrganiserId: RESPONSIBLE,
+        canEdit: false,
+      },
     ]);
   });
 

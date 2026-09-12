@@ -94,6 +94,9 @@ export default async function OrganisationEventsPage({
     clientOrganisationId: organiser.clientOrganisationId,
   });
 
+  /** Resolves each request's responsible Organiser to a name, reusing the colleague list already fetched above. */
+  const organiserNames = new Map(colleagues.map((c) => [c.userAccountId, c.name]));
+
   return (
     <StaffShell
       role="requester"
@@ -147,6 +150,7 @@ export default async function OrganisationEventsPage({
               <TableHeader>
                 <TableRow>
                   <TableHead>Event</TableHead>
+                  <TableHead>Submitted by</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Access</TableHead>
                   <TableHead>Reassign to</TableHead>
@@ -157,6 +161,9 @@ export default async function OrganisationEventsPage({
                   <TableRow key={request.id}>
                     <TableCell className="font-medium">
                       {request.eventName}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {organiserNames.get(request.responsibleOrganiserId) ?? request.responsibleOrganiserId}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={request.status as EventRequestStatus} />
