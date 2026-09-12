@@ -38,6 +38,12 @@ const testUsers = [
     role: "Event Organiser",
   },
   {
+    email: "organiser2@test.com",
+    password: "TestPass123!",
+    name: "Test Organiser 2",
+    role: "Event Organiser",
+  },
+  {
     email: "coordinator@test.com",
     password: "TestPass123!",
     name: "Test Coordinator",
