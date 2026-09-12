@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -71,6 +70,11 @@ export default async function OrganisationEventsPage({
   const asParam = typeof as === "string" ? as : undefined;
   const key: DemoOrganiserKey = isDemoOrganiserKey(asParam) ? asParam : "alice";
   const organiser = DEMO_ORGANISERS[key];
+
+  /** Reassignment candidates: colleagues in the same client organisation. */
+  const colleagues = (Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[])
+    .map((candidate) => DEMO_ORGANISERS[candidate])
+    .filter((candidate) => candidate.clientOrganisationId === organiser.clientOrganisationId);
 
   const viewOrganisationEventRequests = await buildViewOrganisationEventRequests();
   const { eventRequests } = await viewOrganisationEventRequests.execute({
@@ -165,11 +169,20 @@ export default async function OrganisationEventsPage({
                     <TableCell>
                       <form action={reassignEventOrganiserAction} className="flex gap-2">
                         <input type="hidden" name="eventRequestId" value={request.id} />
-                        <Input
+                        <select
                           name="newResponsibleOrganiserId"
-                          placeholder="organiser-ben"
-                          className="h-8 w-40"
-                        />
+                          defaultValue=""
+                          className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-8 w-40 rounded-lg border px-2.5 text-sm shadow-xs outline-none focus-visible:ring-3"
+                        >
+                          <option value="" disabled>
+                            Choose organiser…
+                          </option>
+                          {colleagues.map((colleague) => (
+                            <option key={colleague.userAccountId} value={colleague.userAccountId}>
+                              {colleague.name}
+                            </option>
+                          ))}
+                        </select>
                         <Button type="submit" variant="outline" size="sm">
                           Reassign
                         </Button>
