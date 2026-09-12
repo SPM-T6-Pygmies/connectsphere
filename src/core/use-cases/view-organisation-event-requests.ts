@@ -36,7 +36,7 @@ export class ViewOrganisationEventRequestsUseCase implements ViewOrganisationEve
     return {
       eventRequests: requests.map((request): OrganisationEventRequestSummary => ({
         id: request.id,
-        eventName: request.eventName,
+        eventName: request.details.eventName,
         status: request.status,
         canEdit: eventRequestAccessFor(request, organiser) === "edit",
       })),

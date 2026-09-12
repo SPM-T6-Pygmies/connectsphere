@@ -41,6 +41,7 @@ import {
   reservationById,
   ROLE_LABELS,
   unreadCount,
+  type ListPaneItem,
   type SidebarSection,
   type StaffRole,
 } from "@/lib/wireframe"
@@ -183,12 +184,22 @@ function currentSection(role: StaffRole, pathname: string): SidebarSection {
  */
 export function AppSidebar({
   role,
+  queueItems,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { role: StaffRole }) {
+}: React.ComponentProps<typeof Sidebar> & {
+  role: StaffRole
+  /** The role's queue, fetched from real data server-side. Falls back to the wireframe fixtures when omitted -- still every role but `requester`. */
+  queueItems?: readonly ListPaneItem[]
+}) {
   const pathname = usePathname()
   const rail = railItems(role)
+
   const section = currentSection(role, pathname)
-  const items = listPaneItems(role, section)
+
+  const items =
+    section !== "notifications" && queueItems !== undefined
+      ? queueItems
+      : listPaneItems(role, section)
   const unread = unreadCount(role)
   const heading = rail.find((item) => item.section === section)?.title ?? ""
 
