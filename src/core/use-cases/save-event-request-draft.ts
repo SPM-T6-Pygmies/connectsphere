@@ -1,5 +1,6 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
+  eventRequestAccessFor,
   eventRequestId,
   saveEventRequestDraft,
   type EventRequest,
@@ -70,9 +71,10 @@ export class SaveEventRequestDraftUseCase implements SaveEventRequestDraft {
 
     if (
       existing === null ||
-      existing.status !== "Draft" ||
-      existing.responsibleOrganiserId !== organiser ||
-      existing.clientOrganisationId !== organisation
+      eventRequestAccessFor(existing, {
+        userAccountId: organiser,
+        clientOrganisationId: organisation,
+      }) !== "edit"
     ) {
       throw new DraftNotEditableError(command.eventRequestId);
     }

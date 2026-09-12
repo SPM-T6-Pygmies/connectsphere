@@ -1,5 +1,5 @@
 import { clientOrganisationId } from "../domain/client-organisation";
-import { eventRequestId } from "../domain/event-request";
+import { eventRequestAccessFor, eventRequestId } from "../domain/event-request";
 import { DraftNotEditableError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import type {
@@ -34,9 +34,10 @@ export class DiscardEventRequestDraftUseCase implements DiscardEventRequestDraft
 
     if (
       existing === null ||
-      existing.status !== "Draft" ||
-      existing.responsibleOrganiserId !== organiser ||
-      existing.clientOrganisationId !== organisation
+      eventRequestAccessFor(existing, {
+        userAccountId: organiser,
+        clientOrganisationId: organisation,
+      }) !== "edit"
     ) {
       throw new DraftNotEditableError(command.eventRequestId);
     }
