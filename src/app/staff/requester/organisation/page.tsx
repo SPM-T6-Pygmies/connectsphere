@@ -1,7 +1,5 @@
-import { InfoIcon } from "lucide-react";
 import Link from "next/link";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -110,20 +108,6 @@ export default async function OrganisationEventsPage({
           </div>
         }
       />
-
-      <Alert variant="info">
-        <InfoIcon />
-        <AlertTitle>No login yet (SPM-13)</AlertTitle>
-        <AlertDescription>
-          The switcher above stands in for a signed-in Organiser&apos;s identity.
-          The list itself is not a fixture: it is a real call to{" "}
-          <code>ViewOrganisationEventRequestsUseCase</code>, so the Edit
-          column reflects the actual access rule, not a hardcoded value.
-          &quot;Reassign to&quot; is real too, but unlike everything else on
-          this page it is not restricted to any particular caller (SPM-114) --
-          no source has yet said who should be allowed to do this.
-        </AlertDescription>
-      </Alert>
 
       <Card>
         <CardHeader>
