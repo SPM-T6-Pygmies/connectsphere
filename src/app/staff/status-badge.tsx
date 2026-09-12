@@ -1,20 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import type {
-  BookingStatus,
-  EquipmentReservationStatus,
-  EventRequestStatus,
-  EventStatus,
-  FulfilmentStatus,
-  RegistrationStatus,
-} from "@/lib/wireframe"
-
-type AnyStatus =
-  | EventRequestStatus
-  | EventStatus
-  | BookingStatus
-  | EquipmentReservationStatus
-  | FulfilmentStatus
-  | RegistrationStatus
+import type { AnyStatus } from "@/lib/wireframe"
 
 type Variant = React.ComponentProps<typeof Badge>["variant"]
 

@@ -20,6 +20,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 
+import { StatusBadge } from "@/app/staff/status-badge"
 import { RoleSwitcher } from "@/components/role-switcher"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -346,9 +347,7 @@ export function AppSidebar({
                         </span>
                       </div>
                       <div className="flex w-full min-w-0 items-center gap-2">
-                        <span className="text-muted-foreground min-w-0 truncate text-xs">
-                          {item.status}
-                        </span>
+                        <StatusBadge status={item.status} />
                         {item.unread ? (
                           <span className="bg-primary ml-auto size-1.5 shrink-0 rounded-full" />
                         ) : null}
