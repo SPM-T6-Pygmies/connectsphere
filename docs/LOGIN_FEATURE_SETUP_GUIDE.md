@@ -66,26 +66,6 @@ Supabase.com (shared)
 
 ## Prerequisites
 
-**Required:**
-```bash
-node --version          # >= 22.12 or >= 20.19
-docker --version        # OR colima --version (Mac)
-supabase --version      # brew install supabase/tap/supabase
-pnpm --version          # npm install -g pnpm
-git --version
-```
-
-**For Infisical (Primary Path):**
-```bash
-infisical --version     # brew install infisical/get-cli/infisical
-```
-
-**Colima users (Mac):** Start with `colima start --memory 4` before proceeding.
-
----
-
-## Prerequisites
-
 ```bash
 node --version          # >= 22.12 or >= 20.19
 docker --version        # OR colima --version (Mac)
@@ -383,59 +363,6 @@ pnpm ts-node supabase/seed-auth-test-users.ts
 
 ---
 
-## Testing Login Feature
-
-### Test Login (Success)
-
-```
-1. Go to: http://localhost:3000/auth/login
-2. Enter:
-   Email: organiser@test.com
-   Password: TestPass123!
-3. Click "Sign in"
-
-Expected:
-  ✅ No error
-  ✅ Redirects to /staff/organiser/landing-view
-  ✅ Session cookie created (check DevTools → Application → Cookies)
-```
-
-### Test Login (Invalid Password)
-
-```
-1. Go to: http://localhost:3000/auth/login
-2. Enter:
-   Email: organiser@test.com
-   Password: WRONG
-3. Click "Sign in"
-
-Expected:
-  ✅ Error banner: "Invalid credentials"
-  ✅ Form stays on /auth/login
-  ✅ No session cookie
-```
-
-### Test Public Routes (No Auth)
-
-```
-- http://localhost:3000/events → Should load (public)
-- http://localhost:3000/ → Should load (public)
-```
-
-### Test Protected Routes (Auth Required)
-
-```
-Without logging in:
-  http://localhost:3000/staff/organiser/landing-view 
-  → Redirects to /auth/login
-
-After logging in:
-  http://localhost:3000/staff/organiser/landing-view 
-  → Landing view loads
-```
-
----
-
 ## pnpm Commands
 
 ### Development
@@ -469,8 +396,6 @@ supabase stop         # Stop containers (preserve data & credentials)
 supabase reset        # Wipe database, re-run migrations (keep credentials)
 supabase migration up # Run pending migrations
 ```
-
----
 
 ---
 
