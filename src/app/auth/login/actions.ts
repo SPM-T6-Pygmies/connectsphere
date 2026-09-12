@@ -16,6 +16,7 @@ export interface LoginState {
  */
 function roleToPagePath(role: string): string {
   const roleMap: Record<string, string> = {
+    "Event Organiser": "requester",
     "Event Coordinator": "coordinator",
     "Event Operations Manager": "ops",
     "Venue Staff": "venue",
