@@ -36,7 +36,7 @@ export const ACTIVITY: readonly ActivityEntry[] = [
     action: "assigned a coordinator",
     field: "Coordinator",
     from: "Unassigned",
-    to: "Amara Sithole",
+    to: "Nadia",
   },
   {
     id: "a-03",
@@ -57,7 +57,7 @@ export const ACTIVITY: readonly ActivityEntry[] = [
     kind: "comment",
     actor: PEOPLE.coordinatorAmara,
     at: "2026-09-06 14:22",
-    body: "Priya, can you confirm whether the streamed sessions need live interpretation as well as captions? It changes what I ask technical support for.",
+    body: "Alice, can you confirm whether the streamed sessions need live interpretation as well as captions? It changes what I ask technical support for.",
     parentId: null,
   },
   {
