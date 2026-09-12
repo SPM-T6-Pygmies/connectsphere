@@ -245,7 +245,8 @@ often get backwards.
 
 - A **driving** actor starts the conversation. It calls *into* the application.
   A form submission, a cron job, a webhook, a CLI command, **a test**. Driving
-  adapters depend on a driving port.
+  adapters depend on the use case directly — there is no driving-port interface
+  between them (see the note under Naming conventions).
 - A **driven** actor is called *by* the application — "either to get answers
   from or to merely notify." A database, a mail provider, the clock. The core
   defines the port; the adapter implements it.
@@ -443,14 +444,12 @@ src/
 │   │   ├── errors.ts               DomainError hierarchy
 │   │   └── member.ts               MemberId value object
 │   ├── ports/
-│   │   ├── inbound/                driving ports — this app's API
-│   │   │   └── send-connection-request.ts
 │   │   └── outbound/               driven ports — what this app requires
 │   │       ├── clock.ts
 │   │       ├── connection-repository.ts
 │   │       ├── member-directory.ts
 │   │       └── notifier.ts
-│   └── use-cases/
+│   └── use-cases/               this app's API: command, result, orchestration
 │       ├── send-connection-request.ts
 │       └── send-connection-request.test.ts
 │
@@ -486,12 +485,11 @@ and imported by a different frontend tomorrow, and nothing in it would change.
 
 | Thing            | Convention                              | Example                             |
 | ---------------- | --------------------------------------- | ----------------------------------- |
-| Driving port     | Verb phrase, the use case's name         | `SendConnectionRequest`             |
 | Driven port      | Role, not technology                    | `ConnectionRepository`, `Notifier`  |
-| Use case class   | Port name + `UseCase`                    | `SendConnectionRequestUseCase`      |
+| Use case class   | Verb phrase + `UseCase`                  | `SendConnectionRequestUseCase`      |
 | Adapter          | Technology + port name                  | `SupabaseConnectionRepository`      |
 | Test double      | Strategy + port name                    | `InMemoryConnectionRepository`      |
-| Command / result | Port name + `Command` / `Result`         | `SendConnectionRequestCommand`      |
+| Command / result | Use case name + `Command` / `Result`     | `SendConnectionRequestCommand`      |
 
 Never name a port `IRepository`, `ServicePort` or `DataPort`. A port named after
 its mechanism has already lost the argument — the name is supposed to tell you
@@ -561,19 +559,26 @@ world, so it is a boundary, so it gets a port — and every test involving a
 timestamp becomes deterministic without stubbing globals or freezing timers. Two
 lines of interface for that trade is the best deal in this document.
 
-And the driving port — the application's own API, in plain serialisable data:
+And the application's own API, in plain serialisable data. It lives in the
+use-case file rather than in a port of its own:
 
 ```ts
-// src/core/ports/inbound/send-connection-request.ts
+// src/core/use-cases/send-connection-request.ts
 export interface SendConnectionRequestCommand {
   readonly requesterId: string;
   readonly addresseeId: string;
 }
 
-export interface SendConnectionRequest {
-  execute(command: SendConnectionRequestCommand): Promise<SendConnectionRequestResult>;
+export interface SendConnectionRequestResult {
+  readonly connectionId: string;
+  readonly status: ConnectionStatus;
 }
 ```
+
+There is deliberately no `interface SendConnectionRequest { execute() }`. It
+would have one implementation, no plausible second, and no test double — which
+is exactly what section 11 says not to write a port for. Driving adapters name
+the use case class; the command and result are the contract.
 
 Commands are primitives, never domain objects. That is what lets *any* driving
 adapter — a form, a webhook, a queue consumer, a test — speak to the core
@@ -583,7 +588,7 @@ without first learning how to construct a `MemberId`.
 
 ```ts
 // src/core/use-cases/send-connection-request.ts
-export class SendConnectionRequestUseCase implements SendConnectionRequest {
+export class SendConnectionRequestUseCase {
   constructor(private readonly deps: SendConnectionRequestDeps) {}
 
   async execute(command: SendConnectionRequestCommand): Promise<SendConnectionRequestResult> {
@@ -1142,16 +1147,14 @@ Before requesting review on anything touching an external system:
 ### Adding a feature: the order to work in
 
 1. Write the domain type and its invariants in `src/core/domain`. No I/O.
-2. Write the driving port in `src/core/ports/inbound` — command and result as
-   plain data.
-3. Write any new driven ports in `src/core/ports/outbound`, phrased in business
+2. Write any new driven ports in `src/core/ports/outbound`, phrased in business
    language.
-4. Write the use case. If a business decision appears in it, move that decision
-   to step 1.
-5. Write in-memory adapters and test the use case. No database yet.
-6. Write the real adapters in `src/adapters/outbound`.
-7. Wire them in `src/composition`.
-8. Write the driving adapter in `src/app`. Keep it thin.
+3. Write the use case, with its command and result as plain data in the same
+   file. If a business decision appears in it, move that decision to step 1.
+4. Write in-memory adapters and test the use case. No database yet.
+5. Write the real adapters in `src/adapters/outbound`.
+6. Wire them in `src/composition`.
+7. Write the driving adapter in `src/app`. Keep it thin.
 
 Steps 1–5 need no Supabase project, no environment variables, and no running
 server. That property — a full feature designed and tested before any
