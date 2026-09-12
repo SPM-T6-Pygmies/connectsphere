@@ -13,6 +13,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
+import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
@@ -21,7 +22,6 @@ import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-reque
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
 import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
 import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
-import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
 import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
