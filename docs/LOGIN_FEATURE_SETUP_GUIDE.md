@@ -1,117 +1,385 @@
-# Login Feature (SPM-13): Detailed Setup Guide
+# Login Feature (SPM-13): Setup Guide
 
 **For:** Team members setting up the login feature for local development  
-**Covers:** Local Supabase, test data seeding, pnpm commands, Infisical setup
+**Covers:** Local Supabase, Infisical secrets, migrations, seeding, testing
+
+---
+
+## Local Supabase vs Cloud Supabase
+
+### Local Supabase (Your Machine)
+
+Runs entirely on your machine in Docker containers:
+
+```
+Your Machine
+├── Docker/Colima
+│   └── 5 Supabase Containers
+│       ├── PostgreSQL database
+│       ├── Auth service
+│       ├── Storage
+│       ├── Functions
+│       └── Realtime
+└── URL: http://127.0.0.1:54321
+```
+
+**Key characteristics:**
+- ✅ Only you can access it
+- ✅ Auth credentials persist (stored in `.supabase/` directory)
+- ✅ Data/state reset on `supabase reset`, but credentials stay same
+- ✅ Completely isolated — safe for testing
+- ✅ Fast (no network latency)
+- ❌ Only exists while containers are running
+
+**Persistence:** As long as `.supabase/` exists, auth credentials remain the same across `supabase stop/start` cycles. Deleting `.supabase/` creates new credentials.
+
+### Cloud Supabase (SPM-212-T6 on Supabase.com)
+
+Hosted project shared with the team:
+
+```
+Supabase.com (shared)
+└── SPM-212-T6 Project
+    ├── PostgreSQL (hosted)
+    ├── Auth service (hosted)
+    ├── Storage (hosted)
+    └── Persistent data
+```
+
+**Key characteristics:**
+- ✅ Shared with team
+- ✅ Persistent data (survives everything)
+- ❌ Changes affect entire team
+- ❌ Slower (network latency)
+- ❌ Never use for personal development
+
+**When to use:** Team integration testing or staging (not this guide).
+
+### Why Local for Development?
+
+1. **Isolation:** Your changes don't affect teammates
+2. **Speed:** Instant feedback, no network delays
+3. **Safety:** Can reset data without consequences
+4. **Autonomy:** Work offline if needed
+
+---
+
+## Prerequisites
+
+**Required:**
+```bash
+node --version          # >= 22.12 or >= 20.19
+docker --version        # OR colima --version (Mac)
+supabase --version      # brew install supabase/tap/supabase
+pnpm --version          # npm install -g pnpm
+git --version
+```
+
+**For Infisical (Primary Path):**
+```bash
+infisical --version     # brew install infisical/get-cli/infisical
+```
+
+**Colima users (Mac):** Start with `colima start --memory 4` before proceeding.
 
 ---
 
 ## Prerequisites
 
 ```bash
-# 1. Node.js (>= 22.12 or >= 20.19)
-node --version
-
-# 2. Docker (for local Supabase)
-docker --version
-# OR Colima (if on Mac)
-colima --version
-
-# 3. Supabase CLI
-supabase --version
-# If not installed: brew install supabase/tap/supabase
-
-# 4. pnpm (package manager)
-pnpm --version
-
-# 5. Git
+node --version          # >= 22.12 or >= 20.19
+docker --version        # OR colima --version (Mac)
+supabase --version      # brew install supabase/tap/supabase
+pnpm --version          # npm install -g pnpm
 git --version
+infisical --version     # brew install infisical/get-cli/infisical
 ```
 
-**Colima users:** See [docs/DATABASE.md#troubleshooting-colima](DATABASE.md#troubleshooting-colima) — start with `colima start --memory 4`.
+**Colima users (Mac):** Start with `colima start --memory 4` before proceeding.
 
 ---
 
-## Step-by-Step Setup
-
-### 1. Install Dependencies
+## Step 1: Install Dependencies
 
 ```bash
 cd connectsphere
 pnpm install
 ```
 
-### 2. Start Local Supabase
+**Expected:** 1-2 minutes, silent completion = success.
+
+---
+
+## Step 2: Start Local Supabase
+
+Open **Terminal 1** and run:
 
 ```bash
-# Terminal 1
 supabase start
 ```
 
-**Output includes credentials like:**
+**Output:**
 ```
-Project URL    │ http://127.0.0.1:54321
-Publishable    │ sb_publishable_<random-key>
-Secret         │ sb_secret_<random-key>
+Started supabase local development setup.
+
+         API URL: http://127.0.0.1:54321
+     Anon Key: sb_anon_<random-key>
+Service Role Key: sb_secret_<random-key>
+     Studio URL: http://127.0.0.1:54323
 ```
 
-**Save these** — you'll need them in the next steps.
+**Save these three values:**
+- `API URL` → `NEXT_PUBLIC_SUPABASE_URL`
+- `Anon Key` → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `Service Role Key` → `SUPABASE_SERVICE_ROLE_KEY`
 
-### 3. Run Migrations
+**Verification:**
+- http://127.0.0.1:54323 → Supabase Studio login screen
+- Keep this terminal running (don't close it)
+
+**Key point:** As long as you don't delete `.supabase/` directory, these credentials remain the same on future `supabase start` runs.
+
+---
+
+## Step 3: Run Migrations
+
+Open **Terminal 2** and run:
 
 ```bash
-# Terminal 2
 supabase migration up
 ```
 
-This creates the database schema, including:
-- `auth_user_id` column on `user_account` table
+**What happens:** Creates database schema including:
+- `user_account` table with `auth_user_id` column
+- `user_account_role` junction table
 - Test staff accounts (organiser, coordinator, ops, venue, support)
-- User-role relationships
 
-**Verify:** Visit http://127.0.0.1:54323 (Supabase Studio)  
-Go to **Tables** → **user_account** → Should see 5 test accounts
+**Verification:** 
+- Supabase Studio → **Tables** tab
+- Should see `user_account` with 5 rows
 
-### 4. Seed Test Users (Auth)
+**Caveat:** If migrations fail, see Troubleshooting section.
+
+---
+
+## Step 4: Create Private Infisical Project for Local Secrets
+
+**Why:** Store your local Supabase credentials securely, accessible from any machine.
+
+**Step 4.1: Authenticate Infisical**
+
+```bash
+infisical login
+```
+
+**Expected:** Browser opens, login with your credentials.
+
+**Output:** `Successfully logged in.`
+
+**Verification:** `infisical whoami` → shows your email.
+
+---
+
+**Step 4.2: Create Private Project**
+
+```bash
+infisical project create --name="connectsphere-local" --slug="connectsphere-local"
+```
+
+**Output:**
+```
+Project created: connectsphere-local
+```
+
+**Caveat:** Use a slug unique to you (e.g., `connectsphere-local-james`) to avoid conflicts.
+
+---
+
+**Step 4.3: Store Supabase Credentials**
+
+Use Infisical Web UI (easier than CLI):
+
+1. Go to https://app.infisical.com
+2. Select your private project (`connectsphere-local`)
+3. Click **Secrets** → **dev** environment
+4. Add three secrets:
+
+| Key | Value |
+|-----|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | `http://127.0.0.1:54321` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `<Anon Key from Step 2>` |
+| `SUPABASE_SERVICE_ROLE_KEY` | `<Service Role Key from Step 2>` |
+
+**Verification:** Secrets visible in Infisical UI.
+
+**⚠️ IMPORTANT - Row-Level Security (RLS):**
+The `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. This is necessary because:
+- Server Action needs to lookup `user_account` and `user_account_role` tables
+- Browser (Publishable Key) has read-only access, can't see role data (RLS blocks it)
+- Server (Service Role Key) has full access, can bypass RLS and fetch all user data
+- This is the correct security model: restricted browser, powerful server
+
+---
+
+**Step 4.4: Link Local Project to Infisical**
+
+```bash
+cd connectsphere
+infisical init
+```
+
+**Prompts:**
+- "Select Infisical organization" → Your organization
+- "Select project" → `connectsphere-local`
+- "Select environment" → `dev`
+
+**Output:** `.infisical.json` file created.
+
+**Verification:** `cat .infisical.json` → shows project ID.
+
+---
+
+## Step 5: Seed Authentication Test Users
+
+Create 5 staff test accounts in local Supabase Auth:
 
 ```bash
 # Terminal 2 (or new terminal)
 NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
-SUPABASE_SERVICE_ROLE_KEY="<secret-from-step-2>" \
+SUPABASE_SERVICE_ROLE_KEY="<Service-Role-Key-from-Step-2>" \
 pnpm ts-node supabase/seed-auth-test-users.ts
 ```
 
-Replace `<secret-from-step-2>` with the Service Role Key value from Step 2.
-
-**Output should show all 5 staff roles with credentials.**
-
-**Verify:** Supabase Studio → **Authentication** → **Users**  
-Should see 5 test users (organiser@test.com, coordinator@test.com, etc.)
-
-### 5. Create `.env.local`
-
-```bash
-# Terminal (any)
-cp .env.example .env.local
+**Output:**
+```
+✓ Created staff users:
+  - organiser@test.com (password: TestPass123!)
+  - coordinator@test.com (password: TestPass123!)
+  - ops@test.com (password: TestPass123!)
+  - venue@test.com (password: TestPass123!)
+  - support@test.com (password: TestPass123!)
 ```
 
-Edit `.env.local` and add Supabase values from Step 2:
+**Verification:**
+- Supabase Studio → **Authentication** tab → **Users**
+- Should see 5 test users
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key-from-step-2>
-SUPABASE_SERVICE_ROLE_KEY=<secret-key-from-step-2>
-```
+---
 
-(These local defaults are in [docs/DATABASE.md](DATABASE.md#local-envlocal-values) — safe to commit)
-
-### 6. Start Dev Server
+## Step 6: Run Dev Server with Infisical
 
 ```bash
 # Terminal 3
 pnpm dev
 ```
 
-**Verify:** Navigate to http://localhost:3000 → Should load
+**What happens:** Pulls secrets from `.env.local` (or Infisical if configured).
+
+**Output:**
+```
+▲ Next.js 16 started...
+- Local: http://localhost:3000
+```
+
+**Verification:** http://localhost:3000 loads.
+
+---
+
+## Step 7: Test Login Feature
+
+### Test 1: Valid Login
+
+1. Open http://localhost:3000/auth/login
+2. Email: `organiser@test.com`
+3. Password: `TestPass123!`
+4. Click "Sign in"
+
+**Expected:**
+- ✅ No error
+- ✅ Redirects to `/staff/organiser/landing-view`
+- ✅ DevTools → Application → Cookies → see `sb-<id>-auth-token`
+
+### Test 2: Invalid Password
+
+1. Email: `organiser@test.com`
+2. Password: `WRONG`
+3. Click "Sign in"
+
+**Expected:**
+- ✅ Error: "Invalid credentials"
+- ✅ Stays on `/auth/login`
+- ✅ No cookie created
+
+### Test 3: Public Routes (No Auth)
+
+```bash
+http://localhost:3000/events     → Loads (public)
+http://localhost:3000/           → Loads (public)
+```
+
+### Test 4: Protected Routes (Auth Required)
+
+```bash
+# Without logging in:
+http://localhost:3000/staff/organiser/landing-view
+→ Redirects to /auth/login
+
+# After logging in (from Test 1):
+http://localhost:3000/staff/organiser/landing-view
+→ Landing view loads
+```
+
+---
+
+## Managing Your Local Supabase
+
+### Stopping (Preserve Data & Credentials)
+
+```bash
+supabase stop
+```
+
+**Result:** Containers stop, `.supabase/` remains → credentials persist.
+
+**Next `supabase start`:** Same credentials, same database state.
+
+---
+
+### Resetting Data (Keep Credentials)
+
+```bash
+supabase reset
+```
+
+**Result:** Database wiped, migrations re-run, credentials unchanged.
+
+**Use when:** You want fresh test data but keep same credentials.
+
+---
+
+### Full Clean Slate (Delete Everything)
+
+```bash
+supabase stop
+rm -rf .supabase
+supabase start
+```
+
+**Result:** New `.supabase/` directory created with new credentials.
+
+**Caveat:** You must update Infisical with new credentials.
+
+---
+
+### Reseeding Test Users
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
+SUPABASE_SERVICE_ROLE_KEY="<secret-key>" \
+pnpm ts-node supabase/seed-auth-test-users.ts
+```
+
+**Use when:** Test users accidentally deleted or need fresh state.
 
 ---
 
@@ -173,117 +441,248 @@ After logging in:
 ### Development
 
 ```bash
-pnpm dev              # Dev server (standard, uses .env.local)
+pnpm dev              # Dev server (use after Steps 1-7 are complete)
+                      # Pulls secrets from .env.local (or Infisical if set up)
 ```
 
 ### Testing
 
 ```bash
-pnpm test             # Run all tests (190 total)
-pnpm test login       # Run only login tests (8 tests)
-pnpm test:watch       # Tests in watch mode (re-run on change)
+pnpm test             # Run all tests (190 total, no database needed)
+pnpm test login       # Run only login tests (8 tests, ~5ms)
+pnpm test:watch       # Tests in watch mode
 ```
 
-### Validation
+### Code Quality
 
 ```bash
 pnpm typecheck        # TypeScript type checking
-pnpm lint             # ESLint + architecture boundary checking
+pnpm lint             # ESLint + architecture boundaries
 pnpm build            # Production build
 ```
 
+### Supabase Commands
+
+```bash
+supabase start        # Start local Supabase (Terminal 1, keep running)
+supabase stop         # Stop containers (preserve data & credentials)
+supabase reset        # Wipe database, re-run migrations (keep credentials)
+supabase migration up # Run pending migrations
+```
+
 ---
-
-## Advanced: Infisical Setup (Optional / Team)
-
-**Use Infisical when:**
-- Team wants centralized shared secrets (not individual .env.local files)
-- Using cloud Supabase with `pnpm dev:remote`
-- Setting up CI/CD integration
-
-**Standard local development** uses `.env.local` (Steps 1-6 above). Infisical is optional.
-
-### Install Infisical
-
-```bash
-# macOS
-brew install infisical/get-cli/infisical
-
-# OR via pnpm
-pnpm add -g @infisical/cli
-
-# Verify
-infisical --version
-```
-
-### Authenticate (One-Time)
-
-```bash
-infisical login
-# When prompted: Choose "US Cloud"
-```
-
-### Link to Project
-
-```bash
-# In project root
-infisical init
-# Follow prompts to link to your team's Infisical workspace
-```
-
-### Use Infisical Commands
-
-```bash
-# Dev server with Infisical env vars (local Supabase)
-pnpm dev:local
-# Equivalent to: supabase start && infisical run --env=dev -- pnpm dev
-
-# Cloud Supabase with Infisical env vars (production)
-pnpm dev:remote
-# Equivalent to: infisical run --env=prod -- pnpm dev
-```
-
-**Note:** If Infisical access fails, ask your team lead for project membership. You can still use `.env.local` for local Supabase testing.
 
 ---
 
 ## Troubleshooting
 
+### Storage Container Health Issues: "Container is not ready: unhealthy"
+
+**Cause:** Stale Supabase CLI configuration from a previous project or cloud link.
+
+**Symptoms:**
+```
+supabase_storage_connectsphere container is not ready: unhealthy
+```
+
+or
+
+```
+Cannot find project ref. Have you run supabase link?
+```
+
+**Fix (clean slate):**
+
+```bash
+# 1. Stop everything
+supabase stop
+
+# 2. Remove global CLI state (from previous projects)
+rm -rf ~/.supabase
+
+# 3. Remove project-local state
+rm -rf .supabase
+
+# 4. Clean up Docker
+docker system prune -f
+
+# 5. Start fresh
+supabase start
+```
+
+**Why this works:** The global `~/.supabase/` directory stores CLI settings. If you previously used this CLI for a cloud project (SPM-212-T6), stale config gets mixed with local setup. Cleaning both directories forces a fresh local-only initialization.
+
+**After the fix:** `supabase start` should auto-create a new `.supabase/config.toml` configured for local development only.
+
+---
+
 ### "Cannot find module 'react-day-picker'"
+
+**Cause:** Missing dependencies.
+
 ```bash
 pnpm install
 ```
 
-### "Supabase connection refused"
-- Ensure Terminal 1: `supabase start` is running
-- Check http://127.0.0.1:54323 loads (Supabase Studio)
+**If that doesn't work:**
+```bash
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
+```
 
-### "Invalid credentials" on every login attempt
-1. Check service role key matches `supabase start` output
-2. Verify test users exist: Supabase Studio → Authentication → Users
-3. Re-run seed script if users missing:
+---
+
+### "Supabase connection refused"
+
+**Cause:** Supabase containers aren't running or can't reach them.
+
+**Checklist:**
+1. Is Terminal 1 still running `supabase start`?
    ```bash
-   NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
-   SUPABASE_SERVICE_ROLE_KEY="<secret-from-supabase-start>" \
-   pnpm ts-node supabase/seed-auth-test-users.ts
+   # Check if Supabase is running
+   docker ps | grep supabase
+   # Should show ~5 containers
    ```
 
-### "Port 54321 already in use"
+2. Can you reach Supabase Studio?
+   - Open http://127.0.0.1:54323 in browser
+   - Should see login prompt
+   - If not, containers may be starting — wait 10 seconds and refresh
+
+3. Are Docker containers healthy?
+   ```bash
+   docker ps --format "table {{.Names}}\t{{.Status}}" | grep supabase
+   # Should show "Up X seconds (healthy)"
+   ```
+
+**If containers are down:**
 ```bash
 supabase stop
 supabase start
 ```
 
-### Session cookie not created
-1. Check `NEXT_PUBLIC_SUPABASE_URL` in .env.local is correct
-2. Check `pnpm dev` running (http://localhost:3000 loads)
-3. Not in private/incognito mode?
+---
 
-### Colima won't start
+### "Invalid credentials" on Every Login Attempt
+
+**Cause:** Service Role Key mismatch, or test users weren't created.
+
+**Checklist:**
+
+1. **Verify service role key is correct:**
+   - Run `supabase start` in Terminal 1
+   - Find the line: `Service Role Key: sb_secret_<key>`
+   - Check it matches the `SUPABASE_SERVICE_ROLE_KEY` you used in Step 4
+
+2. **Verify test users exist:**
+   - Open Supabase Studio: http://127.0.0.1:54323
+   - Login with any email/password
+   - Go to **Authentication** tab → **Users**
+   - Should see 5 test users: organiser@test.com, coordinator@test.com, etc.
+
+3. **If test users are missing, re-seed:**
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
+   SUPABASE_SERVICE_ROLE_KEY="<secret-from-supabase-start>" \
+   pnpm ts-node supabase/seed-auth-test-users.ts
+   ```
+   Replace `<secret-from-supabase-start>` with the actual key from `supabase start` output.
+
+---
+
+### "Port 54321 Already in Use"
+
+**Cause:** Another process (or old Docker container) is using the port.
+
 ```bash
+# Stop Supabase
+supabase stop
+
+# Give Docker a moment to release ports
+sleep 5
+
+# Start again
+supabase start
+```
+
+If that doesn't work, manually find and kill the process:
+```bash
+# Find what's using port 54321
+lsof -i :54321
+
+# Kill it (replace <PID> with the actual process ID)
+kill -9 <PID>
+
+# Try supabase start again
+supabase start
+```
+
+---
+
+### Session Cookie Not Created After Login
+
+**Symptoms:** You log in successfully (see the login form disappear), but then redirect doesn't happen or cookie isn't saved.
+
+**Checklist:**
+
+1. **Check `.env.local` has correct Supabase URL:**
+   ```bash
+   cat .env.local | grep NEXT_PUBLIC_SUPABASE_URL
+   # Should be: http://127.0.0.1:54321
+   ```
+
+2. **Check dev server is running:**
+   ```bash
+   # Is `pnpm dev` still running in Terminal 3?
+   # http://localhost:3000 should load
+   ```
+
+3. **Check browser settings:**
+   - Not using private/incognito mode? (cookies disabled by default)
+   - Open DevTools → Application → Cookies → http://localhost:3000
+   - Should see `sb-<id>-auth-token` cookie
+
+4. **If still stuck, restart everything:**
+   ```bash
+   # Terminal 1
+   supabase stop
+   supabase start
+
+   # Terminal 3
+   # Ctrl+C to stop dev server
+   pnpm dev
+   ```
+
+---
+
+### Colima Won't Start (Mac Only)
+
+**Cause:** Colima is down or misconfigured.
+
+```bash
+# Check status
+colima status
+
+# If down, start it
+colima start
+
+# If that fails, restart with more memory
 colima stop
 colima start --memory 4
 ```
+
+**If Colima keeps crashing:**
+```bash
+# Check logs
+colima logs
+
+# Full restart
+colima stop
+colima delete
+colima start --memory 4
+```
+
+See [docs/DATABASE.md#troubleshooting-colima](DATABASE.md#troubleshooting-colima) for more Colima help.
 
 ---
 
