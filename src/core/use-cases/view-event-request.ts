@@ -1,12 +1,17 @@
 import { clientOrganisationId } from "../domain/client-organisation";
-import { eventRequestId, eventRequestAccessFor, type OrganiserContext } from "../domain/event-request";
+import { eventRequestId, eventRequestAccessFor, type EventRequest, type OrganiserContext } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type {
-  ViewEventRequest,
-  ViewEventRequestCommand,
-  ViewEventRequestResult,
-} from "../ports/inbound/view-event-request";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+export interface ViewEventRequestCommand {
+  readonly id: string;
+  readonly userAccountId: string;
+  readonly clientOrganisationId: string;
+}
+
+export interface ViewEventRequestResult {
+  readonly eventRequest: EventRequest;
+}
 
 export interface ViewEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
@@ -21,9 +26,11 @@ export interface ViewEventRequestDeps {
  * distinguishable from not-found, so a cross-org guess cannot confirm a
  * request even exists (#91).
  */
-export class ViewEventRequestUseCase implements ViewEventRequest {
+export class ViewEventRequestUseCase {
   constructor(private readonly deps: ViewEventRequestDeps) {}
 
+  /** Null when there is no such request, or the caller may not see it -- the caller
+   * should treat both the same way (not found), per `eventRequestAccessFor`. */
   async execute(command: ViewEventRequestCommand): Promise<ViewEventRequestResult | null> {
     const request = await this.deps.eventRequests.findById(eventRequestId(command.id));
     if (request === null) {

@@ -12,18 +12,6 @@ import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
-import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
-import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
-import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
-import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
-import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
-import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
-import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
-import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
-import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
-import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
-import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
-import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
@@ -51,7 +39,7 @@ import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registrat
  * Server-only. The ESLint boundaries stop `src/app` and `src/components` from
  * importing adapters directly so they have to come through here.
  */
-export async function buildSendConnectionRequest(): Promise<SendConnectionRequest> {
+export async function buildSendConnectionRequest(): Promise<SendConnectionRequestUseCase> {
   const client = await createSupabaseServerClient();
 
   return new SendConnectionRequestUseCase({
@@ -89,25 +77,25 @@ async function attendeeAdapters(): Promise<{
   };
 }
 
-export async function buildListEventsOpenForRegistration(): Promise<ListEventsOpenForRegistration> {
+export async function buildListEventsOpenForRegistration(): Promise<ListEventsOpenForRegistrationUseCase> {
   const { events } = await attendeeAdapters();
 
   return new ListEventsOpenForRegistrationUseCase({ events, clock: systemClock });
 }
 
-export async function buildViewEventForRegistration(): Promise<ViewEventForRegistration> {
+export async function buildViewEventForRegistration(): Promise<ViewEventForRegistrationUseCase> {
   const { events } = await attendeeAdapters();
 
   return new ViewEventForRegistrationUseCase({ events, clock: systemClock });
 }
 
-export async function buildRegisterForEvent(): Promise<RegisterForEvent> {
+export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
 }
 
-export async function buildViewRegistration(): Promise<ViewRegistration> {
+export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new ViewRegistrationUseCase({ events, registrations });
@@ -129,30 +117,30 @@ async function eventRequestAdapters(): Promise<EventRequestRepository> {
   return new SupabaseEventRequestRepository(await createSupabaseServerClient());
 }
 
-export async function buildSubmitEventRequest(): Promise<SubmitEventRequest> {
+export async function buildSubmitEventRequest(): Promise<SubmitEventRequestUseCase> {
   return new SubmitEventRequestUseCase({
     eventRequests: await eventRequestAdapters(),
     clock: systemClock,
   });
 }
 
-export async function buildSaveEventRequestDraft(): Promise<SaveEventRequestDraft> {
+export async function buildSaveEventRequestDraft(): Promise<SaveEventRequestDraftUseCase> {
   return new SaveEventRequestDraftUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildDiscardEventRequestDraft(): Promise<DiscardEventRequestDraft> {
+export async function buildDiscardEventRequestDraft(): Promise<DiscardEventRequestDraftUseCase> {
   return new DiscardEventRequestDraftUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildViewMyEventRequests(): Promise<ViewMyEventRequests> {
+export async function buildViewMyEventRequests(): Promise<ViewMyEventRequestsUseCase> {
   return new ViewMyEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-export async function buildViewEventRequest(): Promise<ViewEventRequest> {
+export async function buildViewEventRequest(): Promise<ViewEventRequestUseCase> {
   return new ViewEventRequestUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
@@ -179,7 +167,7 @@ export function actingOrganiser(): {
   };
 }
 
-export async function buildWithdrawRegistration(): Promise<WithdrawRegistration> {
+export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new WithdrawRegistrationUseCase({ events, registrations });
@@ -194,7 +182,7 @@ export async function buildWithdrawRegistration(): Promise<WithdrawRegistration>
  * can demonstrate both "colleagues in my organisation" and "cannot see an
  * unrelated organisation" without a database.
  */
-export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequests> {
+export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequestsUseCase> {
   const eventRequests = hasSupabaseProject()
     ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
     : demoOrganisationEventRequestRepository;

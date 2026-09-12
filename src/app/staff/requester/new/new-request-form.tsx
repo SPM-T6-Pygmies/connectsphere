@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
-import type { SubmitEventRequestResult } from "@/core/ports/inbound/submit-event-request";
+import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
 import { PageHeader } from "../../page-header";
 import {

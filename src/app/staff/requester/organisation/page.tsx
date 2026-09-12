@@ -26,7 +26,7 @@ import { StatusBadge } from "../../status-badge";
 
 /**
  * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
- * primitives the driving port takes. Stands in for a session until SPM-13
+ * primitives the use case takes. Stands in for a session until SPM-13
  * (login) exists -- see the "Viewing as" switcher below.
  */
 const DEMO_ORGANISERS = {

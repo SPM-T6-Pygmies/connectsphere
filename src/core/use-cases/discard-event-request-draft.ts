@@ -2,11 +2,17 @@ import { clientOrganisationId } from "../domain/client-organisation";
 import { eventRequestId } from "../domain/event-request";
 import { DraftNotEditableError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
-import type {
-  DiscardEventRequestDraft,
-  DiscardEventRequestDraftCommand,
-} from "../ports/inbound/discard-event-request-draft";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+/**
+ * Discarding a draft event request (SPM-38, added alongside saving one --
+ * not in the original brief, but the natural undo for it).
+ */
+export interface DiscardEventRequestDraftCommand {
+  readonly eventRequestId: string;
+  readonly responsibleOrganiserId: string;
+  readonly clientOrganisationId: string;
+}
 
 export interface DiscardEventRequestDraftDeps {
   readonly eventRequests: EventRequestRepository;
@@ -21,7 +27,7 @@ export interface DiscardEventRequestDraftDeps {
  * uneditable draft, so a cross-organiser guess cannot confirm a request even
  * exists.
  */
-export class DiscardEventRequestDraftUseCase implements DiscardEventRequestDraft {
+export class DiscardEventRequestDraftUseCase {
   constructor(private readonly deps: DiscardEventRequestDraftDeps) {}
 
   async execute(command: DiscardEventRequestDraftCommand): Promise<void> {

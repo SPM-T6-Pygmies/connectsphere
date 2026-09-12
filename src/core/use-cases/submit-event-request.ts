@@ -8,13 +8,66 @@ import {
   type SubmittedEventRequest,
 } from "../domain/event-request";
 import { userAccountId, type UserAccountId } from "../domain/user-account";
-import type {
-  SubmitEventRequest,
-  SubmitEventRequestCommand,
-  SubmitEventRequestResult,
-} from "../ports/inbound/submit-event-request";
 import type { Clock } from "../ports/outbound/clock";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+/**
+ * Submitting an event request -- this application's own API for it.
+ *
+ * Everything crossing this boundary is plain, serialisable data: no branded
+ * ids, no `Date`, no domain objects. That is what lets a Server Action, a
+ * webhook, a bulk importer or a test speak to the use case without first
+ * learning how to construct a `ClientOrganisationId`.
+ */
+export interface SubmitEventRequestCommand {
+  /**
+   * The draft this submission completes, or `null` for one raised fresh.
+   *
+   * SPM-38: submitting a request that started life as a saved draft finishes
+   * that same row rather than inserting a second one and leaving the draft
+   * behind -- see `SubmitEventRequestUseCase`.
+   */
+  readonly eventRequestId: string | null;
+  readonly responsibleOrganiserId: string;
+  readonly clientOrganisationId: string;
+  /** IANA zone, e.g. `"Asia/Singapore"` -- read from the Organiser's own browser. */
+  readonly organiserTimeZone: string;
+  readonly eventName: string;
+  readonly description: string | null;
+  readonly purpose: string | null;
+  readonly preferredDate: string | null;
+  readonly preferredStartTime: string | null;
+  readonly preferredEndTime: string | null;
+  readonly expectedAttendance: number | null;
+  readonly venueRequirements: string | null;
+  readonly roomLayoutPreferences: string | null;
+  readonly accessibilityNeeds: string | null;
+  readonly equipmentRequirements: string | null;
+  readonly registrationRequirements: string | null;
+  readonly generalProgramme: string | null;
+  readonly otherSpecialArrangements: string | null;
+}
+/**
+ * What was actually recorded, read back from the store rather than echoed from
+ * the command.
+ *
+ * SPM-31 AC5 turns the form into a read-only acknowledgement, and it has to
+ * show the request as it now stands -- including the id the store assigned,
+ * which is the only handle the Organiser has on it afterwards.
+ */
+export interface SubmitEventRequestResult {
+  readonly eventRequestId: string;
+  readonly status: string;
+  /** ISO 8601. */
+  readonly submittedAt: string;
+  readonly summary: {
+    readonly eventName: string;
+    readonly preferredDate: string | null;
+    readonly preferredStartTime: string | null;
+    readonly preferredEndTime: string | null;
+    readonly expectedAttendance: number | null;
+  };
+}
 
 export interface SubmitEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
@@ -51,7 +104,7 @@ function detailsOf(command: SubmitEventRequestCommand): EventRequestDetails {
  * incomplete submission is refused without a single byte crossing the network,
  * so a half-filled form can never leave a partial row behind.
  */
-export class SubmitEventRequestUseCase implements SubmitEventRequest {
+export class SubmitEventRequestUseCase {
   constructor(private readonly deps: SubmitEventRequestDeps) {}
 
   async execute(command: SubmitEventRequestCommand): Promise<SubmitEventRequestResult> {
