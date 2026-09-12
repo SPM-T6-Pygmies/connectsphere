@@ -28,7 +28,7 @@ import type { EventRequestRepository } from "@/core/ports/outbound/event-request
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
-import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
+import { RegisterForEventUseCase } from "@/features/registration/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";

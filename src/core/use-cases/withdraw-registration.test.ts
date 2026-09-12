@@ -13,7 +13,7 @@ import {
 } from "@/core/domain/errors";
 import { registrationId, type Registration } from "@/core/domain/registration";
 
-import { RegisterForEventUseCase } from "./register-for-event";
+import { RegisterForEventUseCase } from "@/features/registration/register-for-event";
 import { WithdrawRegistrationUseCase } from "./withdraw-registration";
 
 const NOW = new Date("2026-09-07T02:00:00.000Z"); // 10:00 in Singapore.

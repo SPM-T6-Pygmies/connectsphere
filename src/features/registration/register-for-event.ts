@@ -1,17 +1,17 @@
-import { attendeeEmail, attendeeName } from "../domain/attendee";
-import { eventId, isFull, isOpenForRegistration } from "../domain/event";
+import type { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
+import type { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
+import type { systemClock } from "@/adapters/outbound/system/system-clock";
+import { attendeeEmail, attendeeName } from "@/core/domain/attendee";
+import { eventId, isFull, isOpenForRegistration } from "@/core/domain/event";
 import {
   DuplicateRegistrationError,
   EventFullError,
   EventNotFoundError,
   EventNotOpenForRegistrationError,
-} from "../domain/errors";
-import { blocksNewRegistration, registerAttendee } from "../domain/registration";
-import type { AvailableEvent } from "../ports/inbound/available-event";
-import type { Clock } from "../ports/outbound/clock";
-import type { EventCatalogue } from "../ports/outbound/event-catalogue";
-import type { RegistrationRepository } from "../ports/outbound/registration-repository";
-import { toAvailableEvent } from "./available-event";
+} from "@/core/domain/errors";
+import { blocksNewRegistration, registerAttendee } from "@/core/domain/registration";
+import type { AvailableEvent } from "@/core/ports/inbound/available-event";
+import { toAvailableEvent } from "@/core/use-cases/available-event";
 
 /** Full name and email, and nothing else (SPM-83). */
 export interface RegisterForEventCommand {
@@ -30,10 +30,32 @@ export interface RegisterForEventResult {
   readonly event: AvailableEvent;
 }
 
+/**
+ * What this use case needs, stated as the subset of each adapter it calls.
+ *
+ * This is the article's "lose the ports" applied literally: no hand-written
+ * interface anywhere, the concrete adapter class is the type.
+ *
+ * `Pick` rather than the class itself is not a stylistic choice. Naming the
+ * class directly refuses every test double twice over: the double has no
+ * `client` member (TS2741), and supplying one would not help either, because
+ * `constructor(private readonly client)` makes the class type nominal, so even
+ * a correctly shaped object is rejected (TS2322). `Pick` drops the private
+ * member and the methods this slice never calls, which restores structural
+ * assignability and is the only reason the test suite still runs without a
+ * database.
+ *
+ * Note what this type actually is: the outbound port, respelled. It says the
+ * same four method signatures, but as an expression coupled to a Supabase
+ * class name rather than a file named after the capability.
+ */
 export interface RegisterForEventDeps {
-  readonly events: EventCatalogue;
-  readonly registrations: RegistrationRepository;
-  readonly clock: Clock;
+  readonly events: Pick<SupabaseEventCatalogue, "findEvent">;
+  readonly registrations: Pick<
+    SupabaseRegistrationRepository,
+    "nextId" | "findForAttendee" | "placesTaken" | "save"
+  >;
+  readonly clock: Pick<typeof systemClock, "now">;
 }
 
 /**

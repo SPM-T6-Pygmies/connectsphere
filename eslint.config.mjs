@@ -41,6 +41,28 @@ const boundaries = [
     },
   },
   {
+    // Vertical slices, the article's "lose the ports" layout. A slice owns its
+    // orchestration and reaches for adapters directly, so the core's ban on
+    // @/adapters does not apply here -- which is precisely the trade being
+    // evaluated. What still holds is direction: a slice must not know about the
+    // UI or the wiring that assembles it.
+    files: ["src/features/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          {
+            group: ["next", "next/**", "react", "react-dom", "react-dom/**", "server-only"],
+            message: `${INWARD} A vertical slice still must not know it is running inside Next.js.`,
+          },
+          {
+            group: ["@/app", "@/app/**", "@/components", "@/components/**", "@/composition", "@/composition/**"],
+            message: `${INWARD} A slice must not import the UI or the composition root.`,
+          },
+        ],
+      }],
+    },
+  },
+  {
     // Driving adapters. May call use cases, but never reach for infrastructure.
     files: ["src/app/**", "src/components/**"],
     rules: {
