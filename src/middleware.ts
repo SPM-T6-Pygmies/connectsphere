@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   // updateSession() returns a response with updated cookies.
   const response = await updateSession(request)
 
-  // Step 2: Get the request pathname (e.g., "/staff/organiser/dashboard")
+  // Step 2: Get the request pathname (e.g., "/staff/organiser/role-landing-view")
   const pathname = request.nextUrl.pathname
 
   // Step 3: Extract session from request (set by updateSession via cookies)

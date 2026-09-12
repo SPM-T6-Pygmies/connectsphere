@@ -10,7 +10,10 @@ export interface LoginState {
   message?: string;
 }
 
-function roleToDashboardPath(role: string): string {
+/**
+ * Maps staff role to their role-specific landing view path.
+ */
+function roleToLandingViewPath(role: string): string {
   const roleMap: Record<string, string> = {
     "Event Organiser": "organiser",
     "Event Coordinator": "coordinator",
@@ -18,7 +21,7 @@ function roleToDashboardPath(role: string): string {
     "Venue Staff": "venue",
     "Technical Support Staff": "technical",
   };
-  return `/staff/${roleMap[role] || "organiser"}/dashboard`;
+  return `/staff/${roleMap[role] || "organiser"}/landing-view`;
 }
 
 export async function loginAction(
@@ -40,8 +43,8 @@ export async function loginAction(
     const result = await login.execute({ email, password });
 
     const primaryRole = result.roles[0];
-    const dashboardPath = roleToDashboardPath(primaryRole);
-    redirect(dashboardPath);
+    const landingViewPath = roleToLandingViewPath(primaryRole);
+    redirect(landingViewPath);
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
       return {

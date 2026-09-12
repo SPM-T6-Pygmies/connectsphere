@@ -13,7 +13,7 @@ export default function LoginPage() {
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
         <p className="text-muted-foreground text-sm">
-          Enter your email and password to access your dashboard
+          Sign in with your staff credentials to continue
         </p>
       </div>
       <LoginForm />
