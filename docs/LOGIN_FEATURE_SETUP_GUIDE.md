@@ -144,53 +144,53 @@ supabase migration up
 
 ## Step 4: Create Private Infisical Project for Local Secrets
 
-**Why:** Store your local Supabase credentials securely, accessible from any machine.
+**Why:** Store your local Supabase credentials securely in the cloud, accessible from any machine.
 
-**Step 4.1: Authenticate Infisical**
+**Step 4.1: Authenticate Infisical CLI**
 
 ```bash
 infisical login
 ```
 
-**Expected:** Browser opens, login with your credentials.
+**Expected:** Browser opens automatically, login with your Infisical credentials (create free account at https://app.infisical.com if needed).
 
-**Output:** `Successfully logged in.`
+**Output:** 
+```
+Successfully logged in.
+```
 
-**Verification:** `infisical whoami` → shows your email.
+**Verification:** Command completes without errors.
 
 ---
 
-**Step 4.2: Create Private Project**
+**Step 4.2: Create Private Project via Web UI**
 
-```bash
-infisical project create --name="connectsphere-local" --slug="connectsphere-local"
-```
-
-**Output:**
-```
-Project created: connectsphere-local
-```
-
-**Caveat:** Use a slug unique to you (e.g., `connectsphere-local-james`) to avoid conflicts.
-
----
-
-**Step 4.3: Store Supabase Credentials**
-
-Use Infisical Web UI (easier than CLI):
+Infisical CLI doesn't have a project creation command — use the web UI:
 
 1. Go to https://app.infisical.com
-2. Select your private project (`connectsphere-local`)
-3. Click **Secrets** → **dev** environment
-4. Add three secrets:
+2. Click **Create Project**
+3. **Name:** `connectsphere-local` (or `connectsphere-local-<your-name>` to avoid conflicts)
+4. **Type:** Private
+5. Click **Create**
+
+**Output:** New project created, dashboard shows empty **Secrets**.
+
+---
+
+**Step 4.3: Store Supabase Credentials in Web UI**
+
+1. In Infisical dashboard, select your new project (`connectsphere-local`)
+2. Go to **Secrets** tab
+3. Make sure environment is set to **dev** (default)
+4. Click **Add Secret** and add three secrets:
 
 | Key | Value |
 |-----|-------|
 | `NEXT_PUBLIC_SUPABASE_URL` | `http://127.0.0.1:54321` |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `<Anon Key from Step 2>` |
-| `SUPABASE_SERVICE_ROLE_KEY` | `<Service Role Key from Step 2>` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `<Anon Key from Step 2 output>` |
+| `SUPABASE_SERVICE_ROLE_KEY` | `<Service Role Key from Step 2 output>` |
 
-**Verification:** Secrets visible in Infisical UI.
+**Verification:** All three secrets visible in Infisical UI, marked as environment variables.
 
 **⚠️ IMPORTANT - Row-Level Security (RLS):**
 The `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. This is necessary because:
@@ -201,7 +201,7 @@ The `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS. This is necessary because:
 
 ---
 
-**Step 4.4: Link Local Project to Infisical**
+**Step 4.4: Link Local Project to Infisical CLI**
 
 ```bash
 cd connectsphere
@@ -209,13 +209,19 @@ infisical init
 ```
 
 **Prompts:**
-- "Select Infisical organization" → Your organization
-- "Select project" → `connectsphere-local`
-- "Select environment" → `dev`
+```
+? Select an organization: <Your Organization>
+? Select a project: connectsphere-local
+? Select an environment: dev
+```
 
-**Output:** `.infisical.json` file created.
+**Output:** `.infisical.json` file created in project root.
 
-**Verification:** `cat .infisical.json` → shows project ID.
+**Verification:** 
+```bash
+cat .infisical.json
+```
+Should show your project ID.
 
 ---
 
