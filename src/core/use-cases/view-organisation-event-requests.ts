@@ -38,6 +38,7 @@ export class ViewOrganisationEventRequestsUseCase implements ViewOrganisationEve
         id: request.id,
         eventName: request.details.eventName,
         status: request.status,
+        responsibleOrganiserId: request.responsibleOrganiserId,
         canEdit: eventRequestAccessFor(request, organiser) === "edit",
       })),
     };

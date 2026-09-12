@@ -1,8 +1,7 @@
-import { InfoIcon } from "lucide-react";
 import Link from "next/link";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,16 +17,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewOrganisationEventRequests } from "@/composition/container";
+import {
+  buildListOrganisationOrganisers,
+  buildViewOrganisationEventRequests,
+  getCurrentOrganiser,
+} from "@/composition/container";
 import type { EventRequestStatus } from "@/lib/wireframe";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { StatusBadge } from "../../status-badge";
+import { reassignEventOrganiserAction } from "./actions";
 
 /**
  * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
- * primitives the driving port takes. Stands in for a session until SPM-13
- * (login) exists -- see the "Viewing as" switcher below.
+ * primitives the driving port takes. Used only when there is no real signed-
+ * in Organiser (see `getCurrentOrganiser`) -- e.g. testing before SPM-13's
+ * login existed, or reaching this page in some other role.
  */
 const DEMO_ORGANISERS = {
   alice: {
@@ -60,20 +65,37 @@ export const metadata = { title: "Organisation events | ConnectSphere" };
  * organisation (AC1/AC3/AC4), with an Edit affordance only where the real
  * access predicate (`eventRequestAccessFor`) says so (AC2) -- not a fixture,
  * a call through `src/composition` to the actual tested use case.
+ *
+ * The caller's identity is the real signed-in Organiser when one exists
+ * (`getCurrentOrganiser`, SPM-13), falling back to the demo switcher only
+ * when it doesn't -- e.g. no session, or the session isn't an Organiser's.
  */
 export default async function OrganisationEventsPage({
   searchParams,
 }: PageProps<"/staff/requester/organisation">) {
+  const session = await getCurrentOrganiser();
+
   const { as } = await searchParams;
   const asParam = typeof as === "string" ? as : undefined;
   const key: DemoOrganiserKey = isDemoOrganiserKey(asParam) ? asParam : "alice";
-  const organiser = DEMO_ORGANISERS[key];
+  const demoOrganiser = DEMO_ORGANISERS[key];
+
+  const organiser = session ?? demoOrganiser;
+
+  /** Reassignment candidates: Organisers in the same client organisation, demo or real. */
+  const listOrganisationOrganisers = await buildListOrganisationOrganisers();
+  const { organisers: colleagues } = await listOrganisationOrganisers.execute({
+    clientOrganisationId: organiser.clientOrganisationId,
+  });
 
   const viewOrganisationEventRequests = await buildViewOrganisationEventRequests();
   const { eventRequests } = await viewOrganisationEventRequests.execute({
     userAccountId: organiser.userAccountId,
     clientOrganisationId: organiser.clientOrganisationId,
   });
+
+  /** Resolves each request's responsible Organiser to a name, reusing the colleague list already fetched above. */
+  const organiserNames = new Map(colleagues.map((c) => [c.userAccountId, c.name]));
 
   return (
     <StaffShell
@@ -85,35 +107,30 @@ export default async function OrganisationEventsPage({
         title="Organisation events"
         description="Every event request raised by anyone in your client organisation -- not just your own -- so nobody duplicates a request or loses context."
         actions={
-          <div className="flex items-center gap-1 text-sm">
-            <span className="text-muted-foreground mr-1">Viewing as</span>
-            {(Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[]).map((candidate) => (
-              <Link
-                key={candidate}
-                href={`/staff/requester/organisation?as=${candidate}`}
-                className={
-                  candidate === key
-                    ? "bg-secondary text-secondary-foreground rounded-md px-2 py-1 font-medium"
-                    : "hover:bg-muted rounded-md px-2 py-1"
-                }
-              >
-                {DEMO_ORGANISERS[candidate].name}
-              </Link>
-            ))}
-          </div>
+          session ? (
+            <span className="text-muted-foreground text-sm">
+              Logged in as <span className="text-foreground font-medium">{session.name}</span>
+            </span>
+          ) : (
+            <div className="flex items-center gap-1 text-sm">
+              <span className="text-muted-foreground mr-1">Viewing as</span>
+              {(Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[]).map((candidate) => (
+                <Link
+                  key={candidate}
+                  href={`/staff/requester/organisation?as=${candidate}`}
+                  className={
+                    candidate === key
+                      ? "bg-secondary text-secondary-foreground rounded-md px-2 py-1 font-medium"
+                      : "hover:bg-muted rounded-md px-2 py-1"
+                  }
+                >
+                  {DEMO_ORGANISERS[candidate].name}
+                </Link>
+              ))}
+            </div>
+          )
         }
       />
-
-      <Alert variant="info">
-        <InfoIcon />
-        <AlertTitle>No login yet (SPM-13)</AlertTitle>
-        <AlertDescription>
-          The switcher above stands in for a signed-in Organiser&apos;s identity.
-          The list itself is not a fixture: it is a real call to{" "}
-          <code>ViewOrganisationEventRequestsUseCase</code>, so the Edit
-          column reflects the actual access rule, not a hardcoded value.
-        </AlertDescription>
-      </Alert>
 
       <Card>
         <CardHeader>
@@ -133,8 +150,10 @@ export default async function OrganisationEventsPage({
               <TableHeader>
                 <TableRow>
                   <TableHead>Event</TableHead>
+                  <TableHead>Submitted by</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Access</TableHead>
+                  <TableHead>Reassign to</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -142,6 +161,9 @@ export default async function OrganisationEventsPage({
                   <TableRow key={request.id}>
                     <TableCell className="font-medium">
                       {request.eventName}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {organiserNames.get(request.responsibleOrganiserId) ?? request.responsibleOrganiserId}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={request.status as EventRequestStatus} />
@@ -153,6 +175,34 @@ export default async function OrganisationEventsPage({
                         <span className="text-muted-foreground text-xs">
                           View only
                         </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {colleagues.length === 0 ? (
+                        <span className="text-muted-foreground text-xs">
+                          No colleagues to reassign to yet
+                        </span>
+                      ) : (
+                        <form action={reassignEventOrganiserAction} className="flex gap-2">
+                          <input type="hidden" name="eventRequestId" value={request.id} />
+                          <select
+                            name="newResponsibleOrganiserId"
+                            defaultValue=""
+                            className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-8 w-40 rounded-lg border px-2.5 text-sm shadow-xs outline-none focus-visible:ring-3"
+                          >
+                            <option value="" disabled>
+                              Choose organiser…
+                            </option>
+                            {colleagues.map((colleague) => (
+                              <option key={colleague.userAccountId} value={colleague.userAccountId}>
+                                {colleague.name}
+                              </option>
+                            ))}
+                          </select>
+                          <Button type="submit" variant="outline" size="sm">
+                            Reassign
+                          </Button>
+                        </form>
                       )}
                     </TableCell>
                   </TableRow>

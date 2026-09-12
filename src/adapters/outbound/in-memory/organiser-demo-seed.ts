@@ -9,6 +9,7 @@ import {
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 
 import { InMemoryEventRequestRepository } from "./in-memory-event-request-repository";
+import { InMemoryOrganiserDirectory } from "./in-memory-organiser-directory";
 
 /**
  * Demonstration data for running the "view my organisation's events" page
@@ -93,3 +94,10 @@ const EVENT_REQUESTS: readonly EventRequest[] = [
 ];
 
 export const demoEventRequestRepository = new InMemoryEventRequestRepository(EVENT_REQUESTS);
+
+/** SPM-39 AC5: reassignment candidates for the demo -- same shape the Supabase adapter reads from a real client organisation. */
+export const demoOrganiserDirectory = new InMemoryOrganiserDirectory([
+  { userAccountId: ALICE, name: "Alice", clientOrganisationId: SUNRISE },
+  { userAccountId: BEN, name: "Ben", clientOrganisationId: SUNRISE },
+  { userAccountId: CARA, name: "Cara", clientOrganisationId: HARBOUR },
+]);

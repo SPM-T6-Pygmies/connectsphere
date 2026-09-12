@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -15,6 +16,24 @@ function requireEnv(name: string): string {
  * `next/headers` is imported in an adapter, which is fine -- adapters are
  * allowed to know what they are adapting. The lint rules stop this import from
  * reaching `src/core`, which is the boundary that actually matters.
+ */
+
+/**
+ * Admin client with full permissions (bypasses RLS).
+ * Use for server-side operations that need direct database access.
+ * Example: authentication, user lookups, internal admin queries.
+ */
+export function createSupabaseAdminClient() {
+  return createClient(
+    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY")
+  );
+}
+
+/**
+ * Session client with cookie-based authentication.
+ * Respects user's current session and RLS policies.
+ * Use for user-scoped queries that should respect the current user's permissions.
  */
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
