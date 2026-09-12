@@ -162,6 +162,24 @@ export function toDeleteArgs(request: EventRequest): Record<string, unknown> | n
   };
 }
 
+/**
+ * Arguments for `organiser_reassign_event_request` (SPM-39).
+ *
+ * Only the id and the incoming Organiser -- no status, no current-owner check
+ * -- because reassignment is not scoped the way `toSaveArgs` is.
+ */
+export function toReassignArgs(request: EventRequest): Record<string, unknown> | null {
+  const key = toKey(request.id);
+  if (key === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: key,
+    p_new_responsible_organiser_id: toKey(request.responsibleOrganiserId),
+  };
+}
+
 export function toSaveArgs(request: EventRequest): Record<string, unknown> | null {
   const key = toKey(request.id);
   if (key === null) {
