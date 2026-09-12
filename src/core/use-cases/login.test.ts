@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { InvalidCredentialsError } from "@/core/domain/errors";
-import type { LoginCommand, LoginResult } from "@/core/ports/inbound/login";
+import type { LoginCommand } from "@/core/ports/inbound/login";
 import type { AuthPort } from "@/core/ports/outbound/auth-port";
 import type { UserWithRoles } from "@/core/ports/outbound/user-repository";
 import type { UserRepository } from "@/core/ports/outbound/user-repository";
@@ -153,22 +153,11 @@ describe("LoginUseCase", () => {
     // UseCase throws InvalidCredentialsError (generic, for security).
     // Future: Could expand to "no staff roles" if attendees later need login.
 
-    const { useCase, users } = buildUseCase();
+    const { useCase } = buildUseCase();
 
-    // Create a scenario: Mock returns a user without roles
-    const noRoleUser: UserWithRoles = {
-      userId: "user-no-roles",
-      name: "Attendee User",
-      roles: [], // No staff roles
-    };
-
-    // We can't directly modify the mock here without refactoring,
-    // but the test documents the expected behavior:
-    // If UserRepository.findByAuthUserId returns a user with roles: [""],
-    // those roles are passed through. If roles: [], LoginUseCase still returns them.
-    // The redirect logic (Task 6) checks if roles is empty.
-
-    // For now, test that the flow works as designed.
+    // Test that the flow works as designed.
+    // If a user has no staff roles, LoginUseCase will return empty roles array
+    // which the redirect logic can check.
     const result = await useCase.execute({
       email: COORDINATOR_EMAIL,
       password: COORDINATOR_PASSWORD,
