@@ -1,6 +1,7 @@
 import { clientOrganisationId, type ClientOrganisationId } from "../domain/client-organisation";
 import { DraftNotEditableError } from "../domain/errors";
 import {
+  eventRequestAccessFor,
   eventRequestId,
   submitEventRequest,
   type EventRequest,
@@ -104,9 +105,10 @@ export class SubmitEventRequestUseCase implements SubmitEventRequest {
 
     if (
       existing === null ||
-      existing.status !== "Draft" ||
-      existing.responsibleOrganiserId !== organiser ||
-      existing.clientOrganisationId !== organisation
+      eventRequestAccessFor(existing, {
+        userAccountId: organiser,
+        clientOrganisationId: organisation,
+      }) !== "edit"
     ) {
       throw new DraftNotEditableError(rawId);
     }

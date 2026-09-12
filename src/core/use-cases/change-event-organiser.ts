@@ -33,7 +33,7 @@ export class ChangeEventOrganiserUseCase implements ChangeEventOrganiser {
     }
 
     const reassigned = reassignResponsibleOrganiser(request, newOrganiserId);
-    await this.deps.eventRequests.save(reassigned);
+    await this.deps.eventRequests.reassignResponsibleOrganiser(reassigned);
 
     return {
       eventRequestId: reassigned.id,

@@ -11,6 +11,7 @@ import {
   toDeleteArgs,
   toDomain,
   toKey,
+  toReassignArgs,
   toSaveArgs,
   toSubmitArgs,
   type EventRequestRow,
@@ -140,6 +141,25 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     if (error) {
       throw new Error(`Failed to discard event request: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * SPM-39 AC5: moves `requesting_user_account_id` to the incoming Organiser.
+   *
+   * Not `save()` -- `organiser_reassign_event_request` has no Draft or
+   * current-owner guard, because a reassignment must be able to cross both.
+   */
+  async reassignResponsibleOrganiser(request: EventRequest): Promise<void> {
+    const args = toReassignArgs(request);
+    if (args === null) {
+      throw new Error(`Cannot reassign event request with malformed id "${request.id}".`);
+    }
+
+    const { error } = await this.client.rpc("organiser_reassign_event_request", args);
+
+    if (error) {
+      throw new Error(`Failed to reassign event request: ${error.message}`, { cause: error });
     }
   }
 }
