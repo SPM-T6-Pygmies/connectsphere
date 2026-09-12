@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { buildLogin } from "@/composition/container";
+import { createClient } from "@/lib/supabase/server";
 import { InvalidCredentialsError } from "@/core/domain/errors";
 
 export interface LoginState {
@@ -11,9 +12,9 @@ export interface LoginState {
 }
 
 /**
- * Maps staff role to their role-specific landing view path.
+ * Maps staff role to their role-specific page path.
  */
-function roleToLandingViewPath(role: string): string {
+function roleToPagePath(role: string): string {
   const roleMap: Record<string, string> = {
     "Event Organiser": "organiser",
     "Event Coordinator": "coordinator",
@@ -21,7 +22,7 @@ function roleToLandingViewPath(role: string): string {
     "Venue Staff": "venue",
     "Technical Support Staff": "technical",
   };
-  return `/staff/${roleMap[role] || "organiser"}/landing-view`;
+  return `/staff/${roleMap[role] || "organiser"}`;
 }
 
 export async function loginAction(
@@ -42,9 +43,15 @@ export async function loginAction(
     const login = await buildLogin();
     const result = await login.execute({ email, password });
 
+    // Store roles in user metadata for reuse in getSession() (no DB query needed)
+    const supabase = await createClient();
+    await supabase.auth.updateUser({
+      data: { roles: result.roles }
+    });
+
     const primaryRole = result.roles[0];
-    const landingViewPath = roleToLandingViewPath(primaryRole);
-    redirect(landingViewPath);
+    const pagePath = roleToPagePath(primaryRole);
+    redirect(pagePath);
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
       return {

@@ -1,14 +1,17 @@
-import { createSupabaseAdminClient } from "@/adapters/outbound/supabase/client";
+import { createClient } from "@/lib/supabase/server";
 
 import type { AuthPort } from "@/core/ports/outbound/auth-port";
 
 export class SupabaseAuthAdapter implements AuthPort {
-  private client = createSupabaseAdminClient();
+  async getClient() {
+    return await createClient();
+  }
 
   async login(email: string, password: string) {
     console.log("[SupabaseAuthAdapter] Attempting login for:", email);
 
-    const { data, error } = await this.client.auth.signInWithPassword({
+    const client = await this.getClient();
+    const { data, error } = await client.auth.signInWithPassword({
       email,
       password,
     });
@@ -37,7 +40,8 @@ export class SupabaseAuthAdapter implements AuthPort {
   }
 
   async getSession() {
-    const { data } = await this.client.auth.getSession();
+    const client = await this.getClient();
+    const { data } = await client.auth.getSession();
 
     if (!data.session || !data.session.expires_at) {
       return null;
@@ -50,7 +54,8 @@ export class SupabaseAuthAdapter implements AuthPort {
   }
 
   async logout(): Promise<void> {
-    const { error } = await this.client.auth.signOut();
+    const client = await this.getClient();
+    const { error } = await client.auth.signOut();
     if (error) {
       throw new Error(error.message);
     }
