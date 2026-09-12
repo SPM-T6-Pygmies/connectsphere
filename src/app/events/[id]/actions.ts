@@ -1,58 +1,23 @@
 "use server";
 
-import { z } from "zod";
+import {
+  registerForEventAction as runRegisterForEvent,
+  type RegistrationState,
+} from "@/features/registration/register-for-event";
 
-import { registerForEventSchema } from "@/adapters/inbound/register-for-event-schema";
-import { buildRegisterForEvent } from "@/composition/container";
-import { DomainError } from "@/core/domain/errors";
-import type { AvailableEvent } from "@/core/ports/inbound/available-event";
+export type { RegistrationState };
 
-export type RegistrationState =
-  | { status: "idle" }
-  | { status: "registered"; registrationId: string; event: AvailableEvent }
-  | {
-      status: "error";
-      message: string;
-      fieldErrors?: Record<string, string[] | undefined>;
-      /** Echoed back so a refused attempt does not make the attendee retype. */
-      values: { fullName: string; email: string };
-    };
-
+/**
+ * All that is left of the controller: the "use server" boundary itself.
+ *
+ * The orchestration moved into the slice at src/features/registration. This
+ * wrapper exists because every export of a "use server" module becomes a
+ * network-reachable endpoint, and the slice file also exports the deps-taking
+ * `registerForEvent` -- which must not become one.
+ */
 export async function registerForEventAction(
-  _previous: RegistrationState,
+  previous: RegistrationState,
   formData: FormData,
 ): Promise<RegistrationState> {
-  const submitted = {
-    fullName: String(formData.get("fullName") ?? ""),
-    email: String(formData.get("email") ?? ""),
-  };
-
-  const parsed = registerForEventSchema.safeParse({
-    eventId: formData.get("eventId"),
-    ...submitted,
-  });
-
-  if (!parsed.success) {
-    return {
-      status: "error",
-      message: "Check the highlighted fields.",
-      fieldErrors: z.flattenError(parsed.error).fieldErrors,
-      values: submitted,
-    };
-  }
-
-  try {
-    const registerForEvent = await buildRegisterForEvent();
-    const result = await registerForEvent.execute(parsed.data);
-
-    return { status: "registered", registrationId: result.registrationId, event: result.event };
-  } catch (error) {
-    // A refused registration -- full, closed, already registered -- is an
-    // expected outcome and becomes a message the attendee can act on. Anything
-    // else is a genuine fault and is allowed to reach the error boundary.
-    if (error instanceof DomainError) {
-      return { status: "error", message: error.message, values: submitted };
-    }
-    throw error;
-  }
+  return runRegisterForEvent(previous, formData);
 }

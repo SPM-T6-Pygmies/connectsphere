@@ -28,7 +28,6 @@ import type { EventRequestRepository } from "@/core/ports/outbound/event-request
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
-import { RegisterForEventUseCase } from "@/features/registration/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
@@ -98,12 +97,6 @@ export async function buildViewEventForRegistration(): Promise<ViewEventForRegis
   const { events } = await attendeeAdapters();
 
   return new ViewEventForRegistrationUseCase({ events, clock: systemClock });
-}
-
-export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
-  const { events, registrations } = await attendeeAdapters();
-
-  return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
 }
 
 export async function buildViewRegistration(): Promise<ViewRegistration> {

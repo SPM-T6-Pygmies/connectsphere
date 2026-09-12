@@ -1,6 +1,15 @@
-import type { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
-import type { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
-import type { systemClock } from "@/adapters/outbound/system/system-clock";
+import { z } from "zod";
+
+import { registerForEventSchema } from "@/adapters/inbound/register-for-event-schema";
+import {
+  demoEventCatalogue,
+  demoRegistrationRepository,
+} from "@/adapters/outbound/in-memory/attendee-demo-seed";
+import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
+import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
+import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
+import { systemClock } from "@/adapters/outbound/system/system-clock";
+import { DomainError } from "@/core/domain/errors";
 import { attendeeEmail, attendeeName } from "@/core/domain/attendee";
 import { eventId, isFull, isOpenForRegistration } from "@/core/domain/event";
 import {
@@ -69,51 +78,134 @@ export interface RegisterForEventDeps {
  * The window is re-checked rather than trusted from the page that rendered the
  * form: a coordinator can close registration between the two requests.
  */
-export class RegisterForEventUseCase {
-  constructor(private readonly deps: RegisterForEventDeps) {}
+export async function registerForEvent(
+  deps: RegisterForEventDeps,
+  command: RegisterForEventCommand,
+): Promise<RegisterForEventResult> {
+  const { events, registrations, clock } = deps;
 
-  async execute(command: RegisterForEventCommand): Promise<RegisterForEventResult> {
-    const { events, registrations, clock } = this.deps;
+  // The smart constructors run before any I/O, so a blank name costs nothing.
+  const id = eventId(command.eventId);
+  const name = attendeeName(command.fullName);
+  const email = attendeeEmail(command.email);
 
-    // The smart constructors run before any I/O, so a blank name costs nothing.
-    const id = eventId(command.eventId);
-    const name = attendeeName(command.fullName);
-    const email = attendeeEmail(command.email);
+  const event = await events.findEvent(id);
+  if (event === null) {
+    throw new EventNotFoundError(id);
+  }
 
-    const event = await events.findEvent(id);
-    if (event === null) {
-      throw new EventNotFoundError(id);
-    }
+  const now = clock.now();
+  if (!isOpenForRegistration(event, now)) {
+    throw new EventNotOpenForRegistrationError(event.name);
+  }
 
-    const now = clock.now();
-    if (!isOpenForRegistration(event, now)) {
-      throw new EventNotOpenForRegistrationError(event.name);
-    }
+  const existing = await registrations.findForAttendee(id, email);
+  if (existing !== null && blocksNewRegistration(existing)) {
+    throw new DuplicateRegistrationError(email);
+  }
 
-    const existing = await registrations.findForAttendee(id, email);
-    if (existing !== null && blocksNewRegistration(existing)) {
-      throw new DuplicateRegistrationError(email);
-    }
+  // Release 1 has no waiting list, so a full event is simply refused.
+  if (isFull(event, await registrations.placesTaken(id))) {
+    throw new EventFullError();
+  }
 
-    // Release 1 has no waiting list, so a full event is simply refused.
-    if (isFull(event, await registrations.placesTaken(id))) {
-      throw new EventFullError();
-    }
+  const registration = registerAttendee({
+    id: registrations.nextId(),
+    eventId: id,
+    attendeeName: name,
+    attendeeEmail: email,
+    registeredAt: now,
+  });
 
-    const registration = registerAttendee({
-      id: registrations.nextId(),
-      eventId: id,
-      attendeeName: name,
-      attendeeEmail: email,
-      registeredAt: now,
-    });
+  await registrations.save(registration);
 
-    await registrations.save(registration);
+  return {
+    registrationId: registration.id,
+    registeredAt: registration.registeredAt.toISOString(),
+    event: toAvailableEvent(event),
+  };
+}
 
-    return {
-      registrationId: registration.id,
-      registeredAt: registration.registeredAt.toISOString(),
-      event: toAvailableEvent(event),
+export type RegistrationState =
+  | { status: "idle" }
+  | { status: "registered"; registrationId: string; event: AvailableEvent }
+  | {
+      status: "error";
+      message: string;
+      fieldErrors?: Record<string, string[] | undefined>;
+      /** Echoed back so a refused attempt does not make the attendee retype. */
+      values: { fullName: string; email: string };
     };
+
+/**
+ * Adapter construction, formerly `attendeeAdapters()` in the composition root.
+ *
+ * With no container, every slice that needs these carries its own copy of the
+ * environment branch. Four other use cases still call the container's version,
+ * so at this rung the same decision is written down in two places.
+ */
+async function adapters(): Promise<RegisterForEventDeps> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return {
+      events: demoEventCatalogue,
+      registrations: demoRegistrationRepository,
+      clock: systemClock,
+    };
+  }
+
+  const client = await createSupabaseServerClient();
+  return {
+    events: new SupabaseEventCatalogue(client),
+    registrations: new SupabaseRegistrationRepository(client),
+    clock: systemClock,
+  };
+}
+
+/**
+ * The controller, inlined next to the use case it drives (the article's last
+ * diagram). It parses, builds its own infrastructure and translates the result.
+ *
+ * The seam between this and `registerForEvent` above is the whole finding of
+ * rung 3. The article inlines the use case *into* the controller; here it
+ * cannot go the last inch, because a Server Action's arguments come from the
+ * network and a test cannot hand it in-memory repositories. So the deps-taking
+ * function survives -- which is to say the use case survives, one rung after we
+ * claimed to have removed it.
+ */
+export async function registerForEventAction(
+  _previous: RegistrationState,
+  formData: FormData,
+): Promise<RegistrationState> {
+  const submitted = {
+    fullName: String(formData.get("fullName") ?? ""),
+    email: String(formData.get("email") ?? ""),
+  };
+
+  const parsed = registerForEventSchema.safeParse({
+    eventId: formData.get("eventId"),
+    ...submitted,
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the highlighted fields.",
+      fieldErrors: z.flattenError(parsed.error).fieldErrors,
+      values: submitted,
+    };
+  }
+
+  try {
+    const result = await registerForEvent(await adapters(), parsed.data);
+
+    return { status: "registered", registrationId: result.registrationId, event: result.event };
+  } catch (error) {
+    // A refused registration -- full, closed, already registered -- is an
+    // expected outcome and becomes a message the attendee can act on. Anything
+    // else is a genuine fault and is allowed to reach the error boundary.
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message, values: submitted };
+    }
+    throw error;
   }
 }

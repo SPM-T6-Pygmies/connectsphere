@@ -13,7 +13,7 @@ import {
 } from "@/core/domain/errors";
 import { registrationId, type Registration } from "@/core/domain/registration";
 
-import { RegisterForEventUseCase } from "./register-for-event";
+import { registerForEvent, type RegisterForEventCommand } from "./register-for-event";
 
 const NOW = new Date("2026-09-07T02:00:00.000Z"); // 10:00 in Singapore.
 const SUMMIT = "summit";
@@ -57,15 +57,18 @@ function buildUseCase(
   const registrations = new InMemoryRegistrationRepository(
     options.registrations ?? [],
   );
-  const useCase = new RegisterForEventUseCase({
+  const deps = {
     events: new InMemoryEventCatalogue(options.events ?? [event(SUMMIT)]),
     registrations,
     clock: new FixedClock(NOW),
-  });
+  };
+  const useCase = {
+    execute: (command: RegisterForEventCommand) => registerForEvent(deps, command),
+  };
   return { useCase, registrations };
 }
 
-describe("RegisterForEventUseCase", () => {
+describe("registerForEvent", () => {
   it("records a registration and returns the event name, date, time and venue", async () => {
     const { useCase } = buildUseCase();
 

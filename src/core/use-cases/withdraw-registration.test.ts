@@ -13,7 +13,7 @@ import {
 } from "@/core/domain/errors";
 import { registrationId, type Registration } from "@/core/domain/registration";
 
-import { RegisterForEventUseCase } from "@/features/registration/register-for-event";
+import { registerForEvent, type RegisterForEventCommand } from "@/features/registration/register-for-event";
 import { WithdrawRegistrationUseCase } from "./withdraw-registration";
 
 const NOW = new Date("2026-09-07T02:00:00.000Z"); // 10:00 in Singapore.
@@ -211,11 +211,10 @@ describe("WithdrawRegistrationUseCase", () => {
       const events = new InMemoryEventCatalogue([full]);
       const registrations = new InMemoryRegistrationRepository([registration()]);
       const withdraw = new WithdrawRegistrationUseCase({ registrations, events });
-      const register = new RegisterForEventUseCase({
-        events,
-        registrations,
-        clock: new FixedClock(NOW),
-      });
+      const registerDeps = { events, registrations, clock: new FixedClock(NOW) };
+      const register = {
+        execute: (command: RegisterForEventCommand) => registerForEvent(registerDeps, command),
+      };
 
       // The event is full, so a new attendee is refused.
       await expect(
@@ -233,11 +232,10 @@ describe("WithdrawRegistrationUseCase", () => {
       const events = new InMemoryEventCatalogue([event(SUMMIT)]);
       const registrations = new InMemoryRegistrationRepository([registration()]);
       const withdraw = new WithdrawRegistrationUseCase({ registrations, events });
-      const register = new RegisterForEventUseCase({
-        events,
-        registrations,
-        clock: new FixedClock(NOW),
-      });
+      const registerDeps = { events, registrations, clock: new FixedClock(NOW) };
+      const register = {
+        execute: (command: RegisterForEventCommand) => registerForEvent(registerDeps, command),
+      };
 
       await withdraw.execute({ reference: REFERENCE });
 
