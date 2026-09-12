@@ -3,12 +3,16 @@ import {
   demoEventRequestRepository,
   demoRegistrationRepository,
 } from "@/adapters/outbound/in-memory/attendee-demo-seed";
-import { demoEventRequestRepository as demoOrganisationEventRequestRepository } from "@/adapters/outbound/in-memory/organiser-demo-seed";
+import {
+  demoEventRequestRepository as demoOrganisationEventRequestRepository,
+  demoOrganiserDirectory,
+} from "@/adapters/outbound/in-memory/organiser-demo-seed";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
+import { SupabaseOrganiserDirectory } from "@/adapters/outbound/supabase/supabase-organiser-directory";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
@@ -25,6 +29,7 @@ import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-reque
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
 import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
 import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
+import type { ListOrganisationOrganisers } from "@/core/ports/inbound/list-organisation-organisers";
 import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
@@ -42,6 +47,7 @@ import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
+import { ListOrganisationOrganisersUseCase } from "@/core/use-cases/list-organisation-organisers";
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
@@ -222,6 +228,20 @@ export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser>
     : demoOrganisationEventRequestRepository;
 
   return new ChangeEventOrganiserUseCase({ eventRequests });
+}
+
+/**
+ * SPM-39 AC5: who a request in this client organisation could be reassigned
+ * to. Same fallback shape as `buildViewOrganisationEventRequests` -- the
+ * demo directory shares identities with the demo event-request seed, so a
+ * demo reassignment always has someone real to pick.
+ */
+export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisers> {
+  const organisers = hasSupabaseProject()
+    ? new SupabaseOrganiserDirectory(await createSupabaseServerClient())
+    : demoOrganiserDirectory;
+
+  return new ListOrganisationOrganisersUseCase({ organisers });
 }
 
 export async function buildLogin(): Promise<Login> {

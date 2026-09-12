@@ -17,7 +17,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewOrganisationEventRequests, getCurrentOrganiser } from "@/composition/container";
+import {
+  buildListOrganisationOrganisers,
+  buildViewOrganisationEventRequests,
+  getCurrentOrganiser,
+} from "@/composition/container";
 import type { EventRequestStatus } from "@/lib/wireframe";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
@@ -78,16 +82,11 @@ export default async function OrganisationEventsPage({
 
   const organiser = session ?? demoOrganiser;
 
-  /**
-   * Reassignment candidates: colleagues in the same client organisation.
-   * Only the demo identities are known here -- there is no "list Organisers
-   * in my organisation" feature yet, so a real session sees no candidates.
-   */
-  const colleagues = session
-    ? []
-    : (Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[])
-        .map((candidate) => DEMO_ORGANISERS[candidate])
-        .filter((candidate) => candidate.clientOrganisationId === organiser.clientOrganisationId);
+  /** Reassignment candidates: Organisers in the same client organisation, demo or real. */
+  const listOrganisationOrganisers = await buildListOrganisationOrganisers();
+  const { organisers: colleagues } = await listOrganisationOrganisers.execute({
+    clientOrganisationId: organiser.clientOrganisationId,
+  });
 
   const viewOrganisationEventRequests = await buildViewOrganisationEventRequests();
   const { eventRequests } = await viewOrganisationEventRequests.execute({
