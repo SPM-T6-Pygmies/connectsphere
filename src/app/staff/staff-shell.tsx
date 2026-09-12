@@ -16,7 +16,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { actingOrganiser, buildViewMyEventRequests } from "@/composition/container"
+import {
+  actingCoordinator,
+  actingOrganiser,
+  buildViewAssignedEventRequests,
+  buildViewMyEventRequests,
+} from "@/composition/container"
 import { ROLE_LABELS, type ListPaneItem, type StaffRole } from "@/lib/wireframe"
 
 export { PageHeader } from "./page-header"
@@ -40,6 +45,27 @@ async function myRequestsQueueItems(): Promise<ListPaneItem[]> {
     title: request.eventName,
     meta: request.preferredDate ?? "No date",
     teaser: request.description ?? "Nothing filled in yet.",
+    status: request.status,
+  }))
+}
+
+/**
+ * The coordinator's own queue pane, from the same use case the "My requests"
+ * screen reads -- real assigned data, not the wireframe fixtures
+ * `listPaneItems` still falls back to for "My events"/"Archive" (out of
+ * scope for SPM-121/32 -- see coordinator-detail.tsx).
+ */
+async function myAssignedRequestsQueueItems(): Promise<ListPaneItem[]> {
+  const coordinator = actingCoordinator()
+  const viewAssignedEventRequests = await buildViewAssignedEventRequests()
+  const { eventRequests } = await viewAssignedEventRequests.execute(coordinator)
+
+  return eventRequests.map((request) => ({
+    id: request.id,
+    href: `/staff/coordinator/${request.id}`,
+    title: request.eventName,
+    meta: request.preferredDate ?? "No date",
+    teaser: request.clientOrganisationName,
     status: request.status,
   }))
 }
@@ -75,7 +101,12 @@ export async function StaffShell({
   defaultOpen?: boolean
   children: ReactNode
 }) {
-  const queueItems = role === "requester" ? await myRequestsQueueItems() : undefined
+  const queueItems =
+    role === "requester"
+      ? await myRequestsQueueItems()
+      : role === "coordinator"
+        ? await myAssignedRequestsQueueItems()
+        : undefined
 
   return (
     // The two-pane sidebar is the icon rail plus a list pane, so it needs the
