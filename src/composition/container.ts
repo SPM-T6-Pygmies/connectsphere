@@ -11,9 +11,12 @@ import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-ev
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
+import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
+import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
+import type { Login } from "@/core/ports/inbound/login";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
@@ -30,6 +33,7 @@ import type { EventRequestRepository } from "@/core/ports/outbound/event-request
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { LoginUseCase } from "@/core/use-cases/login";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
 import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
@@ -218,4 +222,11 @@ export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser>
     : demoOrganisationEventRequestRepository;
 
   return new ChangeEventOrganiserUseCase({ eventRequests });
+}
+
+export async function buildLogin(): Promise<Login> {
+  return new LoginUseCase({
+    auth: new SupabaseAuthAdapter(),
+    users: new SupabaseUserRepository(),
+  });
 }

@@ -231,6 +231,14 @@ export class PreferredEndTimeNotAfterStartError extends DomainError {
   }
 }
 
+export class InvalidCredentialsError extends DomainError {
+  readonly code = "invalid_credentials";
+
+  constructor() {
+    super("Invalid credentials.");
+  }
+}
+
 /**
  * SPM-38: a draft may only be edited by its own responsible Organiser, and
  * only while it is still `Draft` -- the same rule `eventRequestAccessFor`
