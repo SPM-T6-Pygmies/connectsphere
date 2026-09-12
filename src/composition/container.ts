@@ -3,6 +3,7 @@ import {
   demoEventRequestRepository,
   demoRegistrationRepository,
 } from "@/adapters/outbound/in-memory/attendee-demo-seed";
+import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import {
   demoClientOrganisationRepository,
   demoEventRequestRepository as demoOrganisationEventRequestRepository,
@@ -12,6 +13,7 @@ import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
+import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
@@ -26,6 +28,7 @@ import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
 import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigned-event-request";
 import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
+import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
 import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
 import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
@@ -33,6 +36,7 @@ import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-or
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
+import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
@@ -45,6 +49,7 @@ import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-r
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
 import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-event-request";
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
+import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
@@ -224,14 +229,24 @@ export function actingCoordinator(): { readonly userAccountId: string } {
   };
 }
 
+/**
+ * `events` starts empty in-memory: no real "approve a request" use case
+ * exists yet (SPM-34/97), so there is nothing genuine to seed it with -- a
+ * fake row would only obscure whether "My events" is really wired up, the
+ * same reasoning `attendee-demo-seed.ts` gives for its own empty start.
+ */
+const demoCoordinatorEventRepository = new InMemoryCoordinatorEventRepository();
+
 async function coordinatorAdapters(): Promise<{
   eventRequests: EventRequestRepository;
+  events: CoordinatorEventRepository;
   clientOrganisations: ClientOrganisationRepository;
   userAccounts: UserAccountRepository;
 }> {
   if (!hasSupabaseProject()) {
     return {
       eventRequests: demoOrganisationEventRequestRepository,
+      events: demoCoordinatorEventRepository,
       clientOrganisations: demoClientOrganisationRepository,
       userAccounts: demoUserAccountRepository,
     };
@@ -240,6 +255,7 @@ async function coordinatorAdapters(): Promise<{
   const client = await createSupabaseServerClient();
   return {
     eventRequests: new SupabaseEventRequestRepository(client),
+    events: new SupabaseCoordinatorEventRepository(client),
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
   };
@@ -264,4 +280,17 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
   const { eventRequests, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
   return new ViewAssignedEventRequestUseCase({ eventRequests, clientOrganisations, userAccounts });
+}
+
+/**
+ * "My events": every event the caller is coordinating, whatever its status.
+ *
+ * Empty until a real "approve a request" use case exists to create one
+ * (SPM-34/97) -- there is no wireframe fallback here to make it look
+ * otherwise.
+ */
+export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
+  const { events, clientOrganisations } = await coordinatorAdapters();
+
+  return new ViewAssignedEventsUseCase({ events, clientOrganisations });
 }

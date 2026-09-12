@@ -20,6 +20,7 @@ import {
   actingCoordinator,
   actingOrganiser,
   buildViewAssignedEventRequests,
+  buildViewAssignedEvents,
   buildViewMyEventRequests,
 } from "@/composition/container"
 import { ROLE_LABELS, type ListPaneItem, type StaffRole } from "@/lib/wireframe"
@@ -50,10 +51,10 @@ async function myRequestsQueueItems(): Promise<ListPaneItem[]> {
 }
 
 /**
- * The coordinator's own queue pane, from the same use case the "My requests"
- * screen reads -- real assigned data, not the wireframe fixtures
- * `listPaneItems` still falls back to for "My events"/"Archive" (out of
- * scope for SPM-121/32 -- see coordinator-detail.tsx).
+ * The coordinator's "My requests" queue pane, from the same use case the
+ * page reads -- real assigned data, not the wireframe fixtures
+ * `listPaneItems` still falls back to for "Archive" (out of scope for
+ * SPM-121/32 -- see coordinator-detail.tsx).
  */
 async function myAssignedRequestsQueueItems(): Promise<ListPaneItem[]> {
   const coordinator = actingCoordinator()
@@ -67,6 +68,22 @@ async function myAssignedRequestsQueueItems(): Promise<ListPaneItem[]> {
     meta: request.preferredDate ?? "No date",
     teaser: request.clientOrganisationName,
     status: request.status,
+  }))
+}
+
+/** The coordinator's "My events" queue pane, from the same use case the page reads. */
+async function myAssignedEventsQueueItems(): Promise<ListPaneItem[]> {
+  const coordinator = actingCoordinator()
+  const viewAssignedEvents = await buildViewAssignedEvents()
+  const { events } = await viewAssignedEvents.execute(coordinator)
+
+  return events.map((event) => ({
+    id: event.id,
+    href: `/staff/coordinator/${event.id}`,
+    title: event.name,
+    meta: event.preferredDate ?? "No date",
+    teaser: event.clientOrganisationName,
+    status: event.status,
   }))
 }
 
@@ -87,6 +104,7 @@ export async function StaffShell({
   crumbs,
   defaultOpen = true,
   children,
+  coordinatorSection = "requests",
 }: {
   role: StaffRole
   crumbs: readonly Crumb[]
@@ -100,12 +118,21 @@ export async function StaffShell({
    */
   defaultOpen?: boolean
   children: ReactNode
+  /**
+   * Which of the Coordinator's real queues this page's sidebar pane should
+   * show. Ignored for every other role. Defaults to "requests" so every
+   * existing call site (detail, archive, notifications) keeps its current
+   * behaviour without having to know this prop exists.
+   */
+  coordinatorSection?: "requests" | "events"
 }) {
   const queueItems =
     role === "requester"
       ? await myRequestsQueueItems()
       : role === "coordinator"
-        ? await myAssignedRequestsQueueItems()
+        ? coordinatorSection === "events"
+          ? await myAssignedEventsQueueItems()
+          : await myAssignedRequestsQueueItems()
         : undefined
 
   return (
