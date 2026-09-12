@@ -14,7 +14,6 @@ import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-m
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
-import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
@@ -101,7 +100,7 @@ export async function buildViewEventForRegistration(): Promise<ViewEventForRegis
   return new ViewEventForRegistrationUseCase({ events, clock: systemClock });
 }
 
-export async function buildRegisterForEvent(): Promise<RegisterForEvent> {
+export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
