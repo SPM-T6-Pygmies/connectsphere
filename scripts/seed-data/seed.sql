@@ -21,6 +21,12 @@
 -- only) and the detail view (any status, by assignment) can both be
 -- exercised; Omar holds a decoy request that must never appear in Nadia's
 -- queue or be reachable by Nadia via direct id (#91).
+--
+-- Also seeds the one Event Operations Manager, Venue Staff and Technical
+-- Support Staff profile each of the other staff wireframes act as (Daniel,
+-- Mei, Ravi in src/lib/wireframe/fixtures.ts) -- profiles only, since those
+-- pages have no real use case/adapter of their own yet to hold event,
+-- booking or equipment rows against.
 
 do $$
 declare
@@ -31,8 +37,14 @@ declare
   v_cara    bigint;
   v_nadia   bigint;
   v_omar    bigint;
-  v_organiser_role_id   bigint;
+  v_daniel  bigint;
+  v_mei     bigint;
+  v_ravi    bigint;
+  v_organiser_role_id  bigint;
   v_coordinator_role_id bigint;
+  v_ops_role_id        bigint;
+  v_venue_role_id      bigint;
+  v_technical_role_id  bigint;
 begin
   -- 1. Client organisations -----------------------------------------------
   select client_organisation_id into v_sunrise
@@ -85,25 +97,53 @@ begin
       returning user_account_id into v_omar;
   end if;
 
+  select user_account_id into v_daniel
+    from public.user_account where name = 'Daniel Okonkwo' and client_organisation_id is null;
+  if v_daniel is null then
+    insert into public.user_account (name, department, client_organisation_id)
+      values ('Daniel Okonkwo', 'Event Operations', null)
+      returning user_account_id into v_daniel;
+  end if;
+
+  select user_account_id into v_mei
+    from public.user_account where name = 'Mei Chen' and client_organisation_id is null;
+  if v_mei is null then
+    insert into public.user_account (name, department, client_organisation_id)
+      values ('Mei Chen', 'Venue Operations', null)
+      returning user_account_id into v_mei;
+  end if;
+
+  select user_account_id into v_ravi
+    from public.user_account where name = 'Ravi Kulkarni' and client_organisation_id is null;
+  if v_ravi is null then
+    insert into public.user_account (name, department, client_organisation_id)
+      values ('Ravi Kulkarni', 'Technical Support', null)
+      returning user_account_id into v_ravi;
+  end if;
+
   -- 3. Roles ------------------------------------------------------------
   select role_id into v_organiser_role_id from public.role where role_name = 'Event Organiser';
   select role_id into v_coordinator_role_id from public.role where role_name = 'Event Coordinator';
+  select role_id into v_ops_role_id from public.role where role_name = 'Event Operations Manager';
+  select role_id into v_venue_role_id from public.role where role_name = 'Venue Staff';
+  select role_id into v_technical_role_id from public.role where role_name = 'Technical Support Staff';
 
   insert into public.user_account_role (user_account_id, role_id)
   select v.user_account_id, v_organiser_role_id
   from unnest(array[v_alice, v_ben, v_cara]) as v(user_account_id)
-  where not exists (
-    select 1 from public.user_account_role
-    where user_account_id = v.user_account_id and role_id = v_organiser_role_id
-  );
+  on conflict do nothing;
 
   insert into public.user_account_role (user_account_id, role_id)
   select v.user_account_id, v_coordinator_role_id
   from unnest(array[v_nadia, v_omar]) as v(user_account_id)
-  where not exists (
-    select 1 from public.user_account_role
-    where user_account_id = v.user_account_id and role_id = v_coordinator_role_id
-  );
+  on conflict do nothing;
+
+  insert into public.user_account_role (user_account_id, role_id)
+  values
+    (v_daniel, v_ops_role_id),
+    (v_mei, v_venue_role_id),
+    (v_ravi, v_technical_role_id)
+  on conflict do nothing;
 
   -- 4. Event requests -------------------------------------------------------
   -- Not assigned to a coordinator yet (SPM-97 doesn't exist): the everyday
