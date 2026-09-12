@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -23,6 +25,7 @@ import type { EventRequestStatus } from "@/lib/wireframe";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { StatusBadge } from "../../status-badge";
+import { reassignEventOrganiserAction } from "./actions";
 
 /**
  * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
@@ -112,6 +115,9 @@ export default async function OrganisationEventsPage({
           The list itself is not a fixture: it is a real call to{" "}
           <code>ViewOrganisationEventRequestsUseCase</code>, so the Edit
           column reflects the actual access rule, not a hardcoded value.
+          &quot;Reassign to&quot; is real too, but unlike everything else on
+          this page it is not restricted to any particular caller (SPM-114) --
+          no source has yet said who should be allowed to do this.
         </AlertDescription>
       </Alert>
 
@@ -135,6 +141,7 @@ export default async function OrganisationEventsPage({
                   <TableHead>Event</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Access</TableHead>
+                  <TableHead>Reassign to</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -154,6 +161,19 @@ export default async function OrganisationEventsPage({
                           View only
                         </span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <form action={reassignEventOrganiserAction} className="flex gap-2">
+                        <input type="hidden" name="eventRequestId" value={request.id} />
+                        <Input
+                          name="newResponsibleOrganiserId"
+                          placeholder="organiser-ben"
+                          className="h-8 w-40"
+                        />
+                        <Button type="submit" variant="outline" size="sm">
+                          Reassign
+                        </Button>
+                      </form>
                     </TableCell>
                   </TableRow>
                 ))}
