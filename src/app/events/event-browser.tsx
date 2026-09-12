@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
-import type { AvailableEvent } from "@/core/ports/inbound/available-event";
+import type { AvailableEvent } from "@/core/use-cases/available-event";
 
 import { EventCard } from "./event-card";
 import { dayHeading, dayKey, weekdayOf } from "./format-event-time";

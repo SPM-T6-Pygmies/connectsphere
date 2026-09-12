@@ -1,4 +1,4 @@
-import type { AvailableEvent } from "./available-event";
+import type { AvailableEvent } from "../../use-cases/available-event";
 
 export interface ViewEventForRegistrationCommand {
   readonly eventId: string;

@@ -3,7 +3,7 @@
 import { withdrawRegistrationSchema } from "@/adapters/inbound/withdraw-registration-schema";
 import { buildWithdrawRegistration } from "@/composition/container";
 import { DomainError } from "@/core/domain/errors";
-import type { AttendeeRegistration } from "@/core/ports/inbound/attendee-registration";
+import type { AttendeeRegistration } from "@/core/use-cases/attendee-registration";
 
 export type WithdrawalState =
   | { status: "idle" }

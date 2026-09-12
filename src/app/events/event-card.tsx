@@ -1,7 +1,7 @@
 import { Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 
-import type { AvailableEvent } from "@/core/ports/inbound/available-event";
+import type { AvailableEvent } from "@/core/use-cases/available-event";
 
 import { timeRange } from "./format-event-time";
 

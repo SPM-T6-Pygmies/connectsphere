@@ -4,7 +4,7 @@ import { CalendarDays, CheckCircle2, Clock, MapPin } from "lucide-react";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { AttendeeRegistration } from "@/core/ports/inbound/attendee-registration";
+import type { AttendeeRegistration } from "@/core/use-cases/attendee-registration";
 
 import { fullDate, timeRange } from "../../events/format-event-time";
 import { withdrawRegistrationAction, type WithdrawalState } from "./actions";

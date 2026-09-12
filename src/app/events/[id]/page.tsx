@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { buildViewEventForRegistration } from "@/composition/container";
 import { EventNotFoundError, EventNotOpenForRegistrationError } from "@/core/domain/errors";
-import type { AvailableEvent } from "@/core/ports/inbound/available-event";
+import type { AvailableEvent } from "@/core/use-cases/available-event";
 
 import { fullDate, timeRange } from "../format-event-time";
 import { RegistrationForm } from "./registration-form";

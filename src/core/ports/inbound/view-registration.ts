@@ -1,4 +1,4 @@
-import type { AttendeeRegistration } from "./attendee-registration";
+import type { AttendeeRegistration } from "../../use-cases/attendee-registration";
 
 export interface ViewRegistrationCommand {
   readonly reference: string;

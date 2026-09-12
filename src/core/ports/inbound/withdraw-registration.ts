@@ -1,4 +1,4 @@
-import type { AttendeeRegistration } from "./attendee-registration";
+import type { AttendeeRegistration } from "../../use-cases/attendee-registration";
 
 /**
  * The reference is the whole command.

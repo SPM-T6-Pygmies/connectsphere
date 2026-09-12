@@ -8,7 +8,7 @@ import {
   InvalidRegistrationIdError,
   RegistrationNotFoundError,
 } from "@/core/domain/errors";
-import type { AttendeeRegistration } from "@/core/ports/inbound/attendee-registration";
+import type { AttendeeRegistration } from "@/core/use-cases/attendee-registration";
 
 import { WithdrawPanel } from "./withdraw-panel";
 
