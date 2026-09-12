@@ -230,3 +230,39 @@ export async function buildLogin(): Promise<Login> {
     users: new SupabaseUserRepository(),
   });
 }
+
+/**
+ * SPM-39: the real, session-derived counterpart to `actingOrganiser()`.
+ *
+ * `actingOrganiser()` (above) is an env-var stand-in other Requester pages
+ * still use, predating SPM-13. Now that login exists, this resolves the
+ * actual signed-in Organiser instead: `null` covers every case that isn't
+ * one -- no session, no matching `user_account`, a role other than Event
+ * Organiser, or an Organiser with no client organisation set -- so a caller
+ * can fall back (e.g. to a demo identity) rather than crash.
+ */
+export async function getCurrentOrganiser(): Promise<{
+  readonly userAccountId: string;
+  readonly clientOrganisationId: string;
+  readonly name: string;
+} | null> {
+  const session = await new SupabaseAuthAdapter().getSession();
+  if (session === null) {
+    return null;
+  }
+
+  const user = await new SupabaseUserRepository().findByAuthUserId(session.userId);
+  if (
+    user === null ||
+    user.clientOrganisationId === null ||
+    !user.roles.includes("Event Organiser")
+  ) {
+    return null;
+  }
+
+  return {
+    userAccountId: user.userId,
+    clientOrganisationId: user.clientOrganisationId,
+    name: user.name,
+  };
+}

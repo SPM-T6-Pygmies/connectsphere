@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewOrganisationEventRequests } from "@/composition/container";
+import { buildViewOrganisationEventRequests, getCurrentOrganiser } from "@/composition/container";
 import type { EventRequestStatus } from "@/lib/wireframe";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
@@ -26,8 +26,9 @@ import { reassignEventOrganiserAction } from "./actions";
 
 /**
  * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
- * primitives the driving port takes. Stands in for a session until SPM-13
- * (login) exists -- see the "Viewing as" switcher below.
+ * primitives the driving port takes. Used only when there is no real signed-
+ * in Organiser (see `getCurrentOrganiser`) -- e.g. testing before SPM-13's
+ * login existed, or reaching this page in some other role.
  */
 const DEMO_ORGANISERS = {
   alice: {
@@ -60,19 +61,33 @@ export const metadata = { title: "Organisation events | ConnectSphere" };
  * organisation (AC1/AC3/AC4), with an Edit affordance only where the real
  * access predicate (`eventRequestAccessFor`) says so (AC2) -- not a fixture,
  * a call through `src/composition` to the actual tested use case.
+ *
+ * The caller's identity is the real signed-in Organiser when one exists
+ * (`getCurrentOrganiser`, SPM-13), falling back to the demo switcher only
+ * when it doesn't -- e.g. no session, or the session isn't an Organiser's.
  */
 export default async function OrganisationEventsPage({
   searchParams,
 }: PageProps<"/staff/requester/organisation">) {
+  const session = await getCurrentOrganiser();
+
   const { as } = await searchParams;
   const asParam = typeof as === "string" ? as : undefined;
   const key: DemoOrganiserKey = isDemoOrganiserKey(asParam) ? asParam : "alice";
-  const organiser = DEMO_ORGANISERS[key];
+  const demoOrganiser = DEMO_ORGANISERS[key];
 
-  /** Reassignment candidates: colleagues in the same client organisation. */
-  const colleagues = (Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[])
-    .map((candidate) => DEMO_ORGANISERS[candidate])
-    .filter((candidate) => candidate.clientOrganisationId === organiser.clientOrganisationId);
+  const organiser = session ?? demoOrganiser;
+
+  /**
+   * Reassignment candidates: colleagues in the same client organisation.
+   * Only the demo identities are known here -- there is no "list Organisers
+   * in my organisation" feature yet, so a real session sees no candidates.
+   */
+  const colleagues = session
+    ? []
+    : (Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[])
+        .map((candidate) => DEMO_ORGANISERS[candidate])
+        .filter((candidate) => candidate.clientOrganisationId === organiser.clientOrganisationId);
 
   const viewOrganisationEventRequests = await buildViewOrganisationEventRequests();
   const { eventRequests } = await viewOrganisationEventRequests.execute({
@@ -90,22 +105,28 @@ export default async function OrganisationEventsPage({
         title="Organisation events"
         description="Every event request raised by anyone in your client organisation -- not just your own -- so nobody duplicates a request or loses context."
         actions={
-          <div className="flex items-center gap-1 text-sm">
-            <span className="text-muted-foreground mr-1">Viewing as</span>
-            {(Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[]).map((candidate) => (
-              <Link
-                key={candidate}
-                href={`/staff/requester/organisation?as=${candidate}`}
-                className={
-                  candidate === key
-                    ? "bg-secondary text-secondary-foreground rounded-md px-2 py-1 font-medium"
-                    : "hover:bg-muted rounded-md px-2 py-1"
-                }
-              >
-                {DEMO_ORGANISERS[candidate].name}
-              </Link>
-            ))}
-          </div>
+          session ? (
+            <span className="text-muted-foreground text-sm">
+              Logged in as <span className="text-foreground font-medium">{session.name}</span>
+            </span>
+          ) : (
+            <div className="flex items-center gap-1 text-sm">
+              <span className="text-muted-foreground mr-1">Viewing as</span>
+              {(Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[]).map((candidate) => (
+                <Link
+                  key={candidate}
+                  href={`/staff/requester/organisation?as=${candidate}`}
+                  className={
+                    candidate === key
+                      ? "bg-secondary text-secondary-foreground rounded-md px-2 py-1 font-medium"
+                      : "hover:bg-muted rounded-md px-2 py-1"
+                  }
+                >
+                  {DEMO_ORGANISERS[candidate].name}
+                </Link>
+              ))}
+            </div>
+          )
         }
       />
 
@@ -151,26 +172,32 @@ export default async function OrganisationEventsPage({
                       )}
                     </TableCell>
                     <TableCell>
-                      <form action={reassignEventOrganiserAction} className="flex gap-2">
-                        <input type="hidden" name="eventRequestId" value={request.id} />
-                        <select
-                          name="newResponsibleOrganiserId"
-                          defaultValue=""
-                          className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-8 w-40 rounded-lg border px-2.5 text-sm shadow-xs outline-none focus-visible:ring-3"
-                        >
-                          <option value="" disabled>
-                            Choose organiser…
-                          </option>
-                          {colleagues.map((colleague) => (
-                            <option key={colleague.userAccountId} value={colleague.userAccountId}>
-                              {colleague.name}
+                      {colleagues.length === 0 ? (
+                        <span className="text-muted-foreground text-xs">
+                          No colleagues to reassign to yet
+                        </span>
+                      ) : (
+                        <form action={reassignEventOrganiserAction} className="flex gap-2">
+                          <input type="hidden" name="eventRequestId" value={request.id} />
+                          <select
+                            name="newResponsibleOrganiserId"
+                            defaultValue=""
+                            className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-8 w-40 rounded-lg border px-2.5 text-sm shadow-xs outline-none focus-visible:ring-3"
+                          >
+                            <option value="" disabled>
+                              Choose organiser…
                             </option>
-                          ))}
-                        </select>
-                        <Button type="submit" variant="outline" size="sm">
-                          Reassign
-                        </Button>
-                      </form>
+                            {colleagues.map((colleague) => (
+                              <option key={colleague.userAccountId} value={colleague.userAccountId}>
+                                {colleague.name}
+                              </option>
+                            ))}
+                          </select>
+                          <Button type="submit" variant="outline" size="sm">
+                            Reassign
+                          </Button>
+                        </form>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -13,6 +13,7 @@ export class SupabaseUserRepository implements UserRepository {
         `
         user_account_id,
         name,
+        client_organisation_id,
         user_account_role (
           role (
             role_name
@@ -41,6 +42,8 @@ export class SupabaseUserRepository implements UserRepository {
       userId: data.user_account_id.toString(),
       name: data.name,
       roles,
+      clientOrganisationId:
+        data.client_organisation_id === null ? null : data.client_organisation_id.toString(),
     };
   }
 }

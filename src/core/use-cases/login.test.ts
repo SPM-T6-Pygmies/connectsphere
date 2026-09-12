@@ -25,6 +25,7 @@ const COORDINATOR_USER: UserWithRoles = {
   userId: "user-1",
   name: "Test Coordinator",
   roles: ["Event Coordinator"],
+  clientOrganisationId: null,
 };
 
 const OPS_EMAIL = "ops@test.com";
@@ -33,6 +34,7 @@ const OPS_USER: UserWithRoles = {
   userId: "user-2",
   name: "Test Ops Manager",
   roles: ["Event Operations Manager"],
+  clientOrganisationId: null,
 };
 
 const EXPIRES_AT = new Date("2026-12-31T23:59:59.000Z");
