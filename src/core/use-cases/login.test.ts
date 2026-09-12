@@ -16,30 +16,23 @@ import { LoginUseCase } from "./login";
  */
 
 // Test data: staff members with roles for login scenarios
-const ORGANISER_ID = "auth-user-organiser";
 const COORDINATOR_ID = "auth-user-coordinator";
-const SUPPORT_ID = "auth-user-support";
-
-const ORGANISER_EMAIL = "organiser@test.com";
-const ORGANISER_PASSWORD = "TestPass123!";
-const ORGANISER_USER: UserWithRoles = {
-  userId: "user-1",
-  name: "Test Organiser",
-  roles: ["Event Organiser"],
-};
+const OPS_ID = "auth-user-ops";
 
 const COORDINATOR_EMAIL = "coordinator@test.com";
 const COORDINATOR_PASSWORD = "TestPass123!";
 const COORDINATOR_USER: UserWithRoles = {
-  userId: "user-2",
+  userId: "user-1",
   name: "Test Coordinator",
   roles: ["Event Coordinator"],
 };
 
-const MULTIOLE_USER: UserWithRoles = {
-  userId: "user-3",
-  name: "Test Multi-Role",
-  roles: ["Event Organiser", "Event Coordinator"],
+const OPS_EMAIL = "ops@test.com";
+const OPS_PASSWORD = "TestPass123!";
+const OPS_USER: UserWithRoles = {
+  userId: "user-2",
+  name: "Test Ops Manager",
+  roles: ["Event Operations Manager"],
 };
 
 const EXPIRES_AT = new Date("2026-12-31T23:59:59.000Z");
@@ -50,8 +43,8 @@ const EXPIRES_AT = new Date("2026-12-31T23:59:59.000Z");
  */
 class MockAuthAdapter implements AuthPort {
   private validCredentials: Map<string, { password: string; userId: string }> = new Map([
-    [ORGANISER_EMAIL, { password: ORGANISER_PASSWORD, userId: ORGANISER_ID }],
     [COORDINATOR_EMAIL, { password: COORDINATOR_PASSWORD, userId: COORDINATOR_ID }],
+    [OPS_EMAIL, { password: OPS_PASSWORD, userId: OPS_ID }],
   ]);
 
   async login(email: string, password: string) {
@@ -84,9 +77,8 @@ class MockAuthAdapter implements AuthPort {
  */
 class MockUserRepository implements UserRepository {
   private users: Map<string, UserWithRoles> = new Map([
-    [ORGANISER_ID, ORGANISER_USER],
     [COORDINATOR_ID, COORDINATOR_USER],
-    [SUPPORT_ID, MULTIOLE_USER],
+    [OPS_ID, OPS_USER],
   ]);
 
   async findByAuthUserId(authUserId: string): Promise<UserWithRoles | null> {
@@ -113,34 +105,17 @@ describe("LoginUseCase", () => {
 
     // ACT: Execute login with valid credentials
     const result = await useCase.execute({
-      email: ORGANISER_EMAIL,
-      password: ORGANISER_PASSWORD,
+      email: COORDINATOR_EMAIL,
+      password: COORDINATOR_PASSWORD,
     } as LoginCommand);
 
     // ASSERT: Result contains user ID and staff roles
     // (expiresAt is ISO string from LoginUseCase.execute)
     expect(result).toEqual({
-      userId: ORGANISER_USER.userId,
-      roles: ORGANISER_USER.roles,
+      userId: COORDINATOR_USER.userId,
+      roles: COORDINATOR_USER.roles,
       expiresAt: EXPIRES_AT.toISOString(),
     });
-  });
-
-  it("returns all roles when staff member has multiple roles", async () => {
-    // Test scenario: A staff member who holds multiple roles (rare but possible).
-    // Verify that LoginResult includes all roles for redirect logic.
-    const { useCase, users } = buildUseCase();
-
-    // Override mock to return multi-role user
-    const result = await useCase.execute({
-      email: ORGANISER_EMAIL,
-      password: ORGANISER_PASSWORD,
-    } as LoginCommand);
-
-    // When ORGANISER_ID maps to ORGANISER_USER (single role),
-    // result.roles should contain that role.
-    expect(result.roles).toEqual(ORGANISER_USER.roles);
-    expect(result.roles).toHaveLength(1);
   });
 
   it("rejects login with invalid password", async () => {
@@ -151,7 +126,7 @@ describe("LoginUseCase", () => {
     // ACT & ASSERT: Expect generic error (security: no user enumeration)
     await expect(
       useCase.execute({
-        email: ORGANISER_EMAIL,
+        email: COORDINATOR_EMAIL,
         password: "WrongPassword123!",
       } as LoginCommand)
     ).rejects.toBeInstanceOf(InvalidCredentialsError);
@@ -195,11 +170,11 @@ describe("LoginUseCase", () => {
 
     // For now, test that the flow works as designed.
     const result = await useCase.execute({
-      email: ORGANISER_EMAIL,
-      password: ORGANISER_PASSWORD,
+      email: COORDINATOR_EMAIL,
+      password: COORDINATOR_PASSWORD,
     } as LoginCommand);
 
-    expect(result.roles).toEqual(ORGANISER_USER.roles);
+    expect(result.roles).toEqual(COORDINATOR_USER.roles);
   });
 
   it("throws InvalidCredentialsError before repository lookup if auth fails", async () => {
@@ -213,7 +188,7 @@ describe("LoginUseCase", () => {
     // (never reaches findByAuthUserId)
     await expect(
       useCase.execute({
-        email: ORGANISER_EMAIL,
+        email: COORDINATOR_EMAIL,
         password: "WRONG",
       } as LoginCommand)
     ).rejects.toBeInstanceOf(InvalidCredentialsError);
@@ -228,7 +203,7 @@ describe("LoginUseCase", () => {
 
     // Both these should throw InvalidCredentialsError (not different errors)
     const wrongPassword = useCase.execute({
-      email: ORGANISER_EMAIL,
+      email: COORDINATOR_EMAIL,
       password: "WRONG",
     } as LoginCommand);
 
@@ -249,8 +224,8 @@ describe("LoginUseCase", () => {
     const { useCase } = buildUseCase();
 
     const result = await useCase.execute({
-      email: ORGANISER_EMAIL,
-      password: ORGANISER_PASSWORD,
+      email: COORDINATOR_EMAIL,
+      password: COORDINATOR_PASSWORD,
     } as LoginCommand);
 
     // Verify expiresAt is ISO string (can be parsed back to Date)

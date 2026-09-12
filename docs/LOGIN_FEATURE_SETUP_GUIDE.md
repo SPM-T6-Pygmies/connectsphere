@@ -100,22 +100,55 @@ supabase start
 
 **Output:**
 ```
-Started supabase local development setup.
+╭──────────────────────────────────────╮
+│ 🔧 Development Tools                 │
+├─────────┬────────────────────────────┤
+│ Studio  │ http://127.0.0.1:54323     │
+│ Mailpit │ http://127.0.0.1:54324     │
+│ MCP     │ http://127.0.0.1:54321/mcp │
+╰─────────┴────────────────────────────╯
 
-         API URL: http://127.0.0.1:54321
-     Anon Key: sb_anon_<random-key>
-Service Role Key: sb_secret_<random-key>
-     Studio URL: http://127.0.0.1:54323
+╭──────────────────────────────────────────────────────╮
+│ 🌐 APIs                                              │
+├────────────────┬─────────────────────────────────────┤
+│ Project URL    │ http://127.0.0.1:54321              │
+│ REST           │ http://127.0.0.1:54321/rest/v1      │
+│ GraphQL        │ http://127.0.0.1:54321/graphql/v1   │
+│ Edge Functions │ http://127.0.0.1:54321/functions/v1 │
+╰────────────────┴─────────────────────────────────────╯
+
+╭───────────────────────────────────────────────────────────────╮
+│ ⛁ Database                                                    │
+├─────┬─────────────────────────────────────────────────────────┤
+│ URL │ postgresql://postgres:postgres@127.0.0.1:54322/postgres │
+╰─────┴─────────────────────────────────────────────────────────╯
+
+╭──────────────────────────────────────────────────────────────╮
+│ 🔑 Authentication Keys                                       │
+├─────────────┬────────────────────────────────────────────────┤
+│ Publishable │ sb_publishable_<random-key>                    │
+│ Secret      │ sb_secret_<random-key>                         │
+╰─────────────┴────────────────────────────────────────────────╯
+
+Local dev security notice
+All services bind to 0.0.0.0 (network-accessible, not just localhost)
+API keys are shared defaults. Do not use in production
 ```
 
+**What happens:** Supabase CLI:
+1. Checks for existing local Supabase stack (`.supabase/` directory)
+2. If first time: Creates `.supabase/config.toml` (auto-generated, local-only)
+3. Starts 5 Docker containers: postgres, auth, storage, functions, realtime
+4. Prints credentials and service URLs
+
 **Save these three values:**
-- `API URL` → `NEXT_PUBLIC_SUPABASE_URL`
-- `Anon Key` → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `Service Role Key` → `SUPABASE_SERVICE_ROLE_KEY`
+- `Project URL` (under APIs) → `NEXT_PUBLIC_SUPABASE_URL`
+- `Publishable` (under Authentication Keys) → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `Secret` (under Authentication Keys) → `SUPABASE_SERVICE_ROLE_KEY`
 
 **Verification:**
 - http://127.0.0.1:54323 → Supabase Studio login screen
-- Keep this terminal running (don't close it)
+- Keep Terminal 1 running (don't close it)
 
 **Key point:** As long as you don't delete `.supabase/` directory, these credentials remain the same on future `supabase start` runs.
 
@@ -132,7 +165,7 @@ supabase migration up
 **What happens:** Creates database schema including:
 - `user_account` table with `auth_user_id` column
 - `user_account_role` junction table
-- Test staff accounts (organiser, coordinator, ops, venue, support)
+- Test staff accounts (coordinator, ops, venue, technical, requester)
 
 **Verification:** 
 - Supabase Studio → **Tables** tab
@@ -227,28 +260,43 @@ Should show your project ID.
 
 ## Step 5: Seed Authentication Test Users
 
-Create 5 staff test accounts in local Supabase Auth:
+Create 5 staff test accounts in local Supabase Auth using Infisical to inject secrets:
 
 ```bash
 # Terminal 2 (or new terminal)
-NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
-SUPABASE_SERVICE_ROLE_KEY="<Service-Role-Key-from-Step-2>" \
-pnpm ts-node supabase/seed-auth-test-users.ts
+infisical run -- pnpm ts-node supabase/seed-auth-test-users.ts
 ```
 
-**Output:**
-```
-✓ Created staff users:
-  - organiser@test.com (password: TestPass123!)
-  - coordinator@test.com (password: TestPass123!)
-  - ops@test.com (password: TestPass123!)
-  - venue@test.com (password: TestPass123!)
-  - support@test.com (password: TestPass123!)
-```
+**What happens:** Infisical reads `.infisical.json` (from Step 4.4) and automatically injects:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Then runs the seed script with those secrets available.
 
 **Verification:**
-- Supabase Studio → **Authentication** tab → **Users**
-- Should see 5 test users
+1. Open Supabase Studio: http://127.0.0.1:54323
+2. Login (any email/password to create local account)
+3. Go to **Authentication** tab → **Users**
+4. Should see 4 test users:
+   - coordinator@test.com
+   - ops@test.com
+   - venue@test.com
+   - technical@test.com
+
+**If command fails:**
+
+Check:
+- Is Supabase running? (Terminal 1 still open?)
+- Did `infisical init` complete in Step 4.4?
+- Are all three secrets stored in Infisical web UI (Step 4.3)?
+
+**Fallback (manual key):**
+
+If Infisical isn't working, use Service Role Key from Step 2 directly (one line):
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" SUPABASE_SERVICE_ROLE_KEY="sb_secret_<your-key>" pnpm ts-node supabase/seed-auth-test-users.ts
+```
 
 ---
 
@@ -256,18 +304,38 @@ pnpm ts-node supabase/seed-auth-test-users.ts
 
 ```bash
 # Terminal 3
-pnpm dev
+pnpm dev:local
 ```
 
-**What happens:** Pulls secrets from `.env.local` (or Infisical if configured).
+**What happens:** 
+- Ensures Supabase is running (starts if not already running)
+- Infisical injects secrets from `.infisical.json` (Step 4.4)
+- Next.js dev server starts with those secrets
 
 **Output:**
 ```
+Starting database from backup...
+Starting containers...
+Waiting for health checks...
+
 ▲ Next.js 16 started...
 - Local: http://localhost:3000
 ```
 
-**Verification:** http://localhost:3000 loads.
+**Verification:** 
+- http://localhost:3000 loads
+- Supabase is running in Terminal 1
+- No `.env.local` file needed (Infisical provides secrets)
+
+**If you prefer `.env.local` (fallback):**
+
+```bash
+cp .env.example .env.local
+# Edit .env.local and add credentials from Step 2
+pnpm dev
+```
+
+But `pnpm dev:local` is recommended (uses Infisical, works from any machine).
 
 ---
 
@@ -276,18 +344,18 @@ pnpm dev
 ### Test 1: Valid Login
 
 1. Open http://localhost:3000/auth/login
-2. Email: `organiser@test.com`
+2. Email: `coordinator@test.com` (or any of: ops@test.com, venue@test.com, technical@test.com)
 3. Password: `TestPass123!`
 4. Click "Sign in"
 
 **Expected:**
 - ✅ No error
-- ✅ Redirects to `/staff/organiser/landing-view`
+- ✅ Redirects to role-specific page (/staff/coordinator/, /staff/ops/, etc.)
 - ✅ DevTools → Application → Cookies → see `sb-<id>-auth-token`
 
 ### Test 2: Invalid Password
 
-1. Email: `organiser@test.com`
+1. Email: `coordinator@test.com`
 2. Password: `WRONG`
 3. Click "Sign in"
 
@@ -307,12 +375,12 @@ http://localhost:3000/           → Loads (public)
 
 ```bash
 # Without logging in:
-http://localhost:3000/staff/organiser/landing-view
+http://localhost:3000/staff/coordinator/
 → Redirects to /auth/login
 
 # After logging in (from Test 1):
-http://localhost:3000/staff/organiser/landing-view
-→ Landing view loads
+http://localhost:3000/staff/coordinator/
+→ Page loads
 ```
 
 ---

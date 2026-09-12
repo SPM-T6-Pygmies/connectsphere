@@ -25,7 +25,7 @@ supabase migration up       # Runs migrations on cloud
 
 This will:
 - Uncomment and activate the `auth_user_id` column on `user_account`
-- Seed test staff user_account records with roles (Event Organiser, Coordinator, Ops Manager, Venue Staff, Support Staff)
+- Seed test staff user_account records with roles (Coordinator, Ops Manager, Venue Staff, Technical Support Staff)
 
 **Verification (local or cloud):**
 ```sql
@@ -37,7 +37,7 @@ join role r on uar.role_id = r.role_id
 where ua.name like 'Test%';
 ```
 
-Expected output: 5 rows (one per staff role)
+Expected output: 4 rows (one per staff role)
 
 ## Step 2: Seed Supabase Auth Users
 
@@ -73,11 +73,10 @@ Use these credentials to test the login flow:
 
 | Role | Email | Password |
 |------|-------|----------|
-| Event Organiser | `organiser@test.com` | `TestPass123!` |
 | Event Coordinator | `coordinator@test.com` | `TestPass123!` |
 | Event Operations Manager | `ops@test.com` | `TestPass123!` |
 | Venue Staff | `venue@test.com` | `TestPass123!` |
-| Technical Support Staff | `support@test.com` | `TestPass123!` |
+| Technical Support Staff | `technical@test.com` | `TestPass123!` |
 
 ## Development Workflow
 

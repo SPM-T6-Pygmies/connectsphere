@@ -16,13 +16,12 @@ export interface LoginState {
  */
 function roleToPagePath(role: string): string {
   const roleMap: Record<string, string> = {
-    "Event Organiser": "organiser",
     "Event Coordinator": "coordinator",
     "Event Operations Manager": "ops",
     "Venue Staff": "venue",
     "Technical Support Staff": "technical",
   };
-  return `/staff/${roleMap[role] || "organiser"}`;
+  return `/staff/${roleMap[role]}`;
 }
 
 export async function loginAction(

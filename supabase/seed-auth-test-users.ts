@@ -32,12 +32,6 @@ const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
 
 const testUsers = [
   {
-    email: "organiser@test.com",
-    password: "TestPass123!",
-    name: "Test Organiser",
-    role: "Event Organiser",
-  },
-  {
     email: "coordinator@test.com",
     password: "TestPass123!",
     name: "Test Coordinator",
