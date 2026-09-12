@@ -20,6 +20,9 @@
 4. **Driving adapters stay thin**: parse → call a use case → translate the
    result. No queries, no rules, no SDK calls.
 5. **Adapters are wired in `src/composition` and nowhere else.**
+6. **Match the path to the slice.** If a domain rule can say no in the flow,
+   take the full path through domain entities. If nothing can, take the thin
+   read path and skip the domain round trip (§11).
 
 Everything below is why.
 
@@ -1000,6 +1003,94 @@ mechanical refactor — introduce the interface, move the body into an adapter,
 wire it in composition. Removing a speculative port that has grown three
 consumers is not.
 
+### Full path or thin path: decide per slice, not per codebase
+
+§12's warning about CRUD systems applies at a finer grain than the whole
+application. This repo is both kinds at once. The requester and attendee screens
+are mostly forms and lists. Venue booking (tentative holds, AM/PM/Night slots,
+turnaround time), equipment reservation (partial fulfilment) and event
+confirmation (`Blocked` until every essential arrangement is in place) are
+almost all rules. One shape for both overpays on the first and underserves the
+second, so the unit of decision is the slice.
+
+The question: **is there a domain function in this flow that can say no, or that
+decides something the screen shows?**
+
+| Slice                             | Can the domain say no?                                                      | Path |
+| --------------------------------- | --------------------------------------------------------------------------- | ---- |
+| Submit an event request           | Yes: `submitEventRequest` refuses missing fields, past dates, end ≤ start   | Full |
+| List events open for registration | Yes: `isOpenForRegistration` decides which events appear                    | Full |
+| View organisation event requests  | Yes: `eventRequestAccessFor` decides `canEdit`                              | Full |
+| View my event requests            | No: a scoped list, copied into a summary                                    | Thin |
+| A notification inbox (unbuilt)    | No: rows in, rows out                                                       | Thin |
+
+A database constraint saying no does not count. If the only refusal in a slice
+is a `check` or a unique index, the slice is thin: the database is guarding every
+writer (§8.6), not making a decision the application has to model.
+
+**The full path** is §8: a domain type with its invariants, a use case that
+orchestrates, a port phrased in business language, and row⇄domain mapping in the
+adapter.
+
+**The thin read path** keeps every boundary and drops the round trip through
+domain entities:
+
+- **The use case stays.** Routes still resolve a use case from
+  `src/composition`, and a rule has an obvious home when one arrives. Its body
+  is expected to be one port call.
+- **The port returns the view the screen needs:** plain serialisable data,
+  declared in the port file, instead of entities the use case then flattens.
+  Add the method to the port that already owns that capability (see below).
+- **The adapter maps row → view in one step.** No `toDomain`, and no second copy
+  of the same fields in the use case.
+- **The in-memory adapter is still required.** It runs the app when no Supabase
+  project is configured, which makes it a second real implementation and not
+  only a test double.
+
+`ViewMyEventRequestsUseCase` shows the difference. Today the adapter builds full
+`EventRequest` entities for the whole organisation, and the use case filters them
+to the caller's own and copies six fields into `MyEventRequestSummary`. On the
+thin path the filter becomes the query and the copy disappears:
+
+```ts
+// src/core/ports/outbound/event-request-repository.ts -- the shape, not yet in the repo
+export interface EventRequestRepository {
+  // ...existing methods
+  listRaisedBy(
+    organiser: UserAccountId,
+    organisation: ClientOrganisationId,
+  ): Promise<readonly MyEventRequestSummary[]>;
+}
+```
+
+A thin slice moves to the full path the moment a rule appears in it (say, "my
+requests" starts flagging which ones may still be withdrawn). That is mechanical:
+put the predicate in the domain, return entities from the port, map in the use
+case.
+
+Existing read slices predate this section. Convert one when you are already
+changing it for another reason, in its own commit, rather than as a sweep.
+
+### Group ports by capability, not by operation
+
+A port is a conversation with one outside capability. It has as many methods as
+that conversation needs and as many consumers as use it:
+`EventRequestRepository` is one port serving seven use cases, and that is the
+intended shape. What to avoid, in both directions:
+
+- **No port per operation.** `SubmitEventRequestStore`,
+  `SaveEventRequestDraftStore` and `DiscardEventRequestDraftStore` would be three
+  interfaces, three in-memory classes and three container entries for one table.
+- **No driving-port interfaces, grouped or not** (§8.2). An
+  `EventRequestService { submit(); saveDraft(); discard(); }` still has one
+  implementation, and it rebuilds the 600-line service §6 warns about. If a
+  directory of use cases gets crowded, group them by folder, not behind an
+  interface.
+- **Split a port only when its consumers split.** If one set of use cases only
+  ever calls some of its methods, another set only calls the rest, and the two
+  could plausibly be backed by different stores, two ports are honest. Until
+  then, one is.
+
 ---
 
 ## 12. Common mistakes
@@ -1043,10 +1134,11 @@ the whiteboard. Have as many ports as you have boundaries.
 `InventoryLookup`, `ConnectionRepository`. The name should say what conversation
 is happening.
 
-**8. Applying it to a system that has no business logic.**
-A CRUD admin panel with no invariants gets nothing from this and pays the full
-cost. Ports & Adapters earns its keep in proportion to how much your domain
-*decides*. See §11.
+**8. Applying the full path to a slice that has no business logic.**
+A CRUD screen with no invariants gets nothing from a domain round trip and pays
+the full cost, whether it is a whole admin panel or one list page in an app full
+of rules. Ports & Adapters earns its keep in proportion to how much your domain
+*decides*, and that varies slice by slice. See §11's thin read path.
 
 **9. Leaking the transport inward.**
 Returning HTTP statuses from use cases, throwing `Response` objects, accepting
@@ -1143,6 +1235,10 @@ Before requesting review on anything touching an external system:
       and never leak `PostgrestError` inward?
 - [ ] **Is each new port justified by §11**, or is it an interface with one
       implementation at a seam that is not a boundary?
+- [ ] **Can a domain rule say no in this slice?** If not, does it take §11's
+      thin read path rather than mapping through entities?
+- [ ] Do new port methods sit on the port that already owns that capability,
+      rather than on a new port per operation?
 
 ### Adding a feature: the order to work in
 
@@ -1155,6 +1251,9 @@ Before requesting review on anything touching an external system:
 5. Write the real adapters in `src/adapters/outbound`.
 6. Wire them in `src/composition`.
 7. Write the driving adapter in `src/app`. Keep it thin.
+
+For a thin read slice (§11), step 1 does not apply: step 2 adds a method that
+returns the view, and step 3's use case is a single port call.
 
 Steps 1–5 need no Supabase project, no environment variables, and no running
 server. That property — a full feature designed and tested before any
@@ -1174,6 +1273,10 @@ single check that you have applied it correctly.
   most explicitly.
 - Jeffrey Palermo, *The Onion Architecture* (2008).
 - Eric Evans, *Domain-Driven Design* (2003) — for what goes inside the hexagon.
+- Oliver Zihler, [Ports & Adapters-Style Architectures: Ditching the Dogma for
+  Pragmatism](https://codeartify.substack.com/p/ditching-the-dogma-for-pragmatism)
+  — the case for deciding per slice how much of this to apply. §11's full/thin
+  split and the absence of driving-port interfaces follow from it.
 - [AWS Prescriptive Guidance: hexagonal architecture
   pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/hexagonal-architecture.html)
   — a compact vendor-neutral summary.
