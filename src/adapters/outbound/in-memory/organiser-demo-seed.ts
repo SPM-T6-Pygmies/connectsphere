@@ -61,10 +61,17 @@ function request(params: {
   responsibleOrganiserId: UserAccountId;
   clientOrganisationId?: ClientOrganisationId;
   assignedCoordinatorUserAccountId?: UserAccountId;
+  /**
+   * What the Organiser filled in, for the requests a Coordinator opens.
+   * Omitted elsewhere: an all-null request is itself worth demonstrating,
+   * because the mandatory set is undecided (#72) and the detail view has to
+   * render absence as absence.
+   */
+  details?: Partial<EventRequestDetails>;
 }): EventRequest {
   return {
     id: eventRequestId(params.id),
-    details: detailsFor(params.eventName),
+    details: { ...detailsFor(params.eventName), ...params.details },
     status: params.status,
     clientOrganisationId: params.clientOrganisationId ?? SUNRISE,
     responsibleOrganiserId: params.responsibleOrganiserId,
@@ -112,6 +119,16 @@ const EVENT_REQUESTS: readonly EventRequest[] = [
     status: "Under Review",
     responsibleOrganiserId: BEN,
     assignedCoordinatorUserAccountId: NADIA,
+    details: {
+      description: "A walkthrough of fire exits, capacity limits and accessible routes.",
+      purpose: "Annual compliance check ahead of the winter events season.",
+      preferredDate: "2026-10-14",
+      preferredStartTime: "2026-10-14T09:00:00+08:00",
+      preferredEndTime: "2026-10-14T11:00:00+08:00",
+      expectedAttendance: 12,
+      venueRequirements: "Access to every fire exit and the main hall.",
+      accessibilityNeeds: "Step-free access required for two attendees.",
+    },
   }),
   request({
     id: "request-harbour-conference",
@@ -120,6 +137,16 @@ const EVENT_REQUESTS: readonly EventRequest[] = [
     clientOrganisationId: HARBOUR,
     responsibleOrganiserId: CARA,
     assignedCoordinatorUserAccountId: NADIA,
+    details: {
+      description: "A day of talks and workshops for the logistics team.",
+      purpose: "Kick off next year's operations roadmap.",
+      preferredDate: "2026-11-25",
+      preferredStartTime: "2026-11-25T09:00:00+08:00",
+      preferredEndTime: "2026-11-25T18:00:00+08:00",
+      expectedAttendance: 300,
+      equipmentRequirements: "Projector, stage microphones, livestream setup.",
+      registrationRequirements: "Attendees must register in advance; no walk-ins.",
+    },
   }),
   request({
     id: "request-vendor-day",
@@ -127,6 +154,15 @@ const EVENT_REQUESTS: readonly EventRequest[] = [
     status: "Returned",
     responsibleOrganiserId: ALICE,
     assignedCoordinatorUserAccountId: NADIA,
+    details: {
+      description: "An informal thank-you event for this year's vendors.",
+      purpose: "Strengthen vendor relationships ahead of contract renewals.",
+      preferredDate: "2026-11-06",
+      preferredStartTime: "2026-11-06T17:00:00+08:00",
+      preferredEndTime: "2026-11-06T20:00:00+08:00",
+      expectedAttendance: 60,
+      venueRequirements: "Outdoor courtyard with a covered fallback.",
+    },
   }),
   // Assigned but still Submitted: not what assignEventCoordinator (SPM-97)
   // leaves behind -- it moves a Submitted request to Under Review as it
@@ -138,6 +174,15 @@ const EVENT_REQUESTS: readonly EventRequest[] = [
     status: "Submitted",
     responsibleOrganiserId: BEN,
     assignedCoordinatorUserAccountId: NADIA,
+    details: {
+      description: "A briefing for volunteers working the winter events season.",
+      purpose: "Bring new volunteers up to speed before the season opens.",
+      preferredDate: "2026-12-09",
+      preferredStartTime: "2026-12-09T14:00:00+08:00",
+      preferredEndTime: "2026-12-09T16:00:00+08:00",
+      expectedAttendance: 45,
+      venueRequirements: "A room that seats 45 with a projector.",
+    },
   }),
   // Approved: frozen and reachable by direct id (SPM-32), but excluded from
   // the queue (SPM-121) -- it has become an Event, a separate backlog view.
