@@ -41,8 +41,7 @@ create table role (
 
 create table user_account (
   user_account_id        bigint generated always as identity primary key,
-  -- auth_user_id        uuid unique references auth.users (id) on delete set null,
-  --   ^ uncomment if Supabase Auth is adopted as the identity provider (#62)
+  auth_user_id           uuid unique references auth.users (id) on delete set null,
   name                   text not null,
   contact_details        text,
   communication_preferences text,

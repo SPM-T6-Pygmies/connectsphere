@@ -42,6 +42,62 @@ Apply `supabase/schema.sql` to your Supabase project before using
 `/connections` — or, for a local Postgres instead of a hosted project, see
 [docs/DATABASE.md](docs/DATABASE.md).
 
+## Login Feature (SPM-13) — Local Setup
+
+Staff-only authentication with role-based access control is enabled locally via Supabase Auth.
+
+### Quick Start (Local Testing)
+
+```bash
+# Terminal 1: Start local Supabase
+supabase start
+# Copy the credentials from output
+
+# Terminal 2: Run migrations and seed test users
+supabase migration up
+NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
+SUPABASE_SERVICE_ROLE_KEY="<secret-key-from-above>" \
+pnpm ts-node supabase/seed-auth-test-users.ts
+
+# Terminal 3: Start dev server
+cp .env.example .env.local
+# Add Supabase credentials from Terminal 1 to .env.local
+pnpm dev
+```
+
+### Test Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Event Organiser | `organiser@test.com` | `TestPass123!` |
+| Event Coordinator | `coordinator@test.com` | `TestPass123!` |
+| Event Operations Manager | `ops@test.com` | `TestPass123!` |
+| Venue Staff | `venue@test.com` | `TestPass123!` |
+| Technical Support Staff | `support@test.com` | `TestPass123!` |
+
+### Access Control
+
+- **Protected:** `/staff/*` (requires login, redirects to login if not authenticated)
+- **Public:** `/events`, `/auth`, `/` (no authentication required)
+
+### Routes After Login
+
+Staff members are redirected to their role-specific landing view:
+- Organiser → `/staff/organiser/landing-view`
+- Coordinator → `/staff/coordinator/landing-view`
+- Operations Manager → `/staff/ops/landing-view`
+- Venue Staff → `/staff/venue/landing-view`
+- Technical Support Staff → `/staff/technical/landing-view`
+
+### Detailed Setup Guide
+
+For comprehensive setup instructions, environment variables, Infisical integration, troubleshooting, architecture, and testing, see:
+**[docs/LOGIN_FEATURE_SETUP_GUIDE.md](docs/LOGIN_FEATURE_SETUP_GUIDE.md)**
+
+Related:
+- **Database setup:** [docs/DATABASE.md](docs/DATABASE.md)
+- **Test data seeding:** [supabase/SEED.md](supabase/SEED.md)
+
 ## Commands
 
 | Command          | What it does                                          |
