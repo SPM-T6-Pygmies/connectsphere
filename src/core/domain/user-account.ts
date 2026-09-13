@@ -1,4 +1,5 @@
 import type { Brand } from "./brand";
+import type { ClientOrganisationId } from "./client-organisation";
 import { InvalidUserAccountIdError } from "./errors";
 
 export type UserAccountId = Brand<string, "UserAccountId">;
@@ -18,4 +19,22 @@ export function userAccountId(raw: string): UserAccountId {
     throw new InvalidUserAccountIdError(raw);
   }
   return trimmed as UserAccountId;
+}
+
+/**
+ * The non-secret portion of a persisted user account.
+ *
+ * `credentials_hash` is intentionally absent: credentials are verification
+ * material, not account profile data, and must never cross a read-model port.
+ */
+export interface UserAccount {
+  readonly id: UserAccountId;
+  readonly name: string;
+  readonly contactDetails: string | null;
+  readonly communicationPreferences: string | null;
+  readonly department: string | null;
+  readonly availability: string | null;
+  readonly clientOrganisationId: ClientOrganisationId | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 }

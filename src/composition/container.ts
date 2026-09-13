@@ -3,10 +3,12 @@ import {
   demoEventRequestRepository,
   demoRegistrationRepository,
 } from "@/adapters/outbound/in-memory/attendee-demo-seed";
+import { demoEventCoordinatorDirectory } from "@/adapters/outbound/in-memory/event-coordinator-demo-seed";
 import { demoEventRequestRepository as demoOrganisationEventRequestRepository } from "@/adapters/outbound/in-memory/organiser-demo-seed";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
+import { SupabaseEventCoordinatorDirectory } from "@/adapters/outbound/supabase/supabase-event-coordinator-directory";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
@@ -20,6 +22,7 @@ import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
 import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
+import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
 import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
 import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
 import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
@@ -36,6 +39,7 @@ import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-r
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
+import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
 import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
@@ -162,6 +166,14 @@ export async function buildViewAllEventRequests(): Promise<ViewAllEventRequests>
   return new ViewAllEventRequestsUseCase({
     eventRequests: await eventRequestAdapters(),
   });
+}
+
+export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinators> {
+  const eventCoordinators = hasSupabaseProject()
+    ? new SupabaseEventCoordinatorDirectory(await createSupabaseServerClient())
+    : demoEventCoordinatorDirectory;
+
+  return new ViewAllEventCoordinatorsUseCase({ eventCoordinators });
 }
 
 /**
