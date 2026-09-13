@@ -21,6 +21,7 @@ import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-m
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
+import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
 import type { Login } from "@/core/ports/inbound/login";
@@ -43,6 +44,7 @@ import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registr
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
+import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { LoginUseCase } from "@/core/use-cases/login";
@@ -201,6 +203,21 @@ export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoord
     : demoEventCoordinatorDirectory;
 
   return new ViewAllEventCoordinatorsUseCase({ eventCoordinators });
+}
+
+export async function buildAssignEventCoordinator(): Promise<AssignEventCoordinator> {
+  if (!hasSupabaseProject()) {
+    return new AssignEventCoordinatorUseCase({
+      eventRequests: demoEventRequestRepository,
+      eventCoordinators: demoEventCoordinatorDirectory,
+    });
+  }
+
+  const client = await createSupabaseServerClient();
+  return new AssignEventCoordinatorUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    eventCoordinators: new SupabaseEventCoordinatorDirectory(client),
+  });
 }
 
 /**

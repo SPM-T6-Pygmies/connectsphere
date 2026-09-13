@@ -1,6 +1,7 @@
 import type { Brand } from "./brand";
 import type { ClientOrganisationId } from "./client-organisation";
 import {
+  EventRequestNotAssignableError,
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
   PreferredDateNotInFutureError,
@@ -283,4 +284,29 @@ export function reassignResponsibleOrganiser(
   newOrganiserId: UserAccountId,
 ): EventRequest {
   return { ...request, responsibleOrganiserId: newOrganiserId };
+}
+
+/**
+ * Assigns or reassigns the Event Coordinator responsible for reviewing a request.
+ *
+ * Assignment starts the review only when the request has just been Submitted.
+ * Requests already further through an assignable workflow retain their status.
+ */
+export function assignEventCoordinator(
+  request: EventRequest,
+  coordinatorId: UserAccountId,
+): EventRequest {
+  if (
+    request.status === "Draft" ||
+    request.status === "Withdrawn" ||
+    request.status === "Rejected"
+  ) {
+    throw new EventRequestNotAssignableError(request.status);
+  }
+
+  return {
+    ...request,
+    assignedCoordinatorUserAccountId: coordinatorId,
+    status: request.status === "Submitted" ? "Under Review" : request.status,
+  };
 }

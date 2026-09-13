@@ -8,6 +8,7 @@ import type { EventRequestRepository } from "@/core/ports/outbound/event-request
 
 import type { SupabaseServerClient } from "./client";
 import {
+  toAssignEventCoordinatorArgs,
   toDeleteArgs,
   toDomain,
   toKey,
@@ -171,6 +172,21 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     if (error) {
       throw new Error(`Failed to reassign event request: ${error.message}`, { cause: error });
+    }
+  }
+
+  async assignEventCoordinator(request: EventRequest): Promise<void> {
+    const args = toAssignEventCoordinatorArgs(request);
+    if (args === null) {
+      throw new Error(
+        `Cannot assign a coordinator to event request with malformed ids "${request.id}" and "${request.assignedCoordinatorUserAccountId}".`,
+      );
+    }
+
+    const { error } = await this.client.rpc("operations_assign_event_coordinator", args);
+
+    if (error) {
+      throw new Error(`Failed to assign Event Coordinator: ${error.message}`, { cause: error });
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { UserAccount } from "@/core/domain/user-account";
+import type { UserAccount, UserAccountId } from "@/core/domain/user-account";
 import type { EventCoordinatorDirectory } from "@/core/ports/outbound/event-coordinator-directory";
 
 import type { SupabaseServerClient } from "./client";
@@ -19,5 +19,10 @@ export class SupabaseEventCoordinatorDirectory implements EventCoordinatorDirect
     }
 
     return ((data ?? []) as unknown as EventCoordinatorRow[]).map(eventCoordinatorToDomain);
+  }
+
+  async exists(id: UserAccountId): Promise<boolean> {
+    const coordinators = await this.listAll();
+    return coordinators.some((coordinator) => coordinator.id === id);
   }
 }

@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { toDomain, type EventRequestRow } from "./event-request-mapper";
+import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import { eventRequestId } from "@/core/domain/event-request";
+import { userAccountId } from "@/core/domain/user-account";
+
+import {
+  toAssignEventCoordinatorArgs,
+  toDomain,
+  type EventRequestRow,
+} from "./event-request-mapper";
 
 describe("event request mapper", () => {
   it("maps every persisted operations field into the domain request", () => {
@@ -84,5 +92,17 @@ describe("event request mapper", () => {
     };
 
     expect(toDomain(row).assignedCoordinatorUserAccountId).toBeNull();
+  });
+
+  it("maps a coordinator assignment to the Operations RPC arguments", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("1"),
+      assignedCoordinatorUserAccountId: userAccountId("9"),
+    });
+
+    expect(toAssignEventCoordinatorArgs(request)).toEqual({
+      p_event_request_id: 1,
+      p_event_coordinator_user_account_id: 9,
+    });
   });
 });

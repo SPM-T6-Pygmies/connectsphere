@@ -61,6 +61,10 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
     this.rows.set(request.id, request);
   }
 
+  async assignEventCoordinator(request: EventRequest): Promise<void> {
+    this.rows.set(request.id, request);
+  }
+
   /** Test-only window on what was stored, so a test can assert nothing was written. */
   all(): readonly EventRequest[] {
     return [...this.rows.values()];

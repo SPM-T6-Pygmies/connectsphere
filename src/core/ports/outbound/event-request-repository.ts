@@ -25,4 +25,6 @@ export interface EventRequestRepository {
    * not whoever currently owns the stored row.
    */
   reassignResponsibleOrganiser(request: EventRequest): Promise<void>;
+  /** Persists an Event Coordinator assignment and any resulting status transition. */
+  assignEventCoordinator(request: EventRequest): Promise<void>;
 }

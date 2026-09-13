@@ -189,6 +189,26 @@ export function toReassignArgs(request: EventRequest): Record<string, unknown> |
   };
 }
 
+/** Arguments for the atomic Event Operations coordinator-assignment function. */
+export function toAssignEventCoordinatorArgs(
+  request: EventRequest,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey =
+    request.assignedCoordinatorUserAccountId === null
+      ? null
+      : toKey(request.assignedCoordinatorUserAccountId);
+
+  if (requestKey === null || coordinatorKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_event_coordinator_user_account_id: coordinatorKey,
+  };
+}
+
 export function toSaveArgs(request: EventRequest): Record<string, unknown> | null {
   const key = toKey(request.id);
   if (key === null) {
