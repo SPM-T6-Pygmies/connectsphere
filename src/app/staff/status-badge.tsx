@@ -16,7 +16,7 @@ const VARIANTS: Record<string, Variant> = {
   Approved: "success",
   Rejected: "destructive",
   Returned: "warning",
-  Withdrawn: "outline",
+  Withdrawn: "destructive",
   // Event
   Planning: "secondary",
   Blocked: "destructive",
