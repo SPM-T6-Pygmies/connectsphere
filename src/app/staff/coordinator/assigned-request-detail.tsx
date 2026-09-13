@@ -12,9 +12,21 @@ import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { RequestStateBadge } from "./request-state-badge";
 
-/** `h:mm am/pm`, in the viewer's own timezone -- for an instant, not a calendar date. */
+/**
+ * `h:mm am/pm` in Singapore time -- for an instant, not a calendar date.
+ *
+ * The zone is explicit because this renders on the server: without it the
+ * instant is formatted in the server's zone, and a 9am request reads as 1am
+ * to the Coordinator. The system is Singapore-time only (#36), so there is
+ * one right answer rather than a per-viewer one.
+ */
 function formatInstantTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  return new Date(iso).toLocaleTimeString("en-US", {
+    timeZone: "Asia/Singapore",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 /**
