@@ -2,13 +2,13 @@ import { clientOrganisationId } from "../domain/client-organisation";
 import { eventRequestId, eventRequestAccessFor, type OrganiserContext } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type {
-  ViewEventRequest,
-  ViewEventRequestCommand,
-  ViewEventRequestResult,
-} from "../ports/inbound/view-event-request";
+  ViewOrganiserEventRequest,
+  ViewOrganiserEventRequestCommand,
+  ViewOrganiserEventRequestResult,
+} from "../ports/inbound/view-organiser-event-request";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 
-export interface ViewEventRequestDeps {
+export interface ViewOrganiserEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
 }
 
@@ -21,10 +21,12 @@ export interface ViewEventRequestDeps {
  * distinguishable from not-found, so a cross-org guess cannot confirm a
  * request even exists (#91).
  */
-export class ViewEventRequestUseCase implements ViewEventRequest {
-  constructor(private readonly deps: ViewEventRequestDeps) {}
+export class ViewOrganiserEventRequestUseCase implements ViewOrganiserEventRequest {
+  constructor(private readonly deps: ViewOrganiserEventRequestDeps) {}
 
-  async execute(command: ViewEventRequestCommand): Promise<ViewEventRequestResult | null> {
+  async execute(
+    command: ViewOrganiserEventRequestCommand,
+  ): Promise<ViewOrganiserEventRequestResult | null> {
     const request = await this.deps.eventRequests.findById(eventRequestId(command.id));
     if (request === null) {
       return null;

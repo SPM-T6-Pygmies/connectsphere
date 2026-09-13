@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { NOTIFICATIONS, type StaffRole } from "@/lib/wireframe";
 
 import { CoordinatorDetail } from "./coordinator/coordinator-detail";
-import { AssignDetail } from "./ops/assign-detail";
+import { LoadedAssignDetail } from "./ops/assign-detail";
 import { RequestDetail } from "./requester/request-detail";
 import { ReservationDetail } from "./technical/reservation-detail";
 import { BookingDetail } from "./venue/booking-detail";
@@ -45,7 +45,7 @@ export function NotificationDetail({
     case "request":
       return <RequestDetail id={target.id} origin="inbox" />;
     case "assign":
-      return <AssignDetail id={target.id} origin="inbox" />;
+      return <LoadedAssignDetail id={target.id} origin="inbox" />;
     case "event":
       return (
         <CoordinatorDetail

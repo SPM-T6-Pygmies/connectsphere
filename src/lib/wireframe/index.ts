@@ -9,14 +9,21 @@
 import { ACTING_AS, EVENTS, VENUES } from "./fixtures";
 import { ACTIVITY } from "./activity";
 import { notificationsFor } from "./notifications";
+import type { NotificationTrigger } from "./notifications";
 import type {
   ActivityEntry,
   ActivitySection,
   ArrangementRecord,
   BookingRecord,
+  BookingStatus,
   EquipmentReservationRecord,
+  EquipmentReservationStatus,
   EventRecord,
+  EventRequestStatus,
+  EventStatus,
+  FulfilmentStatus,
   Person,
+  RegistrationStatus,
   StaffRole,
 } from "./types";
 
@@ -40,6 +47,16 @@ export const STAFF_ROLES: readonly StaffRole[] = [
   "venue",
   "technical",
 ];
+
+/** Every status-like value displayed in the sidebar list pane. */
+export type AnyStatus =
+  | EventRequestStatus
+  | EventStatus
+  | BookingStatus
+  | EquipmentReservationStatus
+  | FulfilmentStatus
+  | RegistrationStatus
+  | NotificationTrigger;
 
 export function isStaffRole(value: string): value is StaffRole {
   return (STAFF_ROLES as readonly string[]).includes(value);
@@ -293,7 +310,7 @@ export interface ListPaneItem {
   readonly title: string;
   readonly meta: string;
   readonly teaser: string;
-  readonly status: string;
+  readonly status: AnyStatus;
   readonly unread?: boolean;
 }
 

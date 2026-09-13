@@ -1,9 +1,5 @@
-import { InfoIcon } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,49 +7,111 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { coordinatorEvents, eventById, PEOPLE } from "@/lib/wireframe";
+import {
+  buildViewAllEventCoordinators,
+  buildViewOperationsEventRequest,
+} from "@/composition/container";
+import type { EventCoordinatorDetails } from "@/core/ports/inbound/view-all-event-coordinators";
+import type { OperationsEventRequest } from "@/core/ports/inbound/view-all-event-requests";
 
-import { ActivityPanel } from "../activity-panel";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
+import { AssignEventCoordinatorForm } from "./assign-event-coordinator-form";
 
-const COORDINATORS = [PEOPLE.coordinatorAmara, PEOPLE.coordinatorJonas];
+function formatInstantTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
 
-export function AssignDetail({
+function preferredTimeOf(request: OperationsEventRequest): string | null {
+  if (request.preferredStartTime === null && request.preferredEndTime === null) {
+    return null;
+  }
+
+  if (request.preferredStartTime === null) {
+    return `Until ${formatInstantTime(request.preferredEndTime!)}`;
+  }
+
+  if (request.preferredEndTime === null) {
+    return `From ${formatInstantTime(request.preferredStartTime)}`;
+  }
+
+  return `${formatInstantTime(request.preferredStartTime)} – ${formatInstantTime(request.preferredEndTime)}`;
+}
+
+/** Loads the real Operations request and coordinator list for every route that opens this detail. */
+export async function LoadedAssignDetail({
   id,
   origin = "queue",
 }: {
   id: string;
   origin?: DetailOrigin;
 }) {
-  const event = eventById(id);
+  const [viewEventRequest, viewEventCoordinators] = await Promise.all([
+    buildViewOperationsEventRequest(),
+    buildViewAllEventCoordinators(),
+  ]);
+  const [eventRequestResult, eventCoordinatorsResult] = await Promise.all([
+    viewEventRequest.execute({ id }),
+    viewEventCoordinators.execute(),
+  ]);
 
-  if (!event) {
+  if (eventRequestResult === null) {
     notFound();
   }
 
-  const request = event.request;
-  const assigned = request.assignedCoordinator;
+  return (
+    <AssignDetail
+      eventRequest={eventRequestResult.eventRequest}
+      eventCoordinators={eventCoordinatorsResult.eventCoordinators}
+      origin={origin}
+    />
+  );
+}
+
+export function AssignDetail({
+  eventRequest,
+  eventCoordinators,
+  origin = "queue",
+}: {
+  eventRequest: OperationsEventRequest;
+  eventCoordinators: readonly EventCoordinatorDetails[];
+  origin?: DetailOrigin;
+}) {
+  const assignedCoordinator = eventCoordinators.find(
+    (coordinator) =>
+      coordinator.userAccountId === eventRequest.assignedCoordinatorUserAccountId,
+  );
+  const isAssigned = eventRequest.assignedCoordinatorUserAccountId !== null;
+  const assignedCoordinatorName =
+    assignedCoordinator?.name ??
+    (eventRequest.assignedCoordinatorUserAccountId === null
+      ? null
+      : `Coordinator ${eventRequest.assignedCoordinatorUserAccountId}`);
 
   return (
     <StaffShell
       role="ops"
+      activeSection={
+        origin === "queue" ? (isAssigned ? "assigned" : "unassigned") : undefined
+      }
       crumbs={detailCrumbs(
         "ops",
         origin,
-        assigned ? "Assigned" : "Unassigned",
-        request.eventName,
-        assigned ? "/staff/ops/assigned" : "/staff/ops",
+        isAssigned ? "Assigned" : "Unassigned",
+        eventRequest.eventName,
+        isAssigned ? "/staff/ops/assigned" : "/staff/ops",
       )}
     >
       <PageHeader
-        title={request.eventName}
-        description={`${request.clientOrganisation} · requested by ${request.requestedBy.name}`}
-        actions={<StatusBadge status={request.status} />}
+        title={eventRequest.eventName}
+        description={`Client organisation ${eventRequest.clientOrganisationId} · requested by account ${eventRequest.requestingUserAccountId}`}
+        actions={<StatusBadge status={eventRequest.status} />}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -69,123 +127,79 @@ export function AssignDetail({
             <CardContent>
               <FieldList
                 fields={[
-                  { label: "Category", value: request.categoryType },
-                  { label: "Preferred date", value: request.preferredDate },
-                  { label: "Preferred time", value: request.preferredTime },
+                  { label: "Preferred date", value: eventRequest.preferredDate },
+                  { label: "Preferred time", value: preferredTimeOf(eventRequest) },
                   {
                     label: "Expected attendance",
-                    value: request.expectedAttendance,
+                    value: eventRequest.expectedAttendance,
                   },
-                  { label: "Description", value: request.description },
-                  { label: "Purpose", value: request.purpose },
+                  { label: "Room layout", value: eventRequest.roomLayoutPreferences },
+                  { label: "Description", value: eventRequest.description },
+                  { label: "Purpose", value: eventRequest.purpose },
                   {
                     label: "Venue requirements",
-                    value: request.venueRequirements,
+                    value: eventRequest.venueRequirements,
                   },
                   {
                     label: "Equipment requirements",
-                    value: request.equipmentRequirements,
+                    value: eventRequest.equipmentRequirements,
                   },
                   {
                     label: "Accessibility needs",
-                    value: request.accessibilityNeeds,
+                    value: eventRequest.accessibilityNeeds,
                   },
                   {
                     label: "Registration requirements",
-                    value: request.registrationRequirements,
+                    value: eventRequest.registrationRequirements,
                   },
+                  { label: "Programme", value: eventRequest.generalProgramme },
+                  {
+                    label: "Other arrangements",
+                    value: eventRequest.otherSpecialArrangements,
+                  },
+                  { label: "Decision record", value: eventRequest.decisionRecord },
                 ]}
               />
             </CardContent>
           </Card>
-          <ActivityPanel eventId={event.id} role="ops" section="overview" />
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>
-                {assigned ? "Reassign coordinator" : "Assign a coordinator"}
+                {isAssigned ? "Reassign coordinator" : "Assign a coordinator"}
               </CardTitle>
               <CardDescription>
-                {assigned
-                  ? `Currently ${assigned.name}.`
+                {assignedCoordinatorName
+                  ? `Currently ${assignedCoordinatorName}.`
                   : "The coordinator becomes the client's main point of contact."}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                {COORDINATORS.map((coordinator) => {
-                  const load = coordinatorEvents(coordinator).length;
-                  const isCurrent = assigned?.id === coordinator.id;
-
-                  return (
-                    <label
-                      key={coordinator.id}
-                      className="hover:bg-muted/50 flex cursor-pointer items-start gap-3 rounded-lg border p-3"
-                    >
-                      <input
-                        type="radio"
-                        name="coordinator"
-                        defaultChecked={isCurrent}
-                        className="mt-1"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium">
-                          {coordinator.name}
-                        </span>
-                        <span className="text-muted-foreground block text-xs">
-                          {coordinator.department} ·{" "}
-                          {load === 1 ? "1 event" : `${load} events`} in flight
-                        </span>
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="assignmentNote">Note (optional)</Label>
-                <Textarea
-                  id="assignmentNote"
-                  placeholder="Anything the coordinator should know before picking this up."
-                />
-              </div>
-
-              <Button className="w-full">
-                {assigned ? "Reassign" : "Assign coordinator"}
-              </Button>
+            <CardContent>
+              <AssignEventCoordinatorForm
+                key={eventRequest.id}
+                eventRequestId={eventRequest.id}
+                eventRequestName={eventRequest.eventName}
+                currentCoordinatorUserAccountId={
+                  eventRequest.assignedCoordinatorUserAccountId
+                }
+                eventRequestStatus={eventRequest.status}
+                eventCoordinators={eventCoordinators}
+              />
             </CardContent>
           </Card>
 
-          <Alert variant="info">
-            <InfoIcon />
-            <AlertTitle>Assignment is a write, not a workflow</AlertTitle>
-            <AlertDescription>
-              <p>
-                There is no approval chain, no acceptance step and no way for a
-                coordinator to decline. A coordinator can hold several events at
-                once, and no workload cap is defined — the counts above are
-                context, not a limit the system enforces.
-              </p>
-            </AlertDescription>
-          </Alert>
-
-          {assigned ? (
+          {assignedCoordinatorName ? (
             <Card>
               <CardHeader>
                 <CardTitle>Where it goes next</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  {assigned.name} reviews the request, asks the organiser for
+                  {assignedCoordinatorName} reviews the request, asks the organiser for
                   anything unclear, and decides whether planning proceeds.
                 </p>
-                <Button variant="outline" size="sm" className="mt-3" asChild>
-                  <Link href={`/staff/coordinator/${event.id}`}>
-                    Open the coordinator&apos;s view
-                  </Link>
-                </Button>
               </CardContent>
             </Card>
           ) : null}

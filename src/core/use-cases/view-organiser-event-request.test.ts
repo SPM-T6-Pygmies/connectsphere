@@ -6,7 +6,7 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
-import { ViewEventRequestUseCase } from "./view-event-request";
+import { ViewOrganiserEventRequestUseCase } from "./view-organiser-event-request";
 
 const ORG_A = clientOrganisationId("org-a");
 const ORG_B = clientOrganisationId("org-b");
@@ -22,12 +22,12 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
 }
 
 function buildUseCase(seed: readonly EventRequest[]) {
-  return new ViewEventRequestUseCase({
+  return new ViewOrganiserEventRequestUseCase({
     eventRequests: new InMemoryEventRequestRepository(seed),
   });
 }
 
-describe("ViewEventRequestUseCase", () => {
+describe("ViewOrganiserEventRequestUseCase", () => {
   it("returns the request to its own responsible Organiser", async () => {
     const useCase = buildUseCase([request()]);
 

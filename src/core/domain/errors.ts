@@ -185,6 +185,22 @@ export class EventRequestNotFoundError extends DomainError {
   }
 }
 
+export class EventCoordinatorNotFoundError extends DomainError {
+  readonly code = "event_coordinator_not_found";
+
+  constructor(id: string) {
+    super(`No Event Coordinator exists with user account id ${id}.`);
+  }
+}
+
+export class EventRequestNotAssignableError extends DomainError {
+  readonly code = "event_request_not_assignable";
+
+  constructor(readonly status: string) {
+    super(`An event request with status ${status} cannot be assigned.`);
+  }
+}
+
 /**
  * SPM-31 AC3: the Organiser is told exactly what is missing.
  *

@@ -1,4 +1,4 @@
-import { actingOrganiser, buildViewEventRequest } from "@/composition/container";
+import { actingOrganiser, buildViewOrganiserEventRequest } from "@/composition/container";
 
 import { StaffShell } from "../../staff-shell";
 import type { FormValues } from "./form-fields";
@@ -12,7 +12,7 @@ export const metadata = { title: "New event request | ConnectSphere" };
  * Organiser actually saved, id included, rather than raising a new one.
  *
  * `undefined` when there is no such draft, it is not this Organiser's to
- * edit, or it has already moved past Draft -- `ViewEventRequestUseCase`
+ * edit, or it has already moved past Draft -- `ViewOrganiserEventRequestUseCase`
  * already treats "not visible" the same as "not found" (#91), and a
  * non-draft has nothing here to resume.
  */
@@ -20,8 +20,8 @@ async function draftFor(
   id: string,
 ): Promise<{ eventRequestId: string; values: Partial<FormValues> } | undefined> {
   const organiser = actingOrganiser();
-  const viewEventRequest = await buildViewEventRequest();
-  const result = await viewEventRequest.execute({ id, ...organiser });
+  const viewOrganiserEventRequest = await buildViewOrganiserEventRequest();
+  const result = await viewOrganiserEventRequest.execute({ id, ...organiser });
 
   if (result === null || result.eventRequest.status !== "Draft") {
     return undefined;
