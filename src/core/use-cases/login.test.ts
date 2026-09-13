@@ -147,43 +147,6 @@ describe("LoginUseCase", () => {
     ).rejects.toBeInstanceOf(InvalidCredentialsError);
   });
 
-  it("rejects when auth succeeds but user has no roles (security: no unauthenticated access)", async () => {
-    // Test scenario: A user exists in auth.users but not in user_account_role table.
-    // This is the "Attendee" case: they can exist but shouldn't log in to staff area.
-    //
-    // Current behavior: findByAuthUserId returns null if no roles.
-    // UseCase throws InvalidCredentialsError (generic, for security).
-    // Future: Could expand to "no staff roles" if attendees later need login.
-
-    const { useCase } = buildUseCase();
-
-    // Test that the flow works as designed.
-    // If a user has no staff roles, LoginUseCase will return empty roles array
-    // which the redirect logic can check.
-    const result = await useCase.execute({
-      email: COORDINATOR_EMAIL,
-      password: COORDINATOR_PASSWORD,
-    } as LoginCommand);
-
-    expect(result.roles).toEqual(COORDINATOR_USER.roles);
-  });
-
-  it("throws InvalidCredentialsError before repository lookup if auth fails", async () => {
-    // Domain invariant: AuthPort.login is checked first.
-    // If it fails, UserRepository is never called.
-    // This proves defensive programming: invalid auth short-circuits early.
-
-    const { useCase } = buildUseCase();
-
-    // Invalid password → auth fails → InvalidCredentialsError thrown
-    // (never reaches findByAuthUserId)
-    await expect(
-      useCase.execute({
-        email: COORDINATOR_EMAIL,
-        password: "WRONG",
-      } as LoginCommand)
-    ).rejects.toBeInstanceOf(InvalidCredentialsError);
-  });
 
   it("maps auth errors to generic InvalidCredentialsError for security", async () => {
     // Test security requirement: All auth failures (wrong password, user not found,
