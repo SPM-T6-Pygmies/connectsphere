@@ -12,7 +12,10 @@ import {
   PreferredEndTimeNotAfterStartError,
 } from "./errors";
 import {
+  coordinatorQueueStateFor,
+  coordinatorRequestStateFor,
   eventRequestAccessFor,
+  eventRequestAccessForCoordinator,
   isSubmittable,
   missingMandatoryFields,
   reassignResponsibleOrganiser,
@@ -27,6 +30,8 @@ const ORG_B = clientOrganisationId("org-b");
 const RESPONSIBLE = userAccountId("organiser-1");
 const COLLEAGUE = userAccountId("organiser-2");
 const NEW_RESPONSIBLE = userAccountId("organiser-3");
+const COORDINATOR = userAccountId("coordinator-1");
+const OTHER_COORDINATOR = userAccountId("coordinator-2");
 
 function request(overrides: Partial<EventRequest> = {}): EventRequest {
   return eventRequestFixture({
@@ -83,6 +88,44 @@ describe("eventRequestAccessFor", () => {
   it("refuses the responsible Organiser too, once they belong to an unrelated organisation", () => {
     expect(
       eventRequestAccessFor(request(), { userAccountId: RESPONSIBLE, clientOrganisationId: ORG_B }),
+    ).toBe("none");
+  });
+});
+
+describe("eventRequestAccessForCoordinator", () => {
+  it("grants view access to the assigned coordinator", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: COORDINATOR }),
+        { userAccountId: COORDINATOR },
+      ),
+    ).toBe("view");
+  });
+
+  it("never grants edit access, even to the assigned coordinator", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: COORDINATOR }),
+        { userAccountId: COORDINATOR },
+      ),
+    ).not.toBe("edit");
+  });
+
+  it("refuses a coordinator the request is not assigned to", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: COORDINATOR }),
+        { userAccountId: OTHER_COORDINATOR },
+      ),
+    ).toBe("none");
+  });
+
+  it("refuses every coordinator while the request is unassigned", () => {
+    expect(
+      eventRequestAccessForCoordinator(
+        request({ assignedCoordinatorUserAccountId: null }),
+        { userAccountId: COORDINATOR },
+      ),
     ).toBe("none");
   });
 });
@@ -322,5 +365,37 @@ describe("saveEventRequestDraft", () => {
     expect(
       eventRequestAccessFor(request, { userAccountId: RESPONSIBLE, clientOrganisationId: ORG_A }),
     ).toBe("edit");
+  });
+});
+
+describe("coordinatorQueueStateFor", () => {
+  it.each(["Submitted", "Under Review"] as const)(
+    "puts a %s request in the queue as awaiting the coordinator's decision",
+    (status) => {
+      expect(coordinatorQueueStateFor(status)).toBe("awaiting-decision");
+    },
+  );
+
+  it("puts a Returned request in the queue, marked as sitting with the organiser", () => {
+    expect(coordinatorQueueStateFor("Returned")).toBe("with-organiser");
+  });
+
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
+    "keeps a %s request out of the queue",
+    (status) => {
+      expect(coordinatorQueueStateFor(status)).toBeNull();
+    },
+  );
+});
+
+describe("coordinatorRequestStateFor", () => {
+  it("still names a decided request by its outcome, which reads the same to everyone", () => {
+    expect(coordinatorRequestStateFor("Approved")).toBe("approved");
+    expect(coordinatorRequestStateFor("Rejected")).toBe("rejected");
+    expect(coordinatorRequestStateFor("Withdrawn")).toBe("withdrawn");
+  });
+
+  it("gives a Draft no coordinator-facing state -- it cannot carry an assignment", () => {
+    expect(coordinatorRequestStateFor("Draft")).toBeNull();
   });
 });

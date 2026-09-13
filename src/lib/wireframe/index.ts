@@ -48,8 +48,19 @@ export const STAFF_ROLES: readonly StaffRole[] = [
   "technical",
 ];
 
+/**
+ * How a request reads to the Event Coordinator it is assigned to (SPM-121).
+ *
+ * Not an `EventRequestStatus`: that is the Organiser's vocabulary, and
+ * `Submitted` vs `Under Review` is a distinction only they care about. The
+ * mapping from one to the other is `coordinatorRequestStateFor` in
+ * `@/core/domain/event-request`.
+ */
+export type CoordinatorRequestLabel = "Awaiting decision" | "With organiser";
+
 /** Every status-like value displayed in the sidebar list pane. */
 export type AnyStatus =
+  | CoordinatorRequestLabel
   | EventRequestStatus
   | EventStatus
   | BookingStatus

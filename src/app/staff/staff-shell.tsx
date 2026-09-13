@@ -17,9 +17,12 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {
+  actingCoordinator,
   actingOrganiser,
   buildViewAllEventCoordinators,
   buildViewAllEventRequests,
+  buildViewAssignedEventRequests,
+  buildViewAssignedEvents,
   buildViewMyEventRequests,
 } from "@/composition/container"
 import {
@@ -28,6 +31,8 @@ import {
   type SidebarSection,
   type StaffRole,
 } from "@/lib/wireframe"
+
+import { requestStateLabel } from "./coordinator/request-state-badge"
 
 export { PageHeader } from "./page-header"
 
@@ -87,9 +92,50 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
     }))
 }
 
+/**
+ * The coordinator's "My requests" queue pane, from the same use case the page
+ * reads -- real assigned data, not the wireframe fixtures `listPaneItems`
+ * still falls back to for "Archive" (out of scope for SPM-121/32 -- see
+ * coordinator-detail.tsx).
+ *
+ * The pane shows the Coordinator's reading of each request, not the stored
+ * status -- see `requestStateLabel`.
+ */
+async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
+  const coordinator = actingCoordinator()
+  const viewAssignedEventRequests = await buildViewAssignedEventRequests()
+  const { eventRequests } = await viewAssignedEventRequests.execute(coordinator)
+
+  return eventRequests.map((request) => ({
+    id: request.id,
+    href: `/staff/coordinator/${request.id}`,
+    title: request.eventName,
+    meta: request.preferredDate ?? "No date",
+    teaser: request.clientOrganisationName,
+    status: requestStateLabel(request.state),
+  }))
+}
+
+/** The coordinator's "My events" queue pane, from the same use case the page reads (SPM-137). */
+async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
+  const coordinator = actingCoordinator()
+  const viewAssignedEvents = await buildViewAssignedEvents()
+  const { events } = await viewAssignedEvents.execute(coordinator)
+
+  return events.map((event) => ({
+    id: event.id,
+    href: `/staff/coordinator/${event.id}`,
+    title: event.name,
+    meta: event.preferredDate ?? "No date",
+    teaser: event.clientOrganisationName,
+    status: event.status,
+  }))
+}
+
 async function getRespectiveQueueItems(
   role: StaffRole,
   crumbs: readonly Crumb[],
+  coordinatorSection: CoordinatorSection,
 ): Promise<ListPaneItem[] | undefined> {
   if (role === "requester") {
     return getQueueItemsForRequester()
@@ -100,8 +146,17 @@ async function getRespectiveQueueItems(
     return getQueueItemsForOps(assigned)
   }
 
+  if (role === "coordinator") {
+    return coordinatorSection === "events"
+      ? getQueueItemsForCoordinatorEvents()
+      : getQueueItemsForCoordinatorRequests()
+  }
+
   return undefined
 }
+
+/** Which of the coordinator's two panes to fill: their requests, or their events. */
+export type CoordinatorSection = "requests" | "events"
 
 export interface Crumb {
   readonly label: string
@@ -121,6 +176,7 @@ export async function StaffShell({
   activeSection,
   defaultOpen = true,
   children,
+  coordinatorSection = "requests",
 }: {
   role: StaffRole
   crumbs: readonly Crumb[]
@@ -136,8 +192,9 @@ export async function StaffShell({
    */
   defaultOpen?: boolean
   children: ReactNode
+  coordinatorSection?: CoordinatorSection
 }) {
-  const queueItems = await getRespectiveQueueItems(role, crumbs)
+  const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection)
 
   return (
     // The two-pane sidebar is the icon rail plus a list pane, so it needs the

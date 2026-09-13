@@ -9,6 +9,9 @@ type Variant = React.ComponentProps<typeof Badge>["variant"]
  * refused, grey means not started or finished-and-closed.
  */
 const VARIANTS: Record<string, Variant> = {
+  // Event request, as its assigned Coordinator reads it (SPM-121)
+  "Awaiting decision": "warning",
+  "With organiser": "secondary",
   // Event request
   Draft: "outline",
   Submitted: "secondary",

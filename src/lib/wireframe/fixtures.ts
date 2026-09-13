@@ -20,45 +20,54 @@ import type {
 
 // --- People ----------------------------------------------------------------
 
+/**
+ * Names and ids match scripts/seed-data/seed.sql (and
+ * adapters/outbound/in-memory/organiser-demo-seed.ts): the same Alice, Ben,
+ * Cara, Nadia and Omar exist for real once a Supabase project is configured,
+ * so the wireframe and the seeded backend show the same people rather than
+ * two unrelated casts. Daniel, Mei and Ravi (ops/venue/technical) are
+ * wireframe-only for now -- see the seed script's own note on why they carry
+ * this file's names rather than the other way round.
+ */
 export const PEOPLE = {
   organiserPriya: {
-    id: "u-01",
-    name: "Priya Raman",
+    id: "organiser-alice",
+    name: "Alice",
     department: null,
-    clientOrganisation: "Meridian Financial",
+    clientOrganisation: "Sunrise Events Co",
   },
   organiserWeiLin: {
-    id: "u-02",
-    name: "Tan Wei Lin",
+    id: "organiser-ben",
+    name: "Ben",
     department: null,
-    clientOrganisation: "Meridian Financial",
+    clientOrganisation: "Sunrise Events Co",
   },
   opsManagerDaniel: {
-    id: "u-03",
+    id: "ops-daniel",
     name: "Daniel Okonkwo",
     department: "Event Operations",
     clientOrganisation: null,
   },
   coordinatorAmara: {
-    id: "u-04",
-    name: "Amara Sithole",
+    id: "coordinator-nadia",
+    name: "Nadia",
     department: "Event Coordination",
     clientOrganisation: null,
   },
   coordinatorJonas: {
-    id: "u-05",
-    name: "Jonas Berg",
+    id: "coordinator-omar",
+    name: "Omar",
     department: "Event Coordination",
     clientOrganisation: null,
   },
   venueMei: {
-    id: "u-06",
+    id: "venue-mei",
     name: "Mei Chen",
     department: "Venue Operations",
     clientOrganisation: null,
   },
   technicalRavi: {
-    id: "u-07",
+    id: "technical-ravi",
     name: "Ravi Kulkarni",
     department: "Technical Support",
     clientOrganisation: null,
@@ -153,7 +162,7 @@ function request(
     decisionRecord: null,
     requestedBy: PEOPLE.organiserPriya,
     assignedCoordinator: null,
-    clientOrganisation: "Meridian Financial",
+    clientOrganisation: "Sunrise Events Co",
     submittedAt: null,
     updatedAt: "2026-09-08",
     ...overrides,

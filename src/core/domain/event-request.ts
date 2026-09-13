@@ -65,8 +65,9 @@ export interface EventRequestDetails {
 }
 
 /**
- * An event request as its responsible Event Organiser, and colleagues in the
- * same client organisation, are allowed to see it.
+ * An event request as its responsible Event Organiser, colleagues in the same
+ * client organisation, and (once assigned) its Event Coordinator are allowed
+ * to see it.
  */
 export interface EventRequest {
   readonly id: EventRequestId;
@@ -74,6 +75,12 @@ export interface EventRequest {
   readonly status: EventRequestStatus;
   readonly clientOrganisationId: ClientOrganisationId;
   readonly responsibleOrganiserId: UserAccountId;
+  /**
+   * Null until the Event Operations Manager assigns a coordinator (SPM-97),
+   * which is also what moves a Submitted request to `Under Review` -- see
+   * `assignEventCoordinator`. Frozen once the request is `Approved`
+   * (schema.sql).
+   */
   readonly assignedCoordinatorUserAccountId: UserAccountId | null;
   readonly decisionRecord: string | null;
   readonly createdAt: Date;
@@ -270,6 +277,103 @@ export function eventRequestAccessFor(
   }
 
   return "view";
+}
+
+export interface CoordinatorContext {
+  readonly userAccountId: UserAccountId;
+}
+
+/**
+ * The single answer to "what may this Event Coordinator do with this
+ * request?" (SPM-32, SPM-121).
+ *
+ * Unlike the Organiser's access, there is no organisation scoping and no
+ * edit case: a Coordinator's access is purely "am I the one this was
+ * assigned to", and SPM-32 is read-only by design (decisions are SPM-33/34's
+ * job). Same not-found convention as `eventRequestAccessFor`: callers should
+ * turn `"none"` into a not-found, never a forbidden (#91).
+ */
+export function eventRequestAccessForCoordinator(
+  request: EventRequest,
+  coordinator: CoordinatorContext,
+): EventRequestAccess {
+  if (request.assignedCoordinatorUserAccountId === coordinator.userAccountId) {
+    return "view";
+  }
+  return "none";
+}
+
+/**
+ * A request's standing as its assigned Event Coordinator reads it (SPM-121).
+ *
+ * `EventRequestStatus` is the Organiser's vocabulary: it distinguishes
+ * `Submitted` from `Under Review` because those mean different things to
+ * whoever raised the request. To the Coordinator they mean the same thing --
+ * a request sitting with them, waiting to be approved, rejected or returned
+ * ([[event-request-workflow]] Steps 4-5) -- so both collapse to
+ * `"awaiting-decision"`. The one pre-decision distinction a Coordinator does
+ * need is `Returned`: the ball is in the Organiser's court until they amend
+ * and resubmit, and nothing the Coordinator does moves it.
+ *
+ * Decided requests keep their own names, because an outcome means the same
+ * thing to everyone who reads it.
+ *
+ * `null` means the request is not a Coordinator's to see at all: `Draft` is
+ * the Organiser's alone and cannot carry an assignment. Returning `null`
+ * rather than a state is what makes this the single answer to "is this in my
+ * queue?" as well as "what do I call it?" -- the two cannot drift apart.
+ */
+export type CoordinatorRequestState =
+  | "awaiting-decision"
+  | "with-organiser"
+  | "approved"
+  | "rejected"
+  | "withdrawn";
+
+const COORDINATOR_REQUEST_STATES: Readonly<
+  Record<EventRequestStatus, CoordinatorRequestState | null>
+> = {
+  Draft: null,
+  Submitted: "awaiting-decision",
+  "Under Review": "awaiting-decision",
+  Returned: "with-organiser",
+  Approved: "approved",
+  Rejected: "rejected",
+  Withdrawn: "withdrawn",
+};
+
+export function coordinatorRequestStateFor(
+  status: EventRequestStatus,
+): CoordinatorRequestState | null {
+  return COORDINATOR_REQUEST_STATES[status];
+}
+
+/** The states that put a request in the Coordinator's queue: theirs to act on, or waiting on the Organiser. */
+const QUEUE_STATES: ReadonlySet<CoordinatorRequestState> = new Set([
+  "awaiting-decision",
+  "with-organiser",
+]);
+
+/**
+ * A request's state if it belongs in the assigned Coordinator's queue, and
+ * `null` if it does not (SPM-121).
+ *
+ * `Submitted` counts. `assignEventCoordinator` (SPM-97) does move a
+ * Submitted request to `Under Review` as it assigns, so the normal path
+ * never leaves one here -- but assignment is a plain column write, and a
+ * request assigned by any other route (a seed, a migration, a future
+ * bulk-assign) would otherwise be invisible to the only person who can act
+ * on it. A queue that silently drops an assigned request is the worse
+ * failure, so membership follows the assignment, not the status.
+ *
+ * One call answers membership and label together, so a caller cannot filter
+ * on one rule and display another.
+ */
+export function coordinatorQueueStateFor(
+  status: EventRequestStatus,
+): CoordinatorRequestState | null {
+  const state = coordinatorRequestStateFor(status);
+  return state !== null && QUEUE_STATES.has(state) ? state : null;
 }
 
 /**
