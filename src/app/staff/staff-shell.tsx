@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar"
 import {
   actingOrganiser,
+  buildViewAllEventCoordinators,
   buildViewAllEventRequests,
   buildViewMyEventRequests,
 } from "@/composition/container"
@@ -54,8 +55,17 @@ async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
 }
 
 async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
-  const viewAllEventRequests = await buildViewAllEventRequests()
-  const { eventRequests } = await viewAllEventRequests.execute()
+  const [viewAllEventRequests, viewAllEventCoordinators] = await Promise.all([
+    buildViewAllEventRequests(),
+    buildViewAllEventCoordinators(),
+  ])
+  const [{ eventRequests }, { eventCoordinators }] = await Promise.all([
+    viewAllEventRequests.execute(),
+    viewAllEventCoordinators.execute(),
+  ])
+  const coordinatorNames = new Map(
+    eventCoordinators.map((coordinator) => [coordinator.userAccountId, coordinator.name]),
+  )
 
   return eventRequests
     .filter(
@@ -71,7 +81,8 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
       teaser:
         request.assignedCoordinatorUserAccountId === null
           ? "No coordinator assigned yet."
-          : `Coordinator ${request.assignedCoordinatorUserAccountId}`,
+          : coordinatorNames.get(request.assignedCoordinatorUserAccountId) ??
+            "Coordinator assigned",
       status: request.status,
     }))
 }
