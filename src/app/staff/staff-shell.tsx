@@ -21,7 +21,12 @@ import {
   buildViewAllEventRequests,
   buildViewMyEventRequests,
 } from "@/composition/container"
-import { ROLE_LABELS, type ListPaneItem, type StaffRole } from "@/lib/wireframe"
+import {
+  ROLE_LABELS,
+  type ListPaneItem,
+  type SidebarSection,
+  type StaffRole,
+} from "@/lib/wireframe"
 
 export { PageHeader } from "./page-header"
 
@@ -102,11 +107,14 @@ export interface Crumb {
 export async function StaffShell({
   role,
   crumbs,
+  activeSection,
   defaultOpen = true,
   children,
 }: {
   role: StaffRole
   crumbs: readonly Crumb[]
+  /** Overrides path-based section inference for details loaded from real data. */
+  activeSection?: SidebarSection
   /**
    * Whether the list pane starts open.
    *
@@ -127,7 +135,7 @@ export async function StaffShell({
       defaultOpen={defaultOpen}
       style={{ "--sidebar-width": "23rem" } as CSSProperties}
     >
-      <AppSidebar role={role} queueItems={queueItems} />
+      <AppSidebar role={role} queueItems={queueItems} activeSection={activeSection} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />

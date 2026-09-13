@@ -179,23 +179,25 @@ function currentSection(role: StaffRole, pathname: string): SidebarSection {
  * The staff shell: an icon rail, a list of what the acting role is working
  * through, and the detail beside it.
  *
- * Which list shows is read from the path rather than held in state, so the
- * pane always agrees with the page next to it and a link into a queue arrives
- * with the right list already open.
+ * Which list shows normally comes from the path. A real-data detail may supply
+ * its section because its id cannot be resolved through the wireframe fixtures.
  */
 export function AppSidebar({
   role,
   queueItems,
+  activeSection,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   role: StaffRole
-  /** The role's queue, fetched from real data server-side. Falls back to the wireframe fixtures when omitted -- still every role but `requester`. */
+  /** The role's queue, fetched from real data server-side. Falls back to wireframe fixtures when omitted. */
   queueItems?: readonly ListPaneItem[]
+  /** The real record's section when its id is not part of the wireframe fixtures. */
+  activeSection?: SidebarSection
 }) {
   const pathname = usePathname()
   const rail = railItems(role)
 
-  const section = currentSection(role, pathname)
+  const section = activeSection ?? currentSection(role, pathname)
 
   const items =
     section !== "notifications" && queueItems !== undefined

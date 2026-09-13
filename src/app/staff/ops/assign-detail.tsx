@@ -1,8 +1,5 @@
-import { InfoIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,8 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   buildViewAllEventCoordinators,
   buildViewOperationsEventRequest,
@@ -23,6 +18,7 @@ import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
+import { AssignEventCoordinatorForm } from "./assign-event-coordinator-form";
 
 function formatInstantTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-US", {
@@ -46,11 +42,6 @@ function preferredTimeOf(request: OperationsEventRequest): string | null {
   }
 
   return `${formatInstantTime(request.preferredStartTime)} – ${formatInstantTime(request.preferredEndTime)}`;
-}
-
-function coordinatorMeta(coordinator: EventCoordinatorDetails): string {
-  return [coordinator.department, coordinator.availability].filter(Boolean).join(" · ") ||
-    "No availability details supplied";
 }
 
 /** Loads the real Operations request and coordinator list for every route that opens this detail. */
@@ -106,6 +97,9 @@ export function AssignDetail({
   return (
     <StaffShell
       role="ops"
+      activeSection={
+        origin === "queue" ? (isAssigned ? "assigned" : "unassigned") : undefined
+      }
       crumbs={detailCrumbs(
         "ops",
         origin,
@@ -182,58 +176,17 @@ export function AssignDetail({
                   : "The coordinator becomes the client's main point of contact."}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                {eventCoordinators.length === 0 ? (
-                  <p className="text-muted-foreground rounded-lg border border-dashed p-3 text-sm">
-                    No Event Coordinators are available.
-                  </p>
-                ) : (
-                  eventCoordinators.map((coordinator) => {
-                    const isCurrent =
-                      eventRequest.assignedCoordinatorUserAccountId ===
-                      coordinator.userAccountId;
-
-                    return (
-                      <label
-                        key={coordinator.userAccountId}
-                        className="hover:bg-muted/50 flex cursor-pointer items-start gap-3 rounded-lg border p-3"
-                      >
-                        <input
-                          type="radio"
-                          name="coordinator"
-                          value={coordinator.userAccountId}
-                          defaultChecked={isCurrent}
-                          className="mt-1"
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-medium">
-                            {coordinator.name}
-                          </span>
-                          <span className="text-muted-foreground block text-xs">
-                            {coordinatorMeta(coordinator)}
-                          </span>
-                        </span>
-                      </label>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="assignmentNote">Note (optional)</Label>
-                <Textarea
-                  id="assignmentNote"
-                  placeholder="Anything the coordinator should know before picking this up."
-                />
-              </div>
-
-              <Button type="button" className="w-full" disabled>
-                {isAssigned ? "Reassign" : "Assign coordinator"}
-              </Button>
-              <p className="text-muted-foreground text-xs">
-                Assignment will be enabled when the assignment use case is connected.
-              </p>
+            <CardContent>
+              <AssignEventCoordinatorForm
+                key={eventRequest.id}
+                eventRequestId={eventRequest.id}
+                eventRequestName={eventRequest.eventName}
+                currentCoordinatorUserAccountId={
+                  eventRequest.assignedCoordinatorUserAccountId
+                }
+                eventRequestStatus={eventRequest.status}
+                eventCoordinators={eventCoordinators}
+              />
             </CardContent>
           </Card>
 
