@@ -17,6 +17,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
+import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
@@ -254,7 +255,10 @@ export async function buildLogin(): Promise<Login> {
 }
 
 export async function buildLogout(): Promise<Logout> {
-  return new LogoutUseCase({ auth: new SupabaseAuthAdapter() });
+  return new LogoutUseCase({
+    auth: new SupabaseAuthAdapter(),
+    auditLogger: new SupabaseAuditLogger(),
+  });
 }
 
 /**

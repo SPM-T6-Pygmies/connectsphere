@@ -1,3 +1,7 @@
+export interface LogoutInput {
+  userId: string;
+}
+
 export interface Logout {
-  execute(): Promise<void>;
+  execute(input: LogoutInput): Promise<void>;
 }
