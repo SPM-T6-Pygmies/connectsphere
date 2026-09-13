@@ -15,6 +15,7 @@ import { SupabaseEventCoordinatorDirectory } from "@/adapters/outbound/supabase/
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseOrganiserDirectory } from "@/adapters/outbound/supabase/supabase-organiser-directory";
+import { SupabaseOperationsEventRequestReader } from "@/adapters/outbound/supabase/supabase-operations-event-request-reader";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
@@ -30,12 +31,13 @@ import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-requ
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
-import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
+import type { ViewOrganiserEventRequest } from "@/core/ports/inbound/view-organiser-event-request";
 import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
 import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
 import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
 import type { ListOrganisationOrganisers } from "@/core/ports/inbound/list-organisation-organisers";
 import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
+import type { ViewOperationsEventRequest } from "@/core/ports/inbound/view-operations-event-request";
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
@@ -51,12 +53,13 @@ import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-reques
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
-import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
+import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
 import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
 import { ListOrganisationOrganisersUseCase } from "@/core/use-cases/list-organisation-organisers";
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
+import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
@@ -172,14 +175,24 @@ export async function buildViewMyEventRequests(): Promise<ViewMyEventRequests> {
   return new ViewMyEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-export async function buildViewEventRequest(): Promise<ViewEventRequest> {
-  return new ViewEventRequestUseCase({ eventRequests: await eventRequestAdapters() });
+export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequest> {
+  return new ViewOrganiserEventRequestUseCase({
+    eventRequests: await eventRequestAdapters(),
+  });
 }
 
 export async function buildViewAllEventRequests(): Promise<ViewAllEventRequests> {
   return new ViewAllEventRequestsUseCase({
     eventRequests: await eventRequestAdapters(),
   });
+}
+
+export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequest> {
+  const eventRequests = hasSupabaseProject()
+    ? new SupabaseOperationsEventRequestReader(await createSupabaseServerClient())
+    : demoEventRequestRepository;
+
+  return new ViewOperationsEventRequestUseCase({ eventRequests });
 }
 
 export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinators> {
