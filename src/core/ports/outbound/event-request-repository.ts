@@ -8,6 +8,8 @@ import type { UserAccountId } from "../../domain/user-account";
 
 /** Read/write access to event requests, scoped the way the domain scopes them. */
 export interface EventRequestRepository {
+  /** Every request visible to Event Operations, without organisation or status filtering. */
+  listAll(): Promise<readonly EventRequest[]>;
   listByClientOrganisation(clientOrganisationId: ClientOrganisationId): Promise<readonly EventRequest[]>;
   listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]>;
   findById(id: EventRequestId): Promise<EventRequest | null>;
@@ -15,4 +17,16 @@ export interface EventRequestRepository {
   create(request: NewEventRequest): Promise<EventRequest>;
   save(request: EventRequest): Promise<void>;
   delete(request: EventRequest): Promise<void>;
+  /**
+   * Persists a change of responsible Organiser (#61, #59).
+   *
+   * Deliberately not `save()`: that path is guarded to a request's own
+   * responsible Organiser amending their still-`Draft` request (SPM-38).
+   * Reassignment must cross both of those on purpose -- the request need not
+   * be `Draft`, and the id on `request` is already the *incoming* Organiser,
+   * not whoever currently owns the stored row.
+   */
+  reassignResponsibleOrganiser(request: EventRequest): Promise<void>;
+  /** Persists an Event Coordinator assignment and any resulting status transition. */
+  assignEventCoordinator(request: EventRequest): Promise<void>;
 }

@@ -1,33 +1,33 @@
-import { Badge } from "@/components/ui/badge";
 import type { CoordinatorRequestState } from "@/core/domain/event-request";
+import type { CoordinatorRequestLabel } from "@/lib/wireframe";
+
+import { StatusBadge } from "../status-badge";
 
 /**
  * A request's standing in the Coordinator's own words (SPM-121).
  *
- * Deliberately not `StatusBadge`: that renders the stored
- * `EventRequestStatus`, which is the Organiser's vocabulary. `Submitted` and
- * `Under Review` are a distinction the Organiser cares about and the
- * Coordinator does not -- both are simply a request waiting on their
+ * `Submitted` and `Under Review` are a distinction the Organiser cares about
+ * and the Coordinator does not -- both are simply a request waiting on their
  * decision. What a Coordinator needs to tell apart is whether a request is
  * theirs to act on or sitting with the Organiser, which is the split below.
+ * Decided requests keep their own names: an outcome reads the same to
+ * everyone.
  *
- * Colour follows the same vocabulary as `StatusBadge` so a reader learns it
- * once: amber for in flight, grey for waiting on someone else, green
- * settled, red refused.
+ * Rendering goes through `StatusBadge` so the colour vocabulary stays in one
+ * place -- amber for in flight, grey for waiting on someone else.
  */
-const LABELS: Readonly<Record<CoordinatorRequestState, { text: string; variant: "warning" | "secondary" | "success" | "destructive" | "outline" }>> = {
-  "awaiting-decision": { text: "Awaiting decision", variant: "warning" },
-  "with-organiser": { text: "With organiser", variant: "secondary" },
-  approved: { text: "Approved", variant: "success" },
-  rejected: { text: "Rejected", variant: "destructive" },
-  withdrawn: { text: "Withdrawn", variant: "outline" },
+const LABELS: Readonly<Record<CoordinatorRequestState, CoordinatorRequestLabel | "Approved" | "Rejected" | "Withdrawn">> = {
+  "awaiting-decision": "Awaiting decision",
+  "with-organiser": "With organiser",
+  approved: "Approved",
+  rejected: "Rejected",
+  withdrawn: "Withdrawn",
 };
 
-export function requestStateLabel(state: CoordinatorRequestState): string {
-  return LABELS[state].text;
+export function requestStateLabel(state: CoordinatorRequestState) {
+  return LABELS[state];
 }
 
 export function RequestStateBadge({ state }: { state: CoordinatorRequestState }) {
-  const { text, variant } = LABELS[state];
-  return <Badge variant={variant}>{text}</Badge>;
+  return <StatusBadge status={LABELS[state]} />;
 }

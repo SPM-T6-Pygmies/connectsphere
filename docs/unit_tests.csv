@@ -1,0 +1,32 @@
+Test ID,Related Ticket,Acceptance Criteria,Test File,Test Case Description,Expected Result,Status
+TC-01,SPM-113,AC2,src/core/domain/event-request.test.ts,Responsible Organiser requests edit access while the request is Draft,Access is "edit",Pass
+TC-02,SPM-113,AC2,src/core/domain/event-request.test.ts,Responsible Organiser requests edit access once the request is Submitted (#102),Access narrows to "view",Pass
+TC-03,SPM-113,AC2,src/core/domain/event-request.test.ts,Responsible Organiser requests edit access once the request is Under Review,Access narrows to "view",Pass
+TC-04,SPM-113,AC2,src/core/domain/event-request.test.ts,Responsible Organiser requests edit access once the request is Approved,Access narrows to "view",Pass
+TC-05,SPM-113,AC2,src/core/domain/event-request.test.ts,Responsible Organiser requests edit access once the request is Rejected,Access narrows to "view",Pass
+TC-06,SPM-113,AC2,src/core/domain/event-request.test.ts,Responsible Organiser requests edit access once the request is Returned,Access narrows to "view",Pass
+TC-07,SPM-113,AC2,src/core/domain/event-request.test.ts,Responsible Organiser requests edit access once the request is Withdrawn,Access narrows to "view",Pass
+TC-08,SPM-112,AC3,src/core/domain/event-request.test.ts,Same-organisation colleague (not responsible) requests access while the request is Draft,Access is "view" (never "edit"),Pass
+TC-09,SPM-112,AC3,src/core/domain/event-request.test.ts,Same-organisation colleague requests access after the request is submitted,Access remains "view",Pass
+TC-10,SPM-112,AC4,src/core/domain/event-request.test.ts,Colleague from an unrelated client organisation requests access,Access is "none",Pass
+TC-11,SPM-112,AC4,src/core/domain/event-request.test.ts,The responsible Organiser requests access after being moved to an unrelated organisation,Access is "none",Pass
+TC-12,SPM-114,AC5,src/core/domain/event-request.test.ts,Reassign a request's responsible Organiser to a new Organiser,Stored responsibleOrganiserId is the new Organiser,Pass
+TC-13,SPM-114,AC5,src/core/domain/event-request.test.ts,Check access for both parties immediately after a reassignment,Outgoing Organiser gets "view"; incoming Organiser gets "edit",Pass
+TC-14,SPM-112,AC3,src/core/use-cases/view-organisation-event-requests.test.ts,List a colleague's Draft request through the use case,Request appears with canEdit = false,Pass
+TC-15,SPM-113,AC2,src/core/use-cases/view-organisation-event-requests.test.ts,List the responsible Organiser's own Draft request through the use case,Request appears with canEdit = true,Pass
+TC-16,SPM-113,AC2,src/core/use-cases/view-organisation-event-requests.test.ts,List the responsible Organiser's own request after it is Submitted (#102),Request appears with canEdit = false,Pass
+TC-17,SPM-112,AC4,src/core/use-cases/view-organisation-event-requests.test.ts,List requests for a caller whose organisation does not match the request's,Request is excluded from the result entirely,Pass
+TC-18,SPM-112,AC1,src/core/use-cases/view-organisation-event-requests.test.ts,List requests for an organisation that has none yet,Returns an empty list rather than an error,Pass
+TC-19,SPM-114,AC5,src/core/use-cases/change-event-organiser.test.ts,Reassign a request's responsible Organiser through the use case,Outgoing Organiser's access becomes "view"; incoming Organiser's becomes "edit",Pass
+TC-20,SPM-114,AC5,src/core/use-cases/change-event-organiser.test.ts,Read the use case's return value after a successful reassignment,Result carries the request id and the new responsible Organiser's id,Pass
+TC-21,SPM-114,AC5,src/core/use-cases/change-event-organiser.test.ts,Reassign an event request id that does not exist,Throws EventRequestNotFoundError,Pass
+TC-22,SPM-13,AC1,src/core/use-cases/login.test.ts,Authenticates valid staff member and returns user ID with roles,Returns userId and roles array,Pass
+TC-23,SPM-13,AC1,src/core/use-cases/login.test.ts,Rejects login with invalid password,InvalidCredentialsError thrown (no user enumeration),Pass
+TC-24,SPM-13,AC1,src/core/use-cases/login.test.ts,Rejects login with non-existent email,InvalidCredentialsError thrown (generic error),Pass
+TC-25,SPM-13,AC2,src/core/use-cases/login.test.ts,Maps auth errors to generic InvalidCredentialsError for security,All auth failures return same error,Pass
+TC-26,SPM-13,AC3,src/core/use-cases/login.test.ts,Returns session expiration timestamp for cookie management,expiresAt returned as ISO string,Pass
+TC-27,SPM-14,AC1,src/core/use-cases/logout.test.ts,Successfully logs out user and records audit event,Audit logger called with correct userId,Pass
+TC-28,SPM-14,AC1,src/core/use-cases/logout.test.ts,Calls auth adapter logout before audit logging,No error on successful logout,Pass
+TC-29,SPM-14,AC3,src/core/use-cases/logout.test.ts,Propagates audit logger errors to caller,Audit error thrown to caller,Pass
+TC-30,SPM-14,AC2,src/core/use-cases/logout.test.ts,Propagates auth adapter errors to caller,Auth error thrown to caller,Pass
+TC-31,SPM-14,AC3,src/core/use-cases/logout.test.ts,Accepts userId as required input parameter,Audit log contains exact userId passed,Pass

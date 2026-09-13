@@ -3,10 +3,12 @@ import {
   demoEventRequestRepository,
   demoRegistrationRepository,
 } from "@/adapters/outbound/in-memory/attendee-demo-seed";
+import { demoEventCoordinatorDirectory } from "@/adapters/outbound/in-memory/event-coordinator-demo-seed";
 import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import {
   demoClientOrganisationRepository,
   demoEventRequestRepository as demoOrganisationEventRequestRepository,
+  demoOrganiserDirectory,
   demoUserAccountRepository,
 } from "@/adapters/outbound/in-memory/organiser-demo-seed";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
@@ -14,13 +16,23 @@ import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client"
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
+import { SupabaseEventCoordinatorDirectory } from "@/adapters/outbound/supabase/supabase-event-coordinator-directory";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
+import { SupabaseOrganiserDirectory } from "@/adapters/outbound/supabase/supabase-organiser-directory";
+import { SupabaseOperationsEventRequestReader } from "@/adapters/outbound/supabase/supabase-operations-event-request-reader";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
+import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
+import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
+import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
+import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
+import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
+import type { Login } from "@/core/ports/inbound/login";
+import type { Logout } from "@/core/ports/inbound/logout";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
 import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
@@ -30,9 +42,13 @@ import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigne
 import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
 import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
 import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
-import type { ViewEventRequest } from "@/core/ports/inbound/view-event-request";
+import type { ViewOrganiserEventRequest } from "@/core/ports/inbound/view-organiser-event-request";
+import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
+import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
 import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
+import type { ListOrganisationOrganisers } from "@/core/ports/inbound/list-organisation-organisers";
 import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
+import type { ViewOperationsEventRequest } from "@/core/ports/inbound/view-operations-event-request";
 import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
 import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
@@ -41,7 +57,11 @@ import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
+import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
+import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { LoginUseCase } from "@/core/use-cases/login";
+import { LogoutUseCase } from "@/core/use-cases/logout";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
 import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
@@ -51,9 +71,13 @@ import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
-import { ViewEventRequestUseCase } from "@/core/use-cases/view-event-request";
+import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
+import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
+import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
+import { ListOrganisationOrganisersUseCase } from "@/core/use-cases/list-organisation-organisers";
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
+import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
@@ -169,8 +193,47 @@ export async function buildViewMyEventRequests(): Promise<ViewMyEventRequests> {
   return new ViewMyEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-export async function buildViewEventRequest(): Promise<ViewEventRequest> {
-  return new ViewEventRequestUseCase({ eventRequests: await eventRequestAdapters() });
+export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequest> {
+  return new ViewOrganiserEventRequestUseCase({
+    eventRequests: await eventRequestAdapters(),
+  });
+}
+
+export async function buildViewAllEventRequests(): Promise<ViewAllEventRequests> {
+  return new ViewAllEventRequestsUseCase({
+    eventRequests: await eventRequestAdapters(),
+  });
+}
+
+export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequest> {
+  const eventRequests = hasSupabaseProject()
+    ? new SupabaseOperationsEventRequestReader(await createSupabaseServerClient())
+    : demoEventRequestRepository;
+
+  return new ViewOperationsEventRequestUseCase({ eventRequests });
+}
+
+export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinators> {
+  const eventCoordinators = hasSupabaseProject()
+    ? new SupabaseEventCoordinatorDirectory(await createSupabaseServerClient())
+    : demoEventCoordinatorDirectory;
+
+  return new ViewAllEventCoordinatorsUseCase({ eventCoordinators });
+}
+
+export async function buildAssignEventCoordinator(): Promise<AssignEventCoordinator> {
+  if (!hasSupabaseProject()) {
+    return new AssignEventCoordinatorUseCase({
+      eventRequests: demoEventRequestRepository,
+      eventCoordinators: demoEventCoordinatorDirectory,
+    });
+  }
+
+  const client = await createSupabaseServerClient();
+  return new AssignEventCoordinatorUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    eventCoordinators: new SupabaseEventCoordinatorDirectory(client),
+  });
 }
 
 /**
@@ -293,4 +356,84 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
   const { events, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewAssignedEventsUseCase({ events, clientOrganisations });
+}
+
+/**
+ * SPM-39 AC5: reassigns an event request's responsible Organiser.
+ *
+ * Shares `demoOrganisationEventRequestRepository` with
+ * `buildViewOrganisationEventRequests` when there is no Supabase project, so
+ * a demo reassignment and the organisation events page agree on the same
+ * mutated state.
+ */
+export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser> {
+  const eventRequests = hasSupabaseProject()
+    ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
+    : demoOrganisationEventRequestRepository;
+
+  return new ChangeEventOrganiserUseCase({ eventRequests });
+}
+
+/**
+ * SPM-39 AC5: who a request in this client organisation could be reassigned
+ * to. Same fallback shape as `buildViewOrganisationEventRequests` -- the
+ * demo directory shares identities with the demo event-request seed, so a
+ * demo reassignment always has someone real to pick.
+ */
+export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisers> {
+  const organisers = hasSupabaseProject()
+    ? new SupabaseOrganiserDirectory(await createSupabaseServerClient())
+    : demoOrganiserDirectory;
+
+  return new ListOrganisationOrganisersUseCase({ organisers });
+}
+
+export async function buildLogin(): Promise<Login> {
+  return new LoginUseCase({
+    auth: new SupabaseAuthAdapter(),
+    users: new SupabaseUserRepository(),
+  });
+}
+
+export async function buildLogout(): Promise<Logout> {
+  return new LogoutUseCase({
+    auth: new SupabaseAuthAdapter(),
+    auditLogger: new SupabaseAuditLogger(),
+  });
+}
+
+/**
+ * SPM-39: the real, session-derived counterpart to `actingOrganiser()`.
+ *
+ * `actingOrganiser()` (above) is an env-var stand-in other Requester pages
+ * still use, predating SPM-13. Now that login exists, this resolves the
+ * actual signed-in Organiser instead: `null` covers every case that isn't
+ * one -- no session, no matching `user_account`, a role other than Event
+ * Organiser, or an Organiser with no client organisation set -- so a caller
+ * can fall back (e.g. to a demo identity) rather than crash.
+ */
+export async function getCurrentOrganiser(): Promise<{
+  readonly userAccountId: string;
+  readonly clientOrganisationId: string;
+  readonly name: string;
+} | null> {
+  const session = await new SupabaseAuthAdapter().getSession();
+  if (session === null) {
+    return null;
+  }
+
+  const user = await new SupabaseUserRepository().findByAuthUserId(session.userId);
+  if (
+    user === null ||
+    user.clientOrganisationId === null ||
+    !user.roles.includes("Event Organiser")
+  ) {
+    return null;
+  }
+
+  return {
+    userAccountId: user.userId,
+    clientOrganisationId: user.clientOrganisationId,
+    name: user.name,
+  };
 }

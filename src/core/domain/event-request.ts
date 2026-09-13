@@ -1,6 +1,7 @@
 import type { Brand } from "./brand";
 import type { ClientOrganisationId } from "./client-organisation";
 import {
+  EventRequestNotAssignableError,
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
   PreferredDateNotInFutureError,
@@ -74,14 +75,18 @@ export interface EventRequest {
   readonly status: EventRequestStatus;
   readonly clientOrganisationId: ClientOrganisationId;
   readonly responsibleOrganiserId: UserAccountId;
-  /** Null until the request leaves Draft. */
-  readonly submittedAt: Date | null;
   /**
    * Null until the Event Operations Manager assigns a coordinator (SPM-97),
-   * which happens before the request reaches `Under Review`. Frozen once the
-   * request is `Approved` (schema.sql).
+   * which is also what moves a Submitted request to `Under Review` -- see
+   * `assignEventCoordinator`. Frozen once the request is `Approved`
+   * (schema.sql).
    */
   readonly assignedCoordinatorUserAccountId: UserAccountId | null;
+  readonly decisionRecord: string | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+  /** Null until the request leaves Draft. */
+  readonly submittedAt: Date | null;
 }
 
 /**
@@ -92,7 +97,14 @@ export interface EventRequest {
  * otherwise (a `nextId()` on the port) would be a lie the Supabase adapter
  * could not honour.
  */
-export type NewEventRequest = Omit<EventRequest, "id">;
+export type NewEventRequest = Omit<
+  EventRequest,
+  | "id"
+  | "assignedCoordinatorUserAccountId"
+  | "decisionRecord"
+  | "createdAt"
+  | "updatedAt"
+>;
 
 /** A request that has just been submitted, so its `submittedAt` is never null. */
 export type SubmittedEventRequest = NewEventRequest & { readonly submittedAt: Date };
@@ -197,7 +209,7 @@ export function submitEventRequest(params: {
     throw new PreferredEndTimeNotAfterStartError(preferredStartTime, preferredEndTime);
   }
 
-  return { ...rest, status: "Submitted", assignedCoordinatorUserAccountId: null };
+  return { ...rest, status: "Submitted" };
 }
 
 /**
@@ -225,7 +237,6 @@ export function saveEventRequestDraft(params: {
     responsibleOrganiserId: params.responsibleOrganiserId,
     status: "Draft",
     submittedAt: null,
-    assignedCoordinatorUserAccountId: null,
   };
 }
 
@@ -347,10 +358,13 @@ const QUEUE_STATES: ReadonlySet<CoordinatorRequestState> = new Set([
  * A request's state if it belongs in the assigned Coordinator's queue, and
  * `null` if it does not (SPM-121).
  *
- * `Submitted` counts: the Operations Manager assigns a coordinator to a
- * submitted request (core feature 5, [[event-request-workflow]] Step 3), and
- * no other actor moves it to `Under Review` first -- excluding it would leave
- * newly assigned work invisible to the only person who can act on it.
+ * `Submitted` counts. `assignEventCoordinator` (SPM-97) does move a
+ * Submitted request to `Under Review` as it assigns, so the normal path
+ * never leaves one here -- but assignment is a plain column write, and a
+ * request assigned by any other route (a seed, a migration, a future
+ * bulk-assign) would otherwise be invisible to the only person who can act
+ * on it. A queue that silently drops an assigned request is the worse
+ * failure, so membership follows the assignment, not the status.
  *
  * One call answers membership and label together, so a caller cannot filter
  * on one rule and display another.
@@ -374,4 +388,29 @@ export function reassignResponsibleOrganiser(
   newOrganiserId: UserAccountId,
 ): EventRequest {
   return { ...request, responsibleOrganiserId: newOrganiserId };
+}
+
+/**
+ * Assigns or reassigns the Event Coordinator responsible for reviewing a request.
+ *
+ * Assignment starts the review only when the request has just been Submitted.
+ * Requests already further through an assignable workflow retain their status.
+ */
+export function assignEventCoordinator(
+  request: EventRequest,
+  coordinatorId: UserAccountId,
+): EventRequest {
+  if (
+    request.status === "Draft" ||
+    request.status === "Withdrawn" ||
+    request.status === "Rejected"
+  ) {
+    throw new EventRequestNotAssignableError(request.status);
+  }
+
+  return {
+    ...request,
+    assignedCoordinatorUserAccountId: coordinatorId,
+    status: request.status === "Submitted" ? "Under Review" : request.status,
+  };
 }

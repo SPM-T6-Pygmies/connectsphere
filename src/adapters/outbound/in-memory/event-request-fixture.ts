@@ -44,8 +44,11 @@ export function eventRequestFixture(overrides: Partial<EventRequest> = {}): Even
     status: "Draft",
     clientOrganisationId: clientOrganisationId("org-a"),
     responsibleOrganiserId: userAccountId("organiser-1"),
-    submittedAt: null,
     assignedCoordinatorUserAccountId: null,
+    decisionRecord: null,
+    createdAt: new Date("2026-09-01T00:00:00.000Z"),
+    updatedAt: new Date("2026-09-01T00:00:00.000Z"),
+    submittedAt: null,
     ...overrides,
   };
 }

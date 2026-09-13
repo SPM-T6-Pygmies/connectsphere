@@ -10,6 +10,7 @@ import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 
 import { InMemoryClientOrganisationRepository } from "./in-memory-client-organisation-repository";
 import { InMemoryEventRequestRepository } from "./in-memory-event-request-repository";
+import { InMemoryOrganiserDirectory } from "./in-memory-organiser-directory";
 import { InMemoryUserAccountRepository } from "./in-memory-user-account-repository";
 
 /**
@@ -67,9 +68,12 @@ function request(params: {
     status: params.status,
     clientOrganisationId: params.clientOrganisationId ?? SUNRISE,
     responsibleOrganiserId: params.responsibleOrganiserId,
+    assignedCoordinatorUserAccountId: params.assignedCoordinatorUserAccountId ?? null,
+    decisionRecord: null,
+    createdAt: new Date("2026-09-01T00:00:00.000Z"),
+    updatedAt: new Date("2026-09-01T00:00:00.000Z"),
     // Null until the request leaves Draft (see `EventRequest.submittedAt`).
     submittedAt: params.status === "Draft" ? null : new Date(),
-    assignedCoordinatorUserAccountId: params.assignedCoordinatorUserAccountId ?? null,
   };
 }
 
@@ -124,9 +128,10 @@ const EVENT_REQUESTS: readonly EventRequest[] = [
     responsibleOrganiserId: ALICE,
     assignedCoordinatorUserAccountId: NADIA,
   }),
-  // Assigned but still Submitted: nothing moves a request to Under Review
-  // until a decision use case exists (SPM-33/34), so this is what the
-  // Operations Manager's assignment actually leaves behind.
+  // Assigned but still Submitted: not what assignEventCoordinator (SPM-97)
+  // leaves behind -- it moves a Submitted request to Under Review as it
+  // assigns -- but a request assigned by any other route can land here, and
+  // the queue must not drop it.
   request({
     id: "request-volunteer-briefing",
     eventName: "Winter Volunteer Briefing",
@@ -173,3 +178,10 @@ export const demoUserAccountRepository = new InMemoryUserAccountRepository(
     [OMAR, "Omar"],
   ]),
 );
+
+/** SPM-39 AC5: reassignment candidates for the demo -- same shape the Supabase adapter reads from a real client organisation. */
+export const demoOrganiserDirectory = new InMemoryOrganiserDirectory([
+  { userAccountId: ALICE, name: "Alice", clientOrganisationId: SUNRISE },
+  { userAccountId: BEN, name: "Ben", clientOrganisationId: SUNRISE },
+  { userAccountId: CARA, name: "Cara", clientOrganisationId: HARBOUR },
+]);

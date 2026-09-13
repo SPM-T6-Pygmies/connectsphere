@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/sidebar"
 import { ACTING_AS, ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/wireframe"
 
+import { logoutAction } from "@/app/auth/logout/actions"
+
 function initials(name: string): string {
   return name
     .split(" ")
@@ -98,6 +100,9 @@ export function RoleSwitcher({ role }: { role: StaffRole }) {
               disabled={pathname === "/"}
             >
               Back to overview
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => void logoutAction()}>
+              Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

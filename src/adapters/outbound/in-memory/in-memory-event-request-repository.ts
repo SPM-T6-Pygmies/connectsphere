@@ -18,6 +18,10 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
     }
   }
 
+  async listAll(): Promise<readonly EventRequest[]> {
+    return [...this.rows.values()];
+  }
+
   async listByClientOrganisation(
     clientOrganisationId: ClientOrganisationId,
   ): Promise<readonly EventRequest[]> {
@@ -39,7 +43,15 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
   /** Assigns the id the way the real store does -- the caller does not choose it. */
   async create(request: NewEventRequest): Promise<EventRequest> {
     this.sequence += 1;
-    const stored: EventRequest = { ...request, id: eventRequestId(`request-${this.sequence}`) };
+    const storedAt = request.submittedAt ?? new Date(0);
+    const stored: EventRequest = {
+      ...request,
+      id: eventRequestId(`request-${this.sequence}`),
+      assignedCoordinatorUserAccountId: null,
+      decisionRecord: null,
+      createdAt: storedAt,
+      updatedAt: storedAt,
+    };
     this.rows.set(stored.id, stored);
     return stored;
   }
@@ -50,6 +62,14 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
 
   async delete(request: EventRequest): Promise<void> {
     this.rows.delete(request.id);
+  }
+
+  async reassignResponsibleOrganiser(request: EventRequest): Promise<void> {
+    this.rows.set(request.id, request);
+  }
+
+  async assignEventCoordinator(request: EventRequest): Promise<void> {
+    this.rows.set(request.id, request);
   }
 
   /** Test-only window on what was stored, so a test can assert nothing was written. */

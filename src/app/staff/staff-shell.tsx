@@ -19,11 +19,18 @@ import {
 import {
   actingCoordinator,
   actingOrganiser,
+  buildViewAllEventCoordinators,
+  buildViewAllEventRequests,
   buildViewAssignedEventRequests,
   buildViewAssignedEvents,
   buildViewMyEventRequests,
 } from "@/composition/container"
-import { ROLE_LABELS, type ListPaneItem, type StaffRole } from "@/lib/wireframe"
+import {
+  ROLE_LABELS,
+  type ListPaneItem,
+  type SidebarSection,
+  type StaffRole,
+} from "@/lib/wireframe"
 
 import { requestStateLabel } from "./coordinator/request-state-badge"
 
@@ -34,7 +41,7 @@ export { PageHeader } from "./page-header"
  * requests" screen reads -- real submitted data, not the wireframe fixtures
  * `listPaneItems` still falls back to for every other role's queue.
  */
-async function myRequestsQueueItems(): Promise<ListPaneItem[]> {
+async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
   const organiser = actingOrganiser()
   const viewMyEventRequests = await buildViewMyEventRequests()
   const { eventRequests } = await viewMyEventRequests.execute(organiser)
@@ -52,13 +59,49 @@ async function myRequestsQueueItems(): Promise<ListPaneItem[]> {
   }))
 }
 
+async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
+  const [viewAllEventRequests, viewAllEventCoordinators] = await Promise.all([
+    buildViewAllEventRequests(),
+    buildViewAllEventCoordinators(),
+  ])
+  const [{ eventRequests }, { eventCoordinators }] = await Promise.all([
+    viewAllEventRequests.execute(),
+    viewAllEventCoordinators.execute(),
+  ])
+  const coordinatorNames = new Map(
+    eventCoordinators.map((coordinator) => [coordinator.userAccountId, coordinator.name]),
+  )
+
+  return eventRequests
+    .filter(
+      (request) =>
+        request.status !== "Draft" &&
+        (request.assignedCoordinatorUserAccountId !== null) === assigned,
+    )
+    .map((request) => ({
+      id: request.id,
+      href: `/staff/ops/${request.id}`,
+      title: request.eventName,
+      meta: request.preferredDate ?? "No date",
+      teaser:
+        request.assignedCoordinatorUserAccountId === null
+          ? "No coordinator assigned yet."
+          : coordinatorNames.get(request.assignedCoordinatorUserAccountId) ??
+            "Coordinator assigned",
+      status: request.status,
+    }))
+}
+
 /**
- * The coordinator's "My requests" queue pane, from the same use case the
- * page reads -- real assigned data, not the wireframe fixtures
- * `listPaneItems` still falls back to for "Archive" (out of scope for
- * SPM-121/32 -- see coordinator-detail.tsx).
+ * The coordinator's "My requests" queue pane, from the same use case the page
+ * reads -- real assigned data, not the wireframe fixtures `listPaneItems`
+ * still falls back to for "Archive" (out of scope for SPM-121/32 -- see
+ * coordinator-detail.tsx).
+ *
+ * The pane shows the Coordinator's reading of each request, not the stored
+ * status -- see `requestStateLabel`.
  */
-async function myAssignedRequestsQueueItems(): Promise<ListPaneItem[]> {
+async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
   const coordinator = actingCoordinator()
   const viewAssignedEventRequests = await buildViewAssignedEventRequests()
   const { eventRequests } = await viewAssignedEventRequests.execute(coordinator)
@@ -73,8 +116,8 @@ async function myAssignedRequestsQueueItems(): Promise<ListPaneItem[]> {
   }))
 }
 
-/** The coordinator's "My events" queue pane, from the same use case the page reads. */
-async function myAssignedEventsQueueItems(): Promise<ListPaneItem[]> {
+/** The coordinator's "My events" queue pane, from the same use case the page reads (SPM-137). */
+async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
   const coordinator = actingCoordinator()
   const viewAssignedEvents = await buildViewAssignedEvents()
   const { events } = await viewAssignedEvents.execute(coordinator)
@@ -88,6 +131,32 @@ async function myAssignedEventsQueueItems(): Promise<ListPaneItem[]> {
     status: event.status,
   }))
 }
+
+async function getRespectiveQueueItems(
+  role: StaffRole,
+  crumbs: readonly Crumb[],
+  coordinatorSection: CoordinatorSection,
+): Promise<ListPaneItem[] | undefined> {
+  if (role === "requester") {
+    return getQueueItemsForRequester()
+  }
+
+  if (role === "ops") {
+    const assigned = crumbs.some((crumb) => crumb.label === "Assigned")
+    return getQueueItemsForOps(assigned)
+  }
+
+  if (role === "coordinator") {
+    return coordinatorSection === "events"
+      ? getQueueItemsForCoordinatorEvents()
+      : getQueueItemsForCoordinatorRequests()
+  }
+
+  return undefined
+}
+
+/** Which of the coordinator's two panes to fill: their requests, or their events. */
+export type CoordinatorSection = "requests" | "events"
 
 export interface Crumb {
   readonly label: string
@@ -104,12 +173,15 @@ export interface Crumb {
 export async function StaffShell({
   role,
   crumbs,
+  activeSection,
   defaultOpen = true,
   children,
   coordinatorSection = "requests",
 }: {
   role: StaffRole
   crumbs: readonly Crumb[]
+  /** Overrides path-based section inference for details loaded from real data. */
+  activeSection?: SidebarSection
   /**
    * Whether the list pane starts open.
    *
@@ -120,22 +192,9 @@ export async function StaffShell({
    */
   defaultOpen?: boolean
   children: ReactNode
-  /**
-   * Which of the Coordinator's real queues this page's sidebar pane should
-   * show. Ignored for every other role. Defaults to "requests" so every
-   * existing call site (detail, archive, notifications) keeps its current
-   * behaviour without having to know this prop exists.
-   */
-  coordinatorSection?: "requests" | "events"
+  coordinatorSection?: CoordinatorSection
 }) {
-  const queueItems =
-    role === "requester"
-      ? await myRequestsQueueItems()
-      : role === "coordinator"
-        ? coordinatorSection === "events"
-          ? await myAssignedEventsQueueItems()
-          : await myAssignedRequestsQueueItems()
-        : undefined
+  const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection)
 
   return (
     // The two-pane sidebar is the icon rail plus a list pane, so it needs the
@@ -144,7 +203,7 @@ export async function StaffShell({
       defaultOpen={defaultOpen}
       style={{ "--sidebar-width": "23rem" } as CSSProperties}
     >
-      <AppSidebar role={role} queueItems={queueItems} />
+      <AppSidebar role={role} queueItems={queueItems} activeSection={activeSection} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />

@@ -1,20 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import type {
-  BookingStatus,
-  EquipmentReservationStatus,
-  EventRequestStatus,
-  EventStatus,
-  FulfilmentStatus,
-  RegistrationStatus,
-} from "@/lib/wireframe"
-
-type AnyStatus =
-  | EventRequestStatus
-  | EventStatus
-  | BookingStatus
-  | EquipmentReservationStatus
-  | FulfilmentStatus
-  | RegistrationStatus
+import type { AnyStatus } from "@/lib/wireframe"
 
 type Variant = React.ComponentProps<typeof Badge>["variant"]
 
@@ -24,6 +9,9 @@ type Variant = React.ComponentProps<typeof Badge>["variant"]
  * refused, grey means not started or finished-and-closed.
  */
 const VARIANTS: Record<string, Variant> = {
+  // Event request, as its assigned Coordinator reads it (SPM-121)
+  "Awaiting decision": "warning",
+  "With organiser": "secondary",
   // Event request
   Draft: "outline",
   Submitted: "secondary",
@@ -31,7 +19,7 @@ const VARIANTS: Record<string, Variant> = {
   Approved: "success",
   Rejected: "destructive",
   Returned: "warning",
-  Withdrawn: "outline",
+  Withdrawn: "destructive",
   // Event
   Planning: "secondary",
   Blocked: "destructive",

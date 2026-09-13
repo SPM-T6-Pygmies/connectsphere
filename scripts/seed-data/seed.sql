@@ -16,9 +16,9 @@
 -- Two client organisations (Sunrise Events Co, Harbour Logistics), three
 -- Event Organisers (Alice, Ben in Sunrise; Cara in Harbour), and two Event
 -- Coordinators (Nadia, Omar -- coordinators have no client organisation of
--- their own). Nadia is assigned a request in each organisation, one still
--- Submitted (assigned but not yet opened -- the state a request is in the
--- moment the Operations Manager assigns it), one Returned, and one that has
+-- their own). Nadia is assigned a request in each organisation, one left
+-- Submitted (a request assigned by some route other than SPM-97's
+-- assignment, which moves it to Under Review), one Returned, and one that has
 -- moved past review, so the queue (Submitted, Under Review and Returned) and
 -- the detail view (any status, by assignment) can both be exercised; Omar
 -- holds a decoy request that must never appear in Nadia's queue or be
@@ -201,9 +201,10 @@ begin
     where event_name = 'Venue Safety Review' and requesting_user_account_id = v_ben
   );
 
-  -- Assigned but still Submitted: nothing moves a request to Under Review
-  -- until a decision use case exists (SPM-33/34), so this is what the
-  -- Operations Manager's assignment actually leaves behind.
+  -- Assigned but still Submitted: not what assign_event_coordinator (SPM-97)
+  -- leaves behind -- it moves a Submitted request to Under Review as it
+  -- assigns -- but a request assigned by any other route can land here, and
+  -- the queue must not drop it.
   insert into public.event_request (
     event_name, description, purpose, preferred_date, preferred_start_time,
     preferred_end_time, expected_attendance, venue_requirements, status,
