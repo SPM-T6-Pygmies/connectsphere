@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { AuthPort } from "@/core/ports/outbound/auth-port";
+import type { AuthPort, LoginResult } from "@/core/ports/outbound/auth-port";
 import type { AuditLogger } from "@/core/ports/outbound/audit-logger";
 
 import { LogoutUseCase } from "./logout";
@@ -19,7 +19,7 @@ import { LogoutUseCase } from "./logout";
 class MockAuthAdapter implements AuthPort {
   private shouldFailLogout = false;
 
-  async login() {
+  async login(): Promise<LoginResult> {
     throw new Error("Not implemented for logout tests");
   }
 
@@ -27,11 +27,10 @@ class MockAuthAdapter implements AuthPort {
     return null;
   }
 
-  async logout() {
+  async logout(): Promise<void> {
     if (this.shouldFailLogout) {
       throw new Error("Auth service error");
     }
-    // Simulate successful logout (clears session)
   }
 
   setFailLogout(shouldFail: boolean) {
