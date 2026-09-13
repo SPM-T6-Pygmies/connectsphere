@@ -16,11 +16,13 @@
 -- Two client organisations (Sunrise Events Co, Harbour Logistics), three
 -- Event Organisers (Alice, Ben in Sunrise; Cara in Harbour), and two Event
 -- Coordinators (Nadia, Omar -- coordinators have no client organisation of
--- their own). Nadia is assigned a request in each organisation plus one
--- that has moved past Under Review, so the queue (Under Review + Returned
--- only) and the detail view (any status, by assignment) can both be
--- exercised; Omar holds a decoy request that must never appear in Nadia's
--- queue or be reachable by Nadia via direct id (#91).
+-- their own). Nadia is assigned a request in each organisation, one still
+-- Submitted (assigned but not yet opened -- the state a request is in the
+-- moment the Operations Manager assigns it), one Returned, and one that has
+-- moved past review, so the queue (Submitted, Under Review and Returned) and
+-- the detail view (any status, by assignment) can both be exercised; Omar
+-- holds a decoy request that must never appear in Nadia's queue or be
+-- reachable by Nadia via direct id (#91).
 --
 -- Also seeds the one Event Operations Manager, Venue Staff and Technical
 -- Support Staff profile each of the other staff wireframes act as (Daniel,
@@ -197,6 +199,23 @@ begin
   where not exists (
     select 1 from public.event_request
     where event_name = 'Venue Safety Review' and requesting_user_account_id = v_ben
+  );
+
+  -- Assigned but still Submitted: nothing moves a request to Under Review
+  -- until a decision use case exists (SPM-33/34), so this is what the
+  -- Operations Manager's assignment actually leaves behind.
+  insert into public.event_request (
+    event_name, description, purpose, preferred_date, preferred_start_time,
+    preferred_end_time, expected_attendance, venue_requirements, status,
+    requesting_user_account_id, assigned_coordinator_user_account_id, client_organisation_id
+  )
+  select 'Winter Volunteer Briefing', 'A briefing for volunteers working the winter events season.',
+    'Bring new volunteers up to speed before the season opens.', date '2026-12-09',
+    timestamptz '2026-12-09 14:00+08', timestamptz '2026-12-09 16:00+08', 45,
+    'A room that seats 45 with a projector.', 'Submitted', v_ben, v_nadia, v_sunrise
+  where not exists (
+    select 1 from public.event_request
+    where event_name = 'Winter Volunteer Briefing' and requesting_user_account_id = v_ben
   );
 
   insert into public.event_request (

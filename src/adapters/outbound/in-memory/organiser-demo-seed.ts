@@ -124,6 +124,16 @@ const EVENT_REQUESTS: readonly EventRequest[] = [
     responsibleOrganiserId: ALICE,
     assignedCoordinatorUserAccountId: NADIA,
   }),
+  // Assigned but still Submitted: nothing moves a request to Under Review
+  // until a decision use case exists (SPM-33/34), so this is what the
+  // Operations Manager's assignment actually leaves behind.
+  request({
+    id: "request-volunteer-briefing",
+    eventName: "Winter Volunteer Briefing",
+    status: "Submitted",
+    responsibleOrganiserId: BEN,
+    assignedCoordinatorUserAccountId: NADIA,
+  }),
   // Approved: frozen and reachable by direct id (SPM-32), but excluded from
   // the queue (SPM-121) -- it has become an Event, a separate backlog view.
   request({

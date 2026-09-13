@@ -13,7 +13,7 @@ import type { AssignedEventRequestSummary } from "@/core/ports/inbound/view-assi
 
 import { EmptyState } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
-import { StatusBadge } from "../status-badge";
+import { RequestStateBadge } from "./request-state-badge";
 
 export const metadata = { title: "My requests | ConnectSphere" };
 
@@ -49,7 +49,7 @@ function AssignedRequestTable({ requests }: { requests: readonly AssignedEventRe
               <TableCell className="text-muted-foreground">{request.clientOrganisationName}</TableCell>
               <TableCell className="text-muted-foreground">{request.preferredDate ?? "—"}</TableCell>
               <TableCell>
-                <StatusBadge status={request.status} />
+                <RequestStateBadge state={request.state} />
               </TableCell>
             </TableRow>
           ))}

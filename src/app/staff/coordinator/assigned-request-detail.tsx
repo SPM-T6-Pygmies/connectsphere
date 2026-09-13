@@ -5,12 +5,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { EventRequest } from "@/core/domain/event-request";
+import { coordinatorRequestStateFor, type EventRequest } from "@/core/domain/event-request";
 
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
-import { StatusBadge } from "../status-badge";
+import { RequestStateBadge } from "./request-state-badge";
 
 /** `h:mm am/pm`, in the viewer's own timezone -- for an instant, not a calendar date. */
 function formatInstantTime(iso: string): string {
@@ -33,6 +33,10 @@ export function AssignedRequestDetail({
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
+  // The Coordinator's reading of the status, not the Organiser's -- see
+  // `coordinatorRequestStateFor`. `null` only for `Draft`, which no
+  // Coordinator can be assigned to.
+  const state = coordinatorRequestStateFor(eventRequest.status);
 
   const preferredTime =
     details.preferredStartTime !== null && details.preferredEndTime !== null
@@ -47,7 +51,7 @@ export function AssignedRequestDetail({
       <PageHeader
         title={details.eventName}
         description={`${clientOrganisationName} · requested by ${requestingOrganiserName} · submitted ${eventRequest.submittedAt?.toISOString().slice(0, 10) ?? "—"}`}
-        actions={<StatusBadge status={eventRequest.status} />}
+        actions={state === null ? null : <RequestStateBadge state={state} />}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

@@ -293,6 +293,76 @@ export function eventRequestAccessForCoordinator(
 }
 
 /**
+ * A request's standing as its assigned Event Coordinator reads it (SPM-121).
+ *
+ * `EventRequestStatus` is the Organiser's vocabulary: it distinguishes
+ * `Submitted` from `Under Review` because those mean different things to
+ * whoever raised the request. To the Coordinator they mean the same thing --
+ * a request sitting with them, waiting to be approved, rejected or returned
+ * ([[event-request-workflow]] Steps 4-5) -- so both collapse to
+ * `"awaiting-decision"`. The one pre-decision distinction a Coordinator does
+ * need is `Returned`: the ball is in the Organiser's court until they amend
+ * and resubmit, and nothing the Coordinator does moves it.
+ *
+ * Decided requests keep their own names, because an outcome means the same
+ * thing to everyone who reads it.
+ *
+ * `null` means the request is not a Coordinator's to see at all: `Draft` is
+ * the Organiser's alone and cannot carry an assignment. Returning `null`
+ * rather than a state is what makes this the single answer to "is this in my
+ * queue?" as well as "what do I call it?" -- the two cannot drift apart.
+ */
+export type CoordinatorRequestState =
+  | "awaiting-decision"
+  | "with-organiser"
+  | "approved"
+  | "rejected"
+  | "withdrawn";
+
+const COORDINATOR_REQUEST_STATES: Readonly<
+  Record<EventRequestStatus, CoordinatorRequestState | null>
+> = {
+  Draft: null,
+  Submitted: "awaiting-decision",
+  "Under Review": "awaiting-decision",
+  Returned: "with-organiser",
+  Approved: "approved",
+  Rejected: "rejected",
+  Withdrawn: "withdrawn",
+};
+
+export function coordinatorRequestStateFor(
+  status: EventRequestStatus,
+): CoordinatorRequestState | null {
+  return COORDINATOR_REQUEST_STATES[status];
+}
+
+/** The states that put a request in the Coordinator's queue: theirs to act on, or waiting on the Organiser. */
+const QUEUE_STATES: ReadonlySet<CoordinatorRequestState> = new Set([
+  "awaiting-decision",
+  "with-organiser",
+]);
+
+/**
+ * A request's state if it belongs in the assigned Coordinator's queue, and
+ * `null` if it does not (SPM-121).
+ *
+ * `Submitted` counts: the Operations Manager assigns a coordinator to a
+ * submitted request (core feature 5, [[event-request-workflow]] Step 3), and
+ * no other actor moves it to `Under Review` first -- excluding it would leave
+ * newly assigned work invisible to the only person who can act on it.
+ *
+ * One call answers membership and label together, so a caller cannot filter
+ * on one rule and display another.
+ */
+export function coordinatorQueueStateFor(
+  status: EventRequestStatus,
+): CoordinatorRequestState | null {
+  const state = coordinatorRequestStateFor(status);
+  return state !== null && QUEUE_STATES.has(state) ? state : null;
+}
+
+/**
  * The one place responsibility for a request can change hands (#61, #59).
  *
  * Delegation does not exist -- there is always exactly one responsible

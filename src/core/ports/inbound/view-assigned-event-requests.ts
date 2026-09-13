@@ -1,4 +1,4 @@
-import type { EventRequestStatus } from "../../domain/event-request";
+import type { CoordinatorRequestState } from "../../domain/event-request";
 
 export interface ViewAssignedEventRequestsCommand {
   readonly userAccountId: string;
@@ -9,7 +9,12 @@ export interface AssignedEventRequestSummary {
   readonly eventName: string;
   readonly clientOrganisationName: string;
   readonly preferredDate: string | null;
-  readonly status: EventRequestStatus;
+  /**
+   * The Coordinator's reading of the request, not the stored
+   * `EventRequestStatus` -- see `coordinatorRequestStateFor`. The raw status
+   * is the Organiser's vocabulary and is deliberately not carried here.
+   */
+  readonly state: CoordinatorRequestState;
 }
 
 export interface ViewAssignedEventRequestsResult {

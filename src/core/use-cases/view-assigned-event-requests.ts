@@ -1,3 +1,4 @@
+import { coordinatorQueueStateFor } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type {
   AssignedEventRequestSummary,
@@ -13,13 +14,14 @@ export interface ViewAssignedEventRequestsDeps {
   readonly clientOrganisations: ClientOrganisationRepository;
 }
 
-/** Statuses that count as "awaiting review" for the assigned coordinator (SPM-121). */
-const QUEUE_STATUSES = new Set(["Under Review", "Returned"]);
-
 /**
- * SPM-121: every request assigned to the caller and still awaiting review,
- * and no others. Approved requests become Events (a separate, backlog-scoped
- * view); Rejected/Withdrawn are decided and belong to the Archive.
+ * SPM-121: every request assigned to the caller and still open, and no
+ * others. Approved requests become Events (a separate, backlog-scoped view);
+ * Rejected/Withdrawn are decided and belong to the Archive.
+ *
+ * Which statuses those are, and what the Coordinator calls them, is
+ * `coordinatorQueueStateFor`'s decision, in the domain -- this use case
+ * orchestrates and does not decide.
  */
 export class ViewAssignedEventRequestsUseCase implements ViewAssignedEventRequests {
   constructor(private readonly deps: ViewAssignedEventRequestsDeps) {}
@@ -31,20 +33,23 @@ export class ViewAssignedEventRequestsUseCase implements ViewAssignedEventReques
 
     const requests = (
       await this.deps.eventRequests.listByAssignedCoordinator(coordinatorId)
-    ).filter((request) => QUEUE_STATUSES.has(request.status));
+    ).flatMap((request) => {
+      const state = coordinatorQueueStateFor(request.status);
+      return state === null ? [] : [{ request, state }];
+    });
 
     const organisationNames = await this.deps.clientOrganisations.findNamesByIds(
-      requests.map((request) => request.clientOrganisationId),
+      requests.map(({ request }) => request.clientOrganisationId),
     );
 
     return {
       eventRequests: requests.map(
-        (request): AssignedEventRequestSummary => ({
+        ({ request, state }): AssignedEventRequestSummary => ({
           id: request.id,
           eventName: request.details.eventName,
           clientOrganisationName: organisationNames.get(request.clientOrganisationId) ?? "",
           preferredDate: request.details.preferredDate,
-          status: request.status,
+          state,
         }),
       ),
     };

@@ -25,6 +25,8 @@ import {
 } from "@/composition/container"
 import { ROLE_LABELS, type ListPaneItem, type StaffRole } from "@/lib/wireframe"
 
+import { requestStateLabel } from "./coordinator/request-state-badge"
+
 export { PageHeader } from "./page-header"
 
 /**
@@ -67,7 +69,7 @@ async function myAssignedRequestsQueueItems(): Promise<ListPaneItem[]> {
     title: request.eventName,
     meta: request.preferredDate ?? "No date",
     teaser: request.clientOrganisationName,
-    status: request.status,
+    status: requestStateLabel(request.state),
   }))
 }
 

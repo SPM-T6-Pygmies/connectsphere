@@ -43,7 +43,7 @@ describe("ViewAssignedEventRequestsUseCase", () => {
         eventName: "Founders' Day",
         clientOrganisationName: "Sunrise Events Co",
         preferredDate: "2026-11-04",
-        status: "Under Review",
+        state: "awaiting-decision",
       },
     ]);
   });
@@ -56,15 +56,34 @@ describe("ViewAssignedEventRequestsUseCase", () => {
     expect(result.eventRequests).toEqual([]);
   });
 
-  it("includes a Returned request -- still open, ball back in the Organiser's court", async () => {
-    const useCase = buildUseCase([request({ status: "Returned" })]);
+  it("includes a Submitted request -- assignment happens before review begins", async () => {
+    const useCase = buildUseCase([request({ status: "Submitted" })]);
 
     const result = await useCase.execute({ userAccountId: COORDINATOR });
 
     expect(result.eventRequests).toHaveLength(1);
   });
 
-  it.each(["Draft", "Submitted", "Approved", "Rejected", "Withdrawn"] as const)(
+  it.each(["Submitted", "Under Review"] as const)(
+    "reports a %s request as awaiting the coordinator's decision, not by its stored status",
+    async (status) => {
+      const useCase = buildUseCase([request({ status })]);
+
+      const result = await useCase.execute({ userAccountId: COORDINATOR });
+
+      expect(result.eventRequests[0]?.state).toBe("awaiting-decision");
+    },
+  );
+
+  it("reports a Returned request as with the organiser -- the one state the coordinator cannot act on", async () => {
+    const useCase = buildUseCase([request({ status: "Returned" })]);
+
+    const result = await useCase.execute({ userAccountId: COORDINATOR });
+
+    expect(result.eventRequests[0]?.state).toBe("with-organiser");
+  });
+
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
     "excludes a %s request even when assigned to the caller",
     async (status) => {
       const useCase = buildUseCase([request({ status })]);
