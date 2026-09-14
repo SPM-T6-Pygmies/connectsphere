@@ -283,13 +283,28 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
 }
 
 /**
- * Who the coordinator screens are acting as -- same stand-in, same reasoning
- * as `actingOrganiser()`, until #62 settles how this system authenticates.
+ * Who the coordinator screens are acting as: the signed-in Event Coordinator.
+ *
+ * Replaces the `DEMO_COORDINATOR_USER_ACCOUNT_ID` stand-in, which showed
+ * whichever account the env var named whoever logged in -- and a different
+ * one per database, since account ids differ between them. `null` covers
+ * every case that isn't a coordinator -- no session, no matching
+ * `user_account`, or a role other than Event Coordinator -- so callers answer
+ * with a not-found rather than someone else's queue (#91). Same shape as
+ * `getCurrentOrganiser` below.
  */
-export function actingCoordinator(): { readonly userAccountId: string } {
-  return {
-    userAccountId: process.env.DEMO_COORDINATOR_USER_ACCOUNT_ID ?? "1",
-  };
+export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
+  const session = await new SupabaseAuthAdapter().getSession();
+  if (session === null) {
+    return null;
+  }
+
+  const user = await new SupabaseUserRepository().findByAuthUserId(session.userId);
+  if (user === null || !user.roles.includes("Event Coordinator")) {
+    return null;
+  }
+
+  return { userAccountId: user.userId };
 }
 
 /**

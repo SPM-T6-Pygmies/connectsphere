@@ -17,13 +17,13 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {
-  actingCoordinator,
   actingOrganiser,
   buildViewAllEventCoordinators,
   buildViewAllEventRequests,
   buildViewAssignedEventRequests,
   buildViewAssignedEvents,
   buildViewMyEventRequests,
+  getCurrentCoordinator,
 } from "@/composition/container"
 import {
   ROLE_LABELS,
@@ -102,7 +102,11 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
  * status -- see `requestStateLabel`.
  */
 async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
-  const coordinator = actingCoordinator()
+  const coordinator = await getCurrentCoordinator()
+  if (coordinator === null) {
+    return []
+  }
+
   const viewAssignedEventRequests = await buildViewAssignedEventRequests()
   const { eventRequests } = await viewAssignedEventRequests.execute(coordinator)
 
@@ -118,7 +122,11 @@ async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
 
 /** The coordinator's "My events" queue pane, from the same use case the page reads (SPM-137). */
 async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
-  const coordinator = actingCoordinator()
+  const coordinator = await getCurrentCoordinator()
+  if (coordinator === null) {
+    return []
+  }
+
   const viewAssignedEvents = await buildViewAssignedEvents()
   const { events } = await viewAssignedEvents.execute(coordinator)
 
