@@ -31,6 +31,7 @@ import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
+import type { DecideEventRequest } from "@/core/ports/inbound/decide-event-request";
 import type { Login } from "@/core/ports/inbound/login";
 import type { Logout } from "@/core/ports/inbound/logout";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
@@ -60,6 +61,7 @@ import type { UserAccountRepository } from "@/core/ports/outbound/user-account-r
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
 import { LoginUseCase } from "@/core/use-cases/login";
 import { LogoutUseCase } from "@/core/use-cases/logout";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
@@ -293,10 +295,12 @@ export function actingCoordinator(): { readonly userAccountId: string } {
 }
 
 /**
- * `events` starts empty in-memory: no real "approve a request" use case
- * exists yet (SPM-34/97), so there is nothing genuine to seed it with -- a
- * fake row would only obscure whether "My events" is really wired up, the
- * same reasoning `attendee-demo-seed.ts` gives for its own empty start.
+ * `events` starts empty in-memory and stays that way: approving a request
+ * (SPM-34) opens its event only in the Supabase store, where the approval and
+ * the event are one transaction. The in-memory event request repository does
+ * not model events, and a fake row here would only obscure whether "My
+ * events" is really wired up -- the same reasoning `attendee-demo-seed.ts`
+ * gives for its own empty start.
  */
 const demoCoordinatorEventRepository = new InMemoryCoordinatorEventRepository();
 
@@ -346,11 +350,24 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
 }
 
 /**
+ * SPM-34: the assigned coordinator approves or rejects a request.
+ *
+ * Shares `coordinatorAdapters()` with the two views above -- not the empty
+ * `demoEventRequestRepository` `buildAssignEventCoordinator` uses -- so a
+ * decision made in demo mode is the one the queue and detail then show.
+ */
+export async function buildDecideEventRequest(): Promise<DecideEventRequest> {
+  const { eventRequests } = await coordinatorAdapters();
+
+  return new DecideEventRequestUseCase({ eventRequests });
+}
+
+/**
  * "My events": every event the caller is coordinating, whatever its status.
  *
- * Empty until a real "approve a request" use case exists to create one
- * (SPM-34/97) -- there is no wireframe fallback here to make it look
- * otherwise.
+ * Events are opened by approving a request (SPM-34), which only the Supabase
+ * store does -- in demo mode this stays empty, and there is no wireframe
+ * fallback here to make it look otherwise.
  */
 export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
   const { events, clientOrganisations } = await coordinatorAdapters();
