@@ -7,11 +7,14 @@ import {
 
 import { clientOrganisationId } from "./client-organisation";
 import {
+  DecisionReasonRequiredError,
+  EventRequestNotDecidableError,
   IncompleteEventRequestError,
   PreferredDateNotInFutureError,
   PreferredEndTimeNotAfterStartError,
 } from "./errors";
 import {
+  approveEventRequest,
   coordinatorQueueStateFor,
   coordinatorRequestStateFor,
   eventRequestAccessFor,
@@ -19,6 +22,7 @@ import {
   isSubmittable,
   missingMandatoryFields,
   reassignResponsibleOrganiser,
+  rejectEventRequest,
   saveEventRequestDraft,
   submitEventRequest,
   type EventRequest,
@@ -398,4 +402,68 @@ describe("coordinatorRequestStateFor", () => {
   it("gives a Draft no coordinator-facing state -- it cannot carry an assignment", () => {
     expect(coordinatorRequestStateFor("Draft")).toBeNull();
   });
+});
+
+describe("approveEventRequest", () => {
+  it.each(["Submitted", "Under Review"] as const)(
+    "approves a %s request awaiting the coordinator's decision",
+    (status) => {
+      expect(approveEventRequest(request({ status }), "").status).toBe("Approved");
+    },
+  );
+
+  it("records the coordinator's note, trimmed, as the decision record", () => {
+    const approved = approveEventRequest(request({ status: "Under Review" }), "  Enough to plan.  ");
+
+    expect(approved.decisionRecord).toBe("Enough to plan.");
+  });
+
+  it("records no decision record when the note is blank -- a note is optional", () => {
+    expect(approveEventRequest(request({ status: "Under Review" }), "   ").decisionRecord).toBeNull();
+  });
+
+  it.each(["Draft", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses to approve a %s request",
+    (status) => {
+      expect(() => approveEventRequest(request({ status }), "")).toThrow(
+        EventRequestNotDecidableError,
+      );
+    },
+  );
+
+  it("leaves the request it was given untouched", () => {
+    const original = request({ status: "Under Review" });
+
+    approveEventRequest(original, "Enough to plan.");
+
+    expect(original.status).toBe("Under Review");
+    expect(original.decisionRecord).toBeNull();
+  });
+});
+
+describe("rejectEventRequest", () => {
+  it.each(["Submitted", "Under Review"] as const)(
+    "rejects a %s request, keeping the trimmed reason as the decision record",
+    (status) => {
+      const rejected = rejectEventRequest(request({ status }), "  No expected attendance.  ");
+
+      expect(rejected.status).toBe("Rejected");
+      expect(rejected.decisionRecord).toBe("No expected attendance.");
+    },
+  );
+
+  it.each(["", "   "])("refuses a rejection without a reason (%j)", (reason) => {
+    expect(() => rejectEventRequest(request({ status: "Under Review" }), reason)).toThrow(
+      DecisionReasonRequiredError,
+    );
+  });
+
+  it.each(["Draft", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses to reject a %s request, whatever the reason (rejection is terminal, #67)",
+    (status) => {
+      expect(() => rejectEventRequest(request({ status }), "")).toThrow(
+        EventRequestNotDecidableError,
+      );
+    },
+  );
 });

@@ -1,7 +1,9 @@
 import type { Brand } from "./brand";
 import type { ClientOrganisationId } from "./client-organisation";
 import {
+  DecisionReasonRequiredError,
   EventRequestNotAssignableError,
+  EventRequestNotDecidableError,
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
   PreferredDateNotInFutureError,
@@ -289,9 +291,11 @@ export interface CoordinatorContext {
  *
  * Unlike the Organiser's access, there is no organisation scoping and no
  * edit case: a Coordinator's access is purely "am I the one this was
- * assigned to", and SPM-32 is read-only by design (decisions are SPM-33/34's
- * job). Same not-found convention as `eventRequestAccessFor`: callers should
- * turn `"none"` into a not-found, never a forbidden (#91).
+ * assigned to", and it never grants edit -- a decision is not an edit to the
+ * request (SPM-34's use case asks this predicate who may call
+ * `approveEventRequest`/`rejectEventRequest`). Same not-found convention as
+ * `eventRequestAccessFor`: callers should turn `"none"` into a not-found,
+ * never a forbidden (#91).
  */
 export function eventRequestAccessForCoordinator(
   request: EventRequest,
@@ -413,4 +417,51 @@ export function assignEventCoordinator(
     assignedCoordinatorUserAccountId: coordinatorId,
     status: request.status === "Submitted" ? "Under Review" : request.status,
   };
+}
+
+/**
+ * A request is the Coordinator's to decide only while it awaits their decision
+ * -- `Submitted` or `Under Review`, the same reading `coordinatorRequestStateFor`
+ * gives the queue. `Returned` is waiting on the Organiser, and every decided
+ * state is final: rejection in particular has no resubmission path (#67).
+ *
+ * Who may decide is not asked here. The use case asks
+ * `eventRequestAccessForCoordinator`, the same split the draft use cases draw.
+ */
+function assertDecidable(request: EventRequest): void {
+  if (coordinatorRequestStateFor(request.status) !== "awaiting-decision") {
+    throw new EventRequestNotDecidableError();
+  }
+}
+
+/**
+ * SPM-34: approval means only that the request holds enough to plan against --
+ * it commits ConnectSphere to nothing yet (#80). The note is optional, so a
+ * blank one records nothing rather than an empty string.
+ *
+ * Opening the request's event in `Planning` is the store's half of the same
+ * act (SPM-140), not something this value can express.
+ */
+export function approveEventRequest(request: EventRequest, note: string): EventRequest {
+  assertDecidable(request);
+
+  return { ...request, status: "Approved", decisionRecord: note.trim() || null };
+}
+
+/**
+ * SPM-34: rejection is terminal (#67) and must say why -- the reason is the
+ * decision record a rejected request keeps.
+ *
+ * Status is checked before the reason, so an already-decided request is
+ * refused as such rather than asked for a reason it could never use.
+ */
+export function rejectEventRequest(request: EventRequest, reason: string): EventRequest {
+  assertDecidable(request);
+
+  const decisionRecord = reason.trim();
+  if (decisionRecord.length === 0) {
+    throw new DecisionReasonRequiredError();
+  }
+
+  return { ...request, status: "Rejected", decisionRecord };
 }
