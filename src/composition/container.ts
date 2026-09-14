@@ -39,6 +39,7 @@ import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
+import type { ViewArchivedEventRequests } from "@/core/ports/inbound/view-archived-event-requests";
 import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigned-event-request";
 import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
 import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
@@ -69,6 +70,7 @@ import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
+import { ViewArchivedEventRequestsUseCase } from "@/core/use-cases/view-archived-event-requests";
 import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-event-request";
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
@@ -352,6 +354,13 @@ export async function buildViewAssignedEventRequests(): Promise<ViewAssignedEven
   const { eventRequests, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewAssignedEventRequestsUseCase({ eventRequests, clientOrganisations });
+}
+
+/** The coordinator's Archive: requests assigned to the caller that were rejected or withdrawn. */
+export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEventRequests> {
+  const { eventRequests, clientOrganisations } = await coordinatorAdapters();
+
+  return new ViewArchivedEventRequestsUseCase({ eventRequests, clientOrganisations });
 }
 
 /** SPM-32: one event request, exactly as submitted, to the coordinator it is assigned to. */

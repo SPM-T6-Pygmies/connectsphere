@@ -20,6 +20,7 @@ import {
   actingOrganiser,
   buildViewAllEventCoordinators,
   buildViewAllEventRequests,
+  buildViewArchivedEventRequests,
   buildViewAssignedEventRequests,
   buildViewAssignedEvents,
   buildViewMyEventRequests,
@@ -94,9 +95,7 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
 
 /**
  * The coordinator's "My requests" queue pane, from the same use case the page
- * reads -- real assigned data, not the wireframe fixtures `listPaneItems`
- * still falls back to for "Archive" (out of scope for SPM-121/32 -- see
- * coordinator-detail.tsx).
+ * reads -- real assigned data, not the wireframe fixtures.
  *
  * The pane shows the Coordinator's reading of each request, not the stored
  * status -- see `requestStateLabel`.
@@ -109,6 +108,26 @@ async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
 
   const viewAssignedEventRequests = await buildViewAssignedEventRequests()
   const { eventRequests } = await viewAssignedEventRequests.execute(coordinator)
+
+  return eventRequests.map((request) => ({
+    id: request.id,
+    href: `/staff/coordinator/${request.id}`,
+    title: request.eventName,
+    meta: request.preferredDate ?? "No date",
+    teaser: request.clientOrganisationName,
+    status: requestStateLabel(request.state),
+  }))
+}
+
+/** The coordinator's Archive pane, from the same use case the Archive page reads. */
+async function getQueueItemsForCoordinatorArchive(): Promise<ListPaneItem[]> {
+  const coordinator = await getCurrentCoordinator()
+  if (coordinator === null) {
+    return []
+  }
+
+  const viewArchivedEventRequests = await buildViewArchivedEventRequests()
+  const { eventRequests } = await viewArchivedEventRequests.execute(coordinator)
 
   return eventRequests.map((request) => ({
     id: request.id,
@@ -161,14 +180,16 @@ async function getRespectiveQueueItems(
   if (role === "coordinator") {
     return coordinatorSection === "events"
       ? getQueueItemsForCoordinatorEvents()
-      : getQueueItemsForCoordinatorRequests()
+      : coordinatorSection === "archive"
+        ? getQueueItemsForCoordinatorArchive()
+        : getQueueItemsForCoordinatorRequests()
   }
 
   return undefined
 }
 
-/** Which of the coordinator's two panes to fill: their requests, or their events. */
-export type CoordinatorSection = "requests" | "events"
+/** Which of the coordinator's panes to fill: their open requests, their events, or their archive. */
+export type CoordinatorSection = "requests" | "events" | "archive"
 
 export interface Crumb {
   readonly label: string
