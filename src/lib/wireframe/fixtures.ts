@@ -23,7 +23,7 @@ import type {
 /**
  * Names and ids match adapters/outbound/in-memory/organiser-demo-seed.ts, so
  * the wireframe and the in-memory demo show the same people rather than two
- * unrelated casts. They are wireframe/demo-only: scripts/seed-data/seed.sql
+ * unrelated casts. They are wireframe/demo-only: scripts/seed-coordinator-view/
  * seeds Supabase against the real test accounts (Test Organiser, Test
  * Coordinator, ...) you can actually log in as, not this cast.
  */

@@ -11,13 +11,15 @@
 -- this script stops with an error naming whichever account is missing.
 --
 -- Run against a local stack:
---   supabase db query --file scripts/seed-data/seed.sql --local
+--   supabase db query --file scripts/seed-coordinator-view/seed.sql --local
 --
 -- Run against the linked remote project:
---   supabase db query --file scripts/seed-data/seed.sql --linked
+--   supabase db query --file scripts/seed-coordinator-view/seed.sql --linked
 --
 -- Safe to run more than once: every insert is guarded by an existence check,
--- so re-running finds everything already there and changes nothing.
+-- so re-running finds everything already there and changes nothing. That also
+-- means it never resets a request you have since decided in the app -- for
+-- that, run teardown.sql first. verify.sql checks the seeded state.
 --
 -- Test Coordinator is assigned a request in every state the coordinator
 -- screens tell apart: two Under Review, one assigned but still Submitted (a
