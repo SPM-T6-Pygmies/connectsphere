@@ -35,6 +35,7 @@ export class ViewAssignedEventsUseCase implements ViewAssignedEvents {
       events: events.map(
         (event): AssignedEventSummary => ({
           id: event.id,
+          eventRequestId: event.eventRequestId,
           name: event.name,
           clientOrganisationName: organisationNames.get(event.clientOrganisationId) ?? "",
           preferredDate: event.preferredDate,

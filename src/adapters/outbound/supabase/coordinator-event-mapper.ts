@@ -1,6 +1,7 @@
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
+import { eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
 /**
@@ -10,6 +11,7 @@ import { userAccountId } from "@/core/domain/user-account";
  */
 export interface CoordinatorEventRow {
   event_id: number;
+  event_request_id: number | null;
   name: string;
   status: string;
   preferred_date: string | null;
@@ -43,6 +45,8 @@ function toStatus(raw: string): CoordinatorEventStatus {
 export function toDomain(row: CoordinatorEventRow): CoordinatorEvent {
   return {
     id: eventId(String(row.event_id)),
+    eventRequestId:
+      row.event_request_id === null ? null : eventRequestId(String(row.event_request_id)),
     name: row.name,
     status: toStatus(row.status),
     preferredDate: row.preferred_date,

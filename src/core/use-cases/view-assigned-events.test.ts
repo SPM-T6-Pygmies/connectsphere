@@ -39,6 +39,7 @@ describe("ViewAssignedEventsUseCase", () => {
     expect(result.events).toEqual([
       {
         id: "event-1",
+        eventRequestId: "request-1",
         name: "Autumn Product Showcase",
         clientOrganisationName: "Sunrise Events Co",
         preferredDate: "2026-10-14",

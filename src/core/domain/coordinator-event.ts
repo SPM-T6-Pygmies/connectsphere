@@ -1,5 +1,6 @@
 import type { ClientOrganisationId } from "./client-organisation";
 import type { EventId } from "./event";
+import type { EventRequestId } from "./event-request";
 import type { UserAccountId } from "./user-account";
 
 /**
@@ -24,6 +25,11 @@ export type CoordinatorEventStatus = "Planning" | "Blocked" | "Confirmed" | "Com
  */
 export interface CoordinatorEvent {
   readonly id: EventId;
+  /**
+   * The approved request this event was opened from (SPM-34). Null only if
+   * that request has since been deleted -- the store keeps the event.
+   */
+  readonly eventRequestId: EventRequestId | null;
   readonly name: string;
   readonly status: CoordinatorEventStatus;
   /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */

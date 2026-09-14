@@ -132,7 +132,11 @@ async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
 
   return events.map((event) => ({
     id: event.id,
-    href: `/staff/coordinator/${event.id}`,
+    // The approved request, until events get a page of their own (SPM-137).
+    href:
+      event.eventRequestId === null
+        ? "/staff/coordinator/events"
+        : `/staff/coordinator/${event.eventRequestId}`,
     title: event.name,
     meta: event.preferredDate ?? "No date",
     teaser: event.clientOrganisationName,
