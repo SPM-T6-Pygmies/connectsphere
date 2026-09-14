@@ -380,6 +380,24 @@ export function coordinatorQueueStateFor(
   return state !== null && QUEUE_STATES.has(state) ? state : null;
 }
 
+/** The states that put a request in the Coordinator's Archive: decided without becoming an event. */
+const ARCHIVE_STATES: ReadonlySet<CoordinatorRequestState> = new Set(["rejected", "withdrawn"]);
+
+/**
+ * A request's state if it belongs in the assigned Coordinator's Archive, and
+ * `null` if it does not. `Approved` is decided too, but it carries on as an
+ * event in "My events" rather than ending here.
+ *
+ * The Archive's counterpart to `coordinatorQueueStateFor`, and like it one
+ * call answers membership and label together.
+ */
+export function coordinatorArchiveStateFor(
+  status: EventRequestStatus,
+): CoordinatorRequestState | null {
+  const state = coordinatorRequestStateFor(status);
+  return state !== null && ARCHIVE_STATES.has(state) ? state : null;
+}
+
 /**
  * The one place responsibility for a request can change hands (#61, #59).
  *

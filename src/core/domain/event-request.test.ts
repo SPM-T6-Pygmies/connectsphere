@@ -15,6 +15,7 @@ import {
 } from "./errors";
 import {
   approveEventRequest,
+  coordinatorArchiveStateFor,
   coordinatorQueueStateFor,
   coordinatorRequestStateFor,
   eventRequestAccessFor,
@@ -388,6 +389,20 @@ describe("coordinatorQueueStateFor", () => {
     "keeps a %s request out of the queue",
     (status) => {
       expect(coordinatorQueueStateFor(status)).toBeNull();
+    },
+  );
+});
+
+describe("coordinatorArchiveStateFor", () => {
+  it("archives a rejected or withdrawn request under its outcome", () => {
+    expect(coordinatorArchiveStateFor("Rejected")).toBe("rejected");
+    expect(coordinatorArchiveStateFor("Withdrawn")).toBe("withdrawn");
+  });
+
+  it.each(["Draft", "Submitted", "Under Review", "Returned", "Approved"] as const)(
+    "keeps a %s request out of the archive -- still open, or an event now",
+    (status) => {
+      expect(coordinatorArchiveStateFor(status)).toBeNull();
     },
   );
 });
