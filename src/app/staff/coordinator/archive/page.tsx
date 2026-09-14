@@ -1,23 +1,81 @@
-import { archivedCoordinatorRequests } from "@/lib/wireframe";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import { QueueEmptyState } from "../../queue-empty-state";
-import { StaffShell } from "../../staff-shell";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { buildViewArchivedEventRequests, getCurrentCoordinator } from "@/composition/container";
+import type { AssignedEventRequestSummary } from "@/core/ports/inbound/view-assigned-event-requests";
+
+import { EmptyState } from "../../field-list";
+import { PageHeader, StaffShell } from "../../staff-shell";
+import { RequestStateBadge } from "../request-state-badge";
 
 export const metadata = { title: "Archive | ConnectSphere" };
 
-export default function CoordinatorArchivePage() {
-  const archived = archivedCoordinatorRequests();
+function ArchivedRequestTable({ requests }: { requests: readonly AssignedEventRequestSummary[] }) {
+  if (requests.length === 0) {
+    return (
+      <EmptyState
+        title="Nothing archived"
+        description="Requests you reject, or that are withdrawn, will appear here."
+      />
+    );
+  }
 
   return (
-    <StaffShell role="coordinator" crumbs={[{ label: "Archive" }]}>
-      <QueueEmptyState
-        title={archived.length === 0 ? "Nothing archived" : "Select a request"}
-        description={
-          archived.length === 0
-            ? "Rejected, returned or withdrawn requests will appear here."
-            : "Choose one from the list to see why it was decided."
-        }
+    <div className="rounded-xl border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Event</TableHead>
+            <TableHead>Client organisation</TableHead>
+            <TableHead>Preferred date</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {requests.map((request) => (
+            <TableRow key={request.id}>
+              <TableCell>
+                <Link href={`/staff/coordinator/${request.id}`} className="font-medium hover:underline">
+                  {request.eventName}
+                </Link>
+              </TableCell>
+              <TableCell className="text-muted-foreground">{request.clientOrganisationName}</TableCell>
+              <TableCell className="text-muted-foreground">{request.preferredDate ?? "—"}</TableCell>
+              <TableCell>
+                <RequestStateBadge state={request.state} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+export default async function CoordinatorArchivePage() {
+  const coordinator = await getCurrentCoordinator();
+  if (coordinator === null) {
+    notFound();
+  }
+
+  const viewArchivedEventRequests = await buildViewArchivedEventRequests();
+  const { eventRequests } = await viewArchivedEventRequests.execute(coordinator);
+
+  return (
+    <StaffShell role="coordinator" crumbs={[{ label: "Archive" }]} coordinatorSection="archive">
+      <PageHeader
+        title="Archive"
+        description="Requests assigned to you that were rejected or withdrawn."
       />
+      <ArchivedRequestTable requests={eventRequests} />
     </StaffShell>
   );
 }

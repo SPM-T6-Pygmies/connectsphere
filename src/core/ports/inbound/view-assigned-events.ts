@@ -6,6 +6,8 @@ export interface ViewAssignedEventsCommand {
 
 export interface AssignedEventSummary {
   readonly id: string;
+  /** The approved request the event was opened from; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
   readonly name: string;
   readonly clientOrganisationName: string;
   readonly preferredDate: string | null;

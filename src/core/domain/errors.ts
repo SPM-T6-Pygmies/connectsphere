@@ -202,6 +202,31 @@ export class EventRequestNotAssignableError extends DomainError {
 }
 
 /**
+ * SPM-34: only a request awaiting the Coordinator's decision (`Submitted` or
+ * `Under Review`) can be approved or rejected, and a decided request is final.
+ *
+ * Takes no argument for the same reason `RegistrationAlreadyWithdrawnError`
+ * takes none: the Supabase adapter raises this one too, when a concurrent
+ * decision landed first, and there it holds no status to put in the message.
+ */
+export class EventRequestNotDecidableError extends DomainError {
+  readonly code = "event_request_not_decidable";
+
+  constructor() {
+    super("This event request is no longer awaiting a decision.");
+  }
+}
+
+/** SPM-34: a rejection must say why -- the reason is the decision record it keeps. */
+export class DecisionReasonRequiredError extends DomainError {
+  readonly code = "decision_reason_required";
+
+  constructor() {
+    super("Give a reason for rejecting this request.");
+  }
+}
+
+/**
  * SPM-31 AC3: the Organiser is told exactly what is missing.
  *
  * Carries the field names rather than a rendered sentence, so the driving

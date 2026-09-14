@@ -31,6 +31,7 @@ import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
 import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
+import type { DecideEventRequest } from "@/core/ports/inbound/decide-event-request";
 import type { Login } from "@/core/ports/inbound/login";
 import type { Logout } from "@/core/ports/inbound/logout";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
@@ -38,6 +39,7 @@ import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
+import type { ViewArchivedEventRequests } from "@/core/ports/inbound/view-archived-event-requests";
 import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigned-event-request";
 import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
 import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
@@ -60,6 +62,7 @@ import type { UserAccountRepository } from "@/core/ports/outbound/user-account-r
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
 import { LoginUseCase } from "@/core/use-cases/login";
 import { LogoutUseCase } from "@/core/use-cases/logout";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
@@ -67,6 +70,7 @@ import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
+import { ViewArchivedEventRequestsUseCase } from "@/core/use-cases/view-archived-event-requests";
 import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-event-request";
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
@@ -285,10 +289,7 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
 /**
  * Who the coordinator screens are acting as: the signed-in Event Coordinator.
  *
- * Replaces the `DEMO_COORDINATOR_USER_ACCOUNT_ID` stand-in, which showed
- * whichever account the env var named whoever logged in -- and a different
- * one per database, since account ids differ between them. `null` covers
- * every case that isn't a coordinator -- no session, no matching
+ * `null` covers every case that isn't a coordinator -- no session, no matching
  * `user_account`, or a role other than Event Coordinator -- so callers answer
  * with a not-found rather than someone else's queue (#91). Same shape as
  * `getCurrentOrganiser` below.
@@ -308,10 +309,12 @@ export async function getCurrentCoordinator(): Promise<{ readonly userAccountId:
 }
 
 /**
- * `events` starts empty in-memory: no real "approve a request" use case
- * exists yet (SPM-34/97), so there is nothing genuine to seed it with -- a
- * fake row would only obscure whether "My events" is really wired up, the
- * same reasoning `attendee-demo-seed.ts` gives for its own empty start.
+ * `events` starts empty in-memory and stays that way: approving a request
+ * (SPM-34) opens its event only in the Supabase store, where the approval and
+ * the event are one transaction. The in-memory event request repository does
+ * not model events, and a fake row here would only obscure whether "My
+ * events" is really wired up -- the same reasoning `attendee-demo-seed.ts`
+ * gives for its own empty start.
  */
 const demoCoordinatorEventRepository = new InMemoryCoordinatorEventRepository();
 
@@ -353,6 +356,13 @@ export async function buildViewAssignedEventRequests(): Promise<ViewAssignedEven
   return new ViewAssignedEventRequestsUseCase({ eventRequests, clientOrganisations });
 }
 
+/** The coordinator's Archive: requests assigned to the caller that were rejected or withdrawn. */
+export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEventRequests> {
+  const { eventRequests, clientOrganisations } = await coordinatorAdapters();
+
+  return new ViewArchivedEventRequestsUseCase({ eventRequests, clientOrganisations });
+}
+
 /** SPM-32: one event request, exactly as submitted, to the coordinator it is assigned to. */
 export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEventRequest> {
   const { eventRequests, clientOrganisations, userAccounts } = await coordinatorAdapters();
@@ -361,11 +371,24 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
 }
 
 /**
+ * SPM-34: the assigned coordinator approves or rejects a request.
+ *
+ * Shares `coordinatorAdapters()` with the two views above -- not the empty
+ * `demoEventRequestRepository` `buildAssignEventCoordinator` uses -- so a
+ * decision made in demo mode is the one the queue and detail then show.
+ */
+export async function buildDecideEventRequest(): Promise<DecideEventRequest> {
+  const { eventRequests } = await coordinatorAdapters();
+
+  return new DecideEventRequestUseCase({ eventRequests });
+}
+
+/**
  * "My events": every event the caller is coordinating, whatever its status.
  *
- * Empty until a real "approve a request" use case exists to create one
- * (SPM-34/97) -- there is no wireframe fallback here to make it look
- * otherwise.
+ * Events are opened by approving a request (SPM-34), which only the Supabase
+ * store does -- in demo mode this stays empty, and there is no wireframe
+ * fallback here to make it look otherwise.
  */
 export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
   const { events, clientOrganisations } = await coordinatorAdapters();

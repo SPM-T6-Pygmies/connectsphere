@@ -1,4 +1,9 @@
 import type { ClientOrganisationId } from "@/core/domain/client-organisation";
+import {
+  DecisionReasonRequiredError,
+  EventRequestNotDecidableError,
+  EventRequestNotFoundError,
+} from "@/core/domain/errors";
 import type {
   EventRequest,
   EventRequestId,
@@ -10,6 +15,7 @@ import type { EventRequestRepository } from "@/core/ports/outbound/event-request
 import type { SupabaseServerClient } from "./client";
 import {
   toAssignEventCoordinatorArgs,
+  toDecideArgs,
   toDeleteArgs,
   toDomain,
   toKey,
@@ -18,6 +24,11 @@ import {
   toSubmitArgs,
   type EventRequestRow,
 } from "./event-request-mapper";
+
+/** SQLSTATEs `coordinator_decide_event_request` comes back with. See its migration. */
+const NOT_FOUND_OR_NOT_ASSIGNED = "CS010";
+const NOT_DECIDABLE = "CS011";
+const REASON_REQUIRED = "CS012";
 
 /**
  * Event requests are reached through database functions, not through the table.
@@ -207,6 +218,46 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     if (error) {
       throw new Error(`Failed to assign Event Coordinator: ${error.message}`, { cause: error });
+    }
+  }
+
+  async approveEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void> {
+    await this.decide(request, decidedBy);
+  }
+
+  async rejectEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void> {
+    await this.decide(request, decidedBy);
+  }
+
+  /**
+   * SPM-34: both decisions go through `coordinator_decide_event_request`,
+   * which re-checks the assignment, the status and the reason under a row
+   * lock, and -- in the same transaction -- opens the event on approval and
+   * writes the audit record. Its SQLSTATEs come back as the domain's own
+   * errors, so losing a race to a concurrent decision reads exactly like
+   * losing it a moment earlier, rather than a 500.
+   */
+  private async decide(request: EventRequest, decidedBy: UserAccountId): Promise<void> {
+    const args = toDecideArgs(request, decidedBy);
+    if (args === null) {
+      throw new Error(
+        `Cannot decide event request with malformed ids "${request.id}" and "${decidedBy}".`,
+      );
+    }
+
+    const { error } = await this.client.rpc("coordinator_decide_event_request", args);
+
+    if (error) {
+      if (error.code === NOT_FOUND_OR_NOT_ASSIGNED) {
+        throw new EventRequestNotFoundError(request.id);
+      }
+      if (error.code === NOT_DECIDABLE) {
+        throw new EventRequestNotDecidableError();
+      }
+      if (error.code === REASON_REQUIRED) {
+        throw new DecisionReasonRequiredError();
+      }
+      throw new Error(`Failed to decide event request: ${error.message}`, { cause: error });
     }
   }
 }

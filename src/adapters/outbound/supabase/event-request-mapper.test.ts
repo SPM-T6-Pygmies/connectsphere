@@ -6,6 +6,7 @@ import { userAccountId } from "@/core/domain/user-account";
 
 import {
   toAssignEventCoordinatorArgs,
+  toDecideArgs,
   toDomain,
   type EventRequestRow,
 } from "./event-request-mapper";
@@ -104,5 +105,32 @@ describe("event request mapper", () => {
       p_event_request_id: 1,
       p_event_coordinator_user_account_id: 9,
     });
+  });
+
+  it("maps a decision to the coordinator decision RPC arguments, naming who decided", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("12"),
+      status: "Rejected",
+      decisionRecord: "No expected attendance.",
+      assignedCoordinatorUserAccountId: userAccountId("9"),
+    });
+
+    expect(toDecideArgs(request, userAccountId("9"))).toEqual({
+      p_event_request_id: 12,
+      p_coordinator_user_account_id: 9,
+      p_decision: "Rejected",
+      p_decision_record: "No expected attendance.",
+    });
+  });
+
+  it("gives no decision arguments when either id was never one of ours", () => {
+    const approved = { status: "Approved" as const };
+
+    expect(
+      toDecideArgs(eventRequestFixture({ ...approved, id: eventRequestId("request-1") }), userAccountId("9")),
+    ).toBeNull();
+    expect(
+      toDecideArgs(eventRequestFixture({ ...approved, id: eventRequestId("12") }), userAccountId("coordinator-1")),
+    ).toBeNull();
   });
 });
