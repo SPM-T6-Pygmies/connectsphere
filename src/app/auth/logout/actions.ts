@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { buildLogout, getCurrentOrganiser } from "@/composition/container";
+import { buildLogout, getCurrentUserAccountId } from "@/composition/container";
 import { createClient } from "@/lib/supabase/server";
 
 export async function logoutAction(): Promise<void> {
@@ -13,8 +13,7 @@ export async function logoutAction(): Promise<void> {
     redirect("/auth/login");
   }
 
-  const organiser = await getCurrentOrganiser();
-  const userId = organiser?.userAccountId ?? authData.user.id;
+  const userId = await getCurrentUserAccountId();
 
   const logout = await buildLogout();
   await logout.execute({ userId });

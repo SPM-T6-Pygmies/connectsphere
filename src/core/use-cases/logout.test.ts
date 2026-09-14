@@ -121,6 +121,16 @@ describe("LogoutUseCase", () => {
     await expect(useCase.execute({ userId: "user-4" })).rejects.toThrow("Auth service error");
   });
 
+  it("signs out without an audit record when the caller has no user account", async () => {
+    // An audit record needs a user account to point at, so none is written --
+    // but the session still ends rather than leaving the caller signed in.
+
+    const { useCase, auditLogger } = buildUseCase();
+
+    await expect(useCase.execute({ userId: null })).resolves.toBeUndefined();
+    expect(auditLogger.getLoggedLogouts()).toHaveLength(0);
+  });
+
   it("accepts userId as required input parameter", async () => {
     // Domain requirement: Audit trail must capture which user logged out.
     // LogoutUseCase requires userId in the input.
