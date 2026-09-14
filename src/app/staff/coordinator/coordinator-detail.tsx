@@ -6,11 +6,12 @@ import type { DetailOrigin } from "../detail-origin";
 import { AssignedRequestDetail } from "./assigned-request-detail";
 
 /**
- * SPM-32: the read-only view of one event request assigned to the caller as
- * coordinator, whatever its status. Approving/rejecting/returning (SPM-34)
- * and the tabbed workspace an *Approved* request eventually becomes (a
- * separate, backlog-scoped "My events" view) are both out of scope here --
- * this renders the same submitted fields regardless of status.
+ * SPM-32: the view of one event request assigned to the caller as
+ * coordinator, whatever its status -- the submitted fields are read-only, and
+ * SPM-34's approve/reject controls appear while the request awaits a
+ * decision. Returning a request (SPM-33) and the tabbed workspace an
+ * *Approved* request eventually becomes (a separate, backlog-scoped "My
+ * events" view) are both out of scope here.
  *
  * One entry point for both the record's own route and the notification-detail
  * lookup, so neither can drift and show the wrong shape for the same request.

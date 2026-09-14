@@ -10,6 +10,7 @@ import { coordinatorRequestStateFor, type EventRequest } from "@/core/domain/eve
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
+import { DecisionForm } from "./decision-form";
 import { RequestStateBadge } from "./request-state-badge";
 
 /**
@@ -30,8 +31,11 @@ function formatInstantTime(iso: string): string {
 }
 
 /**
- * SPM-32: everything the Organiser submitted, read-only. No decision,
- * clarification or edit controls of any kind -- those are SPM-33/34's job.
+ * SPM-32: everything the Organiser submitted, read-only. SPM-34 adds the
+ * decision alongside it: Approve/Reject while the request awaits this
+ * Coordinator, and the outcome once it is decided. No clarification or edit
+ * controls -- clarification is SPM-33's job, and a submitted request is
+ * locked (#102).
  */
 export function AssignedRequestDetail({
   eventRequest,
@@ -72,8 +76,8 @@ export function AssignedRequestDetail({
             <CardHeader>
               <CardTitle>The request as submitted</CardTitle>
               <CardDescription>
-                Everything the Organiser supplied. Read-only -- a decision on this
-                request is made elsewhere.
+                Everything the Organiser supplied, as submitted. The request itself
+                cannot be edited.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -101,6 +105,42 @@ export function AssignedRequestDetail({
         </div>
 
         <div className="space-y-6">
+          {state === "awaiting-decision" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Decision</CardTitle>
+                <CardDescription>
+                  Approving lets planning begin but commits ConnectSphere to nothing
+                  yet. Rejecting is final.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DecisionForm eventRequestId={eventRequest.id} />
+              </CardContent>
+            </Card>
+          ) : state === "approved" || state === "rejected" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Decision</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FieldList
+                  columns={1}
+                  fields={[
+                    {
+                      label: "Outcome",
+                      value: state === "approved" ? "Approved -- planning can begin" : "Rejected",
+                    },
+                    {
+                      label: state === "approved" ? "Note" : "Reason",
+                      value: eventRequest.decisionRecord,
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
+
           <Card>
             <CardHeader>
               <CardTitle>People</CardTitle>
