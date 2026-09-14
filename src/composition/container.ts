@@ -452,3 +452,18 @@ export async function getCurrentOrganiser(): Promise<{
     name: user.name,
   };
 }
+
+/**
+ * The signed-in caller's `user_account_id`, whatever their role -- unlike
+ * `getCurrentOrganiser`/`getCurrentCoordinator`, which answer `null` for any
+ * other role. `null` means no session or no matching `user_account`.
+ */
+export async function getCurrentUserAccountId(): Promise<string | null> {
+  const session = await new SupabaseAuthAdapter().getSession();
+  if (session === null) {
+    return null;
+  }
+
+  const user = await new SupabaseUserRepository().findByAuthUserId(session.userId);
+  return user?.userId ?? null;
+}
