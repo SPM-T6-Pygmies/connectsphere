@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import {
   Table,
@@ -8,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { actingCoordinator, buildViewAssignedEventRequests } from "@/composition/container";
+import { buildViewAssignedEventRequests, getCurrentCoordinator } from "@/composition/container";
 import type { AssignedEventRequestSummary } from "@/core/ports/inbound/view-assigned-event-requests";
 
 import { EmptyState } from "../field-list";
@@ -60,7 +61,11 @@ function AssignedRequestTable({ requests }: { requests: readonly AssignedEventRe
 }
 
 export default async function CoordinatorPage() {
-  const coordinator = actingCoordinator();
+  const coordinator = await getCurrentCoordinator();
+  if (coordinator === null) {
+    notFound();
+  }
+
   const viewAssignedEventRequests = await buildViewAssignedEventRequests();
   const { eventRequests } = await viewAssignedEventRequests.execute(coordinator);
 

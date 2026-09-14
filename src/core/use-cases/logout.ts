@@ -8,7 +8,7 @@ export interface LogoutDeps {
 }
 
 export interface LogoutInput {
-  userId: string;
+  userId: string | null;
 }
 
 export class LogoutUseCase implements Logout {
@@ -16,6 +16,10 @@ export class LogoutUseCase implements Logout {
 
   async execute(input: LogoutInput): Promise<void> {
     await this.deps.auth.logout();
-    await this.deps.auditLogger.logLogout(input.userId);
+    // An audit record must point at a user account; without one there is
+    // nothing to attribute the logout to, but the session still ends.
+    if (input.userId !== null) {
+      await this.deps.auditLogger.logLogout(input.userId);
+    }
   }
 }

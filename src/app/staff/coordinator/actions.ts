@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import { decideEventRequestSchema } from "@/adapters/inbound/decide-event-request-schema";
-import { actingCoordinator, buildDecideEventRequest } from "@/composition/container";
-import { DomainError } from "@/core/domain/errors";
+import { buildDecideEventRequest, getCurrentCoordinator } from "@/composition/container";
+import { DomainError, EventRequestNotFoundError } from "@/core/domain/errors";
 
 export type DecideEventRequestState =
   | { status: "idle" }
@@ -14,7 +14,7 @@ export type DecideEventRequestState =
 /**
  * SPM-34: the assigned Event Coordinator approves or rejects a request.
  *
- * Who is deciding comes from `actingCoordinator()` on the server, never from
+ * Who is deciding comes from `getCurrentCoordinator()` on the server, never from
  * the form -- a posted user id would let any caller decide as anyone. A
  * refused decision hands back what was typed, because React resets the form
  * after every action, failed ones included.
@@ -35,8 +35,15 @@ export async function decideEventRequestAction(
   }
 
   try {
+    // A caller who isn't a coordinator gets the same answer as one who isn't
+    // assigned to this request (#91), as the coordinator pages do.
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new EventRequestNotFoundError(parsed.data.id);
+    }
+
     const decideEventRequest = await buildDecideEventRequest();
-    await decideEventRequest.execute({ ...parsed.data, ...actingCoordinator() });
+    await decideEventRequest.execute({ ...parsed.data, ...coordinator });
   } catch (error) {
     // A broken rule is an expected outcome and becomes a message. Anything
     // else is a genuine fault and is allowed to reach the error boundary.

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { actingCoordinator, buildViewAssignedEventRequest } from "@/composition/container";
+import { buildViewAssignedEventRequest, getCurrentCoordinator } from "@/composition/container";
 
 import type { DetailOrigin } from "../detail-origin";
 import { AssignedRequestDetail } from "./assigned-request-detail";
@@ -26,7 +26,11 @@ export async function CoordinatorDetail({
   activity?: string | string[];
   basePath?: string;
 }) {
-  const coordinator = actingCoordinator();
+  const coordinator = await getCurrentCoordinator();
+  if (coordinator === null) {
+    notFound();
+  }
+
   const viewAssignedEventRequest = await buildViewAssignedEventRequest();
   const result = await viewAssignedEventRequest.execute({ id, ...coordinator });
 
