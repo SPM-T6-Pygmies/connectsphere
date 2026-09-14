@@ -21,13 +21,11 @@ import type {
 // --- People ----------------------------------------------------------------
 
 /**
- * Names and ids match scripts/seed-data/seed.sql (and
- * adapters/outbound/in-memory/organiser-demo-seed.ts): the same Alice, Ben,
- * Cara, Nadia and Omar exist for real once a Supabase project is configured,
- * so the wireframe and the seeded backend show the same people rather than
- * two unrelated casts. Daniel, Mei and Ravi (ops/venue/technical) are
- * wireframe-only for now -- see the seed script's own note on why they carry
- * this file's names rather than the other way round.
+ * Names and ids match adapters/outbound/in-memory/organiser-demo-seed.ts, so
+ * the wireframe and the in-memory demo show the same people rather than two
+ * unrelated casts. They are wireframe/demo-only: scripts/seed-data/seed.sql
+ * seeds Supabase against the real test accounts (Test Organiser, Test
+ * Coordinator, ...) you can actually log in as, not this cast.
  */
 export const PEOPLE = {
   organiserPriya: {

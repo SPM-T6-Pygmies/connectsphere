@@ -1,8 +1,14 @@
--- Seeds real data for the coordinator's "assigned to me" queue and detail
--- view (SPM-121, SPM-32), mirroring the shape of
--- src/adapters/outbound/in-memory/organiser-demo-seed.ts against an actual
--- Postgres database -- for exercising the Supabase adapters, which the
--- in-memory demo seed never touches.
+-- Seeds event requests for the real test accounts, so the screens that read
+-- event requests through Supabase -- the Organiser's own and organisation
+-- views (SPM-31, SPM-38, SPM-39), Operations' queue (SPM-29, SPM-130) and the
+-- Coordinator's queue and detail (SPM-121, SPM-32) -- have data a signed-in
+-- user can actually reach.
+--
+-- It creates no people. The accounts are the ones you can log in as --
+-- Test Organiser and Test Organiser 2 (Event Organisers in Test Organisation)
+-- and Test Coordinator -- created by the migrations and
+-- supabase/seed-auth-test-users.ts (see supabase/SEED.md). Run those first:
+-- this script stops with an error naming whichever account is missing.
 --
 -- Run against a local stack:
 --   supabase db query --file scripts/seed-data/seed.sql --local
@@ -13,152 +19,65 @@
 -- Safe to run more than once: every insert is guarded by an existence check,
 -- so re-running finds everything already there and changes nothing.
 --
--- Two client organisations (Sunrise Events Co, Harbour Logistics), three
--- Event Organisers (Alice, Ben in Sunrise; Cara in Harbour), and two Event
--- Coordinators (Nadia, Omar -- coordinators have no client organisation of
--- their own). Nadia is assigned a request in each organisation, one left
--- Submitted (a request assigned by some route other than SPM-97's
--- assignment, which moves it to Under Review), one Returned, and one that has
--- moved past review, so the queue (Submitted, Under Review and Returned) and
--- the detail view (any status, by assignment) can both be exercised; Omar
--- holds a decoy request that must never appear in Nadia's queue or be
--- reachable by Nadia via direct id (#91).
+-- Test Coordinator is assigned a request in every state the coordinator
+-- screens tell apart: two Under Review, one assigned but still Submitted (a
+-- request assigned by some route other than SPM-130's assignment, which moves
+-- it to Under Review), one Returned and one Approved -- so the queue
+-- (Submitted, Under Review and Returned) and the detail view (any status, by
+-- assignment) can both be exercised. The requests are split across both
+-- organisers, so the organisation-wide view (SPM-39) shows a colleague's too.
 --
--- Also seeds the one Event Operations Manager, Venue Staff and Technical
--- Support Staff profile each of the other staff wireframes act as (Daniel,
--- Mei, Ravi in src/lib/wireframe/fixtures.ts) -- profiles only, since those
--- pages have no real use case/adapter of their own yet to hold event,
--- booking or equipment rows against.
+-- There is only one real coordinator, so no request is assigned to a
+-- different one. Quarterly Partner Forum -- Submitted and unassigned -- is the
+-- request Test Coordinator must get a not-found for by direct id (#91), and
+-- the one Test Ops Manager has to assign.
 
 do $$
 declare
-  v_sunrise bigint;
-  v_harbour bigint;
-  v_alice   bigint;
-  v_ben     bigint;
-  v_cara    bigint;
-  v_nadia   bigint;
-  v_omar    bigint;
-  v_daniel  bigint;
-  v_mei     bigint;
-  v_ravi    bigint;
-  v_organiser_role_id  bigint;
-  v_coordinator_role_id bigint;
-  v_ops_role_id        bigint;
-  v_venue_role_id      bigint;
-  v_technical_role_id  bigint;
+  v_organisation bigint;
+  v_organiser    bigint;
+  v_organiser_2  bigint;
+  v_coordinator  bigint;
 begin
-  -- 1. Client organisations -----------------------------------------------
-  select client_organisation_id into v_sunrise
-    from public.client_organisation where name = 'Sunrise Events Co';
-  if v_sunrise is null then
-    insert into public.client_organisation (name) values ('Sunrise Events Co')
-      returning client_organisation_id into v_sunrise;
+  -- 1. The real test accounts ------------------------------------------------
+  select client_organisation_id into v_organisation
+    from public.client_organisation where name = 'Test Organisation';
+
+  select user_account_id into v_organiser
+    from public.user_account
+    where name = 'Test Organiser' and client_organisation_id = v_organisation;
+
+  select user_account_id into v_organiser_2
+    from public.user_account
+    where name = 'Test Organiser 2' and client_organisation_id = v_organisation;
+
+  select user_account_id into v_coordinator
+    from public.user_account
+    where name = 'Test Coordinator' and client_organisation_id is null;
+
+  if v_organisation is null or v_organiser is null or v_organiser_2 is null
+     or v_coordinator is null then
+    raise exception 'Missing test accounts: %',
+      concat_ws(', ',
+        case when v_organisation is null then 'Test Organisation' end,
+        case when v_organiser is null then 'Test Organiser' end,
+        case when v_organiser_2 is null then 'Test Organiser 2' end,
+        case when v_coordinator is null then 'Test Coordinator' end)
+      using hint = 'Apply the migrations and run supabase/seed-auth-test-users.ts first (supabase/SEED.md).';
   end if;
 
-  select client_organisation_id into v_harbour
-    from public.client_organisation where name = 'Harbour Logistics';
-  if v_harbour is null then
-    insert into public.client_organisation (name) values ('Harbour Logistics')
-      returning client_organisation_id into v_harbour;
-  end if;
-
-  -- 2. User accounts --------------------------------------------------------
-  select user_account_id into v_alice
-    from public.user_account where name = 'Alice' and client_organisation_id = v_sunrise;
-  if v_alice is null then
-    insert into public.user_account (name, client_organisation_id) values ('Alice', v_sunrise)
-      returning user_account_id into v_alice;
-  end if;
-
-  select user_account_id into v_ben
-    from public.user_account where name = 'Ben' and client_organisation_id = v_sunrise;
-  if v_ben is null then
-    insert into public.user_account (name, client_organisation_id) values ('Ben', v_sunrise)
-      returning user_account_id into v_ben;
-  end if;
-
-  select user_account_id into v_cara
-    from public.user_account where name = 'Cara' and client_organisation_id = v_harbour;
-  if v_cara is null then
-    insert into public.user_account (name, client_organisation_id) values ('Cara', v_harbour)
-      returning user_account_id into v_cara;
-  end if;
-
-  select user_account_id into v_nadia
-    from public.user_account where name = 'Nadia' and client_organisation_id is null;
-  if v_nadia is null then
-    insert into public.user_account (name, client_organisation_id) values ('Nadia', null)
-      returning user_account_id into v_nadia;
-  end if;
-
-  select user_account_id into v_omar
-    from public.user_account where name = 'Omar' and client_organisation_id is null;
-  if v_omar is null then
-    insert into public.user_account (name, client_organisation_id) values ('Omar', null)
-      returning user_account_id into v_omar;
-  end if;
-
-  select user_account_id into v_daniel
-    from public.user_account where name = 'Daniel Okonkwo' and client_organisation_id is null;
-  if v_daniel is null then
-    insert into public.user_account (name, department, client_organisation_id)
-      values ('Daniel Okonkwo', 'Event Operations', null)
-      returning user_account_id into v_daniel;
-  end if;
-
-  select user_account_id into v_mei
-    from public.user_account where name = 'Mei Chen' and client_organisation_id is null;
-  if v_mei is null then
-    insert into public.user_account (name, department, client_organisation_id)
-      values ('Mei Chen', 'Venue Operations', null)
-      returning user_account_id into v_mei;
-  end if;
-
-  select user_account_id into v_ravi
-    from public.user_account where name = 'Ravi Kulkarni' and client_organisation_id is null;
-  if v_ravi is null then
-    insert into public.user_account (name, department, client_organisation_id)
-      values ('Ravi Kulkarni', 'Technical Support', null)
-      returning user_account_id into v_ravi;
-  end if;
-
-  -- 3. Roles ------------------------------------------------------------
-  select role_id into v_organiser_role_id from public.role where role_name = 'Event Organiser';
-  select role_id into v_coordinator_role_id from public.role where role_name = 'Event Coordinator';
-  select role_id into v_ops_role_id from public.role where role_name = 'Event Operations Manager';
-  select role_id into v_venue_role_id from public.role where role_name = 'Venue Staff';
-  select role_id into v_technical_role_id from public.role where role_name = 'Technical Support Staff';
-
-  insert into public.user_account_role (user_account_id, role_id)
-  select v.user_account_id, v_organiser_role_id
-  from unnest(array[v_alice, v_ben, v_cara]) as v(user_account_id)
-  on conflict do nothing;
-
-  insert into public.user_account_role (user_account_id, role_id)
-  select v.user_account_id, v_coordinator_role_id
-  from unnest(array[v_nadia, v_omar]) as v(user_account_id)
-  on conflict do nothing;
-
-  insert into public.user_account_role (user_account_id, role_id)
-  values
-    (v_daniel, v_ops_role_id),
-    (v_mei, v_venue_role_id),
-    (v_ravi, v_technical_role_id)
-  on conflict do nothing;
-
-  -- 4. Event requests -------------------------------------------------------
-  -- Not assigned to a coordinator yet (SPM-97 doesn't exist): the everyday
-  -- pre-review lifecycle.
+  -- 2. Event requests -------------------------------------------------------
+  -- Not assigned to a coordinator: the everyday pre-review lifecycle, and the
+  -- Submitted request Operations assigns from (SPM-130).
   insert into public.event_request (
     event_name, preferred_date, preferred_start_time, preferred_end_time,
     expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
   select 'Founders'' Day Celebration', date '2026-11-04', timestamptz '2026-11-04 09:00+08',
-    timestamptz '2026-11-04 17:00+08', 150, 'Draft', v_alice, v_sunrise
+    timestamptz '2026-11-04 17:00+08', 150, 'Draft', v_organiser, v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Founders'' Day Celebration' and requesting_user_account_id = v_alice
+    where event_name = 'Founders'' Day Celebration' and requesting_user_account_id = v_organiser
   );
 
   insert into public.event_request (
@@ -166,10 +85,10 @@ begin
     expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
   select 'Quarterly Partner Forum', date '2026-11-18', timestamptz '2026-11-18 09:00+08',
-    timestamptz '2026-11-18 12:00+08', 80, 'Submitted', v_ben, v_sunrise
+    timestamptz '2026-11-18 12:00+08', 80, 'Submitted', v_organiser_2, v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Quarterly Partner Forum' and requesting_user_account_id = v_ben
+    where event_name = 'Quarterly Partner Forum' and requesting_user_account_id = v_organiser_2
   );
 
   insert into public.event_request (
@@ -177,14 +96,13 @@ begin
     expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
   select 'Annual General Meeting', date '2026-12-02', timestamptz '2026-12-02 09:00+08',
-    timestamptz '2026-12-02 11:00+08', 200, 'Draft', v_cara, v_harbour
+    timestamptz '2026-12-02 11:00+08', 200, 'Draft', v_organiser_2, v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Annual General Meeting' and requesting_user_account_id = v_cara
+    where event_name = 'Annual General Meeting' and requesting_user_account_id = v_organiser_2
   );
 
-  -- Assigned to Nadia (SPM-121/SPM-32): spans both client organisations, so
-  -- the queue can show a per-row organisation name.
+  -- Assigned to Test Coordinator (SPM-121/SPM-32), from both organisers.
   insert into public.event_request (
     event_name, description, purpose, preferred_date, preferred_start_time,
     preferred_end_time, expected_attendance, venue_requirements,
@@ -195,16 +113,16 @@ begin
     'Annual compliance check ahead of the winter events season.', date '2026-10-14',
     timestamptz '2026-10-14 09:00+08', timestamptz '2026-10-14 11:00+08', 12,
     'Access to every fire exit and the main hall.', 'Step-free access required for two attendees.',
-    null, 'Under Review', v_ben, v_nadia, v_sunrise
+    null, 'Under Review', v_organiser, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Venue Safety Review' and requesting_user_account_id = v_ben
+    where event_name = 'Venue Safety Review' and requesting_user_account_id = v_organiser
   );
 
-  -- Assigned but still Submitted: not what assign_event_coordinator (SPM-97)
-  -- leaves behind -- it moves a Submitted request to Under Review as it
-  -- assigns -- but a request assigned by any other route can land here, and
-  -- the queue must not drop it.
+  -- Assigned but still Submitted: not what operations_assign_event_coordinator
+  -- (SPM-130) leaves behind -- it moves a Submitted request to Under Review as
+  -- it assigns -- but a request assigned by any other route can land here,
+  -- and the queue must not drop it.
   insert into public.event_request (
     event_name, description, purpose, preferred_date, preferred_start_time,
     preferred_end_time, expected_attendance, venue_requirements, status,
@@ -213,10 +131,10 @@ begin
   select 'Winter Volunteer Briefing', 'A briefing for volunteers working the winter events season.',
     'Bring new volunteers up to speed before the season opens.', date '2026-12-09',
     timestamptz '2026-12-09 14:00+08', timestamptz '2026-12-09 16:00+08', 45,
-    'A room that seats 45 with a projector.', 'Submitted', v_ben, v_nadia, v_sunrise
+    'A room that seats 45 with a projector.', 'Submitted', v_organiser, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Winter Volunteer Briefing' and requesting_user_account_id = v_ben
+    where event_name = 'Winter Volunteer Briefing' and requesting_user_account_id = v_organiser
   );
 
   insert into public.event_request (
@@ -225,13 +143,14 @@ begin
     registration_requirements, status, requesting_user_account_id,
     assigned_coordinator_user_account_id, client_organisation_id
   )
-  select 'Harbour Logistics Conference', 'A day of talks and workshops for the logistics team.',
+  select 'Operations Roadmap Conference', 'A day of talks and workshops for the operations team.',
     'Kick off next year''s operations roadmap.', date '2026-11-25', timestamptz '2026-11-25 09:00+08',
     timestamptz '2026-11-25 18:00+08', 300, 'Projector, stage microphones, livestream setup.',
-    'Attendees must register in advance; no walk-ins.', 'Under Review', v_cara, v_nadia, v_harbour
+    'Attendees must register in advance; no walk-ins.', 'Under Review', v_organiser_2, v_coordinator,
+    v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Harbour Logistics Conference' and requesting_user_account_id = v_cara
+    where event_name = 'Operations Roadmap Conference' and requesting_user_account_id = v_organiser_2
   );
 
   insert into public.event_request (
@@ -242,15 +161,14 @@ begin
   select 'Vendor Appreciation Day', 'An informal thank-you event for this year''s vendors.',
     'Strengthen vendor relationships ahead of contract renewals.', date '2026-11-06',
     timestamptz '2026-11-06 17:00+08', timestamptz '2026-11-06 20:00+08', 60,
-    'Outdoor courtyard with a covered fallback.', 'Returned', v_alice, v_nadia, v_sunrise
+    'Outdoor courtyard with a covered fallback.', 'Returned', v_organiser, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Vendor Appreciation Day' and requesting_user_account_id = v_alice
+    where event_name = 'Vendor Appreciation Day' and requesting_user_account_id = v_organiser
   );
 
   -- Approved: frozen and still reachable by direct id (SPM-32), but excluded
-  -- from the queue (SPM-121) -- it has become an Event, a separate,
-  -- backlog-scoped view.
+  -- from the queue (SPM-121) -- it has become an Event, a separate view.
   insert into public.event_request (
     event_name, description, purpose, preferred_date, preferred_start_time,
     preferred_end_time, expected_attendance, status,
@@ -259,24 +177,10 @@ begin
   select 'Founders'' Gala Dinner', 'A formal dinner marking the company''s founding.',
     'Celebrate the year''s milestones with clients and staff.', date '2026-12-12',
     timestamptz '2026-12-12 19:00+08', timestamptz '2026-12-12 23:00+08', 220,
-    'Approved', v_alice, v_nadia, v_sunrise
+    'Approved', v_organiser_2, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request
-    where event_name = 'Founders'' Gala Dinner' and requesting_user_account_id = v_alice
-  );
-
-  -- Assigned to Omar, not Nadia: must never appear in Nadia's queue or be
-  -- reachable by Nadia via direct id (#91).
-  insert into public.event_request (
-    event_name, preferred_date, preferred_start_time, preferred_end_time,
-    expected_attendance, status, requesting_user_account_id,
-    assigned_coordinator_user_account_id, client_organisation_id
-  )
-  select 'Quarterly Townhall', date '2026-10-30', timestamptz '2026-10-30 09:00+08',
-    timestamptz '2026-10-30 10:30+08', 400, 'Under Review', v_ben, v_omar, v_sunrise
-  where not exists (
-    select 1 from public.event_request
-    where event_name = 'Quarterly Townhall' and requesting_user_account_id = v_ben
+    where event_name = 'Founders'' Gala Dinner' and requesting_user_account_id = v_organiser_2
   );
 end;
 $$;
