@@ -29,4 +29,13 @@ export interface EventRequestRepository {
   reassignResponsibleOrganiser(request: EventRequest): Promise<void>;
   /** Persists an Event Coordinator assignment and any resulting status transition. */
   assignEventCoordinator(request: EventRequest): Promise<void>;
+  /**
+   * Persists an approval (SPM-34) made by `decidedBy`, the request's assigned
+   * Event Coordinator. The same unit of work opens the request's event in
+   * `Planning` and records who approved it, and when -- approval *is* the
+   * event's creation, so a request is never Approved without one.
+   */
+  approveEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
+  /** Persists a rejection (SPM-34) made by `decidedBy`, recording who rejected it and when. */
+  rejectEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
 }

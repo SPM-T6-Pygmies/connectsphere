@@ -1,0 +1,130 @@
+import { describe, expect, it } from "vitest";
+
+import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
+import {
+  DecisionReasonRequiredError,
+  EventRequestNotDecidableError,
+  EventRequestNotFoundError,
+} from "@/core/domain/errors";
+import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
+import { userAccountId } from "@/core/domain/user-account";
+
+import { DecideEventRequestUseCase } from "./decide-event-request";
+
+const COORDINATOR = userAccountId("coordinator-1");
+const OTHER_COORDINATOR = userAccountId("coordinator-2");
+
+function request(overrides: Partial<EventRequest> = {}): EventRequest {
+  return eventRequestFixture({
+    status: "Under Review",
+    assignedCoordinatorUserAccountId: COORDINATOR,
+    submittedAt: new Date("2026-09-10T00:00:00.000Z"),
+    ...overrides,
+  });
+}
+
+function buildUseCase(seed: readonly EventRequest[]) {
+  const eventRequests = new InMemoryEventRequestRepository(seed);
+  const useCase = new DecideEventRequestUseCase({ eventRequests });
+  return { useCase, eventRequests };
+}
+
+describe("DecideEventRequestUseCase", () => {
+  it("approves a request awaiting the assigned coordinator's decision (AC1)", async () => {
+    const { useCase, eventRequests } = buildUseCase([request()]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      decision: "approve",
+      decisionRecord: "Enough to plan.",
+    });
+
+    expect(result).toEqual({ eventRequestId: "request-1", status: "Approved" });
+    await expect(eventRequests.findById(eventRequestId("request-1"))).resolves.toMatchObject({
+      status: "Approved",
+      decisionRecord: "Enough to plan.",
+    });
+  });
+
+  it("rejects a request, keeping the coordinator's reason as its decision record (AC2)", async () => {
+    const { useCase, eventRequests } = buildUseCase([request()]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      decision: "reject",
+      decisionRecord: "No expected attendance.",
+    });
+
+    expect(result).toEqual({ eventRequestId: "request-1", status: "Rejected" });
+    await expect(eventRequests.findById(eventRequestId("request-1"))).resolves.toMatchObject({
+      status: "Rejected",
+      decisionRecord: "No expected attendance.",
+    });
+  });
+
+  it("refuses a rejection without a reason and stores nothing", async () => {
+    const existing = request();
+    const { useCase, eventRequests } = buildUseCase([existing]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: COORDINATOR,
+        decision: "reject",
+        decisionRecord: "   ",
+      }),
+    ).rejects.toBeInstanceOf(DecisionReasonRequiredError);
+    expect(eventRequests.all()).toEqual([existing]);
+  });
+
+  it.each([
+    ["assigned to another coordinator", request({ assignedCoordinatorUserAccountId: OTHER_COORDINATOR })],
+    ["not assigned to anyone", request({ assignedCoordinatorUserAccountId: null })],
+  ])("answers a request %s as not found, and stores nothing (#91)", async (_label, existing) => {
+    const { useCase, eventRequests } = buildUseCase([existing]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: COORDINATOR,
+        decision: "approve",
+        decisionRecord: "",
+      }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+    expect(eventRequests.all()).toEqual([existing]);
+  });
+
+  it("answers an unknown id as not found", async () => {
+    const { useCase } = buildUseCase([]);
+
+    await expect(
+      useCase.execute({
+        id: "missing",
+        userAccountId: COORDINATOR,
+        decision: "approve",
+        decisionRecord: "",
+      }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+  });
+
+  it.each(["Returned", "Approved", "Rejected"] as const)(
+    "refuses to decide a %s request and stores nothing",
+    async (status) => {
+      const existing = request({ status, decisionRecord: "Earlier decision." });
+      const { useCase, eventRequests } = buildUseCase([existing]);
+
+      await expect(
+        useCase.execute({
+          id: "request-1",
+          userAccountId: COORDINATOR,
+          decision: "reject",
+          decisionRecord: "Changed my mind.",
+        }),
+      ).rejects.toBeInstanceOf(EventRequestNotDecidableError);
+      expect(eventRequests.all()).toEqual([existing]);
+    },
+  );
+});

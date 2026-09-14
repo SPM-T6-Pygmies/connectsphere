@@ -72,6 +72,15 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
     this.rows.set(request.id, request);
   }
 
+  /** Stores the approved request. The event it opens, and the audit record, are not modelled in memory. */
+  async approveEventRequest(request: EventRequest): Promise<void> {
+    this.rows.set(request.id, request);
+  }
+
+  async rejectEventRequest(request: EventRequest): Promise<void> {
+    this.rows.set(request.id, request);
+  }
+
   /** Test-only window on what was stored, so a test can assert nothing was written. */
   all(): readonly EventRequest[] {
     return [...this.rows.values()];

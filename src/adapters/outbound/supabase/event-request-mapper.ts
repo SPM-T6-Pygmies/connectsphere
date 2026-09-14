@@ -5,7 +5,7 @@ import {
   type EventRequestStatus,
   type NewEventRequest,
 } from "@/core/domain/event-request";
-import { userAccountId } from "@/core/domain/user-account";
+import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 
 /**
  * The `event_request` table's shape, named the way the database names it.
@@ -206,6 +206,33 @@ export function toAssignEventCoordinatorArgs(
   return {
     p_event_request_id: requestKey,
     p_event_coordinator_user_account_id: coordinatorKey,
+  };
+}
+
+/**
+ * Arguments for `coordinator_decide_event_request` (SPM-34).
+ *
+ * The decision is the status the core has already moved the request to, and
+ * the coordinator is `decidedBy` -- the caller -- rather than whoever the
+ * request says is assigned: the function checks the two agree, and records
+ * the caller as the actor.
+ */
+export function toDecideArgs(
+  request: EventRequest,
+  decidedBy: UserAccountId,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey = toKey(decidedBy);
+
+  if (requestKey === null || coordinatorKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_coordinator_user_account_id: coordinatorKey,
+    p_decision: request.status,
+    p_decision_record: request.decisionRecord,
   };
 }
 
