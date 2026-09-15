@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,36 +27,6 @@ import { PageHeader, StaffShell } from "../../staff-shell";
 import { StatusBadge } from "../../status-badge";
 import { reassignEventOrganiserAction } from "./actions";
 
-/**
- * SPM-39's demo identities, reduced to the
- * primitives the use case takes. Used only when there is no real signed-
- * in Organiser (see `getCurrentOrganiser`) -- e.g. testing before SPM-13's
- * login existed, or reaching this page in some other role.
- */
-const DEMO_ORGANISERS = {
-  alice: {
-    name: "Alice",
-    userAccountId: "organiser-alice",
-    clientOrganisationId: "sunrise-events-co",
-  },
-  ben: {
-    name: "Ben",
-    userAccountId: "organiser-ben",
-    clientOrganisationId: "sunrise-events-co",
-  },
-  cara: {
-    name: "Cara",
-    userAccountId: "organiser-cara",
-    clientOrganisationId: "harbour-logistics",
-  },
-} as const;
-
-type DemoOrganiserKey = keyof typeof DEMO_ORGANISERS;
-
-function isDemoOrganiserKey(value: string | undefined): value is DemoOrganiserKey {
-  return value !== undefined && value in DEMO_ORGANISERS;
-}
-
 export const metadata = { title: "Organisation events | ConnectSphere" };
 
 /**
@@ -65,23 +35,16 @@ export const metadata = { title: "Organisation events | ConnectSphere" };
  * access predicate (`eventRequestAccessFor`) says so (AC2) -- not a fixture,
  * a call through `src/composition` to the actual tested use case.
  *
- * The caller's identity is the real signed-in Organiser when one exists
- * (`getCurrentOrganiser`, SPM-13), falling back to the demo switcher only
- * when it doesn't -- e.g. no session, or the session isn't an Organiser's.
+ * The caller is the signed-in Organiser (`getCurrentOrganiser`, SPM-13);
+ * anyone else gets a not-found, as on the other requester pages.
  */
-export default async function OrganisationEventsPage({
-  searchParams,
-}: PageProps<"/staff/requester/organisation">) {
-  const session = await getCurrentOrganiser();
+export default async function OrganisationEventsPage() {
+  const organiser = await getCurrentOrganiser();
+  if (organiser === null) {
+    notFound();
+  }
 
-  const { as } = await searchParams;
-  const asParam = typeof as === "string" ? as : undefined;
-  const key: DemoOrganiserKey = isDemoOrganiserKey(asParam) ? asParam : "alice";
-  const demoOrganiser = DEMO_ORGANISERS[key];
-
-  const organiser = session ?? demoOrganiser;
-
-  /** Reassignment candidates: Organisers in the same client organisation, demo or real. */
+  /** Reassignment candidates: Organisers in the same client organisation. */
   const listOrganisationOrganisers = await buildListOrganisationOrganisers();
   const { organisers: colleagues } = await listOrganisationOrganisers.execute({
     clientOrganisationId: organiser.clientOrganisationId,
@@ -106,28 +69,9 @@ export default async function OrganisationEventsPage({
         title="Organisation events"
         description="Every event request raised by anyone in your client organisation -- not just your own -- so nobody duplicates a request or loses context."
         actions={
-          session ? (
-            <span className="text-muted-foreground text-sm">
-              Logged in as <span className="text-foreground font-medium">{session.name}</span>
-            </span>
-          ) : (
-            <div className="flex items-center gap-1 text-sm">
-              <span className="text-muted-foreground mr-1">Viewing as</span>
-              {(Object.keys(DEMO_ORGANISERS) as DemoOrganiserKey[]).map((candidate) => (
-                <Link
-                  key={candidate}
-                  href={`/staff/requester/organisation?as=${candidate}`}
-                  className={
-                    candidate === key
-                      ? "bg-secondary text-secondary-foreground rounded-md px-2 py-1 font-medium"
-                      : "hover:bg-muted rounded-md px-2 py-1"
-                  }
-                >
-                  {DEMO_ORGANISERS[candidate].name}
-                </Link>
-              ))}
-            </div>
-          )
+          <span className="text-muted-foreground text-sm">
+            Logged in as <span className="text-foreground font-medium">{organiser.name}</span>
+          </span>
         }
       />
 
