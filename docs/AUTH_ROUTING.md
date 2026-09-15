@@ -64,9 +64,8 @@ await supabase.auth.updateUser({
 
 ### Step 4: Redirect to Role Page
 ```typescript
-const primaryRole = result.roles[0]; // "Event Coordinator"
-const path = roleToPagePath(primaryRole); // "/staff/coordinator"
-redirect(path);
+// LoginUseCase picks it from the first role (landingWorkspaceFor)
+redirect(`/staff/${result.landingWorkspace}`); // "/staff/coordinator"
 ```
 
 ---

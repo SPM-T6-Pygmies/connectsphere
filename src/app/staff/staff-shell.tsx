@@ -17,7 +17,6 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {
-  actingOrganiser,
   buildViewAllEventCoordinators,
   buildViewAllEventRequests,
   buildViewArchivedEventRequests,
@@ -25,6 +24,7 @@ import {
   buildViewAssignedEvents,
   buildViewMyEventRequests,
   getCurrentCoordinator,
+  getCurrentOrganiser,
 } from "@/composition/container"
 import {
   ROLE_LABELS,
@@ -43,7 +43,11 @@ export { PageHeader } from "./page-header"
  * `listPaneItems` still falls back to for every other role's queue.
  */
 async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
-  const organiser = actingOrganiser()
+  const organiser = await getCurrentOrganiser()
+  if (organiser === null) {
+    return []
+  }
+
   const viewMyEventRequests = await buildViewMyEventRequests()
   const { eventRequests } = await viewMyEventRequests.execute(organiser)
 

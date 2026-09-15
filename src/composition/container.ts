@@ -25,6 +25,7 @@ import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coo
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
+import { IdentifyStaffMemberUseCase } from "@/core/use-cases/identify-staff-member";
 import { LoginUseCase } from "@/core/use-cases/login";
 import { LogoutUseCase } from "@/core/use-cases/logout";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
@@ -163,29 +164,6 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
   });
 }
 
-/**
- * Who the organiser screens are acting as -- a stand-in until #62 settles how
- * this system authenticates.
- *
- * It lives here because it is ambient outside state read from the environment,
- * and because it is the one line that changes when a real session arrives: the
- * Server Action asks the composition root who is calling rather than trusting
- * a hidden input, so the browser cannot nominate someone else in the meantime.
- *
- * The defaults are `1`/`1` because `user_account` and `client_organisation`
- * number their rows from one; set them to real ids from your own project if
- * yours differ.
- */
-export function actingOrganiser(): {
-  readonly userAccountId: string;
-  readonly clientOrganisationId: string;
-} {
-  return {
-    userAccountId: process.env.DEMO_ORGANISER_USER_ACCOUNT_ID ?? "1",
-    clientOrganisationId: process.env.DEMO_CLIENT_ORGANISATION_ID ?? "1",
-  };
-}
-
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
@@ -206,17 +184,8 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  * `getCurrentOrganiser` below.
  */
 export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
-  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
-  if (session === null) {
-    return null;
-  }
-
-  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
-  if (user === null || !user.roles.includes("Event Coordinator")) {
-    return null;
-  }
-
-  return { userAccountId: user.userId };
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.coordinator ?? null;
 }
 
 async function coordinatorAdapters(): Promise<{
@@ -294,57 +263,32 @@ export async function buildLogin(): Promise<LoginUseCase> {
 export async function buildLogout(): Promise<LogoutUseCase> {
   return new LogoutUseCase({
     auth: new SupabaseAuthAdapter(await createSupabaseServerClient()),
+    users: new SupabaseUserRepository(createSupabaseAdminClient()),
     auditLogger: new SupabaseAuditLogger(createSupabaseAdminClient()),
   });
 }
 
+/** The signed-in member of staff, behind every `getCurrent*` lookup in this file. */
+async function buildIdentifyStaffMember(): Promise<IdentifyStaffMemberUseCase> {
+  return new IdentifyStaffMemberUseCase({
+    auth: new SupabaseAuthAdapter(await createSupabaseServerClient()),
+    users: new SupabaseUserRepository(createSupabaseAdminClient()),
+  });
+}
+
 /**
- * SPM-39: the real, session-derived counterpart to `actingOrganiser()`.
+ * Who the organiser screens are acting as: the signed-in Event Organiser.
  *
- * `actingOrganiser()` (above) is an env-var stand-in other Requester pages
- * still use, predating SPM-13. Now that login exists, this resolves the
- * actual signed-in Organiser instead: `null` covers every case that isn't
- * one -- no session, no matching `user_account`, a role other than Event
- * Organiser, or an Organiser with no client organisation set -- so a caller
- * can fall back (e.g. to a demo identity) rather than crash.
+ * `null` covers every case that isn't one -- no session, no matching
+ * `user_account`, a role other than Event Organiser, or an Organiser with no
+ * client organisation set -- so callers answer with a not-found rather than
+ * someone else's requests (#91). Same shape as `getCurrentCoordinator` above.
  */
 export async function getCurrentOrganiser(): Promise<{
   readonly userAccountId: string;
   readonly clientOrganisationId: string;
   readonly name: string;
 } | null> {
-  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
-  if (session === null) {
-    return null;
-  }
-
-  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
-  if (
-    user === null ||
-    user.clientOrganisationId === null ||
-    !user.roles.includes("Event Organiser")
-  ) {
-    return null;
-  }
-
-  return {
-    userAccountId: user.userId,
-    clientOrganisationId: user.clientOrganisationId,
-    name: user.name,
-  };
-}
-
-/**
- * The signed-in caller's `user_account_id`, whatever their role -- unlike
- * `getCurrentOrganiser`/`getCurrentCoordinator`, which answer `null` for any
- * other role. `null` means no session or no matching `user_account`.
- */
-export async function getCurrentUserAccountId(): Promise<string | null> {
-  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
-  if (session === null) {
-    return null;
-  }
-
-  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
-  return user?.userId ?? null;
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.organiser ?? null;
 }

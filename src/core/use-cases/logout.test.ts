@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { AuthPort, LoginResult } from "@/core/ports/outbound/auth-port";
+import { InMemoryAuth } from "@/adapters/outbound/in-memory/in-memory-auth";
+import { InMemoryUserRepository } from "@/adapters/outbound/in-memory/in-memory-user-repository";
+import type { AuthPort, SessionData } from "@/core/ports/outbound/auth-port";
 import type { AuditLogger } from "@/core/ports/outbound/audit-logger";
+import type { UserWithRoles } from "@/core/ports/outbound/user-repository";
 
 import { LogoutUseCase } from "./logout";
 
@@ -12,29 +15,19 @@ import { LogoutUseCase } from "./logout";
  * milliseconds.
  */
 
-/**
- * Mock implementation of AuthPort.
- * Simulates Supabase Auth logout behavior.
- */
-class MockAuthAdapter implements AuthPort {
-  private shouldFailLogout = false;
+const AUTH_USER = "auth-user-1";
+const SESSION: SessionData = { userId: AUTH_USER, expiresAt: new Date("2026-12-31T23:59:59.000Z") };
+const USER: UserWithRoles = {
+  userId: "user-1",
+  name: "Test Coordinator",
+  roles: ["Event Coordinator"],
+  clientOrganisationId: null,
+};
 
-  async login(): Promise<LoginResult> {
-    throw new Error("Not implemented for logout tests");
-  }
-
-  async getSession() {
-    return null;
-  }
-
-  async logout(): Promise<void> {
-    if (this.shouldFailLogout) {
-      throw new Error("Auth service error");
-    }
-  }
-
-  setFailLogout(shouldFail: boolean) {
-    this.shouldFailLogout = shouldFail;
+/** An auth service whose sign-out fails. */
+class FailingSignOutAuth extends InMemoryAuth {
+  override async logout(): Promise<void> {
+    throw new Error("Auth service error");
   }
 }
 
@@ -63,40 +56,49 @@ class MockAuditLogger implements AuditLogger {
 }
 
 /**
- * Helper to build a LogoutUseCase with mock adapters.
+ * Helper to build a LogoutUseCase with test doubles: by default a signed-in
+ * auth user who has a user account.
  */
-function buildUseCase() {
-  const auth = new MockAuthAdapter();
+function buildUseCase({
+  auth = new InMemoryAuth({ session: SESSION }),
+  user = USER,
+}: { auth?: AuthPort; user?: UserWithRoles | null } = {}) {
+  const users = new InMemoryUserRepository(new Map(user === null ? [] : [[AUTH_USER, user]]));
   const auditLogger = new MockAuditLogger();
-  const useCase = new LogoutUseCase({ auth, auditLogger });
+  const useCase = new LogoutUseCase({ auth, users, auditLogger });
 
   return { useCase, auth, auditLogger };
 }
 
 describe("LogoutUseCase", () => {
   it("successfully logs out user and records audit event", async () => {
-    // ARRANGE: Set up use case with mocks
-    const { useCase, auditLogger } = buildUseCase();
-    const userId = "user-1";
+    const { useCase, auth, auditLogger } = buildUseCase();
 
-    // ACT: Execute logout
-    await useCase.execute({ userId });
+    await useCase.execute();
 
-    // ASSERT: Audit logger was called with correct user ID
-    const loggedLogouts = auditLogger.getLoggedLogouts();
-    expect(loggedLogouts).toHaveLength(1);
-    expect(loggedLogouts[0]).toEqual({ userId });
+    await expect(auth.getSession()).resolves.toBeNull();
+    expect(auditLogger.getLoggedLogouts()).toEqual([{ userId: USER.userId }]);
   });
 
   it("calls auth adapter logout before audit logging", async () => {
     // Domain invariant: Session termination happens before audit logging.
     // This ensures the user is logged out before the audit record is written.
+    const auth = new InMemoryAuth({ session: SESSION });
+    const sessionsWhenAudited: Array<SessionData | null> = [];
+    const auditLogger: AuditLogger = {
+      logLogout: async () => {
+        sessionsWhenAudited.push(await auth.getSession());
+      },
+    };
+    const useCase = new LogoutUseCase({
+      auth,
+      users: new InMemoryUserRepository(new Map([[AUTH_USER, USER]])),
+      auditLogger,
+    });
 
-    const { useCase } = buildUseCase();
-    const userId = "user-2";
+    await useCase.execute();
 
-    // ACT & ASSERT: No error means logout succeeded and audit was recorded
-    await expect(useCase.execute({ userId })).resolves.toBeUndefined();
+    expect(sessionsWhenAudited).toEqual([null]);
   });
 
   it("propagates audit logger errors to caller", async () => {
@@ -106,43 +108,34 @@ describe("LogoutUseCase", () => {
     const { useCase, auditLogger } = buildUseCase();
     auditLogger.setFailLogging(true);
 
-    // ACT & ASSERT: Audit failure throws error
-    await expect(useCase.execute({ userId: "user-3" })).rejects.toThrow("Audit service error");
+    await expect(useCase.execute()).rejects.toThrow("Audit service error");
   });
 
   it("propagates auth adapter errors to caller", async () => {
     // Error handling: If session termination fails, error is surfaced.
     // Calling code decides whether to retry or notify user.
 
-    const { useCase, auth } = buildUseCase();
-    auth.setFailLogout(true);
+    const { useCase, auditLogger } = buildUseCase({ auth: new FailingSignOutAuth({ session: SESSION }) });
 
-    // ACT & ASSERT: Auth failure throws error (before audit logging)
-    await expect(useCase.execute({ userId: "user-4" })).rejects.toThrow("Auth service error");
+    await expect(useCase.execute()).rejects.toThrow("Auth service error");
+    expect(auditLogger.getLoggedLogouts()).toHaveLength(0);
   });
 
   it("signs out without an audit record when the caller has no user account", async () => {
     // An audit record needs a user account to point at, so none is written --
     // but the session still ends rather than leaving the caller signed in.
 
-    const { useCase, auditLogger } = buildUseCase();
+    const { useCase, auth, auditLogger } = buildUseCase({ user: null });
 
-    await expect(useCase.execute({ userId: null })).resolves.toBeUndefined();
+    await expect(useCase.execute()).resolves.toBeUndefined();
+    await expect(auth.getSession()).resolves.toBeNull();
     expect(auditLogger.getLoggedLogouts()).toHaveLength(0);
   });
 
-  it("accepts userId as required input parameter", async () => {
-    // Domain requirement: Audit trail must capture which user logged out.
-    // LogoutUseCase requires userId in the input.
+  it("does nothing when nobody is signed in", async () => {
+    const { useCase, auditLogger } = buildUseCase({ auth: new InMemoryAuth() });
 
-    const { useCase, auditLogger } = buildUseCase();
-    const userId = "user-5";
-
-    // ACT: Execute with userId
-    await useCase.execute({ userId });
-
-    // ASSERT: Audit log contains the exact userId passed
-    const loggedLogouts = auditLogger.getLoggedLogouts();
-    expect(loggedLogouts[0].userId).toBe(userId);
+    await expect(useCase.execute()).resolves.toBeUndefined();
+    expect(auditLogger.getLoggedLogouts()).toHaveLength(0);
   });
 });
