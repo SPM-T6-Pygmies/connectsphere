@@ -21,7 +21,7 @@ import { usePathname } from "next/navigation"
 import * as React from "react"
 
 import { StatusBadge } from "@/app/staff/status-badge"
-import { RoleSwitcher } from "@/components/role-switcher"
+import { AccountMenu } from "@/components/account-menu"
 import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
@@ -184,11 +184,14 @@ function currentSection(role: StaffRole, pathname: string): SidebarSection {
  */
 export function AppSidebar({
   role,
+  name,
   queueItems,
   activeSection,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   role: StaffRole
+  /** The signed-in member of staff's name, for the account menu. */
+  name: string
   /** The role's queue, fetched from real data server-side. Falls back to wireframe fixtures when omitted. */
   queueItems?: readonly ListPaneItem[]
   /** The real record's section when its id is not part of the wireframe fixtures. */
@@ -288,7 +291,7 @@ export function AppSidebar({
         </SidebarContent>
 
         <SidebarFooter>
-          <RoleSwitcher role={role} />
+          <AccountMenu name={name} role={role} />
         </SidebarFooter>
       </Sidebar>
 

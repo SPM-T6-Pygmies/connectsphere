@@ -32,8 +32,10 @@ describe("IdentifyStaffMemberUseCase", () => {
 
   it("acts as an Event Organiser for their client organisation", async () => {
     await expect(identify(user(["Event Organiser"], "org-a"))).resolves.toEqual({
+      name: "Sam",
       organiser: { userAccountId: "user-1", clientOrganisationId: "org-a", name: "Sam" },
       coordinator: null,
+      workspaces: ["requester"],
     });
   });
 
@@ -45,15 +47,31 @@ describe("IdentifyStaffMemberUseCase", () => {
 
   it("acts as an Event Coordinator", async () => {
     await expect(identify(user(["Event Coordinator"]))).resolves.toEqual({
+      name: "Sam",
       organiser: null,
       coordinator: { userAccountId: "user-1" },
+      workspaces: ["coordinator"],
     });
   });
 
   it("acts as neither for a role with no Organiser or Coordinator screens", async () => {
     await expect(identify(user(["Event Operations Manager"]))).resolves.toEqual({
+      name: "Sam",
       organiser: null,
       coordinator: null,
+      workspaces: ["ops"],
     });
+  });
+
+  it("opens the workspace of each staff role the member holds", async () => {
+    const result = await identify(user(["Event Coordinator", "Venue Staff"]));
+
+    expect(result?.workspaces).toEqual(["coordinator", "venue"]);
+  });
+
+  it("names the signed-in member of staff whatever their role", async () => {
+    const result = await identify(user(["Venue Staff"]));
+
+    expect(result?.name).toBe("Sam");
   });
 });

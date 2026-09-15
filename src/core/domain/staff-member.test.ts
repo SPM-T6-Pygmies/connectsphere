@@ -5,6 +5,7 @@ import {
   coordinatorContextFor,
   landingWorkspaceFor,
   organiserContextFor,
+  workspacesFor,
   type StaffMember,
 } from "./staff-member";
 import { userAccountId } from "./user-account";
@@ -36,6 +37,19 @@ describe("landingWorkspaceFor", () => {
 
   it("has nowhere to send someone whose first role is not a staff role", () => {
     expect(landingWorkspaceFor(["Attendee", "Event Organiser"])).toBeNull();
+  });
+});
+
+describe("workspacesFor", () => {
+  it("opens the workspace of every staff role a member of staff holds", () => {
+    expect(workspacesFor(["Event Coordinator", "Event Operations Manager"])).toEqual([
+      "coordinator",
+      "ops",
+    ]);
+  });
+
+  it("opens no workspace for a role that is not a staff role", () => {
+    expect(workspacesFor(["Attendee"])).toEqual([]);
   });
 });
 

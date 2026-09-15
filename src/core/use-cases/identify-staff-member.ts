@@ -2,13 +2,17 @@ import { clientOrganisationId } from "../domain/client-organisation";
 import {
   coordinatorContextFor,
   organiserContextFor,
+  workspacesFor,
   type StaffMember,
+  type StaffWorkspace,
 } from "../domain/staff-member";
 import { userAccountId } from "../domain/user-account";
 import type { AuthPort } from "../ports/outbound/auth-port";
 import type { UserRepository } from "../ports/outbound/user-repository";
 
 export interface IdentifyStaffMemberResult {
+  /** The member of staff's own name, whatever their role. */
+  readonly name: string;
   /** Who the Organiser's screens act as -- null unless `organiserContextFor` allows it. */
   readonly organiser: {
     readonly userAccountId: string;
@@ -17,6 +21,8 @@ export interface IdentifyStaffMemberResult {
   } | null;
   /** Who the Coordinator's screens act as -- null unless `coordinatorContextFor` allows it. */
   readonly coordinator: { readonly userAccountId: string } | null;
+  /** The staff workspaces the member may open -- see `workspacesFor`. */
+  readonly workspaces: readonly StaffWorkspace[];
 }
 
 export interface IdentifyStaffMemberDeps {
@@ -49,8 +55,10 @@ export class IdentifyStaffMemberUseCase {
     const organiser = organiserContextFor(member);
 
     return {
+      name: user.name,
       organiser: organiser && { ...organiser, name: user.name },
       coordinator: coordinatorContextFor(member),
+      workspaces: workspacesFor(member.roles),
     };
   }
 }

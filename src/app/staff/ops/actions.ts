@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { assignEventCoordinatorSchema } from "@/adapters/inbound/assign-event-coordinator-schema";
-import { buildAssignEventCoordinator } from "@/composition/container";
+import { buildAssignEventCoordinator, getStaffWorkspaces } from "@/composition/container";
 import type { AssignmentOperation } from "@/core/use-cases/assign-event-coordinator";
 
 export type AssignEventCoordinatorState =
@@ -31,6 +31,12 @@ export async function assignEventCoordinatorAction(
   }
 
   try {
+    // A Server Action is reachable without its page, so the page's role check
+    // does not cover it: only an Event Operations Manager may assign.
+    if (!(await getStaffWorkspaces()).includes("ops")) {
+      return { status: "error" };
+    }
+
     const assignEventCoordinator = await buildAssignEventCoordinator();
     const result = await assignEventCoordinator.execute(parsed.data);
 

@@ -51,7 +51,7 @@ Manual browser-based test cases for login and logout features. These tests verif
 - Form submission succeeds without errors
 - User is redirected to `/staff/organiser/dashboard`
 - Dashboard displays role-appropriate content
-- RoleSwitcher shows logged-in user name and role
+- Account menu (sidebar footer) shows logged-in user name and role
 
 **Status:** [ ] Pass [ ] Fail
 
@@ -132,7 +132,7 @@ Manual browser-based test cases for login and logout features. These tests verif
 - Session cookie present
 
 **Steps:**
-1. Verify you're logged in (RoleSwitcher shows user name)
+1. Verify you're logged in (account menu shows user name)
 2. Press F5 or Ctrl+R to refresh the page
 3. Wait for page to reload completely
 4. Check if user is still logged in

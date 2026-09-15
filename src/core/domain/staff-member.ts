@@ -31,6 +31,17 @@ export function landingWorkspaceFor(roles: readonly string[]): StaffWorkspace | 
 }
 
 /**
+ * The workspaces a member of staff may open: one for each staff role they
+ * hold. A role that is not a staff role opens none.
+ */
+export function workspacesFor(roles: readonly string[]): StaffWorkspace[] {
+  return roles.flatMap((role) => {
+    const workspace = WORKSPACE_BY_ROLE.get(role);
+    return workspace === undefined ? [] : [workspace];
+  });
+}
+
+/**
  * Who a member of staff acts as on the Organiser's screens: only an Event
  * Organiser, and only one with a client organisation to act for -- every
  * request an Organiser can see or raise is scoped to it.

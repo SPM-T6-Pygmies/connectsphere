@@ -25,6 +25,7 @@ import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coo
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
+import type { StaffWorkspace } from "@/core/domain/staff-member";
 import { IdentifyStaffMemberUseCase } from "@/core/use-cases/identify-staff-member";
 import { LoginUseCase } from "@/core/use-cases/login";
 import { LogoutUseCase } from "@/core/use-cases/logout";
@@ -291,4 +292,28 @@ export async function getCurrentOrganiser(): Promise<{
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.organiser ?? null;
+}
+
+/**
+ * The staff workspaces the signed-in member of staff may open. Empty when
+ * nobody is signed in or the auth user has no `user_account`, so a caller
+ * checking its own workspace answers with a not-found either way.
+ */
+export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.workspaces ?? [];
+}
+
+/**
+ * The signed-in member of staff as the staff chrome shows them: their name
+ * and the workspaces they may open. Null when nobody is signed in or the auth
+ * user has no `user_account`.
+ */
+export async function getSignedInStaffMember(): Promise<{
+  readonly name: string;
+  readonly workspaces: readonly StaffWorkspace[];
+} | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  const member = await identifyStaffMember.execute();
+  return member && { name: member.name, workspaces: member.workspaces };
 }

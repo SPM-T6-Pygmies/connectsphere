@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { notFound } from "next/navigation"
 import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
@@ -25,6 +26,7 @@ import {
   buildViewMyEventRequests,
   getCurrentCoordinator,
   getCurrentOrganiser,
+  getSignedInStaffMember,
 } from "@/composition/container"
 import {
   ROLE_LABELS,
@@ -227,6 +229,14 @@ export async function StaffShell({
   children: ReactNode
   coordinatorSection?: CoordinatorSection
 }) {
+  // Every staff screen renders inside this shell, so this is where a signed-in
+  // user who does not hold the screen's role gets a not-found -- before any
+  // queue is read on their behalf.
+  const member = await getSignedInStaffMember()
+  if (member === null || !member.workspaces.includes(role)) {
+    notFound()
+  }
+
   const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection)
 
   return (
@@ -236,7 +246,12 @@ export async function StaffShell({
       defaultOpen={defaultOpen}
       style={{ "--sidebar-width": "23rem" } as CSSProperties}
     >
-      <AppSidebar role={role} queueItems={queueItems} activeSection={activeSection} />
+      <AppSidebar
+        role={role}
+        name={member.name}
+        queueItems={queueItems}
+        activeSection={activeSection}
+      />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
