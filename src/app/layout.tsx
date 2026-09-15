@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Figtree, Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
@@ -20,6 +20,13 @@ export const metadata: Metadata = {
   title: "ConnectSphere",
   description: "Your Event Planning System",
 };
+
+/**
+ * Lets the layout reach under the display cutout, which is what makes
+ * `env(safe-area-inset-*)` resolve to anything but 0px -- the staff bottom
+ * navigation bar sits in that inset.
+ */
+export const viewport: Viewport = { viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
