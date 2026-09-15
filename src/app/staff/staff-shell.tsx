@@ -252,7 +252,12 @@ export async function StaffShell({
         queueItems={queueItems}
         activeSection={activeSection}
       />
-      <SidebarInset>
+      {/*
+        min-w-0: SidebarInset is a flex item in SidebarProvider's row, so its
+        default min-width:auto lets a table wider than the viewport widen the
+        whole page instead of scrolling inside Table's own overflow-x-auto.
+      */}
+      <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator
