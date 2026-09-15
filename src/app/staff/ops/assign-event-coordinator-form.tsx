@@ -61,11 +61,6 @@ export function AssignEventCoordinatorForm({
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="eventRequestId" value={eventRequestId} />
-      <input
-        type="hidden"
-        name="assignmentOperation"
-        value={isReassignment ? "reassigned" : "assigned"}
-      />
 
       <fieldset
         key={

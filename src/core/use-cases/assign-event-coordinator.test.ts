@@ -68,6 +68,7 @@ describe("AssignEventCoordinatorUseCase", () => {
       eventRequestId: "request-1",
       assignedCoordinatorUserAccountId: NEW_COORDINATOR,
       status: "Under Review",
+      operation: "assigned",
     });
     await expect(eventRequests.findById(eventRequestId("request-1"))).resolves.toMatchObject({
       assignedCoordinatorUserAccountId: NEW_COORDINATOR,
@@ -83,11 +84,12 @@ describe("AssignEventCoordinatorUseCase", () => {
       }),
     ]);
 
-    await useCase.execute({
+    const result = await useCase.execute({
       eventRequestId: "request-1",
       eventCoordinatorUserAccountId: NEW_COORDINATOR,
     });
 
+    expect(result.operation).toBe("reassigned");
     const saved = await eventRequests.findById(eventRequestId("request-1"));
     expect(saved?.assignedCoordinatorUserAccountId).toBe(NEW_COORDINATOR);
     expect(saved?.assignedCoordinatorUserAccountId).not.toBe(OLD_COORDINATOR);
