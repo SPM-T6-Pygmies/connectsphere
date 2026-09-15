@@ -15,13 +15,16 @@ import {
 } from "./errors";
 import {
   approveEventRequest,
+  canAssignEventCoordinator,
   coordinatorArchiveStateFor,
   coordinatorQueueStateFor,
   coordinatorRequestStateFor,
+  coordinatorSectionFor,
   eventRequestAccessFor,
   eventRequestAccessForCoordinator,
   isSubmittable,
   missingMandatoryFields,
+  operationsQueueFor,
   reassignResponsibleOrganiser,
   rejectEventRequest,
   saveEventRequestDraft,
@@ -403,6 +406,58 @@ describe("coordinatorArchiveStateFor", () => {
     "keeps a %s request out of the archive -- still open, or an event now",
     (status) => {
       expect(coordinatorArchiveStateFor(status)).toBeNull();
+    },
+  );
+});
+
+describe("operationsQueueFor", () => {
+  it("keeps a Draft out of both Operations queues -- it is the Organiser's alone", () => {
+    expect(operationsQueueFor(request({ status: "Draft" }))).toBeNull();
+  });
+
+  it("files a submitted request with no coordinator under unassigned", () => {
+    expect(operationsQueueFor(request({ status: "Submitted" }))).toBe("unassigned");
+  });
+
+  it.each(["Submitted", "Under Review", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+    "files a %s request with a coordinator under assigned, whatever its status",
+    (status) => {
+      expect(
+        operationsQueueFor(request({ status, assignedCoordinatorUserAccountId: COORDINATOR })),
+      ).toBe("assigned");
+    },
+  );
+});
+
+describe("canAssignEventCoordinator", () => {
+  it.each(["Submitted", "Under Review", "Returned", "Approved"] as const)(
+    "lets a %s request take a coordinator",
+    (status) => {
+      expect(canAssignEventCoordinator(status)).toBe(true);
+    },
+  );
+
+  it.each(["Draft", "Withdrawn", "Rejected"] as const)(
+    "refuses a coordinator for a %s request",
+    (status) => {
+      expect(canAssignEventCoordinator(status)).toBe(false);
+    },
+  );
+});
+
+describe("coordinatorSectionFor", () => {
+  it("files an Approved request under My events -- it carries on as an event", () => {
+    expect(coordinatorSectionFor("Approved")).toBe("events");
+  });
+
+  it.each(["Rejected", "Withdrawn"] as const)("files a %s request in the Archive", (status) => {
+    expect(coordinatorSectionFor(status)).toBe("archive");
+  });
+
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
+    "keeps a %s request under My requests",
+    (status) => {
+      expect(coordinatorSectionFor(status)).toBe("requests");
     },
   );
 });

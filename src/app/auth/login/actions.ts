@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { loginSchema } from "@/adapters/inbound/login-schema";
 import { buildLogin } from "@/composition/container";
 import { createClient } from "@/lib/supabase/server";
 import { InvalidCredentialsError } from "@/core/domain/errors";
@@ -29,10 +30,12 @@ export async function loginAction(
   _prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const parsed = loginSchema.safeParse({
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+  });
 
-  if (!email || !password) {
+  if (!parsed.success) {
     return {
       status: "error",
       message: "Invalid credentials",
@@ -41,7 +44,7 @@ export async function loginAction(
 
   try {
     const login = await buildLogin();
-    const result = await login.execute({ email, password });
+    const result = await login.execute(parsed.data);
 
     // Store roles in user metadata for reuse in getSession() (no DB query needed)
     const supabase = await createClient();

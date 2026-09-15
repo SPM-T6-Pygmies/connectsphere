@@ -68,6 +68,7 @@ export async function LoadedAssignDetail({
   return (
     <AssignDetail
       eventRequest={eventRequestResult.eventRequest}
+      canAssignCoordinator={eventRequestResult.canAssignCoordinator}
       eventCoordinators={eventCoordinatorsResult.eventCoordinators}
       origin={origin}
     />
@@ -76,10 +77,12 @@ export async function LoadedAssignDetail({
 
 export function AssignDetail({
   eventRequest,
+  canAssignCoordinator,
   eventCoordinators,
   origin = "queue",
 }: {
   eventRequest: OperationsEventRequest;
+  canAssignCoordinator: boolean;
   eventCoordinators: readonly EventCoordinatorDetails[];
   origin?: DetailOrigin;
 }) {
@@ -185,6 +188,7 @@ export function AssignDetail({
                   eventRequest.assignedCoordinatorUserAccountId
                 }
                 eventRequestStatus={eventRequest.status}
+                assignmentAllowed={canAssignCoordinator}
                 eventCoordinators={eventCoordinators}
               />
             </CardContent>

@@ -5,17 +5,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  coordinatorArchiveStateFor,
-  coordinatorRequestStateFor,
-  type EventRequest,
+import type {
+  CoordinatorRequestState,
+  CoordinatorSection,
 } from "@/core/domain/event-request";
+import type { EventRequestView } from "@/core/use-cases/event-request-view";
 
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { DecisionForm } from "./decision-form";
 import { RequestStateBadge } from "./request-state-badge";
+
+/** Where each of the Coordinator's sections sits in the rail. */
+const SECTION_HOMES: Readonly<Record<CoordinatorSection, { label: string; href: string }>> = {
+  requests: { label: "My requests", href: "/staff/coordinator" },
+  events: { label: "My events", href: "/staff/coordinator/events" },
+  archive: { label: "Archive", href: "/staff/coordinator/archive" },
+};
 
 /**
  * `h:mm am/pm` in Singapore time -- for an instant, not a calendar date.
@@ -45,27 +52,24 @@ export function AssignedRequestDetail({
   eventRequest,
   requestingOrganiserName,
   clientOrganisationName,
+  state,
+  section,
   origin = "queue",
 }: {
-  eventRequest: EventRequest;
+  eventRequest: EventRequestView;
   requestingOrganiserName: string;
   clientOrganisationName: string;
+  /** The Coordinator's reading of the status, from the use case. */
+  state: CoordinatorRequestState | null;
+  /** The section the request now lives under, from the use case. */
+  section: CoordinatorSection;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
-  // The Coordinator's reading of the status, not the Organiser's -- see
-  // `coordinatorRequestStateFor`. `null` only for `Draft`, which no
-  // Coordinator can be assigned to.
-  const state = coordinatorRequestStateFor(eventRequest.status);
 
   // The rail entry the request now lives under, so the trail and the list pane
   // follow a decision instead of always pointing back to "My requests".
-  const home =
-    state === "approved"
-      ? { label: "My events", href: "/staff/coordinator/events", section: "events" as const }
-      : coordinatorArchiveStateFor(eventRequest.status) !== null
-        ? { label: "Archive", href: "/staff/coordinator/archive", section: "archive" as const }
-        : { label: "My requests", href: "/staff/coordinator", section: "requests" as const };
+  const home = SECTION_HOMES[section];
 
   const preferredTime =
     details.preferredStartTime !== null && details.preferredEndTime !== null
@@ -76,13 +80,13 @@ export function AssignedRequestDetail({
     <StaffShell
       role="coordinator"
       crumbs={detailCrumbs("coordinator", origin, home.label, details.eventName, home.href)}
-      coordinatorSection={home.section}
+      coordinatorSection={section}
       // Opened from the inbox, the rail stays on Notifications.
-      activeSection={origin === "queue" ? home.section : undefined}
+      activeSection={origin === "queue" ? section : undefined}
     >
       <PageHeader
         title={details.eventName}
-        description={`${clientOrganisationName} · requested by ${requestingOrganiserName} · submitted ${eventRequest.submittedAt?.toISOString().slice(0, 10) ?? "—"}`}
+        description={`${clientOrganisationName} · requested by ${requestingOrganiserName} · submitted ${eventRequest.submittedAt?.slice(0, 10) ?? "—"}`}
         actions={state === null ? null : <RequestStateBadge state={state} />}
       />
 

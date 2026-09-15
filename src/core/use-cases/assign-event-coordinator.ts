@@ -16,10 +16,14 @@ export interface AssignEventCoordinatorCommand {
   readonly eventCoordinatorUserAccountId: string;
 }
 
+/** Whether a coordinator was given to a request that had none, or replaced the one it had. */
+export type AssignmentOperation = "assigned" | "reassigned";
+
 export interface AssignEventCoordinatorResult {
   readonly eventRequestId: string;
   readonly assignedCoordinatorUserAccountId: string;
   readonly status: EventRequestStatus;
+  readonly operation: AssignmentOperation;
 }
 
 export interface AssignEventCoordinatorDeps {
@@ -51,6 +55,8 @@ export class AssignEventCoordinatorUseCase {
       eventRequestId: assigned.id,
       assignedCoordinatorUserAccountId: coordinatorId,
       status: assigned.status,
+      // From the request as it was stored, not from anything the browser sent.
+      operation: request.assignedCoordinatorUserAccountId === null ? "assigned" : "reassigned",
     };
   }
 }
