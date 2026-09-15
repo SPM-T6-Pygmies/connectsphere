@@ -42,4 +42,13 @@ describe("ViewOperationsEventRequestUseCase", () => {
 
     await expect(useCase.execute({ id: "404" })).resolves.toBeNull();
   });
+
+  it("returns null for a Draft, exactly as for a request that does not exist", async () => {
+    const draft = eventRequestFixture({ id: eventRequestId("42"), status: "Draft" });
+    const useCase = new ViewOperationsEventRequestUseCase({
+      eventRequests: new InMemoryEventRequestRepository([draft]),
+    });
+
+    await expect(useCase.execute({ id: "42" })).resolves.toBeNull();
+  });
 });
