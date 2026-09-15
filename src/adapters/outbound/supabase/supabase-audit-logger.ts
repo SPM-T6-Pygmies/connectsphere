@@ -1,9 +1,11 @@
-import { createSupabaseAdminClient } from "@/adapters/outbound/supabase/client";
+import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import type { AuditLogger } from "@/core/ports/outbound/audit-logger";
 
 export class SupabaseAuditLogger implements AuditLogger {
+  constructor(private readonly supabase: SupabaseAdminClient) {}
+
   async logLogout(userId: string): Promise<void> {
-    const supabase = createSupabaseAdminClient();
+    const { supabase } = this;
     console.log("[SupabaseAuditLogger] Logging logout for userId:", userId);
 
     const { error } = await supabase

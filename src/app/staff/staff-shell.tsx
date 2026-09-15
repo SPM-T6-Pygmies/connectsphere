@@ -74,11 +74,7 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
   )
 
   return eventRequests
-    .filter(
-      (request) =>
-        request.status !== "Draft" &&
-        (request.assignedCoordinatorUserAccountId !== null) === assigned,
-    )
+    .filter((request) => request.queue === (assigned ? "assigned" : "unassigned"))
     .map((request) => ({
       id: request.id,
       href: `/staff/ops/${request.id}`,

@@ -1,39 +1,38 @@
 import { describe, expect, it } from "vitest";
 
-import { InMemoryEventCoordinatorDirectory } from "@/adapters/outbound/in-memory/in-memory-event-coordinator-directory";
-import { clientOrganisationId } from "@/core/domain/client-organisation";
-import { userAccountId, type UserAccount } from "@/core/domain/user-account";
+import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
+import type { EventCoordinatorDetails } from "@/core/ports/outbound/user-account-repository";
 
 import { ViewAllEventCoordinatorsUseCase } from "./view-all-event-coordinators";
 
 describe("ViewAllEventCoordinatorsUseCase", () => {
   it("AC1: returns every Event Coordinator with all non-credential account fields", async () => {
-    const coordinators: readonly UserAccount[] = [
+    const coordinators: readonly EventCoordinatorDetails[] = [
       {
-        id: userAccountId("2"),
+        userAccountId: "2",
         name: "Amara Sithole",
         contactDetails: "amara@example.com",
         communicationPreferences: "Email",
         department: "Event Coordination",
         availability: "Available",
         clientOrganisationId: null,
-        createdAt: new Date("2026-09-01T08:00:00.000Z"),
-        updatedAt: new Date("2026-09-02T09:30:00.000Z"),
+        createdAt: "2026-09-01T08:00:00.000Z",
+        updatedAt: "2026-09-02T09:30:00.000Z",
       },
       {
-        id: userAccountId("5"),
+        userAccountId: "5",
         name: "Jonas Berg",
         contactDetails: null,
         communicationPreferences: null,
         department: null,
         availability: null,
-        clientOrganisationId: clientOrganisationId("3"),
-        createdAt: new Date("2026-09-03T10:00:00.000Z"),
-        updatedAt: new Date("2026-09-03T10:00:00.000Z"),
+        clientOrganisationId: "3",
+        createdAt: "2026-09-03T10:00:00.000Z",
+        updatedAt: "2026-09-03T10:00:00.000Z",
       },
     ];
     const useCase = new ViewAllEventCoordinatorsUseCase({
-      eventCoordinators: new InMemoryEventCoordinatorDirectory(coordinators),
+      userAccounts: new InMemoryUserAccountRepository({ eventCoordinators: coordinators }),
     });
 
     await expect(useCase.execute()).resolves.toEqual({
@@ -66,7 +65,7 @@ describe("ViewAllEventCoordinatorsUseCase", () => {
 
   it("returns an empty list when no Event Coordinators exist", async () => {
     const useCase = new ViewAllEventCoordinatorsUseCase({
-      eventCoordinators: new InMemoryEventCoordinatorDirectory(),
+      userAccounts: new InMemoryUserAccountRepository(),
     });
 
     await expect(useCase.execute()).resolves.toEqual({ eventCoordinators: [] });

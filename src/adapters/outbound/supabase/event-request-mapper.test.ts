@@ -8,6 +8,7 @@ import {
   toAssignEventCoordinatorArgs,
   toDecideArgs,
   toDomain,
+  toMyEventRequestSummary,
   type EventRequestRow,
 } from "./event-request-mapper";
 
@@ -132,5 +133,56 @@ describe("event request mapper", () => {
     expect(
       toDecideArgs(eventRequestFixture({ ...approved, id: eventRequestId("12") }), userAccountId("coordinator-1")),
     ).toBeNull();
+  });
+
+  describe("toMyEventRequestSummary", () => {
+    function summaryRow(overrides: Partial<EventRequestRow> = {}): EventRequestRow {
+      return {
+        event_request_id: 42,
+        event_name: "Annual Client Forum",
+        description: "Client briefing",
+        purpose: null,
+        preferred_date: "2026-12-10",
+        preferred_start_time: null,
+        preferred_end_time: null,
+        expected_attendance: null,
+        venue_requirements: null,
+        room_layout_preferences: null,
+        accessibility_needs: null,
+        equipment_requirements: null,
+        registration_requirements: null,
+        general_programme: null,
+        other_special_arrangements: null,
+        status: "Submitted",
+        decision_record: null,
+        requesting_user_account_id: 7,
+        assigned_coordinator_user_account_id: null,
+        client_organisation_id: 3,
+        created_at: "2026-09-01T01:00:00.000Z",
+        updated_at: "2026-09-02T02:00:00.000Z",
+        ...overrides,
+      };
+    }
+
+    it("maps a submitted row to the list view, with submittedAt as ISO 8601", () => {
+      expect(toMyEventRequestSummary(summaryRow())).toEqual({
+        id: "42",
+        eventName: "Annual Client Forum",
+        status: "Submitted",
+        preferredDate: "2026-12-10",
+        description: "Client briefing",
+        submittedAt: "2026-09-02T02:00:00.000Z",
+      });
+    });
+
+    it("leaves submittedAt null for a request still in Draft", () => {
+      expect(toMyEventRequestSummary(summaryRow({ status: "Draft" })).submittedAt).toBeNull();
+    });
+
+    it("refuses a status the event_request table should never hold", () => {
+      expect(() => toMyEventRequestSummary(summaryRow({ status: "Archived" }))).toThrow(
+        /Unknown event request status "Archived"/,
+      );
+    });
   });
 });

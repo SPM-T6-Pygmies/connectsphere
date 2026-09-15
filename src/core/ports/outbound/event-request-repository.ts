@@ -2,15 +2,38 @@ import type { ClientOrganisationId } from "../../domain/client-organisation";
 import type {
   EventRequest,
   EventRequestId,
+  EventRequestStatus,
   NewEventRequest,
 } from "../../domain/event-request";
 import type { UserAccountId } from "../../domain/user-account";
+
+/**
+ * One row of an Organiser's own "My event requests" list.
+ *
+ * The view the screen needs, as plain data: nothing in the domain decides
+ * anything about this list, so no entity is built only to be copied into it
+ * (ARCHITECTURE.md section 11, the thin read path).
+ */
+export interface MyEventRequestSummary {
+  readonly id: string;
+  readonly eventName: string;
+  readonly status: EventRequestStatus;
+  readonly preferredDate: string | null;
+  readonly description: string | null;
+  /** ISO 8601. Null for a request still in Draft -- it has never been submitted. */
+  readonly submittedAt: string | null;
+}
 
 /** Read/write access to event requests, scoped the way the domain scopes them. */
 export interface EventRequestRepository {
   /** Every request visible to Event Operations, without organisation or status filtering. */
   listAll(): Promise<readonly EventRequest[]>;
   listByClientOrganisation(clientOrganisationId: ClientOrganisationId): Promise<readonly EventRequest[]>;
+  /** The requests `organiser` raised in `organisation`, newest first -- never a colleague's. */
+  listRaisedBy(
+    organiser: UserAccountId,
+    organisation: ClientOrganisationId,
+  ): Promise<readonly MyEventRequestSummary[]>;
   listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]>;
   findById(id: EventRequestId): Promise<EventRequest | null>;
   /** Stores a request the core has built and hands back the id the store chose. */

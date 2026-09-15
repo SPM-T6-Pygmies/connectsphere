@@ -398,6 +398,51 @@ export function coordinatorArchiveStateFor(
   return state !== null && ARCHIVE_STATES.has(state) ? state : null;
 }
 
+/** The two queues an Event Operations Manager works from. */
+export type OperationsQueue = "unassigned" | "assigned";
+
+/**
+ * Which Event Operations queue a request belongs in, and `null` if it is not
+ * Operations' to see at all.
+ *
+ * A `Draft` is the Organiser's alone -- unfinished, unsubmitted, and not
+ * something Operations can act on (`assignEventCoordinator` refuses it) -- so
+ * it is in neither queue. Every other request is sorted by whether it has an
+ * Event Coordinator yet, whatever its status: a decided request keeps its
+ * coordinator and stays under "assigned".
+ *
+ * Like `coordinatorQueueStateFor`, one call answers membership and placement
+ * together, so a screen cannot filter on one rule and file on another.
+ */
+export function operationsQueueFor(
+  request: Pick<EventRequest, "status" | "assignedCoordinatorUserAccountId">,
+): OperationsQueue | null {
+  if (request.status === "Draft") {
+    return null;
+  }
+  return request.assignedCoordinatorUserAccountId === null ? "unassigned" : "assigned";
+}
+
+/** The three places an Event Coordinator's work lives. */
+export type CoordinatorSection = "requests" | "events" | "archive";
+
+/**
+ * Which of the Coordinator's sections a request assigned to them lives under:
+ * an Approved request carries on as an event in "My events", a request decided
+ * without becoming an event is in the Archive, and everything else is still in
+ * "My requests".
+ *
+ * The single-request counterpart of `coordinatorQueueStateFor` and
+ * `coordinatorArchiveStateFor`, so a request's own page files it exactly where
+ * the lists do.
+ */
+export function coordinatorSectionFor(status: EventRequestStatus): CoordinatorSection {
+  if (coordinatorRequestStateFor(status) === "approved") {
+    return "events";
+  }
+  return coordinatorArchiveStateFor(status) !== null ? "archive" : "requests";
+}
+
 /**
  * The one place responsibility for a request can change hands (#61, #59).
  *
@@ -413,6 +458,17 @@ export function reassignResponsibleOrganiser(
 }
 
 /**
+ * Whether an Event Coordinator can be assigned to a request in this status.
+ *
+ * Not a Draft, which the Organiser has not submitted, and not a request
+ * decided without becoming an event (Rejected, Withdrawn), which has no review
+ * left to run. Every other request can take a coordinator, or a new one.
+ */
+export function canAssignEventCoordinator(status: EventRequestStatus): boolean {
+  return status !== "Draft" && status !== "Withdrawn" && status !== "Rejected";
+}
+
+/**
  * Assigns or reassigns the Event Coordinator responsible for reviewing a request.
  *
  * Assignment starts the review only when the request has just been Submitted.
@@ -422,11 +478,7 @@ export function assignEventCoordinator(
   request: EventRequest,
   coordinatorId: UserAccountId,
 ): EventRequest {
-  if (
-    request.status === "Draft" ||
-    request.status === "Withdrawn" ||
-    request.status === "Rejected"
-  ) {
+  if (!canAssignEventCoordinator(request.status)) {
     throw new EventRequestNotAssignableError(request.status);
   }
 

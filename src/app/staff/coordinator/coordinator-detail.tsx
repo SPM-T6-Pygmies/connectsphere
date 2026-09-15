@@ -43,6 +43,8 @@ export async function CoordinatorDetail({
       eventRequest={result.eventRequest}
       requestingOrganiserName={result.requestingOrganiserName}
       clientOrganisationName={result.clientOrganisationName}
+      state={result.state}
+      section={result.section}
       origin={origin}
     />
   );

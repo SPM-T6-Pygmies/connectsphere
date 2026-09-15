@@ -48,6 +48,11 @@ jobs:
         continue-on-error: false
         run: pnpm typecheck
 
+      - name: Lint
+        if: ${{ always() }}
+        continue-on-error: false
+        run: pnpm lint
+
       - name: Tests
         if: ${{ always() }}
         continue-on-error: false

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { reassignEventOrganiserSchema } from "@/adapters/inbound/reassign-event-organiser-schema";
 import { buildChangeEventOrganiser } from "@/composition/container";
 
 /**
@@ -16,15 +17,17 @@ import { buildChangeEventOrganiser } from "@/composition/container";
  * rather than inventing one here.
  */
 export async function reassignEventOrganiserAction(formData: FormData): Promise<void> {
-  const eventRequestId = String(formData.get("eventRequestId") ?? "");
-  const newResponsibleOrganiserId = String(formData.get("newResponsibleOrganiserId") ?? "").trim();
+  const parsed = reassignEventOrganiserSchema.safeParse({
+    eventRequestId: String(formData.get("eventRequestId") ?? ""),
+    newResponsibleOrganiserId: String(formData.get("newResponsibleOrganiserId") ?? ""),
+  });
 
-  if (newResponsibleOrganiserId.length === 0) {
+  if (!parsed.success) {
     return;
   }
 
   const changeEventOrganiser = await buildChangeEventOrganiser();
-  await changeEventOrganiser.execute({ eventRequestId, newResponsibleOrganiserId });
+  await changeEventOrganiser.execute(parsed.data);
 
   revalidatePath("/staff/requester/organisation");
 }

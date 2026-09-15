@@ -8,23 +8,27 @@ import {
   type EventRequestStatus,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type { EventCoordinatorDirectory } from "../ports/outbound/event-coordinator-directory";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
 export interface AssignEventCoordinatorCommand {
   readonly eventRequestId: string;
   readonly eventCoordinatorUserAccountId: string;
 }
 
+/** Whether a coordinator was given to a request that had none, or replaced the one it had. */
+export type AssignmentOperation = "assigned" | "reassigned";
+
 export interface AssignEventCoordinatorResult {
   readonly eventRequestId: string;
   readonly assignedCoordinatorUserAccountId: string;
   readonly status: EventRequestStatus;
+  readonly operation: AssignmentOperation;
 }
 
 export interface AssignEventCoordinatorDeps {
   readonly eventRequests: EventRequestRepository;
-  readonly eventCoordinators: EventCoordinatorDirectory;
+  readonly userAccounts: UserAccountRepository;
 }
 
 export class AssignEventCoordinatorUseCase {
@@ -39,7 +43,7 @@ export class AssignEventCoordinatorUseCase {
       throw new EventRequestNotFoundError(requestId);
     }
 
-    const coordinatorExists = await this.deps.eventCoordinators.exists(coordinatorId);
+    const coordinatorExists = await this.deps.userAccounts.isEventCoordinator(coordinatorId);
     if (!coordinatorExists) {
       throw new EventCoordinatorNotFoundError(coordinatorId);
     }
@@ -51,6 +55,8 @@ export class AssignEventCoordinatorUseCase {
       eventRequestId: assigned.id,
       assignedCoordinatorUserAccountId: coordinatorId,
       status: assigned.status,
+      // From the request as it was stored, not from anything the browser sent.
+      operation: request.assignedCoordinatorUserAccountId === null ? "assigned" : "reassigned",
     };
   }
 }

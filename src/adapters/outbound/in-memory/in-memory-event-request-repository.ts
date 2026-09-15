@@ -6,7 +6,10 @@ import {
   type NewEventRequest,
 } from "@/core/domain/event-request";
 import type { UserAccountId } from "@/core/domain/user-account";
-import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
+import type {
+  EventRequestRepository,
+  MyEventRequestSummary,
+} from "@/core/ports/outbound/event-request-repository";
 
 export class InMemoryEventRequestRepository implements EventRequestRepository {
   private readonly rows = new Map<EventRequestId, EventRequest>();
@@ -28,6 +31,26 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
     return [...this.rows.values()].filter(
       (request) => request.clientOrganisationId === clientOrganisationId,
     );
+  }
+
+  async listRaisedBy(
+    organiser: UserAccountId,
+    organisation: ClientOrganisationId,
+  ): Promise<readonly MyEventRequestSummary[]> {
+    return [...this.rows.values()]
+      .filter(
+        (request) =>
+          request.clientOrganisationId === organisation &&
+          request.responsibleOrganiserId === organiser,
+      )
+      .map((request) => ({
+        id: request.id,
+        eventName: request.details.eventName,
+        status: request.status,
+        preferredDate: request.details.preferredDate,
+        description: request.details.description,
+        submittedAt: request.submittedAt?.toISOString() ?? null,
+      }));
   }
 
   async listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]> {

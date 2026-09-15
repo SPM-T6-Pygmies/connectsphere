@@ -12,10 +12,7 @@ import {
   assignEventCoordinatorAction,
   type AssignEventCoordinatorState,
 } from "./actions";
-import {
-  canSubmitCoordinatorAssignment,
-  isCoordinatorAssignmentAllowed,
-} from "./assignment-selection";
+import { canSubmitCoordinatorAssignment } from "./assignment-selection";
 
 const INITIAL: AssignEventCoordinatorState = { status: "idle" };
 
@@ -31,12 +28,15 @@ export function AssignEventCoordinatorForm({
   eventRequestName,
   currentCoordinatorUserAccountId,
   eventRequestStatus,
+  assignmentAllowed,
   eventCoordinators,
 }: {
   eventRequestId: string;
   eventRequestName: string;
   currentCoordinatorUserAccountId: string | null;
   eventRequestStatus: EventRequestStatus;
+  /** Whether the request can take a coordinator at all -- the domain's answer, from the use case. */
+  assignmentAllowed: boolean;
   eventCoordinators: readonly EventCoordinatorDetails[];
 }) {
   const [state, formAction, pending] = useActionState(
@@ -51,22 +51,16 @@ export function AssignEventCoordinatorForm({
     state.status === "success"
       ? state.assignedCoordinatorUserAccountId
       : currentCoordinatorUserAccountId;
-  const assignmentAllowed = isCoordinatorAssignmentAllowed(eventRequestStatus);
   const canSubmit = canSubmitCoordinatorAssignment({
+    assignmentAllowed,
     currentCoordinatorUserAccountId: storedCoordinatorId,
     selectedCoordinatorUserAccountId: selectedCoordinatorId,
-    status: eventRequestStatus,
   });
   const isReassignment = storedCoordinatorId !== null;
 
   return (
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="eventRequestId" value={eventRequestId} />
-      <input
-        type="hidden"
-        name="assignmentOperation"
-        value={isReassignment ? "reassigned" : "assigned"}
-      />
 
       <fieldset
         key={

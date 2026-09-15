@@ -1,32 +1,32 @@
 import { describe, expect, it } from "vitest";
 
-import { coordinatorEventFixture } from "@/adapters/outbound/in-memory/coordinator-event-fixture";
-import { InMemoryClientOrganisationRepository } from "@/adapters/outbound/in-memory/in-memory-client-organisation-repository";
-import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
-import { clientOrganisationId } from "@/core/domain/client-organisation";
-import { type CoordinatorEvent } from "@/core/domain/coordinator-event";
+import {
+  InMemoryCoordinatorEventRepository,
+  type SeedCoordinatorEvent,
+} from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewAssignedEventsUseCase } from "./view-assigned-events";
 
-const ORG_A = clientOrganisationId("org-a");
 const COORDINATOR = userAccountId("coordinator-1");
 const OTHER_COORDINATOR = userAccountId("coordinator-2");
 
-const ORG_NAMES = new Map([[ORG_A, "Sunrise Events Co"]]);
-
-function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
-  return coordinatorEventFixture({
-    clientOrganisationId: ORG_A,
+function event(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinatorEvent {
+  return {
+    id: "event-1",
+    eventRequestId: "request-1",
+    name: "Autumn Product Showcase",
+    clientOrganisationName: "Sunrise Events Co",
+    preferredDate: "2026-10-14",
+    status: "Confirmed",
     assignedCoordinatorUserAccountId: COORDINATOR,
     ...overrides,
-  });
+  };
 }
 
-function buildUseCase(seed: readonly CoordinatorEvent[]) {
+function buildUseCase(seed: readonly SeedCoordinatorEvent[]) {
   return new ViewAssignedEventsUseCase({
     events: new InMemoryCoordinatorEventRepository(seed),
-    clientOrganisations: new InMemoryClientOrganisationRepository(ORG_NAMES),
   });
 }
 

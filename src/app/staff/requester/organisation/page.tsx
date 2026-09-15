@@ -22,14 +22,13 @@ import {
   buildViewOrganisationEventRequests,
   getCurrentOrganiser,
 } from "@/composition/container";
-import type { EventRequestStatus } from "@/lib/wireframe";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { StatusBadge } from "../../status-badge";
 import { reassignEventOrganiserAction } from "./actions";
 
 /**
- * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
+ * SPM-39's demo identities, reduced to the
  * primitives the use case takes. Used only when there is no real signed-
  * in Organiser (see `getCurrentOrganiser`) -- e.g. testing before SPM-13's
  * login existed, or reaching this page in some other role.
@@ -166,7 +165,7 @@ export default async function OrganisationEventsPage({
                       {organiserNames.get(request.responsibleOrganiserId) ?? request.responsibleOrganiserId}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={request.status as EventRequestStatus} />
+                      <StatusBadge status={request.status} />
                     </TableCell>
                     <TableCell className="text-right">
                       {request.canEdit ? (

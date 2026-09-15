@@ -69,7 +69,7 @@ function RequestTable({
               </TableCell>
               <TableCell className="text-muted-foreground">Not yet assigned</TableCell>
               <TableCell className="text-muted-foreground text-right">
-                {request.submittedAt?.toISOString().slice(0, 10) ?? "—"}
+                {request.submittedAt?.slice(0, 10) ?? "—"}
               </TableCell>
             </TableRow>
           ))}

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { InMemoryEventCoordinatorDirectory } from "@/adapters/outbound/in-memory/in-memory-event-coordinator-directory";
 import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
+import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
 import {
   EventCoordinatorNotFoundError,
   EventRequestNotAssignableError,
@@ -13,24 +13,25 @@ import {
   type EventRequest,
   type EventRequestStatus,
 } from "@/core/domain/event-request";
-import { userAccountId, type UserAccount } from "@/core/domain/user-account";
+import { userAccountId } from "@/core/domain/user-account";
+import type { EventCoordinatorDetails } from "@/core/ports/outbound/user-account-repository";
 
 import { AssignEventCoordinatorUseCase } from "./assign-event-coordinator";
 
 const OLD_COORDINATOR = userAccountId("coordinator-1");
 const NEW_COORDINATOR = userAccountId("coordinator-2");
 
-function coordinator(id: string): UserAccount {
+function coordinator(id: string): EventCoordinatorDetails {
   return {
-    id: userAccountId(id),
+    userAccountId: id,
     name: id,
     contactDetails: null,
     communicationPreferences: null,
     department: "Event Coordination",
     availability: null,
     clientOrganisationId: null,
-    createdAt: new Date("2026-09-01T00:00:00.000Z"),
-    updatedAt: new Date("2026-09-01T00:00:00.000Z"),
+    createdAt: "2026-09-01T00:00:00.000Z",
+    updatedAt: "2026-09-01T00:00:00.000Z",
   };
 }
 
@@ -44,12 +45,12 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
 
 function buildUseCase(
   seed: readonly EventRequest[],
-  coordinators: readonly UserAccount[] = [coordinator(NEW_COORDINATOR)],
+  coordinators: readonly EventCoordinatorDetails[] = [coordinator(NEW_COORDINATOR)],
 ) {
   const eventRequests = new InMemoryEventRequestRepository(seed);
   const useCase = new AssignEventCoordinatorUseCase({
     eventRequests,
-    eventCoordinators: new InMemoryEventCoordinatorDirectory(coordinators),
+    userAccounts: new InMemoryUserAccountRepository({ eventCoordinators: coordinators }),
   });
   return { useCase, eventRequests };
 }
@@ -67,6 +68,7 @@ describe("AssignEventCoordinatorUseCase", () => {
       eventRequestId: "request-1",
       assignedCoordinatorUserAccountId: NEW_COORDINATOR,
       status: "Under Review",
+      operation: "assigned",
     });
     await expect(eventRequests.findById(eventRequestId("request-1"))).resolves.toMatchObject({
       assignedCoordinatorUserAccountId: NEW_COORDINATOR,
@@ -82,11 +84,12 @@ describe("AssignEventCoordinatorUseCase", () => {
       }),
     ]);
 
-    await useCase.execute({
+    const result = await useCase.execute({
       eventRequestId: "request-1",
       eventCoordinatorUserAccountId: NEW_COORDINATOR,
     });
 
+    expect(result.operation).toBe("reassigned");
     const saved = await eventRequests.findById(eventRequestId("request-1"));
     expect(saved?.assignedCoordinatorUserAccountId).toBe(NEW_COORDINATOR);
     expect(saved?.assignedCoordinatorUserAccountId).not.toBe(OLD_COORDINATOR);

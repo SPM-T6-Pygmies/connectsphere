@@ -1,12 +1,17 @@
 import {
+  coordinatorRequestStateFor,
+  coordinatorSectionFor,
   eventRequestAccessForCoordinator,
   eventRequestId,
-  type EventRequest,
+  type CoordinatorRequestState,
+  type CoordinatorSection,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
+
+import { toEventRequestView, type EventRequestView } from "./event-request-view";
 
 export interface ViewAssignedEventRequestCommand {
   readonly id: string;
@@ -14,9 +19,17 @@ export interface ViewAssignedEventRequestCommand {
 }
 
 export interface ViewAssignedEventRequestResult {
-  readonly eventRequest: EventRequest;
+  readonly eventRequest: EventRequestView;
   readonly requestingOrganiserName: string;
   readonly clientOrganisationName: string;
+  /**
+   * The Coordinator's reading of the request's status -- see
+   * `coordinatorRequestStateFor`. Null only for a Draft, which no Coordinator
+   * can be assigned to.
+   */
+  readonly state: CoordinatorRequestState | null;
+  /** Which of the Coordinator's sections the request now lives under -- see `coordinatorSectionFor`. */
+  readonly section: CoordinatorSection;
 }
 
 export interface ViewAssignedEventRequestDeps {
@@ -57,9 +70,11 @@ export class ViewAssignedEventRequestUseCase {
     ]);
 
     return {
-      eventRequest: request,
+      eventRequest: toEventRequestView(request),
       requestingOrganiserName: organiserNames.get(request.responsibleOrganiserId) ?? "",
       clientOrganisationName: organisationNames.get(request.clientOrganisationId) ?? "",
+      state: coordinatorRequestStateFor(request.status),
+      section: coordinatorSectionFor(request.status),
     };
   }
 }

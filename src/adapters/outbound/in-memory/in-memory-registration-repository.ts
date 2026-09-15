@@ -22,9 +22,9 @@ export class InMemoryRegistrationRepository implements RegistrationRepository {
    * assert on the id they will get.
    *
    * It is therefore *not* a bearer token: once a reference addresses a page
-   * that can withdraw (SPM-28), anyone can guess `registration-2`. Demo mode is
-   * not a security boundary and must not be treated as one -- the Supabase
-   * adapter mints a random UUID for exactly that reason.
+   * that can withdraw (SPM-28), anyone can guess `registration-2`. This adapter
+   * is a test double, not a security boundary -- the Supabase adapter mints a
+   * random UUID for exactly that reason.
    */
   nextId(): RegistrationId {
     this.sequence += 1;

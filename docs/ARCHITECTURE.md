@@ -1043,17 +1043,16 @@ domain entities:
   Add the method to the port that already owns that capability (see below).
 - **The adapter maps row → view in one step.** No `toDomain`, and no second copy
   of the same fields in the use case.
-- **The in-memory adapter is still required.** It runs the app when no Supabase
-  project is configured, which makes it a second real implementation and not
-  only a test double.
+- **The in-memory adapter is still required.** The use-case tests run on it, so
+  a thin slice is tested without a database exactly like a full one.
 
-`ViewMyEventRequestsUseCase` shows the difference. Today the adapter builds full
-`EventRequest` entities for the whole organisation, and the use case filters them
-to the caller's own and copies six fields into `MyEventRequestSummary`. On the
-thin path the filter becomes the query and the copy disappears:
+`ViewMyEventRequestsUseCase` shows the difference. Its adapter used to build full
+`EventRequest` entities for the whole organisation, and the use case filtered them
+to the caller's own and copied six fields into `MyEventRequestSummary`. On the
+thin path the filter became the query and the copy disappeared:
 
 ```ts
-// src/core/ports/outbound/event-request-repository.ts -- the shape, not yet in the repo
+// src/core/ports/outbound/event-request-repository.ts
 export interface EventRequestRepository {
   // ...existing methods
   listRaisedBy(
@@ -1068,8 +1067,9 @@ requests" starts flagging which ones may still be withdrawn). That is mechanical
 put the predicate in the domain, return entities from the port, map in the use
 case.
 
-Existing read slices predate this section. Convert one when you are already
-changing it for another reason, in its own commit, rather than as a sweep.
+The read slices that existed when this section was written were classified and
+converted together. A new slice picks its path when it is written; an existing
+one changes path only when a rule appears in it or leaves it.
 
 ### Group ports by capability, not by operation
 
@@ -1190,7 +1190,7 @@ drivers → `app` plus the SDKs.
 
 ### The linter is the reviewer
 
-`eslint.config.mjs` defines three zones. These fail `pnpm lint`, not code review:
+`eslint.config.mjs` defines six zones. These fail `pnpm lint`, not code review:
 
 | Zone | May not import | Why |
 | --- | --- | --- |
@@ -1198,8 +1198,13 @@ drivers → `app` plus the SDKs.
 | `src/core/**` | `@supabase/**` | Talk to Supabase through a port |
 | `src/core/**` | `zod` | Shape validation is a boundary concern (§5) |
 | `src/core/**` | `@/app`, `@/adapters`, `@/components`, `@/composition`, `@/lib` | The Dependency Rule |
-| `src/app/**`, `src/components/**` | `@supabase/**`, `@/adapters/outbound/**` | Driving adapters resolve use cases from `@/composition` |
+| `src/core/**` | the same folders reached by a relative `../` path | The Dependency Rule, without the alias |
+| `src/app/**`, `src/components/**`, `src/middleware.ts` | `@supabase/**`, `@/adapters/outbound/**` | Driving adapters resolve use cases from `@/composition` |
 | `src/adapters/outbound/**` | `@/app`, `@/components`, `@/composition` | A driven adapter must not know the UI or its own wiring |
+| `src/adapters/outbound/**` | `@/lib` | A driven adapter receives its client from composition rather than building one |
+| `src/adapters/inbound/**` | `@supabase/**`, `@/adapters/outbound/**`, `@/app`, `@/components`, `@/composition` | A schema parses input; it does not reach infrastructure or the UI |
+| `src/lib/**` | `@/core`, `@/adapters`, `@/app`, `@/components`, `@/composition` | Generic utilities sit below everything that uses them |
+| `src/composition/**` | `@/app`, `@/components` | Wiring assembles use cases; it does not know who renders them |
 
 `src/core/**/*.test.ts` is exempt from the first zone, because a test is a
 driving adapter (§4).
