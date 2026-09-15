@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { discardEventRequestDraftSchema } from "@/adapters/inbound/discard-event-request-draft-schema";
 import { saveEventRequestDraftSchema } from "@/adapters/inbound/save-event-request-draft-schema";
 import { submitEventRequestSchema } from "@/adapters/inbound/submit-event-request-schema";
 import {
@@ -219,16 +220,18 @@ export async function discardEventRequestDraftAction(
   formData: FormData,
 ): Promise<DiscardDraftState> {
   const organiser = actingOrganiser();
-  const eventRequestId = String(formData.get("eventRequestId") ?? "");
+  const parsed = discardEventRequestDraftSchema.safeParse({
+    eventRequestId: String(formData.get("eventRequestId") ?? ""),
+  });
 
-  if (eventRequestId.length === 0) {
+  if (!parsed.success) {
     return { status: "error", message: "There is no draft to discard yet." };
   }
 
   try {
     const discardEventRequestDraft = await buildDiscardEventRequestDraft();
     await discardEventRequestDraft.execute({
-      eventRequestId,
+      eventRequestId: parsed.data.eventRequestId,
       responsibleOrganiserId: organiser.userAccountId,
       clientOrganisationId: organiser.clientOrganisationId,
     });
