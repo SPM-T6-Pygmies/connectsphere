@@ -38,15 +38,17 @@ export class SupabaseAuthAdapter implements AuthPort {
 
   async getSession() {
     const { client } = this;
-    const { data } = await client.auth.getSession();
+    // Verified, unlike `auth.getSession()`, which returns whatever the cookie
+    // holds -- and on the server the cookie is caller-controlled input.
+    const { data, error } = await client.auth.getClaims();
 
-    if (!data.session || !data.session.expires_at) {
+    if (error || !data) {
       return null;
     }
 
     return {
-      userId: data.session.user.id,
-      expiresAt: new Date(data.session.expires_at * 1000),
+      userId: data.claims.sub,
+      expiresAt: new Date(data.claims.exp * 1000),
     };
   }
 
