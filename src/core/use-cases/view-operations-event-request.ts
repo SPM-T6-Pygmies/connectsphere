@@ -1,5 +1,5 @@
 import { eventRequestId } from "../domain/event-request";
-import type { OperationsEventRequestReader } from "../ports/outbound/operations-event-request-reader";
+import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import { toOperationsEventRequest, type OperationsEventRequest } from "./operations-event-request";
 
 export interface ViewOperationsEventRequestCommand {
@@ -11,7 +11,7 @@ export interface ViewOperationsEventRequestResult {
 }
 
 export interface ViewOperationsEventRequestDeps {
-  readonly eventRequests: OperationsEventRequestReader;
+  readonly eventRequests: EventRequestRepository;
 }
 
 /** Retrieves one event request for the Event Operations Manager. */

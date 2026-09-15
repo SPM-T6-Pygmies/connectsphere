@@ -10,7 +10,6 @@ import { SupabaseEventCoordinatorDirectory } from "@/adapters/outbound/supabase/
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseOrganiserDirectory } from "@/adapters/outbound/supabase/supabase-organiser-directory";
-import { SupabaseOperationsEventRequestReader } from "@/adapters/outbound/supabase/supabase-operations-event-request-reader";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
@@ -148,7 +147,7 @@ export async function buildViewAllEventRequests(): Promise<ViewAllEventRequestsU
 
 export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequestUseCase> {
   return new ViewOperationsEventRequestUseCase({
-    eventRequests: new SupabaseOperationsEventRequestReader(await createSupabaseServerClient()),
+    eventRequests: await eventRequestAdapters(),
   });
 }
 
