@@ -11,7 +11,7 @@ import {
   buildViewAllEventCoordinators,
   buildViewOperationsEventRequest,
 } from "@/composition/container";
-import type { EventCoordinatorDetails } from "@/core/ports/inbound/view-all-event-coordinators";
+import type { EventCoordinatorDetails } from "@/core/use-cases/view-all-event-coordinators";
 import type { OperationsEventRequest } from "@/core/use-cases/operations-event-request";
 
 import { FieldList } from "../field-list";

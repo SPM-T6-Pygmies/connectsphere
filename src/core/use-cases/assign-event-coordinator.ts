@@ -2,22 +2,32 @@ import {
   EventCoordinatorNotFoundError,
   EventRequestNotFoundError,
 } from "../domain/errors";
-import { assignEventCoordinator, eventRequestId } from "../domain/event-request";
+import {
+  assignEventCoordinator,
+  eventRequestId,
+  type EventRequestStatus,
+} from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type {
-  AssignEventCoordinator,
-  AssignEventCoordinatorCommand,
-  AssignEventCoordinatorResult,
-} from "../ports/inbound/assign-event-coordinator";
 import type { EventCoordinatorDirectory } from "../ports/outbound/event-coordinator-directory";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+export interface AssignEventCoordinatorCommand {
+  readonly eventRequestId: string;
+  readonly eventCoordinatorUserAccountId: string;
+}
+
+export interface AssignEventCoordinatorResult {
+  readonly eventRequestId: string;
+  readonly assignedCoordinatorUserAccountId: string;
+  readonly status: EventRequestStatus;
+}
 
 export interface AssignEventCoordinatorDeps {
   readonly eventRequests: EventRequestRepository;
   readonly eventCoordinators: EventCoordinatorDirectory;
 }
 
-export class AssignEventCoordinatorUseCase implements AssignEventCoordinator {
+export class AssignEventCoordinatorUseCase {
   constructor(private readonly deps: AssignEventCoordinatorDeps) {}
 
   async execute(command: AssignEventCoordinatorCommand): Promise<AssignEventCoordinatorResult> {

@@ -28,13 +28,9 @@ import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
-import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
 import type { Login } from "@/core/ports/inbound/login";
 import type { Logout } from "@/core/ports/inbound/logout";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
-import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
-import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
-import type { ViewOperationsEventRequest } from "@/core/ports/inbound/view-operations-event-request";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
@@ -185,13 +181,13 @@ export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEve
   });
 }
 
-export async function buildViewAllEventRequests(): Promise<ViewAllEventRequests> {
+export async function buildViewAllEventRequests(): Promise<ViewAllEventRequestsUseCase> {
   return new ViewAllEventRequestsUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequest> {
+export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequestUseCase> {
   const eventRequests = hasSupabaseProject()
     ? new SupabaseOperationsEventRequestReader(await createSupabaseServerClient())
     : demoEventRequestRepository;
@@ -199,7 +195,7 @@ export async function buildViewOperationsEventRequest(): Promise<ViewOperationsE
   return new ViewOperationsEventRequestUseCase({ eventRequests });
 }
 
-export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinators> {
+export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinatorsUseCase> {
   const eventCoordinators = hasSupabaseProject()
     ? new SupabaseEventCoordinatorDirectory(await createSupabaseServerClient())
     : demoEventCoordinatorDirectory;
@@ -207,7 +203,7 @@ export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoord
   return new ViewAllEventCoordinatorsUseCase({ eventCoordinators });
 }
 
-export async function buildAssignEventCoordinator(): Promise<AssignEventCoordinator> {
+export async function buildAssignEventCoordinator(): Promise<AssignEventCoordinatorUseCase> {
   if (!hasSupabaseProject()) {
     return new AssignEventCoordinatorUseCase({
       eventRequests: demoEventRequestRepository,

@@ -1,20 +1,24 @@
 import { eventRequestId } from "../domain/event-request";
-import type {
-  ViewOperationsEventRequest,
-  ViewOperationsEventRequestCommand,
-  ViewOperationsEventRequestResult,
-} from "../ports/inbound/view-operations-event-request";
 import type { OperationsEventRequestReader } from "../ports/outbound/operations-event-request-reader";
-import { toOperationsEventRequest } from "./operations-event-request";
+import { toOperationsEventRequest, type OperationsEventRequest } from "./operations-event-request";
+
+export interface ViewOperationsEventRequestCommand {
+  readonly id: string;
+}
+
+export interface ViewOperationsEventRequestResult {
+  readonly eventRequest: OperationsEventRequest;
+}
 
 export interface ViewOperationsEventRequestDeps {
   readonly eventRequests: OperationsEventRequestReader;
 }
 
 /** Retrieves one event request for the Event Operations Manager. */
-export class ViewOperationsEventRequestUseCase implements ViewOperationsEventRequest {
+export class ViewOperationsEventRequestUseCase {
   constructor(private readonly deps: ViewOperationsEventRequestDeps) {}
 
+  /** Null when no event request has the requested id. */
   async execute(
     command: ViewOperationsEventRequestCommand,
   ): Promise<ViewOperationsEventRequestResult | null> {

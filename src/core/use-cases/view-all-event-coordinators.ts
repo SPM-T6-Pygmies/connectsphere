@@ -1,16 +1,27 @@
-import type {
-  EventCoordinatorDetails,
-  ViewAllEventCoordinators,
-  ViewAllEventCoordinatorsResult,
-} from "../ports/inbound/view-all-event-coordinators";
 import type { EventCoordinatorDirectory } from "../ports/outbound/event-coordinator-directory";
+
+export interface EventCoordinatorDetails {
+  readonly userAccountId: string;
+  readonly name: string;
+  readonly contactDetails: string | null;
+  readonly communicationPreferences: string | null;
+  readonly department: string | null;
+  readonly availability: string | null;
+  readonly clientOrganisationId: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface ViewAllEventCoordinatorsResult {
+  readonly eventCoordinators: readonly EventCoordinatorDetails[];
+}
 
 export interface ViewAllEventCoordinatorsDeps {
   readonly eventCoordinators: EventCoordinatorDirectory;
 }
 
 /** The Event Operations Manager's complete coordinator list. */
-export class ViewAllEventCoordinatorsUseCase implements ViewAllEventCoordinators {
+export class ViewAllEventCoordinatorsUseCase {
   constructor(private readonly deps: ViewAllEventCoordinatorsDeps) {}
 
   async execute(): Promise<ViewAllEventCoordinatorsResult> {
