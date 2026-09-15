@@ -22,6 +22,7 @@ import {
   eventRequestAccessForCoordinator,
   isSubmittable,
   missingMandatoryFields,
+  operationsQueueFor,
   reassignResponsibleOrganiser,
   rejectEventRequest,
   saveEventRequestDraft,
@@ -403,6 +404,25 @@ describe("coordinatorArchiveStateFor", () => {
     "keeps a %s request out of the archive -- still open, or an event now",
     (status) => {
       expect(coordinatorArchiveStateFor(status)).toBeNull();
+    },
+  );
+});
+
+describe("operationsQueueFor", () => {
+  it("keeps a Draft out of both Operations queues -- it is the Organiser's alone", () => {
+    expect(operationsQueueFor(request({ status: "Draft" }))).toBeNull();
+  });
+
+  it("files a submitted request with no coordinator under unassigned", () => {
+    expect(operationsQueueFor(request({ status: "Submitted" }))).toBe("unassigned");
+  });
+
+  it.each(["Submitted", "Under Review", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+    "files a %s request with a coordinator under assigned, whatever its status",
+    (status) => {
+      expect(
+        operationsQueueFor(request({ status, assignedCoordinatorUserAccountId: COORDINATOR })),
+      ).toBe("assigned");
     },
   );
 });

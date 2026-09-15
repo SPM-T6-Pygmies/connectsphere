@@ -9,9 +9,12 @@ import { userAccountId } from "@/core/domain/user-account";
 import { ViewAllEventRequestsUseCase } from "./view-all-event-requests";
 
 describe("ViewAllEventRequestsUseCase", () => {
-  it("AC1: returns every request across organisations and statuses with its assignment", async () => {
-    const unassignedDraft = eventRequestFixture({
-      details: eventRequestDetails({ eventName: "Draft request" }),
+  it("AC1: returns every submitted request across organisations, with its assignment and queue", async () => {
+    const unassignedRequest = eventRequestFixture({
+      id: eventRequestId("request-1"),
+      details: eventRequestDetails({ eventName: "Unassigned request" }),
+      status: "Submitted",
+      submittedAt: new Date("2026-09-01T09:00:00.000Z"),
     });
     const assignedRequest = eventRequestFixture({
       id: eventRequestId("request-2"),
@@ -29,20 +32,18 @@ describe("ViewAllEventRequestsUseCase", () => {
       updatedAt: new Date("2026-09-02T09:00:00.000Z"),
     });
     const useCase = new ViewAllEventRequestsUseCase({
-      eventRequests: new InMemoryEventRequestRepository([
-        unassignedDraft,
-        assignedRequest,
-      ]),
+      eventRequests: new InMemoryEventRequestRepository([unassignedRequest, assignedRequest]),
     });
 
     const result = await useCase.execute();
 
     expect(result.eventRequests).toHaveLength(2);
     expect(result.eventRequests[0]).toMatchObject({
-      eventName: "Draft request",
-      status: "Draft",
+      eventName: "Unassigned request",
+      status: "Submitted",
       assignedCoordinatorUserAccountId: null,
       clientOrganisationId: "org-a",
+      queue: "unassigned",
     });
     expect(result.eventRequests[1]).toEqual({
       id: "request-2",
@@ -67,7 +68,18 @@ describe("ViewAllEventRequestsUseCase", () => {
       clientOrganisationId: "org-b",
       createdAt: "2026-09-02T08:00:00.000Z",
       updatedAt: "2026-09-02T09:00:00.000Z",
+      queue: "assigned",
     });
+  });
+
+  it("never returns a Draft -- it is the Organiser's alone, not Operations'", async () => {
+    const useCase = new ViewAllEventRequestsUseCase({
+      eventRequests: new InMemoryEventRequestRepository([
+        eventRequestFixture({ details: eventRequestDetails({ eventName: "Draft request" }) }),
+      ]),
+    });
+
+    await expect(useCase.execute()).resolves.toEqual({ eventRequests: [] });
   });
 
   it("AC2: returns an empty list when no event requests exist", async () => {

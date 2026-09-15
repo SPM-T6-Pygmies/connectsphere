@@ -398,6 +398,31 @@ export function coordinatorArchiveStateFor(
   return state !== null && ARCHIVE_STATES.has(state) ? state : null;
 }
 
+/** The two queues an Event Operations Manager works from. */
+export type OperationsQueue = "unassigned" | "assigned";
+
+/**
+ * Which Event Operations queue a request belongs in, and `null` if it is not
+ * Operations' to see at all.
+ *
+ * A `Draft` is the Organiser's alone -- unfinished, unsubmitted, and not
+ * something Operations can act on (`assignEventCoordinator` refuses it) -- so
+ * it is in neither queue. Every other request is sorted by whether it has an
+ * Event Coordinator yet, whatever its status: a decided request keeps its
+ * coordinator and stays under "assigned".
+ *
+ * Like `coordinatorQueueStateFor`, one call answers membership and placement
+ * together, so a screen cannot filter on one rule and file on another.
+ */
+export function operationsQueueFor(
+  request: Pick<EventRequest, "status" | "assignedCoordinatorUserAccountId">,
+): OperationsQueue | null {
+  if (request.status === "Draft") {
+    return null;
+  }
+  return request.assignedCoordinatorUserAccountId === null ? "unassigned" : "assigned";
+}
+
 /**
  * The one place responsibility for a request can change hands (#61, #59).
  *
