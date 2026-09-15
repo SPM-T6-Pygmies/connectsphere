@@ -701,7 +701,7 @@ The login feature follows the project's hexagonal architecture:
 
 - **Service Role Key for server operations:** Server Action uses Service Role Key (full permissions) to bypass RLS on user_account table lookups
 - **Publishable Key for browser:** Browser receives only Publishable Key (limited read-only), stored in .env.local
-- **Session cookies via Supabase middleware:** updateSession() in middleware.ts manages auth state and redirects unauthenticated users from /staff/* to /auth/login
+- **Session cookies via Supabase middleware:** updateSession() refreshes the session cookies and reports the session claims; middleware.ts redirects unauthenticated users from /staff/* to /auth/login
 - **Role-based redirects:** LoginUseCase returns user's primary role; loginAction maps to /staff/[role]/landing-view
 
 ### Test Data
