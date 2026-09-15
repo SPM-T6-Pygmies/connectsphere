@@ -1,10 +1,10 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import type {
-  OrganiserDirectory,
   OrganiserSummary,
-} from "../ports/outbound/organiser-directory";
+  UserAccountRepository,
+} from "../ports/outbound/user-account-repository";
 
-export type { OrganiserSummary } from "../ports/outbound/organiser-directory";
+export type { OrganiserSummary } from "../ports/outbound/user-account-repository";
 
 export interface ListOrganisationOrganisersCommand {
   readonly clientOrganisationId: string;
@@ -15,13 +15,13 @@ export interface ListOrganisationOrganisersResult {
 }
 
 export interface ListOrganisationOrganisersDeps {
-  readonly organisers: OrganiserDirectory;
+  readonly userAccounts: UserAccountRepository;
 }
 
 /**
  * SPM-39 AC5: who a request could be reassigned to -- Organisers in the caller's own client organisation.
  *
- * A thin read slice (ARCHITECTURE.md section 11): the directory already answers with the view.
+ * A thin read slice (ARCHITECTURE.md section 11): the repository already answers with the view.
  */
 export class ListOrganisationOrganisersUseCase {
   constructor(private readonly deps: ListOrganisationOrganisersDeps) {}
@@ -30,7 +30,7 @@ export class ListOrganisationOrganisersUseCase {
     command: ListOrganisationOrganisersCommand,
   ): Promise<ListOrganisationOrganisersResult> {
     return {
-      organisers: await this.deps.organisers.listByClientOrganisation(
+      organisers: await this.deps.userAccounts.listOrganisers(
         clientOrganisationId(command.clientOrganisationId),
       ),
     };

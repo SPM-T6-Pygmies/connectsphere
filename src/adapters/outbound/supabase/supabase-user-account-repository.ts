@@ -1,9 +1,18 @@
+import type { ClientOrganisationId } from "@/core/domain/client-organisation";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
-import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
+import type {
+  OrganiserSummary,
+  UserAccountRepository,
+} from "@/core/ports/outbound/user-account-repository";
 
 import type { SupabaseServerClient } from "./client";
 
 interface UserAccountNameRow {
+  user_account_id: number;
+  name: string;
+}
+
+interface OrganiserRow {
   user_account_id: number;
   name: string;
 }
@@ -17,9 +26,11 @@ function toKey(id: string): number | null {
 }
 
 /**
- * Reached through `user_account_names`, not the table -- same reason as
+ * Reached through database functions (`user_account_names`,
+ * `organisation_event_organisers`), not the table -- same reason as
  * `SupabaseEventRequestRepository`: RLS is enabled with no policy, and
- * `anon`'s key has no table grant.
+ * `anon`'s key has no table grant. Each function can only return rows for the
+ * ids or the organisation the caller already named.
  */
 export class SupabaseUserAccountRepository implements UserAccountRepository {
   constructor(private readonly client: SupabaseServerClient) {}
@@ -40,5 +51,28 @@ export class SupabaseUserAccountRepository implements UserAccountRepository {
 
     const rows = (data ?? []) as unknown as UserAccountNameRow[];
     return new Map(rows.map((row) => [userAccountId(String(row.user_account_id)), row.name]));
+  }
+
+  async listOrganisers(
+    clientOrganisationId: ClientOrganisationId,
+  ): Promise<readonly OrganiserSummary[]> {
+    const key = toKey(clientOrganisationId);
+    if (key === null) {
+      return [];
+    }
+
+    const { data, error } = await this.client.rpc("organisation_event_organisers", {
+      p_client_organisation_id: key,
+    });
+
+    if (error) {
+      throw new Error(`Failed to list organisers: ${error.message}`, { cause: error });
+    }
+
+    const rows = (data ?? []) as unknown as OrganiserRow[];
+    return rows.map((row) => ({
+      userAccountId: String(row.user_account_id),
+      name: row.name,
+    }));
   }
 }

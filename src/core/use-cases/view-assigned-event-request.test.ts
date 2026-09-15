@@ -32,7 +32,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   return new ViewAssignedEventRequestUseCase({
     eventRequests: new InMemoryEventRequestRepository(seed),
     clientOrganisations: new InMemoryClientOrganisationRepository(ORG_NAMES),
-    userAccounts: new InMemoryUserAccountRepository(ORGANISER_NAMES),
+    userAccounts: new InMemoryUserAccountRepository({ names: ORGANISER_NAMES }),
   });
 }
 

@@ -9,7 +9,6 @@ import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase
 import { SupabaseEventCoordinatorDirectory } from "@/adapters/outbound/supabase/supabase-event-coordinator-directory";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
-import { SupabaseOrganiserDirectory } from "@/adapters/outbound/supabase/supabase-organiser-directory";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
@@ -282,7 +281,7 @@ export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiserU
 /** SPM-39 AC5: who a request in this client organisation could be reassigned to. */
 export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisersUseCase> {
   return new ListOrganisationOrganisersUseCase({
-    organisers: new SupabaseOrganiserDirectory(await createSupabaseServerClient()),
+    userAccounts: new SupabaseUserAccountRepository(await createSupabaseServerClient()),
   });
 }
 
