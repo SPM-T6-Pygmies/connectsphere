@@ -1,8 +1,8 @@
 import type { ClientOrganisationId } from "../../domain/client-organisation";
-import type { UserAccountId } from "../../domain/user-account";
 
+/** One Organiser a request could be reassigned to -- plain data, the view the screen needs. */
 export interface OrganiserSummary {
-  readonly userAccountId: UserAccountId;
+  readonly userAccountId: string;
   readonly name: string;
 }
 

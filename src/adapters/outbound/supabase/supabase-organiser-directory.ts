@@ -1,5 +1,4 @@
 import type { ClientOrganisationId } from "@/core/domain/client-organisation";
-import { userAccountId } from "@/core/domain/user-account";
 import type { OrganiserDirectory, OrganiserSummary } from "@/core/ports/outbound/organiser-directory";
 
 import type { SupabaseServerClient } from "./client";
@@ -37,7 +36,7 @@ export class SupabaseOrganiserDirectory implements OrganiserDirectory {
 
     const rows = (data ?? []) as unknown as OrganiserRow[];
     return rows.map((row) => ({
-      userAccountId: userAccountId(String(row.user_account_id)),
+      userAccountId: String(row.user_account_id),
       name: row.name,
     }));
   }
