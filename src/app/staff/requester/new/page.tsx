@@ -1,4 +1,6 @@
-import { actingOrganiser, buildViewOrganiserEventRequest } from "@/composition/container";
+import { notFound } from "next/navigation";
+
+import { buildViewOrganiserEventRequest, getCurrentOrganiser } from "@/composition/container";
 
 import { StaffShell } from "../../staff-shell";
 import type { FormValues } from "./form-fields";
@@ -18,8 +20,8 @@ export const metadata = { title: "New event request | ConnectSphere" };
  */
 async function draftFor(
   id: string,
+  organiser: { readonly userAccountId: string; readonly clientOrganisationId: string },
 ): Promise<{ eventRequestId: string; values: Partial<FormValues> } | undefined> {
-  const organiser = actingOrganiser();
   const viewOrganiserEventRequest = await buildViewOrganiserEventRequest();
   const result = await viewOrganiserEventRequest.execute({ id, ...organiser });
 
@@ -52,8 +54,13 @@ async function draftFor(
 export default async function NewRequestPage({
   searchParams,
 }: PageProps<"/staff/requester/new">) {
+  const organiser = await getCurrentOrganiser();
+  if (organiser === null) {
+    notFound();
+  }
+
   const { draft } = await searchParams;
-  const loaded = typeof draft === "string" ? await draftFor(draft) : undefined;
+  const loaded = typeof draft === "string" ? await draftFor(draft, organiser) : undefined;
 
   return (
     <StaffShell

@@ -1,5 +1,6 @@
 import { FilePlusIcon } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { actingOrganiser, buildViewMyEventRequests } from "@/composition/container";
+import { buildViewMyEventRequests, getCurrentOrganiser } from "@/composition/container";
 import type { MyEventRequestSummary } from "@/core/use-cases/view-my-event-requests";
 
 import { EmptyState } from "../field-list";
@@ -80,7 +81,11 @@ function RequestTable({
 }
 
 export default async function RequesterPage() {
-  const organiser = actingOrganiser();
+  const organiser = await getCurrentOrganiser();
+  if (organiser === null) {
+    notFound();
+  }
+
   const viewMyEventRequests = await buildViewMyEventRequests();
   const { eventRequests } = await viewMyEventRequests.execute(organiser);
 
