@@ -1,10 +1,12 @@
-import { createSupabaseAdminClient } from "@/adapters/outbound/supabase/client";
+import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 
 import type { UserRepository, UserWithRoles } from "@/core/ports/outbound/user-repository";
 
 export class SupabaseUserRepository implements UserRepository {
+  constructor(private readonly supabase: SupabaseAdminClient) {}
+
   async findByAuthUserId(authUserId: string): Promise<UserWithRoles | null> {
-    const supabase = createSupabaseAdminClient();
+    const { supabase } = this;
     console.log("[SupabaseUserRepository] Finding user by authUserId:", authUserId);
 
     const { data, error } = await supabase

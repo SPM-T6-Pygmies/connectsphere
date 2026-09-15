@@ -1,5 +1,8 @@
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
-import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
+import {
+  createSupabaseAdminClient,
+  createSupabaseServerClient,
+} from "@/adapters/outbound/supabase/client";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
@@ -206,12 +209,12 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  * `getCurrentOrganiser` below.
  */
 export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
-  const session = await new SupabaseAuthAdapter().getSession();
+  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
   if (session === null) {
     return null;
   }
 
-  const user = await new SupabaseUserRepository().findByAuthUserId(session.userId);
+  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
   if (user === null || !user.roles.includes("Event Coordinator")) {
     return null;
   }
@@ -286,15 +289,15 @@ export async function buildListOrganisationOrganisers(): Promise<ListOrganisatio
 
 export async function buildLogin(): Promise<LoginUseCase> {
   return new LoginUseCase({
-    auth: new SupabaseAuthAdapter(),
-    users: new SupabaseUserRepository(),
+    auth: new SupabaseAuthAdapter(await createSupabaseServerClient()),
+    users: new SupabaseUserRepository(createSupabaseAdminClient()),
   });
 }
 
 export async function buildLogout(): Promise<LogoutUseCase> {
   return new LogoutUseCase({
-    auth: new SupabaseAuthAdapter(),
-    auditLogger: new SupabaseAuditLogger(),
+    auth: new SupabaseAuthAdapter(await createSupabaseServerClient()),
+    auditLogger: new SupabaseAuditLogger(createSupabaseAdminClient()),
   });
 }
 
@@ -313,12 +316,12 @@ export async function getCurrentOrganiser(): Promise<{
   readonly clientOrganisationId: string;
   readonly name: string;
 } | null> {
-  const session = await new SupabaseAuthAdapter().getSession();
+  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
   if (session === null) {
     return null;
   }
 
-  const user = await new SupabaseUserRepository().findByAuthUserId(session.userId);
+  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
   if (
     user === null ||
     user.clientOrganisationId === null ||
@@ -340,11 +343,11 @@ export async function getCurrentOrganiser(): Promise<{
  * other role. `null` means no session or no matching `user_account`.
  */
 export async function getCurrentUserAccountId(): Promise<string | null> {
-  const session = await new SupabaseAuthAdapter().getSession();
+  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
   if (session === null) {
     return null;
   }
 
-  const user = await new SupabaseUserRepository().findByAuthUserId(session.userId);
+  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
   return user?.userId ?? null;
 }
