@@ -164,29 +164,6 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
   });
 }
 
-/**
- * Who the organiser screens are acting as -- a stand-in until #62 settles how
- * this system authenticates.
- *
- * It lives here because it is ambient outside state read from the environment,
- * and because it is the one line that changes when a real session arrives: the
- * Server Action asks the composition root who is calling rather than trusting
- * a hidden input, so the browser cannot nominate someone else in the meantime.
- *
- * The defaults are `1`/`1` because `user_account` and `client_organisation`
- * number their rows from one; set them to real ids from your own project if
- * yours differ.
- */
-export function actingOrganiser(): {
-  readonly userAccountId: string;
-  readonly clientOrganisationId: string;
-} {
-  return {
-    userAccountId: process.env.DEMO_ORGANISER_USER_ACCOUNT_ID ?? "1",
-    clientOrganisationId: process.env.DEMO_CLIENT_ORGANISATION_ID ?? "1",
-  };
-}
-
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
@@ -300,14 +277,12 @@ async function buildIdentifyStaffMember(): Promise<IdentifyStaffMemberUseCase> {
 }
 
 /**
- * SPM-39: the real, session-derived counterpart to `actingOrganiser()`.
+ * Who the organiser screens are acting as: the signed-in Event Organiser.
  *
- * `actingOrganiser()` (above) is an env-var stand-in other Requester pages
- * still use, predating SPM-13. Now that login exists, this resolves the
- * actual signed-in Organiser instead: `null` covers every case that isn't
- * one -- no session, no matching `user_account`, a role other than Event
- * Organiser, or an Organiser with no client organisation set -- so a caller
- * can fall back (e.g. to a demo identity) rather than crash.
+ * `null` covers every case that isn't one -- no session, no matching
+ * `user_account`, a role other than Event Organiser, or an Organiser with no
+ * client organisation set -- so callers answer with a not-found rather than
+ * someone else's requests (#91). Same shape as `getCurrentCoordinator` above.
  */
 export async function getCurrentOrganiser(): Promise<{
   readonly userAccountId: string;
