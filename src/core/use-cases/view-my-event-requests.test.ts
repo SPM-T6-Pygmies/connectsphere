@@ -50,7 +50,7 @@ describe("ViewMyEventRequestsUseCase", () => {
         status: "Submitted",
         preferredDate: "2026-11-04",
         description: "A day for founders.",
-        submittedAt,
+        submittedAt: "2026-09-10T00:00:00.000Z",
       },
     ]);
   });

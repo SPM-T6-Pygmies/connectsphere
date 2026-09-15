@@ -10,7 +10,10 @@ import type {
   NewEventRequest,
 } from "@/core/domain/event-request";
 import type { UserAccountId } from "@/core/domain/user-account";
-import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
+import type {
+  EventRequestRepository,
+  MyEventRequestSummary,
+} from "@/core/ports/outbound/event-request-repository";
 
 import type { SupabaseServerClient } from "./client";
 import {
@@ -19,6 +22,7 @@ import {
   toDeleteArgs,
   toDomain,
   toKey,
+  toMyEventRequestSummary,
   toReassignArgs,
   toSaveArgs,
   toSubmitArgs,
@@ -77,6 +81,34 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     const rows = (data ?? []) as unknown as EventRequestRow[];
     return rows.map(toDomain);
+  }
+
+  async listRaisedBy(
+    organiser: UserAccountId,
+    organisation: ClientOrganisationId,
+  ): Promise<readonly MyEventRequestSummary[]> {
+    const organiserKey = toKey(organiser);
+    const organisationKey = toKey(organisation);
+    if (organiserKey === null || organisationKey === null) {
+      return [];
+    }
+
+    // The same organisation-scoped function, narrowed to the caller's own rows
+    // in the query itself. A filter on a function's result does not keep the
+    // function's `order by`, so the order is restated.
+    const { data, error } = await this.client
+      .rpc("organiser_event_requests", { p_client_organisation_id: organisationKey })
+      .eq("requesting_user_account_id", organiserKey)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to list the organiser's event requests: ${error.message}`, {
+        cause: error,
+      });
+    }
+
+    const rows = (data ?? []) as unknown as EventRequestRow[];
+    return rows.map(toMyEventRequestSummary);
   }
 
   async listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]> {

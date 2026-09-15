@@ -1046,13 +1046,13 @@ domain entities:
 - **The in-memory adapter is still required.** The use-case tests run on it, so
   a thin slice is tested without a database exactly like a full one.
 
-`ViewMyEventRequestsUseCase` shows the difference. Today the adapter builds full
-`EventRequest` entities for the whole organisation, and the use case filters them
-to the caller's own and copies six fields into `MyEventRequestSummary`. On the
-thin path the filter becomes the query and the copy disappears:
+`ViewMyEventRequestsUseCase` shows the difference. Its adapter used to build full
+`EventRequest` entities for the whole organisation, and the use case filtered them
+to the caller's own and copied six fields into `MyEventRequestSummary`. On the
+thin path the filter became the query and the copy disappeared:
 
 ```ts
-// src/core/ports/outbound/event-request-repository.ts -- the shape, not yet in the repo
+// src/core/ports/outbound/event-request-repository.ts
 export interface EventRequestRepository {
   // ...existing methods
   listRaisedBy(

@@ -6,6 +6,7 @@ import {
   type NewEventRequest,
 } from "@/core/domain/event-request";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
+import type { MyEventRequestSummary } from "@/core/ports/outbound/event-request-repository";
 
 /**
  * The `event_request` table's shape, named the way the database names it.
@@ -113,6 +114,18 @@ export function toDomain(row: EventRequestRow): EventRequest {
       generalProgramme: row.general_programme,
       otherSpecialArrangements: row.other_special_arrangements,
     },
+  };
+}
+
+/** One row of "My event requests", straight from the table row -- no entity in between. */
+export function toMyEventRequestSummary(row: EventRequestRow): MyEventRequestSummary {
+  return {
+    id: String(row.event_request_id),
+    eventName: row.event_name,
+    status: toStatus(row.status),
+    preferredDate: row.preferred_date,
+    description: row.description,
+    submittedAt: submittedAtOf(row)?.toISOString() ?? null,
   };
 }
 
