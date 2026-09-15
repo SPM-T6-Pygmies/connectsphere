@@ -19,6 +19,7 @@ import {
   coordinatorArchiveStateFor,
   coordinatorQueueStateFor,
   coordinatorRequestStateFor,
+  coordinatorSectionFor,
   eventRequestAccessFor,
   eventRequestAccessForCoordinator,
   isSubmittable,
@@ -440,6 +441,23 @@ describe("canAssignEventCoordinator", () => {
     "refuses a coordinator for a %s request",
     (status) => {
       expect(canAssignEventCoordinator(status)).toBe(false);
+    },
+  );
+});
+
+describe("coordinatorSectionFor", () => {
+  it("files an Approved request under My events -- it carries on as an event", () => {
+    expect(coordinatorSectionFor("Approved")).toBe("events");
+  });
+
+  it.each(["Rejected", "Withdrawn"] as const)("files a %s request in the Archive", (status) => {
+    expect(coordinatorSectionFor(status)).toBe("archive");
+  });
+
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
+    "keeps a %s request under My requests",
+    (status) => {
+      expect(coordinatorSectionFor(status)).toBe("requests");
     },
   );
 });

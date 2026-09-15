@@ -1,6 +1,10 @@
 import {
+  coordinatorRequestStateFor,
+  coordinatorSectionFor,
   eventRequestAccessForCoordinator,
   eventRequestId,
+  type CoordinatorRequestState,
+  type CoordinatorSection,
   type EventRequest,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
@@ -17,6 +21,14 @@ export interface ViewAssignedEventRequestResult {
   readonly eventRequest: EventRequest;
   readonly requestingOrganiserName: string;
   readonly clientOrganisationName: string;
+  /**
+   * The Coordinator's reading of the request's status -- see
+   * `coordinatorRequestStateFor`. Null only for a Draft, which no Coordinator
+   * can be assigned to.
+   */
+  readonly state: CoordinatorRequestState | null;
+  /** Which of the Coordinator's sections the request now lives under -- see `coordinatorSectionFor`. */
+  readonly section: CoordinatorSection;
 }
 
 export interface ViewAssignedEventRequestDeps {
@@ -60,6 +72,8 @@ export class ViewAssignedEventRequestUseCase {
       eventRequest: request,
       requestingOrganiserName: organiserNames.get(request.responsibleOrganiserId) ?? "",
       clientOrganisationName: organisationNames.get(request.clientOrganisationId) ?? "",
+      state: coordinatorRequestStateFor(request.status),
+      section: coordinatorSectionFor(request.status),
     };
   }
 }

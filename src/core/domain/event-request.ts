@@ -423,6 +423,26 @@ export function operationsQueueFor(
   return request.assignedCoordinatorUserAccountId === null ? "unassigned" : "assigned";
 }
 
+/** The three places an Event Coordinator's work lives. */
+export type CoordinatorSection = "requests" | "events" | "archive";
+
+/**
+ * Which of the Coordinator's sections a request assigned to them lives under:
+ * an Approved request carries on as an event in "My events", a request decided
+ * without becoming an event is in the Archive, and everything else is still in
+ * "My requests".
+ *
+ * The single-request counterpart of `coordinatorQueueStateFor` and
+ * `coordinatorArchiveStateFor`, so a request's own page files it exactly where
+ * the lists do.
+ */
+export function coordinatorSectionFor(status: EventRequestStatus): CoordinatorSection {
+  if (coordinatorRequestStateFor(status) === "approved") {
+    return "events";
+  }
+  return coordinatorArchiveStateFor(status) !== null ? "archive" : "requests";
+}
+
 /**
  * The one place responsibility for a request can change hands (#61, #59).
  *

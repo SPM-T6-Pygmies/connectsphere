@@ -45,6 +45,19 @@ describe("ViewAssignedEventRequestUseCase", () => {
     expect(result?.eventRequest.id).toBe(eventRequestId("request-1"));
     expect(result?.requestingOrganiserName).toBe("Alice");
     expect(result?.clientOrganisationName).toBe("Sunrise Events Co");
+    expect(result?.state).toBe("awaiting-decision");
+    expect(result?.section).toBe("requests");
+  });
+
+  it("files a decided request where its outcome puts it", async () => {
+    const approved = buildUseCase([request({ status: "Approved" })]);
+    const rejected = buildUseCase([request({ status: "Rejected" })]);
+
+    const approvedResult = await approved.execute({ id: "request-1", userAccountId: COORDINATOR });
+    const rejectedResult = await rejected.execute({ id: "request-1", userAccountId: COORDINATOR });
+
+    expect(approvedResult).toMatchObject({ state: "approved", section: "events" });
+    expect(rejectedResult).toMatchObject({ state: "rejected", section: "archive" });
   });
 
   it("returns null for a coordinator the request is not assigned to", async () => {
