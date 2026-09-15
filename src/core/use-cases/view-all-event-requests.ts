@@ -1,9 +1,9 @@
-import type {
-  ViewAllEventRequests,
-  ViewAllEventRequestsResult,
-} from "../ports/inbound/view-all-event-requests";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
-import { toOperationsEventRequest } from "./operations-event-request";
+import { toOperationsEventRequest, type OperationsEventRequest } from "./operations-event-request";
+
+export interface ViewAllEventRequestsResult {
+  readonly eventRequests: readonly OperationsEventRequest[];
+}
 
 export interface ViewAllEventRequestsDeps {
   readonly eventRequests: EventRequestRepository;
@@ -16,7 +16,7 @@ export interface ViewAllEventRequestsDeps {
  * deliberately returns Drafts, every client organisation, and both assigned
  * and unassigned requests.
  */
-export class ViewAllEventRequestsUseCase implements ViewAllEventRequests {
+export class ViewAllEventRequestsUseCase {
   constructor(private readonly deps: ViewAllEventRequestsDeps) {}
 
   async execute(): Promise<ViewAllEventRequestsResult> {

@@ -1,13 +1,28 @@
-import { coordinatorQueueStateFor } from "../domain/event-request";
+import { coordinatorQueueStateFor, type CoordinatorRequestState } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type {
-  AssignedEventRequestSummary,
-  ViewAssignedEventRequests,
-  ViewAssignedEventRequestsCommand,
-  ViewAssignedEventRequestsResult,
-} from "../ports/inbound/view-assigned-event-requests";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+export interface ViewAssignedEventRequestsCommand {
+  readonly userAccountId: string;
+}
+
+export interface AssignedEventRequestSummary {
+  readonly id: string;
+  readonly eventName: string;
+  readonly clientOrganisationName: string;
+  readonly preferredDate: string | null;
+  /**
+   * The Coordinator's reading of the request, not the stored
+   * `EventRequestStatus` -- see `coordinatorRequestStateFor`. The raw status
+   * is the Organiser's vocabulary and is deliberately not carried here.
+   */
+  readonly state: CoordinatorRequestState;
+}
+
+export interface ViewAssignedEventRequestsResult {
+  readonly eventRequests: readonly AssignedEventRequestSummary[];
+}
 
 export interface ViewAssignedEventRequestsDeps {
   readonly eventRequests: EventRequestRepository;
@@ -23,7 +38,7 @@ export interface ViewAssignedEventRequestsDeps {
  * `coordinatorQueueStateFor`'s decision, in the domain -- this use case
  * orchestrates and does not decide.
  */
-export class ViewAssignedEventRequestsUseCase implements ViewAssignedEventRequests {
+export class ViewAssignedEventRequestsUseCase {
   constructor(private readonly deps: ViewAssignedEventRequestsDeps) {}
 
   async execute(

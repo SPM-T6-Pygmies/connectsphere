@@ -20,6 +20,9 @@
 4. **Driving adapters stay thin**: parse → call a use case → translate the
    result. No queries, no rules, no SDK calls.
 5. **Adapters are wired in `src/composition` and nowhere else.**
+6. **Match the path to the slice.** If a domain rule can say no in the flow,
+   take the full path through domain entities. If nothing can, take the thin
+   read path and skip the domain round trip (§11).
 
 Everything below is why.
 
@@ -165,7 +168,7 @@ twelve.
                     \                |               /
                      ▼               ▼              ▼
               ┌───────────────────────────────────────────┐
-              │        SendConnectionRequest  (port)      │
+              │   SendConnectionRequestCommand → Result   │
               │  ┌─────────────────────────────────────┐  │
               │  │     use cases (application)         │  │
               │  │  ┌───────────────────────────────┐  │  │
@@ -245,7 +248,8 @@ often get backwards.
 
 - A **driving** actor starts the conversation. It calls *into* the application.
   A form submission, a cron job, a webhook, a CLI command, **a test**. Driving
-  adapters depend on a driving port.
+  adapters depend on the use case directly — there is no driving-port interface
+  between them (see the note under Naming conventions).
 - A **driven** actor is called *by* the application — "either to get answers
   from or to merely notify." A database, a mail provider, the clock. The core
   defines the port; the adapter implements it.
@@ -256,8 +260,8 @@ sides:
 |                        | Driving (primary)                | Driven (secondary)             |
 | ---------------------- | -------------------------------- | ------------------------------ |
 | Who calls whom         | Adapter → core                   | Core → adapter                 |
-| Who defines the port   | The core                         | The core                       |
-| Who implements it      | The core (a use case)            | The adapter                    |
+| Who defines the port   | No port: command + result        | The core                       |
+| Who implements it      | The use case itself              | The adapter                    |
 | Substitute in a test   | The test *is* the adapter        | An in-memory implementation    |
 | In this repo           | `src/app`, `*.test.ts`           | `src/adapters/outbound`        |
 
@@ -329,7 +333,7 @@ is this application actually made of?" has a single readable answer:
 
 ```ts
 // src/composition/container.ts
-export async function buildSendConnectionRequest(): Promise<SendConnectionRequest> {
+export async function buildSendConnectionRequest(): Promise<SendConnectionRequestUseCase> {
   const client = await createSupabaseServerClient();
 
   return new SendConnectionRequestUseCase({
@@ -443,14 +447,12 @@ src/
 │   │   ├── errors.ts               DomainError hierarchy
 │   │   └── member.ts               MemberId value object
 │   ├── ports/
-│   │   ├── inbound/                driving ports — this app's API
-│   │   │   └── send-connection-request.ts
 │   │   └── outbound/               driven ports — what this app requires
 │   │       ├── clock.ts
 │   │       ├── connection-repository.ts
 │   │       ├── member-directory.ts
 │   │       └── notifier.ts
-│   └── use-cases/
+│   └── use-cases/               this app's API: command, result, orchestration
 │       ├── send-connection-request.ts
 │       └── send-connection-request.test.ts
 │
@@ -486,12 +488,11 @@ and imported by a different frontend tomorrow, and nothing in it would change.
 
 | Thing            | Convention                              | Example                             |
 | ---------------- | --------------------------------------- | ----------------------------------- |
-| Driving port     | Verb phrase, the use case's name         | `SendConnectionRequest`             |
 | Driven port      | Role, not technology                    | `ConnectionRepository`, `Notifier`  |
-| Use case class   | Port name + `UseCase`                    | `SendConnectionRequestUseCase`      |
+| Use case class   | Verb phrase + `UseCase`                  | `SendConnectionRequestUseCase`      |
 | Adapter          | Technology + port name                  | `SupabaseConnectionRepository`      |
 | Test double      | Strategy + port name                    | `InMemoryConnectionRepository`      |
-| Command / result | Port name + `Command` / `Result`         | `SendConnectionRequestCommand`      |
+| Command / result | Use case name + `Command` / `Result`     | `SendConnectionRequestCommand`      |
 
 Never name a port `IRepository`, `ServicePort` or `DataPort`. A port named after
 its mechanism has already lost the argument — the name is supposed to tell you
@@ -561,19 +562,26 @@ world, so it is a boundary, so it gets a port — and every test involving a
 timestamp becomes deterministic without stubbing globals or freezing timers. Two
 lines of interface for that trade is the best deal in this document.
 
-And the driving port — the application's own API, in plain serialisable data:
+And the application's own API, in plain serialisable data. It lives in the
+use-case file rather than in a port of its own:
 
 ```ts
-// src/core/ports/inbound/send-connection-request.ts
+// src/core/use-cases/send-connection-request.ts
 export interface SendConnectionRequestCommand {
   readonly requesterId: string;
   readonly addresseeId: string;
 }
 
-export interface SendConnectionRequest {
-  execute(command: SendConnectionRequestCommand): Promise<SendConnectionRequestResult>;
+export interface SendConnectionRequestResult {
+  readonly connectionId: string;
+  readonly status: ConnectionStatus;
 }
 ```
+
+There is deliberately no `interface SendConnectionRequest { execute() }`. It
+would have one implementation, no plausible second, and no test double — which
+is exactly what section 11 says not to write a port for. Driving adapters name
+the use case class; the command and result are the contract.
 
 Commands are primitives, never domain objects. That is what lets *any* driving
 adapter — a form, a webhook, a queue consumer, a test — speak to the core
@@ -583,7 +591,7 @@ without first learning how to construct a `MemberId`.
 
 ```ts
 // src/core/use-cases/send-connection-request.ts
-export class SendConnectionRequestUseCase implements SendConnectionRequest {
+export class SendConnectionRequestUseCase {
   constructor(private readonly deps: SendConnectionRequestDeps) {}
 
   async execute(command: SendConnectionRequestCommand): Promise<SendConnectionRequestResult> {
@@ -995,6 +1003,94 @@ mechanical refactor — introduce the interface, move the body into an adapter,
 wire it in composition. Removing a speculative port that has grown three
 consumers is not.
 
+### Full path or thin path: decide per slice, not per codebase
+
+§12's warning about CRUD systems applies at a finer grain than the whole
+application. This repo is both kinds at once. The requester and attendee screens
+are mostly forms and lists. Venue booking (tentative holds, AM/PM/Night slots,
+turnaround time), equipment reservation (partial fulfilment) and event
+confirmation (`Blocked` until every essential arrangement is in place) are
+almost all rules. One shape for both overpays on the first and underserves the
+second, so the unit of decision is the slice.
+
+The question: **is there a domain function in this flow that can say no, or that
+decides something the screen shows?**
+
+| Slice                             | Can the domain say no?                                                      | Path |
+| --------------------------------- | --------------------------------------------------------------------------- | ---- |
+| Submit an event request           | Yes: `submitEventRequest` refuses missing fields, past dates, end ≤ start   | Full |
+| List events open for registration | Yes: `isOpenForRegistration` decides which events appear                    | Full |
+| View organisation event requests  | Yes: `eventRequestAccessFor` decides `canEdit`                              | Full |
+| View my event requests            | No: a scoped list, copied into a summary                                    | Thin |
+| A notification inbox (unbuilt)    | No: rows in, rows out                                                       | Thin |
+
+A database constraint saying no does not count. If the only refusal in a slice
+is a `check` or a unique index, the slice is thin: the database is guarding every
+writer (§8.6), not making a decision the application has to model.
+
+**The full path** is §8: a domain type with its invariants, a use case that
+orchestrates, a port phrased in business language, and row⇄domain mapping in the
+adapter.
+
+**The thin read path** keeps every boundary and drops the round trip through
+domain entities:
+
+- **The use case stays.** Routes still resolve a use case from
+  `src/composition`, and a rule has an obvious home when one arrives. Its body
+  is expected to be one port call.
+- **The port returns the view the screen needs:** plain serialisable data,
+  declared in the port file, instead of entities the use case then flattens.
+  Add the method to the port that already owns that capability (see below).
+- **The adapter maps row → view in one step.** No `toDomain`, and no second copy
+  of the same fields in the use case.
+- **The in-memory adapter is still required.** It runs the app when no Supabase
+  project is configured, which makes it a second real implementation and not
+  only a test double.
+
+`ViewMyEventRequestsUseCase` shows the difference. Today the adapter builds full
+`EventRequest` entities for the whole organisation, and the use case filters them
+to the caller's own and copies six fields into `MyEventRequestSummary`. On the
+thin path the filter becomes the query and the copy disappears:
+
+```ts
+// src/core/ports/outbound/event-request-repository.ts -- the shape, not yet in the repo
+export interface EventRequestRepository {
+  // ...existing methods
+  listRaisedBy(
+    organiser: UserAccountId,
+    organisation: ClientOrganisationId,
+  ): Promise<readonly MyEventRequestSummary[]>;
+}
+```
+
+A thin slice moves to the full path the moment a rule appears in it (say, "my
+requests" starts flagging which ones may still be withdrawn). That is mechanical:
+put the predicate in the domain, return entities from the port, map in the use
+case.
+
+Existing read slices predate this section. Convert one when you are already
+changing it for another reason, in its own commit, rather than as a sweep.
+
+### Group ports by capability, not by operation
+
+A port is a conversation with one outside capability. It has as many methods as
+that conversation needs and as many consumers as use it:
+`EventRequestRepository` is one port serving seven use cases, and that is the
+intended shape. What to avoid, in both directions:
+
+- **No port per operation.** `SubmitEventRequestStore`,
+  `SaveEventRequestDraftStore` and `DiscardEventRequestDraftStore` would be three
+  interfaces, three in-memory classes and three container entries for one table.
+- **No driving-port interfaces, grouped or not** (§8.2). An
+  `EventRequestService { submit(); saveDraft(); discard(); }` still has one
+  implementation, and it rebuilds the 600-line service §6 warns about. If a
+  directory of use cases gets crowded, group them by folder, not behind an
+  interface.
+- **Split a port only when its consumers split.** If one set of use cases only
+  ever calls some of its methods, another set only calls the rest, and the two
+  could plausibly be backed by different stores, two ports are honest. Until
+  then, one is.
+
 ---
 
 ## 12. Common mistakes
@@ -1038,10 +1134,11 @@ the whiteboard. Have as many ports as you have boundaries.
 `InventoryLookup`, `ConnectionRepository`. The name should say what conversation
 is happening.
 
-**8. Applying it to a system that has no business logic.**
-A CRUD admin panel with no invariants gets nothing from this and pays the full
-cost. Ports & Adapters earns its keep in proportion to how much your domain
-*decides*. See §11.
+**8. Applying the full path to a slice that has no business logic.**
+A CRUD screen with no invariants gets nothing from a domain round trip and pays
+the full cost, whether it is a whole admin panel or one list page in an app full
+of rules. Ports & Adapters earns its keep in proportion to how much your domain
+*decides*, and that varies slice by slice. See §11's thin read path.
 
 **9. Leaking the transport inward.**
 Returning HTTP statuses from use cases, throwing `Response` objects, accepting
@@ -1138,22 +1235,27 @@ Before requesting review on anything touching an external system:
       and never leak `PostgrestError` inward?
 - [ ] **Is each new port justified by §11**, or is it an interface with one
       implementation at a seam that is not a boundary?
+- [ ] **Can a domain rule say no in this slice?** If not, does it take §11's
+      thin read path rather than mapping through entities?
+- [ ] Do new port methods sit on the port that already owns that capability,
+      rather than on a new port per operation?
 
 ### Adding a feature: the order to work in
 
 1. Write the domain type and its invariants in `src/core/domain`. No I/O.
-2. Write the driving port in `src/core/ports/inbound` — command and result as
-   plain data.
-3. Write any new driven ports in `src/core/ports/outbound`, phrased in business
+2. Write any new driven ports in `src/core/ports/outbound`, phrased in business
    language.
-4. Write the use case. If a business decision appears in it, move that decision
-   to step 1.
-5. Write in-memory adapters and test the use case. No database yet.
-6. Write the real adapters in `src/adapters/outbound`.
-7. Wire them in `src/composition`.
-8. Write the driving adapter in `src/app`. Keep it thin.
+3. Write the use case, with its command and result as plain data in the same
+   file. If a business decision appears in it, move that decision to step 1.
+4. Write in-memory adapters and test the use case. No database yet.
+5. Write the real adapters in `src/adapters/outbound`.
+6. Wire them in `src/composition`.
+7. Write the driving adapter in `src/app`. Keep it thin.
 
-Steps 1–5 need no Supabase project, no environment variables, and no running
+For a thin read slice (§11), step 1 does not apply: step 2 adds a method that
+returns the view, and step 3's use case is a single port call.
+
+Steps 1–4 need no Supabase project, no environment variables, and no running
 server. That property — a full feature designed and tested before any
 infrastructure exists — is the pattern's original promise, and the best
 single check that you have applied it correctly.
@@ -1171,6 +1273,10 @@ single check that you have applied it correctly.
   most explicitly.
 - Jeffrey Palermo, *The Onion Architecture* (2008).
 - Eric Evans, *Domain-Driven Design* (2003) — for what goes inside the hexagon.
+- Oliver Zihler, [Ports & Adapters-Style Architectures: Ditching the Dogma for
+  Pragmatism](https://codeartify.substack.com/p/ditching-the-dogma-for-pragmatism)
+  — the case for deciding per slice how much of this to apply. §11's full/thin
+  split and the absence of driving-port interfaces follow from it.
 - [AWS Prescriptive Guidance: hexagonal architecture
   pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/hexagonal-architecture.html)
   — a compact vendor-neutral summary.

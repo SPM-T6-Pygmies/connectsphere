@@ -1,13 +1,18 @@
 import { coordinatorArchiveStateFor } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type {
-  ViewArchivedEventRequests,
-  ViewArchivedEventRequestsCommand,
-  ViewArchivedEventRequestsResult,
-} from "../ports/inbound/view-archived-event-requests";
-import type { AssignedEventRequestSummary } from "../ports/inbound/view-assigned-event-requests";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+import type { AssignedEventRequestSummary } from "./view-assigned-event-requests";
+
+export interface ViewArchivedEventRequestsCommand {
+  readonly userAccountId: string;
+}
+
+export interface ViewArchivedEventRequestsResult {
+  /** The queue's row shape; `state` is always `rejected` or `withdrawn` here. */
+  readonly eventRequests: readonly AssignedEventRequestSummary[];
+}
 
 export interface ViewArchivedEventRequestsDeps {
   readonly eventRequests: EventRequestRepository;
@@ -22,7 +27,7 @@ export interface ViewArchivedEventRequestsDeps {
  * Which statuses those are is `coordinatorArchiveStateFor`'s decision, in the
  * domain -- this use case orchestrates and does not decide.
  */
-export class ViewArchivedEventRequestsUseCase implements ViewArchivedEventRequests {
+export class ViewArchivedEventRequestsUseCase {
   constructor(private readonly deps: ViewArchivedEventRequestsDeps) {}
 
   async execute(

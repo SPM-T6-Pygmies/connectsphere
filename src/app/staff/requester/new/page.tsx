@@ -7,7 +7,7 @@ import { NewRequestForm } from "./new-request-form";
 export const metadata = { title: "New event request | ConnectSphere" };
 
 /**
- * A saved draft, read back from wherever `SaveEventRequestDraft` put it
+ * A saved draft, read back from wherever `SaveEventRequestDraftUseCase` put it
  * (SPM-38) -- so "continue editing" always resumes the request the
  * Organiser actually saved, id included, rather than raising a new one.
  *

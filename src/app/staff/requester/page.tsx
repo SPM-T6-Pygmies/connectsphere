@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { actingOrganiser, buildViewMyEventRequests } from "@/composition/container";
-import type { MyEventRequestSummary } from "@/core/ports/inbound/view-my-event-requests";
+import type { MyEventRequestSummary } from "@/core/use-cases/view-my-event-requests";
 
 import { EmptyState } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";

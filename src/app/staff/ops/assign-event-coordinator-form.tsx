@@ -6,7 +6,7 @@ import { useActionState, useState } from "react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import type { EventRequestStatus } from "@/core/domain/event-request";
-import type { EventCoordinatorDetails } from "@/core/ports/inbound/view-all-event-coordinators";
+import type { EventCoordinatorDetails } from "@/core/use-cases/view-all-event-coordinators";
 
 import {
   assignEventCoordinatorAction,

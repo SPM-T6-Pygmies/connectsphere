@@ -4,14 +4,24 @@ import {
   eventRequestAccessForCoordinator,
   eventRequestId,
   rejectEventRequest,
+  type EventRequestStatus,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type {
-  DecideEventRequest,
-  DecideEventRequestCommand,
-  DecideEventRequestResult,
-} from "../ports/inbound/decide-event-request";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+export interface DecideEventRequestCommand {
+  readonly id: string;
+  /** The Event Coordinator making the decision. */
+  readonly userAccountId: string;
+  readonly decision: "approve" | "reject";
+  /** The reason when rejecting (required), or an optional note when approving. */
+  readonly decisionRecord: string;
+}
+
+export interface DecideEventRequestResult {
+  readonly eventRequestId: string;
+  readonly status: EventRequestStatus;
+}
 
 export interface DecideEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
@@ -26,9 +36,10 @@ export interface DecideEventRequestDeps {
  * request can still be decided, and whether a rejection has its reason, are
  * the domain transitions' calls, not this file's.
  */
-export class DecideEventRequestUseCase implements DecideEventRequest {
+export class DecideEventRequestUseCase {
   constructor(private readonly deps: DecideEventRequestDeps) {}
 
+  /** Throws `EventRequestNotFoundError` both when there is no such request and when it isn't assigned to this caller (#91). */
   async execute(command: DecideEventRequestCommand): Promise<DecideEventRequestResult> {
     const { eventRequests } = this.deps;
     const decidedBy = userAccountId(command.userAccountId);

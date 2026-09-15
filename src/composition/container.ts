@@ -28,31 +28,6 @@ import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
-import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
-import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
-import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
-import type { DecideEventRequest } from "@/core/ports/inbound/decide-event-request";
-import type { Login } from "@/core/ports/inbound/login";
-import type { Logout } from "@/core/ports/inbound/logout";
-import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
-import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
-import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
-import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
-import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
-import type { ViewArchivedEventRequests } from "@/core/ports/inbound/view-archived-event-requests";
-import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigned-event-request";
-import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
-import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
-import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
-import type { ViewOrganiserEventRequest } from "@/core/ports/inbound/view-organiser-event-request";
-import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
-import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
-import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
-import type { ListOrganisationOrganisers } from "@/core/ports/inbound/list-organisation-organisers";
-import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
-import type { ViewOperationsEventRequest } from "@/core/ports/inbound/view-operations-event-request";
-import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
-import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
@@ -96,7 +71,7 @@ import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registrat
  * Server-only. The ESLint boundaries stop `src/app` and `src/components` from
  * importing adapters directly so they have to come through here.
  */
-export async function buildSendConnectionRequest(): Promise<SendConnectionRequest> {
+export async function buildSendConnectionRequest(): Promise<SendConnectionRequestUseCase> {
   const client = await createSupabaseServerClient();
 
   return new SendConnectionRequestUseCase({
@@ -134,25 +109,25 @@ async function attendeeAdapters(): Promise<{
   };
 }
 
-export async function buildListEventsOpenForRegistration(): Promise<ListEventsOpenForRegistration> {
+export async function buildListEventsOpenForRegistration(): Promise<ListEventsOpenForRegistrationUseCase> {
   const { events } = await attendeeAdapters();
 
   return new ListEventsOpenForRegistrationUseCase({ events, clock: systemClock });
 }
 
-export async function buildViewEventForRegistration(): Promise<ViewEventForRegistration> {
+export async function buildViewEventForRegistration(): Promise<ViewEventForRegistrationUseCase> {
   const { events } = await attendeeAdapters();
 
   return new ViewEventForRegistrationUseCase({ events, clock: systemClock });
 }
 
-export async function buildRegisterForEvent(): Promise<RegisterForEvent> {
+export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
 }
 
-export async function buildViewRegistration(): Promise<ViewRegistration> {
+export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new ViewRegistrationUseCase({ events, registrations });
@@ -174,42 +149,42 @@ async function eventRequestAdapters(): Promise<EventRequestRepository> {
   return new SupabaseEventRequestRepository(await createSupabaseServerClient());
 }
 
-export async function buildSubmitEventRequest(): Promise<SubmitEventRequest> {
+export async function buildSubmitEventRequest(): Promise<SubmitEventRequestUseCase> {
   return new SubmitEventRequestUseCase({
     eventRequests: await eventRequestAdapters(),
     clock: systemClock,
   });
 }
 
-export async function buildSaveEventRequestDraft(): Promise<SaveEventRequestDraft> {
+export async function buildSaveEventRequestDraft(): Promise<SaveEventRequestDraftUseCase> {
   return new SaveEventRequestDraftUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildDiscardEventRequestDraft(): Promise<DiscardEventRequestDraft> {
+export async function buildDiscardEventRequestDraft(): Promise<DiscardEventRequestDraftUseCase> {
   return new DiscardEventRequestDraftUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildViewMyEventRequests(): Promise<ViewMyEventRequests> {
+export async function buildViewMyEventRequests(): Promise<ViewMyEventRequestsUseCase> {
   return new ViewMyEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequest> {
+export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequestUseCase> {
   return new ViewOrganiserEventRequestUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildViewAllEventRequests(): Promise<ViewAllEventRequests> {
+export async function buildViewAllEventRequests(): Promise<ViewAllEventRequestsUseCase> {
   return new ViewAllEventRequestsUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequest> {
+export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequestUseCase> {
   const eventRequests = hasSupabaseProject()
     ? new SupabaseOperationsEventRequestReader(await createSupabaseServerClient())
     : demoEventRequestRepository;
@@ -217,7 +192,7 @@ export async function buildViewOperationsEventRequest(): Promise<ViewOperationsE
   return new ViewOperationsEventRequestUseCase({ eventRequests });
 }
 
-export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinators> {
+export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinatorsUseCase> {
   const eventCoordinators = hasSupabaseProject()
     ? new SupabaseEventCoordinatorDirectory(await createSupabaseServerClient())
     : demoEventCoordinatorDirectory;
@@ -225,7 +200,7 @@ export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoord
   return new ViewAllEventCoordinatorsUseCase({ eventCoordinators });
 }
 
-export async function buildAssignEventCoordinator(): Promise<AssignEventCoordinator> {
+export async function buildAssignEventCoordinator(): Promise<AssignEventCoordinatorUseCase> {
   if (!hasSupabaseProject()) {
     return new AssignEventCoordinatorUseCase({
       eventRequests: demoEventRequestRepository,
@@ -263,7 +238,7 @@ export function actingOrganiser(): {
   };
 }
 
-export async function buildWithdrawRegistration(): Promise<WithdrawRegistration> {
+export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new WithdrawRegistrationUseCase({ events, registrations });
@@ -278,7 +253,7 @@ export async function buildWithdrawRegistration(): Promise<WithdrawRegistration>
  * can demonstrate both "colleagues in my organisation" and "cannot see an
  * unrelated organisation" without a database.
  */
-export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequests> {
+export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequestsUseCase> {
   const eventRequests = hasSupabaseProject()
     ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
     : demoOrganisationEventRequestRepository;
@@ -350,21 +325,21 @@ async function coordinatorAdapters(): Promise<{
  * different coordinator, so the queue is demonstrable without a database
  * ahead of SPM-97 (assigning a coordinator).
  */
-export async function buildViewAssignedEventRequests(): Promise<ViewAssignedEventRequests> {
+export async function buildViewAssignedEventRequests(): Promise<ViewAssignedEventRequestsUseCase> {
   const { eventRequests, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewAssignedEventRequestsUseCase({ eventRequests, clientOrganisations });
 }
 
 /** The coordinator's Archive: requests assigned to the caller that were rejected or withdrawn. */
-export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEventRequests> {
+export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEventRequestsUseCase> {
   const { eventRequests, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewArchivedEventRequestsUseCase({ eventRequests, clientOrganisations });
 }
 
 /** SPM-32: one event request, exactly as submitted, to the coordinator it is assigned to. */
-export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEventRequest> {
+export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEventRequestUseCase> {
   const { eventRequests, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
   return new ViewAssignedEventRequestUseCase({ eventRequests, clientOrganisations, userAccounts });
@@ -377,7 +352,7 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
  * `demoEventRequestRepository` `buildAssignEventCoordinator` uses -- so a
  * decision made in demo mode is the one the queue and detail then show.
  */
-export async function buildDecideEventRequest(): Promise<DecideEventRequest> {
+export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCase> {
   const { eventRequests } = await coordinatorAdapters();
 
   return new DecideEventRequestUseCase({ eventRequests });
@@ -390,7 +365,7 @@ export async function buildDecideEventRequest(): Promise<DecideEventRequest> {
  * store does -- in demo mode this stays empty, and there is no wireframe
  * fallback here to make it look otherwise.
  */
-export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
+export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCase> {
   const { events, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewAssignedEventsUseCase({ events, clientOrganisations });
@@ -404,7 +379,7 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
  * a demo reassignment and the organisation events page agree on the same
  * mutated state.
  */
-export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser> {
+export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiserUseCase> {
   const eventRequests = hasSupabaseProject()
     ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
     : demoOrganisationEventRequestRepository;
@@ -418,7 +393,7 @@ export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser>
  * demo directory shares identities with the demo event-request seed, so a
  * demo reassignment always has someone real to pick.
  */
-export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisers> {
+export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisersUseCase> {
   const organisers = hasSupabaseProject()
     ? new SupabaseOrganiserDirectory(await createSupabaseServerClient())
     : demoOrganiserDirectory;
@@ -426,14 +401,14 @@ export async function buildListOrganisationOrganisers(): Promise<ListOrganisatio
   return new ListOrganisationOrganisersUseCase({ organisers });
 }
 
-export async function buildLogin(): Promise<Login> {
+export async function buildLogin(): Promise<LoginUseCase> {
   return new LoginUseCase({
     auth: new SupabaseAuthAdapter(),
     users: new SupabaseUserRepository(),
   });
 }
 
-export async function buildLogout(): Promise<Logout> {
+export async function buildLogout(): Promise<LogoutUseCase> {
   return new LogoutUseCase({
     auth: new SupabaseAuthAdapter(),
     auditLogger: new SupabaseAuditLogger(),

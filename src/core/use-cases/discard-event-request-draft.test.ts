@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { DraftNotEditableError } from "@/core/domain/errors";
-import type { DiscardEventRequestDraftCommand } from "@/core/ports/inbound/discard-event-request-draft";
+import type { DiscardEventRequestDraftCommand } from "@/core/use-cases/discard-event-request-draft";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 
 import { DiscardEventRequestDraftUseCase } from "./discard-event-request-draft";

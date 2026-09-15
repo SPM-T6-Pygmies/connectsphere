@@ -1,13 +1,16 @@
 import { eventId, isOpenForRegistration } from "../domain/event";
 import { EventNotFoundError, EventNotOpenForRegistrationError } from "../domain/errors";
-import type {
-  ViewEventForRegistration,
-  ViewEventForRegistrationCommand,
-  ViewEventForRegistrationResult,
-} from "../ports/inbound/view-event-for-registration";
 import type { Clock } from "../ports/outbound/clock";
 import type { EventCatalogue } from "../ports/outbound/event-catalogue";
-import { toAvailableEvent } from "./available-event";
+import { toAvailableEvent, type AvailableEvent } from "./available-event";
+
+export interface ViewEventForRegistrationCommand {
+  readonly eventId: string;
+}
+
+export interface ViewEventForRegistrationResult {
+  readonly event: AvailableEvent;
+}
 
 export interface ViewEventForRegistrationDeps {
   readonly events: EventCatalogue;
@@ -21,7 +24,7 @@ export interface ViewEventForRegistrationDeps {
  * must not reach a registration form either. This is where that refusal lives,
  * which is why it is a use case and not two lines in a page component.
  */
-export class ViewEventForRegistrationUseCase implements ViewEventForRegistration {
+export class ViewEventForRegistrationUseCase {
   constructor(private readonly deps: ViewEventForRegistrationDeps) {}
 
   async execute(command: ViewEventForRegistrationCommand): Promise<ViewEventForRegistrationResult> {

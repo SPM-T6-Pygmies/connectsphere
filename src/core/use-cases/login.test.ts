@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { InvalidCredentialsError } from "@/core/domain/errors";
-import type { LoginCommand } from "@/core/ports/inbound/login";
+import type { LoginCommand } from "@/core/use-cases/login";
 import type { AuthPort } from "@/core/ports/outbound/auth-port";
 import type { UserWithRoles } from "@/core/ports/outbound/user-repository";
 import type { UserRepository } from "@/core/ports/outbound/user-repository";

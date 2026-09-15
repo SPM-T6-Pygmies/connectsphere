@@ -7,15 +7,27 @@ import {
   EventNotOpenForRegistrationError,
 } from "../domain/errors";
 import { blocksNewRegistration, registerAttendee } from "../domain/registration";
-import type {
-  RegisterForEvent,
-  RegisterForEventCommand,
-  RegisterForEventResult,
-} from "../ports/inbound/register-for-event";
 import type { Clock } from "../ports/outbound/clock";
 import type { EventCatalogue } from "../ports/outbound/event-catalogue";
 import type { RegistrationRepository } from "../ports/outbound/registration-repository";
-import { toAvailableEvent } from "./available-event";
+import { toAvailableEvent, type AvailableEvent } from "./available-event";
+
+/** Full name and email, and nothing else (SPM-83). */
+export interface RegisterForEventCommand {
+  readonly eventId: string;
+  readonly fullName: string;
+  readonly email: string;
+}
+
+export interface RegisterForEventResult {
+  readonly registrationId: string;
+  readonly registeredAt: string;
+  /**
+   * The event as the server knows it, so the confirmation the Attendee sees
+   * (SPM-82) reports what was actually recorded rather than echoing the form.
+   */
+  readonly event: AvailableEvent;
+}
 
 export interface RegisterForEventDeps {
   readonly events: EventCatalogue;
@@ -34,7 +46,7 @@ export interface RegisterForEventDeps {
  * The window is re-checked rather than trusted from the page that rendered the
  * form: a coordinator can close registration between the two requests.
  */
-export class RegisterForEventUseCase implements RegisterForEvent {
+export class RegisterForEventUseCase {
   constructor(private readonly deps: RegisterForEventDeps) {}
 
   async execute(command: RegisterForEventCommand): Promise<RegisterForEventResult> {

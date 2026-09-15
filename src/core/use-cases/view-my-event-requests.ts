@@ -1,12 +1,27 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import { userAccountId } from "../domain/user-account";
-import type {
-  MyEventRequestSummary,
-  ViewMyEventRequests,
-  ViewMyEventRequestsCommand,
-  ViewMyEventRequestsResult,
-} from "../ports/inbound/view-my-event-requests";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+import type { EventRequestDetails, EventRequestStatus } from "../domain/event-request";
+
+export interface ViewMyEventRequestsCommand {
+  readonly userAccountId: string;
+  readonly clientOrganisationId: string;
+}
+
+export interface MyEventRequestSummary {
+  readonly id: string;
+  readonly eventName: EventRequestDetails["eventName"];
+  readonly status: EventRequestStatus;
+  readonly preferredDate: EventRequestDetails["preferredDate"];
+  readonly description: EventRequestDetails["description"];
+  /** Null for a request still in Draft -- it has never been submitted. */
+  readonly submittedAt: Date | null;
+}
+
+export interface ViewMyEventRequestsResult {
+  readonly eventRequests: readonly MyEventRequestSummary[];
+}
 
 export interface ViewMyEventRequestsDeps {
   readonly eventRequests: EventRequestRepository;
@@ -18,7 +33,7 @@ export interface ViewMyEventRequestsDeps {
  * (SPM-39), which lists the whole organisation's requests for coordination
  * purposes; this is what "My event requests" means.
  */
-export class ViewMyEventRequestsUseCase implements ViewMyEventRequests {
+export class ViewMyEventRequestsUseCase {
   constructor(private readonly deps: ViewMyEventRequestsDeps) {}
 
   async execute(command: ViewMyEventRequestsCommand): Promise<ViewMyEventRequestsResult> {

@@ -1,13 +1,23 @@
-import { eventRequestAccessForCoordinator, eventRequestId } from "../domain/event-request";
+import {
+  eventRequestAccessForCoordinator,
+  eventRequestId,
+  type EventRequest,
+} from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type {
-  ViewAssignedEventRequest,
-  ViewAssignedEventRequestCommand,
-  ViewAssignedEventRequestResult,
-} from "../ports/inbound/view-assigned-event-request";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
+
+export interface ViewAssignedEventRequestCommand {
+  readonly id: string;
+  readonly userAccountId: string;
+}
+
+export interface ViewAssignedEventRequestResult {
+  readonly eventRequest: EventRequest;
+  readonly requestingOrganiserName: string;
+  readonly clientOrganisationName: string;
+}
 
 export interface ViewAssignedEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
@@ -24,9 +34,10 @@ export interface ViewAssignedEventRequestDeps {
  * `eventRequestAccessForCoordinator`'s "none" is deliberately not
  * distinguishable from not-found (#91).
  */
-export class ViewAssignedEventRequestUseCase implements ViewAssignedEventRequest {
+export class ViewAssignedEventRequestUseCase {
   constructor(private readonly deps: ViewAssignedEventRequestDeps) {}
 
+  /** Null when there is no such request, or it isn't assigned to this caller -- the caller should treat both the same way (not found), per `eventRequestAccessForCoordinator` (#91). */
   async execute(
     command: ViewAssignedEventRequestCommand,
   ): Promise<ViewAssignedEventRequestResult | null> {
