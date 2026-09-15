@@ -1,7 +1,6 @@
 "use client"
 
-import { ChevronsUpDownIcon, CheckIcon } from "lucide-react"
-import { usePathname, useRouter } from "next/navigation"
+import { ChevronsUpDownIcon } from "lucide-react"
 
 import {
   Avatar,
@@ -21,7 +20,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { ACTING_AS, ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/wireframe"
+import { ROLE_LABELS, type StaffRole } from "@/lib/wireframe"
 
 import { logoutAction } from "@/app/auth/logout/actions"
 
@@ -34,17 +33,13 @@ function initials(name: string): string {
 }
 
 /**
- * The wireframe's stand-in for authentication.
+ * Who is signed in, and the way out.
  *
- * There is no login yet, so the acting persona is chosen here and carried in
- * the URL -- switching role is a navigation, which keeps every screen a
- * shareable link and saves the wireframes needing any client state.
+ * The name is the signed-in member of staff's own; the role is this screen's
+ * workspace, which `StaffShell` has already checked they hold.
  */
-export function RoleSwitcher({ role }: { role: StaffRole }) {
-  const router = useRouter()
-  const pathname = usePathname()
+export function AccountMenu({ name, role }: { name: string; role: StaffRole }) {
   const { isMobile } = useSidebar()
-  const person = ACTING_AS[role]
 
   return (
     <SidebarMenu>
@@ -57,11 +52,11 @@ export function RoleSwitcher({ role }: { role: StaffRole }) {
             >
               <Avatar className="size-8 rounded-lg">
                 <AvatarFallback className="rounded-lg text-xs">
-                  {initials(person.name)}
+                  {initials(name)}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{person.name}</span>
+                <span className="truncate font-medium">{name}</span>
                 <span className="truncate text-xs text-muted-foreground">
                   {ROLE_LABELS[role]}
                 </span>
@@ -75,32 +70,15 @@ export function RoleSwitcher({ role }: { role: StaffRole }) {
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Acting as
+            <DropdownMenuLabel className="font-normal">
+              <div className="grid leading-tight">
+                <span className="text-sm font-medium">{name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {ROLE_LABELS[role]}
+                </span>
+              </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {STAFF_ROLES.map((candidate) => (
-              <DropdownMenuItem
-                key={candidate}
-                onSelect={() => router.push(`/staff/${candidate}`)}
-                className="gap-2"
-              >
-                <div className="grid flex-1 leading-tight">
-                  <span className="text-sm">{ROLE_LABELS[candidate]}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {ACTING_AS[candidate].name}
-                  </span>
-                </div>
-                {candidate === role ? <CheckIcon className="size-4" /> : null}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={() => router.push("/")}
-              disabled={pathname === "/"}
-            >
-              Back to overview
-            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => void logoutAction()}>
               Log out
             </DropdownMenuItem>

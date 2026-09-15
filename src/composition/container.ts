@@ -303,3 +303,17 @@ export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.workspaces ?? [];
 }
+
+/**
+ * The signed-in member of staff as the staff chrome shows them: their name
+ * and the workspaces they may open. Null when nobody is signed in or the auth
+ * user has no `user_account`.
+ */
+export async function getSignedInStaffMember(): Promise<{
+  readonly name: string;
+  readonly workspaces: readonly StaffWorkspace[];
+} | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  const member = await identifyStaffMember.execute();
+  return member && { name: member.name, workspaces: member.workspaces };
+}

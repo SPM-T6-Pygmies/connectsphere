@@ -11,6 +11,8 @@ import type { AuthPort } from "../ports/outbound/auth-port";
 import type { UserRepository } from "../ports/outbound/user-repository";
 
 export interface IdentifyStaffMemberResult {
+  /** The member of staff's own name, whatever their role. */
+  readonly name: string;
   /** Who the Organiser's screens act as -- null unless `organiserContextFor` allows it. */
   readonly organiser: {
     readonly userAccountId: string;
@@ -53,6 +55,7 @@ export class IdentifyStaffMemberUseCase {
     const organiser = organiserContextFor(member);
 
     return {
+      name: user.name,
       organiser: organiser && { ...organiser, name: user.name },
       coordinator: coordinatorContextFor(member),
       workspaces: workspacesFor(member.roles),
