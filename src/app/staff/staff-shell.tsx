@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileQueue } from "@/components/mobile-queue"
+import { StaffBottomNav } from "@/components/staff-bottom-nav"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -289,7 +290,13 @@ export async function StaffShell({
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+        {/*
+          The bottom bar is fixed, so it is out of flow: pad the content past
+          it below md. md:pb-6 is spelled out rather than left to md:p-6 --
+          Tailwind emits padding before padding-bottom, and media blocks carry
+          no extra specificity, so relying on order would be a bet.
+        */}
+        <div className="flex flex-1 flex-col gap-6 p-4 pb-[calc(var(--staff-bottom-nav-height)+env(safe-area-inset-bottom))] md:p-6 md:pb-6">
           <MobileQueue
             role={role}
             activeSection={activeSection}
@@ -298,6 +305,7 @@ export async function StaffShell({
           {children}
         </div>
       </SidebarInset>
+      <StaffBottomNav role={role} />
     </SidebarProvider>
   )
 }

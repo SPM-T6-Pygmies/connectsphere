@@ -49,6 +49,13 @@
 }
 
 :root {
+  /*
+   * Height of the staff bottom navigation bar, which is fixed and therefore
+   * out of flow -- the staff content area pads itself by this much below md so
+   * the last row is not covered. A layout constant, not a design token, so it
+   * lives here rather than in @theme inline where it would emit utilities.
+   */
+  --staff-bottom-nav-height: 4.5rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
