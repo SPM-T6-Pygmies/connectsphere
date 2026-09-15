@@ -6,10 +6,10 @@ import { discardEventRequestDraftSchema } from "@/adapters/inbound/discard-event
 import { saveEventRequestDraftSchema } from "@/adapters/inbound/save-event-request-draft-schema";
 import { submitEventRequestSchema } from "@/adapters/inbound/submit-event-request-schema";
 import {
-  actingOrganiser,
   buildDiscardEventRequestDraft,
   buildSaveEventRequestDraft,
   buildSubmitEventRequest,
+  getCurrentOrganiser,
 } from "@/composition/container";
 import { DomainError, IncompleteEventRequestError } from "@/core/domain/errors";
 import type { SaveEventRequestDraftResult } from "@/core/use-cases/save-event-request-draft";
@@ -42,13 +42,31 @@ function valuesFrom(formData: FormData): FormValues {
 const IS_FORM_FIELD = new Set<string>(FORM_FIELDS);
 
 /**
+ * The signed-in Organiser every action here acts as.
+ *
+ * The requester pages are not found for anyone else, so arriving here without
+ * one means the action was posted to directly -- a fault that reaches the
+ * error boundary, not a message to render against the form.
+ */
+async function signedInOrganiser(): Promise<{
+  readonly userAccountId: string;
+  readonly clientOrganisationId: string;
+}> {
+  const organiser = await getCurrentOrganiser();
+  if (organiser === null) {
+    throw new Error("Only a signed-in Event Organiser can submit, save or discard event requests.");
+  }
+  return organiser;
+}
+
+/**
  * A shape refusal, reported only against inputs the Organiser can actually see.
  *
- * Two of the keys the schema checks -- the acting organiser's -- come from the
- * composition root, not the form, and there is no input to put a message
- * against. Passing those through would render the banner over a form with
- * nothing highlighted: the Organiser is told to fix something they cannot
- * find, and the real fault (miswiring, a blank `DEMO_ORGANISER_*`) is hidden
+ * Two of the keys the schema checks -- the signed-in organiser's -- come from
+ * the session, not the form, and there is no input to put a message against.
+ * Passing those through would render the banner over a form with nothing
+ * highlighted: the Organiser is told to fix something they cannot find, and
+ * the real fault (a user account with ids the schema refuses) is hidden
  * behind it. So a refusal with nothing on the form is a fault and reaches the
  * error boundary, the same way a non-domain exception below does.
  */
@@ -61,7 +79,7 @@ function refusal(
   if (onTheForm.length === 0) {
     throw new Error(
       `Event request submission was refused on ${Object.keys(fieldErrors).join(", ")}, ` +
-        "which is not a form field. Check the acting organiser in src/composition/container.ts.",
+        "which is not a form field. Check the signed-in organiser's user account.",
     );
   }
 
@@ -98,7 +116,7 @@ export async function submitEventRequestAction(
   formData: FormData,
 ): Promise<SubmitRequestState> {
   const values = valuesFrom(formData);
-  const organiser = actingOrganiser();
+  const organiser = await signedInOrganiser();
 
   // The composition root names the organiser the way the domain does
   // (`userAccountId`); the command names the same person by their role on the
@@ -112,7 +130,7 @@ export async function submitEventRequestAction(
     clientOrganisationId: organiser.clientOrganisationId,
     // Read from the hidden input the form sets from the browser's own
     // Intl data -- the server has no notion of the Organiser's timezone
-    // otherwise. Not a form field either: same treatment as the acting
+    // otherwise. Not a form field either: same treatment as the signed-in
     // organiser's ids above.
     organiserTimeZone: String(formData.get("organiserTimeZone") ?? ""),
     // Blank for a fresh request, an id when finishing a saved draft (SPM-38).
@@ -171,7 +189,7 @@ export async function saveEventRequestDraftAction(
   formData: FormData,
 ): Promise<SaveDraftState> {
   const values = valuesFrom(formData);
-  const organiser = actingOrganiser();
+  const organiser = await signedInOrganiser();
 
   const input: z.input<typeof saveEventRequestDraftSchema> = {
     ...values,
@@ -219,7 +237,7 @@ export async function discardEventRequestDraftAction(
   _previous: DiscardDraftState,
   formData: FormData,
 ): Promise<DiscardDraftState> {
-  const organiser = actingOrganiser();
+  const organiser = await signedInOrganiser();
   const parsed = discardEventRequestDraftSchema.safeParse({
     eventRequestId: String(formData.get("eventRequestId") ?? ""),
   });
