@@ -1,4 +1,5 @@
 import { InvalidCredentialsError } from "../domain/errors";
+import { landingWorkspaceFor, type StaffWorkspace } from "../domain/staff-member";
 import type { AuthPort } from "../ports/outbound/auth-port";
 import type { UserRepository } from "../ports/outbound/user-repository";
 
@@ -11,6 +12,8 @@ export interface LoginResult {
   readonly userId: string;
   readonly roles: string[];
   readonly expiresAt: string;
+  /** Where to send them now -- null when they have no staff role to land in (`landingWorkspaceFor`). */
+  readonly landingWorkspace: StaffWorkspace | null;
 }
 
 export interface LoginDeps {
@@ -40,6 +43,7 @@ export class LoginUseCase {
       userId: user.userId,
       roles: user.roles,
       expiresAt: authResult.expiresAt.toISOString(),
+      landingWorkspace: landingWorkspaceFor(user.roles),
     };
   }
 }

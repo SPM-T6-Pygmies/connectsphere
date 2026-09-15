@@ -78,6 +78,7 @@ describe("LoginUseCase", () => {
       userId: COORDINATOR_USER.userId,
       roles: COORDINATOR_USER.roles,
       expiresAt: EXPIRES_AT.toISOString(),
+      landingWorkspace: "coordinator",
     });
   });
 

@@ -12,20 +12,6 @@ export interface LoginState {
   message?: string;
 }
 
-/**
- * Maps staff role to their role-specific page path.
- */
-function roleToPagePath(role: string): string {
-  const roleMap: Record<string, string> = {
-    "Event Organiser": "requester",
-    "Event Coordinator": "coordinator",
-    "Event Operations Manager": "ops",
-    "Venue Staff": "venue",
-    "Technical Support Staff": "technical",
-  };
-  return `/staff/${roleMap[role]}`;
-}
-
 export async function loginAction(
   _prevState: LoginState,
   formData: FormData
@@ -52,9 +38,9 @@ export async function loginAction(
       data: { roles: result.roles }
     });
 
-    const primaryRole = result.roles[0];
-    const pagePath = roleToPagePath(primaryRole);
-    redirect(pagePath);
+    // With no staff role to land in there is no workspace page, so this ends
+    // on a not-found, as it did before the landing moved into the domain.
+    redirect(result.landingWorkspace === null ? "/staff" : `/staff/${result.landingWorkspace}`);
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
       return {
