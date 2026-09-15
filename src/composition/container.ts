@@ -25,6 +25,7 @@ import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coo
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
+import { IdentifyStaffMemberUseCase } from "@/core/use-cases/identify-staff-member";
 import { LoginUseCase } from "@/core/use-cases/login";
 import { LogoutUseCase } from "@/core/use-cases/logout";
 import { DiscardEventRequestDraftUseCase } from "@/core/use-cases/discard-event-request-draft";
@@ -206,17 +207,8 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  * `getCurrentOrganiser` below.
  */
 export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
-  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
-  if (session === null) {
-    return null;
-  }
-
-  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
-  if (user === null || !user.roles.includes("Event Coordinator")) {
-    return null;
-  }
-
-  return { userAccountId: user.userId };
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.coordinator ?? null;
 }
 
 async function coordinatorAdapters(): Promise<{
@@ -298,6 +290,14 @@ export async function buildLogout(): Promise<LogoutUseCase> {
   });
 }
 
+/** The signed-in member of staff, behind every `getCurrent*` lookup in this file. */
+async function buildIdentifyStaffMember(): Promise<IdentifyStaffMemberUseCase> {
+  return new IdentifyStaffMemberUseCase({
+    auth: new SupabaseAuthAdapter(await createSupabaseServerClient()),
+    users: new SupabaseUserRepository(createSupabaseAdminClient()),
+  });
+}
+
 /**
  * SPM-39: the real, session-derived counterpart to `actingOrganiser()`.
  *
@@ -313,25 +313,8 @@ export async function getCurrentOrganiser(): Promise<{
   readonly clientOrganisationId: string;
   readonly name: string;
 } | null> {
-  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
-  if (session === null) {
-    return null;
-  }
-
-  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
-  if (
-    user === null ||
-    user.clientOrganisationId === null ||
-    !user.roles.includes("Event Organiser")
-  ) {
-    return null;
-  }
-
-  return {
-    userAccountId: user.userId,
-    clientOrganisationId: user.clientOrganisationId,
-    name: user.name,
-  };
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.organiser ?? null;
 }
 
 /**
@@ -340,11 +323,6 @@ export async function getCurrentOrganiser(): Promise<{
  * other role. `null` means no session or no matching `user_account`.
  */
 export async function getCurrentUserAccountId(): Promise<string | null> {
-  const session = await new SupabaseAuthAdapter(await createSupabaseServerClient()).getSession();
-  if (session === null) {
-    return null;
-  }
-
-  const user = await new SupabaseUserRepository(createSupabaseAdminClient()).findByAuthUserId(session.userId);
-  return user?.userId ?? null;
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.userAccountId ?? null;
 }
