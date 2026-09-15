@@ -21,10 +21,10 @@ Closes SPM-<!-- issue number. "Closes"/"Fixes" moves the Linear issue on merge; 
 
 ## Checklist
 
-<!-- CI already runs typecheck, tests, and build — no need to repeat those here. -->
+<!-- CI already runs typecheck, lint, tests, and build — no need to repeat those here. -->
 
 - [ ] `pnpm lint` passes locally — this is what enforces the Ports & Adapters
-      import boundaries, and CI does **not** run it
+      import boundaries, and CI fails the PR without it
 - [ ] One logical change — every changed line traces back to the linked issue
 - [ ] No secrets, `.env` files, or build artifacts in the diff
 - [ ] If this touches an external system, I've re-read the review checklist in
