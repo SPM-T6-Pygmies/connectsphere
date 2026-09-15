@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,7 +25,6 @@ import type { EventRequestStatus } from "@/lib/wireframe";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { StatusBadge } from "../../status-badge";
-import { reassignEventOrganiserAction } from "./actions";
 
 /**
  * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
@@ -82,7 +80,12 @@ export default async function OrganisationEventsPage({
 
   const organiser = session ?? demoOrganiser;
 
-  /** Reassignment candidates: Organisers in the same client organisation, demo or real. */
+  /**
+   * Organisers in the same client organisation -- used only to resolve
+   * "Submitted by" names below. Not for reassignment: #101 names the Event
+   * Operations Manager as the only role with assign/reassign authority, not
+   * the Event Organiser, so this page offers no way to trigger it.
+   */
   const listOrganisationOrganisers = await buildListOrganisationOrganisers();
   const { organisers: colleagues } = await listOrganisationOrganisers.execute({
     clientOrganisationId: organiser.clientOrganisationId,
@@ -153,7 +156,6 @@ export default async function OrganisationEventsPage({
                   <TableHead>Submitted by</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Access</TableHead>
-                  <TableHead>Reassign to</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -175,34 +177,6 @@ export default async function OrganisationEventsPage({
                         <span className="text-muted-foreground text-xs">
                           View only
                         </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {colleagues.length === 0 ? (
-                        <span className="text-muted-foreground text-xs">
-                          No colleagues to reassign to yet
-                        </span>
-                      ) : (
-                        <form action={reassignEventOrganiserAction} className="flex gap-2">
-                          <input type="hidden" name="eventRequestId" value={request.id} />
-                          <select
-                            name="newResponsibleOrganiserId"
-                            defaultValue=""
-                            className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-8 w-40 rounded-lg border px-2.5 text-sm shadow-xs outline-none focus-visible:ring-3"
-                          >
-                            <option value="" disabled>
-                              Choose organiser…
-                            </option>
-                            {colleagues.map((colleague) => (
-                              <option key={colleague.userAccountId} value={colleague.userAccountId}>
-                                {colleague.name}
-                              </option>
-                            ))}
-                          </select>
-                          <Button type="submit" variant="outline" size="sm">
-                            Reassign
-                          </Button>
-                        </form>
                       )}
                     </TableCell>
                   </TableRow>
