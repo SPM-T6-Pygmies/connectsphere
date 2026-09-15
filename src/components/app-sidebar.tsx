@@ -5,8 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 
-import { StatusBadge } from "@/app/staff/status-badge"
 import { AccountMenu } from "@/components/account-menu"
+import { QueueList } from "@/components/queue-list"
 import { currentSection, railItems } from "@/components/staff-nav"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -190,43 +190,7 @@ export function AppSidebar({
         <SidebarContent>
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
-              {items.length === 0 ? (
-                <p className="text-muted-foreground p-4 text-sm">
-                  Nothing here.
-                </p>
-              ) : (
-                items.map((item) => {
-                  const active = pathname === item.href.split("?")[0]
-
-                  return (
-                    <Link
-                      href={item.href}
-                      key={item.id}
-                      className={`hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full min-w-0 flex-col items-start gap-2 border-b p-4 text-sm leading-tight whitespace-nowrap last:border-b-0 ${
-                        active ? "bg-sidebar-accent" : ""
-                      }`}
-                    >
-                      <div className="flex w-full min-w-0 items-center gap-2">
-                        <span className="min-w-0 truncate font-medium">
-                          {item.title}
-                        </span>
-                        <span className="text-muted-foreground ml-auto shrink-0 text-xs">
-                          {item.meta}
-                        </span>
-                      </div>
-                      <div className="flex w-full min-w-0 items-center gap-2">
-                        <StatusBadge status={item.status} />
-                        {item.unread ? (
-                          <span className="bg-primary ml-auto size-1.5 shrink-0 rounded-full" />
-                        ) : null}
-                      </div>
-                      <span className="line-clamp-2 w-full text-xs whitespace-break-spaces">
-                        {item.teaser}
-                      </span>
-                    </Link>
-                  )
-                })
-              )}
+              <QueueList items={items} activePath={pathname} />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
