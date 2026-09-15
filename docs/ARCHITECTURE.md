@@ -1043,9 +1043,8 @@ domain entities:
   Add the method to the port that already owns that capability (see below).
 - **The adapter maps row → view in one step.** No `toDomain`, and no second copy
   of the same fields in the use case.
-- **The in-memory adapter is still required.** It runs the app when no Supabase
-  project is configured, which makes it a second real implementation and not
-  only a test double.
+- **The in-memory adapter is still required.** The use-case tests run on it, so
+  a thin slice is tested without a database exactly like a full one.
 
 `ViewMyEventRequestsUseCase` shows the difference. Today the adapter builds full
 `EventRequest` entities for the whole organisation, and the use case filters them

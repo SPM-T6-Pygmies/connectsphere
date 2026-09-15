@@ -1,16 +1,3 @@
-import {
-  demoEventCatalogue,
-  demoEventRequestRepository,
-  demoRegistrationRepository,
-} from "@/adapters/outbound/in-memory/attendee-demo-seed";
-import { demoEventCoordinatorDirectory } from "@/adapters/outbound/in-memory/event-coordinator-demo-seed";
-import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
-import {
-  demoClientOrganisationRepository,
-  demoEventRequestRepository as demoOrganisationEventRequestRepository,
-  demoOrganiserDirectory,
-  demoUserAccountRepository,
-} from "@/adapters/outbound/in-memory/organiser-demo-seed";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { createSupabaseServerClient } from "@/adapters/outbound/supabase/client";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
@@ -82,26 +69,10 @@ export async function buildSendConnectionRequest(): Promise<SendConnectionReques
   });
 }
 
-/**
- * Whether a Supabase project is configured for this deployment.
- *
- * Reading `process.env` is ambient outside state, and the composition root is
- * where the architecture puts it. The team has no project yet, so without one
- * the attendee pages fall back to seeded in-memory adapters -- the same
- * classes the use-case tests run against, obeying the same ports.
- */
-function hasSupabaseProject(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
-}
-
 async function attendeeAdapters(): Promise<{
   events: EventCatalogue;
   registrations: RegistrationRepository;
 }> {
-  if (!hasSupabaseProject()) {
-    return { events: demoEventCatalogue, registrations: demoRegistrationRepository };
-  }
-
   const client = await createSupabaseServerClient();
   return {
     events: new SupabaseEventCatalogue(client),
@@ -133,19 +104,7 @@ export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> 
   return new ViewRegistrationUseCase({ events, registrations });
 }
 
-/**
- * Event requests, from the Supabase project when there is one.
- *
- * The in-memory fallback is the same class the use-case tests run against, so
- * the organiser screens work on a fresh clone with no project configured --
- * submissions just do not survive a restart. Both obey the same port, which is
- * the only reason this substitution is safe.
- */
 async function eventRequestAdapters(): Promise<EventRequestRepository> {
-  if (!hasSupabaseProject()) {
-    return demoEventRequestRepository;
-  }
-
   return new SupabaseEventRequestRepository(await createSupabaseServerClient());
 }
 
@@ -185,29 +144,18 @@ export async function buildViewAllEventRequests(): Promise<ViewAllEventRequestsU
 }
 
 export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequestUseCase> {
-  const eventRequests = hasSupabaseProject()
-    ? new SupabaseOperationsEventRequestReader(await createSupabaseServerClient())
-    : demoEventRequestRepository;
-
-  return new ViewOperationsEventRequestUseCase({ eventRequests });
+  return new ViewOperationsEventRequestUseCase({
+    eventRequests: new SupabaseOperationsEventRequestReader(await createSupabaseServerClient()),
+  });
 }
 
 export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinatorsUseCase> {
-  const eventCoordinators = hasSupabaseProject()
-    ? new SupabaseEventCoordinatorDirectory(await createSupabaseServerClient())
-    : demoEventCoordinatorDirectory;
-
-  return new ViewAllEventCoordinatorsUseCase({ eventCoordinators });
+  return new ViewAllEventCoordinatorsUseCase({
+    eventCoordinators: new SupabaseEventCoordinatorDirectory(await createSupabaseServerClient()),
+  });
 }
 
 export async function buildAssignEventCoordinator(): Promise<AssignEventCoordinatorUseCase> {
-  if (!hasSupabaseProject()) {
-    return new AssignEventCoordinatorUseCase({
-      eventRequests: demoEventRequestRepository,
-      eventCoordinators: demoEventCoordinatorDirectory,
-    });
-  }
-
   const client = await createSupabaseServerClient();
   return new AssignEventCoordinatorUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
@@ -244,21 +192,9 @@ export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationU
   return new WithdrawRegistrationUseCase({ events, registrations });
 }
 
-/**
- * Every event request in the caller's client organisation, from the Supabase
- * project when there is one.
- *
- * The in-memory fallback (`organiser-demo-seed.ts`) is seeded across two
- * client organisations, so the "Viewing as" switcher on the organiser page
- * can demonstrate both "colleagues in my organisation" and "cannot see an
- * unrelated organisation" without a database.
- */
+/** Every event request in the caller's client organisation. */
 export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequestsUseCase> {
-  const eventRequests = hasSupabaseProject()
-    ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
-    : demoOrganisationEventRequestRepository;
-
-  return new ViewOrganisationEventRequestsUseCase({ eventRequests });
+  return new ViewOrganisationEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
 /**
@@ -283,31 +219,12 @@ export async function getCurrentCoordinator(): Promise<{ readonly userAccountId:
   return { userAccountId: user.userId };
 }
 
-/**
- * `events` starts empty in-memory and stays that way: approving a request
- * (SPM-34) opens its event only in the Supabase store, where the approval and
- * the event are one transaction. The in-memory event request repository does
- * not model events, and a fake row here would only obscure whether "My
- * events" is really wired up -- the same reasoning `attendee-demo-seed.ts`
- * gives for its own empty start.
- */
-const demoCoordinatorEventRepository = new InMemoryCoordinatorEventRepository();
-
 async function coordinatorAdapters(): Promise<{
   eventRequests: EventRequestRepository;
   events: CoordinatorEventRepository;
   clientOrganisations: ClientOrganisationRepository;
   userAccounts: UserAccountRepository;
 }> {
-  if (!hasSupabaseProject()) {
-    return {
-      eventRequests: demoOrganisationEventRequestRepository,
-      events: demoCoordinatorEventRepository,
-      clientOrganisations: demoClientOrganisationRepository,
-      userAccounts: demoUserAccountRepository,
-    };
-  }
-
   const client = await createSupabaseServerClient();
   return {
     eventRequests: new SupabaseEventRequestRepository(client),
@@ -317,14 +234,7 @@ async function coordinatorAdapters(): Promise<{
   };
 }
 
-/**
- * SPM-121: every request assigned to the caller and still awaiting review.
- *
- * The in-memory fallback (`organiser-demo-seed.ts`) seeds one coordinator
- * with requests across both client organisations plus a decoy assigned to a
- * different coordinator, so the queue is demonstrable without a database
- * ahead of SPM-97 (assigning a coordinator).
- */
+/** SPM-121: every request assigned to the caller and still awaiting review. */
 export async function buildViewAssignedEventRequests(): Promise<ViewAssignedEventRequestsUseCase> {
   const { eventRequests, clientOrganisations } = await coordinatorAdapters();
 
@@ -345,13 +255,7 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
   return new ViewAssignedEventRequestUseCase({ eventRequests, clientOrganisations, userAccounts });
 }
 
-/**
- * SPM-34: the assigned coordinator approves or rejects a request.
- *
- * Shares `coordinatorAdapters()` with the two views above -- not the empty
- * `demoEventRequestRepository` `buildAssignEventCoordinator` uses -- so a
- * decision made in demo mode is the one the queue and detail then show.
- */
+/** SPM-34: the assigned coordinator approves or rejects a request. */
 export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCase> {
   const { eventRequests } = await coordinatorAdapters();
 
@@ -360,10 +264,7 @@ export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCa
 
 /**
  * "My events": every event the caller is coordinating, whatever its status.
- *
- * Events are opened by approving a request (SPM-34), which only the Supabase
- * store does -- in demo mode this stays empty, and there is no wireframe
- * fallback here to make it look otherwise.
+ * Events are opened by approving a request (SPM-34).
  */
 export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCase> {
   const { events, clientOrganisations } = await coordinatorAdapters();
@@ -371,34 +272,16 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCa
   return new ViewAssignedEventsUseCase({ events, clientOrganisations });
 }
 
-/**
- * SPM-39 AC5: reassigns an event request's responsible Organiser.
- *
- * Shares `demoOrganisationEventRequestRepository` with
- * `buildViewOrganisationEventRequests` when there is no Supabase project, so
- * a demo reassignment and the organisation events page agree on the same
- * mutated state.
- */
+/** SPM-39 AC5: reassigns an event request's responsible Organiser. */
 export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiserUseCase> {
-  const eventRequests = hasSupabaseProject()
-    ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
-    : demoOrganisationEventRequestRepository;
-
-  return new ChangeEventOrganiserUseCase({ eventRequests });
+  return new ChangeEventOrganiserUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-/**
- * SPM-39 AC5: who a request in this client organisation could be reassigned
- * to. Same fallback shape as `buildViewOrganisationEventRequests` -- the
- * demo directory shares identities with the demo event-request seed, so a
- * demo reassignment always has someone real to pick.
- */
+/** SPM-39 AC5: who a request in this client organisation could be reassigned to. */
 export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisersUseCase> {
-  const organisers = hasSupabaseProject()
-    ? new SupabaseOrganiserDirectory(await createSupabaseServerClient())
-    : demoOrganiserDirectory;
-
-  return new ListOrganisationOrganisersUseCase({ organisers });
+  return new ListOrganisationOrganisersUseCase({
+    organisers: new SupabaseOrganiserDirectory(await createSupabaseServerClient()),
+  });
 }
 
 export async function buildLogin(): Promise<LoginUseCase> {

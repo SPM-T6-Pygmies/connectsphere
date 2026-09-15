@@ -29,7 +29,7 @@ import { StatusBadge } from "../../status-badge";
 import { reassignEventOrganiserAction } from "./actions";
 
 /**
- * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
+ * SPM-39's demo identities, reduced to the
  * primitives the use case takes. Used only when there is no real signed-
  * in Organiser (see `getCurrentOrganiser`) -- e.g. testing before SPM-13's
  * login existed, or reaching this page in some other role.
