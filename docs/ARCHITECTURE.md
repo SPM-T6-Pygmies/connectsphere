@@ -1067,8 +1067,9 @@ requests" starts flagging which ones may still be withdrawn). That is mechanical
 put the predicate in the domain, return entities from the port, map in the use
 case.
 
-Existing read slices predate this section. Convert one when you are already
-changing it for another reason, in its own commit, rather than as a sweep.
+The read slices that existed when this section was written were classified and
+converted together. A new slice picks its path when it is written; an existing
+one changes path only when a rule appears in it or leaves it.
 
 ### Group ports by capability, not by operation
 
