@@ -10,7 +10,7 @@ import { DraftNotEditableError, IncompleteEventRequestError } from "@/core/domai
 import { eventRequestAccessFor, eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
-import type { SubmitEventRequestCommand } from "@/core/ports/inbound/submit-event-request";
+import type { SubmitEventRequestCommand } from "@/core/use-cases/submit-event-request";
 
 import { SubmitEventRequestUseCase } from "./submit-event-request";
 

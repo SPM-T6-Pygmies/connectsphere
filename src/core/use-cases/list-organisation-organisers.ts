@@ -1,17 +1,25 @@
 import { clientOrganisationId } from "../domain/client-organisation";
-import type {
-  ListOrganisationOrganisers,
-  ListOrganisationOrganisersCommand,
-  ListOrganisationOrganisersResult,
-} from "../ports/inbound/list-organisation-organisers";
 import type { OrganiserDirectory } from "../ports/outbound/organiser-directory";
+
+export interface ListOrganisationOrganisersCommand {
+  readonly clientOrganisationId: string;
+}
+
+export interface OrganiserOption {
+  readonly userAccountId: string;
+  readonly name: string;
+}
+
+export interface ListOrganisationOrganisersResult {
+  readonly organisers: readonly OrganiserOption[];
+}
 
 export interface ListOrganisationOrganisersDeps {
   readonly organisers: OrganiserDirectory;
 }
 
 /** SPM-39 AC5: who a request could be reassigned to -- Organisers in the caller's own client organisation. */
-export class ListOrganisationOrganisersUseCase implements ListOrganisationOrganisers {
+export class ListOrganisationOrganisersUseCase {
   constructor(private readonly deps: ListOrganisationOrganisersDeps) {}
 
   async execute(

@@ -11,8 +11,8 @@ import {
   buildSubmitEventRequest,
 } from "@/composition/container";
 import { DomainError, IncompleteEventRequestError } from "@/core/domain/errors";
-import type { SaveEventRequestDraftResult } from "@/core/ports/inbound/save-event-request-draft";
-import type { SubmitEventRequestResult } from "@/core/ports/inbound/submit-event-request";
+import type { SaveEventRequestDraftResult } from "@/core/use-cases/save-event-request-draft";
+import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
 import {
   FIELD_LABELS,

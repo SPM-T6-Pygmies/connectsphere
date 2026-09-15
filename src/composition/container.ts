@@ -29,24 +29,16 @@ import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-us
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
-import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
 import type { DecideEventRequest } from "@/core/ports/inbound/decide-event-request";
 import type { Login } from "@/core/ports/inbound/login";
 import type { Logout } from "@/core/ports/inbound/logout";
-import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
-import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
-import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
 import type { ViewArchivedEventRequests } from "@/core/ports/inbound/view-archived-event-requests";
 import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigned-event-request";
 import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
 import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
-import type { ViewOrganiserEventRequest } from "@/core/ports/inbound/view-organiser-event-request";
 import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
 import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
-import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-requests";
-import type { ListOrganisationOrganisers } from "@/core/ports/inbound/list-organisation-organisers";
-import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
 import type { ViewOperationsEventRequest } from "@/core/ports/inbound/view-operations-event-request";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
@@ -169,30 +161,30 @@ async function eventRequestAdapters(): Promise<EventRequestRepository> {
   return new SupabaseEventRequestRepository(await createSupabaseServerClient());
 }
 
-export async function buildSubmitEventRequest(): Promise<SubmitEventRequest> {
+export async function buildSubmitEventRequest(): Promise<SubmitEventRequestUseCase> {
   return new SubmitEventRequestUseCase({
     eventRequests: await eventRequestAdapters(),
     clock: systemClock,
   });
 }
 
-export async function buildSaveEventRequestDraft(): Promise<SaveEventRequestDraft> {
+export async function buildSaveEventRequestDraft(): Promise<SaveEventRequestDraftUseCase> {
   return new SaveEventRequestDraftUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildDiscardEventRequestDraft(): Promise<DiscardEventRequestDraft> {
+export async function buildDiscardEventRequestDraft(): Promise<DiscardEventRequestDraftUseCase> {
   return new DiscardEventRequestDraftUseCase({
     eventRequests: await eventRequestAdapters(),
   });
 }
 
-export async function buildViewMyEventRequests(): Promise<ViewMyEventRequests> {
+export async function buildViewMyEventRequests(): Promise<ViewMyEventRequestsUseCase> {
   return new ViewMyEventRequestsUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequest> {
+export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequestUseCase> {
   return new ViewOrganiserEventRequestUseCase({
     eventRequests: await eventRequestAdapters(),
   });
@@ -273,7 +265,7 @@ export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationU
  * can demonstrate both "colleagues in my organisation" and "cannot see an
  * unrelated organisation" without a database.
  */
-export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequests> {
+export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisationEventRequestsUseCase> {
   const eventRequests = hasSupabaseProject()
     ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
     : demoOrganisationEventRequestRepository;
@@ -399,7 +391,7 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
  * a demo reassignment and the organisation events page agree on the same
  * mutated state.
  */
-export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser> {
+export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiserUseCase> {
   const eventRequests = hasSupabaseProject()
     ? new SupabaseEventRequestRepository(await createSupabaseServerClient())
     : demoOrganisationEventRequestRepository;
@@ -413,7 +405,7 @@ export async function buildChangeEventOrganiser(): Promise<ChangeEventOrganiser>
  * demo directory shares identities with the demo event-request seed, so a
  * demo reassignment always has someone real to pick.
  */
-export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisers> {
+export async function buildListOrganisationOrganisers(): Promise<ListOrganisationOrganisersUseCase> {
   const organisers = hasSupabaseProject()
     ? new SupabaseOrganiserDirectory(await createSupabaseServerClient())
     : demoOrganiserDirectory;

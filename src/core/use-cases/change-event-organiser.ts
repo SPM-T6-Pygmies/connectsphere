@@ -1,12 +1,17 @@
 import { EventRequestNotFoundError } from "../domain/errors";
 import { eventRequestId, reassignResponsibleOrganiser } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type {
-  ChangeEventOrganiser,
-  ChangeEventOrganiserCommand,
-  ChangeEventOrganiserResult,
-} from "../ports/inbound/change-event-organiser";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+export interface ChangeEventOrganiserCommand {
+  readonly eventRequestId: string;
+  readonly newResponsibleOrganiserId: string;
+}
+
+export interface ChangeEventOrganiserResult {
+  readonly eventRequestId: string;
+  readonly responsibleOrganiserId: string;
+}
 
 export interface ChangeEventOrganiserDeps {
   readonly eventRequests: EventRequestRepository;
@@ -20,7 +25,7 @@ export interface ChangeEventOrganiserDeps {
  * gate the caller; it delivers the reassignment's effect, which is what the
  * AC actually asserts.
  */
-export class ChangeEventOrganiserUseCase implements ChangeEventOrganiser {
+export class ChangeEventOrganiserUseCase {
   constructor(private readonly deps: ChangeEventOrganiserDeps) {}
 
   async execute(command: ChangeEventOrganiserCommand): Promise<ChangeEventOrganiserResult> {

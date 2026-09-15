@@ -6,7 +6,7 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { DraftNotEditableError, IncompleteEventRequestError } from "@/core/domain/errors";
 import { eventRequestAccessFor } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
-import type { SaveEventRequestDraftCommand } from "@/core/ports/inbound/save-event-request-draft";
+import type { SaveEventRequestDraftCommand } from "@/core/use-cases/save-event-request-draft";
 
 import { SaveEventRequestDraftUseCase } from "./save-event-request-draft";
 

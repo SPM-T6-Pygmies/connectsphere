@@ -30,7 +30,7 @@ import { reassignEventOrganiserAction } from "./actions";
 
 /**
  * SPM-39's demo identities (`organiser-demo-seed.ts`), reduced to the
- * primitives the driving port takes. Used only when there is no real signed-
+ * primitives the use case takes. Used only when there is no real signed-
  * in Organiser (see `getCurrentOrganiser`) -- e.g. testing before SPM-13's
  * login existed, or reaching this page in some other role.
  */
