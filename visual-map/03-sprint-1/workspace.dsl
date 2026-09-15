@@ -45,20 +45,20 @@ workspace extends ../01-main/workspace.dsl {
 
         # ---------------------------------------------------------------------
         # THE PART THAT NEEDS NO INFRASTRUCTURE
-        # ARCHITECTURE.md s14 steps 1-5: domain, driving ports, driven ports, use
-        # cases, in-memory adapters — designed and tested before Supabase exists.
-        # Everything excluded below is steps 6-8, and can start later in the sprint.
+        # ARCHITECTURE.md s14 steps 1-4: domain, driven ports, use cases, in-memory
+        # adapters — designed and tested before Supabase exists.
+        # Everything excluded below is steps 5-7, and can start later in the sprint.
         # ---------------------------------------------------------------------
 
         component epvbs.web "sprint1-core" "The hexagon interior: buildable and fully testable with no database, no auth service and no server." {
             include *
 
-            # Driving adapters — the Next.js side, ARCHITECTURE.md step 8.
+            # Driving adapters — the Next.js side, ARCHITECTURE.md step 7.
             exclude epvbs.web.login_ui epvbs.web.logout_ui
             exclude epvbs.web.event_form_ui epvbs.web.event_list_ui epvbs.web.assignment_ui
             exclude epvbs.web.registration_ui
 
-            # Real driven adapters and the infrastructure behind them — steps 6-7.
+            # Real driven adapters and the infrastructure behind them — steps 5-6.
             # The in-memory adapters stay: they are what makes this slice testable.
             exclude epvbs.web.supabase_auth_ad epvbs.web.supabase_users_ad
             exclude epvbs.web.supabase_events_ad epvbs.web.supabase_registrations_ad

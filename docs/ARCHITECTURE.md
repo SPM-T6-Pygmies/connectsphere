@@ -168,7 +168,7 @@ twelve.
                     \                |               /
                      ▼               ▼              ▼
               ┌───────────────────────────────────────────┐
-              │        SendConnectionRequest  (port)      │
+              │   SendConnectionRequestCommand → Result   │
               │  ┌─────────────────────────────────────┐  │
               │  │     use cases (application)         │  │
               │  │  ┌───────────────────────────────┐  │  │
@@ -260,8 +260,8 @@ sides:
 |                        | Driving (primary)                | Driven (secondary)             |
 | ---------------------- | -------------------------------- | ------------------------------ |
 | Who calls whom         | Adapter → core                   | Core → adapter                 |
-| Who defines the port   | The core                         | The core                       |
-| Who implements it      | The core (a use case)            | The adapter                    |
+| Who defines the port   | No port: command + result        | The core                       |
+| Who implements it      | The use case itself              | The adapter                    |
 | Substitute in a test   | The test *is* the adapter        | An in-memory implementation    |
 | In this repo           | `src/app`, `*.test.ts`           | `src/adapters/outbound`        |
 
@@ -333,7 +333,7 @@ is this application actually made of?" has a single readable answer:
 
 ```ts
 // src/composition/container.ts
-export async function buildSendConnectionRequest(): Promise<SendConnectionRequest> {
+export async function buildSendConnectionRequest(): Promise<SendConnectionRequestUseCase> {
   const client = await createSupabaseServerClient();
 
   return new SendConnectionRequestUseCase({
@@ -1255,7 +1255,7 @@ Before requesting review on anything touching an external system:
 For a thin read slice (§11), step 1 does not apply: step 2 adds a method that
 returns the view, and step 3's use case is a single port call.
 
-Steps 1–5 need no Supabase project, no environment variables, and no running
+Steps 1–4 need no Supabase project, no environment variables, and no running
 server. That property — a full feature designed and tested before any
 infrastructure exists — is the pattern's original promise, and the best
 single check that you have applied it correctly.
