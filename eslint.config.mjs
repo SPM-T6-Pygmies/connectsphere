@@ -69,6 +69,10 @@ const boundaries = [
             group: ["@/app", "@/app/**", "@/components", "@/components/**", "@/composition", "@/composition/**"],
             message: "A driven adapter must not know about the UI or the wiring that assembles it.",
           },
+          {
+            group: ["@/lib", "@/lib/**"],
+            message: "A driven adapter receives its client through its constructor from @/composition; it does not build one from src/lib.",
+          },
         ],
       }],
     },

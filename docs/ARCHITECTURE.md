@@ -1200,6 +1200,7 @@ drivers → `app` plus the SDKs.
 | `src/core/**` | the same folders reached by a relative `../` path | The Dependency Rule, without the alias |
 | `src/app/**`, `src/components/**`, `src/middleware.ts` | `@supabase/**`, `@/adapters/outbound/**` | Driving adapters resolve use cases from `@/composition` |
 | `src/adapters/outbound/**` | `@/app`, `@/components`, `@/composition` | A driven adapter must not know the UI or its own wiring |
+| `src/adapters/outbound/**` | `@/lib` | A driven adapter receives its client from composition rather than building one |
 | `src/adapters/inbound/**` | `@supabase/**`, `@/adapters/outbound/**`, `@/app`, `@/components`, `@/composition` | A schema parses input; it does not reach infrastructure or the UI |
 | `src/lib/**` | `@/core`, `@/adapters`, `@/app`, `@/components`, `@/composition` | Generic utilities sit below everything that uses them |
 | `src/composition/**` | `@/app`, `@/components` | Wiring assembles use cases; it does not know who renders them |
