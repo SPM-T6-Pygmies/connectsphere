@@ -29,13 +29,11 @@ import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-us
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
-import type { ListEventsOpenForRegistration } from "@/core/ports/inbound/list-events-open-for-registration";
 import type { ChangeEventOrganiser } from "@/core/ports/inbound/change-event-organiser";
 import type { DecideEventRequest } from "@/core/ports/inbound/decide-event-request";
 import type { Login } from "@/core/ports/inbound/login";
 import type { Logout } from "@/core/ports/inbound/logout";
 import type { DiscardEventRequestDraft } from "@/core/ports/inbound/discard-event-request-draft";
-import type { RegisterForEvent } from "@/core/ports/inbound/register-for-event";
 import type { SaveEventRequestDraft } from "@/core/ports/inbound/save-event-request-draft";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { SubmitEventRequest } from "@/core/ports/inbound/submit-event-request";
@@ -43,7 +41,6 @@ import type { ViewArchivedEventRequests } from "@/core/ports/inbound/view-archiv
 import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigned-event-request";
 import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
 import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
-import type { ViewEventForRegistration } from "@/core/ports/inbound/view-event-for-registration";
 import type { ViewOrganiserEventRequest } from "@/core/ports/inbound/view-organiser-event-request";
 import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
 import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
@@ -51,8 +48,6 @@ import type { ViewMyEventRequests } from "@/core/ports/inbound/view-my-event-req
 import type { ListOrganisationOrganisers } from "@/core/ports/inbound/list-organisation-organisers";
 import type { ViewOrganisationEventRequests } from "@/core/ports/inbound/view-organisation-event-requests";
 import type { ViewOperationsEventRequest } from "@/core/ports/inbound/view-operations-event-request";
-import type { ViewRegistration } from "@/core/ports/inbound/view-registration";
-import type { WithdrawRegistration } from "@/core/ports/inbound/withdraw-registration";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
@@ -134,25 +129,25 @@ async function attendeeAdapters(): Promise<{
   };
 }
 
-export async function buildListEventsOpenForRegistration(): Promise<ListEventsOpenForRegistration> {
+export async function buildListEventsOpenForRegistration(): Promise<ListEventsOpenForRegistrationUseCase> {
   const { events } = await attendeeAdapters();
 
   return new ListEventsOpenForRegistrationUseCase({ events, clock: systemClock });
 }
 
-export async function buildViewEventForRegistration(): Promise<ViewEventForRegistration> {
+export async function buildViewEventForRegistration(): Promise<ViewEventForRegistrationUseCase> {
   const { events } = await attendeeAdapters();
 
   return new ViewEventForRegistrationUseCase({ events, clock: systemClock });
 }
 
-export async function buildRegisterForEvent(): Promise<RegisterForEvent> {
+export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
 }
 
-export async function buildViewRegistration(): Promise<ViewRegistration> {
+export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new ViewRegistrationUseCase({ events, registrations });
@@ -263,7 +258,7 @@ export function actingOrganiser(): {
   };
 }
 
-export async function buildWithdrawRegistration(): Promise<WithdrawRegistration> {
+export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
   return new WithdrawRegistrationUseCase({ events, registrations });

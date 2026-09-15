@@ -6,15 +6,26 @@ import {
   RegistrationNotFoundError,
 } from "../domain/errors";
 import { isLive, registrationId, withdrawRegistration } from "../domain/registration";
-import type {
-  WithdrawRegistration,
-  WithdrawRegistrationCommand,
-  WithdrawRegistrationResult,
-} from "../ports/inbound/withdraw-registration";
 import type { EventCatalogue } from "../ports/outbound/event-catalogue";
 import type { RegistrationRepository } from "../ports/outbound/registration-repository";
 
-import { toAttendeeRegistration } from "./attendee-registration";
+import { toAttendeeRegistration, type AttendeeRegistration } from "./attendee-registration";
+
+/**
+ * The reference is the whole command.
+ *
+ * It identifies the registration and, in the absence of attendee accounts, is
+ * also the only thing authorising the withdrawal -- see the note on
+ * `attendee_registration` in the withdrawal migration.
+ */
+export interface WithdrawRegistrationCommand {
+  readonly reference: string;
+}
+
+export interface WithdrawRegistrationResult {
+  /** The registration as it now stands, so the confirmation can name the event (SPM-86). */
+  readonly registration: AttendeeRegistration;
+}
 
 export interface WithdrawRegistrationDeps {
   readonly registrations: RegistrationRepository;
@@ -36,7 +47,7 @@ export interface WithdrawRegistrationDeps {
  * Releasing the place (SPM-85) needs no arithmetic here: `placesTaken` counts
  * only live registrations, so the status flip *is* the release.
  */
-export class WithdrawRegistrationUseCase implements WithdrawRegistration {
+export class WithdrawRegistrationUseCase {
   constructor(private readonly deps: WithdrawRegistrationDeps) {}
 
   async execute(command: WithdrawRegistrationCommand): Promise<WithdrawRegistrationResult> {
