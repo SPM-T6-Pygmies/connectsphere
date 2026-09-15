@@ -75,7 +75,10 @@ export default async function CoordinatorPage() {
         title="Requests assigned to me"
         description="Event requests an Operations Manager has assigned to you for review."
       />
-      <AssignedRequestTable requests={eventRequests} />
+      {/* Below md the queue renders as the page body; see MobileQueue. */}
+      <div className="hidden md:block">
+        <AssignedRequestTable requests={eventRequests} />
+      </div>
     </StaffShell>
   );
 }

@@ -75,7 +75,10 @@ export default async function CoordinatorArchivePage() {
         title="Archive"
         description="Requests assigned to you that were rejected or withdrawn."
       />
-      <ArchivedRequestTable requests={eventRequests} />
+      {/* Below md the queue renders as the page body; see MobileQueue. */}
+      <div className="hidden md:block">
+        <ArchivedRequestTable requests={eventRequests} />
+      </div>
     </StaffShell>
   );
 }

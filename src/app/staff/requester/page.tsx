@@ -107,33 +107,36 @@ export default async function RequesterPage() {
         }
       />
 
-      <Tabs defaultValue="drafts">
-        <TabsList>
-          <TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger>
-          <TabsTrigger value="submitted">
-            Submitted ({submitted.length})
-          </TabsTrigger>
-          <TabsTrigger value="all">All ({eventRequests.length})</TabsTrigger>
-        </TabsList>
+      {/* Below md the queue renders as the page body; see MobileQueue. */}
+      <div className="hidden md:block">
+        <Tabs defaultValue="drafts">
+          <TabsList>
+            <TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger>
+            <TabsTrigger value="submitted">
+              Submitted ({submitted.length})
+            </TabsTrigger>
+            <TabsTrigger value="all">All ({eventRequests.length})</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="drafts">
-          <RequestTable
-            requests={drafts}
-            emptyTitle="No drafts"
-            emptyDescription="Requests you save before submitting will appear here."
-          />
-        </TabsContent>
-        <TabsContent value="submitted">
-          <RequestTable
-            requests={submitted}
-            emptyTitle="Nothing submitted yet"
-            emptyDescription="Submit a draft and it moves here."
-          />
-        </TabsContent>
-        <TabsContent value="all">
-          <RequestTable requests={eventRequests} emptyTitle="No requests" />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="drafts">
+            <RequestTable
+              requests={drafts}
+              emptyTitle="No drafts"
+              emptyDescription="Requests you save before submitting will appear here."
+            />
+          </TabsContent>
+          <TabsContent value="submitted">
+            <RequestTable
+              requests={submitted}
+              emptyTitle="Nothing submitted yet"
+              emptyDescription="Submit a draft and it moves here."
+            />
+          </TabsContent>
+          <TabsContent value="all">
+            <RequestTable requests={eventRequests} emptyTitle="No requests" />
+          </TabsContent>
+        </Tabs>
+      </div>
     </StaffShell>
   );
 }
