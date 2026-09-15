@@ -29,14 +29,9 @@ import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-us
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { AssignEventCoordinator } from "@/core/ports/inbound/assign-event-coordinator";
-import type { DecideEventRequest } from "@/core/ports/inbound/decide-event-request";
 import type { Login } from "@/core/ports/inbound/login";
 import type { Logout } from "@/core/ports/inbound/logout";
 import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
-import type { ViewArchivedEventRequests } from "@/core/ports/inbound/view-archived-event-requests";
-import type { ViewAssignedEventRequest } from "@/core/ports/inbound/view-assigned-event-request";
-import type { ViewAssignedEventRequests } from "@/core/ports/inbound/view-assigned-event-requests";
-import type { ViewAssignedEvents } from "@/core/ports/inbound/view-assigned-events";
 import type { ViewAllEventCoordinators } from "@/core/ports/inbound/view-all-event-coordinators";
 import type { ViewAllEventRequests } from "@/core/ports/inbound/view-all-event-requests";
 import type { ViewOperationsEventRequest } from "@/core/ports/inbound/view-operations-event-request";
@@ -337,21 +332,21 @@ async function coordinatorAdapters(): Promise<{
  * different coordinator, so the queue is demonstrable without a database
  * ahead of SPM-97 (assigning a coordinator).
  */
-export async function buildViewAssignedEventRequests(): Promise<ViewAssignedEventRequests> {
+export async function buildViewAssignedEventRequests(): Promise<ViewAssignedEventRequestsUseCase> {
   const { eventRequests, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewAssignedEventRequestsUseCase({ eventRequests, clientOrganisations });
 }
 
 /** The coordinator's Archive: requests assigned to the caller that were rejected or withdrawn. */
-export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEventRequests> {
+export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEventRequestsUseCase> {
   const { eventRequests, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewArchivedEventRequestsUseCase({ eventRequests, clientOrganisations });
 }
 
 /** SPM-32: one event request, exactly as submitted, to the coordinator it is assigned to. */
-export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEventRequest> {
+export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEventRequestUseCase> {
   const { eventRequests, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
   return new ViewAssignedEventRequestUseCase({ eventRequests, clientOrganisations, userAccounts });
@@ -364,7 +359,7 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
  * `demoEventRequestRepository` `buildAssignEventCoordinator` uses -- so a
  * decision made in demo mode is the one the queue and detail then show.
  */
-export async function buildDecideEventRequest(): Promise<DecideEventRequest> {
+export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCase> {
   const { eventRequests } = await coordinatorAdapters();
 
   return new DecideEventRequestUseCase({ eventRequests });
@@ -377,7 +372,7 @@ export async function buildDecideEventRequest(): Promise<DecideEventRequest> {
  * store does -- in demo mode this stays empty, and there is no wireframe
  * fallback here to make it look otherwise.
  */
-export async function buildViewAssignedEvents(): Promise<ViewAssignedEvents> {
+export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCase> {
   const { events, clientOrganisations } = await coordinatorAdapters();
 
   return new ViewAssignedEventsUseCase({ events, clientOrganisations });

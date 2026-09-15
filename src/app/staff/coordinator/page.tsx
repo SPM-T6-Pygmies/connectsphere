@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildViewAssignedEventRequests, getCurrentCoordinator } from "@/composition/container";
-import type { AssignedEventRequestSummary } from "@/core/ports/inbound/view-assigned-event-requests";
+import type { AssignedEventRequestSummary } from "@/core/use-cases/view-assigned-event-requests";
 
 import { EmptyState } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
