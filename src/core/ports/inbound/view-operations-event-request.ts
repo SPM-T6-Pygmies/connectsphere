@@ -1,4 +1,4 @@
-import type { OperationsEventRequest } from "./view-all-event-requests";
+import type { OperationsEventRequest } from "../../use-cases/operations-event-request";
 
 export interface ViewOperationsEventRequestCommand {
   readonly id: string;

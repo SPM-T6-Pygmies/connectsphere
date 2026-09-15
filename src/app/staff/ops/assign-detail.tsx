@@ -12,7 +12,7 @@ import {
   buildViewOperationsEventRequest,
 } from "@/composition/container";
 import type { EventCoordinatorDetails } from "@/core/ports/inbound/view-all-event-coordinators";
-import type { OperationsEventRequest } from "@/core/ports/inbound/view-all-event-requests";
+import type { OperationsEventRequest } from "@/core/use-cases/operations-event-request";
 
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";

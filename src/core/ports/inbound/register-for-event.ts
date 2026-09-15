@@ -1,4 +1,4 @@
-import type { AvailableEvent } from "./available-event";
+import type { AvailableEvent } from "../../use-cases/available-event";
 
 /** Full name and email, and nothing else (SPM-83). */
 export interface RegisterForEventCommand {

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { registerForEventSchema } from "@/adapters/inbound/register-for-event-schema";
 import { buildRegisterForEvent } from "@/composition/container";
 import { DomainError } from "@/core/domain/errors";
-import type { AvailableEvent } from "@/core/ports/inbound/available-event";
+import type { AvailableEvent } from "@/core/use-cases/available-event";
 
 export type RegistrationState =
   | { status: "idle" }
