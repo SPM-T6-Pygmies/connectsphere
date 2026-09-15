@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { InMemoryAuth } from "@/adapters/outbound/in-memory/in-memory-auth";
+import { InMemoryUserRepository } from "@/adapters/outbound/in-memory/in-memory-user-repository";
 import { InvalidCredentialsError } from "@/core/domain/errors";
 import type { LoginCommand } from "@/core/use-cases/login";
-import type { AuthPort } from "@/core/ports/outbound/auth-port";
 import type { UserWithRoles } from "@/core/ports/outbound/user-repository";
-import type { UserRepository } from "@/core/ports/outbound/user-repository";
 
 import { LoginUseCase } from "./login";
 
@@ -40,61 +40,22 @@ const OPS_USER: UserWithRoles = {
 const EXPIRES_AT = new Date("2026-12-31T23:59:59.000Z");
 
 /**
- * Mock implementation of AuthPort using in-memory storage.
- * Simulates Supabase Auth behavior without requiring a real auth service.
- */
-class MockAuthAdapter implements AuthPort {
-  private validCredentials: Map<string, { password: string; userId: string }> = new Map([
-    [COORDINATOR_EMAIL, { password: COORDINATOR_PASSWORD, userId: COORDINATOR_ID }],
-    [OPS_EMAIL, { password: OPS_PASSWORD, userId: OPS_ID }],
-  ]);
-
-  async login(email: string, password: string) {
-    const credentials = this.validCredentials.get(email);
-
-    // Auth fails if email not found or password doesn't match.
-    // UseCase will catch this and throw generic InvalidCredentialsError.
-    if (!credentials || credentials.password !== password) {
-      throw new Error("Invalid email or password");
-    }
-
-    return {
-      userId: credentials.userId,
-      expiresAt: EXPIRES_AT,
-    };
-  }
-
-  async getSession() {
-    return null;
-  }
-
-  async logout() {
-    // No-op for testing
-  }
-}
-
-/**
- * Mock implementation of UserRepository using in-memory storage.
- * Stores staff members linked to their auth user IDs and roles.
- */
-class MockUserRepository implements UserRepository {
-  private users: Map<string, UserWithRoles> = new Map([
-    [COORDINATOR_ID, COORDINATOR_USER],
-    [OPS_ID, OPS_USER],
-  ]);
-
-  async findByAuthUserId(authUserId: string): Promise<UserWithRoles | null> {
-    return this.users.get(authUserId) ?? null;
-  }
-}
-
-/**
- * Helper to build a LoginUseCase with mock adapters.
- * Returns the use case and mocks for assertions in tests.
+ * Helper to build a LoginUseCase with in-memory adapters.
+ * Returns the use case and adapters for assertions in tests.
  */
 function buildUseCase() {
-  const auth = new MockAuthAdapter();
-  const users = new MockUserRepository();
+  const auth = new InMemoryAuth({
+    credentials: [
+      { email: COORDINATOR_EMAIL, password: COORDINATOR_PASSWORD, authUserId: COORDINATOR_ID, expiresAt: EXPIRES_AT },
+      { email: OPS_EMAIL, password: OPS_PASSWORD, authUserId: OPS_ID, expiresAt: EXPIRES_AT },
+    ],
+  });
+  const users = new InMemoryUserRepository(
+    new Map([
+      [COORDINATOR_ID, COORDINATOR_USER],
+      [OPS_ID, OPS_USER],
+    ]),
+  );
   const useCase = new LoginUseCase({ auth, users });
 
   return { useCase, auth, users };
@@ -102,7 +63,7 @@ function buildUseCase() {
 
 describe("LoginUseCase", () => {
   it("authenticates valid staff member and returns user ID with roles", async () => {
-    // ARRANGE: Set up use case with mocks
+    // ARRANGE: Set up use case with in-memory adapters
     const { useCase } = buildUseCase();
 
     // ACT: Execute login with valid credentials

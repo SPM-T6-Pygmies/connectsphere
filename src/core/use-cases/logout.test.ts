@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { AuthPort, LoginResult } from "@/core/ports/outbound/auth-port";
+import { InMemoryAuth } from "@/adapters/outbound/in-memory/in-memory-auth";
+import type { AuthPort } from "@/core/ports/outbound/auth-port";
 import type { AuditLogger } from "@/core/ports/outbound/audit-logger";
 
 import { LogoutUseCase } from "./logout";
@@ -12,29 +13,10 @@ import { LogoutUseCase } from "./logout";
  * milliseconds.
  */
 
-/**
- * Mock implementation of AuthPort.
- * Simulates Supabase Auth logout behavior.
- */
-class MockAuthAdapter implements AuthPort {
-  private shouldFailLogout = false;
-
-  async login(): Promise<LoginResult> {
-    throw new Error("Not implemented for logout tests");
-  }
-
-  async getSession() {
-    return null;
-  }
-
-  async logout(): Promise<void> {
-    if (this.shouldFailLogout) {
-      throw new Error("Auth service error");
-    }
-  }
-
-  setFailLogout(shouldFail: boolean) {
-    this.shouldFailLogout = shouldFail;
+/** An auth service whose sign-out fails. */
+class FailingSignOutAuth extends InMemoryAuth {
+  override async logout(): Promise<void> {
+    throw new Error("Auth service error");
   }
 }
 
@@ -63,10 +45,9 @@ class MockAuditLogger implements AuditLogger {
 }
 
 /**
- * Helper to build a LogoutUseCase with mock adapters.
+ * Helper to build a LogoutUseCase with test doubles.
  */
-function buildUseCase() {
-  const auth = new MockAuthAdapter();
+function buildUseCase(auth: AuthPort = new InMemoryAuth()) {
   const auditLogger = new MockAuditLogger();
   const useCase = new LogoutUseCase({ auth, auditLogger });
 
@@ -75,7 +56,7 @@ function buildUseCase() {
 
 describe("LogoutUseCase", () => {
   it("successfully logs out user and records audit event", async () => {
-    // ARRANGE: Set up use case with mocks
+    // ARRANGE: Set up use case with test doubles
     const { useCase, auditLogger } = buildUseCase();
     const userId = "user-1";
 
@@ -114,8 +95,7 @@ describe("LogoutUseCase", () => {
     // Error handling: If session termination fails, error is surfaced.
     // Calling code decides whether to retry or notify user.
 
-    const { useCase, auth } = buildUseCase();
-    auth.setFailLogout(true);
+    const { useCase } = buildUseCase(new FailingSignOutAuth());
 
     // ACT & ASSERT: Auth failure throws error (before audit logging)
     await expect(useCase.execute({ userId: "user-4" })).rejects.toThrow("Auth service error");
