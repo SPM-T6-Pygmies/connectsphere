@@ -1,15 +1,28 @@
-import { blocksNewRequest, requestConnection } from "../domain/connection";
+import { blocksNewRequest, requestConnection, type ConnectionStatus } from "../domain/connection";
 import { DuplicateConnectionError, MemberNotFoundError } from "../domain/errors";
 import { memberId } from "../domain/member";
-import type {
-  SendConnectionRequest,
-  SendConnectionRequestCommand,
-  SendConnectionRequestResult,
-} from "../ports/inbound/send-connection-request";
 import type { Clock } from "../ports/outbound/clock";
 import type { ConnectionRepository } from "../ports/outbound/connection-repository";
 import type { MemberDirectory } from "../ports/outbound/member-directory";
 import type { Notifier } from "../ports/outbound/notifier";
+
+/**
+ * The command this use case takes: the API of this application.
+ *
+ * Command and result are plain, serialisable data -- never domain objects.
+ * That keeps every driving adapter (a Server Action, a route handler, a tRPC
+ * procedure, a CLI, a test) able to speak to the core without importing
+ * anything it needs to construct.
+ */
+export interface SendConnectionRequestCommand {
+  readonly requesterId: string;
+  readonly addresseeId: string;
+}
+
+export interface SendConnectionRequestResult {
+  readonly connectionId: string;
+  readonly status: ConnectionStatus;
+}
 
 export interface SendConnectionRequestDeps {
   readonly connections: ConnectionRepository;
@@ -31,7 +44,7 @@ export interface SendConnectionRequestDeps {
  * mechanism of dependency inversion: this class names four interfaces it owns,
  * and something outside it decides what satisfies them.
  */
-export class SendConnectionRequestUseCase implements SendConnectionRequest {
+export class SendConnectionRequestUseCase {
   constructor(private readonly deps: SendConnectionRequestDeps) {}
 
   async execute(command: SendConnectionRequestCommand): Promise<SendConnectionRequestResult> {

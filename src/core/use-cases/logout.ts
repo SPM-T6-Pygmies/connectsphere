@@ -1,4 +1,3 @@
-import type { Logout } from "../ports/inbound/logout";
 import type { AuthPort } from "../ports/outbound/auth-port";
 import type { AuditLogger } from "../ports/outbound/audit-logger";
 
@@ -8,10 +7,11 @@ export interface LogoutDeps {
 }
 
 export interface LogoutInput {
+  /** The caller's `user_account_id`; `null` when they have no user account. */
   userId: string | null;
 }
 
-export class LogoutUseCase implements Logout {
+export class LogoutUseCase {
   constructor(private readonly deps: LogoutDeps) {}
 
   async execute(input: LogoutInput): Promise<void> {

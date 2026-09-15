@@ -28,9 +28,6 @@ import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
-import type { Login } from "@/core/ports/inbound/login";
-import type { Logout } from "@/core/ports/inbound/logout";
-import type { SendConnectionRequest } from "@/core/ports/inbound/send-connection-request";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
@@ -74,7 +71,7 @@ import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registrat
  * Server-only. The ESLint boundaries stop `src/app` and `src/components` from
  * importing adapters directly so they have to come through here.
  */
-export async function buildSendConnectionRequest(): Promise<SendConnectionRequest> {
+export async function buildSendConnectionRequest(): Promise<SendConnectionRequestUseCase> {
   const client = await createSupabaseServerClient();
 
   return new SendConnectionRequestUseCase({
@@ -404,14 +401,14 @@ export async function buildListOrganisationOrganisers(): Promise<ListOrganisatio
   return new ListOrganisationOrganisersUseCase({ organisers });
 }
 
-export async function buildLogin(): Promise<Login> {
+export async function buildLogin(): Promise<LoginUseCase> {
   return new LoginUseCase({
     auth: new SupabaseAuthAdapter(),
     users: new SupabaseUserRepository(),
   });
 }
 
-export async function buildLogout(): Promise<Logout> {
+export async function buildLogout(): Promise<LogoutUseCase> {
   return new LogoutUseCase({
     auth: new SupabaseAuthAdapter(),
     auditLogger: new SupabaseAuditLogger(),
