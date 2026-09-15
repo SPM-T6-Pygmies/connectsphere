@@ -1,41 +1,38 @@
 import { describe, expect, it } from "vitest";
 
-import { toDomain, type CoordinatorEventRow } from "./coordinator-event-mapper";
+import { toAssignedEventSummary, type CoordinatorEventRow } from "./coordinator-event-mapper";
 
 describe("coordinator event mapper", () => {
-  it("carries the request the event was opened from", () => {
-    const row: CoordinatorEventRow = {
-      event_id: 5,
-      event_request_id: 24,
-      name: "Operations Roadmap Conference",
-      status: "Planning",
-      preferred_date: "2026-11-20",
-      assigned_coordinator_user_account_id: 2,
-      client_organisation_id: 1,
-    };
+  const row: CoordinatorEventRow = {
+    event_id: 5,
+    event_request_id: 24,
+    name: "Operations Roadmap Conference",
+    status: "Planning",
+    preferred_date: "2026-11-20",
+    assigned_coordinator_user_account_id: 2,
+    client_organisation_id: 1,
+  };
+  const organisationNames = new Map([[1, "Test Organisation"]]);
 
-    expect(toDomain(row)).toEqual({
+  it("carries the request the event was opened from, and names its client organisation", () => {
+    expect(toAssignedEventSummary(row, organisationNames)).toEqual({
       id: "5",
       eventRequestId: "24",
       name: "Operations Roadmap Conference",
-      status: "Planning",
+      clientOrganisationName: "Test Organisation",
       preferredDate: "2026-11-20",
-      clientOrganisationId: "1",
-      assignedCoordinatorUserAccountId: "2",
+      status: "Planning",
     });
   });
 
   it("maps a deleted request to no request, not to an id", () => {
-    const row: CoordinatorEventRow = {
-      event_id: 5,
-      event_request_id: null,
-      name: "Operations Roadmap Conference",
-      status: "Planning",
-      preferred_date: null,
-      assigned_coordinator_user_account_id: 2,
-      client_organisation_id: 1,
-    };
+    expect(
+      toAssignedEventSummary({ ...row, event_request_id: null, preferred_date: null }, organisationNames)
+        .eventRequestId,
+    ).toBeNull();
+  });
 
-    expect(toDomain(row).eventRequestId).toBeNull();
+  it("leaves an organisation the name lookup did not return unnamed, rather than failing", () => {
+    expect(toAssignedEventSummary(row, new Map()).clientOrganisationName).toBe("");
   });
 });

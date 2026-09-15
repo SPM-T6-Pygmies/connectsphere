@@ -269,9 +269,9 @@ export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCa
  * Events are opened by approving a request (SPM-34).
  */
 export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCase> {
-  const { events, clientOrganisations } = await coordinatorAdapters();
+  const { events } = await coordinatorAdapters();
 
-  return new ViewAssignedEventsUseCase({ events, clientOrganisations });
+  return new ViewAssignedEventsUseCase({ events });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */

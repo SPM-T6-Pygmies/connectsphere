@@ -1,8 +1,5 @@
-import { clientOrganisationId } from "@/core/domain/client-organisation";
-import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
-import { eventId } from "@/core/domain/event";
-import { eventRequestId } from "@/core/domain/event-request";
-import { userAccountId } from "@/core/domain/user-account";
+import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
+import type { AssignedEventSummary } from "@/core/ports/outbound/coordinator-event-repository";
 
 /**
  * The `event` table's shape, named the way the database names it -- only the
@@ -42,18 +39,22 @@ function toStatus(raw: string): CoordinatorEventStatus {
   return status;
 }
 
-export function toDomain(row: CoordinatorEventRow): CoordinatorEvent {
+/**
+ * One "My events" row, straight from the table row -- no entity in between.
+ *
+ * `organisationNames` is keyed by `client_organisation_id`. An organisation
+ * the name lookup did not return is shown unnamed rather than failing the list.
+ */
+export function toAssignedEventSummary(
+  row: CoordinatorEventRow,
+  organisationNames: ReadonlyMap<number, string>,
+): AssignedEventSummary {
   return {
-    id: eventId(String(row.event_id)),
-    eventRequestId:
-      row.event_request_id === null ? null : eventRequestId(String(row.event_request_id)),
+    id: String(row.event_id),
+    eventRequestId: row.event_request_id === null ? null : String(row.event_request_id),
     name: row.name,
-    status: toStatus(row.status),
+    clientOrganisationName: organisationNames.get(row.client_organisation_id) ?? "",
     preferredDate: row.preferred_date,
-    clientOrganisationId: clientOrganisationId(String(row.client_organisation_id)),
-    assignedCoordinatorUserAccountId:
-      row.assigned_coordinator_user_account_id === null
-        ? null
-        : userAccountId(String(row.assigned_coordinator_user_account_id)),
+    status: toStatus(row.status),
   };
 }
