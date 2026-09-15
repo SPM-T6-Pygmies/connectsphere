@@ -1,16 +1,9 @@
-import type { EventCoordinatorDirectory } from "../ports/outbound/event-coordinator-directory";
+import type {
+  EventCoordinatorDetails,
+  EventCoordinatorDirectory,
+} from "../ports/outbound/event-coordinator-directory";
 
-export interface EventCoordinatorDetails {
-  readonly userAccountId: string;
-  readonly name: string;
-  readonly contactDetails: string | null;
-  readonly communicationPreferences: string | null;
-  readonly department: string | null;
-  readonly availability: string | null;
-  readonly clientOrganisationId: string | null;
-  readonly createdAt: string;
-  readonly updatedAt: string;
-}
+export type { EventCoordinatorDetails } from "../ports/outbound/event-coordinator-directory";
 
 export interface ViewAllEventCoordinatorsResult {
   readonly eventCoordinators: readonly EventCoordinatorDetails[];
@@ -20,27 +13,16 @@ export interface ViewAllEventCoordinatorsDeps {
   readonly eventCoordinators: EventCoordinatorDirectory;
 }
 
-/** The Event Operations Manager's complete coordinator list. */
+/**
+ * The Event Operations Manager's complete coordinator list.
+ *
+ * A thin read slice (ARCHITECTURE.md section 11): nothing in the domain decides
+ * anything about it, so the directory answers with the view itself.
+ */
 export class ViewAllEventCoordinatorsUseCase {
   constructor(private readonly deps: ViewAllEventCoordinatorsDeps) {}
 
   async execute(): Promise<ViewAllEventCoordinatorsResult> {
-    const coordinators = await this.deps.eventCoordinators.listAll();
-
-    return {
-      eventCoordinators: coordinators.map(
-        (coordinator): EventCoordinatorDetails => ({
-          userAccountId: coordinator.id,
-          name: coordinator.name,
-          contactDetails: coordinator.contactDetails,
-          communicationPreferences: coordinator.communicationPreferences,
-          department: coordinator.department,
-          availability: coordinator.availability,
-          clientOrganisationId: coordinator.clientOrganisationId,
-          createdAt: coordinator.createdAt.toISOString(),
-          updatedAt: coordinator.updatedAt.toISOString(),
-        }),
-      ),
-    };
+    return { eventCoordinators: await this.deps.eventCoordinators.listAll() };
   }
 }

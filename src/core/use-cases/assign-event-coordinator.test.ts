@@ -13,24 +13,25 @@ import {
   type EventRequest,
   type EventRequestStatus,
 } from "@/core/domain/event-request";
-import { userAccountId, type UserAccount } from "@/core/domain/user-account";
+import { userAccountId } from "@/core/domain/user-account";
+import type { EventCoordinatorDetails } from "@/core/ports/outbound/event-coordinator-directory";
 
 import { AssignEventCoordinatorUseCase } from "./assign-event-coordinator";
 
 const OLD_COORDINATOR = userAccountId("coordinator-1");
 const NEW_COORDINATOR = userAccountId("coordinator-2");
 
-function coordinator(id: string): UserAccount {
+function coordinator(id: string): EventCoordinatorDetails {
   return {
-    id: userAccountId(id),
+    userAccountId: id,
     name: id,
     contactDetails: null,
     communicationPreferences: null,
     department: "Event Coordination",
     availability: null,
     clientOrganisationId: null,
-    createdAt: new Date("2026-09-01T00:00:00.000Z"),
-    updatedAt: new Date("2026-09-01T00:00:00.000Z"),
+    createdAt: "2026-09-01T00:00:00.000Z",
+    updatedAt: "2026-09-01T00:00:00.000Z",
   };
 }
 
@@ -44,7 +45,7 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
 
 function buildUseCase(
   seed: readonly EventRequest[],
-  coordinators: readonly UserAccount[] = [coordinator(NEW_COORDINATOR)],
+  coordinators: readonly EventCoordinatorDetails[] = [coordinator(NEW_COORDINATOR)],
 ) {
   const eventRequests = new InMemoryEventRequestRepository(seed);
   const useCase = new AssignEventCoordinatorUseCase({
