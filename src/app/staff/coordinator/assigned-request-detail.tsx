@@ -8,8 +8,8 @@ import {
 import type {
   CoordinatorRequestState,
   CoordinatorSection,
-  EventRequest,
 } from "@/core/domain/event-request";
+import type { EventRequestView } from "@/core/use-cases/event-request-view";
 
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
@@ -56,7 +56,7 @@ export function AssignedRequestDetail({
   section,
   origin = "queue",
 }: {
-  eventRequest: EventRequest;
+  eventRequest: EventRequestView;
   requestingOrganiserName: string;
   clientOrganisationName: string;
   /** The Coordinator's reading of the status, from the use case. */
@@ -86,7 +86,7 @@ export function AssignedRequestDetail({
     >
       <PageHeader
         title={details.eventName}
-        description={`${clientOrganisationName} · requested by ${requestingOrganiserName} · submitted ${eventRequest.submittedAt?.toISOString().slice(0, 10) ?? "—"}`}
+        description={`${clientOrganisationName} · requested by ${requestingOrganiserName} · submitted ${eventRequest.submittedAt?.slice(0, 10) ?? "—"}`}
         actions={state === null ? null : <RequestStateBadge state={state} />}
       />
 

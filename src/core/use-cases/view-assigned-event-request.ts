@@ -5,12 +5,13 @@ import {
   eventRequestId,
   type CoordinatorRequestState,
   type CoordinatorSection,
-  type EventRequest,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
+
+import { toEventRequestView, type EventRequestView } from "./event-request-view";
 
 export interface ViewAssignedEventRequestCommand {
   readonly id: string;
@@ -18,7 +19,7 @@ export interface ViewAssignedEventRequestCommand {
 }
 
 export interface ViewAssignedEventRequestResult {
-  readonly eventRequest: EventRequest;
+  readonly eventRequest: EventRequestView;
   readonly requestingOrganiserName: string;
   readonly clientOrganisationName: string;
   /**
@@ -69,7 +70,7 @@ export class ViewAssignedEventRequestUseCase {
     ]);
 
     return {
-      eventRequest: request,
+      eventRequest: toEventRequestView(request),
       requestingOrganiserName: organiserNames.get(request.responsibleOrganiserId) ?? "",
       clientOrganisationName: organisationNames.get(request.clientOrganisationId) ?? "",
       state: coordinatorRequestStateFor(request.status),
