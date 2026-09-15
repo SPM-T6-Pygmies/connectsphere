@@ -8,8 +8,8 @@ import {
   type EventRequestStatus,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
-import type { EventCoordinatorDirectory } from "../ports/outbound/event-coordinator-directory";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
 export interface AssignEventCoordinatorCommand {
   readonly eventRequestId: string;
@@ -24,7 +24,7 @@ export interface AssignEventCoordinatorResult {
 
 export interface AssignEventCoordinatorDeps {
   readonly eventRequests: EventRequestRepository;
-  readonly eventCoordinators: EventCoordinatorDirectory;
+  readonly userAccounts: UserAccountRepository;
 }
 
 export class AssignEventCoordinatorUseCase {
@@ -39,7 +39,7 @@ export class AssignEventCoordinatorUseCase {
       throw new EventRequestNotFoundError(requestId);
     }
 
-    const coordinatorExists = await this.deps.eventCoordinators.exists(coordinatorId);
+    const coordinatorExists = await this.deps.userAccounts.isEventCoordinator(coordinatorId);
     if (!coordinatorExists) {
       throw new EventCoordinatorNotFoundError(coordinatorId);
     }

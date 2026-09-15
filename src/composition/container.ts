@@ -6,7 +6,6 @@ import {
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
-import { SupabaseEventCoordinatorDirectory } from "@/adapters/outbound/supabase/supabase-event-coordinator-directory";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
@@ -152,7 +151,7 @@ export async function buildViewOperationsEventRequest(): Promise<ViewOperationsE
 
 export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinatorsUseCase> {
   return new ViewAllEventCoordinatorsUseCase({
-    eventCoordinators: new SupabaseEventCoordinatorDirectory(await createSupabaseServerClient()),
+    userAccounts: new SupabaseUserAccountRepository(await createSupabaseServerClient()),
   });
 }
 
@@ -160,7 +159,7 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
   const client = await createSupabaseServerClient();
   return new AssignEventCoordinatorUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
-    eventCoordinators: new SupabaseEventCoordinatorDirectory(client),
+    userAccounts: new SupabaseUserAccountRepository(client),
   });
 }
 

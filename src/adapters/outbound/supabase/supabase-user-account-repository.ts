@@ -1,11 +1,13 @@
 import type { ClientOrganisationId } from "@/core/domain/client-organisation";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type {
+  EventCoordinatorDetails,
   OrganiserSummary,
   UserAccountRepository,
 } from "@/core/ports/outbound/user-account-repository";
 
 import type { SupabaseServerClient } from "./client";
+import { toEventCoordinatorDetails, type EventCoordinatorRow } from "./user-account-mapper";
 
 interface UserAccountNameRow {
   user_account_id: number;
@@ -27,10 +29,10 @@ function toKey(id: string): number | null {
 
 /**
  * Reached through database functions (`user_account_names`,
- * `organisation_event_organisers`), not the table -- same reason as
- * `SupabaseEventRequestRepository`: RLS is enabled with no policy, and
- * `anon`'s key has no table grant. Each function can only return rows for the
- * ids or the organisation the caller already named.
+ * `organisation_event_organisers`, `operations_event_coordinators`), not the
+ * table -- same reason as `SupabaseEventRequestRepository`: RLS is enabled
+ * with no policy, and `anon`'s key has no table grant. None of them returns a
+ * credential column.
  */
 export class SupabaseUserAccountRepository implements UserAccountRepository {
   constructor(private readonly client: SupabaseServerClient) {}
@@ -74,5 +76,20 @@ export class SupabaseUserAccountRepository implements UserAccountRepository {
       userAccountId: String(row.user_account_id),
       name: row.name,
     }));
+  }
+
+  async listEventCoordinators(): Promise<readonly EventCoordinatorDetails[]> {
+    const { data, error } = await this.client.rpc("operations_event_coordinators");
+
+    if (error) {
+      throw new Error(`Failed to list Event Coordinators: ${error.message}`, { cause: error });
+    }
+
+    return ((data ?? []) as unknown as EventCoordinatorRow[]).map(toEventCoordinatorDetails);
+  }
+
+  async isEventCoordinator(id: UserAccountId): Promise<boolean> {
+    const coordinators = await this.listEventCoordinators();
+    return coordinators.some((coordinator) => coordinator.userAccountId === id);
   }
 }

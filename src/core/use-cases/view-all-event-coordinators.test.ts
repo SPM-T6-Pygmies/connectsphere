@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { InMemoryEventCoordinatorDirectory } from "@/adapters/outbound/in-memory/in-memory-event-coordinator-directory";
-import type { EventCoordinatorDetails } from "@/core/ports/outbound/event-coordinator-directory";
+import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
+import type { EventCoordinatorDetails } from "@/core/ports/outbound/user-account-repository";
 
 import { ViewAllEventCoordinatorsUseCase } from "./view-all-event-coordinators";
 
@@ -32,7 +32,7 @@ describe("ViewAllEventCoordinatorsUseCase", () => {
       },
     ];
     const useCase = new ViewAllEventCoordinatorsUseCase({
-      eventCoordinators: new InMemoryEventCoordinatorDirectory(coordinators),
+      userAccounts: new InMemoryUserAccountRepository({ eventCoordinators: coordinators }),
     });
 
     await expect(useCase.execute()).resolves.toEqual({
@@ -65,7 +65,7 @@ describe("ViewAllEventCoordinatorsUseCase", () => {
 
   it("returns an empty list when no Event Coordinators exist", async () => {
     const useCase = new ViewAllEventCoordinatorsUseCase({
-      eventCoordinators: new InMemoryEventCoordinatorDirectory(),
+      userAccounts: new InMemoryUserAccountRepository(),
     });
 
     await expect(useCase.execute()).resolves.toEqual({ eventCoordinators: [] });

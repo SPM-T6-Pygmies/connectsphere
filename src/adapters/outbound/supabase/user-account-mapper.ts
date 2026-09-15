@@ -1,4 +1,4 @@
-import type { EventCoordinatorDetails } from "@/core/ports/outbound/event-coordinator-directory";
+import type { EventCoordinatorDetails } from "@/core/ports/outbound/user-account-repository";
 
 /** Credential-free row returned by `operations_event_coordinators`. */
 export interface EventCoordinatorRow {

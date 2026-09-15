@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { InMemoryEventCoordinatorDirectory } from "@/adapters/outbound/in-memory/in-memory-event-coordinator-directory";
 import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
+import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
 import {
   EventCoordinatorNotFoundError,
   EventRequestNotAssignableError,
@@ -14,7 +14,7 @@ import {
   type EventRequestStatus,
 } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
-import type { EventCoordinatorDetails } from "@/core/ports/outbound/event-coordinator-directory";
+import type { EventCoordinatorDetails } from "@/core/ports/outbound/user-account-repository";
 
 import { AssignEventCoordinatorUseCase } from "./assign-event-coordinator";
 
@@ -50,7 +50,7 @@ function buildUseCase(
   const eventRequests = new InMemoryEventRequestRepository(seed);
   const useCase = new AssignEventCoordinatorUseCase({
     eventRequests,
-    eventCoordinators: new InMemoryEventCoordinatorDirectory(coordinators),
+    userAccounts: new InMemoryUserAccountRepository({ eventCoordinators: coordinators }),
   });
   return { useCase, eventRequests };
 }
