@@ -215,10 +215,18 @@ export function AppSidebar({
       className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
       {...props}
     >
-      {/* The icon rail. Never collapses; it is the role's whole navigation. */}
+      {/*
+        The icon rail. Never collapses; it is the role's whole navigation.
+
+        Below md this is the whole drawer, so it takes the sheet's full width
+        and shows its labels: the label-hiding CSS keys off the desktop
+        `.group[data-collapsible]` wrapper, which the mobile Sheet branch of
+        `Sidebar` never renders. Pinning it to the icon width there is what
+        left the drawer a clipped 3rem strip beside 15rem of dead space.
+      */}
       <Sidebar
         collapsible="none"
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+        className="w-full md:w-[calc(var(--sidebar-width-icon)+1px)]! md:border-r"
       >
         <SidebarHeader>
           <SidebarMenu>
