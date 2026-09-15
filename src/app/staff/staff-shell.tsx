@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { MobileQueue } from "@/components/mobile-queue"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -288,7 +289,14 @@ export async function StaffShell({
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>
+        <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+          <MobileQueue
+            role={role}
+            activeSection={activeSection}
+            queueItems={queueItems}
+          />
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

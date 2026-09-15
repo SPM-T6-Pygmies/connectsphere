@@ -16,7 +16,10 @@ import type { LucideIcon } from "lucide-react"
 import {
   bookingById,
   eventById,
+  listPaneItems,
   reservationById,
+  unreadCount,
+  type ListPaneItem,
   type SidebarSection,
   type StaffRole,
 } from "@/lib/wireframe"
@@ -159,4 +162,55 @@ export function currentSection(role: StaffRole, pathname: string): SidebarSectio
     return "reviewed"
   }
   return "archive" // Released | Returned
+}
+
+/**
+ * Whether this path is one of the role's rail destinations -- i.e. a queue
+ * index, not a detail route and not one of the requester's "action" entries.
+ *
+ * Pathname-based rather than viewport-based on purpose: `usePathname()` is
+ * stable during SSR, so the server HTML is already correct. `useIsMobile()`
+ * reports false on the server and would pop the list in after hydration.
+ */
+export function isRailDestination(role: StaffRole, pathname: string): boolean {
+  return railItems(role).some(
+    (item) => item.section !== "action" && item.url === pathname,
+  )
+}
+
+/**
+ * What the list surfaces show for this path: which section is active, its
+ * heading, its rows and the unread count.
+ *
+ * Real data arrives as `queueItems` from the server; venue and technical have
+ * no use case wired yet, so they still fall back to the wireframe fixtures.
+ */
+export function resolveQueue({
+  role,
+  pathname,
+  activeSection,
+  queueItems,
+}: {
+  role: StaffRole
+  pathname: string
+  activeSection?: SidebarSection
+  queueItems?: readonly ListPaneItem[]
+}): {
+  section: SidebarSection
+  heading: string
+  items: readonly ListPaneItem[]
+  unread: number
+} {
+  const section = activeSection ?? currentSection(role, pathname)
+  const items =
+    section !== "notifications" && queueItems !== undefined
+      ? queueItems
+      : listPaneItems(role, section)
+
+  return {
+    section,
+    heading: railItems(role).find((item) => item.section === section)?.title ?? "",
+    items,
+    unread: unreadCount(role),
+  }
 }

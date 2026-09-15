@@ -7,7 +7,7 @@ import * as React from "react"
 
 import { AccountMenu } from "@/components/account-menu"
 import { QueueList } from "@/components/queue-list"
-import { currentSection, railItems } from "@/components/staff-nav"
+import { railItems, resolveQueue } from "@/components/staff-nav"
 import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
@@ -22,9 +22,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import {
-  listPaneItems,
   ROLE_LABELS,
-  unreadCount,
   type ListPaneItem,
   type SidebarSection,
   type StaffRole,
@@ -55,14 +53,12 @@ export function AppSidebar({
   const pathname = usePathname()
   const rail = railItems(role)
 
-  const section = activeSection ?? currentSection(role, pathname)
-
-  const items =
-    section !== "notifications" && queueItems !== undefined
-      ? queueItems
-      : listPaneItems(role, section)
-  const unread = unreadCount(role)
-  const heading = rail.find((item) => item.section === section)?.title ?? ""
+  const { section, heading, items, unread } = resolveQueue({
+    role,
+    pathname,
+    activeSection,
+    queueItems,
+  })
 
   return (
     <Sidebar
