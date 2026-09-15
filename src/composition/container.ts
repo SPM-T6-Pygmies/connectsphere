@@ -286,6 +286,7 @@ export async function buildLogin(): Promise<LoginUseCase> {
 export async function buildLogout(): Promise<LogoutUseCase> {
   return new LogoutUseCase({
     auth: new SupabaseAuthAdapter(await createSupabaseServerClient()),
+    users: new SupabaseUserRepository(createSupabaseAdminClient()),
     auditLogger: new SupabaseAuditLogger(createSupabaseAdminClient()),
   });
 }
@@ -315,14 +316,4 @@ export async function getCurrentOrganiser(): Promise<{
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.organiser ?? null;
-}
-
-/**
- * The signed-in caller's `user_account_id`, whatever their role -- unlike
- * `getCurrentOrganiser`/`getCurrentCoordinator`, which answer `null` for any
- * other role. `null` means no session or no matching `user_account`.
- */
-export async function getCurrentUserAccountId(): Promise<string | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  return (await identifyStaffMember.execute())?.userAccountId ?? null;
 }

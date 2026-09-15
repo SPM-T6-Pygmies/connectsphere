@@ -32,7 +32,6 @@ describe("IdentifyStaffMemberUseCase", () => {
 
   it("acts as an Event Organiser for their client organisation", async () => {
     await expect(identify(user(["Event Organiser"], "org-a"))).resolves.toEqual({
-      userAccountId: "user-1",
       organiser: { userAccountId: "user-1", clientOrganisationId: "org-a", name: "Sam" },
       coordinator: null,
     });
@@ -46,15 +45,13 @@ describe("IdentifyStaffMemberUseCase", () => {
 
   it("acts as an Event Coordinator", async () => {
     await expect(identify(user(["Event Coordinator"]))).resolves.toEqual({
-      userAccountId: "user-1",
       organiser: null,
       coordinator: { userAccountId: "user-1" },
     });
   });
 
-  it("still identifies a member of staff whose role has no screens to act on", async () => {
+  it("acts as neither for a role with no Organiser or Coordinator screens", async () => {
     await expect(identify(user(["Event Operations Manager"]))).resolves.toEqual({
-      userAccountId: "user-1",
       organiser: null,
       coordinator: null,
     });
