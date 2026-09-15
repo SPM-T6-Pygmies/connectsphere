@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { EventRequest } from "@/core/domain/event-request";
+import type { EventRequestView } from "@/core/use-cases/event-request-view";
 
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
@@ -27,7 +27,7 @@ function formatInstantTime(iso: string): string {
  * (SPM-39, SPM-73), so those steps read as not-yet-started rather than
  * inventing a coordinator or a booking the store does not have.
  */
-function timeline(request: EventRequest) {
+function timeline(request: EventRequestView) {
   const reviewed =
     request.status === "Under Review" ||
     request.status === "Approved" ||
@@ -39,7 +39,7 @@ function timeline(request: EventRequest) {
     {
       label: "Submitted",
       done: request.submittedAt !== null,
-      detail: request.submittedAt?.toISOString().slice(0, 10) ?? "Not submitted",
+      detail: request.submittedAt?.slice(0, 10) ?? "Not submitted",
     },
     { label: "Coordinator assigned", done: false, detail: "Awaiting assignment" },
     { label: "Under review", done: reviewed, detail: reviewed ? "Reviewed by your coordinator" : "Not started" },
@@ -56,7 +56,7 @@ export function SubmittedRequestDetail({
   eventRequest,
   origin = "queue",
 }: {
-  eventRequest: EventRequest;
+  eventRequest: EventRequestView;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -73,7 +73,7 @@ export function SubmittedRequestDetail({
     >
       <PageHeader
         title={details.eventName}
-        description={`Submitted ${eventRequest.submittedAt?.toISOString().slice(0, 10) ?? "—"}`}
+        description={`Submitted ${eventRequest.submittedAt?.slice(0, 10) ?? "—"}`}
         actions={<StatusBadge status={eventRequest.status} />}
       />
 

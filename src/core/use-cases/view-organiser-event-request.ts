@@ -2,11 +2,12 @@ import { clientOrganisationId } from "../domain/client-organisation";
 import {
   eventRequestId,
   eventRequestAccessFor,
-  type EventRequest,
   type OrganiserContext,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+
+import { toEventRequestView, type EventRequestView } from "./event-request-view";
 
 export interface ViewOrganiserEventRequestCommand {
   readonly id: string;
@@ -15,7 +16,7 @@ export interface ViewOrganiserEventRequestCommand {
 }
 
 export interface ViewOrganiserEventRequestResult {
-  readonly eventRequest: EventRequest;
+  readonly eventRequest: EventRequestView;
 }
 
 export interface ViewOrganiserEventRequestDeps {
@@ -52,6 +53,6 @@ export class ViewOrganiserEventRequestUseCase {
       return null;
     }
 
-    return { eventRequest: request };
+    return { eventRequest: toEventRequestView(request) };
   }
 }
