@@ -36,13 +36,18 @@ const boundaries = [
             group: ["@/app", "@/app/**", "@/adapters", "@/adapters/**", "@/components", "@/components/**", "@/composition", "@/composition/**", "@/lib", "@/lib/**"],
             message: `${INWARD} The core cannot import outward. Define a port in src/core/ports and let the outside implement it.`,
           },
+          {
+            // The same escape spelled with `../`, which the aliases above do not see.
+            group: ["**/adapters/**", "**/app/**", "**/components/**", "**/composition/**", "**/lib/**"],
+            message: `${INWARD} The core cannot import outward. Define a port in src/core/ports and let the outside implement it.`,
+          },
         ],
       }],
     },
   },
   {
     // Driving adapters. May call use cases, but never reach for infrastructure.
-    files: ["src/app/**", "src/components/**"],
+    files: ["src/app/**", "src/components/**", "src/middleware.ts"],
     rules: {
       "no-restricted-imports": ["error", {
         patterns: [
@@ -63,6 +68,48 @@ const boundaries = [
           {
             group: ["@/app", "@/app/**", "@/components", "@/components/**", "@/composition", "@/composition/**"],
             message: "A driven adapter must not know about the UI or the wiring that assembles it.",
+          },
+        ],
+      }],
+    },
+  },
+  {
+    // Input schemas. Parse untrusted input into what a use case takes; nothing more.
+    files: ["src/adapters/inbound/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          {
+            group: ["@supabase/**", "@/adapters/outbound", "@/adapters/outbound/**", "@/app", "@/app/**", "@/components", "@/components/**", "@/composition", "@/composition/**"],
+            message: "An input schema must not reach infrastructure, the UI or the wiring. It parses; the caller does the rest.",
+          },
+        ],
+      }],
+    },
+  },
+  {
+    // Generic utilities. Everything may use them, so they may use none of it.
+    files: ["src/lib/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          {
+            group: ["@/core", "@/core/**", "@/adapters", "@/adapters/**", "@/app", "@/app/**", "@/components", "@/components/**", "@/composition", "@/composition/**"],
+            message: "src/lib is for generic utilities. Code that knows the application belongs in core, an adapter or composition.",
+          },
+        ],
+      }],
+    },
+  },
+  {
+    // The composition root. Wires use cases to adapters; does not know who renders them.
+    files: ["src/composition/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        patterns: [
+          {
+            group: ["@/app", "@/app/**", "@/components", "@/components/**"],
+            message: "Composition assembles use cases for the UI to call. It must not import the UI itself.",
           },
         ],
       }],

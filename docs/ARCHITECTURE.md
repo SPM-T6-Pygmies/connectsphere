@@ -1190,7 +1190,7 @@ drivers → `app` plus the SDKs.
 
 ### The linter is the reviewer
 
-`eslint.config.mjs` defines three zones. These fail `pnpm lint`, not code review:
+`eslint.config.mjs` defines six zones. These fail `pnpm lint`, not code review:
 
 | Zone | May not import | Why |
 | --- | --- | --- |
@@ -1198,8 +1198,12 @@ drivers → `app` plus the SDKs.
 | `src/core/**` | `@supabase/**` | Talk to Supabase through a port |
 | `src/core/**` | `zod` | Shape validation is a boundary concern (§5) |
 | `src/core/**` | `@/app`, `@/adapters`, `@/components`, `@/composition`, `@/lib` | The Dependency Rule |
-| `src/app/**`, `src/components/**` | `@supabase/**`, `@/adapters/outbound/**` | Driving adapters resolve use cases from `@/composition` |
+| `src/core/**` | the same folders reached by a relative `../` path | The Dependency Rule, without the alias |
+| `src/app/**`, `src/components/**`, `src/middleware.ts` | `@supabase/**`, `@/adapters/outbound/**` | Driving adapters resolve use cases from `@/composition` |
 | `src/adapters/outbound/**` | `@/app`, `@/components`, `@/composition` | A driven adapter must not know the UI or its own wiring |
+| `src/adapters/inbound/**` | `@supabase/**`, `@/adapters/outbound/**`, `@/app`, `@/components`, `@/composition` | A schema parses input; it does not reach infrastructure or the UI |
+| `src/lib/**` | `@/core`, `@/adapters`, `@/app`, `@/components`, `@/composition` | Generic utilities sit below everything that uses them |
+| `src/composition/**` | `@/app`, `@/components` | Wiring assembles use cases; it does not know who renders them |
 
 `src/core/**/*.test.ts` is exempt from the first zone, because a test is a
 driving adapter (§4).
