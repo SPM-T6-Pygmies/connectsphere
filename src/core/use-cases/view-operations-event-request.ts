@@ -1,4 +1,8 @@
-import { eventRequestId, operationsQueueFor } from "../domain/event-request";
+import {
+  canAssignEventCoordinator,
+  eventRequestId,
+  operationsQueueFor,
+} from "../domain/event-request";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import { toOperationsEventRequest, type OperationsEventRequest } from "./operations-event-request";
 
@@ -8,6 +12,12 @@ export interface ViewOperationsEventRequestCommand {
 
 export interface ViewOperationsEventRequestResult {
   readonly eventRequest: OperationsEventRequest;
+  /**
+   * Whether a coordinator can be assigned to it now -- `canAssignEventCoordinator`'s
+   * answer, for the screen to gate the form on, not to trust in place of the
+   * assignment's own check.
+   */
+  readonly canAssignCoordinator: boolean;
 }
 
 export interface ViewOperationsEventRequestDeps {
@@ -29,8 +39,13 @@ export class ViewOperationsEventRequestUseCase {
   ): Promise<ViewOperationsEventRequestResult | null> {
     const request = await this.deps.eventRequests.findById(eventRequestId(command.id));
 
-    return request === null || operationsQueueFor(request) === null
-      ? null
-      : { eventRequest: toOperationsEventRequest(request) };
+    if (request === null || operationsQueueFor(request) === null) {
+      return null;
+    }
+
+    return {
+      eventRequest: toOperationsEventRequest(request),
+      canAssignCoordinator: canAssignEventCoordinator(request.status),
+    };
   }
 }

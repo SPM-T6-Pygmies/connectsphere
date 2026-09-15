@@ -438,6 +438,17 @@ export function reassignResponsibleOrganiser(
 }
 
 /**
+ * Whether an Event Coordinator can be assigned to a request in this status.
+ *
+ * Not a Draft, which the Organiser has not submitted, and not a request
+ * decided without becoming an event (Rejected, Withdrawn), which has no review
+ * left to run. Every other request can take a coordinator, or a new one.
+ */
+export function canAssignEventCoordinator(status: EventRequestStatus): boolean {
+  return status !== "Draft" && status !== "Withdrawn" && status !== "Rejected";
+}
+
+/**
  * Assigns or reassigns the Event Coordinator responsible for reviewing a request.
  *
  * Assignment starts the review only when the request has just been Submitted.
@@ -447,11 +458,7 @@ export function assignEventCoordinator(
   request: EventRequest,
   coordinatorId: UserAccountId,
 ): EventRequest {
-  if (
-    request.status === "Draft" ||
-    request.status === "Withdrawn" ||
-    request.status === "Rejected"
-  ) {
+  if (!canAssignEventCoordinator(request.status)) {
     throw new EventRequestNotAssignableError(request.status);
   }
 

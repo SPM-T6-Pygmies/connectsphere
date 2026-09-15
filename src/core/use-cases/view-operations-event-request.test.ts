@@ -33,6 +33,19 @@ describe("ViewOperationsEventRequestUseCase", () => {
       assignedCoordinatorUserAccountId: "7",
       updatedAt: "2026-09-13T04:00:00.000Z",
     });
+    expect(result?.canAssignCoordinator).toBe(true);
+  });
+
+  it("reports that a Rejected request cannot take a coordinator", async () => {
+    const useCase = new ViewOperationsEventRequestUseCase({
+      eventRequests: new InMemoryEventRequestRepository([
+        eventRequestFixture({ id: eventRequestId("42"), status: "Rejected" }),
+      ]),
+    });
+
+    const result = await useCase.execute({ id: "42" });
+
+    expect(result?.canAssignCoordinator).toBe(false);
   });
 
   it("returns null when the event request does not exist", async () => {

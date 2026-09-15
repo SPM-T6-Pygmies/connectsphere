@@ -15,6 +15,7 @@ import {
 } from "./errors";
 import {
   approveEventRequest,
+  canAssignEventCoordinator,
   coordinatorArchiveStateFor,
   coordinatorQueueStateFor,
   coordinatorRequestStateFor,
@@ -423,6 +424,22 @@ describe("operationsQueueFor", () => {
       expect(
         operationsQueueFor(request({ status, assignedCoordinatorUserAccountId: COORDINATOR })),
       ).toBe("assigned");
+    },
+  );
+});
+
+describe("canAssignEventCoordinator", () => {
+  it.each(["Submitted", "Under Review", "Returned", "Approved"] as const)(
+    "lets a %s request take a coordinator",
+    (status) => {
+      expect(canAssignEventCoordinator(status)).toBe(true);
+    },
+  );
+
+  it.each(["Draft", "Withdrawn", "Rejected"] as const)(
+    "refuses a coordinator for a %s request",
+    (status) => {
+      expect(canAssignEventCoordinator(status)).toBe(false);
     },
   );
 });
