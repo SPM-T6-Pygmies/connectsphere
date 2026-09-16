@@ -17,7 +17,9 @@ export function QueueEmptyState({
   description?: string;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-2 py-24 text-center">
+    // Hidden below md: there the queue is the page, so "nothing is open yet"
+    // has nothing to say.
+    <div className="hidden flex-1 flex-col items-center justify-center gap-2 py-24 text-center md:flex">
       <Icon className="text-muted-foreground/40 size-10" />
       <p className="text-muted-foreground text-sm font-medium">{title}</p>
       {description ? (

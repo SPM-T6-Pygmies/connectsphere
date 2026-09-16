@@ -1,8 +1,11 @@
+import { ArrowLeftIcon } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { MobileQueue } from "@/components/mobile-queue"
+import { StaffBottomNav } from "@/components/staff-bottom-nav"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -239,6 +242,13 @@ export async function StaffShell({
 
   const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection)
 
+  // Detail screens route through `detailCrumbs`, which always gives two crumbs
+  // with an href on the first; index screens give one with none. So the crumbs
+  // already say both "is this a detail route" and where back goes -- and they
+  // distinguish a record opened from its queue from the same record opened
+  // from the inbox, which is what makes the arrow land where it came from.
+  const backHref = crumbs.length > 1 ? crumbs.at(-2)?.href : undefined
+
   return (
     // The two-pane sidebar is the icon rail plus a list pane, so it needs the
     // wider track; the rail's own width comes from --sidebar-width-icon.
@@ -252,12 +262,27 @@ export async function StaffShell({
         queueItems={queueItems}
         activeSection={activeSection}
       />
-      <SidebarInset>
+      {/*
+        min-w-0: SidebarInset is a flex item in SidebarProvider's row, so its
+        default min-width:auto lets a table wider than the viewport widen the
+        whole page instead of scrolling inside Table's own overflow-x-auto.
+      */}
+      <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
-          <SidebarTrigger className="-ml-1" />
+          {/* Below md there is no list pane to toggle; the arrow goes back. */}
+          <SidebarTrigger className="-ml-1 hidden md:flex" />
+          {backHref ? (
+            <Link
+              href={backHref}
+              aria-label="Back"
+              className="hover:bg-accent -ml-1 flex size-7 items-center justify-center rounded-md md:hidden"
+            >
+              <ArrowLeftIcon className="size-4" />
+            </Link>
+          ) : null}
           <Separator
             orientation="vertical"
-            className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+            className="mr-2 hidden data-vertical:h-4 data-vertical:self-auto md:block"
           />
           <Breadcrumb>
             <BreadcrumbList>
@@ -283,8 +308,22 @@ export async function StaffShell({
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">{children}</div>
+        {/*
+          The bottom bar is fixed, so it is out of flow: pad the content past
+          it below md. md:pb-6 is spelled out rather than left to md:p-6 --
+          Tailwind emits padding before padding-bottom, and media blocks carry
+          no extra specificity, so relying on order would be a bet.
+        */}
+        <div className="flex flex-1 flex-col gap-6 p-4 pb-[calc(var(--staff-bottom-nav-height)+env(safe-area-inset-bottom))] md:p-6 md:pb-6">
+          <MobileQueue
+            role={role}
+            activeSection={activeSection}
+            queueItems={queueItems}
+          />
+          {children}
+        </div>
       </SidebarInset>
+      <StaffBottomNav role={role} />
     </SidebarProvider>
   )
 }

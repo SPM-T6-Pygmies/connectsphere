@@ -47,68 +47,71 @@ export function NotificationInbox({ role }: { role: StaffRole }) {
         }
       />
 
-      {notifications.length === 0 ? (
-        <EmptyState
-          title="Nothing yet"
-          description="Notifications about your events will arrive here."
-        />
-      ) : (
-        <div className="rounded-xl border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-8" />
-                <TableHead>Notification</TableHead>
-                <TableHead>Trigger</TableHead>
-                <TableHead>Event</TableHead>
-                <TableHead>Received</TableHead>
-                <TableHead className="text-right">Card</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {notifications.map((notification) => (
-                <TableRow key={notification.id}>
-                  <TableCell>
-                    {notification.unread ? (
-                      <span
-                        className="bg-primary block size-1.5 rounded-full"
-                        aria-label="Unread"
-                      />
-                    ) : null}
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/staff/${role}/notifications/${notification.id}`}
-                      className={
-                        notification.unread
-                          ? "font-medium hover:underline"
-                          : "hover:underline"
-                      }
-                    >
-                      {notification.subject}
-                    </Link>
-                    <div className="text-muted-foreground max-w-md text-xs">
-                      {notification.body}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{notification.trigger}</Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {notification.eventName}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground whitespace-nowrap">
-                    {notification.receivedAt}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-right font-mono text-xs">
-                    {notification.card}
-                  </TableCell>
+      {/* Below md the queue renders as the page body; see MobileQueue. */}
+      <div className="hidden md:block">
+        {notifications.length === 0 ? (
+          <EmptyState
+            title="Nothing yet"
+            description="Notifications about your events will arrive here."
+          />
+        ) : (
+          <div className="rounded-xl border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8" />
+                  <TableHead>Notification</TableHead>
+                  <TableHead>Trigger</TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Received</TableHead>
+                  <TableHead className="text-right">Card</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+              </TableHeader>
+              <TableBody>
+                {notifications.map((notification) => (
+                  <TableRow key={notification.id}>
+                    <TableCell>
+                      {notification.unread ? (
+                        <span
+                          className="bg-primary block size-1.5 rounded-full"
+                          aria-label="Unread"
+                        />
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/staff/${role}/notifications/${notification.id}`}
+                        className={
+                          notification.unread
+                            ? "font-medium hover:underline"
+                            : "hover:underline"
+                        }
+                      >
+                        {notification.subject}
+                      </Link>
+                      <div className="text-muted-foreground max-w-md text-xs">
+                        {notification.body}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{notification.trigger}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {notification.eventName}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {notification.receivedAt}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-right font-mono text-xs">
+                      {notification.card}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
 
       <Alert variant="info">
         <InfoIcon />

@@ -1,27 +1,13 @@
 "use client"
 
-import {
-  ArchiveIcon,
-  BellIcon,
-  Building2Icon,
-  CalendarCheckIcon,
-  CheckIcon,
-  FilePlusIcon,
-  InboxIcon,
-  LayoutGridIcon,
-  MapPinIcon,
-  ProjectorIcon,
-  SendIcon,
-  UserCheckIcon,
-  UsersIcon,
-} from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+import { LayoutGridIcon, UsersIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import * as React from "react"
 
-import { StatusBadge } from "@/app/staff/status-badge"
 import { AccountMenu } from "@/components/account-menu"
+import { QueueList } from "@/components/queue-list"
+import { railItems, resolveQueue } from "@/components/staff-nav"
 import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
@@ -36,144 +22,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import {
-  bookingById,
-  eventById,
-  listPaneItems,
-  reservationById,
   ROLE_LABELS,
-  unreadCount,
   type ListPaneItem,
   type SidebarSection,
   type StaffRole,
 } from "@/lib/wireframe"
-
-interface RailItem {
-  readonly section: SidebarSection | "action"
-  readonly title: string
-  readonly url: string
-  readonly icon: LucideIcon
-}
-
-/** The rail entries each role works, named in their own vocabulary. */
-const RAIL: Record<StaffRole, RailItem[]> = {
-  requester: [
-    { section: "drafts", title: "Drafts", url: "/staff/requester", icon: InboxIcon },
-    { section: "submitted", title: "Submitted", url: "/staff/requester/submitted", icon: SendIcon },
-  ],
-  ops: [
-    { section: "unassigned", title: "Unassigned", url: "/staff/ops", icon: InboxIcon },
-    { section: "assigned", title: "Assigned", url: "/staff/ops/assigned", icon: UserCheckIcon },
-  ],
-  coordinator: [
-    { section: "requests", title: "My requests", url: "/staff/coordinator", icon: InboxIcon },
-    { section: "events", title: "My events", url: "/staff/coordinator/events", icon: CalendarCheckIcon },
-    { section: "archive", title: "Archive", url: "/staff/coordinator/archive", icon: ArchiveIcon },
-  ],
-  venue: [
-    { section: "requested", title: "Requests", url: "/staff/venue", icon: MapPinIcon },
-    { section: "decided", title: "Decided", url: "/staff/venue/decided", icon: CheckIcon },
-    { section: "archive", title: "Archive", url: "/staff/venue/archive", icon: ArchiveIcon },
-  ],
-  technical: [
-    { section: "needsReview", title: "Needs review", url: "/staff/technical", icon: ProjectorIcon },
-    { section: "reviewed", title: "Reviewed", url: "/staff/technical/reviewed", icon: CheckIcon },
-    { section: "archive", title: "Archive", url: "/staff/technical/archive", icon: ArchiveIcon },
-  ],
-}
-
-function railItems(role: StaffRole): RailItem[] {
-  const items: RailItem[] = [
-    ...RAIL[role],
-    {
-      section: "notifications",
-      title: "Notifications",
-      url: `/staff/${role}/notifications`,
-      icon: BellIcon,
-    },
-  ]
-
-  if (role === "requester") {
-    items.push(
-      {
-        section: "action",
-        title: "Organisation events",
-        url: "/staff/requester/organisation",
-        icon: Building2Icon,
-      },
-      {
-        section: "action",
-        title: "New request",
-        url: "/staff/requester/new",
-        icon: FilePlusIcon,
-      },
-    )
-  }
-
-  return items
-}
-
-/**
- * Which section of the rail a path belongs to.
- *
- * Each role's static nested routes are checked before ever treating the last
- * path segment as a fixture id, so a section index page (e.g. "/staff/ops/
- * assigned") is never mistaken for a detail route -- only what's left over
- * after those checks is looked up as a record, and branched on its status.
- */
-function currentSection(role: StaffRole, pathname: string): SidebarSection {
-  if (pathname.startsWith(`/staff/${role}/notifications`)) return "notifications"
-
-  if (role === "requester") {
-    if (pathname === "/staff/requester" || pathname.startsWith("/staff/requester/new")) {
-      return "drafts"
-    }
-    if (pathname.startsWith("/staff/requester/submitted")) return "submitted"
-    return "submitted" // only remaining shape is /staff/requester/[id], never a draft
-  }
-
-  if (role === "ops") {
-    if (pathname === "/staff/ops") return "unassigned"
-    if (pathname.startsWith("/staff/ops/assigned")) return "assigned"
-    const event = eventById(pathname.split("/")[3] ?? "")
-    return event?.request.assignedCoordinator !== null ? "assigned" : "unassigned"
-  }
-
-  if (role === "coordinator") {
-    if (pathname.startsWith("/staff/coordinator/events")) return "events"
-    if (pathname.startsWith("/staff/coordinator/archive")) return "archive"
-    if (pathname === "/staff/coordinator") return "requests"
-    const event = eventById(pathname.split("/")[3] ?? "")
-    if (!event) return "requests"
-    if (event.request.status === "Approved") return "events"
-    if (["Rejected", "Returned", "Withdrawn"].includes(event.request.status)) return "archive"
-    return "requests" // Submitted | Under Review
-  }
-
-  if (role === "venue") {
-    if (pathname === "/staff/venue") return "requested"
-    if (pathname.startsWith("/staff/venue/decided")) return "decided"
-    if (pathname.startsWith("/staff/venue/archive")) return "archive"
-    const entry = bookingById(pathname.split("/")[3] ?? "")
-    if (!entry) return "requested"
-    if (entry.booking.status === "Requested") return "requested"
-    if (entry.booking.status === "Tentative Hold" || entry.booking.status === "Confirmed") {
-      return "decided"
-    }
-    return "archive" // Rejected | Released | Cancelled
-  }
-
-  // technical
-  if (pathname === "/staff/technical") return "needsReview"
-  if (pathname.startsWith("/staff/technical/reviewed")) return "reviewed"
-  if (pathname.startsWith("/staff/technical/archive")) return "archive"
-  const entry = reservationById(pathname.split("/")[3] ?? "")
-  if (!entry) return "needsReview"
-  if (entry.reservation.status === "Requested") return "needsReview"
-  if (["Reserved", "Partially Reserved", "Unavailable"].includes(entry.reservation.status)) {
-    return "reviewed"
-  }
-  return "archive" // Released | Returned
-}
 
 /**
  * The staff shell: an icon rail, a list of what the acting role is working
@@ -200,14 +53,12 @@ export function AppSidebar({
   const pathname = usePathname()
   const rail = railItems(role)
 
-  const section = activeSection ?? currentSection(role, pathname)
-
-  const items =
-    section !== "notifications" && queueItems !== undefined
-      ? queueItems
-      : listPaneItems(role, section)
-  const unread = unreadCount(role)
-  const heading = rail.find((item) => item.section === section)?.title ?? ""
+  const { section, heading, items, unread } = resolveQueue({
+    role,
+    pathname,
+    activeSection,
+    queueItems,
+  })
 
   return (
     <Sidebar
@@ -215,10 +66,18 @@ export function AppSidebar({
       className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
       {...props}
     >
-      {/* The icon rail. Never collapses; it is the role's whole navigation. */}
+      {/*
+        The icon rail. Never collapses; it is the role's whole navigation.
+
+        Below md this is the whole drawer, so it takes the sheet's full width
+        and shows its labels: the label-hiding CSS keys off the desktop
+        `.group[data-collapsible]` wrapper, which the mobile Sheet branch of
+        `Sidebar` never renders. Pinning it to the icon width there is what
+        left the drawer a clipped 3rem strip beside 15rem of dead space.
+      */}
       <Sidebar
         collapsible="none"
-        className="w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
+        className="w-full md:w-[calc(var(--sidebar-width-icon)+1px)]! md:border-r"
       >
         <SidebarHeader>
           <SidebarMenu>
@@ -327,43 +186,7 @@ export function AppSidebar({
         <SidebarContent>
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
-              {items.length === 0 ? (
-                <p className="text-muted-foreground p-4 text-sm">
-                  Nothing here.
-                </p>
-              ) : (
-                items.map((item) => {
-                  const active = pathname === item.href.split("?")[0]
-
-                  return (
-                    <Link
-                      href={item.href}
-                      key={item.id}
-                      className={`hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full min-w-0 flex-col items-start gap-2 border-b p-4 text-sm leading-tight whitespace-nowrap last:border-b-0 ${
-                        active ? "bg-sidebar-accent" : ""
-                      }`}
-                    >
-                      <div className="flex w-full min-w-0 items-center gap-2">
-                        <span className="min-w-0 truncate font-medium">
-                          {item.title}
-                        </span>
-                        <span className="text-muted-foreground ml-auto shrink-0 text-xs">
-                          {item.meta}
-                        </span>
-                      </div>
-                      <div className="flex w-full min-w-0 items-center gap-2">
-                        <StatusBadge status={item.status} />
-                        {item.unread ? (
-                          <span className="bg-primary ml-auto size-1.5 shrink-0 rounded-full" />
-                        ) : null}
-                      </div>
-                      <span className="line-clamp-2 w-full text-xs whitespace-break-spaces">
-                        {item.teaser}
-                      </span>
-                    </Link>
-                  )
-                })
-              )}
+              <QueueList items={items} activePath={pathname} />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>

@@ -83,7 +83,10 @@ export default async function CoordinatorEventsPage() {
         title="My events"
         description="Approved requests you are planning, from submission through completion."
       />
-      <AssignedEventTable events={events} />
+      {/* Below md the queue renders as the page body; see MobileQueue. */}
+      <div className="hidden md:block">
+        <AssignedEventTable events={events} />
+      </div>
     </StaffShell>
   );
 }
