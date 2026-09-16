@@ -27,9 +27,9 @@
    ↓
 6. Middleware:
    - Runs on every request
-   - Calls updateSession() to refresh token
-   - Checks hasAuthCookie for route protection
+   - Calls updateSession() to refresh token and read the session claims
    - Redirects unauthenticated users from /staff/* to /auth/login
+   - Leaves every other route public (/events, /registrations/*, /auth/*, /)
    ↓
 7. Browser stores session cookie + user can access protected routes
 ```
@@ -210,16 +210,14 @@ Set-Cookie: sb-...-auth-token=<JWT>;
 
 ## What Happens WITHOUT Auth Cookie
 
-### No Cookie → Request Reaches Middleware
+### No Session → Request Reaches Middleware
 ```typescript
 // src/middleware.ts
-const hasAuthCookie = request.cookies.has('sb-...-auth-token');
+const { response, user } = await updateSession(request);
 
-if (pathname.startsWith('/staff')) {
-  if (!hasAuthCookie) {
-    // Redirect to login
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
+if (request.nextUrl.pathname.startsWith('/staff') && !user) {
+  // Redirect to login
+  return NextResponse.redirect(new URL('/auth/login', request.url));
 }
 ```
 
@@ -232,12 +230,10 @@ if (pathname.startsWith('/staff')) {
 
 ## What Happens WITH Auth Cookie
 
-### Cookie Present → Middleware Allows Access
+### Session Present → Middleware Allows Access
 ```typescript
-if (hasAuthCookie) {
-  // Continue to page
-  return response;
-}
+// user holds the session claims, so /staff/* is allowed through
+return response;
 ```
 
 ### Page Can Access User Data
@@ -259,9 +255,11 @@ const assignments = await supabase
 
 ### Pattern 1: Route Protection via Middleware
 ```
-Request → Middleware checks auth cookie
-  ✓ Has cookie → Allow
-  ✗ No cookie → Redirect to /auth/login
+Request for /staff/* → Middleware checks the session claims
+  ✓ Signed in  → Allow
+  ✗ No session → Redirect to /auth/login
+
+Any other route → Allow (public)
 ```
 
 ### Pattern 2: Role-Based Redirects
@@ -293,7 +291,7 @@ Instead of querying roles every page load:
 ### Automatic Refresh (Middleware)
 ```typescript
 // src/middleware.ts calls updateSession()
-const response = await updateSession(request);
+const { response, user } = await updateSession(request);
 // Supabase automatically extends session if close to expiration
 ```
 
