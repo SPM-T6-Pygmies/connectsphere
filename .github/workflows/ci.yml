@@ -78,6 +78,13 @@ jobs:
         with:
           # Full history so the rebase before pushing has something to rebase onto.
           fetch-depth: 0
+          # GITHUB_TOKEN cannot push to main: the basic-protection ruleset puts a
+          # pull_request rule on it, and GitHub Actions is built in rather than an
+          # installed org app, so it cannot be named as a bypass actor. This is an
+          # admin's fine-grained PAT (Contents: read and write, this repo only),
+          # and the ruleset lets the admin role bypass.
+          # One-time setup: docs/tests/README.md#recording-runs.
+          token: ${{ secrets.TEST_RECORD_TOKEN }}
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -96,7 +103,13 @@ jobs:
         run: pnpm test:report --record
 
       - name: Commit the record
+        env:
+          HAS_TOKEN: ${{ secrets.TEST_RECORD_TOKEN != '' }}
         run: |
+          if [ "$HAS_TOKEN" != "true" ]; then
+            echo "::error title=Missing secret::TEST_RECORD_TOKEN is not set, so the run cannot be recorded. See docs/tests/README.md."
+            exit 1
+          fi
           if git diff --quiet docs/tests; then
             echo "Nothing changed; not committing."
             exit 0

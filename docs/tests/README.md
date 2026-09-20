@@ -124,3 +124,32 @@ the case is genuinely gone, not just renamed.
 Written only by CI, only on a green merge to `main`. One row per merge with the
 commit, the PR, the totals and the per-domain breakdown — the evidence that the
 suite was green at that build. Failing runs are not recorded.
+
+### Recording runs
+
+The `record` job commits back to `main`, which takes one piece of setup that is
+not in this repo.
+
+`main` carries the `basic-protection` ruleset, whose `pull_request` rule means
+every change arrives through a PR. The built-in `GITHUB_TOKEN` cannot get past
+it, and GitHub Actions cannot be named as a bypass actor here — it is built into
+GitHub rather than installed into the org, so the API rejects it. The job
+therefore pushes as an admin, whose role _is_ allowed to bypass.
+
+**One-time setup**
+
+1. A repo admin creates a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new):
+   - **Repository access** — only `SPM-T6-Pygmies/connectsphere`
+   - **Permissions** — Repository permissions → **Contents: Read and write**. Nothing else.
+   - Set an expiry you will notice. When it lapses the `record` job fails; the
+     `checks` job, and therefore the PR gate, is unaffected.
+2. Save it as the repository secret **`TEST_RECORD_TOKEN`**
+   (Settings → Secrets and variables → Actions).
+3. On the `basic-protection` ruleset, add **Repository admin** as a bypass actor.
+
+Until step 3 is done the push is rejected by the ruleset; until steps 1–2 are
+done the job fails early with a named error rather than a confusing git message.
+
+This does mean any repo admin can push to `main` without a PR. That is the
+trade being made for a ledger that lives in the repo rather than in an artifact
+that expires.
