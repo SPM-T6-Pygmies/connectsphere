@@ -143,11 +143,18 @@ that human, and the pushes are indistinguishable from their own work.
 
 **One-time setup**
 
-1. Create the app — org **Settings → Developer settings → GitHub Apps → New**:
+1. Create the app **owned by the organisation**, not by you. Go straight to
+   <https://github.com/organizations/SPM-T6-Pygmies/settings/apps/new> — needs
+   org owner rights. The personal page at `github.com/settings/apps/new` looks
+   identical and is the wrong one: an app created there belongs to your account,
+   cannot be installed on the org without opening it to "Any account", and
+   leaves with you. The breadcrumb should read
+   `Organization settings / Developer settings / GitHub Apps`.
    - **Name** anything, e.g. `connectsphere-test-recorder`. Homepage URL can be the repo.
    - **Uncheck Webhook → Active.** It receives nothing.
    - **Repository permissions → Contents: Read and write.** Nothing else.
-   - **Where can this app be installed** — Only on this account.
+   - **Where can this app be installed** — Only on this account. On an
+     org-owned app "this account" _is_ the org.
 2. On the app's page: **Generate a private key** (downloads a `.pem`), and note
    the **App ID**.
 3. **Install App** → this org → **Only select repositories** → `connectsphere`.
