@@ -138,11 +138,6 @@ function buildRegistry(existing, cases, domains) {
   const byKey = new Map(existing.filter((r) => r.Source !== "manual").map((r) => [keyOf(r), r]));
   const manual = existing.filter((r) => r.Source === "manual");
 
-  let nextId = existing.reduce((max, r) => {
-    const m = /^UT-(\d+)$/.exec(r.TestID ?? "");
-    return m ? Math.max(max, Number(m[1])) : max;
-  }, 0);
-
   const seen = new Set();
   const rows = [];
 
@@ -151,7 +146,7 @@ function buildRegistry(existing, cases, domains) {
     seen.add(key);
     const prior = byKey.get(key);
     rows.push({
-      TestID: prior?.TestID || `UT-${String(++nextId).padStart(4, "0")}`,
+      TestID: prior?.TestID ?? "",
       Domain: domainFor(c.file, domains),
       Quadrant: prior?.Quadrant || "Q1",
       Source: "auto",
@@ -181,6 +176,16 @@ function buildRegistry(existing, cases, domains) {
     a.File.localeCompare(b.File) ||
     a.Suite.localeCompare(b.Suite) ||
     a.TestCase.localeCompare(b.TestCase));
+
+  // IDs are handed out after the sort, so a fresh registry reads in order and an
+  // existing one keeps every ID it already had. Retired IDs are never reused.
+  let nextId = existing.reduce((max, r) => {
+    const m = /^UT-(\d+)$/.exec(r.TestID ?? "");
+    return m ? Math.max(max, Number(m[1])) : max;
+  }, 0);
+  for (const row of sorted) {
+    if (!row.TestID) row.TestID = `UT-${String(++nextId).padStart(4, "0")}`;
+  }
 
   return sorted;
 }
