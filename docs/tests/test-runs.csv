@@ -1,1 +1,2 @@
-RunDate,Commit,PR,Branch,TotalCases,Passed,Failed,DurationSeconds,DomainBreakdown
+RunDate,Commit,PR,Branch,TotalCases,Passed,Failed,DurationSeconds,DomainBreakdown,ExecutedBy
+2026-09-20,da30d9c,54,main,368,368,0,3.1,Authentication:40/40 Event Registration:71/71 Event Staffing:32/32 Request Review:46/46 Event Requests:170/170 Connections:9/9,CI run 35530265499
