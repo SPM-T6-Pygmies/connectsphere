@@ -43,7 +43,8 @@ const COLUMNS = [
 // the column blank.
 const AUTO_PRECONDITION = "None - the test builds its own in-memory fixtures";
 const RUN_COLUMNS = [
-  "RunDate", "Commit", "PR", "Branch", "TotalCases", "Passed", "Failed", "DurationSeconds", "DomainBreakdown",
+  "RunDate", "Commit", "PR", "Branch", "TotalCases", "Passed", "Failed",
+  "DurationSeconds", "DomainBreakdown", "ExecutedBy",
 ];
 
 /* ---------------------------------------------------------------- CSV (RFC 4180) */
@@ -350,18 +351,19 @@ function recordRun(rows, groups, cases, durationMs) {
   const pr = /Merge pull request #(\d+)/.exec(git("log", "-1", "--pretty=%B"))?.[1] ?? "";
   const date = new Date().toISOString().slice(0, 10);
 
-  // Only green runs are ever recorded, so a recorded case's actual result is its
-  // expected one by construction -- that is what "Pass" means here.
   const runBy = process.env.GITHUB_RUN_ID
     ? `CI run ${process.env.GITHUB_RUN_ID}`
     : `${git("config", "user.name") || "local"} (local)`;
+
+  // Only the per-case outcome is stamped here. Who ran it, at which commit and
+  // when describe the *run*, and the whole suite runs at once -- copying them
+  // onto every row would write one fact 368 times and rewrite the file on every
+  // merge. They live in the ledger, one row per run. ExecutedBy and the
+  // LastPassed columns stay for manual cases, which really are run one at a time.
   const ran = new Set(cases.filter((c) => c.passed).map(keyOf));
   const stamped = rows.map((r) =>
     r.Source === "auto" && ran.has(keyOf(r))
-      ? {
-          ...r, Status: "Pass", ActualResult: "As specified", ExecutedBy: runBy,
-          LastPassedCommit: commit.slice(0, 7), LastPassedDate: date,
-        }
+      ? { ...r, Status: "Pass", ActualResult: "As specified" }
       : r);
 
   const run = {
@@ -371,6 +373,7 @@ function recordRun(rows, groups, cases, durationMs) {
     Failed: cases.filter((c) => !c.passed).length,
     DurationSeconds: (durationMs / 1000).toFixed(1),
     DomainBreakdown: groups.map((g) => `${g.name}:${g.passed}/${g.total}`).join(" "),
+    ExecutedBy: runBy,
   };
   return { stamped, runs: [...readTable(RUNS, RUN_COLUMNS), run] };
 }

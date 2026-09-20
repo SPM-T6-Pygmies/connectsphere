@@ -53,10 +53,22 @@ then the execution record.
 | Column | Template field | |
 | --- | --- | --- |
 | `ActualResult` | Actual Result | `As specified` on a recorded pass. Only green runs are ever recorded, so a recorded case's actual result is its expected one by construction. |
-| `Status` | Pass/Fail/Not Executed/Blocked | `Pass` means it passed at `LastPassedCommit`, **not** that it passes now. `Not Executed` means it has not yet been through a green merge. `Retired` is ours: the test no longer exists. |
+| `Status` | Pass/Fail/Not Executed/Blocked | `Pass` means it passed **at the most recent run in [`test-runs.csv`](test-runs.csv)**, not that it passes now. `Not Executed` means it has not yet been through a green merge. `Retired` is ours: the test no longer exists. |
 | `Remarks` | Remarks | |
-| `ExecutedBy` | Executed By | The CI run that recorded it. |
-| `LastPassedDate` | Date of Execution | With `LastPassedCommit`, the build the pass was true for. |
+| `ExecutedBy` | Executed By | Manual rows only — see below. |
+| `LastPassedDate` / `LastPassedCommit` | Date of Execution | Manual rows only — see below. |
+
+**Which build a pass refers to is in the ledger, not on the row.** The whole
+suite runs at once, so every automated case would otherwise carry an identical
+copy of the same commit, date and runner — one fact written 368 times, and a
+368-row rewrite on every single merge. The ledger holds it once per run.
+
+A merge therefore changes only the rows whose outcome actually changed: none at
+all for a typical merge, and one row per test for a merge that adds tests.
+
+`ExecutedBy`, `LastPassedDate` and `LastPassedCommit` stay for **manual** rows,
+which really are executed one at a time, by a named person, on a date that
+differs from case to case.
 
 ### Why three template fields are not prose here
 

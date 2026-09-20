@@ -167,8 +167,9 @@ The rules in short:
   an automated case _are_ the code. A prose copy in the CSV is a second source
   of truth that drifts — the exact failure the registry exists to prevent.
 - **A passing case is only passing as of that build.** `Status` means "passed at
-  `LastPassedCommit`", not "passes now". Only green merges to `main` are
-  recorded; failing runs never are.
+  the most recent run in `test-runs.csv`", not "passes now". Which build that
+  was lives in the ledger, once per run — not copied onto every row. Only green
+  merges to `main` are recorded; failing runs never are.
 - **Manual and UAT cases belong in the registry too**, as `manual` rows pointing
   at their steps in `docs/testing/`. CI cannot verify one for you — whoever runs
   it sets `Status` and `LastPassedDate` by hand.
