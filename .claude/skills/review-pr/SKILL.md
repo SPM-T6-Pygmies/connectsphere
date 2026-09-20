@@ -52,6 +52,10 @@ If the diff is large (>500 lines or so), ask the user which files matter most be
 - Check for correctness, edge cases, error handling, security, and performance.
 - Verify API/DB/schema changes are safe and backwards-compatible where needed.
 - Evaluate tests: missing coverage, brittle fixtures, or nondeterminism.
+- Check the test registry: new or renamed tests must carry a regenerated
+  `docs/tests/test-registry.csv` in the same diff, and each new `describe` should
+  be tagged with the ticket it is evidence for (`describe("… (SPM-79)")`). An
+  untagged test is a traceability gap, not a style nit. See `CLAUDE.md` §7.
 - Confirm naming, architecture, and style align with repo conventions.
 
 **Self-skepticism.** Before reporting an issue, ask: have I actually read the surrounding code, or am I guessing? Is there an off-screen invariant that makes this safe? Could this be my misreading rather than a real bug?
@@ -138,7 +142,11 @@ Focus areas roughly in order of importance. Adapt to the nature of the PR -- a p
 1. **Correctness / logic bugs** -- missing null checks, unhandled branches, wrong operators, race conditions, off-by-one errors.
 2. **Edge cases** -- empty inputs, boundary values, concurrent callers, undefined optional fields.
 3. **Backwards compatibility / regressions** -- API contract changes, schema migrations that break existing data, changed return shapes.
-4. **Test gaps** -- changed logic with no test update, new branches with zero coverage.
+4. **Test gaps** -- changed logic with no test update, new branches with zero
+   coverage, or a new test that traces to no ticket. Watch for coverage theatre:
+   several cases that all exercise the same happy path are not coverage, and
+   when an agent wrote both the code and its tests the two can share a blind
+   spot.
 5. **Security** -- injection, auth/authz bypasses, secrets in logs, unsanitized input reaching DB or shell.
 6. **Performance** -- flag obvious issues (N+1 queries, unbounded loops) but skip deep analysis unless the PR is performance-focused.
 7. **Code style / naming** -- only when it actively harms readability or deviates significantly from surrounding conventions. Do not nitpick.
