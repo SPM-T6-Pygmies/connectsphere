@@ -73,18 +73,36 @@ jobs:
       contents: write
 
     steps:
+      - name: Check the recorder app is configured
+        env:
+          APP_ID: ${{ vars.RECORD_APP_ID }}
+          HAS_KEY: ${{ secrets.RECORD_APP_KEY != '' }}
+        run: |
+          if [ -z "$APP_ID" ] || [ "$HAS_KEY" != "true" ]; then
+            echo "::error title=Recorder app not configured::Set the RECORD_APP_ID variable and the RECORD_APP_KEY secret. See docs/tests/README.md#recording-runs."
+            exit 1
+          fi
+
+      # GITHUB_TOKEN cannot push to main: the basic-protection ruleset puts a
+      # pull_request rule on it, and GitHub Actions is built into GitHub rather
+      # than installed into the org, so it cannot be named as a bypass actor.
+      # This app can be, and unlike a personal access token it is nobody's
+      # account -- the push is attributable to the app and revocable on its own.
+      # The minted token expires in an hour and is scoped to this repo.
+      # One-time setup: docs/tests/README.md#recording-runs.
+      - name: Mint a token for the recorder app
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.RECORD_APP_ID }}
+          private-key: ${{ secrets.RECORD_APP_KEY }}
+
       - name: Check out repository
         uses: actions/checkout@v4
         with:
           # Full history so the rebase before pushing has something to rebase onto.
           fetch-depth: 0
-          # GITHUB_TOKEN cannot push to main: the basic-protection ruleset puts a
-          # pull_request rule on it, and GitHub Actions is built in rather than an
-          # installed org app, so it cannot be named as a bypass actor. This is an
-          # admin's fine-grained PAT (Contents: read and write, this repo only),
-          # and the ruleset lets the admin role bypass.
-          # One-time setup: docs/tests/README.md#recording-runs.
-          token: ${{ secrets.TEST_RECORD_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -103,19 +121,15 @@ jobs:
         run: pnpm test:report --record
 
       - name: Commit the record
-        env:
-          HAS_TOKEN: ${{ secrets.TEST_RECORD_TOKEN != '' }}
         run: |
-          if [ "$HAS_TOKEN" != "true" ]; then
-            echo "::error title=Missing secret::TEST_RECORD_TOKEN is not set, so the run cannot be recorded. See docs/tests/README.md."
-            exit 1
-          fi
           if git diff --quiet docs/tests; then
             echo "Nothing changed; not committing."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Attributed to the app, so the ledger commits are distinguishable
+          # from anyone's own work in the history.
+          git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
           git add docs/tests
           # [skip ci] keeps this push from retriggering the workflow.
           git commit -m "Record passing tests for ${GITHUB_SHA:0:7} [skip ci]"

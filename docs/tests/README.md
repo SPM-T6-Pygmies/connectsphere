@@ -132,24 +132,34 @@ not in this repo.
 
 `main` carries the `basic-protection` ruleset, whose `pull_request` rule means
 every change arrives through a PR. The built-in `GITHUB_TOKEN` cannot get past
-it, and GitHub Actions cannot be named as a bypass actor here — it is built into
-GitHub rather than installed into the org, so the API rejects it. The job
-therefore pushes as an admin, whose role _is_ allowed to bypass.
+it, and GitHub Actions cannot be named as a bypass actor — it is built into
+GitHub rather than installed into the org, so the API rejects it with _"must be
+part of the ruleset source or owner organization"_.
+
+A **GitHub App** can be. The job mints a short-lived token from an app that
+exists only to write this ledger. A personal access token would work too, but it
+authenticates as a person: bypassing the ruleset for it means bypassing it for
+that human, and the pushes are indistinguishable from their own work.
 
 **One-time setup**
 
-1. A repo admin creates a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new):
-   - **Repository access** — only `SPM-T6-Pygmies/connectsphere`
-   - **Permissions** — Repository permissions → **Contents: Read and write**. Nothing else.
-   - Set an expiry you will notice. When it lapses the `record` job fails; the
-     `checks` job, and therefore the PR gate, is unaffected.
-2. Save it as the repository secret **`TEST_RECORD_TOKEN`**
-   (Settings → Secrets and variables → Actions).
-3. On the `basic-protection` ruleset, add **Repository admin** as a bypass actor.
+1. Create the app — org **Settings → Developer settings → GitHub Apps → New**:
+   - **Name** anything, e.g. `connectsphere-test-recorder`. Homepage URL can be the repo.
+   - **Uncheck Webhook → Active.** It receives nothing.
+   - **Repository permissions → Contents: Read and write.** Nothing else.
+   - **Where can this app be installed** — Only on this account.
+2. On the app's page: **Generate a private key** (downloads a `.pem`), and note
+   the **App ID**.
+3. **Install App** → this org → **Only select repositories** → `connectsphere`.
+4. In the repo, Settings → Secrets and variables → Actions:
+   - **Variables** tab → new variable `RECORD_APP_ID` = the App ID
+   - **Secrets** tab → new secret `RECORD_APP_KEY` = the whole `.pem`, `-----BEGIN` line and all
+5. On the `basic-protection` ruleset, add the app as a bypass actor. In the UI it
+   appears in the bypass list by name once installed; by API it is
+   `{"actor_type": "Integration", "actor_id": <app id>, "bypass_mode": "always"}`.
 
-Until step 3 is done the push is rejected by the ruleset; until steps 1–2 are
-done the job fails early with a named error rather than a confusing git message.
+The job fails early with a named error if step 4 is missing, and the push is
+rejected by the ruleset until step 5 is done.
 
-This does mean any repo admin can push to `main` without a PR. That is the
-trade being made for a ledger that lives in the repo rather than in an artifact
-that expires.
+Revoking is one click — uninstall the app — and it takes nobody's access with
+it. Delete the private key from the app page as well if you do.
