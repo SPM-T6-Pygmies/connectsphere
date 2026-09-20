@@ -33,7 +33,7 @@ function buildUseCase() {
   return { useCase, eventRequests };
 }
 
-describe("SaveEventRequestDraftUseCase", () => {
+describe("SaveEventRequestDraftUseCase (SPM-93)", () => {
   it("stores a new draft with whatever was filled in, no mandatory fields required (AC1)", async () => {
     const { useCase, eventRequests } = buildUseCase();
 

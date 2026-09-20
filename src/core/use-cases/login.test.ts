@@ -61,7 +61,7 @@ function buildUseCase() {
   return { useCase, auth, users };
 }
 
-describe("LoginUseCase", () => {
+describe("LoginUseCase (SPM-117)", () => {
   it("authenticates valid staff member and returns user ID with roles", async () => {
     // ARRANGE: Set up use case with in-memory adapters
     const { useCase } = buildUseCase();

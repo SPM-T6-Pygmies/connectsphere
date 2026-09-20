@@ -38,7 +38,7 @@ function buildUseCase() {
   return { useCase, eventRequests };
 }
 
-describe("SubmitEventRequestUseCase", () => {
+describe("SubmitEventRequestUseCase (SPM-31)", () => {
   it("records a complete request and reports it as submitted (AC2)", async () => {
     const { useCase, eventRequests } = buildUseCase();
 

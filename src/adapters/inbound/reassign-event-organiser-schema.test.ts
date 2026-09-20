@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { reassignEventOrganiserSchema } from "./reassign-event-organiser-schema";
 
-describe("reassignEventOrganiserSchema", () => {
+describe("reassignEventOrganiserSchema (SPM-114)", () => {
   it("accepts a request and the Organiser chosen for it", () => {
     const parsed = reassignEventOrganiserSchema.safeParse({
       eventRequestId: "19",

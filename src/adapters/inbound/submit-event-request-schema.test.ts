@@ -24,7 +24,7 @@ const FORM = {
   otherSpecialArrangements: "",
 };
 
-describe("submitEventRequestSchema", () => {
+describe("submitEventRequestSchema (SPM-88)", () => {
   it("turns a filled-in form into the command the use case takes", () => {
     const parsed = submitEventRequestSchema.safeParse(FORM);
 

@@ -31,7 +31,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   return { useCase, eventRequests };
 }
 
-describe("ChangeEventOrganiserUseCase", () => {
+describe("ChangeEventOrganiserUseCase (SPM-114)", () => {
   it("removes the outgoing Organiser's edit access and grants the incoming one's", async () => {
     const { useCase, eventRequests } = buildUseCase([request()]);
 

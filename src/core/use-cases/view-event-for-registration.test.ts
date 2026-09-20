@@ -34,7 +34,7 @@ function buildUseCase(seed: readonly Event[] = [event()]) {
   });
 }
 
-describe("ViewEventForRegistrationUseCase", () => {
+describe("ViewEventForRegistrationUseCase (SPM-79)", () => {
   it("returns the event's name, date, time and venue when it is open for registration", async () => {
     const result = await buildUseCase().execute({ eventId: SUMMIT });
 

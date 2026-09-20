@@ -53,7 +53,7 @@ function buildUseCase() {
   return { useCase, eventRequests };
 }
 
-describe("DiscardEventRequestDraftUseCase", () => {
+describe("DiscardEventRequestDraftUseCase (SPM-38)", () => {
   it("removes a draft its own Organiser started", async () => {
     const { useCase, eventRequests } = buildUseCase();
     const eventRequestId = await buildDraft(eventRequests);

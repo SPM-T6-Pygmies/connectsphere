@@ -27,7 +27,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   });
 }
 
-describe("ViewOrganiserEventRequestUseCase", () => {
+describe("ViewOrganiserEventRequestUseCase (SPM-112)", () => {
   it("returns the request to its own responsible Organiser", async () => {
     const useCase = buildUseCase([request()]);
 

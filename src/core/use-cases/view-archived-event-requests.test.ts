@@ -31,7 +31,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   });
 }
 
-describe("ViewArchivedEventRequestsUseCase", () => {
+describe("ViewArchivedEventRequestsUseCase (SPM-29)", () => {
   it("lists a rejected request assigned to the caller, with its client organisation's name", async () => {
     const useCase = buildUseCase([request()]);
 

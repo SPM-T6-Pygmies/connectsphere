@@ -1,0 +1,311 @@
+{
+  "cycle": "Sprint 1 (Linear cycle 2, team SPM)",
+  "source": "https://linear.app/pygmies/team/SPM/cycle/2",
+  "issues": {
+    "SPM-13": {
+      "title": "Log in to the system",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-14": {
+      "title": "Log out of the system",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-24": {
+      "title": "Register for a confirmed event",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-28": {
+      "title": "Withdraw an event registration",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-29": {
+      "title": "Viewing of all event requests",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-30": {
+      "title": "Reassign an Event Coordinator",
+      "parent": null,
+      "status": "Duplicate"
+    },
+    "SPM-31": {
+      "title": "Submit an event request",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-32": {
+      "title": "View an assigned event request",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-34": {
+      "title": "Approve or reject an event request",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-38": {
+      "title": "Event Request Draft",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-39": {
+      "title": "View my organisation's events",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-78": {
+      "title": "Event Operations Manager landing view (frontend)",
+      "parent": "SPM-29",
+      "status": "Done"
+    },
+    "SPM-79": {
+      "title": "Filter unavailable events from registration search",
+      "parent": "SPM-24",
+      "status": "Done"
+    },
+    "SPM-80": {
+      "title": "Submit registration (happy path)",
+      "parent": "SPM-24",
+      "status": "Done"
+    },
+    "SPM-81": {
+      "title": "Enforce capacity limit on registration submission",
+      "parent": "SPM-24",
+      "status": "Done"
+    },
+    "SPM-82": {
+      "title": "Show registration confirmation",
+      "parent": "SPM-24",
+      "status": "Done"
+    },
+    "SPM-83": {
+      "title": "Capture registration information (Full Name + Email)",
+      "parent": "SPM-24",
+      "status": "Done"
+    },
+    "SPM-84": {
+      "title": "Withdraw a Registered registration",
+      "parent": "SPM-28",
+      "status": "Done"
+    },
+    "SPM-85": {
+      "title": "Release the place freed by a withdrawal",
+      "parent": "SPM-28",
+      "status": "Done"
+    },
+    "SPM-86": {
+      "title": "Show withdrawal confirmation",
+      "parent": "SPM-28",
+      "status": "Done"
+    },
+    "SPM-88": {
+      "title": "finalise all fields needed in a request (optional vs mandatory)",
+      "parent": "SPM-31",
+      "status": "Done"
+    },
+    "SPM-89": {
+      "title": "build post request end point",
+      "parent": "SPM-31",
+      "status": "Done"
+    },
+    "SPM-90": {
+      "title": "front end: form and client validation",
+      "parent": "SPM-31",
+      "status": "Done"
+    },
+    "SPM-91": {
+      "title": "connect front-end form to end point",
+      "parent": "SPM-31",
+      "status": "Done"
+    },
+    "SPM-92": {
+      "title": "unit test",
+      "parent": "SPM-31",
+      "status": "Done"
+    },
+    "SPM-93": {
+      "title": "draft persistence and status field",
+      "parent": "SPM-38",
+      "status": "Done"
+    },
+    "SPM-94": {
+      "title": "allow to save a draft on front end",
+      "parent": "SPM-38",
+      "status": "Done"
+    },
+    "SPM-95": {
+      "title": "Allow EOM to see all unassigned event requests",
+      "parent": "SPM-29",
+      "status": "Canceled"
+    },
+    "SPM-96": {
+      "title": "Allow EOM to see all Event Coordinators",
+      "parent": "SPM-29",
+      "status": "Canceled"
+    },
+    "SPM-97": {
+      "title": "Allow EOM to assign an EC to an event request",
+      "parent": "SPM-29",
+      "status": "Canceled"
+    },
+    "SPM-112": {
+      "title": "Allow an Organiser to view their organisation's event requests",
+      "parent": "SPM-39",
+      "status": "Done"
+    },
+    "SPM-113": {
+      "title": "Enforce Draft-only edit access on event requests",
+      "parent": "SPM-39",
+      "status": "Done"
+    },
+    "SPM-114": {
+      "title": "Change of Event Organiser (reassign responsible Organiser)",
+      "parent": "SPM-39",
+      "status": "Done"
+    },
+    "SPM-115": {
+      "title": "Organisation events view (frontend)",
+      "parent": "SPM-39",
+      "status": "Done"
+    },
+    "SPM-116": {
+      "title": "Database migration + auth data creation",
+      "parent": "SPM-13",
+      "status": "Done"
+    },
+    "SPM-117": {
+      "title": "Create login logic layer",
+      "parent": "SPM-13",
+      "status": "Done"
+    },
+    "SPM-118": {
+      "title": "Create Adapter layer",
+      "parent": "SPM-13",
+      "status": "Done"
+    },
+    "SPM-119": {
+      "title": "Wiring logic and implementation together",
+      "parent": "SPM-13",
+      "status": "Done"
+    },
+    "SPM-120": {
+      "title": "Create Login Page UI",
+      "parent": "SPM-13",
+      "status": "Done"
+    },
+    "SPM-121": {
+      "title": "View the event requests assigned to me",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-122": {
+      "title": "Role-based dashboard page redirect",
+      "parent": "SPM-13",
+      "status": "Done"
+    },
+    "SPM-123": {
+      "title": "Carry the assigned coordinator into the event request domain",
+      "parent": "SPM-32",
+      "status": "Done"
+    },
+    "SPM-124": {
+      "title": "View-assigned-event-request use case, port and in-memory adapter",
+      "parent": "SPM-32",
+      "status": "Done"
+    },
+    "SPM-125": {
+      "title": "Read the assigned coordinator in the Supabase event request adapter",
+      "parent": "SPM-32",
+      "status": "Done"
+    },
+    "SPM-126": {
+      "title": "Replace the coordinator request-review wireframe with the real request",
+      "parent": "SPM-32",
+      "status": "Done"
+    },
+    "SPM-127": {
+      "title": "List-assigned-event-requests use case, port and in-memory adapter",
+      "parent": "SPM-121",
+      "status": "Done"
+    },
+    "SPM-128": {
+      "title": "Supabase query for a coordinator's assigned event requests",
+      "parent": "SPM-121",
+      "status": "Done"
+    },
+    "SPM-129": {
+      "title": "Replace the coordinator queue wireframe with the assigned list",
+      "parent": "SPM-121",
+      "status": "Done"
+    },
+    "SPM-130": {
+      "title": "Assignment of Event Requests",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-131": {
+      "title": "Create Unit Test",
+      "parent": "SPM-39",
+      "status": "Done"
+    },
+    "SPM-132": {
+      "title": "Create Logout server action",
+      "parent": "SPM-14",
+      "status": "Done"
+    },
+    "SPM-133": {
+      "title": "Create Logout UI control",
+      "parent": "SPM-14",
+      "status": "Done"
+    },
+    "SPM-134": {
+      "title": "Create Audit logging function",
+      "parent": "SPM-14",
+      "status": "Done"
+    },
+    "SPM-135": {
+      "title": "Set browser \"back\" protection",
+      "parent": "SPM-14",
+      "status": "Done"
+    },
+    "SPM-136": {
+      "title": "Create test cases and playbook",
+      "parent": "SPM-14",
+      "status": "Done"
+    },
+    "SPM-137": {
+      "title": "Coordinator's view of the events they are running",
+      "parent": null,
+      "status": "Canceled"
+    },
+    "SPM-138": {
+      "title": "Approve and reject transitions in the event request domain",
+      "parent": "SPM-34",
+      "status": "Done"
+    },
+    "SPM-139": {
+      "title": "Decide-event-request use case, port and in-memory adapter",
+      "parent": "SPM-34",
+      "status": "Done"
+    },
+    "SPM-140": {
+      "title": "Persist the decision and open the event in Supabase",
+      "parent": "SPM-34",
+      "status": "Done"
+    },
+    "SPM-141": {
+      "title": "Add decision controls to the coordinator request detail",
+      "parent": "SPM-34",
+      "status": "Done"
+    },
+    "SPM-142": {
+      "title": "Logout audit write likely fails after audit_record grants were revoked",
+      "parent": null,
+      "status": "Done"
+    }
+  }
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { toAssignedEventSummary, type CoordinatorEventRow } from "./coordinator-event-mapper";
 
-describe("coordinator event mapper", () => {
+describe("coordinator event mapper (SPM-137)", () => {
   const row: CoordinatorEventRow = {
     event_id: 5,
     event_request_id: 24,

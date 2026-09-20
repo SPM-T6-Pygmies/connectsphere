@@ -77,6 +77,34 @@ work. It is the gap the IS212 User Story Standard §10 asks you to close:
 > This chain is the team's evidence of **what** was built and **why** — and it is
 > the deliverable when a feature is picked at random in Week 13.
 
+## Tracing a test to its ticket
+
+The ticket lives **in the test name**, not in this CSV. Tag the smallest
+`describe` that is wholly one ticket; every case inside inherits it.
+
+```ts
+describe("ViewEventForRegistrationUseCase (SPM-79)", () => {
+  it("rejects an event that has already completed", ...)
+})
+```
+
+The report resolves each case's ticket innermost-first — an `it()` tag beats its
+`describe`, which beats the `describe` above it — so a block can carry the
+general ticket while one case inside it overrides with its own.
+
+Keeping the tag in the code rather than only in the CSV means a test carries its
+ticket when it moves or is renamed, and the tag is reviewed in the PR that adds
+the test. Re-tagging a test does **not** retire it: the tag is metadata about a
+case, not part of which case it is.
+
+[`tickets.json`](tickets.json) maps each ticket to its title and parent, so the
+registry can fill `TicketTitle` and `UserStory` without reaching Linear. It is a
+snapshot of Sprint 1 (Linear cycle 2) — extend it as later sprints land.
+
+`UserStory` is the column that answers the Week 13 question. Pick a feature,
+say `SPM-28`, filter on it, and every case that is evidence for it is there
+regardless of which sub-task produced it.
+
 ### Manual and UAT cases
 
 Add them by hand with `Source` set to `manual` and an `MT-` id. The generator

@@ -65,7 +65,7 @@ function buildUseCase(
   return { useCase, registrations };
 }
 
-describe("RegisterForEventUseCase", () => {
+describe("RegisterForEventUseCase (SPM-24)", () => {
   it("records a registration and returns the event name, date, time and venue", async () => {
     const { useCase } = buildUseCase();
 

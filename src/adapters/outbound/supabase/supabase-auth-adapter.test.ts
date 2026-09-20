@@ -14,7 +14,7 @@ const FORGED_SESSION = {
   error: null,
 };
 
-describe("SupabaseAuthAdapter.getSession", () => {
+describe("SupabaseAuthAdapter.getSession (SPM-118)", () => {
   it("identifies the caller from the verified token's claims", async () => {
     const adapter = new SupabaseAuthAdapter(
       clientWith({

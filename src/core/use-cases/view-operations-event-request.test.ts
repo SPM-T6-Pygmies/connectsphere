@@ -7,7 +7,7 @@ import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewOperationsEventRequestUseCase } from "./view-operations-event-request";
 
-describe("ViewOperationsEventRequestUseCase", () => {
+describe("ViewOperationsEventRequestUseCase (SPM-29)", () => {
   it("returns the requested event request with its coordinator assignment", async () => {
     const request = eventRequestFixture({
       id: eventRequestId("42"),

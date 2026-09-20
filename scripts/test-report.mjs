@@ -25,11 +25,12 @@ const TESTS_DIR = path.join(ROOT, "docs", "tests");
 const REGISTRY = path.join(TESTS_DIR, "test-registry.csv");
 const RUNS = path.join(TESTS_DIR, "test-runs.csv");
 const DOMAINS = path.join(TESTS_DIR, "domains.json");
+const TICKETS = path.join(TESTS_DIR, "tickets.json");
 
 // Ordered to mirror the IS212 test case template: the specification fields
 // first (written once), then the execution record (one per run).
 const COLUMNS = [
-  "TestID", "Domain", "Quadrant", "Source", "Ticket", "AC",
+  "TestID", "Domain", "Quadrant", "Source", "Ticket", "TicketTitle", "UserStory", "AC",
   "File", "Suite", "TestCase",
   "Preconditions", "TestSteps", "TestData", "ExpectedResult",
   "CreatedBy", "DateCreated",
@@ -126,7 +127,14 @@ function runVitest() {
 
 /* ---------------------------------------------------------------- the registry */
 
-const keyOf = (r) => [r.file ?? r.File, r.suite ?? r.Suite, r.testCase ?? r.TestCase].join("\u0000");
+/**
+ * A case's identity, ignoring any ticket tag written into the names. Re-tracing
+ * a test to a different ticket must not read as deleting one test and adding
+ * another -- the tag is metadata about the case, not part of which case it is.
+ */
+const untag = (s) => (s ?? "").replace(/\s*\((SPM-\d+)\)/g, "");
+const keyOf = (r) =>
+  [r.file ?? r.File, untag(r.suite ?? r.Suite), untag(r.testCase ?? r.TestCase)].join("\u0000");
 
 /**
  * Who wrote each line of a test file, and when. The template asks for Created By
@@ -162,6 +170,25 @@ function loadDomains() {
   return JSON.parse(readFileSync(DOMAINS, "utf8"));
 }
 
+/**
+ * Resolve a case's ticket from the tags written into the test names, innermost
+ * first: an it() tag beats its describe, which beats the describe above it.
+ * Putting the tag in the code rather than only in this CSV means a renamed or
+ * moved test carries its ticket with it, and the tag is reviewed in the PR that
+ * adds the test.
+ */
+function ticketFor(suite, testCase, tickets) {
+  const blocks = [...suite.split(" > "), testCase];
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const found = /\b(SPM-\d+)\b/.exec(blocks[i]);
+    if (!found) continue;
+    const id = found[1];
+    const issue = tickets[id];
+    return { Ticket: id, TicketTitle: issue?.title ?? "", UserStory: issue?.parent ?? id };
+  }
+  return { Ticket: "", TicketTitle: "", UserStory: "" };
+}
+
 function domainFor(file, domains) {
   for (const d of domains) if (d.match.some((m) => file.includes(m))) return d.domain;
   return "Unmapped";
@@ -175,9 +202,14 @@ function domainFor(file, domains) {
  * longer reports is marked Retired rather than dropped, so a deleted test shows
  * up in the PR diff. Manual rows are passed through untouched.
  */
-function buildRegistry(existing, cases, domains) {
+function buildRegistry(existing, cases, domains, tickets) {
   const byKey = new Map(existing.filter((r) => r.Source !== "manual").map((r) => [keyOf(r), r]));
-  const manual = existing.filter((r) => r.Source === "manual");
+  // Manual rows keep their hand-set Ticket, but still get the title and parent
+  // user story filled in from the ticket map.
+  const manual = existing.filter((r) => r.Source === "manual").map((r) => {
+    const issue = tickets[r.Ticket];
+    return issue ? { ...r, TicketTitle: issue.title, UserStory: issue.parent ?? r.Ticket } : r;
+  });
 
   const seen = new Set();
   const rows = [];
@@ -194,7 +226,7 @@ function buildRegistry(existing, cases, domains) {
       Domain: domainFor(c.file, domains),
       Quadrant: prior?.Quadrant || "Q1",
       Source: "auto",
-      Ticket: prior?.Ticket ?? "",
+      ...ticketFor(c.suite, c.testCase, tickets),
       AC: prior?.AC ?? "",
       File: c.file,
       Suite: c.suite,
@@ -266,8 +298,11 @@ function summarise(cases, rows, domains) {
 function printReport(groups, cases, rows) {
   const total = cases.length;
   const passed = cases.filter((c) => c.passed).length;
-  // The chain is user story -> AC -> test case, so a ticket without an AC is not traced.
-  const untraced = rows.filter((r) => r.Status !== "Retired" && !(r.Ticket && r.AC)).length;
+  // The chain is user story -> AC -> test case. Report the two links separately:
+  // a ticket is easy to attach and nearly done, an AC is the real remaining gap.
+  const live = rows.filter((r) => r.Status !== "Retired");
+  const noTicket = live.filter((r) => !r.Ticket).length;
+  const noAC = live.filter((r) => r.Ticket && !r.AC).length;
   const width = Math.max(...groups.map((g) => g.name.length), 10);
 
   console.log(`\nTest report · ${total} cases · ${groups.length} domains\n`);
@@ -283,7 +318,10 @@ function printReport(groups, cases, rows) {
   }
   const parts = [`${passed}/${total} passed`];
   if (total - passed > 0) parts.push(`${total - passed} failing`);
-  if (rows.length > 0) parts.push(`${untraced} untraced to a ticket/AC`);
+  if (rows.length > 0) {
+    parts.push(`${live.length - noTicket}/${live.length} traced to a ticket`);
+    if (noAC > 0) parts.push(`${noAC} still need an AC`);
+  }
   console.log(`\n${parts.join(" · ")}\n`);
 
   if (process.env.GITHUB_STEP_SUMMARY) {
@@ -295,7 +333,9 @@ function printReport(groups, cases, rows) {
     for (const g of groups) {
       for (const f of g.failures) lines.push("", `**${f.testId}** \`${f.file}\` — ${f.suite} > ${f.testCase}`);
     }
-    if (rows.length > 0) lines.push("", `${untraced} of ${rows.filter((r) => r.Status !== "Retired").length} cases are not yet traced to a ticket/AC.`);
+    if (rows.length > 0) {
+      lines.push("", `Traceability: ${live.length - noTicket}/${live.length} cases carry a ticket; ${noAC} of those still need an acceptance criterion.`);
+    }
     appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
   }
 }
@@ -344,11 +384,12 @@ if (mode && !["--check", "--update", "--record"].includes(mode)) {
 }
 
 const domains = loadDomains();
+const tickets = existsSync(TICKETS) ? JSON.parse(readFileSync(TICKETS, "utf8")).issues : {};
 if (domains.length === 0) console.error(`Warning: no domain map at ${path.relative(ROOT, DOMAINS)} — every case will be Unmapped.\n`);
 
 const { cases, durationMs } = runVitest();
 const existing = readTable(REGISTRY, COLUMNS);
-const rebuilt = buildRegistry(existing, cases, domains);
+const rebuilt = buildRegistry(existing, cases, domains, tickets);
 
 // The report reads the on-disk registry so that --check reports what is committed.
 const reportRows = mode === "--update" || existing.length === 0 ? rebuilt : existing;

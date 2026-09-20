@@ -30,7 +30,7 @@ function buildUseCase(seed: readonly SeedCoordinatorEvent[]) {
   });
 }
 
-describe("ViewAssignedEventsUseCase", () => {
+describe("ViewAssignedEventsUseCase (SPM-137)", () => {
   it("lists an event assigned to the caller, with its client organisation's name", async () => {
     const useCase = buildUseCase([event()]);
 

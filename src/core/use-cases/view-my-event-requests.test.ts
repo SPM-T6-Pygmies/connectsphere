@@ -27,7 +27,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   });
 }
 
-describe("ViewMyEventRequestsUseCase", () => {
+describe("ViewMyEventRequestsUseCase (SPM-39)", () => {
   it("returns the caller's own request with the fields the list screen needs", async () => {
     const submittedAt = new Date("2026-09-10T00:00:00.000Z");
     const useCase = buildUseCase([

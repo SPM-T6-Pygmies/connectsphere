@@ -61,7 +61,7 @@ function buildUseCase(
   return { useCase: new WithdrawRegistrationUseCase({ registrations, events }), registrations };
 }
 
-describe("WithdrawRegistrationUseCase", () => {
+describe("WithdrawRegistrationUseCase (SPM-28)", () => {
   it("withdraws a live registration", async () => {
     const { useCase, registrations } = buildUseCase();
 

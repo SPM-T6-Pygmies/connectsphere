@@ -21,7 +21,7 @@ function user(roles: string[], clientOrganisationId: string | null = null): User
   return { userId: "user-1", name: "Sam", roles, clientOrganisationId };
 }
 
-describe("IdentifyStaffMemberUseCase", () => {
+describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
   it("identifies nobody when no one is signed in", async () => {
     await expect(identify(user(["Event Organiser"], "org-a"), null)).resolves.toBeNull();
   });
