@@ -1,0 +1,26 @@
+[
+  {
+    "domain": "Authentication",
+    "match": ["login", "logout", "auth", "identify-staff-member", "staff-member", "user-account-mapper"]
+  },
+  {
+    "domain": "Event Registration",
+    "match": ["registration", "register-for-event", "list-events-open-for-registration"]
+  },
+  {
+    "domain": "Event Staffing",
+    "match": ["coordinator", "change-event-organiser", "reassign-event-organiser", "assigned-events"]
+  },
+  {
+    "domain": "Request Review",
+    "match": ["decide-event-request", "view-operations", "view-all-event-requests", "view-archived", "view-assigned-event-request"]
+  },
+  {
+    "domain": "Event Requests",
+    "match": ["event-request", "submit-event-request", "save-event-request-draft", "discard"]
+  },
+  {
+    "domain": "Connections",
+    "match": ["connection"]
+  }
+]

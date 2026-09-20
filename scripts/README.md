@@ -1,6 +1,14 @@
 # scripts
 
-One-off SQL for putting test data into a Supabase database. Nothing here runs
+## test-report.mjs
+
+Runs the test suite and reports it by domain. Also keeps
+[`docs/tests/`](../docs/tests/README.md) — the test-case registry and the record
+of what passed at each merge to `main`. CI runs it; see that README.
+
+## seed SQL
+
+One-off SQL for putting test data into a Supabase database. None of it runs
 automatically — not on `supabase db reset`, not in CI.
 
 ## seed-coordinator-view
