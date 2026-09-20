@@ -1,0 +1,93 @@
+name: PR title
+
+on:
+  pull_request:
+    branches:
+      - main
+    # "edited" matters: without it, fixing a rejected title never re-runs the check.
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  conventional-commit:
+    name: Conventional Commit format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check the title
+        env:
+          # Via the environment, never interpolated into the script: a PR title is
+          # attacker-controlled, and `${{ ... }}` inside run: is a shell injection.
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -uo pipefail
+
+          TYPES='feat|bugfix|hotfix|chore|docs|refactor|test'
+          # Held in variables: bash cannot parse [^)] inside an unquoted [[ =~ ]].
+          RE_TITLE="^($TYPES)(\([^)]*\))?!?:[[:space:]].+"
+          RE_SCOPE="^($TYPES)\(([^)]*)\)"
+
+          fail() {
+            echo "::error title=PR title::$1"
+            {
+              echo "### ❌ PR title rejected"
+              echo
+              echo '```'
+              echo "$TITLE"
+              echo '```'
+              echo
+              echo "$1"
+              echo
+              echo "**Format** — \`type(scope): summary (SPM-1234)\`"
+              echo
+              echo "| part | |"
+              echo "| --- | --- |"
+              echo "| type | \`feat\` \`bugfix\` \`hotfix\` \`chore\` \`docs\` \`refactor\` \`test\` — the same words as the branch prefixes |"
+              echo "| scope | optional, in parentheses, lowercase — the module touched (\`core\`, \`adapters\`, \`app\`, \`supabase\`, \`ci\`). **Never a ticket id.** |"
+              echo "| summary | imperative, lowercase first word, no trailing full stop |"
+              echo "| ticket | optional trailing \`(SPM-1234)\` |"
+              echo
+              echo "**Examples**"
+              echo
+              echo '```'
+              echo "feat(core): record passing tests on merge to main (SPM-42)"
+              echo "bugfix(adapters): reject a null email at the boundary"
+              echo "docs: add testing principles to CLAUDE.md"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+
+          [ -n "$TITLE" ] || fail "The title is empty."
+
+          if [[ ! "$TITLE" =~ $RE_TITLE ]]; then
+            first="${TITLE%%:*}"
+            if [[ "$TITLE" != *:* ]]; then
+              fail "No \`type:\` prefix. Expected one of: ${TYPES//|/, }."
+            fi
+            fail "\`${first}\` is not a valid type. Expected one of: ${TYPES//|/, }."
+          fi
+
+          # A ticket belongs in the body as "Closes SPM-1234", or trailing in the
+          # title -- not as the scope, which names the module being changed.
+          if [[ "$TITLE" =~ $RE_SCOPE ]]; then
+            scope="${BASH_REMATCH[2]}"
+            [ -n "$scope" ] || fail "Empty scope \`()\`. Drop the parentheses, or name the module."
+            if [[ "$scope" =~ ^[Ss][Pp][Mm]-[0-9]+$ ]]; then
+              fail "\`($scope)\` uses a ticket as the scope. Use the module — e.g. \`feat(core): … ($scope)\`."
+            fi
+            if [[ "$scope" =~ [[:upper:]] ]]; then
+              fail "Scope \`($scope)\` should be lowercase."
+            fi
+          fi
+
+          summary="${TITLE#*: }"
+          [[ "$summary" != *. ]] || fail "Drop the trailing full stop from the summary."
+
+          echo "✔ $TITLE"
+          echo "### ✅ PR title OK" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "$TITLE" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -23,7 +23,7 @@ const FORM = {
   otherSpecialArrangements: "",
 };
 
-describe("saveEventRequestDraftSchema", () => {
+describe("saveEventRequestDraftSchema (SPM-93)", () => {
   it("accepts a draft with nothing but a name filled in (AC1)", () => {
     const parsed = saveEventRequestDraftSchema.safeParse(FORM);
 

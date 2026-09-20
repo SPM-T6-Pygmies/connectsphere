@@ -142,6 +142,48 @@ If you ever do refactor existing code toward the target, keep that refactor in
 its **own commit**, separate from the feature change. Mixing them makes both
 diffs unreviewable.
 
+## 7. Testing: Evidence, Not Decoration
+
+A test case is the **evidence** that an acceptance criterion is met, and the
+chain `user story → acceptance criteria → test case → test class → code` is what
+the team is accountable for when a feature is picked at random. The registry,
+the run record, and how to extend them live in
+[docs/tests/README.md](docs/tests/README.md) — read it before adding a test or
+writing up a manual one.
+
+The rules in short:
+
+- **Every test traces to a ticket.** Tag the smallest `describe` that is wholly
+  one Linear issue — `describe("ViewEventForRegistrationUseCase (SPM-79)", …)`.
+  The tag lives in the test name, not in a spreadsheet, so it survives a rename
+  and gets reviewed in the PR. If you cannot name the ticket, leave it untagged
+  and say so; do not invent one.
+- **The registry is generated.** After adding, renaming or removing a test, run
+  `pnpm test:report --update` and commit `docs/tests/test-registry.csv` with the
+  same change. CI fails the PR when it is stale — treat it like the lockfile.
+  Hand-edit only `AC`, `ExpectedResult`, `TestData` and `Remarks`; every other
+  column is regenerated and your edit will be overwritten.
+- **Do not copy the test body into prose.** Pre-conditions, steps and data for
+  an automated case _are_ the code. A prose copy in the CSV is a second source
+  of truth that drifts — the exact failure the registry exists to prevent.
+- **A passing case is only passing as of that build.** `Status` means "passed at
+  the most recent run in `test-runs.csv`", not "passes now". Which build that
+  was lives in the ledger, once per run — not copied onto every row. Only green
+  merges to `main` are recorded; failing runs never are.
+- **Manual and UAT cases belong in the registry too**, as `manual` rows pointing
+  at their steps in `docs/testing/`. CI cannot verify one for you — whoever runs
+  it sets `Status` and `LastPassedDate` by hand.
+- **Derive cases from the ACs, before the code.** `Given → Pre-conditions`,
+  `When → Test Steps / Data`, `Then → Expected Result`. Cover the happy path,
+  the business-rule negatives, and the boundaries — just below, exactly at, and
+  just above. Agreeing the cases first makes them a checkable spec rather than a
+  postscript.
+- **Beware coverage theatre.** Many cases all exercising the same happy path is
+  not coverage. When an agent writes both the code and its tests, both can share
+  the same blind spot — a passing test only counts if it checks the right
+  behaviour. Cross-cutting checks (auth, error handling, accessibility) belong
+  in the Definition of Done once, not repeated on every card.
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, clarifying questions come before implementation rather than after mistakes — and the commit history reads as a clean sequence of small, verified, single-purpose changes with no surprise mass-rewrites.

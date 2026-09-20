@@ -50,7 +50,7 @@ function buildUseCase(
   });
 }
 
-describe("ViewRegistrationUseCase", () => {
+describe("ViewRegistrationUseCase (SPM-82)", () => {
   it("returns the registration and the event it is for", async () => {
     const useCase = buildUseCase();
 

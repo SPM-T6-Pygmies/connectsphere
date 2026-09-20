@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { loginSchema } from "./login-schema";
 
-describe("loginSchema", () => {
+describe("loginSchema (SPM-118)", () => {
   it("accepts an email and a password", () => {
     const parsed = loginSchema.safeParse({ email: "organiser@test.com", password: "secret" });
 

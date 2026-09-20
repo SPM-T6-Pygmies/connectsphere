@@ -16,7 +16,7 @@ function member(roles: string[], clientOrganisation: typeof ORG | null = null): 
   return { userAccountId: userAccountId("user-1"), roles, clientOrganisationId: clientOrganisation };
 }
 
-describe("landingWorkspaceFor", () => {
+describe("landingWorkspaceFor (SPM-122)", () => {
   it.each([
     ["Event Organiser", "requester"],
     ["Event Coordinator", "coordinator"],
@@ -40,7 +40,7 @@ describe("landingWorkspaceFor", () => {
   });
 });
 
-describe("workspacesFor", () => {
+describe("workspacesFor (SPM-122)", () => {
   it("opens the workspace of every staff role a member of staff holds", () => {
     expect(workspacesFor(["Event Coordinator", "Event Operations Manager"])).toEqual([
       "coordinator",
@@ -53,7 +53,7 @@ describe("workspacesFor", () => {
   });
 });
 
-describe("organiserContextFor", () => {
+describe("organiserContextFor (SPM-122)", () => {
   it("acts as an Event Organiser for their client organisation", () => {
     expect(organiserContextFor(member(["Event Organiser"], ORG))).toEqual({
       userAccountId: userAccountId("user-1"),
@@ -70,7 +70,7 @@ describe("organiserContextFor", () => {
   });
 });
 
-describe("coordinatorContextFor", () => {
+describe("coordinatorContextFor (SPM-122)", () => {
   it("acts as an Event Coordinator", () => {
     expect(coordinatorContextFor(member(["Event Coordinator"]))).toEqual({
       userAccountId: userAccountId("user-1"),

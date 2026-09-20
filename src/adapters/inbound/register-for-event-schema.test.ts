@@ -8,7 +8,7 @@ const VALID = {
   email: "grace@example.com",
 };
 
-describe("registerForEventSchema", () => {
+describe("registerForEventSchema (SPM-83)", () => {
   /**
    * The id in the form is whatever the catalogue issued, and the store numbers
    * its rows. A boundary that insists on a uuid rejects every real event before

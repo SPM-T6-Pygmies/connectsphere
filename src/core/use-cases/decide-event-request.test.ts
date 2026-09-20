@@ -30,7 +30,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   return { useCase, eventRequests };
 }
 
-describe("DecideEventRequestUseCase", () => {
+describe("DecideEventRequestUseCase (SPM-139)", () => {
   it("approves a request awaiting the assigned coordinator's decision (AC1)", async () => {
     const { useCase, eventRequests } = buildUseCase([request()]);
 

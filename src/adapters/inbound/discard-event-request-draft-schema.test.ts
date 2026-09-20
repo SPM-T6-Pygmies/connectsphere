@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { discardEventRequestDraftSchema } from "./discard-event-request-draft-schema";
 
-describe("discardEventRequestDraftSchema", () => {
+describe("discardEventRequestDraftSchema (SPM-38)", () => {
   it("accepts the id of a saved draft", () => {
     const parsed = discardEventRequestDraftSchema.safeParse({ eventRequestId: "19" });
 

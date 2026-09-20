@@ -42,7 +42,7 @@ async function listedIds(
   return events.map((e) => e.id);
 }
 
-describe("ListEventsOpenForRegistrationUseCase", () => {
+describe("ListEventsOpenForRegistrationUseCase (SPM-79)", () => {
   it("lists a confirmed event whose registration is enabled and window is open", async () => {
     await expect(listedIds([event("summit")])).resolves.toEqual(["summit"]);
   });

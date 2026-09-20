@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { decideEventRequestSchema } from "./decide-event-request-schema";
 
-describe("decideEventRequestSchema", () => {
+describe("decideEventRequestSchema (SPM-34)", () => {
   it.each(["approve", "reject"])("accepts a %s decision with its record", (decision) => {
     const parsed = decideEventRequestSchema.safeParse({
       id: "request-1",

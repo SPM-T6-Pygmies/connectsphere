@@ -5,7 +5,7 @@ import type { EventCoordinatorDetails } from "@/core/ports/outbound/user-account
 
 import { ViewAllEventCoordinatorsUseCase } from "./view-all-event-coordinators";
 
-describe("ViewAllEventCoordinatorsUseCase", () => {
+describe("ViewAllEventCoordinatorsUseCase (SPM-130)", () => {
   it("AC1: returns every Event Coordinator with all non-credential account fields", async () => {
     const coordinators: readonly EventCoordinatorDetails[] = [
       {

@@ -27,7 +27,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   });
 }
 
-describe("ViewOrganisationEventRequestsUseCase", () => {
+describe("ViewOrganisationEventRequestsUseCase (SPM-112)", () => {
   it("lists a colleague's Draft request as view-only, not editable", async () => {
     const useCase = buildUseCase([request()]);
 

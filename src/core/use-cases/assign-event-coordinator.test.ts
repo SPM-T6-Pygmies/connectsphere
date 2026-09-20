@@ -55,7 +55,7 @@ function buildUseCase(
   return { useCase, eventRequests };
 }
 
-describe("AssignEventCoordinatorUseCase", () => {
+describe("AssignEventCoordinatorUseCase (SPM-130)", () => {
   it("AC1: assigns an unassigned Submitted request and changes it to Under Review", async () => {
     const { useCase, eventRequests } = buildUseCase([request()]);
 

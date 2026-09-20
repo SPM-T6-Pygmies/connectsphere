@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { withdrawRegistrationSchema } from "./withdraw-registration-schema";
 
-describe("withdrawRegistrationSchema", () => {
+describe("withdrawRegistrationSchema (SPM-28)", () => {
   it("accepts the reference the Supabase adapter issues", () => {
     const parsed = withdrawRegistrationSchema.safeParse({
       reference: "b7d0b0a4-6b2f-4f0e-9a3a-2c1d5e8f7a10",

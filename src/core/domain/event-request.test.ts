@@ -49,7 +49,7 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
   });
 }
 
-describe("eventRequestAccessFor", () => {
+describe("eventRequestAccessFor (SPM-113)", () => {
   it("grants the responsible Organiser edit access while the request is Draft", () => {
     expect(
       eventRequestAccessFor(request(), { userAccountId: RESPONSIBLE, clientOrganisationId: ORG_A }),
@@ -100,7 +100,7 @@ describe("eventRequestAccessFor", () => {
   });
 });
 
-describe("eventRequestAccessForCoordinator", () => {
+describe("eventRequestAccessForCoordinator (SPM-123)", () => {
   it("grants view access to the assigned coordinator", () => {
     expect(
       eventRequestAccessForCoordinator(
@@ -138,7 +138,7 @@ describe("eventRequestAccessForCoordinator", () => {
   });
 });
 
-describe("reassignResponsibleOrganiser", () => {
+describe("reassignResponsibleOrganiser (SPM-114)", () => {
   it("replaces the responsible Organiser", () => {
     const reassigned = reassignResponsibleOrganiser(request(), NEW_RESPONSIBLE);
 
@@ -158,7 +158,7 @@ describe("reassignResponsibleOrganiser", () => {
   });
 });
 
-describe("missingMandatoryFields", () => {
+describe("missingMandatoryFields (SPM-88)", () => {
   it("reports nothing missing when every mandatory field is filled", () => {
     expect(missingMandatoryFields(eventRequestDetails())).toEqual([]);
     expect(isSubmittable(eventRequestDetails())).toBe(true);
@@ -204,7 +204,7 @@ describe("missingMandatoryFields", () => {
   });
 });
 
-describe("submitEventRequest", () => {
+describe("submitEventRequest (SPM-31)", () => {
   const SUBMITTED_AT = new Date("2026-09-09T10:00:00.000Z");
 
   function submit(details = eventRequestDetails()) {
@@ -311,7 +311,7 @@ describe("submitEventRequest", () => {
   });
 });
 
-describe("saveEventRequestDraft", () => {
+describe("saveEventRequestDraft (SPM-93)", () => {
   function draft(details = eventRequestDetails()) {
     return saveEventRequestDraft({
       details,
@@ -376,7 +376,7 @@ describe("saveEventRequestDraft", () => {
   });
 });
 
-describe("coordinatorQueueStateFor", () => {
+describe("coordinatorQueueStateFor (SPM-127)", () => {
   it.each(["Submitted", "Under Review"] as const)(
     "puts a %s request in the queue as awaiting the coordinator's decision",
     (status) => {
@@ -396,7 +396,7 @@ describe("coordinatorQueueStateFor", () => {
   );
 });
 
-describe("coordinatorArchiveStateFor", () => {
+describe("coordinatorArchiveStateFor (SPM-127)", () => {
   it("archives a rejected or withdrawn request under its outcome", () => {
     expect(coordinatorArchiveStateFor("Rejected")).toBe("rejected");
     expect(coordinatorArchiveStateFor("Withdrawn")).toBe("withdrawn");
@@ -410,7 +410,7 @@ describe("coordinatorArchiveStateFor", () => {
   );
 });
 
-describe("operationsQueueFor", () => {
+describe("operationsQueueFor (SPM-29)", () => {
   it("keeps a Draft out of both Operations queues -- it is the Organiser's alone", () => {
     expect(operationsQueueFor(request({ status: "Draft" }))).toBeNull();
   });
@@ -429,7 +429,7 @@ describe("operationsQueueFor", () => {
   );
 });
 
-describe("canAssignEventCoordinator", () => {
+describe("canAssignEventCoordinator (SPM-130)", () => {
   it.each(["Submitted", "Under Review", "Returned", "Approved"] as const)(
     "lets a %s request take a coordinator",
     (status) => {
@@ -445,7 +445,7 @@ describe("canAssignEventCoordinator", () => {
   );
 });
 
-describe("coordinatorSectionFor", () => {
+describe("coordinatorSectionFor (SPM-127)", () => {
   it("files an Approved request under My events -- it carries on as an event", () => {
     expect(coordinatorSectionFor("Approved")).toBe("events");
   });
@@ -462,7 +462,7 @@ describe("coordinatorSectionFor", () => {
   );
 });
 
-describe("coordinatorRequestStateFor", () => {
+describe("coordinatorRequestStateFor (SPM-123)", () => {
   it("still names a decided request by its outcome, which reads the same to everyone", () => {
     expect(coordinatorRequestStateFor("Approved")).toBe("approved");
     expect(coordinatorRequestStateFor("Rejected")).toBe("rejected");
@@ -474,7 +474,7 @@ describe("coordinatorRequestStateFor", () => {
   });
 });
 
-describe("approveEventRequest", () => {
+describe("approveEventRequest (SPM-138)", () => {
   it.each(["Submitted", "Under Review"] as const)(
     "approves a %s request awaiting the coordinator's decision",
     (status) => {
@@ -511,7 +511,7 @@ describe("approveEventRequest", () => {
   });
 });
 
-describe("rejectEventRequest", () => {
+describe("rejectEventRequest (SPM-138)", () => {
   it.each(["Submitted", "Under Review"] as const)(
     "rejects a %s request, keeping the trimmed reason as the decision record",
     (status) => {

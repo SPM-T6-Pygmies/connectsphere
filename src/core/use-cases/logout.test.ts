@@ -70,7 +70,7 @@ function buildUseCase({
   return { useCase, auth, auditLogger };
 }
 
-describe("LogoutUseCase", () => {
+describe("LogoutUseCase (SPM-14)", () => {
   it("successfully logs out user and records audit event", async () => {
     const { useCase, auth, auditLogger } = buildUseCase();
 

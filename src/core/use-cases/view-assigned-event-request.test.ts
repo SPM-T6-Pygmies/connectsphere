@@ -36,7 +36,7 @@ function buildUseCase(seed: readonly EventRequest[]) {
   });
 }
 
-describe("ViewAssignedEventRequestUseCase", () => {
+describe("ViewAssignedEventRequestUseCase (SPM-124)", () => {
   it("returns the request, with names, to its assigned coordinator", async () => {
     const useCase = buildUseCase([request()]);
 

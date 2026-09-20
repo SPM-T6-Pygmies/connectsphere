@@ -8,7 +8,7 @@ import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewAllEventRequestsUseCase } from "./view-all-event-requests";
 
-describe("ViewAllEventRequestsUseCase", () => {
+describe("ViewAllEventRequestsUseCase (SPM-29)", () => {
   it("AC1: returns every submitted request across organisations, with its assignment and queue", async () => {
     const unassignedRequest = eventRequestFixture({
       id: eventRequestId("request-1"),
