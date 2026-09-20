@@ -26,10 +26,21 @@ const REGISTRY = path.join(TESTS_DIR, "test-registry.csv");
 const RUNS = path.join(TESTS_DIR, "test-runs.csv");
 const DOMAINS = path.join(TESTS_DIR, "domains.json");
 
+// Ordered to mirror the IS212 test case template: the specification fields
+// first (written once), then the execution record (one per run).
 const COLUMNS = [
-  "TestID", "Domain", "Quadrant", "Source", "File", "Suite", "TestCase",
-  "Ticket", "AC", "ExpectedResult", "Status", "LastPassedCommit", "LastPassedDate", "Notes",
+  "TestID", "Domain", "Quadrant", "Source", "Ticket", "AC",
+  "File", "Suite", "TestCase",
+  "Preconditions", "TestSteps", "TestData", "ExpectedResult",
+  "CreatedBy", "DateCreated",
+  "ActualResult", "Status", "Remarks", "ExecutedBy", "LastPassedCommit", "LastPassedDate",
 ];
+
+// Every automated test here plugs fakes into ports -- no database, no network,
+// no framework, and not a single beforeEach in the suite. That makes the
+// precondition identical for all of them, and worth stating rather than leaving
+// the column blank.
+const AUTO_PRECONDITION = "None - the test builds its own in-memory fixtures";
 const RUN_COLUMNS = [
   "RunDate", "Commit", "PR", "Branch", "TotalCases", "Passed", "Failed", "DurationSeconds", "DomainBreakdown",
 ];
@@ -85,7 +96,7 @@ const writeTable = (rows, columns) =>
 function runVitest() {
   const out = path.join(tmpdir(), `vitest-report-${process.pid}.json`);
   const bin = path.join(ROOT, "node_modules", ".bin", "vitest");
-  const result = spawnSync(bin, ["run", "--reporter=json", `--outputFile=${out}`], {
+  const result = spawnSync(bin, ["run", "--includeTaskLocation", "--reporter=json", `--outputFile=${out}`], {
     cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"],
   });
   if (!existsSync(out)) {
@@ -101,6 +112,7 @@ function runVitest() {
     for (const a of file.assertionResults) {
       cases.push({
         file: relative,
+        line: a.location?.line ?? 0,
         suite: (a.ancestorTitles ?? []).join(" > "),
         testCase: a.title,
         passed: a.status === "passed",
@@ -115,6 +127,35 @@ function runVitest() {
 /* ---------------------------------------------------------------- the registry */
 
 const keyOf = (r) => [r.file ?? r.File, r.suite ?? r.Suite, r.testCase ?? r.TestCase].join("\u0000");
+
+/**
+ * Who wrote each line of a test file, and when. The template asks for Created By
+ * and Date of Creation; git already knows both, so nobody has to type them.
+ * Line numbers are used here and then thrown away -- storing them would make the
+ * registry churn every time an unrelated line moved.
+ */
+const blameCache = new Map();
+function blameFor(file) {
+  if (blameCache.has(file)) return blameCache.get(file);
+  const out = spawnSync("git", ["blame", "--porcelain", "--", file],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }).stdout ?? "";
+  const commits = new Map();
+  const shaByLine = new Map();
+  let sha = null;
+  for (const line of out.split("\n")) {
+    const header = /^([0-9a-f]{40}) \d+ (\d+)/.exec(line);
+    if (header) { sha = header[1]; shaByLine.set(Number(header[2]), sha); continue; }
+    if (!sha) continue;
+    const commit = commits.get(sha) ?? {};
+    if (line.startsWith("author ")) commit.author = line.slice(7);
+    else if (line.startsWith("author-time ")) commit.date = new Date(Number(line.slice(12)) * 1000).toISOString().slice(0, 10);
+    commits.set(sha, commit);
+  }
+  const byLine = new Map();
+  for (const [ln, s] of shaByLine) byLine.set(ln, commits.get(s) ?? {});
+  blameCache.set(file, byLine);
+  return byLine;
+}
 
 function loadDomains() {
   if (!existsSync(DOMAINS)) return [];
@@ -145,21 +186,32 @@ function buildRegistry(existing, cases, domains) {
     const key = keyOf(c);
     seen.add(key);
     const prior = byKey.get(key);
+    // Authorship is settled once, like the id: re-blaming a moved line would
+    // credit whoever last touched the file rather than whoever wrote the test.
+    const authored = prior?.CreatedBy ? prior : blameFor(c.file).get(c.line) ?? {};
     rows.push({
       TestID: prior?.TestID ?? "",
       Domain: domainFor(c.file, domains),
       Quadrant: prior?.Quadrant || "Q1",
       Source: "auto",
+      Ticket: prior?.Ticket ?? "",
+      AC: prior?.AC ?? "",
       File: c.file,
       Suite: c.suite,
       TestCase: c.testCase,
-      Ticket: prior?.Ticket ?? "",
-      AC: prior?.AC ?? "",
+      Preconditions: prior?.Preconditions || AUTO_PRECONDITION,
+      // The -- matters: without it pnpm swallows -t and the whole file runs.
+      TestSteps: `pnpm test -- ${c.file} -t ${JSON.stringify(c.testCase)}`,
+      TestData: prior?.TestData ?? "",
       ExpectedResult: prior?.ExpectedResult ?? "",
-      Status: prior?.Status || "Not Run",
+      CreatedBy: prior?.CreatedBy || authored.author || authored.CreatedBy || "",
+      DateCreated: prior?.DateCreated || authored.date || authored.DateCreated || "",
+      ActualResult: prior?.ActualResult ?? "",
+      Status: prior?.Status || "Not Executed",
+      Remarks: prior?.Remarks ?? "",
+      ExecutedBy: prior?.ExecutedBy ?? "",
       LastPassedCommit: prior?.LastPassedCommit ?? "",
       LastPassedDate: prior?.LastPassedDate ?? "",
-      Notes: prior?.Notes ?? "",
     });
   }
 
@@ -258,10 +310,18 @@ function recordRun(rows, groups, cases, durationMs) {
   const pr = /Merge pull request #(\d+)/.exec(git("log", "-1", "--pretty=%B"))?.[1] ?? "";
   const date = new Date().toISOString().slice(0, 10);
 
+  // Only green runs are ever recorded, so a recorded case's actual result is its
+  // expected one by construction -- that is what "Pass" means here.
+  const runBy = process.env.GITHUB_RUN_ID
+    ? `CI run ${process.env.GITHUB_RUN_ID}`
+    : `${git("config", "user.name") || "local"} (local)`;
   const ran = new Set(cases.filter((c) => c.passed).map(keyOf));
   const stamped = rows.map((r) =>
     r.Source === "auto" && ran.has(keyOf(r))
-      ? { ...r, Status: "Pass", LastPassedCommit: commit.slice(0, 7), LastPassedDate: date }
+      ? {
+          ...r, Status: "Pass", ActualResult: "As specified", ExecutedBy: runBy,
+          LastPassedCommit: commit.slice(0, 7), LastPassedDate: date,
+        }
       : r);
 
   const run = {

@@ -29,15 +29,46 @@ CI runs `--check` on every PR and fails if the committed registry does not match
 the suite. Treat it like the lockfile: if it complains, run `--update` and commit
 the result.
 
-| Column | |
-| --- | --- |
-| `TestID` | `UT-####` automated, `MT-####` manual. Assigned once, never reused — an ID quoted in a ticket always means the same case. |
-| `Domain` | From `domains.json`. |
-| `Quadrant` | `Q1`–`Q4` of the Agile Testing Quadrants. Automated unit/integration tests are `Q1`; manual and UAT are `Q3`. |
-| `Source` | `auto` (from vitest) or `manual`. |
-| `Ticket` / `AC` | **The traceability chain.** `user story → acceptance criteria → test case → test class → code`. Fill these in as you write the test. |
-| `ExpectedResult` | Blank for `auto` rows — the assertion *is* the expected result. Filled for manual rows. |
-| `Status` | `Pass` means it passed at `LastPassedCommit`, not that it passes now. `Not Run` means it has not yet been through a green merge. `Retired` means the test no longer exists. |
+The columns follow the IS212 test case template: the specification fields first,
+then the execution record.
+
+### Specification — written once
+
+| Column | Template field | |
+| --- | --- | --- |
+| `TestID` | Test Case ID | `UT-####` automated, `MT-####` manual. Assigned once, never reused — an ID quoted in a ticket always means the same case. |
+| `Suite` + `TestCase` | Test Scenario | The `describe` path and the test name. |
+| `Preconditions` | Pre-conditions | Constant for `auto` rows: every automated test builds its own in-memory fixtures. There is no database, no network and not one `beforeEach` in the suite, so there is nothing to reset between runs. |
+| `TestSteps` | Test Steps | The exact command that runs this one case. Copy it and paste it. |
+| `TestData` | Test Data | Manual rows only. For an `auto` row the inputs are the fixtures in the test body — written next to the assertion that uses them, reviewed in the same PR, and not duplicated here. |
+| `ExpectedResult` | Expected Result | Manual rows. For an `auto` row the assertion *is* the expected result. |
+| `CreatedBy` / `DateCreated` | Created By, Date of Creation | Read from `git blame` on the line the test starts at. Nobody types these, and they cannot be wrong. |
+| `Domain` | — | From `domains.json`. |
+| `Quadrant` | — | `Q1`–`Q4` of the Agile Testing Quadrants. Automated unit/integration tests are `Q1`; manual and UAT are `Q3`. |
+| `Source` | — | `auto` (from vitest) or `manual`. |
+| `Ticket` / `AC` | — | **The traceability chain.** `user story → acceptance criteria → test case → test class → code`. |
+
+### Execution record — one per run
+
+| Column | Template field | |
+| --- | --- | --- |
+| `ActualResult` | Actual Result | `As specified` on a recorded pass. Only green runs are ever recorded, so a recorded case's actual result is its expected one by construction. |
+| `Status` | Pass/Fail/Not Executed/Blocked | `Pass` means it passed at `LastPassedCommit`, **not** that it passes now. `Not Executed` means it has not yet been through a green merge. `Retired` is ours: the test no longer exists. |
+| `Remarks` | Remarks | |
+| `ExecutedBy` | Executed By | The CI run that recorded it. |
+| `LastPassedDate` | Date of Execution | With `LastPassedCommit`, the build the pass was true for. |
+
+### Why three template fields are not prose here
+
+Pre-conditions, Test Steps and Test Data for an automated case already exist, in
+the test body, under version control and reviewed in the PR that added them.
+Copying 368 of them into CSV prose would create a second source of truth that
+drifts from the first — the failure this registry exists to prevent. The
+registry gives the precondition, the command to run the case, and `File` +
+`TestCase` to find it; the code gives the rest. The principles doc allows this:
+
+> The template is just one representation. **The transferable skill is: specific
+> inputs + preconditions + action + expected result.**
 
 The report prints how many cases are **untraced** — no `Ticket` or `AC`. That is
 a number to drive down, not a build gate; blocking on it today would stop all
