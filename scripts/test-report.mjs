@@ -214,7 +214,8 @@ function summarise(cases, rows, domains) {
 function printReport(groups, cases, rows) {
   const total = cases.length;
   const passed = cases.filter((c) => c.passed).length;
-  const untraced = rows.filter((r) => r.Status !== "Retired" && !r.Ticket).length;
+  // The chain is user story -> AC -> test case, so a ticket without an AC is not traced.
+  const untraced = rows.filter((r) => r.Status !== "Retired" && !(r.Ticket && r.AC)).length;
   const width = Math.max(...groups.map((g) => g.name.length), 10);
 
   console.log(`\nTest report · ${total} cases · ${groups.length} domains\n`);

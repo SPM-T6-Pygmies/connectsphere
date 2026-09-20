@@ -3,6 +3,11 @@
 ## Overview
 Manual browser-based test cases for login and logout features. These tests verify end-to-end authentication flows, security measures, and UI behavior.
 
+These cases are registered as `MT-0001`–`MT-0010` in
+[`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them,
+tick the boxes below **and** set `Status` and `LastPassedDate` on the matching
+rows — CI cannot verify a manual case for you.
+
 ---
 
 ## Test Environment Setup
