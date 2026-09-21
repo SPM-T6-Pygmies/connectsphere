@@ -275,3 +275,47 @@ export function toSaveArgs(request: EventRequest): Record<string, unknown> | nul
     p_requesting_user_account_id: toKey(request.responsibleOrganiserId),
   };
 }
+
+/**
+ * Arguments for `coordinator_return_event_request` (SPM-33).
+ *
+ * The message is passed alongside the request rather than read off it: a
+ * return's question is not a field of `EventRequest`, it is the first message
+ * of the thread, and the function writes both in one transaction.
+ */
+export function toReturnArgs(
+  request: EventRequest,
+  returnedBy: UserAccountId,
+  message: string,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey = toKey(returnedBy);
+
+  if (requestKey === null || coordinatorKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_coordinator_user_account_id: coordinatorKey,
+    p_message: message,
+  };
+}
+
+/** Arguments for `coordinator_resolve_clarification` (SPM-33 AC6). */
+export function toResolveClarificationArgs(
+  request: EventRequest,
+  resolvedBy: UserAccountId,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey = toKey(resolvedBy);
+
+  if (requestKey === null || coordinatorKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_coordinator_user_account_id: coordinatorKey,
+  };
+}

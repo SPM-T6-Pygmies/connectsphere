@@ -61,4 +61,29 @@ export interface EventRequestRepository {
   approveEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
   /** Persists a rejection (SPM-34) made by `decidedBy`, recording who rejected it and when. */
   rejectEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
+  /**
+   * Persists a return for clarification (SPM-33) made by `returnedBy`, the
+   * request's assigned Event Coordinator, and opens the thread with `message`.
+   *
+   * The message rides along rather than being appended separately because the
+   * two are one unit of work: a return whose question was lost tells the
+   * Organiser nothing, and the status is the only thing that puts the request
+   * in front of them. The same reasoning makes `approveEventRequest` open the
+   * event -- approval *is* the event's creation, and a return *is* the
+   * question.
+   *
+   * Deliberately not `save()`: that path is guarded to a request's own
+   * responsible Organiser amending their still-`Draft` request (SPM-38), and a
+   * return crosses both. The actor is passed explicitly rather than read off
+   * `request.assignedCoordinatorUserAccountId` so the store records who
+   * actually called, and can check the two agree -- the same shape as
+   * `approveEventRequest`.
+   */
+  returnEventRequest(
+    request: EventRequest,
+    returnedBy: UserAccountId,
+    message: string,
+  ): Promise<void>;
+  /** Persists a resolved clarification (SPM-33) marked by `resolvedBy`. Touches status only -- never the thread. */
+  resolveClarification(request: EventRequest, resolvedBy: UserAccountId): Promise<void>;
 }

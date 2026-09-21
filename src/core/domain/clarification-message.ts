@@ -37,12 +37,15 @@ export interface ClarificationMessage {
 }
 
 /**
- * A message that has not been stored yet, and so has no id.
+ * A message that has not been stored yet, so it has neither an id nor a time.
  *
  * Same reasoning as `NewEventRequest`: `comment_id` is `generated always as
- * identity`, so the store chooses the id and hands it back.
+ * identity` and `created_at` has a default, so the store chooses both and
+ * hands them back. `postedAt` is a `created_at`, not a business timestamp --
+ * no rule reads it -- which is why the core does not need a `Clock` to append
+ * to a thread.
  */
-export type NewClarificationMessage = Omit<ClarificationMessage, "id">;
+export type NewClarificationMessage = Omit<ClarificationMessage, "id" | "postedAt">;
 
 export function clarificationMessageId(raw: string): ClarificationMessageId {
   const trimmed = raw.trim();

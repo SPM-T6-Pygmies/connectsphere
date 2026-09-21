@@ -1,8 +1,11 @@
 import type { ClientOrganisationId } from "@/core/domain/client-organisation";
 import {
+  ClarificationMessageRequiredError,
+  ClarificationNotResolvableError,
   DecisionReasonRequiredError,
   EventRequestNotDecidableError,
   EventRequestNotFoundError,
+  EventRequestNotReturnableError,
 } from "@/core/domain/errors";
 import type {
   EventRequest,
@@ -24,6 +27,8 @@ import {
   toKey,
   toMyEventRequestSummary,
   toReassignArgs,
+  toResolveClarificationArgs,
+  toReturnArgs,
   toSaveArgs,
   toSubmitArgs,
   type EventRequestRow,
@@ -33,6 +38,11 @@ import {
 const NOT_FOUND_OR_NOT_ASSIGNED = "CS010";
 const NOT_DECIDABLE = "CS011";
 const REASON_REQUIRED = "CS012";
+
+/** SQLSTATEs the clarification functions come back with (SPM-33). See their migration. */
+const NOT_RETURNABLE = "CS013";
+const CLARIFICATION_MESSAGE_REQUIRED = "CS014";
+const NOT_RESOLVABLE = "CS015";
 
 /**
  * Event requests are reached through database functions, not through the table.
@@ -290,6 +300,66 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
         throw new DecisionReasonRequiredError();
       }
       throw new Error(`Failed to decide event request: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * SPM-33 AC1-AC3: `coordinator_return_event_request` moves the request to
+   * `Returned`, opens the thread with the question and writes the audit row in
+   * one transaction -- which is why the message comes down with the request
+   * rather than through the thread repository. A return that moved the status
+   * but lost its question would tell the Organiser nothing.
+   *
+   * Its SQLSTATEs come back as the domain's own errors, so losing a race to a
+   * concurrent decision reads exactly like losing it a moment earlier.
+   */
+  async returnEventRequest(
+    request: EventRequest,
+    returnedBy: UserAccountId,
+    message: string,
+  ): Promise<void> {
+    const args = toReturnArgs(request, returnedBy, message);
+    if (args === null) {
+      throw new Error(
+        `Cannot return event request with malformed ids "${request.id}" and "${returnedBy}".`,
+      );
+    }
+
+    const { error } = await this.client.rpc("coordinator_return_event_request", args);
+
+    if (error) {
+      if (error.code === NOT_FOUND_OR_NOT_ASSIGNED) {
+        throw new EventRequestNotFoundError(request.id);
+      }
+      if (error.code === NOT_RETURNABLE) {
+        throw new EventRequestNotReturnableError();
+      }
+      if (error.code === CLARIFICATION_MESSAGE_REQUIRED) {
+        throw new ClarificationMessageRequiredError();
+      }
+      throw new Error(`Failed to return event request: ${error.message}`, { cause: error });
+    }
+  }
+
+  /** SPM-33 AC6: status only -- `coordinator_resolve_clarification` never touches the thread. */
+  async resolveClarification(request: EventRequest, resolvedBy: UserAccountId): Promise<void> {
+    const args = toResolveClarificationArgs(request, resolvedBy);
+    if (args === null) {
+      throw new Error(
+        `Cannot resolve the clarification on event request with malformed ids "${request.id}" and "${resolvedBy}".`,
+      );
+    }
+
+    const { error } = await this.client.rpc("coordinator_resolve_clarification", args);
+
+    if (error) {
+      if (error.code === NOT_FOUND_OR_NOT_ASSIGNED) {
+        throw new EventRequestNotFoundError(request.id);
+      }
+      if (error.code === NOT_RESOLVABLE) {
+        throw new ClarificationNotResolvableError();
+      }
+      throw new Error(`Failed to resolve the clarification: ${error.message}`, { cause: error });
     }
   }
 }

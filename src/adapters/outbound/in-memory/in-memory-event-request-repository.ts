@@ -6,6 +6,7 @@ import {
   type NewEventRequest,
 } from "@/core/domain/event-request";
 import type { UserAccountId } from "@/core/domain/user-account";
+import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
 import type {
   EventRequestRepository,
   MyEventRequestSummary,
@@ -15,7 +16,16 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
   private readonly rows = new Map<EventRequestId, EventRequest>();
   private sequence = 0;
 
-  constructor(seed: readonly EventRequest[] = []) {
+  /**
+   * `thread`, when supplied, is the same thread store `returnEventRequest`
+   * writes the question to -- the in-memory stand-in for the single
+   * transaction `coordinator_return_event_request` performs. Tests that do not
+   * exercise a return leave it out.
+   */
+  constructor(
+    seed: readonly EventRequest[] = [],
+    private readonly thread?: ClarificationThreadRepository,
+  ) {
     for (const request of seed) {
       this.rows.set(request.id, request);
     }
@@ -101,6 +111,26 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
   }
 
   async rejectEventRequest(request: EventRequest): Promise<void> {
+    this.rows.set(request.id, request);
+  }
+
+  /** Stores the returned request and opens its thread with the question, as one act. */
+  async returnEventRequest(
+    request: EventRequest,
+    returnedBy: UserAccountId,
+    message: string,
+  ): Promise<void> {
+    this.rows.set(request.id, request);
+    await this.thread?.append({
+      eventRequestId: request.id,
+      authorUserAccountId: returnedBy,
+      body: message.trim(),
+      // The question opens the exchange, so it is top-level by definition.
+      parentId: null,
+    });
+  }
+
+  async resolveClarification(request: EventRequest): Promise<void> {
     this.rows.set(request.id, request);
   }
 
