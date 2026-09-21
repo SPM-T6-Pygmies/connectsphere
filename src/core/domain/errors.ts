@@ -339,3 +339,11 @@ export class ClarificationNotResolvableError extends DomainError {
     super("This event request is not waiting on the Organiser.");
   }
 }
+
+export class InvalidClarificationMessageIdError extends DomainError {
+  readonly code = "invalid_clarification_message_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable clarification message id.`);
+  }
+}
