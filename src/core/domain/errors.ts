@@ -347,3 +347,19 @@ export class InvalidClarificationMessageIdError extends DomainError {
     super(`"${raw}" is not a usable clarification message id.`);
   }
 }
+
+/**
+ * SPM-33 decision 6: comment threading follows Linear -- top-level messages
+ * with one level of reply -- so a reply's parent must itself be top-level, and
+ * must be on the same request.
+ *
+ * Argument-free like the other clarification errors: the Supabase function
+ * raises this one too, and there it holds nothing useful to name.
+ */
+export class ClarificationReplyNotTopLevelError extends DomainError {
+  readonly code = "clarification_reply_not_top_level";
+
+  constructor() {
+    super("You can only reply to a top-level message.");
+  }
+}
