@@ -7,8 +7,11 @@ import {
 
 import { clientOrganisationId } from "./client-organisation";
 import {
+  ClarificationMessageRequiredError,
+  ClarificationNotResolvableError,
   DecisionReasonRequiredError,
   EventRequestNotDecidableError,
+  EventRequestNotReturnableError,
   IncompleteEventRequestError,
   PreferredDateNotInFutureError,
   PreferredEndTimeNotAfterStartError,
@@ -27,6 +30,8 @@ import {
   operationsQueueFor,
   reassignResponsibleOrganiser,
   rejectEventRequest,
+  resolveClarification,
+  returnEventRequest,
   saveEventRequestDraft,
   submitEventRequest,
   type EventRequest,
@@ -492,7 +497,7 @@ describe("approveEventRequest (SPM-138)", () => {
     expect(approveEventRequest(request({ status: "Under Review" }), "   ").decisionRecord).toBeNull();
   });
 
-  it.each(["Draft", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
     "refuses to approve a %s request",
     (status) => {
       expect(() => approveEventRequest(request({ status }), "")).toThrow(
@@ -528,7 +533,7 @@ describe("rejectEventRequest (SPM-138)", () => {
     );
   });
 
-  it.each(["Draft", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
     "refuses to reject a %s request, whatever the reason (rejection is terminal, #67)",
     (status) => {
       expect(() => rejectEventRequest(request({ status }), "")).toThrow(
@@ -536,4 +541,92 @@ describe("rejectEventRequest (SPM-138)", () => {
       );
     },
   );
+});
+
+describe("returnEventRequest (SPM-33)", () => {
+  it.each(["Submitted", "Under Review"] as const)(
+    "returns a %s request to the Organiser with the question",
+    (status) => {
+      expect(returnEventRequest(request({ status }), "How many need step-free access?").status).toBe(
+        "Returned",
+      );
+    },
+  );
+
+  it("returns an already-Returned request again, so a second question needs no Resolve first (decision 5)", () => {
+    const returnedOnce = returnEventRequest(request({ status: "Under Review" }), "First question?");
+
+    expect(returnEventRequest(returnedOnce, "And a second one?").status).toBe("Returned");
+  });
+
+  it.each(["", "   "])("refuses a clarification request with a blank message (%j)", (message) => {
+    expect(() => returnEventRequest(request({ status: "Under Review" }), message)).toThrow(
+      ClarificationMessageRequiredError,
+    );
+  });
+
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses to return a %s request -- there is nothing left to clarify",
+    (status) => {
+      expect(() => returnEventRequest(request({ status }), "Why?")).toThrow(
+        EventRequestNotReturnableError,
+      );
+    },
+  );
+
+  it("refuses a decided request as undecidable before asking for a message it could not use", () => {
+    expect(() => returnEventRequest(request({ status: "Approved" }), "")).toThrow(
+      EventRequestNotReturnableError,
+    );
+  });
+
+  it("leaves the request it was given untouched", () => {
+    const original = request({ status: "Under Review" });
+
+    returnEventRequest(original, "How many need step-free access?");
+
+    expect(original.status).toBe("Under Review");
+  });
+});
+
+describe("resolveClarification (SPM-33)", () => {
+  it("puts a Returned request back to awaiting the Coordinator's decision", () => {
+    expect(resolveClarification(request({ status: "Returned" })).status).toBe("Under Review");
+  });
+
+  it.each(["Draft", "Submitted", "Under Review", "Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses to resolve a %s request, which is not waiting on the Organiser",
+    (status) => {
+      expect(() => resolveClarification(request({ status }))).toThrow(
+        ClarificationNotResolvableError,
+      );
+    },
+  );
+
+  it("leaves the request it was given untouched", () => {
+    const original = request({ status: "Returned" });
+
+    resolveClarification(original);
+
+    expect(original.status).toBe("Returned");
+  });
+});
+
+describe("assertDecidable, widened for clarification (SPM-33)", () => {
+  it("approves a Returned request directly -- Resolve is a shortcut, not a gate (decision 4)", () => {
+    expect(approveEventRequest(request({ status: "Returned" }), "").status).toBe("Approved");
+  });
+
+  it("rejects a Returned request directly, without resolving the clarification first", () => {
+    const rejected = rejectEventRequest(request({ status: "Returned" }), "Out of scope.");
+
+    expect(rejected.status).toBe("Rejected");
+    expect(rejected.decisionRecord).toBe("Out of scope.");
+  });
+
+  it("still labels a Returned request as waiting on the Organiser while it is decidable", () => {
+    // The queue label and decidability are deliberately independent.
+    expect(coordinatorRequestStateFor("Returned")).toBe("with-organiser");
+    expect(coordinatorQueueStateFor("Returned")).toBe("with-organiser");
+  });
 });

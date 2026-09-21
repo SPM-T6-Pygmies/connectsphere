@@ -110,7 +110,10 @@ describe("DecideEventRequestUseCase (SPM-139)", () => {
     ).rejects.toBeInstanceOf(EventRequestNotFoundError);
   });
 
-  it.each(["Returned", "Approved", "Rejected"] as const)(
+  // `Returned` used to sit in this matrix. SPM-33 decision 4 widened
+  // `assertDecidable` to admit it, and the positive cases live in their own
+  // (SPM-33) block below -- the rule is that ticket's, not this one's.
+  it.each(["Approved", "Rejected"] as const)(
     "refuses to decide a %s request and stores nothing",
     async (status) => {
       const existing = request({ status, decisionRecord: "Earlier decision." });
