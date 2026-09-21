@@ -3,6 +3,7 @@ import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/adapters/outbound/supabase/client";
+import { SupabaseClarificationThreadRepository } from "@/adapters/outbound/supabase/supabase-clarification-thread-repository";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
@@ -16,6 +17,7 @@ import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-us
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
+import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
@@ -25,6 +27,9 @@ import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coo
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
+import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
+import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
+import { ResolveClarificationUseCase } from "@/core/use-cases/resolve-clarification";
 import type { StaffWorkspace } from "@/core/domain/staff-member";
 import { IdentifyStaffMemberUseCase } from "@/core/use-cases/identify-staff-member";
 import { LoginUseCase } from "@/core/use-cases/login";
@@ -134,8 +139,12 @@ export async function buildViewMyEventRequests(): Promise<ViewMyEventRequestsUse
 }
 
 export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequestUseCase> {
+  const client = await createSupabaseServerClient();
+
   return new ViewOrganiserEventRequestUseCase({
-    eventRequests: await eventRequestAdapters(),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+    userAccounts: new SupabaseUserAccountRepository(client),
   });
 }
 
@@ -184,6 +193,40 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  * with a not-found rather than someone else's queue (#91). Same shape as
  * `getCurrentOrganiser` below.
  */
+/**
+ * SPM-33: the Coordinator returns a request for clarification.
+ *
+ * Only the event request repository: opening a clarification writes the
+ * status and the question in one transaction, so the thread is not a second
+ * dependency here -- see `EventRequestRepository.returnEventRequest`.
+ */
+export async function buildRequestClarification(): Promise<RequestClarificationUseCase> {
+  return new RequestClarificationUseCase({ eventRequests: await eventRequestAdapters() });
+}
+
+/** SPM-33 AC6: the Coordinator marks the clarification resolved. Status only. */
+export async function buildResolveClarification(): Promise<ResolveClarificationUseCase> {
+  return new ResolveClarificationUseCase({ eventRequests: await eventRequestAdapters() });
+}
+
+/** SPM-33 AC4-AC5: either side posts on the thread. Appends, and nothing else. */
+export async function buildPostClarificationMessage(): Promise<PostClarificationMessageUseCase> {
+  const client = await createSupabaseServerClient();
+  return new PostClarificationMessageUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+  });
+}
+
+/**
+ * The thread store, for the two view use cases that read it alongside their
+ * request. Not exported: reading the thread is never a call of its own, so
+ * nothing outside this module needs a handle on it.
+ */
+async function buildClarificationThread(): Promise<ClarificationThreadRepository> {
+  return new SupabaseClarificationThreadRepository(await createSupabaseServerClient());
+}
+
 export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.coordinator ?? null;
@@ -222,7 +265,12 @@ export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEven
 export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEventRequestUseCase> {
   const { eventRequests, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
-  return new ViewAssignedEventRequestUseCase({ eventRequests, clientOrganisations, userAccounts });
+  return new ViewAssignedEventRequestUseCase({
+    eventRequests,
+    clarificationThread: await buildClarificationThread(),
+    clientOrganisations,
+    userAccounts,
+  });
 }
 
 /** SPM-34: the assigned coordinator approves or rejects a request. */
