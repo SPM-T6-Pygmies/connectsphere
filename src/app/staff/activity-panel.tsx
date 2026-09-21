@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import type { ReactNode } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,11 +20,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   ACTING_AS,
-  activityFor,
-  commentCount,
-  feedRows,
-  type ActivitySection,
   type CommentThread,
+  type FeedRow,
   type StaffRole,
   type SystemActivity,
 } from "@/lib/wireframe";
@@ -71,6 +70,14 @@ function activityIcon(entry: SystemActivity): LucideIcon {
   return ArrowRightIcon;
 }
 
+/** How many things people said, across threads and their replies. */
+function commentsIn(rows: readonly FeedRow[]): number {
+  return rows.reduce(
+    (total, row) => (row.kind === "thread" ? total + 1 + row.thread.replies.length : total),
+    0,
+  );
+}
+
 /** "3d ago", falling back gracefully for anything outside a day/month/year window. */
 function timeAgo(timestamp: string): string {
   const then = new Date(timestamp.replace(" ", "T")).getTime();
@@ -100,9 +107,12 @@ function Timestamp({ at }: { at: string }) {
 function Comment({
   thread,
   reply = false,
+  replyComposer,
 }: {
   thread: CommentThread["entry"];
   reply?: boolean;
+  /** The real reply box for this message, when the surface has one. */
+  replyComposer?: ReactNode;
 }) {
   return (
     <div className="flex gap-3">
@@ -112,14 +122,23 @@ function Comment({
           <span className="text-sm font-medium">{thread.actor.name}</span>
           <Timestamp at={thread.at} />
         </div>
-        <p className="mt-1 text-sm leading-relaxed">{thread.body}</p>
-        {reply ? null : (
+        <p className="mt-1 text-sm leading-relaxed whitespace-pre-line">{thread.body}</p>
+        {reply ? null : replyComposer === undefined ? (
           <button
             type="button"
             className="text-muted-foreground hover:text-foreground mt-1 text-xs font-medium"
           >
             Reply
           </button>
+        ) : (
+          // `details` rather than client state: the box opens with no
+          // JavaScript, which keeps the whole rail a server component.
+          <details className="group mt-1">
+            <summary className="text-muted-foreground hover:text-foreground cursor-pointer list-none text-xs font-medium">
+              Reply
+            </summary>
+            <div className="mt-2">{replyComposer}</div>
+          </details>
         )}
       </div>
     </div>
@@ -138,29 +157,42 @@ function Comment({
  * Scoped to the section it sits on, with a link to the whole event's trail --
  * the Venue tab wants the venue's story, not every status change the event
  * has ever had.
+ *
+ * The rows are supplied rather than looked up here. The wireframe surfaces
+ * still pass `feedRows(activityFor(...))`; the real request-detail surfaces
+ * (SPM-33) pass a clarification thread resolved by a use case in the page,
+ * which they have to -- `src/lib` is lint-forbidden from importing `@/core`,
+ * so real data could never have reached a panel that fetched its own.
  */
 export function ActivityPanel({
-  eventId,
-  section,
+  rows,
   role,
   showAll = false,
   toggleHref,
   /** Comments only, for the external organiser: no internal activity. */
   commentsOnly = false,
+  actingAsName,
+  composer,
+  replyComposer,
 }: {
-  eventId: string;
-  section: ActivitySection;
+  rows: readonly FeedRow[];
   role: StaffRole;
   showAll?: boolean;
   toggleHref?: string;
   commentsOnly?: boolean;
+  /** Who the viewer is. Falls back to the wireframe persona for the fixture surfaces. */
+  actingAsName?: string;
+  /**
+   * The real box for starting a new message. Omitted on the wireframe
+   * surfaces, which keep the placeholder and its "comments ship in Release 1"
+   * note.
+   */
+  composer?: ReactNode;
+  /** A reply box for one top-level message, rendered under it when opened. */
+  replyComposer?: (parentId: string) => ReactNode;
 }) {
-  const scoped = activityFor(eventId, showAll ? undefined : section);
-  const entries = commentsOnly
-    ? scoped.filter((entry) => entry.kind === "comment")
-    : scoped;
-  const rows = feedRows(entries);
-  const actingAs = ACTING_AS[role];
+  const comments = commentsIn(rows);
+  const actingAs = { name: actingAsName ?? ACTING_AS[role].name };
 
   return (
     <Card>
@@ -171,7 +203,7 @@ export function ActivityPanel({
             ? "Questions and answers between you and your coordinator, kept with the event."
             : showAll
               ? "Everything recorded against this event."
-              : `What has happened on this section — ${commentCount(entries)} comment${commentCount(entries) === 1 ? "" : "s"}.`}
+              : `What has happened on this section — ${comments} comment${comments === 1 ? "" : "s"}.`}
         </CardDescription>
       </CardHeader>
 
@@ -208,7 +240,10 @@ export function ActivityPanel({
                   </li>
                 ) : (
                   <li key={row.thread.entry.id} className="relative space-y-3">
-                    <Comment thread={row.thread.entry} />
+                    <Comment
+                      thread={row.thread.entry}
+                      replyComposer={replyComposer?.(row.thread.entry.id)}
+                    />
                     {row.thread.replies.length > 0 ? (
                       <ul className="border-border ml-3 space-y-3 border-l pl-4">
                         {row.thread.replies.map((replyEntry) => (
@@ -228,18 +263,20 @@ export function ActivityPanel({
         <div className="flex gap-3 border-t pt-4">
           <Avatar name={actingAs.name} />
           <div className="min-w-0 flex-1 space-y-2">
-            <Textarea placeholder="Leave a comment…" />
-            <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm">Comment</Button>
-              {toggleHref ? (
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={toggleHref}>
-                    {showAll ? "Show this section only" : "Show all activity"}
-                  </Link>
-                </Button>
-              ) : null}
-            </div>
-            {commentsOnly ? null : (
+            {composer ?? (
+              <>
+                <Textarea placeholder="Leave a comment…" />
+                <Button size="sm">Comment</Button>
+              </>
+            )}
+            {toggleHref ? (
+              <Button variant="ghost" size="sm" asChild>
+                <Link href={toggleHref}>
+                  {showAll ? "Show this section only" : "Show all activity"}
+                </Link>
+              </Button>
+            ) : null}
+            {commentsOnly || composer ? null : (
               <p className="text-muted-foreground pt-1 text-xs leading-relaxed">
                 Comments ship in Release 1. Browsing the activity history is
                 backlog — the release requires the record to exist, not to be
