@@ -62,7 +62,7 @@ function buildUseCase(
   });
 }
 
-describe("ViewCoordinatorEventUseCase", () => {
+describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
   it("resolves the event's client organisation and requesting Organiser by name", async () => {
     const useCase = buildUseCase([seedEvent()]);
 

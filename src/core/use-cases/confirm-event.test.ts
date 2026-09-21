@@ -60,7 +60,7 @@ function buildUseCase(
   return { useCase, eventsRepo };
 }
 
-describe("ConfirmEventUseCase", () => {
+describe("ConfirmEventUseCase (SPM-50)", () => {
   it("confirms an event with every essential arrangement complete (AC1/AC2)", async () => {
     const { useCase, eventsRepo } = buildUseCase(
       [seedEvent()],

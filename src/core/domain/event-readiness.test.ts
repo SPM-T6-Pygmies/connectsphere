@@ -43,7 +43,7 @@ function readiness(
   return { eventId: EVENT_ID, essentialArrangements };
 }
 
-describe("blockingArrangements", () => {
+describe("blockingArrangements (SPM-50)", () => {
   it("is empty when every essential arrangement is complete", () => {
     expect(
       blockingArrangements(
@@ -83,7 +83,7 @@ describe("blockingArrangements", () => {
   });
 });
 
-describe("canConfirm", () => {
+describe("canConfirm (SPM-50)", () => {
   it("is true in Planning with nothing blocking", () => {
     expect(
       canConfirm(
@@ -115,7 +115,7 @@ describe("canConfirm", () => {
   );
 });
 
-describe("confirmEvent", () => {
+describe("confirmEvent (SPM-50)", () => {
   it("confirms a Planning event with every essential arrangement complete", () => {
     const confirmed = confirmEvent(
       event({ status: "Planning" }),
