@@ -294,3 +294,48 @@ export class DraftNotEditableError extends DomainError {
     super(`Event request ${id} is not an editable draft.`);
   }
 }
+
+/**
+ * SPM-33 AC2: a clarification can only be requested on a request that is still
+ * pre-decision -- `Submitted`, `Under Review`, or already `Returned` (decision
+ * 5: a request can be returned more than once, with or without a Resolve in
+ * between). A decided request has no clarification left to ask for.
+ *
+ * Takes no argument for the same reason `EventRequestNotDecidableError` takes
+ * none: the Supabase adapter raises this one too, after losing a race to a
+ * concurrent decision, and there it holds no status to put in the message.
+ */
+export class EventRequestNotReturnableError extends DomainError {
+  readonly code = "event_request_not_returnable";
+
+  constructor() {
+    super("This event request can no longer be returned for clarification.");
+  }
+}
+
+/**
+ * SPM-33 AC3: a clarification request must say what needs clarifying -- by the
+ * same rule that makes a rejection state its reason.
+ */
+export class ClarificationMessageRequiredError extends DomainError {
+  readonly code = "clarification_message_required";
+
+  constructor() {
+    super("Say what needs clarifying.");
+  }
+}
+
+/**
+ * SPM-33 AC6: only a `Returned` request can be marked resolved -- resolving is
+ * the Coordinator's "I am no longer waiting on the Organiser" signal, and there
+ * is nothing to stop waiting for on a request that was never returned.
+ *
+ * Argument-free for the same race-losing reason as the two above.
+ */
+export class ClarificationNotResolvableError extends DomainError {
+  readonly code = "clarification_not_resolvable";
+
+  constructor() {
+    super("This event request is not waiting on the Organiser.");
+  }
+}
