@@ -137,6 +137,8 @@ export function SubmittedRequestDetail({
             role="requester"
             actingAsName={organiserName}
             commentsOnly
+            title="Clarification"
+            description="Questions your coordinator has asked about this request, and your answers. Kept with the request."
             composer={<ClarificationComposer eventRequestId={eventRequest.id} />}
             replyComposer={(parentId) => (
               <ClarificationComposer
