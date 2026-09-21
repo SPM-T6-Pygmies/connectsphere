@@ -9,7 +9,10 @@ import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventId } from "@/core/domain/event";
-import type { ArrangementReadiness, EventReadiness } from "@/core/domain/event-readiness";
+import type {
+  ArrangementReadiness,
+  EventReadiness,
+} from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
@@ -22,7 +25,9 @@ const REQUESTER = userAccountId("organiser-1");
 const ORG_NAMES = new Map([[ORG_A, "Sunrise Events Co"]]);
 const ORGANISER_NAMES = new Map([[REQUESTER, "Alice"]]);
 
-function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinatorEvent {
+function seedEvent(
+  overrides: Partial<SeedCoordinatorEvent> = {},
+): SeedCoordinatorEvent {
   return {
     id: "event-1",
     eventRequestId: "request-1",
@@ -39,7 +44,9 @@ function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinat
   };
 }
 
-function seedReadiness(essentialArrangements: readonly ArrangementReadiness[]): EventReadiness {
+function seedReadiness(
+  essentialArrangements: readonly ArrangementReadiness[],
+): EventReadiness {
   return { eventId: eventId("event-1"), essentialArrangements };
 }
 
@@ -59,7 +66,10 @@ describe("ViewCoordinatorEventUseCase", () => {
   it("resolves the event's client organisation and requesting Organiser by name", async () => {
     const useCase = buildUseCase([seedEvent()]);
 
-    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+    const result = await useCase.execute({
+      id: "event-1",
+      userAccountId: COORDINATOR,
+    });
 
     expect(result?.clientOrganisationName).toBe("Sunrise Events Co");
     expect(result?.owningOrganiserName).toBe("Alice");
@@ -68,10 +78,13 @@ describe("ViewCoordinatorEventUseCase", () => {
   it("reports confirmable when every essential arrangement is complete", async () => {
     const useCase = buildUseCase(
       [seedEvent()],
-      [seedReadiness([{ type: "venue", complete: true }])],
+      [seedReadiness([{ type: "venue", complete: true, detail: "" }])],
     );
 
-    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+    const result = await useCase.execute({
+      id: "event-1",
+      userAccountId: COORDINATOR,
+    });
 
     expect(result?.canConfirm).toBe(true);
     expect(result?.blockingArrangements).toEqual([]);
@@ -80,10 +93,18 @@ describe("ViewCoordinatorEventUseCase", () => {
   it("names what blocks confirmation when an essential arrangement is incomplete", async () => {
     const useCase = buildUseCase(
       [seedEvent()],
-      [seedReadiness([{ type: "venue", complete: false }, { type: "programme", complete: true }])],
+      [
+        seedReadiness([
+          { type: "venue", complete: false, detail: "" },
+          { type: "programme", complete: true, detail: "" },
+        ]),
+      ],
     );
 
-    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+    const result = await useCase.execute({
+      id: "event-1",
+      userAccountId: COORDINATOR,
+    });
 
     expect(result?.canConfirm).toBe(false);
     expect(result?.blockingArrangements).toEqual(["venue"]);
@@ -92,14 +113,23 @@ describe("ViewCoordinatorEventUseCase", () => {
   it("reports not confirmable once the event is past Planning, even with nothing blocking", async () => {
     const useCase = buildUseCase([seedEvent({ status: "Confirmed" })]);
 
-    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+    const result = await useCase.execute({
+      id: "event-1",
+      userAccountId: COORDINATOR,
+    });
 
     expect(result?.canConfirm).toBe(false);
   });
 
   it.each([
-    ["assigned to another coordinator", seedEvent({ assignedCoordinatorUserAccountId: OTHER_COORDINATOR })],
-    ["not assigned to anyone", seedEvent({ assignedCoordinatorUserAccountId: null })],
+    [
+      "assigned to another coordinator",
+      seedEvent({ assignedCoordinatorUserAccountId: OTHER_COORDINATOR }),
+    ],
+    [
+      "not assigned to anyone",
+      seedEvent({ assignedCoordinatorUserAccountId: null }),
+    ],
   ])("answers an event %s as not found (#91)", async (_label, existing) => {
     const useCase = buildUseCase([existing]);
 

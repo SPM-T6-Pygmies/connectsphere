@@ -8,6 +8,7 @@ import { toKey } from "./coordinator-event-mapper";
 interface EventReadinessRow {
   arrangement_type: ArrangementType;
   is_complete: boolean;
+  detail: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export class SupabaseEventReadinessRepository implements EventReadinessRepositor
       essentialArrangements: rows.map((row) => ({
         type: row.arrangement_type,
         complete: row.is_complete,
+        detail: row.detail,
       })),
     };
   }

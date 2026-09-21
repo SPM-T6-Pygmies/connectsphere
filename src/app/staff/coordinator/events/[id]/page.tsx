@@ -64,6 +64,7 @@ export default async function CoordinatorEventPage({
   const { event, clientOrganisationName, owningOrganiserName, readiness, canConfirm, blockingArrangements } =
     result;
   const alreadyConfirmed = event.status === "Confirmed" || event.status === "Completed";
+  const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
 
   return (
     <StaffShell
@@ -117,6 +118,7 @@ export default async function CoordinatorEventPage({
                     <TableRow>
                       <TableHead>Arrangement</TableHead>
                       <TableHead>Complete</TableHead>
+                      <TableHead>Detail</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -131,6 +133,9 @@ export default async function CoordinatorEventPage({
                           ) : (
                             <span className="text-muted-foreground text-xs">Outstanding</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">
+                          {arrangement.detail}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -164,8 +169,11 @@ export default async function CoordinatorEventPage({
                   </AlertTitle>
                   <AlertDescription>
                     <ul className="list-disc space-y-1 pl-4">
-                      {blockingArrangements.map((type) => (
-                        <li key={type}>{ARRANGEMENT_LABELS[type]}</li>
+                      {blockers.map((arrangement) => (
+                        <li key={arrangement.type}>
+                          <span className="font-medium">{ARRANGEMENT_LABELS[arrangement.type]}</span> —{" "}
+                          {arrangement.detail}
+                        </li>
                       ))}
                     </ul>
                   </AlertDescription>

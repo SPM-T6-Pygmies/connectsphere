@@ -14,6 +14,8 @@ export type ArrangementType =
 export interface ArrangementReadiness {
   readonly type: ArrangementType;
   readonly complete: boolean;
+  /** A short, plain-English explanation of what's actually true -- the booked venue, the agenda text, the registration window. */
+  readonly detail: string;
 }
 
 /**

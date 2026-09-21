@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import { clientOrganisationId } from "./client-organisation";
-import type { CoordinatorEvent, CoordinatorEventStatus } from "./coordinator-event";
+import type {
+  CoordinatorEvent,
+  CoordinatorEventStatus,
+} from "./coordinator-event";
 import { eventId } from "./event";
-import { EventNotConfirmableError, EventNotReadyForConfirmationError } from "./errors";
+import {
+  EventNotConfirmableError,
+  EventNotReadyForConfirmationError,
+} from "./errors";
 import {
   blockingArrangements,
   canConfirm,
@@ -31,7 +37,9 @@ function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
   };
 }
 
-function readiness(essentialArrangements: readonly ArrangementReadiness[]): EventReadiness {
+function readiness(
+  essentialArrangements: readonly ArrangementReadiness[],
+): EventReadiness {
   return { eventId: EVENT_ID, essentialArrangements };
 }
 
@@ -40,8 +48,8 @@ describe("blockingArrangements", () => {
     expect(
       blockingArrangements(
         readiness([
-          { type: "venue", complete: true },
-          { type: "programme", complete: true },
+          { type: "venue", complete: true, detail: "" },
+          { type: "programme", complete: true, detail: "" },
         ]),
       ),
     ).toEqual([]);
@@ -51,8 +59,8 @@ describe("blockingArrangements", () => {
     expect(
       blockingArrangements(
         readiness([
-          { type: "venue", complete: true },
-          { type: "programme", complete: false },
+          { type: "venue", complete: true, detail: "" },
+          { type: "programme", complete: false, detail: "" },
         ]),
       ),
     ).toEqual(["programme"]);
@@ -62,9 +70,9 @@ describe("blockingArrangements", () => {
     expect(
       blockingArrangements(
         readiness([
-          { type: "venue", complete: false },
-          { type: "programme", complete: false },
-          { type: "registration", complete: true },
+          { type: "venue", complete: false, detail: "" },
+          { type: "programme", complete: false, detail: "" },
+          { type: "registration", complete: true, detail: "" },
         ]),
       ),
     ).toEqual(["venue", "programme"]);
@@ -77,18 +85,29 @@ describe("blockingArrangements", () => {
 
 describe("canConfirm", () => {
   it("is true in Planning with nothing blocking", () => {
-    expect(canConfirm(event({ status: "Planning" }), readiness([{ type: "venue", complete: true }]))).toBe(
-      true,
-    );
+    expect(
+      canConfirm(
+        event({ status: "Planning" }),
+        readiness([{ type: "venue", complete: true, detail: "" }]),
+      ),
+    ).toBe(true);
   });
 
   it("is false in Planning with something still incomplete", () => {
     expect(
-      canConfirm(event({ status: "Planning" }), readiness([{ type: "venue", complete: false }])),
+      canConfirm(
+        event({ status: "Planning" }),
+        readiness([{ type: "venue", complete: false, detail: "" }]),
+      ),
     ).toBe(false);
   });
 
-  it.each(["Blocked", "Confirmed", "Completed", "Cancelled"] as CoordinatorEventStatus[])(
+  it.each([
+    "Blocked",
+    "Confirmed",
+    "Completed",
+    "Cancelled",
+  ] as CoordinatorEventStatus[])(
     "is false when status is %s, even with nothing blocking",
     (status) => {
       expect(canConfirm(event({ status }), readiness([]))).toBe(false);
@@ -101,8 +120,8 @@ describe("confirmEvent", () => {
     const confirmed = confirmEvent(
       event({ status: "Planning" }),
       readiness([
-        { type: "venue", complete: true },
-        { type: "programme", complete: true },
+        { type: "venue", complete: true, detail: "" },
+        { type: "programme", complete: true, detail: "" },
       ]),
     );
 
@@ -112,7 +131,7 @@ describe("confirmEvent", () => {
   it("confirms even while a non-essential arrangement is incomplete, since only essential rows are ever in readiness", () => {
     const confirmed = confirmEvent(
       event({ status: "Planning" }),
-      readiness([{ type: "venue", complete: true }]),
+      readiness([{ type: "venue", complete: true, detail: "" }]),
     );
 
     expect(confirmed.status).toBe("Confirmed");
@@ -123,8 +142,8 @@ describe("confirmEvent", () => {
       confirmEvent(
         event({ status: "Planning" }),
         readiness([
-          { type: "venue", complete: false },
-          { type: "registration", complete: false },
+          { type: "venue", complete: false, detail: "" },
+          { type: "registration", complete: false, detail: "" },
         ]),
       ),
     ).toThrow(EventNotReadyForConfirmationError);
@@ -133,24 +152,30 @@ describe("confirmEvent", () => {
       confirmEvent(
         event({ status: "Planning" }),
         readiness([
-          { type: "venue", complete: false },
-          { type: "registration", complete: false },
+          { type: "venue", complete: false, detail: "" },
+          { type: "registration", complete: false, detail: "" },
         ]),
       );
       expect.unreachable();
     } catch (error) {
       expect(error).toBeInstanceOf(EventNotReadyForConfirmationError);
-      expect((error as EventNotReadyForConfirmationError).blockingArrangements).toEqual([
-        "venue",
-        "registration",
-      ]);
+      expect(
+        (error as EventNotReadyForConfirmationError).blockingArrangements,
+      ).toEqual(["venue", "registration"]);
     }
   });
 
-  it.each(["Blocked", "Confirmed", "Completed", "Cancelled"] as CoordinatorEventStatus[])(
+  it.each([
+    "Blocked",
+    "Confirmed",
+    "Completed",
+    "Cancelled",
+  ] as CoordinatorEventStatus[])(
     "refuses to confirm an event with status %s",
     (status) => {
-      expect(() => confirmEvent(event({ status }), readiness([]))).toThrow(EventNotConfirmableError);
+      expect(() => confirmEvent(event({ status }), readiness([]))).toThrow(
+        EventNotConfirmableError,
+      );
     },
   );
 });

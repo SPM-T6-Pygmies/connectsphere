@@ -17,7 +17,10 @@
 --     SPM-109's). A venue counts complete if *any* of the event's bookings,
 --     or any of its sessions' bookings, is Confirmed -- multi-session
 --     aggregation is not a verified rule, just the simplest one that does not
---     block confirmation on an unrelated session's booking.
+--     block confirmation on an unrelated session's booking. `detail` is a
+--     short plain-English explanation of *why* -- the booked venue's name,
+--     the agenda text, or the registration window -- so the coordinator's
+--     screen can say what's true instead of a bare done/outstanding badge.
 --
 --   coordinator_confirm_event(p_event_id, p_coordinator_user_account_id)
 --     Re-checks assignment, status and readiness under a row lock before
@@ -60,7 +63,8 @@ create or replace function public.event_readiness(
 )
 returns table (
   arrangement_type text,
-  is_complete boolean
+  is_complete boolean,
+  detail text
 )
 language sql
 security definer
@@ -70,34 +74,45 @@ as $$
   select
     eea.arrangement_type,
     case eea.arrangement_type
-      when 'venue' then exists (
-        select 1
-        from public.booking b
-        where b.status = 'Confirmed'
-          and (
-            b.event_id = p_event_id
-            or b.session_id in (
-              select s.session_id from public.session s where s.event_id = p_event_id
-            )
-          )
+      when 'venue' then vb.venue_id is not null
+      when 'programme' then e.programme_agenda is not null and btrim(e.programme_agenda) <> ''
+      when 'registration' then e.registration_enabled_flag
+        and e.registration_open_date is not null
+        and e.registration_close_date is not null
+    end as is_complete,
+    case eea.arrangement_type
+      when 'venue' then coalesce(
+        'Confirmed at ' || vb.location || '.',
+        'No confirmed venue booking yet.'
       )
-      when 'programme' then exists (
-        select 1
-        from public.event e
-        where e.event_id = p_event_id
-          and e.programme_agenda is not null
-          and btrim(e.programme_agenda) <> ''
-      )
-      when 'registration' then exists (
-        select 1
-        from public.event e
-        where e.event_id = p_event_id
-          and e.registration_enabled_flag
-          and e.registration_open_date is not null
-          and e.registration_close_date is not null
-      )
-    end as is_complete
+      when 'programme' then case
+        when e.programme_agenda is not null and btrim(e.programme_agenda) <> '' then
+          left(e.programme_agenda, 80)
+          || (case when length(e.programme_agenda) > 80 then '…' else '' end)
+        else 'No agenda has been written yet.'
+      end
+      when 'registration' then case
+        when e.registration_enabled_flag
+             and e.registration_open_date is not null
+             and e.registration_close_date is not null then
+          'Open ' || e.registration_open_date || ' to ' || e.registration_close_date || '.'
+        when not e.registration_enabled_flag then 'Registration is not enabled for this event.'
+        else 'Registration is enabled, but the open/close dates are not set yet.'
+      end
+    end as detail
   from public.event_essential_arrangement eea
+  join public.event e on e.event_id = eea.event_id
+  left join lateral (
+    select v.location, b.venue_id
+    from public.booking b
+    join public.venue v on v.venue_id = b.venue_id
+    where b.status = 'Confirmed'
+      and (
+        b.event_id = eea.event_id
+        or b.session_id in (select s.session_id from public.session s where s.event_id = eea.event_id)
+      )
+    limit 1
+  ) vb on true
   where eea.event_id = p_event_id
     and eea.is_essential
     and eea.arrangement_type in ('venue', 'programme', 'registration');
