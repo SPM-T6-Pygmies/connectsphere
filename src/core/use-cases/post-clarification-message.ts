@@ -1,13 +1,9 @@
 import {
   clarificationMessageId,
-  type ClarificationMessageId,
+  topLevelParentFor,
 } from "../domain/clarification-message";
 import { clientOrganisationId } from "../domain/client-organisation";
-import {
-  ClarificationMessageRequiredError,
-  ClarificationReplyNotTopLevelError,
-  EventRequestNotFoundError,
-} from "../domain/errors";
+import { ClarificationMessageRequiredError, EventRequestNotFoundError } from "../domain/errors";
 import {
   eventRequestAccessFor,
   eventRequestId,
@@ -92,7 +88,10 @@ export class PostClarificationMessageUseCase {
       throw new ClarificationMessageRequiredError();
     }
 
-    const parentId = await this.topLevelParent(id, command.parentId);
+    const parentId = topLevelParentFor(
+      await clarificationThread.messagesFor(id),
+      command.parentId === null ? null : clarificationMessageId(command.parentId),
+    );
 
     const stored = await clarificationThread.append({
       eventRequestId: id,
@@ -104,29 +103,5 @@ export class PostClarificationMessageUseCase {
     return { clarificationMessageId: stored.id };
   }
 
-  /**
-   * Threading is one level (decision 6, the Linear model), so a reply's parent
-   * must itself be top-level and must be on this same request.
-   *
-   * Checked against the stored thread rather than trusted from the form: the
-   * parent id crosses the boundary as a string like any other input.
-   */
-  private async topLevelParent(
-    eventRequest: ReturnType<typeof eventRequestId>,
-    rawParentId: string | null,
-  ): Promise<ClarificationMessageId | null> {
-    if (rawParentId === null) {
-      return null;
-    }
-
-    const parentId = clarificationMessageId(rawParentId);
-    const messages = await this.deps.clarificationThread.messagesFor(eventRequest);
-    const parent = messages.find((message) => message.id === parentId);
-
-    if (parent === undefined || parent.parentId !== null) {
-      throw new ClarificationReplyNotTopLevelError();
-    }
-
-    return parentId;
-  }
 }
+

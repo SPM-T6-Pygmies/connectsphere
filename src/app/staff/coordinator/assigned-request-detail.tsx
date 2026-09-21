@@ -9,11 +9,21 @@ import type {
   CoordinatorRequestState,
   CoordinatorSection,
 } from "@/core/domain/event-request";
-import type { EventRequestView } from "@/core/use-cases/event-request-view";
+import type {
+  ClarificationMessageView,
+  EventRequestView,
+} from "@/core/use-cases/event-request-view";
 
+import { ActivityPanel } from "../activity-panel";
+import { clarificationFeedRows } from "../clarification-feed";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
+import {
+  ClarificationComposer,
+  RequestClarificationForm,
+  ResolveClarificationForm,
+} from "./clarification-forms";
 import { DecisionForm } from "./decision-form";
 import { RequestStateBadge } from "./request-state-badge";
 
@@ -44,9 +54,13 @@ function formatInstantTime(iso: string): string {
 /**
  * SPM-32: everything the Organiser submitted, read-only. SPM-34 adds the
  * decision alongside it: Approve/Reject while the request awaits this
- * Coordinator, and the outcome once it is decided. No clarification or edit
- * controls -- clarification is SPM-33's job, and a submitted request is
- * locked (#102).
+ * Coordinator, and the outcome once it is decided. SPM-33 adds the
+ * clarification exchange: a question that returns the request, the thread it
+ * opens, and a Resolve that ends the waiting without deciding.
+ *
+ * Still no edit controls. A submitted request is locked (#102), and asking
+ * about one was never an edit -- which is exactly why the exchange is an
+ * append to a thread rather than a change to a field.
  */
 export function AssignedRequestDetail({
   eventRequest,
@@ -54,11 +68,17 @@ export function AssignedRequestDetail({
   clientOrganisationName,
   state,
   section,
+  clarificationThread,
+  coordinatorName,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
   requestingOrganiserName: string;
   clientOrganisationName: string;
+  /** The clarification exchange so far (SPM-33 AC4). */
+  clarificationThread: readonly ClarificationMessageView[];
+  /** Whoever is signed in, for the composer's avatar. */
+  coordinatorName: string;
   /** The Coordinator's reading of the status, from the use case. */
   state: CoordinatorRequestState | null;
   /** The section the request now lives under, from the use case. */
@@ -122,22 +142,63 @@ export function AssignedRequestDetail({
               />
             </CardContent>
           </Card>
+
+          <ActivityPanel
+            rows={clarificationFeedRows(eventRequest.id, clarificationThread)}
+            role="coordinator"
+            actingAsName={coordinatorName}
+            commentsOnly
+            composer={<ClarificationComposer eventRequestId={eventRequest.id} />}
+            replyComposer={(parentId) => (
+              <ClarificationComposer
+                eventRequestId={eventRequest.id}
+                parentId={parentId}
+                placeholder="Reply to the organiser…"
+              />
+            )}
+          />
         </div>
 
         <div className="space-y-6">
-          {state === "awaiting-decision" ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Decision</CardTitle>
-                <CardDescription>
-                  Approving lets planning begin but commits ConnectSphere to nothing
-                  yet. Rejecting is final.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DecisionForm eventRequestId={eventRequest.id} />
-              </CardContent>
-            </Card>
+          {state === "awaiting-decision" || state === "with-organiser" ? (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Decision</CardTitle>
+                  <CardDescription>
+                    Approving lets planning begin but commits ConnectSphere to nothing
+                    yet. Rejecting is final.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <DecisionForm eventRequestId={eventRequest.id} />
+                  {state === "with-organiser" ? (
+                    <div className="space-y-3 border-t pt-4">
+                      <p className="text-muted-foreground text-xs leading-relaxed">
+                        Waiting on the organiser. You can decide anyway, or mark
+                        the clarification resolved to put this back in your
+                        decision queue.
+                      </p>
+                      <ResolveClarificationForm eventRequestId={eventRequest.id} />
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Clarification</CardTitle>
+                  <CardDescription>
+                    {state === "with-organiser"
+                      ? "Already with the organiser. Ask again if something else comes up."
+                      : "Missing something? Ask the organiser before you decide."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RequestClarificationForm eventRequestId={eventRequest.id} />
+                </CardContent>
+              </Card>
+            </>
           ) : state === "approved" || state === "rejected" ? (
             <Card>
               <CardHeader>

@@ -7,11 +7,11 @@ import { AssignedRequestDetail } from "./assigned-request-detail";
 
 /**
  * SPM-32: the view of one event request assigned to the caller as
- * coordinator, whatever its status -- the submitted fields are read-only, and
- * SPM-34's approve/reject controls appear while the request awaits a
- * decision. Returning a request (SPM-33) and the tabbed workspace an
+ * coordinator, whatever its status -- the submitted fields are read-only,
+ * SPM-34's approve/reject controls appear while the request is undecided, and
+ * SPM-33's clarification exchange sits alongside them. The tabbed workspace an
  * *Approved* request eventually becomes (a separate, backlog-scoped "My
- * events" view) are both out of scope here.
+ * events" view) is still out of scope here.
  *
  * One entry point for both the record's own route and the notification-detail
  * lookup, so neither can drift and show the wrong shape for the same request.
@@ -32,7 +32,10 @@ export async function CoordinatorDetail({
   }
 
   const viewAssignedEventRequest = await buildViewAssignedEventRequest();
-  const result = await viewAssignedEventRequest.execute({ id, ...coordinator });
+  const result = await viewAssignedEventRequest.execute({
+    id,
+    userAccountId: coordinator.userAccountId,
+  });
 
   if (result === null) {
     notFound();
@@ -45,6 +48,8 @@ export async function CoordinatorDetail({
       clientOrganisationName={result.clientOrganisationName}
       state={result.state}
       section={result.section}
+      clarificationThread={result.clarificationThread}
+      coordinatorName={coordinator.name}
       origin={origin}
     />
   );

@@ -1,6 +1,9 @@
 import type { Brand } from "./brand";
 import type { EventRequestId } from "./event-request";
-import { InvalidClarificationMessageIdError } from "./errors";
+import {
+  ClarificationReplyNotTopLevelError,
+  InvalidClarificationMessageIdError,
+} from "./errors";
 import type { UserAccountId } from "./user-account";
 
 export type ClarificationMessageId = Brand<string, "ClarificationMessageId">;
@@ -53,4 +56,33 @@ export function clarificationMessageId(raw: string): ClarificationMessageId {
     throw new InvalidClarificationMessageIdError(raw);
   }
   return trimmed as ClarificationMessageId;
+}
+
+/**
+ * The parent a reply may hang off, given the thread as it stands (SPM-33
+ * decision 6).
+ *
+ * Threading is one level, following Linear: a reply's parent must itself be
+ * top-level, and must be a message on this same thread. `null` in, `null` out
+ * -- a message with no parent is top-level itself.
+ *
+ * A business rule rather than a use-case check, because both sides of the
+ * exchange are bound by it and neither should restate it. The store enforces
+ * it too (`post_event_request_clarification_message`), where it holds against
+ * a caller that never came through here.
+ */
+export function topLevelParentFor(
+  thread: readonly ClarificationMessage[],
+  parentId: ClarificationMessageId | null,
+): ClarificationMessageId | null {
+  if (parentId === null) {
+    return null;
+  }
+
+  const parent = thread.find((message) => message.id === parentId);
+  if (parent === undefined || parent.parentId !== null) {
+    throw new ClarificationReplyNotTopLevelError();
+  }
+
+  return parentId;
 }
