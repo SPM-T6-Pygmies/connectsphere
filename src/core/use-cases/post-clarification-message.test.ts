@@ -9,7 +9,11 @@ import {
   ClarificationReplyNotTopLevelError,
   EventRequestNotFoundError,
 } from "@/core/domain/errors";
-import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
+import {
+  eventRequestAccessFor,
+  eventRequestId,
+  type EventRequest,
+} from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { PostClarificationMessageUseCase } from "./post-clarification-message";
@@ -232,4 +236,32 @@ describe("PostClarificationMessageUseCase (SPM-33)", () => {
     ).rejects.toBeInstanceOf(ClarificationReplyNotTopLevelError);
     expect(clarificationThread.all()).toHaveLength(1);
   });
+});
+
+/**
+ * SPM-162: the check that keeps #102 honoured. Posting must never be a way for
+ * the Organiser to acquire edit rights over a request they have submitted.
+ */
+describe("posting never makes a submitted request editable (SPM-33, #102)", () => {
+  it.each(["Submitted", "Under Review", "Returned", "Approved"] as const)(
+    "leaves a %s request read-only for its own Organiser, before and after posting",
+    async (status) => {
+      const organiser = { userAccountId: ORGANISER, clientOrganisationId: ORG_A };
+      const { useCase, eventRequests } = buildUseCase([request({ status })]);
+
+      expect(eventRequestAccessFor(request({ status }), organiser)).toBe("view");
+
+      await useCase.execute({
+        id: "request-1",
+        userAccountId: ORGANISER,
+        organisationId: ORG_A,
+        body: "Answering.",
+        parentId: null,
+      });
+
+      const after = await eventRequests.findById(eventRequestId("request-1"));
+      expect(after).not.toBeNull();
+      expect(eventRequestAccessFor(after!, organiser)).toBe("view");
+    },
+  );
 });

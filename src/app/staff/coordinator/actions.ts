@@ -3,7 +3,18 @@
 import { revalidatePath } from "next/cache";
 
 import { decideEventRequestSchema } from "@/adapters/inbound/decide-event-request-schema";
-import { buildDecideEventRequest, getCurrentCoordinator } from "@/composition/container";
+import { postClarificationMessageSchema } from "@/adapters/inbound/post-clarification-message-schema";
+import {
+  requestClarificationSchema,
+  resolveClarificationSchema,
+} from "@/adapters/inbound/request-clarification-schema";
+import {
+  buildDecideEventRequest,
+  buildPostCoordinatorClarificationMessage,
+  buildRequestClarification,
+  buildResolveClarification,
+  getCurrentCoordinator,
+} from "@/composition/container";
 import { DomainError, EventRequestNotFoundError } from "@/core/domain/errors";
 
 export type DecideEventRequestState =
@@ -58,4 +69,141 @@ export async function decideEventRequestAction(
   revalidatePath("/staff/coordinator", "layout");
 
   return { status: "decided" };
+}
+
+export type RequestClarificationState =
+  | { status: "idle" }
+  | { status: "returned" }
+  | { status: "error"; message: string; clarificationMessage: string };
+
+/**
+ * SPM-33 AC1-AC3: the assigned Event Coordinator returns a request to its
+ * Organiser with a question.
+ *
+ * Who is asking comes from `getCurrentCoordinator()` on the server, never from
+ * the form, for the same reason the decision does: a posted user id would let
+ * any caller act as anyone. A Server Action is reachable without its page, so
+ * the identity check here is not a duplicate of the page's -- it is the only
+ * one that covers this entry point.
+ */
+export async function requestClarificationAction(
+  _previous: RequestClarificationState,
+  formData: FormData,
+): Promise<RequestClarificationState> {
+  const clarificationMessage = String(formData.get("message") ?? "");
+  const parsed = requestClarificationSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    message: clarificationMessage,
+  });
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "That request could not be identified.",
+      clarificationMessage,
+    };
+  }
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new EventRequestNotFoundError(parsed.data.id);
+    }
+
+    const requestClarification = await buildRequestClarification();
+    await requestClarification.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message, clarificationMessage };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "returned" };
+}
+
+export type ResolveClarificationState = { status: "idle" } | { status: "error"; message: string };
+
+/**
+ * SPM-33 AC6: the Coordinator marks the clarification resolved, putting the
+ * request back to awaiting their own decision.
+ *
+ * A shortcut out of the waiting-on-the-Organiser label, not a gate in front of
+ * deciding -- `decideEventRequestAction` works on a `Returned` request too
+ * (decision 4).
+ */
+export async function resolveClarificationAction(
+  _previous: ResolveClarificationState,
+  formData: FormData,
+): Promise<ResolveClarificationState> {
+  const parsed = resolveClarificationSchema.safeParse({ id: String(formData.get("id") ?? "") });
+
+  if (!parsed.success) {
+    return { status: "error", message: "That request could not be identified." };
+  }
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new EventRequestNotFoundError(parsed.data.id);
+    }
+
+    const resolveClarification = await buildResolveClarification();
+    await resolveClarification.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "idle" };
+}
+
+export type PostClarificationMessageState =
+  | { status: "idle" }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-33 AC5: the assigned Coordinator says something more on the thread.
+ *
+ * Not a second return: a follow-up leaves the status exactly where it is
+ * (decision 3), which is what lets the two sides talk as long as they need to.
+ */
+export async function postClarificationMessageAction(
+  _previous: PostClarificationMessageState,
+  formData: FormData,
+): Promise<PostClarificationMessageState> {
+  const parsed = postClarificationMessageSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    body: String(formData.get("body") ?? ""),
+    parentId: String(formData.get("parentId") ?? ""),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "That request could not be identified." };
+  }
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new EventRequestNotFoundError(parsed.data.id);
+    }
+
+    const postMessage = await buildPostCoordinatorClarificationMessage();
+    await postMessage.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "idle" };
 }

@@ -28,6 +28,7 @@ import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-even
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
+import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
 import { ResolveClarificationUseCase } from "@/core/use-cases/resolve-clarification";
 import type { StaffWorkspace } from "@/core/domain/staff-member";
@@ -209,10 +210,19 @@ export async function buildResolveClarification(): Promise<ResolveClarificationU
   return new ResolveClarificationUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-/** SPM-33 AC4-AC5: either side posts on the thread. Appends, and nothing else. */
+/** SPM-33 AC4-AC5: the responsible Organiser answers on the thread. Appends, and nothing else. */
 export async function buildPostClarificationMessage(): Promise<PostClarificationMessageUseCase> {
   const client = await createSupabaseServerClient();
   return new PostClarificationMessageUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+  });
+}
+
+/** SPM-33 AC5: the assigned Coordinator follows up, without returning the request again. */
+export async function buildPostCoordinatorClarificationMessage(): Promise<PostCoordinatorClarificationMessageUseCase> {
+  const client = await createSupabaseServerClient();
+  return new PostCoordinatorClarificationMessageUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
     clarificationThread: new SupabaseClarificationThreadRepository(client),
   });
@@ -227,7 +237,10 @@ async function buildClarificationThread(): Promise<ClarificationThreadRepository
   return new SupabaseClarificationThreadRepository(await createSupabaseServerClient());
 }
 
-export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
+export async function getCurrentCoordinator(): Promise<{
+  readonly userAccountId: string;
+  readonly name: string;
+} | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.coordinator ?? null;
 }

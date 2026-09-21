@@ -18,5 +18,11 @@ export default async function Page({ params }: PageProps<"/staff/requester/[id]"
     notFound();
   }
 
-  return <SubmittedRequestDetail eventRequest={result.eventRequest} />;
+  return (
+    <SubmittedRequestDetail
+      eventRequest={result.eventRequest}
+      clarificationThread={result.clarificationThread}
+      organiserName={organiser.name}
+    />
+  );
 }

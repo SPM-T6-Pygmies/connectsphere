@@ -20,7 +20,7 @@ export interface IdentifyStaffMemberResult {
     readonly name: string;
   } | null;
   /** Who the Coordinator's screens act as -- null unless `coordinatorContextFor` allows it. */
-  readonly coordinator: { readonly userAccountId: string } | null;
+  readonly coordinator: { readonly userAccountId: string; readonly name: string } | null;
   /** The staff workspaces the member may open -- see `workspacesFor`. */
   readonly workspaces: readonly StaffWorkspace[];
 }
@@ -53,11 +53,12 @@ export class IdentifyStaffMemberUseCase {
         user.clientOrganisationId === null ? null : clientOrganisationId(user.clientOrganisationId),
     };
     const organiser = organiserContextFor(member);
+    const coordinator = coordinatorContextFor(member);
 
     return {
       name: user.name,
       organiser: organiser && { ...organiser, name: user.name },
-      coordinator: coordinatorContextFor(member),
+      coordinator: coordinator && { ...coordinator, name: user.name },
       workspaces: workspacesFor(member.roles),
     };
   }

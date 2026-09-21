@@ -8,12 +8,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { EventRequestView } from "@/core/use-cases/event-request-view";
+import type {
+  ClarificationMessageView,
+  EventRequestView,
+} from "@/core/use-cases/event-request-view";
 
+import { ActivityPanel } from "../activity-panel";
+import { clarificationFeedRows } from "../clarification-feed";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
+import { ClarificationComposer } from "./[id]/clarification-composer";
 
 /** `h:mm am/pm`, in the viewer's own timezone -- for an instant, not a calendar date. */
 function formatInstantTime(iso: string): string {
@@ -52,11 +58,27 @@ function timeline(request: EventRequestView) {
   ];
 }
 
+/**
+ * SPM-31: the Organiser's own view of a request they have submitted, and
+ * SPM-33's clarification exchange alongside it.
+ *
+ * The exchange adds a reply box and nothing else. No field became editable --
+ * a submitted request is still locked (#102), and answering a question about
+ * it was never an edit, which is exactly why the exchange is an append. There
+ * is no Resolve control either: marking a clarification resolved is the
+ * Coordinator's alone (AC7).
+ */
 export function SubmittedRequestDetail({
   eventRequest,
+  clarificationThread,
+  organiserName,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
+  /** The clarification exchange so far (SPM-33 AC4) -- the same record the Coordinator reads. */
+  clarificationThread: readonly ClarificationMessageView[];
+  /** Whoever is signed in, for the composer's avatar. */
+  organiserName: string;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -109,6 +131,21 @@ export function SubmittedRequestDetail({
               />
             </CardContent>
           </Card>
+
+          <ActivityPanel
+            rows={clarificationFeedRows(eventRequest.id, clarificationThread)}
+            role="requester"
+            actingAsName={organiserName}
+            commentsOnly
+            composer={<ClarificationComposer eventRequestId={eventRequest.id} />}
+            replyComposer={(parentId) => (
+              <ClarificationComposer
+                eventRequestId={eventRequest.id}
+                parentId={parentId}
+                placeholder="Reply to your coordinator…"
+              />
+            )}
+          />
         </div>
 
         <div className="space-y-6">
