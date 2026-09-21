@@ -1,4 +1,6 @@
-import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
+import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
+import { eventId } from "@/core/domain/event";
+import { userAccountId } from "@/core/domain/user-account";
 import type { AssignedEventSummary } from "@/core/ports/outbound/coordinator-event-repository";
 
 /**
@@ -56,5 +58,25 @@ export function toAssignedEventSummary(
     clientOrganisationName: organisationNames.get(row.client_organisation_id) ?? "",
     preferredDate: row.preferred_date,
     status: toStatus(row.status),
+  };
+}
+
+/** `coordinator_event`/`coordinator_confirm_event` return the full `event` row; only these columns matter to `CoordinatorEvent`. */
+export interface CoordinatorEventRecordRow {
+  event_id: number;
+  name: string;
+  status: string;
+  assigned_coordinator_user_account_id: number | null;
+}
+
+export function toCoordinatorEvent(row: CoordinatorEventRecordRow): CoordinatorEvent {
+  return {
+    id: eventId(String(row.event_id)),
+    name: row.name,
+    status: toStatus(row.status),
+    assignedCoordinatorUserAccountId:
+      row.assigned_coordinator_user_account_id === null
+        ? null
+        : userAccountId(String(row.assigned_coordinator_user_account_id)),
   };
 }
