@@ -171,6 +171,8 @@ export function ActivityPanel({
   toggleHref,
   /** Comments only, for the external organiser: no internal activity. */
   commentsOnly = false,
+  title,
+  description,
   actingAsName,
   composer,
   replyComposer,
@@ -180,6 +182,10 @@ export function ActivityPanel({
   showAll?: boolean;
   toggleHref?: string;
   commentsOnly?: boolean;
+  /** Overrides the heading, for a surface whose feed is not the event's own trail. */
+  title?: string;
+  /** Overrides the standfirst, so each side of an exchange reads in its own voice. */
+  description?: string;
   /** Who the viewer is. Falls back to the wireframe persona for the fixture surfaces. */
   actingAsName?: string;
   /**
@@ -197,13 +203,14 @@ export function ActivityPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{commentsOnly ? "Discussion" : "Activity"}</CardTitle>
+        <CardTitle>{title ?? (commentsOnly ? "Discussion" : "Activity")}</CardTitle>
         <CardDescription>
-          {commentsOnly
-            ? "Questions and answers between you and your coordinator, kept with the event."
-            : showAll
-              ? "Everything recorded against this event."
-              : `What has happened on this section — ${comments} comment${comments === 1 ? "" : "s"}.`}
+          {description ??
+            (commentsOnly
+              ? "Questions and answers between you and your coordinator, kept with the event."
+              : showAll
+                ? "Everything recorded against this event."
+                : `What has happened on this section — ${comments} comment${comments === 1 ? "" : "s"}.`)}
         </CardDescription>
       </CardHeader>
 

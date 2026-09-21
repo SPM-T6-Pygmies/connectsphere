@@ -148,6 +148,8 @@ export function AssignedRequestDetail({
             role="coordinator"
             actingAsName={coordinatorName}
             commentsOnly
+            title="Clarification"
+            description={`Questions you have asked ${requestingOrganiserName} about this request, and their answers. Kept with the request.`}
             composer={<ClarificationComposer eventRequestId={eventRequest.id} />}
             replyComposer={(parentId) => (
               <ClarificationComposer
