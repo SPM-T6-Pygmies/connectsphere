@@ -24,6 +24,10 @@ function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinat
     preferredDate: "2026-10-14",
     status: "Planning",
     assignedCoordinatorUserAccountId: COORDINATOR,
+    description: null,
+    expectedAttendance: null,
+    clientOrganisationId: "org-1",
+    owningOrganiserUserAccountId: "organiser-1",
     ...overrides,
   };
 }

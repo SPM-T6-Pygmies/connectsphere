@@ -1,3 +1,4 @@
+import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import { userAccountId } from "@/core/domain/user-account";
@@ -65,7 +66,12 @@ export function toAssignedEventSummary(
 export interface CoordinatorEventRecordRow {
   event_id: number;
   name: string;
+  description: string | null;
   status: string;
+  preferred_date: string | null;
+  expected_attendance: number | null;
+  client_organisation_id: number;
+  owning_organiser_user_account_id: number;
   assigned_coordinator_user_account_id: number | null;
 }
 
@@ -73,7 +79,12 @@ export function toCoordinatorEvent(row: CoordinatorEventRecordRow): CoordinatorE
   return {
     id: eventId(String(row.event_id)),
     name: row.name,
+    description: row.description,
     status: toStatus(row.status),
+    preferredDate: row.preferred_date,
+    expectedAttendance: row.expected_attendance,
+    clientOrganisationId: clientOrganisationId(String(row.client_organisation_id)),
+    owningOrganiserUserAccountId: userAccountId(String(row.owning_organiser_user_account_id)),
     assignedCoordinatorUserAccountId:
       row.assigned_coordinator_user_account_id === null
         ? null

@@ -61,7 +61,8 @@ export default async function CoordinatorEventPage({
     notFound();
   }
 
-  const { event, readiness, canConfirm, blockingArrangements } = result;
+  const { event, clientOrganisationName, owningOrganiserName, readiness, canConfirm, blockingArrangements } =
+    result;
   const alreadyConfirmed = event.status === "Confirmed" || event.status === "Completed";
 
   return (
@@ -72,11 +73,32 @@ export default async function CoordinatorEventPage({
     >
       <PageHeader
         title={event.name}
+        description={`${clientOrganisationName} · requested by ${owningOrganiserName}`}
         actions={<StatusBadge status={event.status} />}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-6 lg:col-span-2">
+          <Card>
+            <CardContent className="space-y-3 pt-6">
+              {event.description ? (
+                <p className="text-sm">{event.description}</p>
+              ) : (
+                <p className="text-muted-foreground text-sm">No description was given.</p>
+              )}
+              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+                <div>
+                  <dt className="text-muted-foreground text-xs">Preferred date</dt>
+                  <dd>{event.preferredDate ?? "—"}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground text-xs">Expected attendance</dt>
+                  <dd>{event.expectedAttendance ?? "—"}</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Essential arrangements</CardTitle>

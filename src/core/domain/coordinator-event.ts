@@ -1,3 +1,4 @@
+import type { ClientOrganisationId } from "./client-organisation";
 import type { EventId } from "./event";
 import type { UserAccountId } from "./user-account";
 
@@ -18,6 +19,12 @@ export type CoordinatorEventStatus = "Planning" | "Blocked" | "Confirmed" | "Com
 export interface CoordinatorEvent {
   readonly id: EventId;
   readonly name: string;
+  readonly description: string | null;
   readonly status: CoordinatorEventStatus;
+  /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
+  readonly preferredDate: string | null;
+  readonly expectedAttendance: number | null;
+  readonly clientOrganisationId: ClientOrganisationId;
+  readonly owningOrganiserUserAccountId: UserAccountId;
   readonly assignedCoordinatorUserAccountId: UserAccountId | null;
 }

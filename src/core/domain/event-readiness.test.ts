@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { clientOrganisationId } from "./client-organisation";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "./coordinator-event";
 import { eventId } from "./event";
 import { EventNotConfirmableError, EventNotReadyForConfirmationError } from "./errors";
@@ -19,7 +20,12 @@ function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
   return {
     id: EVENT_ID,
     name: "Founders' Day",
+    description: null,
     status: "Planning",
+    preferredDate: null,
+    expectedAttendance: null,
+    clientOrganisationId: clientOrganisationId("org-1"),
+    owningOrganiserUserAccountId: userAccountId("organiser-1"),
     assignedCoordinatorUserAccountId: COORDINATOR,
     ...overrides,
   };

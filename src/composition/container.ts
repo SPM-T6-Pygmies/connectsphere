@@ -250,9 +250,9 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCa
 
 /** SPM-50: one event and its confirmation readiness, to the coordinator it is assigned to. */
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
-  const { events, readiness } = await coordinatorAdapters();
+  const { events, readiness, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
-  return new ViewCoordinatorEventUseCase({ events, readiness });
+  return new ViewCoordinatorEventUseCase({ events, readiness, clientOrganisations, userAccounts });
 }
 
 /** SPM-50: the assigned coordinator confirms an event once nothing essential is left incomplete. */

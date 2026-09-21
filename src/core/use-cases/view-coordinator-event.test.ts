@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { InMemoryClientOrganisationRepository } from "@/adapters/outbound/in-memory/in-memory-client-organisation-repository";
 import {
   InMemoryCoordinatorEventRepository,
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
+import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
+import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventId } from "@/core/domain/event";
 import type { ArrangementReadiness, EventReadiness } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
@@ -13,6 +16,11 @@ import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
 
 const COORDINATOR = userAccountId("coordinator-1");
 const OTHER_COORDINATOR = userAccountId("coordinator-2");
+const ORG_A = clientOrganisationId("org-a");
+const REQUESTER = userAccountId("organiser-1");
+
+const ORG_NAMES = new Map([[ORG_A, "Sunrise Events Co"]]);
+const ORGANISER_NAMES = new Map([[REQUESTER, "Alice"]]);
 
 function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinatorEvent {
   return {
@@ -23,6 +31,10 @@ function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinat
     preferredDate: "2026-10-14",
     status: "Planning",
     assignedCoordinatorUserAccountId: COORDINATOR,
+    description: "A showcase of this year's founding milestones.",
+    expectedAttendance: 120,
+    clientOrganisationId: ORG_A,
+    owningOrganiserUserAccountId: REQUESTER,
     ...overrides,
   };
 }
@@ -38,10 +50,21 @@ function buildUseCase(
   return new ViewCoordinatorEventUseCase({
     events: new InMemoryCoordinatorEventRepository(events),
     readiness: new InMemoryEventReadinessRepository(readiness),
+    clientOrganisations: new InMemoryClientOrganisationRepository(ORG_NAMES),
+    userAccounts: new InMemoryUserAccountRepository({ names: ORGANISER_NAMES }),
   });
 }
 
 describe("ViewCoordinatorEventUseCase", () => {
+  it("resolves the event's client organisation and requesting Organiser by name", async () => {
+    const useCase = buildUseCase([seedEvent()]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.clientOrganisationName).toBe("Sunrise Events Co");
+    expect(result?.owningOrganiserName).toBe("Alice");
+  });
+
   it("reports confirmable when every essential arrangement is complete", async () => {
     const useCase = buildUseCase(
       [seedEvent()],

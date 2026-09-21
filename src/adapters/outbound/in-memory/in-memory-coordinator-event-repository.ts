@@ -1,3 +1,4 @@
+import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
@@ -6,9 +7,13 @@ import type {
   CoordinatorEventRepository,
 } from "@/core/ports/outbound/coordinator-event-repository";
 
-/** An event as seeded: the view, plus who it is assigned to so the list can be scoped. */
+/** An event as seeded: the view, plus the fields only `findById`/`confirmEvent` need. */
 export interface SeedCoordinatorEvent extends AssignedEventSummary {
   readonly assignedCoordinatorUserAccountId: string | null;
+  readonly description: string | null;
+  readonly expectedAttendance: number | null;
+  readonly clientOrganisationId: string;
+  readonly owningOrganiserUserAccountId: string;
 }
 
 export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepository {
@@ -60,7 +65,12 @@ function toCoordinatorEvent(row: SeedCoordinatorEvent): CoordinatorEvent {
   return {
     id: eventId(row.id),
     name: row.name,
+    description: row.description,
     status: row.status,
+    preferredDate: row.preferredDate,
+    expectedAttendance: row.expectedAttendance,
+    clientOrganisationId: clientOrganisationId(row.clientOrganisationId),
+    owningOrganiserUserAccountId: userAccountId(row.owningOrganiserUserAccountId),
     assignedCoordinatorUserAccountId:
       row.assignedCoordinatorUserAccountId === null
         ? null
