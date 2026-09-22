@@ -56,8 +56,8 @@ export function ClarificationComposer({
 
       <Textarea
         name="body"
-        placeholder={isReply ? "Reply to the organiser…" : "Ask the organiser, or add a note…"}
-        aria-label={isReply ? "Reply" : "Add to the conversation"}
+        placeholder={isReply ? "Leave a reply…" : "Ask the organiser, or add a note…"}
+        aria-label={isReply ? "Leave a reply" : "Add to the conversation"}
         // React resets the form after every action; a refusal re-seeds what
         // was typed rather than losing it.
         defaultValue={state.status === "error" ? state.body : ""}
@@ -101,17 +101,29 @@ export function ClarificationComposer({
 }
 
 /**
- * SPM-33 AC6: stop waiting on the Organiser, without deciding.
+ * SPM-33 AC6: mark one question answered.
  *
- * Its own form beneath the composer rather than a third button inside it:
- * resolving says nothing, so it has no message to carry (decision 3).
+ * Sits on the question it closes rather than on the request, because a
+ * Coordinator can have two outstanding at once and answering one of them is
+ * not the same as no longer waiting. Clearing the last one is what puts the
+ * request back in the decision queue.
+ *
+ * Its own form rather than a button on the composer: resolving says nothing,
+ * so it has no message to carry (decision 3).
  */
-export function ResolveClarificationForm({ eventRequestId }: { eventRequestId: string }) {
+export function ResolveClarificationForm({
+  eventRequestId,
+  clarificationMessageId,
+}: {
+  eventRequestId: string;
+  clarificationMessageId: string;
+}) {
   const [state, formAction, pending] = useActionState(resolveClarificationAction, RESOLVE_INITIAL);
 
   return (
-    <form action={formAction} className="space-y-2 border-t pt-3">
+    <form action={formAction} className="space-y-2">
       <input type="hidden" name="id" value={eventRequestId} />
+      <input type="hidden" name="clarificationMessageId" value={clarificationMessageId} />
 
       {state.status === "error" ? (
         <Alert variant="destructive">
@@ -120,14 +132,9 @@ export function ResolveClarificationForm({ eventRequestId }: { eventRequestId: s
         </Alert>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="submit" size="sm" variant="secondary" disabled={pending}>
-          Mark resolved
-        </Button>
-        <span className="text-muted-foreground text-xs">
-          Waiting on the organiser. Resolving puts this back in your decision queue.
-        </span>
-      </div>
+      <Button type="submit" size="sm" variant="secondary" disabled={pending}>
+        Resolve
+      </Button>
     </form>
   );
 }

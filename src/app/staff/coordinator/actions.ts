@@ -6,13 +6,13 @@ import { decideEventRequestSchema } from "@/adapters/inbound/decide-event-reques
 import { postClarificationMessageSchema } from "@/adapters/inbound/post-clarification-message-schema";
 import {
   requestClarificationSchema,
-  resolveClarificationSchema,
+  resolveClarificationThreadSchema,
 } from "@/adapters/inbound/request-clarification-schema";
 import {
   buildDecideEventRequest,
   buildPostCoordinatorClarificationMessage,
   buildRequestClarification,
-  buildResolveClarification,
+  buildResolveClarificationThread,
   getCurrentCoordinator,
 } from "@/composition/container";
 import { DomainError, EventRequestNotFoundError } from "@/core/domain/errors";
@@ -151,19 +151,24 @@ export async function clarificationComposerAction(
 export type ResolveClarificationState = { status: "idle" } | { status: "error"; message: string };
 
 /**
- * SPM-33 AC6: the Coordinator marks the clarification resolved, putting the
- * request back to awaiting their own decision.
+ * SPM-33 AC6: the Coordinator marks one question answered.
  *
- * A shortcut out of the waiting-on-the-Organiser label, not a gate in front of
- * deciding -- `decideEventRequestAction` works on a `Returned` request too
- * (decision 4). Its own action rather than a third button on the composer,
- * because resolving says nothing: it writes no message (decision 3).
+ * Per question rather than per request: answering one of two outstanding
+ * questions is not the same as no longer waiting, so the request only rejoins
+ * the decision queue when the last one is cleared. Either way it stays
+ * decidable throughout (decision 4).
+ *
+ * Its own action rather than a button on the composer, because resolving says
+ * nothing -- it writes no message (decision 3).
  */
 export async function resolveClarificationAction(
   _previous: ResolveClarificationState,
   formData: FormData,
 ): Promise<ResolveClarificationState> {
-  const parsed = resolveClarificationSchema.safeParse({ id: String(formData.get("id") ?? "") });
+  const parsed = resolveClarificationThreadSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    clarificationMessageId: String(formData.get("clarificationMessageId") ?? ""),
+  });
 
   if (!parsed.success) {
     return { status: "error", message: "That request could not be identified." };
@@ -175,8 +180,8 @@ export async function resolveClarificationAction(
       throw new EventRequestNotFoundError(parsed.data.id);
     }
 
-    const resolveClarification = await buildResolveClarification();
-    await resolveClarification.execute({ ...parsed.data, ...coordinator });
+    const resolveClarificationThread = await buildResolveClarificationThread();
+    await resolveClarificationThread.execute({ ...parsed.data, ...coordinator });
   } catch (error) {
     if (error instanceof DomainError) {
       return { status: "error", message: error.message };
