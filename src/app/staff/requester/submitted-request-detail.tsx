@@ -13,8 +13,7 @@ import type {
   EventRequestView,
 } from "@/core/use-cases/event-request-view";
 
-import { ActivityPanel } from "../activity-panel";
-import { clarificationFeedRows } from "../clarification-feed";
+import { ClarificationThread } from "../clarification-thread";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { PageHeader, StaffShell } from "../staff-shell";
@@ -132,20 +131,14 @@ export function SubmittedRequestDetail({
             </CardContent>
           </Card>
 
-          <ActivityPanel
-            rows={clarificationFeedRows(eventRequest.id, clarificationThread)}
-            role="requester"
+          <ClarificationThread
+            messages={clarificationThread}
             actingAsName={organiserName}
-            commentsOnly
-            title="Clarification"
             description="Questions your coordinator has asked about this request, and your answers. Kept with the request."
+            emptyMessage="Your coordinator has not asked anything yet."
             composer={<ClarificationComposer eventRequestId={eventRequest.id} />}
             replyComposer={(parentId) => (
-              <ClarificationComposer
-                eventRequestId={eventRequest.id}
-                parentId={parentId}
-                placeholder="Reply to your coordinator…"
-              />
+              <ClarificationComposer eventRequestId={eventRequest.id} parentId={parentId} />
             )}
           />
         </div>

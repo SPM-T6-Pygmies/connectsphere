@@ -28,13 +28,14 @@ const INITIAL: PostClarificationMessageState = { status: "idle" };
 export function ClarificationComposer({
   eventRequestId,
   parentId = "",
-  placeholder = "Reply to your coordinator…",
+  placeholder,
 }: {
   eventRequestId: string;
   parentId?: string;
   placeholder?: string;
 }) {
   const [state, formAction, pending] = useActionState(postClarificationMessageAction, INITIAL);
+  const isReply = parentId !== "";
 
   return (
     <form action={formAction} className="space-y-2">
@@ -43,10 +44,10 @@ export function ClarificationComposer({
 
       <Textarea
         name="body"
-        placeholder={placeholder}
-        aria-label={parentId === "" ? "Add to the conversation" : "Reply"}
+        placeholder={placeholder ?? (isReply ? "Leave a reply…" : "Add to the conversation…")}
+        aria-label={isReply ? "Leave a reply" : "Add to the conversation"}
         disabled={pending}
-        rows={parentId === "" ? 3 : 2}
+        rows={isReply ? 2 : 3}
       />
 
       {state.status === "error" ? (
@@ -57,7 +58,7 @@ export function ClarificationComposer({
       ) : null}
 
       <Button type="submit" size="sm" disabled={pending}>
-        {parentId === "" ? "Comment" : "Reply"}
+        {isReply ? "Reply" : "Comment"}
       </Button>
     </form>
   );
