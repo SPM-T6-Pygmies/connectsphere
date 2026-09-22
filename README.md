@@ -49,27 +49,25 @@ Staff-only authentication with role-based access control is enabled locally via 
 ### Quick Start (Local Testing)
 
 ```bash
-# Terminal 1: Start local Supabase
+# Terminal 1: Start local Supabase, then build and seed the database
 supabase start
-# Copy the credentials from output
+supabase db reset   # replays the migrations, then runs supabase/seed.sql
+# Copy the credentials from the `supabase start` output
 
-# Terminal 2: Run migrations and seed test users
-supabase migration up
-NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
-SUPABASE_SERVICE_ROLE_KEY="<secret-key-from-above>" \
-pnpm ts-node supabase/seed-auth-test-users.ts
-
-# Terminal 3: Start dev server
+# Terminal 2: Start dev server
 cp .env.example .env.local
 # Add Supabase credentials from Terminal 1 to .env.local
 pnpm dev
 ```
+
+`db reset` creates the test logins below — there is no separate seed step.
 
 ### Test Credentials
 
 | Role | Email | Password |
 |------|-------|----------|
 | Event Organiser | `organiser@test.com` | `TestPass123!` |
+| Event Organiser (second, same organisation) | `organiser2@test.com` | `TestPass123!` |
 | Event Coordinator | `coordinator@test.com` | `TestPass123!` |
 | Event Operations Manager | `ops@test.com` | `TestPass123!` |
 | Venue Staff | `venue@test.com` | `TestPass123!` |
