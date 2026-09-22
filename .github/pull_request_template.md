@@ -28,7 +28,7 @@ Closes SPM-<!-- issue number. "Closes"/"Fixes" moves the Linear issue on merge; 
 <!-- REQUIRED if this PR touches any of the below. Mark anything blocking with :warning:. Delete if none apply.
        - supabase/migrations/ or supabase/schema.sql — reviewers must apply it to their own Supabase project
          before this branch will run, and it must be applied to the shared project before merge
-       - supabase/seed-auth-test-users.ts or scripts/seed-* — say whether a re-seed is needed
+       - supabase/seed.sql or scripts/seed-* — say whether a re-seed is needed
        - a new env var — name it and say which Infisical environment it belongs in, never paste the value
        - new package.json dependencies, or changes to .github/workflows/ -->
 

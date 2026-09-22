@@ -35,9 +35,11 @@ supabase db reset
 ```
 
 This drops your local DB and replays every migration from scratch, so any
-data you'd entered locally is gone. That's fine — local data is disposable;
-if you need repeatable sample data, that's what `supabase/seed.sql` is for
-(there isn't one yet).
+data you'd entered locally is gone. That's fine — local data is disposable.
+
+It then runs `supabase/seed.sql`, which recreates the test logins you sign in
+as, so the rebuilt database is usable straight away — see
+[supabase/SEED.md](../supabase/SEED.md).
 
 ## Making a schema change
 

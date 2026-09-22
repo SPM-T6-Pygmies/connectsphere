@@ -14,8 +14,8 @@
 --     would otherwise outlive them;
 --   * notifications about them, which cascade with the request.
 -- Accounts are left alone: the test accounts belong to the migrations and
--- supabase/seed-auth-test-users.ts. A request you created yourself is only
--- removed if it has the same name and organiser as a seeded one.
+-- supabase/seed.sql. A request you created yourself is only removed if it has
+-- the same name and organiser as a seeded one.
 --
 -- Prints how many rows of each kind it removed. One statement on purpose:
 -- `supabase db query --file` refuses a file holding more than one. The seeded
