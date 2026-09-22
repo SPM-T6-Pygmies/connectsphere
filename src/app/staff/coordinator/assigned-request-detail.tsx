@@ -19,11 +19,7 @@ import { clarificationFeedRows } from "../clarification-feed";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
-import {
-  ClarificationComposer,
-  RequestClarificationForm,
-  ResolveClarificationForm,
-} from "./clarification-forms";
+import { ClarificationComposer, ResolveClarificationForm } from "./clarification-forms";
 import { DecisionForm } from "./decision-form";
 import { RequestStateBadge } from "./request-state-badge";
 
@@ -55,8 +51,10 @@ function formatInstantTime(iso: string): string {
  * SPM-32: everything the Organiser submitted, read-only. SPM-34 adds the
  * decision alongside it: Approve/Reject while the request awaits this
  * Coordinator, and the outcome once it is decided. SPM-33 adds the
- * clarification exchange: a question that returns the request, the thread it
- * opens, and a Resolve that ends the waiting without deciding.
+ * clarification exchange, and all of it lives in the thread: asking is
+ * "Comment & return" on the one composer, and Resolve sits under it while the
+ * request is with the Organiser. A separate "ask a question" card beside the
+ * thread would be the same act twice on one screen.
  *
  * Still no edit controls. A submitted request is locked (#102), and asking
  * about one was never an edit -- which is exactly why the exchange is an
@@ -90,6 +88,11 @@ export function AssignedRequestDetail({
   // The rail entry the request now lives under, so the trail and the list pane
   // follow a decision instead of always pointing back to "My requests".
   const home = SECTION_HOMES[section];
+
+  // Undecided covers both "awaiting-decision" and "with-organiser": SPM-33
+  // decision 4 keeps a returned request decidable, and decision 5 keeps it
+  // returnable, so the same requests carry both sets of controls.
+  const undecided = state === "awaiting-decision" || state === "with-organiser";
 
   const preferredTime =
     details.preferredStartTime !== null && details.preferredEndTime !== null
@@ -150,57 +153,40 @@ export function AssignedRequestDetail({
             commentsOnly
             title="Clarification"
             description={`Questions you have asked ${requestingOrganiserName} about this request, and their answers. Kept with the request.`}
-            composer={<ClarificationComposer eventRequestId={eventRequest.id} />}
+            composer={
+              <>
+                <ClarificationComposer
+                  eventRequestId={eventRequest.id}
+                  canReturn={undecided}
+                />
+                {state === "with-organiser" ? (
+                  <ResolveClarificationForm eventRequestId={eventRequest.id} />
+                ) : null}
+              </>
+            }
             replyComposer={(parentId) => (
-              <ClarificationComposer
-                eventRequestId={eventRequest.id}
-                parentId={parentId}
-                placeholder="Reply to the organiser…"
-              />
+              <ClarificationComposer eventRequestId={eventRequest.id} parentId={parentId} />
             )}
           />
         </div>
 
         <div className="space-y-6">
-          {state === "awaiting-decision" || state === "with-organiser" ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Decision</CardTitle>
-                  <CardDescription>
-                    Approving lets planning begin but commits ConnectSphere to nothing
-                    yet. Rejecting is final.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <DecisionForm eventRequestId={eventRequest.id} />
-                  {state === "with-organiser" ? (
-                    <div className="space-y-3 border-t pt-4">
-                      <p className="text-muted-foreground text-xs leading-relaxed">
-                        Waiting on the organiser. You can decide anyway, or mark
-                        the clarification resolved to put this back in your
-                        decision queue.
-                      </p>
-                      <ResolveClarificationForm eventRequestId={eventRequest.id} />
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Clarification</CardTitle>
-                  <CardDescription>
-                    {state === "with-organiser"
-                      ? "Already with the organiser. Ask again if something else comes up."
-                      : "Missing something? Ask the organiser before you decide."}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RequestClarificationForm eventRequestId={eventRequest.id} />
-                </CardContent>
-              </Card>
-            </>
+          {undecided ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Decision</CardTitle>
+                <CardDescription>
+                  Approving lets planning begin but commits ConnectSphere to nothing
+                  yet. Rejecting is final.
+                  {state === "with-organiser"
+                    ? " This one is with the organiser, and you can still decide it."
+                    : ""}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DecisionForm eventRequestId={eventRequest.id} />
+              </CardContent>
+            </Card>
           ) : state === "approved" || state === "rejected" ? (
             <Card>
               <CardHeader>
