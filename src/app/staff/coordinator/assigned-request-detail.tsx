@@ -14,8 +14,7 @@ import type {
   EventRequestView,
 } from "@/core/use-cases/event-request-view";
 
-import { ActivityPanel } from "../activity-panel";
-import { clarificationFeedRows } from "../clarification-feed";
+import { ClarificationThread } from "../clarification-thread";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
@@ -52,9 +51,9 @@ function formatInstantTime(iso: string): string {
  * decision alongside it: Approve/Reject while the request awaits this
  * Coordinator, and the outcome once it is decided. SPM-33 adds the
  * clarification exchange, and all of it lives in the thread: asking is
- * "Comment & return" on the one composer, and Resolve sits under it while the
- * request is with the Organiser. A separate "ask a question" card beside the
- * thread would be the same act twice on one screen.
+ * "Comment & return" on the composer, and each question carries its own
+ * Resolve. A separate "ask a question" card beside the thread would be the
+ * same act twice on one screen.
  *
  * Still no edit controls. A submitted request is locked (#102), and asking
  * about one was never an edit -- which is exactly why the exchange is an
@@ -146,27 +145,25 @@ export function AssignedRequestDetail({
             </CardContent>
           </Card>
 
-          <ActivityPanel
-            rows={clarificationFeedRows(eventRequest.id, clarificationThread)}
-            role="coordinator"
+          <ClarificationThread
+            messages={clarificationThread}
             actingAsName={coordinatorName}
-            commentsOnly
-            title="Clarification"
             description={`Questions you have asked ${requestingOrganiserName} about this request, and their answers. Kept with the request.`}
+            emptyMessage="Nothing asked yet. Use Comment & return below to put a question to the organiser."
             composer={
-              <>
-                <ClarificationComposer
-                  eventRequestId={eventRequest.id}
-                  canReturn={undecided}
-                />
-                {state === "with-organiser" ? (
-                  <ResolveClarificationForm eventRequestId={eventRequest.id} />
-                ) : null}
-              </>
+              <ClarificationComposer eventRequestId={eventRequest.id} canReturn={undecided} />
             }
             replyComposer={(parentId) => (
               <ClarificationComposer eventRequestId={eventRequest.id} parentId={parentId} />
             )}
+            resolveControl={(message) =>
+              message.isClarificationRequest && message.resolvedAt === null ? (
+                <ResolveClarificationForm
+                  eventRequestId={eventRequest.id}
+                  clarificationMessageId={message.id}
+                />
+              ) : null
+            }
           />
         </div>
 

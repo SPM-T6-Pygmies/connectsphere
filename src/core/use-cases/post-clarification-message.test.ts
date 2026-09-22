@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import {
+  clarificationMessage,
+  eventRequestFixture,
+} from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
@@ -45,12 +48,14 @@ function buildUseCase(seed: readonly EventRequest[]) {
 /** The Coordinator's question, so a reply has something to hang off. */
 async function withQuestion(seed: readonly EventRequest[]) {
   const harness = buildUseCase(seed);
-  const question = await harness.clarificationThread.append({
-    eventRequestId: eventRequestId("request-1"),
-    authorUserAccountId: COORDINATOR,
-    body: "How many need step-free access?",
-    parentId: null,
-  });
+  const question = await harness.clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-1"),
+        authorUserAccountId: COORDINATOR,
+        body: "How many need step-free access?",
+        parentId: null,
+      }),
+    );
   return { ...harness, question };
 }
 
@@ -197,12 +202,14 @@ describe("PostClarificationMessageUseCase (SPM-33)", () => {
 
   it("refuses a reply to a reply -- threading is one level (decision 6)", async () => {
     const { useCase, clarificationThread, question } = await withQuestion([request()]);
-    const reply = await clarificationThread.append({
-      eventRequestId: eventRequestId("request-1"),
-      authorUserAccountId: ORGANISER,
-      body: "Captions only.",
-      parentId: question.id,
-    });
+    const reply = await clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-1"),
+        authorUserAccountId: ORGANISER,
+        body: "Captions only.",
+        parentId: question.id,
+      }),
+    );
 
     await expect(
       useCase.execute({
@@ -218,12 +225,14 @@ describe("PostClarificationMessageUseCase (SPM-33)", () => {
 
   it("refuses a parent that is not on this request at all", async () => {
     const { useCase, clarificationThread } = buildUseCase([request()]);
-    const elsewhere = await clarificationThread.append({
-      eventRequestId: eventRequestId("request-9"),
-      authorUserAccountId: COORDINATOR,
-      body: "A question on a different request.",
-      parentId: null,
-    });
+    const elsewhere = await clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-9"),
+        authorUserAccountId: COORDINATOR,
+        body: "A question on a different request.",
+        parentId: null,
+      }),
+    );
 
     await expect(
       useCase.execute({

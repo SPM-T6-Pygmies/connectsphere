@@ -90,4 +90,18 @@ export class SupabaseClarificationThreadRepository implements ClarificationThrea
 
     return toDomain(data as unknown as ClarificationMessageRow);
   }
+
+  /**
+   * Never reached against Supabase: resolving a question can also move the
+   * request, and `coordinator_resolve_clarification_thread` does both in one
+   * transaction, so `SupabaseEventRequestRepository.resolveClarificationThread`
+   * owns that call. The in-memory pair splits the same act across the two
+   * stores, which is why the port carries this at all.
+   */
+  async resolve(): Promise<never> {
+    throw new Error(
+      "Resolve a clarification through EventRequestRepository.resolveClarificationThread, " +
+        "which moves the request in the same transaction.",
+    );
+  }
 }

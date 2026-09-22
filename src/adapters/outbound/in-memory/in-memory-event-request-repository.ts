@@ -6,6 +6,7 @@ import {
   type NewEventRequest,
 } from "@/core/domain/event-request";
 import type { UserAccountId } from "@/core/domain/user-account";
+import type { ClarificationMessageId } from "@/core/domain/clarification-message";
 import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
 import type {
   EventRequestRepository,
@@ -125,13 +126,21 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
       eventRequestId: request.id,
       authorUserAccountId: returnedBy,
       body: message.trim(),
-      // The question opens the exchange, so it is top-level by definition.
+      // The question opens the exchange, so it is top-level by definition,
+      // and it is what holds the request with the Organiser until resolved.
       parentId: null,
+      isClarificationRequest: true,
     });
   }
 
-  async resolveClarification(request: EventRequest): Promise<void> {
+  /** Marks the question answered and stores the request the core decided on, as one act. */
+  async resolveClarificationThread(
+    request: EventRequest,
+    _resolvedBy: UserAccountId,
+    messageId: ClarificationMessageId,
+  ): Promise<void> {
     this.rows.set(request.id, request);
+    await this.thread?.resolve(messageId, new Date(request.updatedAt));
   }
 
   /** Test-only window on what was stored, so a test can assert nothing was written. */

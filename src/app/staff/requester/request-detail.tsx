@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { activityFor, eventById, feedRows, type EventRecord } from "@/lib/wireframe";
+import { eventById, type EventRecord } from "@/lib/wireframe";
 
 import { ActivityPanel } from "../activity-panel";
 import { FieldList } from "../field-list";
@@ -154,10 +154,9 @@ export function RequestDetail({
           ) : null}
 
           <ActivityPanel
-            rows={feedRows(
-              activityFor(event.id, "overview").filter((entry) => entry.kind === "comment"),
-            )}
+            eventId={event.id}
             role="requester"
+            section="overview"
             commentsOnly
           />
         </div>
