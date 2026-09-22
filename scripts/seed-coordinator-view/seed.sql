@@ -6,8 +6,8 @@
 --
 -- It creates no people. The accounts are the ones you can log in as --
 -- Test Organiser and Test Organiser 2 (Event Organisers in Test Organisation)
--- and Test Coordinator -- created by the migrations and
--- supabase/seed-auth-test-users.ts (see supabase/SEED.md). Run those first:
+-- and Test Coordinator -- created by the migrations and supabase/seed.sql
+-- (see supabase/SEED.md). Seed those first -- `supabase db reset` does it:
 -- this script stops with an error naming whichever account is missing.
 --
 -- Run against a local stack:
@@ -65,7 +65,7 @@ begin
         case when v_organiser is null then 'Test Organiser' end,
         case when v_organiser_2 is null then 'Test Organiser 2' end,
         case when v_coordinator is null then 'Test Coordinator' end)
-      using hint = 'Apply the migrations and run supabase/seed-auth-test-users.ts first (supabase/SEED.md).';
+      using hint = 'Seed the accounts first: supabase db reset locally, or supabase db query --file supabase/seed.sql --linked (supabase/SEED.md).';
   end if;
 
   -- 2. Event requests -------------------------------------------------------

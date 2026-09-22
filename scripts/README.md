@@ -24,12 +24,13 @@ organiser, operations and coordinator screens tell apart.
 
 ### Before you seed
 
-The script creates no people. Apply the migrations and create the auth test
-users first (see [`supabase/SEED.md`](../supabase/SEED.md)):
+The script creates no people. Create the test accounts first (see
+[`supabase/SEED.md`](../supabase/SEED.md)) — `supabase/seed.sql` does that, and
+`db reset` runs it for you:
 
 ```bash
-supabase migration up --linked
-SUPABASE_SERVICE_ROLE_KEY="..." npx ts-node supabase/seed-auth-test-users.ts
+supabase db reset                                    # local
+supabase db query --file supabase/seed.sql --linked  # remote
 ```
 
 ### Run
