@@ -363,3 +363,19 @@ export class ClarificationReplyNotTopLevelError extends DomainError {
     super("You can only reply to a top-level message.");
   }
 }
+
+/**
+ * SPM-33 AC6: only a question the Coordinator asked can be marked answered,
+ * and only once. An ordinary comment asked for nothing, and a resolved
+ * question is already cleared.
+ *
+ * Argument-free like the other clarification errors: the Supabase function
+ * raises this one too, after losing a race to a concurrent resolve.
+ */
+export class ClarificationThreadNotResolvableError extends DomainError {
+  readonly code = "clarification_thread_not_resolvable";
+
+  constructor() {
+    super("That is not an open question on this request.");
+  }
+}

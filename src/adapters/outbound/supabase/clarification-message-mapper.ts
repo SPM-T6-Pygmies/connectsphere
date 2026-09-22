@@ -23,6 +23,8 @@ export interface ClarificationMessageRow {
   parent_comment_id: number | null;
   body: string;
   created_at: string;
+  is_clarification_request: boolean;
+  resolved_at: string | null;
 }
 
 export function toDomain(row: ClarificationMessageRow): ClarificationMessage {
@@ -36,6 +38,8 @@ export function toDomain(row: ClarificationMessageRow): ClarificationMessage {
       row.parent_comment_id === null
         ? null
         : clarificationMessageId(String(row.parent_comment_id)),
+    isClarificationRequest: row.is_clarification_request,
+    resolvedAt: row.resolved_at === null ? null : new Date(row.resolved_at),
   };
 }
 

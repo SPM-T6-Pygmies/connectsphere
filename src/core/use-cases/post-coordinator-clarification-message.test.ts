@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import {
+  clarificationMessage,
+  eventRequestFixture,
+} from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import {
@@ -106,18 +109,22 @@ describe("PostCoordinatorClarificationMessageUseCase (SPM-33)", () => {
 
   it("refuses a reply to a reply -- threading is one level for both sides (decision 6)", async () => {
     const { useCase, clarificationThread } = buildUseCase([request()]);
-    const question = await clarificationThread.append({
-      eventRequestId: eventRequestId("request-1"),
-      authorUserAccountId: COORDINATOR,
-      body: "How many need step-free access?",
-      parentId: null,
-    });
-    const reply = await clarificationThread.append({
-      eventRequestId: eventRequestId("request-1"),
-      authorUserAccountId: ORGANISER,
-      body: "Captions only.",
-      parentId: question.id,
-    });
+    const question = await clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-1"),
+        authorUserAccountId: COORDINATOR,
+        body: "How many need step-free access?",
+        parentId: null,
+      }),
+    );
+    const reply = await clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-1"),
+        authorUserAccountId: ORGANISER,
+        body: "Captions only.",
+        parentId: question.id,
+      }),
+    );
 
     await expect(
       useCase.execute({

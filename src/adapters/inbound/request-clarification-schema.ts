@@ -15,9 +15,16 @@ export const requestClarificationSchema = z.object({
 
 export type RequestClarificationInput = z.infer<typeof requestClarificationSchema>;
 
-/** What the coordinator's Resolve button submits (SPM-33 AC6): the request, and nothing else. */
-export const resolveClarificationSchema = z.object({
+/**
+ * What a question's Resolve button submits (SPM-33 AC6).
+ *
+ * Names the question, not just the request: resolving is per thread, because a
+ * Coordinator can have two outstanding at once and answering one of them is
+ * not the same as no longer waiting.
+ */
+export const resolveClarificationThreadSchema = z.object({
   id: z.string().trim().min(1, "The event request is missing."),
+  clarificationMessageId: z.string().trim().min(1, "The question is missing."),
 });
 
-export type ResolveClarificationInput = z.infer<typeof resolveClarificationSchema>;
+export type ResolveClarificationThreadInput = z.infer<typeof resolveClarificationThreadSchema>;

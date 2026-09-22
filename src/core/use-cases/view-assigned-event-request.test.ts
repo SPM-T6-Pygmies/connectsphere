@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import {
+  clarificationMessage,
+  eventRequestFixture,
+} from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryClientOrganisationRepository } from "@/adapters/outbound/in-memory/in-memory-client-organisation-repository";
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
@@ -96,12 +99,14 @@ describe("ViewAssignedEventRequestUseCase (SPM-124)", () => {
 describe("ViewAssignedEventRequestUseCase clarification thread (SPM-33)", () => {
   it("returns the exchange alongside the request, so one access check covers both (AC4)", async () => {
     const { useCase, clarificationThread } = buildHarness([request({ status: "Returned" })]);
-    await clarificationThread.append({
-      eventRequestId: eventRequestId("request-1"),
-      authorUserAccountId: COORDINATOR,
-      body: "How many need step-free access?",
-      parentId: null,
-    });
+    await clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-1"),
+        authorUserAccountId: COORDINATOR,
+        body: "How many need step-free access?",
+        parentId: null,
+      }),
+    );
 
     const result = await useCase.execute({ id: "request-1", userAccountId: COORDINATOR });
 

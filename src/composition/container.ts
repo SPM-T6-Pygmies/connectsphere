@@ -30,7 +30,7 @@ import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
-import { ResolveClarificationUseCase } from "@/core/use-cases/resolve-clarification";
+import { ResolveClarificationThreadUseCase } from "@/core/use-cases/resolve-clarification-thread";
 import type { StaffWorkspace } from "@/core/domain/staff-member";
 import { IdentifyStaffMemberUseCase } from "@/core/use-cases/identify-staff-member";
 import { LoginUseCase } from "@/core/use-cases/login";
@@ -205,9 +205,13 @@ export async function buildRequestClarification(): Promise<RequestClarificationU
   return new RequestClarificationUseCase({ eventRequests: await eventRequestAdapters() });
 }
 
-/** SPM-33 AC6: the Coordinator marks the clarification resolved. Status only. */
-export async function buildResolveClarification(): Promise<ResolveClarificationUseCase> {
-  return new ResolveClarificationUseCase({ eventRequests: await eventRequestAdapters() });
+/** SPM-33 AC6: the Coordinator marks one question answered, resuming the request if it was the last. */
+export async function buildResolveClarificationThread(): Promise<ResolveClarificationThreadUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ResolveClarificationThreadUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+  });
 }
 
 /** SPM-33 AC4-AC5: the responsible Organiser answers on the thread. Appends, and nothing else. */

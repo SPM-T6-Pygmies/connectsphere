@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { activityFor, feedRows, reservationById } from "@/lib/wireframe";
+import { reservationById } from "@/lib/wireframe";
 
 import { ActivityPanel } from "../activity-panel";
 import { EventContextPanel } from "../event-context";
@@ -225,7 +225,7 @@ export function ReservationDetail({
               </div>
             </CardContent>
           </Card>
-          <ActivityPanel rows={feedRows(activityFor(event.id, "technical"))} role="technical" />
+          <ActivityPanel eventId={event.id} role="technical" section="technical" />
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   requestClarificationSchema,
-  resolveClarificationSchema,
+  resolveClarificationThreadSchema,
 } from "./request-clarification-schema";
 
 describe("requestClarificationSchema (SPM-33)", () => {
@@ -40,12 +40,28 @@ describe("requestClarificationSchema (SPM-33)", () => {
   });
 });
 
-describe("resolveClarificationSchema (SPM-33)", () => {
-  it("accepts a request id on its own", () => {
-    expect(resolveClarificationSchema.parse({ id: "request-1" })).toEqual({ id: "request-1" });
+describe("resolveClarificationThreadSchema (SPM-33)", () => {
+  it("accepts the request and the question being resolved", () => {
+    expect(
+      resolveClarificationThreadSchema.parse({
+        id: "request-1",
+        clarificationMessageId: "message-1",
+      }),
+    ).toEqual({ id: "request-1", clarificationMessageId: "message-1" });
   });
 
   it.each(["", "   "])("refuses a missing event request id (%j)", (id) => {
-    expect(resolveClarificationSchema.safeParse({ id }).success).toBe(false);
+    expect(
+      resolveClarificationThreadSchema.safeParse({ id, clarificationMessageId: "message-1" })
+        .success,
+    ).toBe(false);
+  });
+
+  it.each(["", "   "])("refuses a missing question id (%j)", (clarificationMessageId) => {
+    // Resolving is per question, so a request id alone identifies nothing.
+    expect(
+      resolveClarificationThreadSchema.safeParse({ id: "request-1", clarificationMessageId })
+        .success,
+    ).toBe(false);
   });
 });

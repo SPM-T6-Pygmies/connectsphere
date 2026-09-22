@@ -76,6 +76,9 @@ export class PostCoordinatorClarificationMessageUseCase {
       authorUserAccountId: author,
       body,
       parentId,
+      // Posting asks for nothing, so it holds the request with nobody. Only a
+      // return opens a question (SPM-33 decision 3).
+      isClarificationRequest: false,
     });
 
     return { clarificationMessageId: stored.id };

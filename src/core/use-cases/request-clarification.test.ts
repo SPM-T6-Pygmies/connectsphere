@@ -55,6 +55,10 @@ describe("RequestClarificationUseCase (SPM-33)", () => {
         authorUserAccountId: COORDINATOR,
         body: "How many need step-free access?",
         parentId: null,
+        // What a return opens is a question, not a remark: this is the flag
+        // that holds the request with the Organiser until it is resolved.
+        isClarificationRequest: true,
+        resolvedAt: null,
       },
     ]);
   });
@@ -87,6 +91,20 @@ describe("RequestClarificationUseCase (SPM-33)", () => {
       status: "Returned",
     });
     expect(clarificationThread.all()).toHaveLength(1);
+  });
+
+  it("leaves two questions outstanding when returned twice, so neither resolve is the last", async () => {
+    // Paired with ResolveClarificationThreadUseCase: two returns means two
+    // open questions, and only clearing both resumes the request.
+    const { useCase, clarificationThread } = buildUseCase([request()]);
+
+    for (const message of ["Stage access for rehearsals?", "Headcount per day or total?"]) {
+      await useCase.execute({ id: "request-1", userAccountId: COORDINATOR, message });
+    }
+
+    expect(
+      clarificationThread.all().filter((m) => m.isClarificationRequest && m.resolvedAt === null),
+    ).toHaveLength(2);
   });
 
   it.each(["", "   "])(

@@ -28,11 +28,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  activityFor,
   blockingArrangements,
   canConfirm,
   candidateVenues,
-  feedRows,
   liveRegistrations,
   registrationUnlocked,
   type EventRecord,
@@ -135,8 +133,9 @@ export function OverviewTab({ event, activity }: TabProps) {
       </div>
 
       <ActivityPanel
-        rows={feedRows(activityFor(event.id, activity.showAll ? undefined : "overview"))}
+        eventId={event.id}
         role="coordinator"
+        section="overview"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
       />
@@ -302,8 +301,9 @@ export function VenueTab({ event, activity }: TabProps) {
         </CardContent>
       </Card>
       <ActivityPanel
-        rows={feedRows(activityFor(event.id, activity.showAll ? undefined : "venue"))}
+        eventId={event.id}
         role="coordinator"
+        section="venue"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
       />
@@ -453,8 +453,9 @@ export function TechnicalTab({ event, activity }: TabProps) {
         </CardContent>
       </Card>
       <ActivityPanel
-        rows={feedRows(activityFor(event.id, activity.showAll ? undefined : "technical"))}
+        eventId={event.id}
         role="coordinator"
+        section="technical"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
       />
@@ -612,8 +613,9 @@ export function ReadinessTab({ event, activity }: TabProps) {
       </div>
 
       <ActivityPanel
-        rows={feedRows(activityFor(event.id, activity.showAll ? undefined : "readiness"))}
+        eventId={event.id}
         role="coordinator"
+        section="readiness"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
       />
@@ -655,8 +657,9 @@ export function RegistrationTab({ event, activity }: TabProps) {
         </Card>
 
         <ActivityPanel
-          rows={feedRows(activityFor(event.id, activity.showAll ? undefined : "registration"))}
+          eventId={event.id}
           role="coordinator"
+          section="registration"
           showAll={activity.showAll}
           toggleHref={activity.toggleHref}
         />
@@ -817,8 +820,9 @@ export function RegistrationTab({ event, activity }: TabProps) {
       </div>
 
       <ActivityPanel
-        rows={feedRows(activityFor(event.id, activity.showAll ? undefined : "registration"))}
+        eventId={event.id}
         role="coordinator"
+        section="registration"
         showAll={activity.showAll}
         toggleHref={activity.toggleHref}
       />

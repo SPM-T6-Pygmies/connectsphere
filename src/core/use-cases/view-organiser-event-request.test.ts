@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import {
+  clarificationMessage,
+  eventRequestFixture,
+} from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
@@ -95,18 +98,22 @@ describe("ViewOrganiserEventRequestUseCase (SPM-112)", () => {
 describe("ViewOrganiserEventRequestUseCase clarification thread (SPM-33)", () => {
   it("returns the exchange with its authors named, oldest first (AC4)", async () => {
     const { useCase, clarificationThread } = buildHarness([request({ status: "Returned" })]);
-    const question = await clarificationThread.append({
-      eventRequestId: eventRequestId("request-1"),
-      authorUserAccountId: COORDINATOR,
-      body: "How many need step-free access?",
-      parentId: null,
-    });
-    await clarificationThread.append({
-      eventRequestId: eventRequestId("request-1"),
-      authorUserAccountId: RESPONSIBLE,
-      body: "Captions only.",
-      parentId: question.id,
-    });
+    const question = await clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-1"),
+        authorUserAccountId: COORDINATOR,
+        body: "How many need step-free access?",
+        parentId: null,
+      }),
+    );
+    await clarificationThread.append(
+      clarificationMessage({
+        eventRequestId: eventRequestId("request-1"),
+        authorUserAccountId: RESPONSIBLE,
+        body: "Captions only.",
+        parentId: question.id,
+      }),
+    );
 
     const result = await useCase.execute({
       id: "request-1",
