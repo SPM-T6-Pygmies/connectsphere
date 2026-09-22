@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import type { ClarificationMessageView } from "@/core/use-cases/event-request-view";
 
+import { ThreadRefresher } from "./thread-refresher";
+
 /** One top-level message and the replies made to it. */
 interface Exchange {
   readonly opener: ClarificationMessageView;
@@ -139,6 +141,7 @@ export function ClarificationThread({
 
   return (
     <Card>
+      <ThreadRefresher />
       <CardHeader>
         <CardTitle>Clarification</CardTitle>
         <CardDescription>
