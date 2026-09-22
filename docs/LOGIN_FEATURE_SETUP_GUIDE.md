@@ -260,43 +260,44 @@ Should show your project ID.
 
 ## Step 5: Seed Authentication Test Users
 
-Create 5 staff test accounts in local Supabase Auth using Infisical to inject secrets:
+Create the six staff test accounts in local Supabase Auth:
 
 ```bash
 # Terminal 2 (or new terminal)
-infisical run -- pnpm ts-node supabase/seed-auth-test-users.ts
+supabase db reset
 ```
 
-**What happens:** Infisical reads `.infisical.json` (from Step 4.4) and automatically injects:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
+**What happens:** `db reset` rebuilds the local database — it replays every
+migration, then runs `supabase/seed.sql`, which creates the auth users, their
+`user_account` rows and roles, and links them.
 
-Then runs the seed script with those secrets available.
+No secrets are needed: the seed runs inside the database, so there is no
+service role key to supply and nothing for Infisical to inject here.
+
+**Caveat:** `db reset` drops the local database, so anything you entered
+locally is gone. Local data is disposable — see
+[DATABASE.md](DATABASE.md).
 
 **Verification:**
 1. Open Supabase Studio: http://127.0.0.1:54323
 2. Login (any email/password to create local account)
 3. Go to **Authentication** tab → **Users**
-4. Should see 4 test users:
+4. Should see 6 test users:
+   - organiser@test.com
+   - organiser2@test.com
    - coordinator@test.com
    - ops@test.com
    - venue@test.com
-   - technical@test.com
+   - support@test.com
 
 **If command fails:**
 
 Check:
 - Is Supabase running? (Terminal 1 still open?)
-- Did `infisical init` complete in Step 4.4?
-- Are all three secrets stored in Infisical web UI (Step 4.3)?
+- Is `[db.seed]` still `enabled = true` in `supabase/config.toml`?
 
-**Fallback (manual key):**
-
-If Infisical isn't working, use Service Role Key from Step 2 directly (one line):
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" SUPABASE_SERVICE_ROLE_KEY="sb_secret_<your-key>" pnpm ts-node supabase/seed-auth-test-users.ts
-```
+A seed error names the statement that failed. `no such role in the role table`
+means a role name in `seed.sql` no longer matches what the migrations insert.
 
 ---
 
@@ -344,7 +345,7 @@ But `pnpm dev:local` is recommended (uses Infisical, works from any machine).
 ### Test 1: Valid Login
 
 1. Open http://localhost:3000/auth/login
-2. Email: `coordinator@test.com` (or any of: ops@test.com, venue@test.com, technical@test.com)
+2. Email: `coordinator@test.com` (or any of: ops@test.com, venue@test.com, support@test.com)
 3. Password: `TestPass123!`
 4. Click "Sign in"
 
@@ -428,12 +429,17 @@ supabase start
 ### Reseeding Test Users
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
-SUPABASE_SERVICE_ROLE_KEY="<secret-key>" \
-pnpm ts-node supabase/seed-auth-test-users.ts
+supabase db reset
 ```
 
 **Use when:** Test users accidentally deleted or need fresh state.
+
+To re-seed without rebuilding the database, run the seed file on its own — every
+write in it is guarded, so it only fills in what is missing:
+
+```bash
+supabase db query --file supabase/seed.sql --local
+```
 
 ---
 
@@ -568,24 +574,22 @@ supabase start
 
 **Checklist:**
 
-1. **Verify service role key is correct:**
-   - Run `supabase start` in Terminal 1
-   - Find the line: `Service Role Key: sb_secret_<key>`
-   - Check it matches the `SUPABASE_SERVICE_ROLE_KEY` you used in Step 4
-
-2. **Verify test users exist:**
+1. **Verify test users exist:**
    - Open Supabase Studio: http://127.0.0.1:54323
    - Login with any email/password
    - Go to **Authentication** tab → **Users**
-   - Should see 5 test users: organiser@test.com, coordinator@test.com, etc.
+   - Should see 6 test users: organiser@test.com, coordinator@test.com, etc.
 
-3. **If test users are missing, re-seed:**
+2. **If test users are missing, re-seed:**
    ```bash
-   NEXT_PUBLIC_SUPABASE_URL="http://127.0.0.1:54321" \
-   SUPABASE_SERVICE_ROLE_KEY="<secret-from-supabase-start>" \
-   pnpm ts-node supabase/seed-auth-test-users.ts
+   supabase db query --file supabase/seed.sql --local
    ```
-   Replace `<secret-from-supabase-start>` with the actual key from `supabase start` output.
+   Or rebuild the database entirely with `supabase db reset`.
+
+3. **Verify they are linked to an account:** a user that exists in Auth but has
+   no `user_account` row cannot resolve a role. Run the query in
+   [supabase/SEED.md](../supabase/SEED.md) — all six rows should read
+   `linked = t`.
 
 ---
 

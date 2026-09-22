@@ -41,7 +41,7 @@ Walk the diff for anything that bites at deploy time. This drives the **Deploy N
 
 - **Database**: anything under `supabase/migrations/`, or `supabase/schema.sql`. Reviewers must apply these to their own Supabase project before the branch will run — this is the single most common way a branch fails for a reviewer
 - **Tests**: if the diff touches `src/**/*.test.ts`, `docs/tests/test-registry.csv` must be regenerated (`pnpm test:report --update`) and committed alongside, and the new tests tagged with their ticket. CI fails the PR when the registry is stale
-- **Seed data**: `supabase/seed-auth-test-users.ts`, `supabase/SEED.md`, or `scripts/seed-*` — say whether a reviewer needs to re-seed
+- **Seed data**: `supabase/seed.sql`, `supabase/SEED.md`, or `scripts/seed-*` — say whether a reviewer needs to re-seed
 - **Secrets**: this repo pulls env through Infisical (`pnpm dev:local` / `dev:remote`), not a checked-in `.env.example`. If the change needs a new variable, name it and say which Infisical environment it belongs in. Never paste a value
 - **Dependencies**: new entries in `package.json`
 - **Infra**: `.github/workflows/`, `next.config.ts`, `eslint.config.mjs`
