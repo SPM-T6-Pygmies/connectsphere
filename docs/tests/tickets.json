@@ -57,6 +57,11 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-50": {
+      "title": "Confirm an event",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-78": {
       "title": "Event Operations Manager landing view (frontend)",
       "parent": "SPM-29",

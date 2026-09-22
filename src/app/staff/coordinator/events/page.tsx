@@ -43,17 +43,12 @@ function AssignedEventTable({ events }: { events: readonly AssignedEventSummary[
           {events.map((event) => (
             <TableRow key={event.id}>
               <TableCell>
-                {/* Opens the approved request until events get a page of their own (SPM-137). */}
-                {event.eventRequestId === null ? (
-                  <span className="font-medium">{event.name}</span>
-                ) : (
-                  <Link
-                    href={`/staff/coordinator/${event.eventRequestId}`}
-                    className="font-medium hover:underline"
-                  >
-                    {event.name}
-                  </Link>
-                )}
+                <Link
+                  href={`/staff/coordinator/events/${event.id}`}
+                  className="font-medium hover:underline"
+                >
+                  {event.name}
+                </Link>
               </TableCell>
               <TableCell className="text-muted-foreground">{event.clientOrganisationName}</TableCell>
               <TableCell className="text-muted-foreground">{event.preferredDate ?? "—"}</TableCell>
