@@ -200,8 +200,19 @@ create table event_request_comment (
   parent_comment_id      bigint references event_request_comment (comment_id) on delete cascade,
   body                   text not null,
   created_at             timestamptz not null default now(),
+  is_clarification_request boolean not null default false,
+    -- the message a return was sent with, as opposed to an ordinary comment or
+    -- a reply. Only these hold the request with the Organiser, and only these
+    -- can be resolved (SPM-33 AC6) — which is what stops a Coordinator's own
+    -- note or sign-off from reading as an outstanding question.
+  resolved_at            timestamptz,
+  resolved_by_user_account_id bigint references user_account (user_account_id) on delete restrict,
   constraint event_request_comment_no_self_parent_chk
-    check (parent_comment_id is distinct from comment_id)
+    check (parent_comment_id is distinct from comment_id),
+  constraint event_request_comment_request_is_top_level_chk
+    check (not is_clarification_request or parent_comment_id is null),
+  constraint event_request_comment_resolved_is_request_chk
+    check (resolved_at is null or is_clarification_request)
 );
 
 -- ---------------------------------------------------------------------------
@@ -565,6 +576,8 @@ create index event_comment_parent_idx           on event_comment (parent_comment
 create index event_request_comment_request_idx on event_request_comment (event_request_id);
 create index event_request_comment_author_idx  on event_request_comment (author_user_account_id);
 create index event_request_comment_parent_idx  on event_request_comment (parent_comment_id);
+create index event_request_comment_open_request_idx on event_request_comment (event_request_id)
+  where is_clarification_request and resolved_at is null;
 create index supporting_document_event_idx      on supporting_document (event_id);
 create index supporting_document_uploader_idx   on supporting_document (uploaded_by_user_account_id);
 create index session_event_idx                  on session (event_id);

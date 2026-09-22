@@ -49,6 +49,10 @@ export interface ClarificationMessageView {
   readonly postedAt: string;
   /** The top-level message this replies to, or null. Threading is one level (decision 6). */
   readonly parentId: string | null;
+  /** Whether a return was sent with this message, so it holds the request until resolved. */
+  readonly isClarificationRequest: boolean;
+  /** ISO 8601, or null while the question is still open. Always null for an ordinary comment. */
+  readonly resolvedAt: string | null;
 }
 
 /**
@@ -68,5 +72,7 @@ export function toClarificationThreadView(
     body: message.body,
     postedAt: message.postedAt.toISOString(),
     parentId: message.parentId,
+    isClarificationRequest: message.isClarificationRequest,
+    resolvedAt: message.resolvedAt?.toISOString() ?? null,
   }));
 }

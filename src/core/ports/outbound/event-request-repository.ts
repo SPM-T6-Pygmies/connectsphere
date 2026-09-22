@@ -1,3 +1,4 @@
+import type { ClarificationMessageId } from "../../domain/clarification-message";
 import type { ClientOrganisationId } from "../../domain/client-organisation";
 import type {
   EventRequest,
@@ -84,6 +85,19 @@ export interface EventRequestRepository {
     returnedBy: UserAccountId,
     message: string,
   ): Promise<void>;
-  /** Persists a resolved clarification (SPM-33) marked by `resolvedBy`. Touches status only -- never the thread. */
-  resolveClarification(request: EventRequest, resolvedBy: UserAccountId): Promise<void>;
+  /**
+   * Marks one clarification question answered (SPM-33 AC6), and stores
+   * `request` -- which the core has already moved back to `Under Review` if
+   * this was the last question outstanding, or left alone if others remain.
+   *
+   * One call rather than two because the two must agree: a request that says
+   * it is waiting on the Organiser with nothing left open, or the reverse, is
+   * a state the application itself refuses. The store re-derives the same rule
+   * under a lock, so a concurrent resolve cannot produce either.
+   */
+  resolveClarificationThread(
+    request: EventRequest,
+    resolvedBy: UserAccountId,
+    messageId: ClarificationMessageId,
+  ): Promise<void>;
 }

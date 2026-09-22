@@ -302,20 +302,29 @@ export function toReturnArgs(
   };
 }
 
-/** Arguments for `coordinator_resolve_clarification` (SPM-33 AC6). */
-export function toResolveClarificationArgs(
+/**
+ * Arguments for `coordinator_resolve_clarification_thread` (SPM-33 AC6).
+ *
+ * The request's own new status is not sent: whether resolving this question
+ * also puts the request back in the decision queue depends on what else is
+ * still open, which the function derives under its own lock.
+ */
+export function toResolveClarificationThreadArgs(
   request: EventRequest,
   resolvedBy: UserAccountId,
+  messageId: string,
 ): Record<string, unknown> | null {
   const requestKey = toKey(request.id);
   const coordinatorKey = toKey(resolvedBy);
+  const commentKey = toKey(messageId);
 
-  if (requestKey === null || coordinatorKey === null) {
+  if (requestKey === null || coordinatorKey === null || commentKey === null) {
     return null;
   }
 
   return {
     p_event_request_id: requestKey,
     p_coordinator_user_account_id: coordinatorKey,
+    p_comment_id: commentKey,
   };
 }

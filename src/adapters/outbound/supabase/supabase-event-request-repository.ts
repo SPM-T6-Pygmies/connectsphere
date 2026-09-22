@@ -1,12 +1,13 @@
 import type { ClientOrganisationId } from "@/core/domain/client-organisation";
 import {
   ClarificationMessageRequiredError,
-  ClarificationNotResolvableError,
+  ClarificationThreadNotResolvableError,
   DecisionReasonRequiredError,
   EventRequestNotDecidableError,
   EventRequestNotFoundError,
   EventRequestNotReturnableError,
 } from "@/core/domain/errors";
+import type { ClarificationMessageId } from "@/core/domain/clarification-message";
 import type {
   EventRequest,
   EventRequestId,
@@ -27,7 +28,7 @@ import {
   toKey,
   toMyEventRequestSummary,
   toReassignArgs,
-  toResolveClarificationArgs,
+  toResolveClarificationThreadArgs,
   toReturnArgs,
   toSaveArgs,
   toSubmitArgs,
@@ -42,7 +43,7 @@ const REASON_REQUIRED = "CS012";
 /** SQLSTATEs the clarification functions come back with (SPM-33). See their migration. */
 const NOT_RETURNABLE = "CS013";
 const CLARIFICATION_MESSAGE_REQUIRED = "CS014";
-const NOT_RESOLVABLE = "CS015";
+const THREAD_NOT_RESOLVABLE = "CS017";
 
 /**
  * Event requests are reached through database functions, not through the table.
@@ -341,23 +342,33 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
     }
   }
 
-  /** SPM-33 AC6: status only -- `coordinator_resolve_clarification` never touches the thread. */
-  async resolveClarification(request: EventRequest, resolvedBy: UserAccountId): Promise<void> {
-    const args = toResolveClarificationArgs(request, resolvedBy);
+  /**
+   * SPM-33 AC6: marks one question answered, and lets
+   * `coordinator_resolve_clarification_thread` decide in the same transaction
+   * whether that was the last one outstanding -- so the request's status and
+   * its open questions cannot disagree, whoever else is resolving at the same
+   * moment.
+   */
+  async resolveClarificationThread(
+    request: EventRequest,
+    resolvedBy: UserAccountId,
+    messageId: ClarificationMessageId,
+  ): Promise<void> {
+    const args = toResolveClarificationThreadArgs(request, resolvedBy, messageId);
     if (args === null) {
       throw new Error(
-        `Cannot resolve the clarification on event request with malformed ids "${request.id}" and "${resolvedBy}".`,
+        `Cannot resolve clarification "${messageId}" on event request with malformed ids "${request.id}" and "${resolvedBy}".`,
       );
     }
 
-    const { error } = await this.client.rpc("coordinator_resolve_clarification", args);
+    const { error } = await this.client.rpc("coordinator_resolve_clarification_thread", args);
 
     if (error) {
       if (error.code === NOT_FOUND_OR_NOT_ASSIGNED) {
         throw new EventRequestNotFoundError(request.id);
       }
-      if (error.code === NOT_RESOLVABLE) {
-        throw new ClarificationNotResolvableError();
+      if (error.code === THREAD_NOT_RESOLVABLE) {
+        throw new ClarificationThreadNotResolvableError();
       }
       throw new Error(`Failed to resolve the clarification: ${error.message}`, { cause: error });
     }

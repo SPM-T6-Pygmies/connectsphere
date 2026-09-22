@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { activityFor, bookingById, feedRows, VENUES } from "@/lib/wireframe";
+import { bookingById, VENUES } from "@/lib/wireframe";
 
 import { ActivityPanel } from "../activity-panel";
 import { EventContextPanel } from "../event-context";
@@ -198,7 +198,7 @@ export function BookingDetail({
               </div>
             </CardContent>
           </Card>
-          <ActivityPanel rows={feedRows(activityFor(event.id, "venue"))} role="venue" />
+          <ActivityPanel eventId={event.id} role="venue" section="venue" />
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">

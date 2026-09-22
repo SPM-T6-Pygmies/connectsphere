@@ -2,6 +2,7 @@ import type { Brand } from "./brand";
 import type { EventRequestId } from "./event-request";
 import {
   ClarificationReplyNotTopLevelError,
+  ClarificationThreadNotResolvableError,
   InvalidClarificationMessageIdError,
 } from "./errors";
 import type { UserAccountId } from "./user-account";
@@ -15,10 +16,11 @@ export type ClarificationMessageId = Brand<string, "ClarificationMessageId">;
  * per #80 the request and the event are separate records -- a request's thread
  * exists before any event does, and a rejected request never gets one at all.
  *
- * A message carries no status of its own and moves nothing. That is SPM-33
- * decision 3: replies never resume the request, so the conversation and the
- * state machine stay independent records and a reply cannot get the state
- * machine wrong.
+ * Most messages carry no status of their own and move nothing -- SPM-33
+ * decision 3, which is what lets both sides talk without either of them
+ * dragging the request around. The exception is the one a return opens: a
+ * *clarification request*, which holds the event request with the Organiser
+ * until it is resolved.
  */
 export interface ClarificationMessage {
   readonly id: ClarificationMessageId;
@@ -37,6 +39,21 @@ export interface ClarificationMessage {
    * in the use case.
    */
   readonly parentId: ClarificationMessageId | null;
+  /**
+   * Whether this message is the question a return was sent with (SPM-33 AC1),
+   * rather than an ordinary comment or a reply.
+   *
+   * Only these hold the request with the Organiser, and only these can be
+   * resolved. A plain comment says something without asking for anything, so
+   * it never moves the request and never needs clearing -- which is what
+   * stops a Coordinator's own note or sign-off from looking like an
+   * outstanding question.
+   *
+   * Always top-level: a return opens an exchange rather than continuing one.
+   */
+  readonly isClarificationRequest: boolean;
+  /** When the Coordinator marked this question answered, or null while it is still open. */
+  readonly resolvedAt: Date | null;
 }
 
 /**
@@ -48,7 +65,10 @@ export interface ClarificationMessage {
  * no rule reads it -- which is why the core does not need a `Clock` to append
  * to a thread.
  */
-export type NewClarificationMessage = Omit<ClarificationMessage, "id" | "postedAt">;
+export type NewClarificationMessage = Omit<
+  ClarificationMessage,
+  "id" | "postedAt" | "resolvedAt"
+>;
 
 export function clarificationMessageId(raw: string): ClarificationMessageId {
   const trimmed = raw.trim();
@@ -85,4 +105,52 @@ export function topLevelParentFor(
   }
 
   return parentId;
+}
+
+/** The questions still waiting on the Organiser, oldest first. */
+export function openClarificationRequests(
+  thread: readonly ClarificationMessage[],
+): readonly ClarificationMessage[] {
+  return thread.filter((message) => message.isClarificationRequest && message.resolvedAt === null);
+}
+
+/**
+ * The question `messageId` names, ready to be marked answered (SPM-33 AC6).
+ *
+ * Only a clarification request can be resolved, and only once: an ordinary
+ * comment asked for nothing, and a resolved question is already cleared.
+ * Resolving is per-question rather than per-request because a Coordinator can
+ * have two outstanding at a time (decision 5), and answering one of them is
+ * not the same as no longer waiting.
+ *
+ * Who may resolve is not asked here -- the use case asks
+ * `eventRequestAccessForCoordinator`, the same split every other transition
+ * draws.
+ */
+export function resolvableClarificationRequest(
+  thread: readonly ClarificationMessage[],
+  messageId: ClarificationMessageId,
+): ClarificationMessage {
+  const message = thread.find((candidate) => candidate.id === messageId);
+
+  if (message === undefined || !message.isClarificationRequest || message.resolvedAt !== null) {
+    throw new ClarificationThreadNotResolvableError();
+  }
+
+  return message;
+}
+
+/**
+ * Whether resolving `messageId` clears the last question outstanding.
+ *
+ * The Coordinator stops waiting on the Organiser when nothing is left open,
+ * not when the first answer arrives -- so this, not a reply, is what puts a
+ * `Returned` request back in the decision queue.
+ */
+export function isLastOpenClarificationRequest(
+  thread: readonly ClarificationMessage[],
+  messageId: ClarificationMessageId,
+): boolean {
+  const open = openClarificationRequests(thread);
+  return open.length === 1 && open[0]?.id === messageId;
 }

@@ -1,6 +1,7 @@
 import {
   clarificationMessageId,
   type ClarificationMessage,
+  type ClarificationMessageId,
   type NewClarificationMessage,
 } from "@/core/domain/clarification-message";
 import type { EventRequestId } from "@/core/domain/event-request";
@@ -34,9 +35,18 @@ export class InMemoryClarificationThreadRepository implements ClarificationThrea
       ...message,
       id: clarificationMessageId(`message-${this.sequence}`),
       postedAt: new Date(this.sequence),
+      resolvedAt: null,
     };
     this.rows.push(stored);
     return stored;
+  }
+
+  /** Marks a question answered, the way `coordinator_resolve_clarification_thread` does. */
+  async resolve(messageId: ClarificationMessageId, resolvedAt: Date): Promise<void> {
+    const index = this.rows.findIndex((message) => message.id === messageId);
+    if (index !== -1) {
+      this.rows[index] = { ...this.rows[index], resolvedAt };
+    }
   }
 
   /**

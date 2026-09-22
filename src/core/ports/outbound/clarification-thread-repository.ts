@@ -1,5 +1,6 @@
 import type {
   ClarificationMessage,
+  ClarificationMessageId,
   NewClarificationMessage,
 } from "../../domain/clarification-message";
 import type { EventRequestId } from "../../domain/event-request";
@@ -22,4 +23,13 @@ export interface ClarificationThreadRepository {
   messagesFor(eventRequestId: EventRequestId): Promise<readonly ClarificationMessage[]>;
   /** Stores a message the core has built and hands back the id the store chose. */
   append(message: NewClarificationMessage): Promise<ClarificationMessage>;
+  /**
+   * Marks one question answered.
+   *
+   * Not called directly by a use case: resolving a question can also move the
+   * request, and the two are one unit of work, so it goes through
+   * `EventRequestRepository.resolveClarificationThread`. It lives on this port
+   * because this is the store that owns the row.
+   */
+  resolve(messageId: ClarificationMessageId, resolvedAt: Date): Promise<void>;
 }
