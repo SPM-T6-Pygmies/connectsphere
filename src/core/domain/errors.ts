@@ -217,6 +217,21 @@ export class EventRequestNotDecidableError extends DomainError {
   }
 }
 
+/**
+ * SPM-101: only a request `Under Review` can be withdrawn (#103), and a
+ * withdrawn request stays withdrawn.
+ *
+ * Takes no argument for the same reason `EventRequestNotDecidableError` takes
+ * none: the Supabase adapter raises it too, after losing a race.
+ */
+export class EventRequestNotWithdrawableError extends DomainError {
+  readonly code = "event_request_not_withdrawable";
+
+  constructor() {
+    super("Only an event request under review can be withdrawn.");
+  }
+}
+
 /** SPM-34: a rejection must say why -- the reason is the decision record it keeps. */
 export class DecisionReasonRequiredError extends DomainError {
   readonly code = "decision_reason_required";

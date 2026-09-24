@@ -4,6 +4,7 @@ import {
   DecisionReasonRequiredError,
   EventRequestNotAssignableError,
   EventRequestNotDecidableError,
+  EventRequestNotWithdrawableError,
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
   PreferredDateNotInFutureError,
@@ -534,4 +535,21 @@ export function rejectEventRequest(request: EventRequest, reason: string): Event
   }
 
   return { ...request, status: "Rejected", decisionRecord };
+}
+
+/**
+ * SPM-101: the assigned Coordinator records a withdrawal the Organiser asked
+ * for outside the system (#103). Withdrawal is not a decision, so it has its
+ * own source-state rule rather than `assertDecidable`'s: only `Under Review`,
+ * the one state #103 names. `Submitted -> Withdrawn` is deliberately not an
+ * edge (team decision, 2026-09-23).
+ *
+ * The note is optional, so a blank one records nothing, as for approval.
+ */
+export function withdrawEventRequest(request: EventRequest, note: string): EventRequest {
+  if (request.status !== "Under Review") {
+    throw new EventRequestNotWithdrawableError();
+  }
+
+  return { ...request, status: "Withdrawn", decisionRecord: note.trim() || null };
 }
