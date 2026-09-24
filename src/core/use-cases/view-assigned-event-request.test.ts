@@ -144,15 +144,18 @@ describe("ViewAssignedEventRequestUseCase thread closing (SPM-33)", () => {
 });
 
 describe("ViewAssignedEventRequestUseCase withdrawal (SPM-169)", () => {
-  it("offers a withdrawal on a request under review", async () => {
-    const useCase = buildUseCase([request({ status: "Under Review" })]);
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
+    "offers a withdrawal on a %s request",
+    async (status) => {
+      const useCase = buildUseCase([request({ status })]);
 
-    const result = await useCase.execute({ id: "request-1", userAccountId: COORDINATOR });
+      const result = await useCase.execute({ id: "request-1", userAccountId: COORDINATOR });
 
-    expect(result?.canWithdraw).toBe(true);
-  });
+      expect(result?.canWithdraw).toBe(true);
+    },
+  );
 
-  it.each(["Submitted", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+  it.each(["Approved", "Rejected", "Withdrawn"] as const)(
     "offers no withdrawal on a %s request",
     async (status) => {
       const useCase = buildUseCase([request({ status })]);

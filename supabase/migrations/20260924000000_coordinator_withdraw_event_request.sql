@@ -13,14 +13,17 @@
 -- decision_record, and an `audit_record` row records who withdrew it and
 -- when -- all in one transaction.
 --
--- Only Under Review can be withdrawn (team decision, 2026-09-23): #103 names
--- no other state, so Submitted -> Withdrawn is deliberately not an edge.
+-- Withdrawal is open at any point before a decision -- Submitted, Under
+-- Review, or Returned with a question open (team decision, 2026-09-24,
+-- widening #103's "while it is under review"). After approval, pulling out
+-- is an event cancellation instead.
 --
 -- Custom SQLSTATEs, translated back into DomainErrors by
 -- SupabaseEventRequestRepository:
 --   CS010  no such request, or not assigned to this coordinator -- shared with
 --          coordinator_decide_event_request, one code for both cases (#91)
---   CS013  the request is not Under Review
+--   CS019  the request has already been decided (numbered after CS013-CS018,
+--          which the SPM-33 clarification functions use)
 --
 -- Known gap, shared with coordinator_decide_event_request: the coordinator id
 -- is supplied by the caller and execute is granted to anon, so this trusts
@@ -55,10 +58,10 @@ begin
       using errcode = 'CS010';
   end if;
 
-  if v_request.status <> 'Under Review' then
+  if v_request.status not in ('Submitted', 'Under Review', 'Returned') then
     raise exception 'Event request % with status % cannot be withdrawn',
       p_event_request_id, v_request.status
-      using errcode = 'CS013';
+      using errcode = 'CS019';
   end if;
 
   update public.event_request
