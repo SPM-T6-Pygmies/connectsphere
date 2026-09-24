@@ -8,6 +8,7 @@ import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-me
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import {
   ClarificationMessageRequiredError,
+  ClarificationThreadClosedError,
   ClarificationReplyNotTopLevelError,
   EventRequestNotFoundError,
 } from "@/core/domain/errors";
@@ -137,3 +138,23 @@ describe("PostCoordinatorClarificationMessageUseCase (SPM-33)", () => {
     expect(clarificationThread.all()).toHaveLength(2);
   });
 });
+
+describe("PostCoordinatorClarificationMessageUseCase once the request is decided (SPM-33)", () => {
+  it.each(["Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses a message on a %s request, writing nothing -- the thread is closed",
+    async (status) => {
+      const { useCase, clarificationThread } = buildUseCase([request({ status })]);
+
+      await expect(
+        useCase.execute({
+          id: "request-1",
+          userAccountId: COORDINATOR,
+          body: "Following up.",
+          parentId: null,
+        }),
+      ).rejects.toBeInstanceOf(ClarificationThreadClosedError);
+      expect(clarificationThread.all()).toEqual([]);
+    },
+  );
+});
+

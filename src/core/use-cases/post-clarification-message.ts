@@ -3,8 +3,13 @@ import {
   topLevelParentFor,
 } from "../domain/clarification-message";
 import { clientOrganisationId } from "../domain/client-organisation";
-import { ClarificationMessageRequiredError, EventRequestNotFoundError } from "../domain/errors";
 import {
+  ClarificationMessageRequiredError,
+  ClarificationThreadClosedError,
+  EventRequestNotFoundError,
+} from "../domain/errors";
+import {
+  canDiscussEventRequest,
   eventRequestAccessFor,
   eventRequestId,
   type OrganiserContext,
@@ -47,9 +52,10 @@ export interface PostClarificationMessageDeps {
  * not rewrite what they submitted, and answering a question about it was never
  * a rewrite. That distinction is why the exchange was built as an append.
  *
- * Nor is posting restricted by status. SPM-33's remaining open question notes
- * this is a choice rather than a source: decision 3 makes a message harmless,
- * so a status guard would buy nothing.
+ * Posting is open only until the request is decided (`canDiscussEventRequest`).
+ * Decision 3 makes a message harmless to the status, but a thread that stays
+ * open on a decided request invites questions nobody is left to act on --
+ * the team settled SPM-33's open question that way.
  *
  * Telling the Coordinator that the Organiser replied is its own card under
  * SPM-47, not this use case's.
@@ -81,6 +87,10 @@ export class PostClarificationMessageUseCase {
       request.responsibleOrganiserId !== author
     ) {
       throw new EventRequestNotFoundError(command.id);
+    }
+
+    if (!canDiscussEventRequest(request.status)) {
+      throw new ClarificationThreadClosedError();
     }
 
     const body = command.body.trim();

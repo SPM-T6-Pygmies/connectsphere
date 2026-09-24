@@ -7,6 +7,7 @@ import {
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import {
+  ClarificationThreadClosedError,
   ClarificationThreadNotResolvableError,
   EventRequestNotFoundError,
 } from "@/core/domain/errors";
@@ -200,3 +201,24 @@ describe("ResolveClarificationThreadUseCase (SPM-33)", () => {
     ).rejects.toBeInstanceOf(EventRequestNotFoundError);
   });
 });
+
+describe("ResolveClarificationThreadUseCase once the request is decided (SPM-33)", () => {
+  it.each(["Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses to resolve a question left open on a %s request, changing nothing",
+    async (status) => {
+      const { useCase, eventRequests, clarificationThread } = buildUseCase([request({ status })]);
+      const question = await ask(clarificationThread, "Stage access for rehearsals?");
+
+      await expect(
+        useCase.execute({
+          id: "request-1",
+          userAccountId: COORDINATOR,
+          clarificationMessageId: question.id,
+        }),
+      ).rejects.toBeInstanceOf(ClarificationThreadClosedError);
+      expect(clarificationThread.all()[0]?.resolvedAt).toBeNull();
+      await expect(statusOf(eventRequests)).resolves.toBe(status);
+    },
+  );
+});
+

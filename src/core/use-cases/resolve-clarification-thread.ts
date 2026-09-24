@@ -3,8 +3,9 @@ import {
   isLastOpenClarificationRequest,
   resolvableClarificationRequest,
 } from "../domain/clarification-message";
-import { EventRequestNotFoundError } from "../domain/errors";
+import { ClarificationThreadClosedError, EventRequestNotFoundError } from "../domain/errors";
 import {
+  canDiscussEventRequest,
   eventRequestAccessForCoordinator,
   eventRequestId,
   resolveClarification,
@@ -65,6 +66,10 @@ export class ResolveClarificationThreadUseCase {
       eventRequestAccessForCoordinator(request, { userAccountId: resolvedBy }) === "none"
     ) {
       throw new EventRequestNotFoundError(command.id);
+    }
+
+    if (!canDiscussEventRequest(request.status)) {
+      throw new ClarificationThreadClosedError();
     }
 
     const messageId = clarificationMessageId(command.clarificationMessageId);

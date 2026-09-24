@@ -379,3 +379,18 @@ export class ClarificationThreadNotResolvableError extends DomainError {
     super("That is not an open question on this request.");
   }
 }
+
+/**
+ * SPM-33: a decided request's clarification thread is closed -- nothing more
+ * can be posted, replied or resolved on it. See `canDiscussEventRequest`.
+ *
+ * Argument-free for the same reason: the Supabase functions raise it too,
+ * after losing a race to a concurrent decision.
+ */
+export class ClarificationThreadClosedError extends DomainError {
+  readonly code = "clarification_thread_closed";
+
+  constructor() {
+    super("This request has been decided, so its clarification thread is closed.");
+  }
+}

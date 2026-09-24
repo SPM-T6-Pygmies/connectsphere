@@ -5,6 +5,7 @@ import type {
 import {
   ClarificationMessageRequiredError,
   ClarificationReplyNotTopLevelError,
+  ClarificationThreadClosedError,
   EventRequestNotFoundError,
 } from "@/core/domain/errors";
 import type { EventRequestId } from "@/core/domain/event-request";
@@ -22,6 +23,7 @@ import { toKey } from "./event-request-mapper";
 const REQUEST_NOT_FOUND = "CS010";
 const BODY_REQUIRED = "CS014";
 const REPLY_NOT_TOP_LEVEL = "CS016";
+const THREAD_CLOSED = "CS018";
 
 /**
  * The clarification thread, reached through database functions rather than
@@ -82,6 +84,9 @@ export class SupabaseClarificationThreadRepository implements ClarificationThrea
       }
       if (error.code === REPLY_NOT_TOP_LEVEL) {
         throw new ClarificationReplyNotTopLevelError();
+      }
+      if (error.code === THREAD_CLOSED) {
+        throw new ClarificationThreadClosedError();
       }
       throw new Error(`Failed to post the clarification message: ${error.message}`, {
         cause: error,
