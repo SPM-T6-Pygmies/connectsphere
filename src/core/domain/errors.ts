@@ -218,7 +218,7 @@ export class EventRequestNotDecidableError extends DomainError {
 }
 
 /**
- * SPM-101: only a request `Under Review` can be withdrawn (#103), and a
+ * SPM-101: only a request not yet decided can be withdrawn (#103), and a
  * withdrawn request stays withdrawn.
  *
  * Takes no argument for the same reason `EventRequestNotDecidableError` takes
@@ -228,7 +228,7 @@ export class EventRequestNotWithdrawableError extends DomainError {
   readonly code = "event_request_not_withdrawable";
 
   constructor() {
-    super("Only an event request under review can be withdrawn.");
+    super("Only an event request that has not been decided can be withdrawn.");
   }
 }
 

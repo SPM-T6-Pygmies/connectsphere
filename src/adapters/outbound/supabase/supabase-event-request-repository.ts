@@ -35,8 +35,8 @@ import {
 const NOT_FOUND_OR_NOT_ASSIGNED = "CS010";
 const NOT_DECIDABLE = "CS011";
 const REASON_REQUIRED = "CS012";
-/** SQLSTATE `coordinator_withdraw_event_request` raises for a request not Under Review. It shares CS010. */
-const NOT_WITHDRAWABLE = "CS013";
+/** SQLSTATE `coordinator_withdraw_event_request` raises for a request already decided. It shares CS010. */
+const NOT_WITHDRAWABLE = "CS019";
 
 /**
  * Event requests are reached through database functions, not through the table.
