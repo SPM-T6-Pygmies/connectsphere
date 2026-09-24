@@ -21,6 +21,7 @@ import { PageHeader, StaffShell } from "../staff-shell";
 import { ClarificationComposer, ResolveClarificationForm } from "./clarification-forms";
 import { DecisionForm } from "./decision-form";
 import { RequestStateBadge } from "./request-state-badge";
+import { WithdrawalForm } from "./withdrawal-form";
 
 /** Where each of the Coordinator's sections sits in the rail. */
 const SECTION_HOMES: Readonly<Record<CoordinatorSection, { label: string; href: string }>> = {
@@ -28,6 +29,13 @@ const SECTION_HOMES: Readonly<Record<CoordinatorSection, { label: string; href: 
   events: { label: "My events", href: "/staff/coordinator/events" },
   archive: { label: "Archive", href: "/staff/coordinator/archive" },
 };
+
+/** How the outcome of a request that has left the queue reads. */
+const OUTCOMES = {
+  approved: "Approved -- planning can begin",
+  rejected: "Rejected",
+  withdrawn: "Withdrawn at the Organiser's request",
+} as const;
 
 /**
  * `h:mm am/pm` in Singapore time -- for an instant, not a calendar date.
@@ -53,7 +61,8 @@ function formatInstantTime(iso: string): string {
  * clarification exchange, and all of it lives in the thread: asking is
  * "Comment & return" on the composer, and each question carries its own
  * Resolve. A separate "ask a question" card beside the thread would be the
- * same act twice on one screen.
+ * same act twice on one screen. SPM-101 adds recording a withdrawal, while
+ * `canWithdraw` says one can be.
  *
  * Still no edit controls. A submitted request is locked (#102), and asking
  * about one was never an edit -- which is exactly why the exchange is an
@@ -68,6 +77,7 @@ export function AssignedRequestDetail({
   clarificationThread,
   coordinatorName,
   canDiscuss,
+  canWithdraw,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -83,6 +93,8 @@ export function AssignedRequestDetail({
   state: CoordinatorRequestState | null;
   /** The section the request now lives under, from the use case. */
   section: CoordinatorSection;
+  /** Whether a withdrawal can be recorded now, from the use case. */
+  canWithdraw: boolean;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -188,7 +200,7 @@ export function AssignedRequestDetail({
                 <DecisionForm eventRequestId={eventRequest.id} />
               </CardContent>
             </Card>
-          ) : state === "approved" || state === "rejected" ? (
+          ) : state === "approved" || state === "rejected" || state === "withdrawn" ? (
             <Card>
               <CardHeader>
                 <CardTitle>Decision</CardTitle>
@@ -197,16 +209,28 @@ export function AssignedRequestDetail({
                 <FieldList
                   columns={1}
                   fields={[
+                    { label: "Outcome", value: OUTCOMES[state] },
                     {
-                      label: "Outcome",
-                      value: state === "approved" ? "Approved -- planning can begin" : "Rejected",
-                    },
-                    {
-                      label: state === "approved" ? "Note" : "Reason",
+                      label: state === "rejected" ? "Reason" : "Note",
                       value: eventRequest.decisionRecord,
                     },
                   ]}
                 />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {canWithdraw ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Withdrawal</CardTitle>
+                <CardDescription>
+                  Only when the Organiser has asked you to withdraw this request.
+                  They cannot withdraw it themselves.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WithdrawalForm eventRequestId={eventRequest.id} />
               </CardContent>
             </Card>
           ) : null}
