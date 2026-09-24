@@ -1,5 +1,6 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
+  canDiscussEventRequest,
   eventRequestId,
   eventRequestAccessFor,
   type OrganiserContext,
@@ -30,6 +31,11 @@ export interface ViewOrganiserEventRequestResult {
    * by both sides.
    */
   readonly clarificationThread: readonly ClarificationMessageView[];
+  /**
+   * Whether the thread is still open to new messages -- see
+   * `canDiscussEventRequest`. False once the request is decided.
+   */
+  readonly canDiscuss: boolean;
 }
 
 export interface ViewOrganiserEventRequestDeps {
@@ -77,6 +83,7 @@ export class ViewOrganiserEventRequestUseCase {
     return {
       eventRequest: toEventRequestView(request),
       clarificationThread: toClarificationThreadView(messages, names),
+      canDiscuss: canDiscussEventRequest(request.status),
     };
   }
 }

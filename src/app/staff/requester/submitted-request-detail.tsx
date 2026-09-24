@@ -71,6 +71,7 @@ export function SubmittedRequestDetail({
   eventRequest,
   clarificationThread,
   organiserName,
+  canDiscuss,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -78,6 +79,8 @@ export function SubmittedRequestDetail({
   clarificationThread: readonly ClarificationMessageView[];
   /** Whoever is signed in, for the composer's avatar. */
   organiserName: string;
+  /** Whether the thread still takes messages, from the use case. */
+  canDiscuss: boolean;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -134,6 +137,7 @@ export function SubmittedRequestDetail({
           <ClarificationThread
             messages={clarificationThread}
             actingAsName={organiserName}
+            closed={!canDiscuss}
             description="Questions your coordinator has asked about this request, and your answers. Kept with the request."
             emptyMessage="Your coordinator has not asked anything yet."
             composer={<ClarificationComposer eventRequestId={eventRequest.id} />}

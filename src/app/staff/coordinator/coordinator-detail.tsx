@@ -49,6 +49,7 @@ export async function CoordinatorDetail({
       state={result.state}
       section={result.section}
       clarificationThread={result.clarificationThread}
+      canDiscuss={result.canDiscuss}
       coordinatorName={coordinator.name}
       origin={origin}
     />

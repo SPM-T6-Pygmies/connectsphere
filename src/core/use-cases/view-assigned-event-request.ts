@@ -1,4 +1,5 @@
 import {
+  canDiscussEventRequest,
   coordinatorRequestStateFor,
   coordinatorSectionFor,
   eventRequestAccessForCoordinator,
@@ -45,6 +46,11 @@ export interface ViewAssignedEventRequestResult {
    * stops the two drifting apart.
    */
   readonly clarificationThread: readonly ClarificationMessageView[];
+  /**
+   * Whether the thread is still open to new messages -- see
+   * `canDiscussEventRequest`. False once the request is decided.
+   */
+  readonly canDiscuss: boolean;
 }
 
 export interface ViewAssignedEventRequestDeps {
@@ -99,6 +105,7 @@ export class ViewAssignedEventRequestUseCase {
       state: coordinatorRequestStateFor(request.status),
       section: coordinatorSectionFor(request.status),
       clarificationThread: toClarificationThreadView(messages, names),
+      canDiscuss: canDiscussEventRequest(request.status),
     };
   }
 }

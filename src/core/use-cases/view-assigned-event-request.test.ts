@@ -126,3 +126,20 @@ describe("ViewAssignedEventRequestUseCase clarification thread (SPM-33)", () => 
     expect(result?.clarificationThread).toEqual([]);
   });
 });
+
+describe("ViewAssignedEventRequestUseCase thread closing (SPM-33)", () => {
+  it.each([
+    ["Returned", true],
+    ["Under Review", true],
+    ["Approved", false],
+    ["Rejected", false],
+    ["Withdrawn", false],
+  ] as const)("reports whether a %s request's thread takes messages", async (status, open) => {
+    const useCase = buildUseCase([request({ status })]);
+
+    const result = await useCase.execute({ id: "request-1", userAccountId: COORDINATOR });
+
+    expect(result?.canDiscuss).toBe(open);
+  });
+});
+
