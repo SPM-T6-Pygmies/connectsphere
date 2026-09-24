@@ -9,11 +9,16 @@ import type {
   CoordinatorRequestState,
   CoordinatorSection,
 } from "@/core/domain/event-request";
-import type { EventRequestView } from "@/core/use-cases/event-request-view";
+import type {
+  ClarificationMessageView,
+  EventRequestView,
+} from "@/core/use-cases/event-request-view";
 
+import { ClarificationThread } from "../clarification-thread";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
+import { ClarificationComposer, ResolveClarificationForm } from "./clarification-forms";
 import { DecisionForm } from "./decision-form";
 import { RequestStateBadge } from "./request-state-badge";
 
@@ -44,9 +49,15 @@ function formatInstantTime(iso: string): string {
 /**
  * SPM-32: everything the Organiser submitted, read-only. SPM-34 adds the
  * decision alongside it: Approve/Reject while the request awaits this
- * Coordinator, and the outcome once it is decided. No clarification or edit
- * controls -- clarification is SPM-33's job, and a submitted request is
- * locked (#102).
+ * Coordinator, and the outcome once it is decided. SPM-33 adds the
+ * clarification exchange, and all of it lives in the thread: asking is
+ * "Comment & return" on the composer, and each question carries its own
+ * Resolve. A separate "ask a question" card beside the thread would be the
+ * same act twice on one screen.
+ *
+ * Still no edit controls. A submitted request is locked (#102), and asking
+ * about one was never an edit -- which is exactly why the exchange is an
+ * append to a thread rather than a change to a field.
  */
 export function AssignedRequestDetail({
   eventRequest,
@@ -54,11 +65,20 @@ export function AssignedRequestDetail({
   clientOrganisationName,
   state,
   section,
+  clarificationThread,
+  coordinatorName,
+  canDiscuss,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
   requestingOrganiserName: string;
   clientOrganisationName: string;
+  /** The clarification exchange so far (SPM-33 AC4). */
+  clarificationThread: readonly ClarificationMessageView[];
+  /** Whoever is signed in, for the composer's avatar. */
+  coordinatorName: string;
+  /** Whether the thread still takes messages, from the use case. */
+  canDiscuss: boolean;
   /** The Coordinator's reading of the status, from the use case. */
   state: CoordinatorRequestState | null;
   /** The section the request now lives under, from the use case. */
@@ -70,6 +90,11 @@ export function AssignedRequestDetail({
   // The rail entry the request now lives under, so the trail and the list pane
   // follow a decision instead of always pointing back to "My requests".
   const home = SECTION_HOMES[section];
+
+  // Undecided covers both "awaiting-decision" and "with-organiser": SPM-33
+  // decision 4 keeps a returned request decidable, and decision 5 keeps it
+  // returnable, so the same requests carry both sets of controls.
+  const undecided = state === "awaiting-decision" || state === "with-organiser";
 
   const preferredTime =
     details.preferredStartTime !== null && details.preferredEndTime !== null
@@ -122,16 +147,41 @@ export function AssignedRequestDetail({
               />
             </CardContent>
           </Card>
+
+          <ClarificationThread
+            messages={clarificationThread}
+            actingAsName={coordinatorName}
+            closed={!canDiscuss}
+            description={`Questions you have asked ${requestingOrganiserName} about this request, and their answers. Kept with the request.`}
+            emptyMessage="Nothing asked yet. Use Comment & return below to put a question to the organiser."
+            composer={
+              <ClarificationComposer eventRequestId={eventRequest.id} canReturn={undecided} />
+            }
+            replyComposer={(parentId) => (
+              <ClarificationComposer eventRequestId={eventRequest.id} parentId={parentId} />
+            )}
+            resolveControl={(message) =>
+              message.isClarificationRequest && message.resolvedAt === null ? (
+                <ResolveClarificationForm
+                  eventRequestId={eventRequest.id}
+                  clarificationMessageId={message.id}
+                />
+              ) : null
+            }
+          />
         </div>
 
         <div className="space-y-6">
-          {state === "awaiting-decision" ? (
+          {undecided ? (
             <Card>
               <CardHeader>
                 <CardTitle>Decision</CardTitle>
                 <CardDescription>
                   Approving lets planning begin but commits ConnectSphere to nothing
                   yet. Rejecting is final.
+                  {state === "with-organiser"
+                    ? " This one is with the organiser, and you can still decide it."
+                    : ""}
                 </CardDescription>
               </CardHeader>
               <CardContent>

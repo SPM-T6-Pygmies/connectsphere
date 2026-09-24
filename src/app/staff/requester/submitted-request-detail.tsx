@@ -8,12 +8,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { EventRequestView } from "@/core/use-cases/event-request-view";
+import type {
+  ClarificationMessageView,
+  EventRequestView,
+} from "@/core/use-cases/event-request-view";
 
+import { ClarificationThread } from "../clarification-thread";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
+import { ClarificationComposer } from "./[id]/clarification-composer";
 
 /** `h:mm am/pm`, in the viewer's own timezone -- for an instant, not a calendar date. */
 function formatInstantTime(iso: string): string {
@@ -52,11 +57,30 @@ function timeline(request: EventRequestView) {
   ];
 }
 
+/**
+ * SPM-31: the Organiser's own view of a request they have submitted, and
+ * SPM-33's clarification exchange alongside it.
+ *
+ * The exchange adds a reply box and nothing else. No field became editable --
+ * a submitted request is still locked (#102), and answering a question about
+ * it was never an edit, which is exactly why the exchange is an append. There
+ * is no Resolve control either: marking a clarification resolved is the
+ * Coordinator's alone (AC7).
+ */
 export function SubmittedRequestDetail({
   eventRequest,
+  clarificationThread,
+  organiserName,
+  canDiscuss,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
+  /** The clarification exchange so far (SPM-33 AC4) -- the same record the Coordinator reads. */
+  clarificationThread: readonly ClarificationMessageView[];
+  /** Whoever is signed in, for the composer's avatar. */
+  organiserName: string;
+  /** Whether the thread still takes messages, from the use case. */
+  canDiscuss: boolean;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -109,6 +133,18 @@ export function SubmittedRequestDetail({
               />
             </CardContent>
           </Card>
+
+          <ClarificationThread
+            messages={clarificationThread}
+            actingAsName={organiserName}
+            closed={!canDiscuss}
+            description="Questions your coordinator has asked about this request, and your answers. Kept with the request."
+            emptyMessage="Your coordinator has not asked anything yet."
+            composer={<ClarificationComposer eventRequestId={eventRequest.id} />}
+            replyComposer={(parentId) => (
+              <ClarificationComposer eventRequestId={eventRequest.id} parentId={parentId} />
+            )}
+          />
         </div>
 
         <div className="space-y-6">

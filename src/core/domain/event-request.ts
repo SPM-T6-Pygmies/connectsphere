@@ -1,9 +1,12 @@
 import type { Brand } from "./brand";
 import type { ClientOrganisationId } from "./client-organisation";
 import {
+  ClarificationMessageRequiredError,
+  ClarificationNotResolvableError,
   DecisionReasonRequiredError,
   EventRequestNotAssignableError,
   EventRequestNotDecidableError,
+  EventRequestNotReturnableError,
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
   PreferredDateNotInFutureError,
@@ -316,11 +319,18 @@ export function eventRequestAccessForCoordinator(
  * a request sitting with them, waiting to be approved, rejected or returned
  * ([[event-request-workflow]] Steps 4-5) -- so both collapse to
  * `"awaiting-decision"`. The one pre-decision distinction a Coordinator does
- * need is `Returned`: the ball is in the Organiser's court until they amend
- * and resubmit, and nothing the Coordinator does moves it.
+ * need is `Returned`: they have asked the Organiser for clarification and are
+ * waiting on a reply (SPM-33).
  *
  * Decided requests keep their own names, because an outcome means the same
  * thing to everyone who reads it.
+ *
+ * `"with-organiser"` is a label, not a lock (SPM-33 decision 4). A `Returned`
+ * request reads as waiting on the Organiser and can still be approved or
+ * rejected on the spot -- the label and decidability are deliberately
+ * independent, and `assertDecidable` below admits `Returned` on purpose.
+ * `resolveClarification` is the Coordinator's way out of the label without
+ * deciding, so it is something the Coordinator does move.
  *
  * `null` means the request is not a Coordinator's to see at all: `Draft` is
  * the Organiser's alone and cannot carry an assignment. Returning `null`
@@ -490,16 +500,52 @@ export function assignEventCoordinator(
 }
 
 /**
- * A request is the Coordinator's to decide only while it awaits their decision
- * -- `Submitted` or `Under Review`, the same reading `coordinatorRequestStateFor`
- * gives the queue. `Returned` is waiting on the Organiser, and every decided
- * state is final: rejection in particular has no resubmission path (#67).
+ * The statuses a request has not been decided from yet.
+ *
+ * Both of the things a Coordinator can do to a live request -- decide it, or
+ * return it with a question -- are open from exactly these three, so they read
+ * one set rather than two that happen to agree.
+ */
+const PRE_DECISION_STATUSES: ReadonlySet<EventRequestStatus> = new Set([
+  "Submitted",
+  "Under Review",
+  "Returned",
+]);
+
+/**
+ * Whether a request's clarification thread is still open (SPM-33): posting,
+ * replying and resolving are allowed only until the request is decided.
+ *
+ * Once it is Approved, Rejected or Withdrawn there is nothing left to clarify.
+ * An approved request carries on as an event, whose own thread is where
+ * planning talk belongs, and the other two are closed for good. The thread
+ * stays readable as the record of what was asked, but it is closed to new
+ * messages -- a question left unanswered stays that way rather than looking
+ * like something still being waited on.
+ *
+ * The same three statuses as decide and return, read from the same set.
+ */
+export function canDiscussEventRequest(status: EventRequestStatus): boolean {
+  return PRE_DECISION_STATUSES.has(status);
+}
+
+/**
+ * A request is the Coordinator's to decide while it is still pre-decision --
+ * `Submitted`, `Under Review` or `Returned`. Every decided state is final:
+ * rejection in particular has no resubmission path (#67).
+ *
+ * `Returned` is admitted deliberately (SPM-33 decision 4, amending the rule
+ * SPM-138 shipped): having asked a question does not put the answer behind a
+ * gate, so a Coordinator who no longer needs one can approve or reject without
+ * first calling `resolveClarification`. This is why the check can no longer be
+ * `coordinatorRequestStateFor(...) === "awaiting-decision"` -- the queue label
+ * and decidability now part company on purpose.
  *
  * Who may decide is not asked here. The use case asks
  * `eventRequestAccessForCoordinator`, the same split the draft use cases draw.
  */
 function assertDecidable(request: EventRequest): void {
-  if (coordinatorRequestStateFor(request.status) !== "awaiting-decision") {
+  if (!PRE_DECISION_STATUSES.has(request.status)) {
     throw new EventRequestNotDecidableError();
   }
 }
@@ -534,4 +580,57 @@ export function rejectEventRequest(request: EventRequest, reason: string): Event
   }
 
   return { ...request, status: "Rejected", decisionRecord };
+}
+
+/**
+ * SPM-33 AC1-AC2: the assigned Event Coordinator returns the request to the
+ * Organiser with a question ([[event-request-workflow]] Steps 4-5).
+ *
+ * An already-`Returned` request is accepted, not refused: a clarification is a
+ * conversation, and a Coordinator may need to ask a second question without a
+ * Resolve in between (decision 5). Every decided state is refused -- there is
+ * nothing left to clarify once the answer is in.
+ *
+ * The message is required by the same rule that makes a rejection state its
+ * reason: returning a request without saying what is unclear tells the
+ * Organiser nothing. Status is checked before the message, so an already-decided
+ * request is refused as such rather than asked for a message it could not use.
+ *
+ * Returns only the request. The message itself is a `ClarificationMessage` the
+ * use case appends to the thread -- a request's status and its conversation are
+ * different records, which is exactly what lets a reply leave the status alone
+ * (decision 3).
+ */
+export function returnEventRequest(request: EventRequest, message: string): EventRequest {
+  if (!PRE_DECISION_STATUSES.has(request.status)) {
+    throw new EventRequestNotReturnableError();
+  }
+
+  if (message.trim().length === 0) {
+    throw new ClarificationMessageRequiredError();
+  }
+
+  return { ...request, status: "Returned" };
+}
+
+/**
+ * SPM-33 AC6: the Coordinator marks the clarification resolved, putting the
+ * request back to awaiting their own decision.
+ *
+ * Nothing in the thread calls this -- a reply never moves the status (decision
+ * 3), because one exchange is often not enough and a stray "ok thanks" should
+ * not drag the request back into the decision queue. This is the Coordinator's
+ * own "I am no longer waiting on the Organiser" signal, and it is optional:
+ * `assertDecidable` admits `Returned`, so deciding directly is always open
+ * (decision 4).
+ *
+ * `Under Review` rather than back to whatever the request was before: the
+ * Coordinator has demonstrably picked it up, and `Submitted` means nobody has.
+ */
+export function resolveClarification(request: EventRequest): EventRequest {
+  if (request.status !== "Returned") {
+    throw new ClarificationNotResolvableError();
+  }
+
+  return { ...request, status: "Under Review" };
 }

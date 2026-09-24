@@ -1,3 +1,4 @@
+import type { ClarificationMessageId } from "../../domain/clarification-message";
 import type { ClientOrganisationId } from "../../domain/client-organisation";
 import type {
   EventRequest,
@@ -61,4 +62,42 @@ export interface EventRequestRepository {
   approveEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
   /** Persists a rejection (SPM-34) made by `decidedBy`, recording who rejected it and when. */
   rejectEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
+  /**
+   * Persists a return for clarification (SPM-33) made by `returnedBy`, the
+   * request's assigned Event Coordinator, and opens the thread with `message`.
+   *
+   * The message rides along rather than being appended separately because the
+   * two are one unit of work: a return whose question was lost tells the
+   * Organiser nothing, and the status is the only thing that puts the request
+   * in front of them. The same reasoning makes `approveEventRequest` open the
+   * event -- approval *is* the event's creation, and a return *is* the
+   * question.
+   *
+   * Deliberately not `save()`: that path is guarded to a request's own
+   * responsible Organiser amending their still-`Draft` request (SPM-38), and a
+   * return crosses both. The actor is passed explicitly rather than read off
+   * `request.assignedCoordinatorUserAccountId` so the store records who
+   * actually called, and can check the two agree -- the same shape as
+   * `approveEventRequest`.
+   */
+  returnEventRequest(
+    request: EventRequest,
+    returnedBy: UserAccountId,
+    message: string,
+  ): Promise<void>;
+  /**
+   * Marks one clarification question answered (SPM-33 AC6), and stores
+   * `request` -- which the core has already moved back to `Under Review` if
+   * this was the last question outstanding, or left alone if others remain.
+   *
+   * One call rather than two because the two must agree: a request that says
+   * it is waiting on the Organiser with nothing left open, or the reverse, is
+   * a state the application itself refuses. The store re-derives the same rule
+   * under a lock, so a concurrent resolve cannot produce either.
+   */
+  resolveClarificationThread(
+    request: EventRequest,
+    resolvedBy: UserAccountId,
+    messageId: ClarificationMessageId,
+  ): Promise<void>;
 }

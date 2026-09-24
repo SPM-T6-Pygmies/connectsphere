@@ -184,6 +184,38 @@ create table event_comment (
 );
 
 -- ---------------------------------------------------------------------------
+-- 6b. Event request comment  (wiki: event-request-workflow, SPM-33)
+--     The clarification thread on a *request*, which is not an event's comment
+--     thread: per #80 the request and the event are separate records, and a
+--     request's thread exists before any event does. Columns mirror
+--     event_comment so the two read as the same idea.
+--     Threading is one level (SPM-33 decision 6); the check below stops a
+--     comment parenting itself, and post_event_request_clarification_message
+--     enforces the depth rule the constraint cannot express.
+-- ---------------------------------------------------------------------------
+create table event_request_comment (
+  comment_id             bigint generated always as identity primary key,
+  event_request_id       bigint not null references event_request (event_request_id) on delete cascade,
+  author_user_account_id bigint not null references user_account (user_account_id) on delete restrict,
+  parent_comment_id      bigint references event_request_comment (comment_id) on delete cascade,
+  body                   text not null,
+  created_at             timestamptz not null default now(),
+  is_clarification_request boolean not null default false,
+    -- the message a return was sent with, as opposed to an ordinary comment or
+    -- a reply. Only these hold the request with the Organiser, and only these
+    -- can be resolved (SPM-33 AC6) — which is what stops a Coordinator's own
+    -- note or sign-off from reading as an outstanding question.
+  resolved_at            timestamptz,
+  resolved_by_user_account_id bigint references user_account (user_account_id) on delete restrict,
+  constraint event_request_comment_no_self_parent_chk
+    check (parent_comment_id is distinct from comment_id),
+  constraint event_request_comment_request_is_top_level_chk
+    check (not is_clarification_request or parent_comment_id is null),
+  constraint event_request_comment_resolved_is_request_chk
+    check (resolved_at is null or is_clarification_request)
+);
+
+-- ---------------------------------------------------------------------------
 -- 7. Supporting document  (wiki: event)
 -- ---------------------------------------------------------------------------
 create table supporting_document (
@@ -541,6 +573,11 @@ create index event_status_idx                   on event (status);
 create index event_comment_event_idx            on event_comment (event_id);
 create index event_comment_author_idx           on event_comment (author_user_account_id);
 create index event_comment_parent_idx           on event_comment (parent_comment_id);
+create index event_request_comment_request_idx on event_request_comment (event_request_id);
+create index event_request_comment_author_idx  on event_request_comment (author_user_account_id);
+create index event_request_comment_parent_idx  on event_request_comment (parent_comment_id);
+create index event_request_comment_open_request_idx on event_request_comment (event_request_id)
+  where is_clarification_request and resolved_at is null;
 create index supporting_document_event_idx      on supporting_document (event_id);
 create index supporting_document_uploader_idx   on supporting_document (uploaded_by_user_account_id);
 create index session_event_idx                  on session (event_id);
@@ -603,6 +640,7 @@ begin
   foreach t in array array[
     'client_organisation', 'role', 'user_account', 'user_account_role',
     'event_request', 'event', 'event_essential_arrangement', 'event_comment',
+    'event_request_comment',
     'supporting_document', 'session', 'venue', 'room_layout',
     'venue_supported_layout', 'booking', 'booking_slot', 'equipment_item',
     'equipment_reservation', 'equipment_reservation_line', 'support_request',
