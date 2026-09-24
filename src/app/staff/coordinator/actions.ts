@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import { decideEventRequestSchema } from "@/adapters/inbound/decide-event-request-schema";
-import { buildDecideEventRequest, getCurrentCoordinator } from "@/composition/container";
+import { withdrawEventRequestSchema } from "@/adapters/inbound/withdraw-event-request-schema";
+import {
+  buildDecideEventRequest,
+  buildWithdrawEventRequest,
+  getCurrentCoordinator,
+} from "@/composition/container";
 import { DomainError, EventRequestNotFoundError } from "@/core/domain/errors";
 
 export type DecideEventRequestState =
@@ -58,4 +63,50 @@ export async function decideEventRequestAction(
   revalidatePath("/staff/coordinator", "layout");
 
   return { status: "decided" };
+}
+
+export type WithdrawEventRequestState =
+  | { status: "idle" }
+  | { status: "withdrawn" }
+  | { status: "error"; message: string; note: string };
+
+/**
+ * SPM-101: the assigned Event Coordinator records a withdrawal the Organiser
+ * asked for outside the system (#103). Same shape as
+ * `decideEventRequestAction`: the coordinator comes from the server, and a
+ * refused withdrawal hands back the note that was typed.
+ */
+export async function withdrawEventRequestAction(
+  _previous: WithdrawEventRequestState,
+  formData: FormData,
+): Promise<WithdrawEventRequestState> {
+  const note = String(formData.get("note") ?? "");
+  const parsed = withdrawEventRequestSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    note,
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: "The event request is missing.", note };
+  }
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new EventRequestNotFoundError(parsed.data.id);
+    }
+
+    const withdrawEventRequest = await buildWithdrawEventRequest();
+    await withdrawEventRequest.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message, note };
+    }
+    throw error;
+  }
+
+  // The request leaves "My requests" for the Archive.
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "withdrawn" };
 }

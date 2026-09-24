@@ -45,6 +45,7 @@ export async function CoordinatorDetail({
       clientOrganisationName={result.clientOrganisationName}
       state={result.state}
       section={result.section}
+      canWithdraw={result.canWithdraw}
       origin={origin}
     />
   );
