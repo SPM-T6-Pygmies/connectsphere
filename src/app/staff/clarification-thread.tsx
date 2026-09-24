@@ -121,6 +121,7 @@ export function ClarificationThread({
   composer,
   replyComposer,
   resolveControl,
+  closed = false,
 }: {
   messages: readonly ClarificationMessageView[];
   /** Who the viewer is, for the composer's avatar. */
@@ -133,6 +134,11 @@ export function ClarificationThread({
   replyComposer: (parentId: string) => ReactNode;
   /** The Coordinator's Resolve for an open question. Absent on the Organiser's surface (AC7). */
   resolveControl?: (message: ClarificationMessageView) => ReactNode;
+  /**
+   * The request has been decided, so the thread is kept as a record but takes
+   * nothing more: no composer, no replies, no Resolve (`canDiscussEventRequest`).
+   */
+  closed?: boolean;
 }) {
   const blocks = exchanges(messages);
   const open = blocks.filter(
@@ -141,12 +147,15 @@ export function ClarificationThread({
 
   return (
     <Card>
-      <ThreadRefresher />
+      {/* Nothing more can arrive on a closed thread, so there is nothing to poll for. */}
+      {closed ? null : <ThreadRefresher />}
       <CardHeader>
         <CardTitle>Clarification</CardTitle>
         <CardDescription>
           {description}
-          {open > 0
+          {closed
+            ? " Closed now that the request has been decided."
+            : open > 0
             ? ` ${open} question${open === 1 ? "" : "s"} still open.`
             : messages.length > 0
               ? " Nothing outstanding."
@@ -172,13 +181,13 @@ export function ClarificationThread({
                       <div className="flex flex-wrap items-center gap-2">
                         <span
                           className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                            resolved
+                            resolved || closed
                               ? "bg-muted text-muted-foreground"
                               : "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"
                           }`}
                         >
                           {resolved ? <CheckIcon className="size-3" aria-hidden /> : null}
-                          {resolved ? "Resolved" : "Awaiting an answer"}
+                          {resolved ? "Resolved" : closed ? "Not answered" : "Awaiting an answer"}
                         </span>
                       </div>
                     ) : null}
@@ -196,20 +205,24 @@ export function ClarificationThread({
                     ) : null}
                   </div>
 
-                  <div className="flex flex-wrap items-end justify-between gap-3 border-t px-4 py-3">
-                    <div className="min-w-[16rem] flex-1">{replyComposer(opener.id)}</div>
-                    {resolveControl?.(opener)}
-                  </div>
+                  {closed ? null : (
+                    <div className="flex flex-wrap items-end justify-between gap-3 border-t px-4 py-3">
+                      <div className="min-w-[16rem] flex-1">{replyComposer(opener.id)}</div>
+                      {resolveControl?.(opener)}
+                    </div>
+                  )}
                 </li>
               );
             })}
           </ul>
         )}
 
-        <div className="flex gap-3 border-t pt-4">
-          <Avatar name={actingAsName} />
-          <div className="min-w-0 flex-1">{composer}</div>
-        </div>
+        {closed ? null : (
+          <div className="flex gap-3 border-t pt-4">
+            <Avatar name={actingAsName} />
+            <div className="min-w-0 flex-1">{composer}</div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

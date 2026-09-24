@@ -67,6 +67,7 @@ export function AssignedRequestDetail({
   section,
   clarificationThread,
   coordinatorName,
+  canDiscuss,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -76,6 +77,8 @@ export function AssignedRequestDetail({
   clarificationThread: readonly ClarificationMessageView[];
   /** Whoever is signed in, for the composer's avatar. */
   coordinatorName: string;
+  /** Whether the thread still takes messages, from the use case. */
+  canDiscuss: boolean;
   /** The Coordinator's reading of the status, from the use case. */
   state: CoordinatorRequestState | null;
   /** The section the request now lives under, from the use case. */
@@ -148,6 +151,7 @@ export function AssignedRequestDetail({
           <ClarificationThread
             messages={clarificationThread}
             actingAsName={coordinatorName}
+            closed={!canDiscuss}
             description={`Questions you have asked ${requestingOrganiserName} about this request, and their answers. Kept with the request.`}
             emptyMessage="Nothing asked yet. Use Comment & return below to put a question to the organiser."
             composer={
