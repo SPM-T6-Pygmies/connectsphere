@@ -100,4 +100,9 @@ export interface EventRequestRepository {
     resolvedBy: UserAccountId,
     messageId: ClarificationMessageId,
   ): Promise<void>;
+  /**
+   * Persists a withdrawal (SPM-101) recorded by `withdrawnBy`, the request's
+   * assigned Event Coordinator, recording who withdrew it and when.
+   */
+  withdrawEventRequest(request: EventRequest, withdrawnBy: UserAccountId): Promise<void>;
 }
