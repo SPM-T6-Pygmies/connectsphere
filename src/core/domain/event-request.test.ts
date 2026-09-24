@@ -21,6 +21,7 @@ import {
   approveEventRequest,
   canAssignEventCoordinator,
   canDiscussEventRequest,
+  canWithdrawEventRequest,
   coordinatorArchiveStateFor,
   coordinatorQueueStateFor,
   coordinatorRequestStateFor,
@@ -689,3 +690,15 @@ describe("canDiscussEventRequest (SPM-33)", () => {
   );
 });
 
+describe("canWithdrawEventRequest (SPM-169)", () => {
+  it("lets a request under review be withdrawn", () => {
+    expect(canWithdrawEventRequest("Under Review")).toBe(true);
+  });
+
+  it.each(["Draft", "Submitted", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+    "does not let a %s request be withdrawn",
+    (status) => {
+      expect(canWithdrawEventRequest(status)).toBe(false);
+    },
+  );
+});
