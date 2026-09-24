@@ -7,6 +7,7 @@ import {
   EventRequestNotDecidableError,
   EventRequestNotFoundError,
   EventRequestNotReturnableError,
+  EventRequestNotWithdrawableError,
 } from "@/core/domain/errors";
 import type { ClarificationMessageId } from "@/core/domain/clarification-message";
 import type {
@@ -33,6 +34,7 @@ import {
   toReturnArgs,
   toSaveArgs,
   toSubmitArgs,
+  toWithdrawArgs,
   type EventRequestRow,
 } from "./event-request-mapper";
 
@@ -40,6 +42,8 @@ import {
 const NOT_FOUND_OR_NOT_ASSIGNED = "CS010";
 const NOT_DECIDABLE = "CS011";
 const REASON_REQUIRED = "CS012";
+/** SQLSTATE `coordinator_withdraw_event_request` raises for a request not Under Review. It shares CS010. */
+const NOT_WITHDRAWABLE = "CS013";
 
 /** SQLSTATEs the clarification functions come back with (SPM-33). See their migration. */
 const NOT_RETURNABLE = "CS013";
@@ -272,6 +276,32 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
   async rejectEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void> {
     await this.decide(request, decidedBy);
+  }
+
+  /**
+   * SPM-101: `coordinator_withdraw_event_request` re-checks the assignment and
+   * the status under a row lock and writes the audit record in the same
+   * transaction, as `decide` does below.
+   */
+  async withdrawEventRequest(request: EventRequest, withdrawnBy: UserAccountId): Promise<void> {
+    const args = toWithdrawArgs(request, withdrawnBy);
+    if (args === null) {
+      throw new Error(
+        `Cannot withdraw event request with malformed ids "${request.id}" and "${withdrawnBy}".`,
+      );
+    }
+
+    const { error } = await this.client.rpc("coordinator_withdraw_event_request", args);
+
+    if (error) {
+      if (error.code === NOT_FOUND_OR_NOT_ASSIGNED) {
+        throw new EventRequestNotFoundError(request.id);
+      }
+      if (error.code === NOT_WITHDRAWABLE) {
+        throw new EventRequestNotWithdrawableError();
+      }
+      throw new Error(`Failed to withdraw event request: ${error.message}`, { cause: error });
+    }
   }
 
   /**
