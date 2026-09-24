@@ -2,8 +2,16 @@ import {
   clarificationMessageId,
   topLevelParentFor,
 } from "../domain/clarification-message";
-import { ClarificationMessageRequiredError, EventRequestNotFoundError } from "../domain/errors";
-import { eventRequestAccessForCoordinator, eventRequestId } from "../domain/event-request";
+import {
+  ClarificationMessageRequiredError,
+  ClarificationThreadClosedError,
+  EventRequestNotFoundError,
+} from "../domain/errors";
+import {
+  canDiscussEventRequest,
+  eventRequestAccessForCoordinator,
+  eventRequestId,
+} from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
@@ -40,7 +48,8 @@ export interface PostCoordinatorClarificationMessageDeps {
  *
  * Same guard as every other coordinator use case: the request must be assigned
  * to the caller, and anything else is not-found (#91). Same append-only
- * behaviour as the Organiser's: no status transition, no `EventRequest` write.
+ * behaviour as the Organiser's: no status transition, no `EventRequest` write,
+ * and closed once the request is decided (`canDiscussEventRequest`).
  */
 export class PostCoordinatorClarificationMessageUseCase {
   constructor(private readonly deps: PostCoordinatorClarificationMessageDeps) {}
@@ -59,6 +68,10 @@ export class PostCoordinatorClarificationMessageUseCase {
       eventRequestAccessForCoordinator(request, { userAccountId: author }) === "none"
     ) {
       throw new EventRequestNotFoundError(command.id);
+    }
+
+    if (!canDiscussEventRequest(request.status)) {
+      throw new ClarificationThreadClosedError();
     }
 
     const body = command.body.trim();

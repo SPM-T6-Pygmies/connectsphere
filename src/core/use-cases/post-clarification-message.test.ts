@@ -10,6 +10,7 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import {
   ClarificationMessageRequiredError,
   ClarificationReplyNotTopLevelError,
+  ClarificationThreadClosedError,
   EventRequestNotFoundError,
 } from "@/core/domain/errors";
 import {
@@ -121,7 +122,7 @@ describe("PostClarificationMessageUseCase (SPM-33)", () => {
     // `eventRequestAccessFor` grants "edit" only while a request is Draft, and
     // every status below is past that. Posting is not editing -- that
     // distinction is the whole reason this is an append.
-    for (const status of ["Submitted", "Under Review", "Returned", "Approved"] as const) {
+    for (const status of ["Submitted", "Under Review", "Returned"] as const) {
       const { useCase, eventRequests, clarificationThread } = buildUseCase([request({ status })]);
 
       await useCase.execute({
@@ -252,7 +253,7 @@ describe("PostClarificationMessageUseCase (SPM-33)", () => {
  * the Organiser to acquire edit rights over a request they have submitted.
  */
 describe("posting never makes a submitted request editable (SPM-33, #102)", () => {
-  it.each(["Submitted", "Under Review", "Returned", "Approved"] as const)(
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
     "leaves a %s request read-only for its own Organiser, before and after posting",
     async (status) => {
       const organiser = { userAccountId: ORGANISER, clientOrganisationId: ORG_A };
@@ -274,3 +275,24 @@ describe("posting never makes a submitted request editable (SPM-33, #102)", () =
     },
   );
 });
+
+describe("PostClarificationMessageUseCase once the request is decided (SPM-33)", () => {
+  it.each(["Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses a message on a %s request, writing nothing -- the thread is closed",
+    async (status) => {
+      const { useCase, clarificationThread } = buildUseCase([request({ status })]);
+
+      await expect(
+        useCase.execute({
+          id: "request-1",
+          userAccountId: ORGANISER,
+          organisationId: ORG_A,
+          body: "One more thing.",
+          parentId: null,
+        }),
+      ).rejects.toBeInstanceOf(ClarificationThreadClosedError);
+      expect(clarificationThread.all()).toEqual([]);
+    },
+  );
+});
+

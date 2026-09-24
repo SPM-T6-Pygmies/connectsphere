@@ -513,6 +513,23 @@ const PRE_DECISION_STATUSES: ReadonlySet<EventRequestStatus> = new Set([
 ]);
 
 /**
+ * Whether a request's clarification thread is still open (SPM-33): posting,
+ * replying and resolving are allowed only until the request is decided.
+ *
+ * Once it is Approved, Rejected or Withdrawn there is nothing left to clarify.
+ * An approved request carries on as an event, whose own thread is where
+ * planning talk belongs, and the other two are closed for good. The thread
+ * stays readable as the record of what was asked, but it is closed to new
+ * messages -- a question left unanswered stays that way rather than looking
+ * like something still being waited on.
+ *
+ * The same three statuses as decide and return, read from the same set.
+ */
+export function canDiscussEventRequest(status: EventRequestStatus): boolean {
+  return PRE_DECISION_STATUSES.has(status);
+}
+
+/**
  * A request is the Coordinator's to decide while it is still pre-decision --
  * `Submitted`, `Under Review` or `Returned`. Every decided state is final:
  * rejection in particular has no resubmission path (#67).

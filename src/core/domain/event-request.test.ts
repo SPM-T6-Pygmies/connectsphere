@@ -19,6 +19,7 @@ import {
 import {
   approveEventRequest,
   canAssignEventCoordinator,
+  canDiscussEventRequest,
   coordinatorArchiveStateFor,
   coordinatorQueueStateFor,
   coordinatorRequestStateFor,
@@ -630,3 +631,20 @@ describe("assertDecidable, widened for clarification (SPM-33)", () => {
     expect(coordinatorQueueStateFor("Returned")).toBe("with-organiser");
   });
 });
+
+describe("canDiscussEventRequest (SPM-33)", () => {
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
+    "keeps the thread open on a %s request -- it is still undecided",
+    (status) => {
+      expect(canDiscussEventRequest(status)).toBe(true);
+    },
+  );
+
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
+    "closes the thread on a %s request",
+    (status) => {
+      expect(canDiscussEventRequest(status)).toBe(false);
+    },
+  );
+});
+

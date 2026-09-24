@@ -1,6 +1,7 @@
 import type { ClientOrganisationId } from "@/core/domain/client-organisation";
 import {
   ClarificationMessageRequiredError,
+  ClarificationThreadClosedError,
   ClarificationThreadNotResolvableError,
   DecisionReasonRequiredError,
   EventRequestNotDecidableError,
@@ -44,6 +45,7 @@ const REASON_REQUIRED = "CS012";
 const NOT_RETURNABLE = "CS013";
 const CLARIFICATION_MESSAGE_REQUIRED = "CS014";
 const THREAD_NOT_RESOLVABLE = "CS017";
+const THREAD_CLOSED = "CS018";
 
 /**
  * Event requests are reached through database functions, not through the table.
@@ -369,6 +371,9 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
       }
       if (error.code === THREAD_NOT_RESOLVABLE) {
         throw new ClarificationThreadNotResolvableError();
+      }
+      if (error.code === THREAD_CLOSED) {
+        throw new ClarificationThreadClosedError();
       }
       throw new Error(`Failed to resolve the clarification: ${error.message}`, { cause: error });
     }
