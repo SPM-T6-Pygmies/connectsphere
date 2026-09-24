@@ -84,3 +84,32 @@ describe("ViewAssignedEventRequestUseCase (SPM-124)", () => {
     expect(result).toBeNull();
   });
 });
+
+describe("ViewAssignedEventRequestUseCase withdrawal (SPM-169)", () => {
+  it("offers a withdrawal on a request under review", async () => {
+    const useCase = buildUseCase([request({ status: "Under Review" })]);
+
+    const result = await useCase.execute({ id: "request-1", userAccountId: COORDINATOR });
+
+    expect(result?.canWithdraw).toBe(true);
+  });
+
+  it.each(["Submitted", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+    "offers no withdrawal on a %s request",
+    async (status) => {
+      const useCase = buildUseCase([request({ status })]);
+
+      const result = await useCase.execute({ id: "request-1", userAccountId: COORDINATOR });
+
+      expect(result?.canWithdraw).toBe(false);
+    },
+  );
+
+  it("files a withdrawn request in the Archive under its outcome", async () => {
+    const useCase = buildUseCase([request({ status: "Withdrawn" })]);
+
+    const result = await useCase.execute({ id: "request-1", userAccountId: COORDINATOR });
+
+    expect(result).toMatchObject({ state: "withdrawn", section: "archive" });
+  });
+});

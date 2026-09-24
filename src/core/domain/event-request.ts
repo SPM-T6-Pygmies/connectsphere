@@ -538,16 +538,27 @@ export function rejectEventRequest(request: EventRequest, reason: string): Event
 }
 
 /**
+ * Whether a request in this status can be withdrawn (SPM-101): only one
+ * `Under Review`, the one state #103 names. `Submitted -> Withdrawn` is
+ * deliberately not an edge (team decision, 2026-09-23).
+ *
+ * Asked by the Coordinator's detail page as well as by
+ * `withdrawEventRequest`, so the control and the rule cannot disagree.
+ */
+export function canWithdrawEventRequest(status: EventRequestStatus): boolean {
+  return status === "Under Review";
+}
+
+/**
  * SPM-101: the assigned Coordinator records a withdrawal the Organiser asked
  * for outside the system (#103). Withdrawal is not a decision, so it has its
- * own source-state rule rather than `assertDecidable`'s: only `Under Review`,
- * the one state #103 names. `Submitted -> Withdrawn` is deliberately not an
- * edge (team decision, 2026-09-23).
+ * own source-state rule -- `canWithdrawEventRequest` -- rather than
+ * `assertDecidable`'s.
  *
  * The note is optional, so a blank one records nothing, as for approval.
  */
 export function withdrawEventRequest(request: EventRequest, note: string): EventRequest {
-  if (request.status !== "Under Review") {
+  if (!canWithdrawEventRequest(request.status)) {
     throw new EventRequestNotWithdrawableError();
   }
 

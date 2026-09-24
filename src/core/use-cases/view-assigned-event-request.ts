@@ -1,4 +1,5 @@
 import {
+  canWithdrawEventRequest,
   coordinatorRequestStateFor,
   coordinatorSectionFor,
   eventRequestAccessForCoordinator,
@@ -30,6 +31,12 @@ export interface ViewAssignedEventRequestResult {
   readonly state: CoordinatorRequestState | null;
   /** Which of the Coordinator's sections the request now lives under -- see `coordinatorSectionFor`. */
   readonly section: CoordinatorSection;
+  /**
+   * Whether the Coordinator can record a withdrawal now (SPM-101) -- see
+   * `canWithdrawEventRequest`. Asked here rather than worked out from `state`,
+   * which reads `Submitted` and `Under Review` alike.
+   */
+  readonly canWithdraw: boolean;
 }
 
 export interface ViewAssignedEventRequestDeps {
@@ -75,6 +82,7 @@ export class ViewAssignedEventRequestUseCase {
       clientOrganisationName: organisationNames.get(request.clientOrganisationId) ?? "",
       state: coordinatorRequestStateFor(request.status),
       section: coordinatorSectionFor(request.status),
+      canWithdraw: canWithdrawEventRequest(request.status),
     };
   }
 }
