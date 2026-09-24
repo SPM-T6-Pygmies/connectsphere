@@ -542,9 +542,12 @@ describe("rejectEventRequest (SPM-138)", () => {
 });
 
 describe("withdrawEventRequest (SPM-166)", () => {
-  it("withdraws a request under review", () => {
-    expect(withdrawEventRequest(request({ status: "Under Review" }), "").status).toBe("Withdrawn");
-  });
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
+    "withdraws a %s request -- any point before a decision",
+    (status) => {
+      expect(withdrawEventRequest(request({ status }), "").status).toBe("Withdrawn");
+    },
+  );
 
   it("records the coordinator's note, trimmed, as the decision record", () => {
     const withdrawn = withdrawEventRequest(
@@ -561,8 +564,8 @@ describe("withdrawEventRequest (SPM-166)", () => {
     ).toBeNull();
   });
 
-  it.each(["Draft", "Submitted", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
-    "refuses to withdraw a %s request -- only one under review can be (#103)",
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses to withdraw a %s request -- only one not yet decided can be",
     (status) => {
       expect(() => withdrawEventRequest(request({ status }), "")).toThrow(
         EventRequestNotWithdrawableError,
@@ -581,11 +584,14 @@ describe("withdrawEventRequest (SPM-166)", () => {
 });
 
 describe("canWithdrawEventRequest (SPM-169)", () => {
-  it("lets a request under review be withdrawn", () => {
-    expect(canWithdrawEventRequest("Under Review")).toBe(true);
-  });
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
+    "lets a %s request be withdrawn",
+    (status) => {
+      expect(canWithdrawEventRequest(status)).toBe(true);
+    },
+  );
 
-  it.each(["Draft", "Submitted", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
     "does not let a %s request be withdrawn",
     (status) => {
       expect(canWithdrawEventRequest(status)).toBe(false);

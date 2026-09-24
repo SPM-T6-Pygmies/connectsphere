@@ -48,11 +48,13 @@ rows. CI cannot verify a manual case for you.
 ## TC-WITHDRAW-002 Cancel and blank-note withdrawal
 
 **Steps**
-1. On a second `Under Review` request, click **Record withdrawal**, then **Cancel**.
+1. On a second request that is `Returned` (ask the Organiser a question first
+   with **Comment & return**, once SPM-33 is merged) or `Under Review`, click
+   **Record withdrawal**, then **Cancel**.
 2. Click **Record withdrawal** again, leave **Note** empty and click **Confirm withdrawal**.
 
 **Expected Result**
-- [ ] After step 1 the request is unchanged and still `Under Review`.
+- [ ] After step 1 the request is unchanged.
 - [ ] After step 2 the request is **Withdrawn** and the Note row is empty
       (`decision_record` is null).
 

@@ -77,7 +77,7 @@ describe("WithdrawEventRequestUseCase (SPM-167)", () => {
     ).rejects.toBeInstanceOf(EventRequestNotFoundError);
   });
 
-  it("refuses to withdraw a request that is not under review, and stores nothing", async () => {
+  it("refuses to withdraw a request already decided, and stores nothing", async () => {
     const existing = request({ status: "Rejected", decisionRecord: "Earlier decision." });
     const { useCase, eventRequests } = buildUseCase([existing]);
 
