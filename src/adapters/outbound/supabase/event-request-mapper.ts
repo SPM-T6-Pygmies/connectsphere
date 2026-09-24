@@ -249,6 +249,29 @@ export function toDecideArgs(
   };
 }
 
+/**
+ * Arguments for `coordinator_withdraw_event_request` (SPM-101). As with
+ * `toDecideArgs`, the coordinator is the caller, not whoever the request says
+ * is assigned: the function checks the two agree.
+ */
+export function toWithdrawArgs(
+  request: EventRequest,
+  withdrawnBy: UserAccountId,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey = toKey(withdrawnBy);
+
+  if (requestKey === null || coordinatorKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_coordinator_user_account_id: coordinatorKey,
+    p_note: request.decisionRecord,
+  };
+}
+
 export function toSaveArgs(request: EventRequest): Record<string, unknown> | null {
   const key = toKey(request.id);
   if (key === null) {

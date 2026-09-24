@@ -61,4 +61,9 @@ export interface EventRequestRepository {
   approveEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
   /** Persists a rejection (SPM-34) made by `decidedBy`, recording who rejected it and when. */
   rejectEventRequest(request: EventRequest, decidedBy: UserAccountId): Promise<void>;
+  /**
+   * Persists a withdrawal (SPM-101) recorded by `withdrawnBy`, the request's
+   * assigned Event Coordinator, recording who withdrew it and when.
+   */
+  withdrawEventRequest(request: EventRequest, withdrawnBy: UserAccountId): Promise<void>;
 }
