@@ -68,6 +68,8 @@ import { SearchVenuesUseCase } from "@/core/use-cases/search-venues";
 import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
 import { ListVenuesUseCase, ViewVenueUseCase } from "@/core/use-cases/view-venues";
 
+import { novuSubscriberPrefix } from "./novu-subscriber";
+
 /**
  * The composition root: the one module allowed to know both sides.
  *
@@ -205,7 +207,7 @@ function recordedNotifier(): Notifier {
   const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
   const delivering =
     secretKey && novuCanRun
-      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl)
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
       : new LoggingNotifier();
   return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
 }
@@ -424,21 +426,24 @@ export async function getSignedInStaffMember(): Promise<{
   readonly name: string;
   readonly workspaces: readonly StaffWorkspace[];
   readonly homeWorkspace: StaffWorkspace | null;
-  readonly userAccountId: string;
+  readonly subscriberId: string;
   readonly subscriberHash: string | null;
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   const member = await identifyStaffMember.execute();
+  if (member === null) {
+    return null;
+  }
+
   const secretKey = process.env.NOVU_SECRET_KEY;
-  return (
-    member && {
-      name: member.name,
-      workspaces: member.workspaces,
-      homeWorkspace: member.homeWorkspace,
-      userAccountId: member.userAccountId,
-      subscriberHash: secretKey ? subscriberHash(member.userAccountId, secretKey) : null,
-    }
-  );
+  const subscriberId = `${novuSubscriberPrefix()}${member.userAccountId}`;
+  return {
+    name: member.name,
+    workspaces: member.workspaces,
+    homeWorkspace: member.homeWorkspace,
+    subscriberId,
+    subscriberHash: secretKey ? subscriberHash(subscriberId, secretKey) : null,
+  };
 }
 
 async function venueCatalogue(): Promise<SupabaseVenueCatalogue> {
