@@ -8,7 +8,6 @@
 
 import { ACTING_AS, EVENTS, VENUES } from "./fixtures";
 import { ACTIVITY } from "./activity";
-import { notificationsFor } from "./notifications";
 import type { NotificationTrigger } from "./notifications";
 import type {
   ActivityEntry,
@@ -442,20 +441,6 @@ export function listPaneItems(
   role: StaffRole,
   section: SidebarSection,
 ): ListPaneItem[] {
-  if (section === "notifications") {
-    return notificationsFor(role).map((notification) => ({
-      id: notification.id,
-      // Through the inbox route, so opening one from the list pane does not
-      // swap the pane out from under you.
-      href: `/staff/${role}/notifications/${notification.id}`,
-      title: notification.subject,
-      meta: notification.receivedAt.split(" ")[0],
-      teaser: notification.body,
-      status: notification.trigger,
-      unread: notification.unread,
-    }));
-  }
-
   return queueItemsFor(role, section);
 }
 
