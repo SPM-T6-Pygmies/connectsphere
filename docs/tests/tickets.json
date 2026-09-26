@@ -312,6 +312,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-173": {
+      "title": "Novu adapter: bridge route, coordinator-assigned workflow, NovuNotifier",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
     "SPM-177": {
       "title": "Record each notification in the notification table",
       "parent": "SPM-57",

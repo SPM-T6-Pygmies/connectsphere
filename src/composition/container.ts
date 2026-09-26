@@ -1,4 +1,7 @@
+import { Novu } from "@novu/api";
+
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
+import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
@@ -22,6 +25,7 @@ import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarif
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
+import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
@@ -175,8 +179,21 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
     eventRequests: new SupabaseEventRequestRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
-    notifier: new SupabaseRecordingNotifier(createSupabaseAdminClient(), new LoggingNotifier()),
+    notifier: recordedNotifier(),
   });
+}
+
+/**
+ * Novu when this deployment has a key for it, the log otherwise -- so local dev
+ * without Novu and CI need nothing extra -- and either way recorded in the
+ * `notification` table (SPM-177).
+ */
+function recordedNotifier(): Notifier {
+  const secretKey = process.env.NOVU_SECRET_KEY;
+  const delivering = secretKey
+    ? new NovuNotifier(new Novu({ secretKey }), process.env.NOVU_BRIDGE_URL)
+    : new LoggingNotifier();
+  return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
