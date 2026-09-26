@@ -111,6 +111,16 @@ from Production, so Novu can run them from your machine only through a tunnel.
 `NOVU_BRIDGE_URL`; it stays the same on your machine between runs, so this is a
 one-off. Without `NOVU_BRIDGE_URL`, notifications are logged instead.
 
+Every local session shares Novu's Development environment, so locally the app
+sends to `<your username>-<user_account_id>` rather than the bare id: your
+inbox is yours, not every teammate's coordinator's. Postgres cannot cascade
+into Novu, so after `supabase db reset` or a `teardown.sql`, clear your old
+notifications too — they point at request ids the reset reuses:
+
+```bash
+pnpm novu:clear   # deletes your own local subscribers and their notifications
+```
+
 Production syncs itself: `.github/workflows/novu-sync.yml` runs after every
 successful Vercel Production deployment. To sync by hand, run the workflow from
 the Actions tab, or:
@@ -132,6 +142,7 @@ npx novu@latest sync \
 | `pnpm lint`      | Next.js rules **plus architecture import boundaries** |
 | `pnpm typecheck` | `tsc --noEmit`                                        |
 | `pnpm test`      | Vitest — core and adapters, no database needed        |
+| `pnpm novu:clear` | Delete your local Novu subscribers and their notifications (Infisical `dev`) |
 | `pnpm structurizr` | Run Structurizr Lite locally, serving `visual-map/` at http://localhost:8080 |
 
 ## Architecture
