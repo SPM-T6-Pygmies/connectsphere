@@ -23,6 +23,8 @@ export const coordinatorAssigned = workflow(
     await step.inApp("inbox", async () => coordinatorAssignedInApp(payload));
   },
   {
+    // The staff inbox names a notification's trigger by this tag (SPM-174).
+    tags: [COORDINATOR_ASSIGNED_WORKFLOW_ID],
     // Mirrors `EventCoordinatorAssignedNotice`; the notifier sends it whole.
     // Plain JSON Schema: @novu/framework 2.x does not read zod 4 schemas.
     payloadSchema: {
