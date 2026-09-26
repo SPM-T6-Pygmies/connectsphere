@@ -96,6 +96,34 @@ Related:
 - **Database setup:** [docs/DATABASE.md](docs/DATABASE.md)
 - **Test data seeding:** [supabase/SEED.md](supabase/SEED.md)
 
+## Notifications (Novu)
+
+Notifications are code-first [Novu](https://novu.co) workflows under
+`src/adapters/outbound/novu/workflows`, served to Novu Cloud from `/api/novu`.
+The app triggers them only when `NOVU_SECRET_KEY` is set (Infisical `dev` and
+`prod`); without it, notifications are logged instead. Either way each one is
+recorded in the `notification` table.
+
+To see a workflow run locally, start the app with `pnpm dev:local` and, in a
+second terminal, open a tunnel to its bridge:
+
+```bash
+npx novu@latest dev --port 3000
+```
+
+Set `NOVU_BRIDGE_URL` to the tunnel URL it prints (`https://….novu.sh/api/novu`)
+so triggers from your machine run your local workflow code.
+
+Production syncs itself: `.github/workflows/novu-sync.yml` runs after every
+successful Vercel Production deployment. To sync by hand, run the workflow from
+the Actions tab, or:
+
+```bash
+npx novu@latest sync \
+  --bridge-url https://connectsphere-one-azure.vercel.app/api/novu \
+  --secret-key <prod NOVU_SECRET_KEY>
+```
+
 ## Commands
 
 | Command          | What it does                                          |
