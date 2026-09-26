@@ -2,6 +2,7 @@ import { Novu } from "@novu/api";
 
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
+import { subscriberHash } from "@/adapters/outbound/novu/subscriber-hash";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
@@ -332,15 +333,28 @@ export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
 }
 
 /**
- * The signed-in member of staff as the staff chrome shows them: their name
- * and the workspaces they may open. Null when nobody is signed in or the auth
- * user has no `user_account`.
+ * The signed-in member of staff as the staff chrome shows them: their name,
+ * the workspaces they may open, and who their notification inbox belongs to.
+ * Null when nobody is signed in or the auth user has no `user_account`.
+ *
+ * `subscriberHash` is null without `NOVU_SECRET_KEY`, and the chrome then
+ * shows no inbox. The key itself never leaves the server.
  */
 export async function getSignedInStaffMember(): Promise<{
   readonly name: string;
   readonly workspaces: readonly StaffWorkspace[];
+  readonly userAccountId: string;
+  readonly subscriberHash: string | null;
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   const member = await identifyStaffMember.execute();
-  return member && { name: member.name, workspaces: member.workspaces };
+  const secretKey = process.env.NOVU_SECRET_KEY;
+  return (
+    member && {
+      name: member.name,
+      workspaces: member.workspaces,
+      userAccountId: member.userAccountId,
+      subscriberHash: secretKey ? subscriberHash(member.userAccountId, secretKey) : null,
+    }
+  );
 }
