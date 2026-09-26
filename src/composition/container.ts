@@ -14,6 +14,7 @@ import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supa
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
+import { SupabaseRecordingNotifier } from "@/adapters/outbound/supabase/supabase-recording-notifier";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
@@ -163,7 +164,7 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
     eventRequests: new SupabaseEventRequestRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
-    notifier: new LoggingNotifier(),
+    notifier: new SupabaseRecordingNotifier(createSupabaseAdminClient(), new LoggingNotifier()),
   });
 }
 
