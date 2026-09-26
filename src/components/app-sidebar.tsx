@@ -8,6 +8,7 @@ import * as React from "react"
 import { AccountMenu } from "@/components/account-menu"
 import { QueueList } from "@/components/queue-list"
 import { railItems, resolveQueue } from "@/components/staff-nav"
+import { useStaffNotifications } from "@/components/staff-notifications"
 import { Badge } from "@/components/ui/badge"
 import {
   Sidebar,
@@ -52,12 +53,15 @@ export function AppSidebar({
 }) {
   const pathname = usePathname()
   const rail = railItems(role)
+  const notifications = useStaffNotifications()
+  const { unread } = notifications
 
-  const { section, heading, items, unread } = resolveQueue({
+  const { section, heading, items } = resolveQueue({
     role,
     pathname,
     activeSection,
     queueItems,
+    notifications: notifications.items,
   })
 
   return (
@@ -186,7 +190,11 @@ export function AppSidebar({
         <SidebarContent>
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
-              <QueueList items={items} activePath={pathname} />
+              <QueueList
+                items={items}
+                activePath={pathname}
+                onOpen={section === "notifications" ? notifications.markRead : undefined}
+              />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>

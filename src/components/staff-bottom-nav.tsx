@@ -5,8 +5,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { currentSection, railItems } from "@/components/staff-nav"
+import { useStaffNotifications } from "@/components/staff-notifications"
 import { useSidebar } from "@/components/ui/sidebar"
-import { unreadCount, type StaffRole } from "@/lib/wireframe"
+import type { StaffRole } from "@/lib/wireframe"
 
 /**
  * The role's destinations, as a floating bar, below md.
@@ -26,7 +27,7 @@ export function StaffBottomNav({ role }: { role: StaffRole }) {
 
   const section = currentSection(role, pathname)
   const destinations = railItems(role).filter((item) => item.section !== "action")
-  const unread = unreadCount(role)
+  const { unread } = useStaffNotifications()
 
   return (
     <nav

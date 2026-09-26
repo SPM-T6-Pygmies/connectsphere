@@ -321,7 +321,8 @@ export interface ListPaneItem {
   readonly title: string;
   readonly meta: string;
   readonly teaser: string;
-  readonly status: AnyStatus;
+  /** Absent for a notification whose trigger the inbox does not name yet. */
+  readonly status?: AnyStatus;
   readonly unread?: boolean;
 }
 
