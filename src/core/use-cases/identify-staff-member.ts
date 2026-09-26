@@ -13,6 +13,8 @@ import type { UserRepository } from "../ports/outbound/user-repository";
 export interface IdentifyStaffMemberResult {
   /** The member of staff's own name, whatever their role. */
   readonly name: string;
+  /** The member of staff's own user account, whatever their role -- who notifications go to. */
+  readonly userAccountId: string;
   /** Who the Organiser's screens act as -- null unless `organiserContextFor` allows it. */
   readonly organiser: {
     readonly userAccountId: string;
@@ -56,6 +58,7 @@ export class IdentifyStaffMemberUseCase {
 
     return {
       name: user.name,
+      userAccountId: member.userAccountId,
       organiser: organiser && { ...organiser, name: user.name },
       coordinator: coordinatorContextFor(member),
       workspaces: workspacesFor(member.roles),

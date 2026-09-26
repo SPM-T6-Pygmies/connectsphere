@@ -9,7 +9,7 @@ export default async function Page({
 
   return <NotificationDetail
       role="venue"
-      notificationId={id}
+      recordId={id}
       tab={tab}
       activity={activity}
     />;
