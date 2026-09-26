@@ -9,6 +9,7 @@ function notification(overrides: Partial<InboxNotification> = {}): InboxNotifica
     body: "Quarterly Partner Forum for Test Organisation is now yours to review.",
     createdAt: "2026-09-26T16:20:00.000Z",
     isRead: false,
+    isArchived: false,
     redirect: { url: "/staff/coordinator/10" },
     tags: ["coordinator-assigned"],
     ...overrides,
@@ -67,5 +68,12 @@ describe("notificationItem (SPM-174)", () => {
   it("dates a notification by the Singapore calendar day it arrived", () => {
     // 16:20 UTC on the 26th is 00:20 on the 27th in Singapore.
     expect(notificationItem("coordinator", notification()).meta).toBe("27 Sept")
+  })
+})
+
+describe("notificationItem (SPM-179)", () => {
+  it("is archived only once Novu has it archived", () => {
+    expect(notificationItem("coordinator", notification()).archived).toBe(false)
+    expect(notificationItem("coordinator", notification({ isArchived: true })).archived).toBe(true)
   })
 })
