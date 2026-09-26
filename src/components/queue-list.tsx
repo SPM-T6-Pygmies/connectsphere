@@ -17,9 +17,12 @@ import type { ListPaneItem } from "@/lib/wireframe"
 export function QueueList({
   items,
   activePath,
+  onOpen,
 }: {
   items: readonly ListPaneItem[]
   activePath?: string
+  /** Called with the row's id as it is opened -- the inbox marks it read. */
+  onOpen?: (id: string) => void
 }) {
   if (items.length === 0) {
     return <p className="text-muted-foreground p-4 text-sm">Nothing here.</p>
@@ -34,6 +37,7 @@ export function QueueList({
           <Link
             href={item.href}
             key={item.id}
+            onClick={onOpen === undefined ? undefined : () => onOpen(item.id)}
             className={`hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full min-w-0 flex-col items-start gap-2 border-b p-4 text-sm leading-tight whitespace-nowrap last:border-b-0 ${
               active ? "bg-sidebar-accent" : ""
             }`}
@@ -44,12 +48,14 @@ export function QueueList({
                 {item.meta}
               </span>
             </div>
-            <div className="flex w-full min-w-0 items-center gap-2">
-              <StatusBadge status={item.status} />
-              {item.unread ? (
-                <span className="bg-primary ml-auto size-1.5 shrink-0 rounded-full" />
-              ) : null}
-            </div>
+            {item.status || item.unread ? (
+              <div className="flex w-full min-w-0 items-center gap-2">
+                {item.status ? <StatusBadge status={item.status} /> : null}
+                {item.unread ? (
+                  <span className="bg-primary ml-auto size-1.5 shrink-0 rounded-full" />
+                ) : null}
+              </div>
+            ) : null}
             <span className="line-clamp-2 w-full text-xs whitespace-break-spaces">
               {item.teaser}
             </span>
