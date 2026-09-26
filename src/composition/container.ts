@@ -173,6 +173,8 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
   return new AssignEventCoordinatorUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+    notifier: new LoggingNotifier(),
   });
 }
 
