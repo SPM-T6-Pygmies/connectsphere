@@ -1,4 +1,7 @@
+import { Novu } from "@novu/api";
+
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
+import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
@@ -20,6 +23,7 @@ import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
+import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
@@ -164,8 +168,28 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
     eventRequests: new SupabaseEventRequestRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
-    notifier: new SupabaseRecordingNotifier(createSupabaseAdminClient(), new LoggingNotifier()),
+    notifier: recordedNotifier(),
   });
+}
+
+/**
+ * Novu when it can actually run our workflows, the log otherwise -- so CI and
+ * local dev without Novu need nothing extra -- and either way recorded in the
+ * `notification` table (SPM-177).
+ *
+ * A deployment needs only the key: its workflows are synced to Novu. Locally
+ * they are not, so Novu can reach them only through a `novu dev` tunnel, and a
+ * trigger without `NOVU_BRIDGE_URL` just fails with `workflow_not_found`.
+ */
+function recordedNotifier(): Notifier {
+  const secretKey = process.env.NOVU_SECRET_KEY;
+  const bridgeUrl = process.env.NOVU_BRIDGE_URL || undefined;
+  const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
+  const delivering =
+    secretKey && novuCanRun
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl)
+      : new LoggingNotifier();
+  return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {

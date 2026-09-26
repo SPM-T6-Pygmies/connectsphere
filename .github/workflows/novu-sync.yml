@@ -1,0 +1,45 @@
+name: Sync Novu workflows
+
+# Novu Cloud runs our code-first workflows by calling back into the deployed
+# bridge (/api/novu), so Production only picks up a changed workflow once it is
+# synced against the deployment that serves it. Vercel's GitHub integration
+# reports each deployment here; sync after every successful Production one.
+on:
+  deployment_status:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: novu-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync to Novu Cloud
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    env:
+      # The production domain, not the deployment's own URL: per-deployment
+      # URLs sit behind Vercel Deployment Protection and Novu cannot reach them.
+      BRIDGE_URL: https://connectsphere-one-azure.vercel.app/api/novu
+
+    steps:
+      - name: Wait for the bridge on the production domain
+        run: |
+          for attempt in $(seq 1 10); do
+            curl -fsS "$BRIDGE_URL?action=health-check" && exit 0
+            sleep 15
+          done
+          echo "::error::$BRIDGE_URL did not answer its health check"
+          exit 1
+
+      - name: Sync workflows
+        uses: novuhq/actions-novu-sync@v2
+        with:
+          secret-key: ${{ secrets.NOVU_SECRET_KEY }}
+          bridge-url: ${{ env.BRIDGE_URL }}

@@ -27,7 +27,7 @@ pnpm add -g @infisical/cli
 
 infisical login          # authenticate this machine — choose "US Cloud" when prompted
 infisical init           # link this repo to an Infisical project
-pnpm dev:local           # shortcut for: supabase start && infisical run --env=dev -- pnpm dev
+pnpm dev:local           # supabase start, then pnpm dev behind a Novu tunnel, env from Infisical dev
 pnpm dev:remote          # shortcut for: infisical run --env=prod -- pnpm dev
 ```
 
@@ -96,12 +96,37 @@ Related:
 - **Database setup:** [docs/DATABASE.md](docs/DATABASE.md)
 - **Test data seeding:** [supabase/SEED.md](supabase/SEED.md)
 
+## Notifications (Novu)
+
+Notifications are code-first [Novu](https://novu.co) workflows under
+`src/adapters/outbound/novu/workflows`, served to Novu Cloud from `/api/novu`.
+A deployment triggers them whenever it has `NOVU_SECRET_KEY` (Infisical `prod`
+for Production). Otherwise notifications are logged instead. Either way each
+one is recorded in the `notification` table.
+
+Locally, the key alone is not enough: our workflows are only synced to Novu
+from Production, so Novu can run them from your machine only through a tunnel.
+`pnpm dev:local` opens one for you (`novu dev`) and prints its URL
+(`https://….novu.sh/api/novu`). Put that URL in `.env.local` as
+`NOVU_BRIDGE_URL`; it stays the same on your machine between runs, so this is a
+one-off. Without `NOVU_BRIDGE_URL`, notifications are logged instead.
+
+Production syncs itself: `.github/workflows/novu-sync.yml` runs after every
+successful Vercel Production deployment. To sync by hand, run the workflow from
+the Actions tab, or:
+
+```bash
+npx novu@latest sync \
+  --bridge-url https://connectsphere-one-azure.vercel.app/api/novu \
+  --secret-key <prod NOVU_SECRET_KEY>
+```
+
 ## Commands
 
 | Command          | What it does                                          |
 | ---------------- | ----------------------------------------------------- |
 | `pnpm dev`         | Dev server, using `.env.local`                                    |
-| `pnpm dev:local`   | Dev server against local Postgres, env vars from Infisical's `dev` |
+| `pnpm dev:local`   | Dev server against local Postgres and a Novu tunnel, env vars from Infisical's `dev` |
 | `pnpm dev:remote`  | Dev server against the live project, via Infisical's `prod`        |
 | `pnpm build`     | Production build                                      |
 | `pnpm lint`      | Next.js rules **plus architecture import boundaries** |
