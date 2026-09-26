@@ -100,19 +100,22 @@ Related:
 
 Notifications are code-first [Novu](https://novu.co) workflows under
 `src/adapters/outbound/novu/workflows`, served to Novu Cloud from `/api/novu`.
-The app triggers them only when `NOVU_SECRET_KEY` is set (Infisical `dev` and
-`prod`); without it, notifications are logged instead. Either way each one is
-recorded in the `notification` table.
+A deployment triggers them whenever it has `NOVU_SECRET_KEY` (Infisical `prod`
+for Production). Otherwise notifications are logged instead. Either way each
+one is recorded in the `notification` table.
 
-To see a workflow run locally, start the app with `pnpm dev:local` and, in a
-second terminal, open a tunnel to its bridge:
+Locally, the key alone is not enough: our workflows are only synced to Novu
+from Production, so Novu can run them from your machine only through a tunnel.
+Without `NOVU_BRIDGE_URL`, `pnpm dev:local` logs notifications instead. To see
+them in Novu, open a tunnel to your bridge in a second terminal:
 
 ```bash
 npx novu@latest dev --port 3000
 ```
 
-Set `NOVU_BRIDGE_URL` to the tunnel URL it prints (`https://….novu.sh/api/novu`)
-so triggers from your machine run your local workflow code.
+and put the URL it prints (`https://….novu.sh/api/novu`) in `.env.local` as
+`NOVU_BRIDGE_URL`. The URL stays the same on your machine between runs, so this
+is a one-off; keep the tunnel running whenever you want real notifications.
 
 Production syncs itself: `.github/workflows/novu-sync.yml` runs after every
 successful Vercel Production deployment. To sync by hand, run the workflow from

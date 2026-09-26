@@ -173,15 +173,22 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
 }
 
 /**
- * Novu when this deployment has a key for it, the log otherwise -- so local dev
- * without Novu and CI need nothing extra -- and either way recorded in the
+ * Novu when it can actually run our workflows, the log otherwise -- so CI and
+ * local dev without Novu need nothing extra -- and either way recorded in the
  * `notification` table (SPM-177).
+ *
+ * A deployment needs only the key: its workflows are synced to Novu. Locally
+ * they are not, so Novu can reach them only through a `novu dev` tunnel, and a
+ * trigger without `NOVU_BRIDGE_URL` just fails with `workflow_not_found`.
  */
 function recordedNotifier(): Notifier {
   const secretKey = process.env.NOVU_SECRET_KEY;
-  const delivering = secretKey
-    ? new NovuNotifier(new Novu({ secretKey }), process.env.NOVU_BRIDGE_URL)
-    : new LoggingNotifier();
+  const bridgeUrl = process.env.NOVU_BRIDGE_URL || undefined;
+  const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
+  const delivering =
+    secretKey && novuCanRun
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl)
+      : new LoggingNotifier();
   return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
 }
 
