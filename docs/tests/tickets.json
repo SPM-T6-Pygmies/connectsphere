@@ -322,6 +322,11 @@
       "parent": "SPM-57",
       "status": "In Progress"
     },
+    "SPM-180": {
+      "title": "Notification preferences per type and channel",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
     "SPM-179": {
       "title": "Triage notifications in the inbox: read/unread and archive",
       "parent": "SPM-57",
