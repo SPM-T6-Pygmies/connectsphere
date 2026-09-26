@@ -19,6 +19,7 @@
   "dependencies": {
     "@novu/api": "^3.19.1",
     "@novu/framework": "^2.13.2",
+    "@novu/nextjs": "3.19.2",
     "@supabase/ssr": "^0.12.6",
     "@supabase/supabase-js": "^2.115.0",
     "class-variance-authority": "^0.7.1",

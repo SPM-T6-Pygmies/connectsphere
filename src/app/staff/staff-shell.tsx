@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileQueue } from "@/components/mobile-queue"
+import { NotificationBell } from "@/components/notification-bell"
 import { StaffBottomNav } from "@/components/staff-bottom-nav"
 import {
   Breadcrumb,
@@ -307,6 +308,14 @@ export async function StaffShell({
               ))}
             </BreadcrumbList>
           </Breadcrumb>
+          {member.subscriberHash === null ? null : (
+            <div className="ml-auto">
+              <NotificationBell
+                subscriberId={member.userAccountId}
+                subscriberHash={member.subscriberHash}
+              />
+            </div>
+          )}
         </header>
         {/*
           The bottom bar is fixed, so it is out of flow: pad the content past
