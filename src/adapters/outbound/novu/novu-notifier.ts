@@ -37,6 +37,8 @@ export class NovuNotifier implements Notifier {
     private readonly novu: Novu,
     /** Local dev only: where `npx novu dev` tunnels the bridge. Cloud uses the synced URL. */
     private readonly bridgeUrl?: string,
+    /** Local dev only: keeps each developer's subscribers apart (SPM-178). */
+    private readonly subscriberPrefix = "",
   ) {}
 
   // No Novu workflow for connection requests yet.
@@ -49,7 +51,7 @@ export class NovuNotifier implements Notifier {
     try {
       ({ result } = await this.novu.trigger({
         workflowId: COORDINATOR_ASSIGNED_WORKFLOW_ID,
-        to: notice.recipientUserAccountId,
+        to: `${this.subscriberPrefix}${notice.recipientUserAccountId}`,
         payload: { ...notice },
         bridgeUrl: this.bridgeUrl,
       }));
