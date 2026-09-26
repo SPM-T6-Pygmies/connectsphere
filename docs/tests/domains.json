@@ -8,6 +8,10 @@
     "match": ["registration", "register-for-event", "list-events-open-for-registration"]
   },
   {
+    "domain": "Notifications",
+    "match": ["notification"]
+  },
+  {
     "domain": "Event Staffing",
     "match": ["coordinator", "change-event-organiser", "reassign-event-organiser", "assigned-events"]
   },
