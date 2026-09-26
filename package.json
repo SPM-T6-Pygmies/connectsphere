@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:local": "supabase start && infisical run --env=dev -- pnpm dev",
+    "dev:local": "supabase start && infisical run --env=dev -- npx novu@latest dev --port 3000 --headless --run 'pnpm dev'",
     "dev:remote": "infisical run --env=prod -- pnpm dev",
     "build": "next build",
     "start": "next start",
