@@ -8,7 +8,9 @@ import {
   type EventRequestStatus,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
+import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type { Notifier } from "../ports/outbound/notifier";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
 export interface AssignEventCoordinatorCommand {
@@ -29,6 +31,8 @@ export interface AssignEventCoordinatorResult {
 export interface AssignEventCoordinatorDeps {
   readonly eventRequests: EventRequestRepository;
   readonly userAccounts: UserAccountRepository;
+  readonly clientOrganisations: ClientOrganisationRepository;
+  readonly notifier: Notifier;
 }
 
 export class AssignEventCoordinatorUseCase {
@@ -50,6 +54,23 @@ export class AssignEventCoordinatorUseCase {
 
     const assigned = assignEventCoordinator(request, coordinatorId);
     await this.deps.eventRequests.assignEventCoordinator(assigned);
+
+    // Only the coordinator now holding the request is told (SPM-57 AC4); the
+    // one it was taken from never is, and assigning the same one again is not news.
+    if (request.assignedCoordinatorUserAccountId !== coordinatorId) {
+      const names = await this.deps.clientOrganisations.findNamesByIds([
+        assigned.clientOrganisationId,
+      ]);
+      await this.deps.notifier.eventCoordinatorAssigned({
+        recipientUserAccountId: coordinatorId,
+        eventRequestId: assigned.id,
+        eventName: assigned.details.eventName,
+        clientOrganisationName: names.get(assigned.clientOrganisationId) ?? null,
+        preferredDate: assigned.details.preferredDate,
+        preferredStartTime: assigned.details.preferredStartTime,
+        preferredEndTime: assigned.details.preferredEndTime,
+      });
+    }
 
     return {
       eventRequestId: assigned.id,
