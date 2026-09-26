@@ -309,13 +309,23 @@
     },
     "SPM-44": {
       "title": "Search and filter venues",
-      "parent":null,
+      "parent": null,
       "status": "done"
     },
     "SPM-16": {
       "title": "Clear access-denied response",
       "parent": null,
       "status": "In Progress"
+    },
+    "SPM-57": {
+      "title": "Notify a coordinator of their assignment to an event",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-177": {
+      "title": "Record each notification in the notification table",
+      "parent": "SPM-57",
+      "status": "Todo"
     }
   }
 }
