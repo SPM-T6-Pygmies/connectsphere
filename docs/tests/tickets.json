@@ -317,6 +317,11 @@
       "parent": "SPM-57",
       "status": "In Progress"
     },
+    "SPM-174": {
+      "title": "Novu Inbox bell in the staff header",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
     "SPM-177": {
       "title": "Record each notification in the notification table",
       "parent": "SPM-57",
