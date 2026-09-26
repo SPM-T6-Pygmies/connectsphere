@@ -17,12 +17,9 @@ import type { ListPaneItem } from "@/lib/wireframe"
 export function QueueList({
   items,
   activePath,
-  onOpen,
 }: {
   items: readonly ListPaneItem[]
   activePath?: string
-  /** Called with the row's id as it is opened -- the inbox marks it read. */
-  onOpen?: (id: string) => void
 }) {
   if (items.length === 0) {
     return <p className="text-muted-foreground p-4 text-sm">Nothing here.</p>
@@ -37,7 +34,6 @@ export function QueueList({
           <Link
             href={item.href}
             key={item.id}
-            onClick={onOpen === undefined ? undefined : () => onOpen(item.id)}
             className={`hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full min-w-0 flex-col items-start gap-2 border-b p-4 text-sm leading-tight whitespace-nowrap last:border-b-0 ${
               active ? "bg-sidebar-accent" : ""
             }`}

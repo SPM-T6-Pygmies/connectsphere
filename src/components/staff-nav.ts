@@ -181,22 +181,21 @@ export function isRailDestination(role: StaffRole, pathname: string): boolean {
  * What the list surfaces show for this path: which section is active, its
  * heading and its rows.
  *
- * Real data arrives as `queueItems` from the server, and the inbox as
- * `notifications` from Novu; venue and technical have no use case wired yet,
- * so their queues still fall back to the wireframe fixtures.
+ * Real data arrives as `queueItems` from the server; venue and technical have
+ * no use case wired yet, so their queues still fall back to the wireframe
+ * fixtures. The inbox has no rows here: it renders its own list from Novu
+ * (`NotificationList`).
  */
 export function resolveQueue({
   role,
   pathname,
   activeSection,
   queueItems,
-  notifications,
 }: {
   role: StaffRole
   pathname: string
   activeSection?: SidebarSection
   queueItems?: readonly ListPaneItem[]
-  notifications: readonly ListPaneItem[]
 }): {
   section: SidebarSection
   heading: string
@@ -204,9 +203,7 @@ export function resolveQueue({
 } {
   const section = activeSection ?? currentSection(role, pathname)
   const items =
-    section === "notifications"
-      ? notifications
-      : (queueItems ?? listPaneItems(role, section))
+    section === "notifications" ? [] : (queueItems ?? listPaneItems(role, section))
 
   return {
     section,

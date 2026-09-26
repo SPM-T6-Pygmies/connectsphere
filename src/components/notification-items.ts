@@ -8,6 +8,7 @@ export interface InboxNotification {
   readonly body: string
   readonly createdAt: string
   readonly isRead: boolean
+  readonly isArchived: boolean
   readonly redirect?: { readonly url?: string }
   readonly tags?: readonly string[]
 }
@@ -41,8 +42,13 @@ function inboxHref(role: StaffRole, url: string | undefined): string {
   return record === null || isQueue ? url : `${inbox}/${record[1]}`
 }
 
+/** A row of the inbox list: a list-pane row that can also be archived (SPM-179). */
+export interface NotificationRow extends ListPaneItem {
+  readonly archived: boolean
+}
+
 /** One Novu notification as a row of the inbox list (SPM-174). */
-export function notificationItem(role: StaffRole, notification: InboxNotification): ListPaneItem {
+export function notificationItem(role: StaffRole, notification: InboxNotification): NotificationRow {
   return {
     id: notification.id,
     href: inboxHref(role, notification.redirect?.url),
@@ -56,5 +62,6 @@ export function notificationItem(role: StaffRole, notification: InboxNotificatio
     teaser: notification.body,
     status: notification.tags?.map((tag) => TRIGGERS[tag]).find((trigger) => trigger !== undefined),
     unread: !notification.isRead,
+    archived: notification.isArchived,
   }
 }
