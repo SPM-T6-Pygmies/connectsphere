@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import * as React from "react"
 
 import { AccountMenu } from "@/components/account-menu"
+import { NotificationList, NotificationMenu } from "@/components/notification-list"
 import { QueueList } from "@/components/queue-list"
 import { railItems, resolveQueue } from "@/components/staff-nav"
 import { useStaffNotifications } from "@/components/staff-notifications"
@@ -53,15 +54,13 @@ export function AppSidebar({
 }) {
   const pathname = usePathname()
   const rail = railItems(role)
-  const notifications = useStaffNotifications()
-  const { unread } = notifications
+  const { unread, view } = useStaffNotifications()
 
   const { section, heading, items } = resolveQueue({
     role,
     pathname,
     activeSection,
     queueItems,
-    notifications: notifications.items,
   })
 
   return (
@@ -172,12 +171,13 @@ export function AppSidebar({
         <SidebarHeader className="gap-3.5 border-b p-4">
           <div className="flex w-full items-center justify-between gap-2">
             <div className="text-foreground truncate text-base font-medium">
-              {heading}
+              {section === "notifications" && view === "archived" ? "Archived" : heading}
             </div>
-            {section === "notifications" && unread > 0 ? (
-              <Badge variant="warning" className="shrink-0">
-                {unread} unread
-              </Badge>
+            {section === "notifications" ? (
+              <div className="flex shrink-0 items-center gap-1">
+                {unread > 0 ? <Badge variant="warning">{unread} unread</Badge> : null}
+                <NotificationMenu />
+              </div>
             ) : (
               <span className="text-muted-foreground text-xs">
                 {items.length}
@@ -190,11 +190,11 @@ export function AppSidebar({
         <SidebarContent>
           <SidebarGroup className="px-0">
             <SidebarGroupContent>
-              <QueueList
-                items={items}
-                activePath={pathname}
-                onOpen={section === "notifications" ? notifications.markRead : undefined}
-              />
+              {section === "notifications" ? (
+                <NotificationList activePath={pathname} />
+              ) : (
+                <QueueList items={items} activePath={pathname} />
+              )}
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
