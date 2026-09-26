@@ -45,12 +45,24 @@ export class NovuNotifier implements Notifier {
   }
 
   async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
-    const { result } = await this.novu.trigger({
-      workflowId: COORDINATOR_ASSIGNED_WORKFLOW_ID,
-      to: notice.recipientUserAccountId,
-      payload: { ...notice },
-      bridgeUrl: this.bridgeUrl,
-    });
+    let result: TriggerEventResponseDto;
+    try {
+      ({ result } = await this.novu.trigger({
+        workflowId: COORDINATOR_ASSIGNED_WORKFLOW_ID,
+        to: notice.recipientUserAccountId,
+        payload: { ...notice },
+        bridgeUrl: this.bridgeUrl,
+      }));
+    } catch (error) {
+      // The SDK cannot parse some of Novu's own error responses (a 422 for an
+      // unknown workflow surfaces as "Response validation failed"), so carry
+      // the raw body -- it is what says `workflow_not_found`.
+      const body = error instanceof Error && "body" in error ? String(error.body) : null;
+      throw new Error(
+        `Novu rejected ${COORDINATOR_ASSIGNED_WORKFLOW_ID}${body === null ? "" : `: ${body}`}`,
+        { cause: error },
+      );
+    }
     const failure = triggerFailure(result);
     if (failure !== null) {
       throw new Error(`Novu did not process ${COORDINATOR_ASSIGNED_WORKFLOW_ID}: ${failure}`);
