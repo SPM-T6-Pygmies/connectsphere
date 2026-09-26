@@ -253,7 +253,7 @@ export async function StaffShell({
   const inbox =
     member.subscriberHash === null
       ? null
-      : { subscriberId: member.userAccountId, subscriberHash: member.subscriberHash }
+      : { subscriberId: member.subscriberId, subscriberHash: member.subscriberHash }
 
   return (
     <StaffNotificationsProvider role={role} inbox={inbox}>

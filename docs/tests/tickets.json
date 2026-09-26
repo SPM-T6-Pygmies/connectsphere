@@ -322,6 +322,11 @@
       "parent": "SPM-57",
       "status": "In Progress"
     },
+    "SPM-178": {
+      "title": "Keep each developer's local Novu inbox separate",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
     "SPM-177": {
       "title": "Record each notification in the notification table",
       "parent": "SPM-57",

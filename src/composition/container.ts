@@ -55,6 +55,8 @@ import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operati
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
+import { novuSubscriberPrefix } from "./novu-subscriber";
+
 /**
  * The composition root: the one module allowed to know both sides.
  *
@@ -188,7 +190,7 @@ function recordedNotifier(): Notifier {
   const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
   const delivering =
     secretKey && novuCanRun
-      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl)
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
       : new LoggingNotifier();
   return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
 }
@@ -343,18 +345,21 @@ export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
 export async function getSignedInStaffMember(): Promise<{
   readonly name: string;
   readonly workspaces: readonly StaffWorkspace[];
-  readonly userAccountId: string;
+  readonly subscriberId: string;
   readonly subscriberHash: string | null;
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   const member = await identifyStaffMember.execute();
+  if (member === null) {
+    return null;
+  }
+
   const secretKey = process.env.NOVU_SECRET_KEY;
-  return (
-    member && {
-      name: member.name,
-      workspaces: member.workspaces,
-      userAccountId: member.userAccountId,
-      subscriberHash: secretKey ? subscriberHash(member.userAccountId, secretKey) : null,
-    }
-  );
+  const subscriberId = `${novuSubscriberPrefix()}${member.userAccountId}`;
+  return {
+    name: member.name,
+    workspaces: member.workspaces,
+    subscriberId,
+    subscriberHash: secretKey ? subscriberHash(subscriberId, secretKey) : null,
+  };
 }
