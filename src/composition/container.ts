@@ -14,13 +14,17 @@ import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supa
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
+import { SupabaseBookingRepository } from "@/adapters/outbound/supabase/supabase-booking-repository";
+import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
+import type { BookingRepository } from "@/core/ports/outbound/booking-repository";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
+import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
@@ -34,6 +38,7 @@ import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
+import { SubmitVenueBookingRequestUseCase } from "@/core/use-cases/submit-venue-booking-request";
 import { ViewArchivedEventRequestsUseCase } from "@/core/use-cases/view-archived-event-requests";
 import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-event-request";
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
@@ -47,6 +52,7 @@ import { ListOrganisationOrganisersUseCase } from "@/core/use-cases/list-organis
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
 import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
+import { ViewVenueBookingOptionsUseCase } from "@/core/use-cases/view-venue-booking-options";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 
 /**
@@ -240,6 +246,29 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCa
   const { events } = await coordinatorAdapters();
 
   return new ViewAssignedEventsUseCase({ events });
+}
+
+async function venueBookingAdapters(): Promise<{
+  events: CoordinatorEventRepository;
+  venues: VenueCatalogue;
+  bookings: BookingRepository;
+}> {
+  const client = await createSupabaseServerClient();
+  return {
+    events: new SupabaseCoordinatorEventRepository(client),
+    venues: new SupabaseVenueCatalogue(client),
+    bookings: new SupabaseBookingRepository(client),
+  };
+}
+
+/** SPM-46: the coordinator's booking page -- the event, the venues, the bookings so far. */
+export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOptionsUseCase> {
+  return new ViewVenueBookingOptionsUseCase(await venueBookingAdapters());
+}
+
+/** SPM-46 / SPM-104: the assigned coordinator submits a venue booking request. */
+export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
+  return new SubmitVenueBookingRequestUseCase(await venueBookingAdapters());
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */
