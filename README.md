@@ -64,14 +64,14 @@ pnpm dev
 
 ### Test Credentials
 
-| Role | Email | Password |
-|------|-------|----------|
-| Event Organiser | `organiser@test.com` | `TestPass123!` |
-| Event Organiser (second, same organisation) | `organiser2@test.com` | `TestPass123!` |
-| Event Coordinator | `coordinator@test.com` | `TestPass123!` |
-| Event Operations Manager | `ops@test.com` | `TestPass123!` |
-| Venue Staff | `venue@test.com` | `TestPass123!` |
-| Technical Support Staff | `support@test.com` | `TestPass123!` |
+| Role                                        | Email                  | Password       |
+| ------------------------------------------- | ---------------------- | -------------- |
+| Event Organiser                             | `organiser@test.com`   | `TestPass123!` |
+| Event Organiser (second, same organisation) | `organiser2@test.com`  | `TestPass123!` |
+| Event Coordinator                           | `coordinator@test.com` | `TestPass123!` |
+| Event Operations Manager                    | `ops@test.com`         | `TestPass123!` |
+| Venue Staff                                 | `venue@test.com`       | `TestPass123!` |
+| Technical Support Staff                     | `support@test.com`     | `TestPass123!` |
 
 ### Access Control
 
@@ -81,6 +81,7 @@ pnpm dev
 ### Routes After Login
 
 Staff members are redirected to their role-specific landing view:
+
 - Organiser → `/staff/organiser/landing-view`
 - Coordinator → `/staff/coordinator/landing-view`
 - Operations Manager → `/staff/ops/landing-view`
@@ -93,21 +94,22 @@ For comprehensive setup instructions, environment variables, Infisical integrati
 **[docs/LOGIN_FEATURE_SETUP_GUIDE.md](docs/LOGIN_FEATURE_SETUP_GUIDE.md)**
 
 Related:
+
 - **Database setup:** [docs/DATABASE.md](docs/DATABASE.md)
 - **Test data seeding:** [supabase/SEED.md](supabase/SEED.md)
 
 ## Commands
 
-| Command          | What it does                                          |
-| ---------------- | ----------------------------------------------------- |
-| `pnpm dev`         | Dev server, using `.env.local`                                    |
-| `pnpm dev:local`   | Dev server against local Postgres, env vars from Infisical's `dev` |
-| `pnpm dev:remote`  | Dev server against the live project, via Infisical's `prod`        |
-| `pnpm build`     | Production build                                      |
-| `pnpm lint`      | Next.js rules **plus architecture import boundaries** |
-| `pnpm typecheck` | `tsc --noEmit`                                        |
-| `pnpm test`      | Vitest — core and adapters, no database needed        |
-| `pnpm structurizr` | Run Structurizr Lite locally, serving `visual-map/` at http://localhost:8080 |
+| Command           | What it does                                                                 |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `pnpm dev`        | Dev server, using `.env.local`                                               |
+| `pnpm dev:local`  | Dev server against local Postgres, env vars from Infisical's `dev`           |
+| `pnpm dev:remote` | Dev server against the live project, via Infisical's `prod`                  |
+| `pnpm build`      | Production build                                                             |
+| `pnpm lint`       | Next.js rules **plus architecture import boundaries**                        |
+| `pnpm typecheck`  | `tsc --noEmit`                                                               |
+| `pnpm test`       | Vitest — core and adapters, no database needed                               |
+| `pnpm visual-map` | Run Structurizr Lite locally, serving `visual-map/` at http://localhost:8080 |
 
 ## Architecture
 
