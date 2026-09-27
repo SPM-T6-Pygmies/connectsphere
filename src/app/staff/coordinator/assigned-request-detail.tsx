@@ -1,3 +1,6 @@
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -157,6 +160,24 @@ export function AssignedRequestDetail({
                     },
                   ]}
                 />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {state === "approved" ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Venue</CardTitle>
+                <CardDescription>
+                  Ask Venue Staff for a venue and slots for this event.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild className="w-full">
+                  <Link href={`/staff/coordinator/${eventRequest.id}/venue-booking`}>
+                    Request a venue
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ) : null}
