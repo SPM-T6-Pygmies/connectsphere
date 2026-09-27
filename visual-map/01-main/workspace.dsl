@@ -11,11 +11,14 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
     # Target shape:   ../../docs/ARCHITECTURE.md  (Ports & Adapters / Hexagonal)
     # Domain terms:   ../GLOSSARY.md
     #
-    # NOTHING HERE IS VERIFIED AGAINST CODE. src/ currently holds only the worked
-    # "connections" example from docs/ARCHITECTURE.md, not the event domain — so every
-    # element below states *intended* structure derived from requirements plus the
-    # architecture decision, not observed structure. [?] marks what is unsettled even
-    # in the requirements.
+    # VERIFIED AGAINST CODE on main @ f9c71d5 (2026-09-27). Every L2/L3 element traces
+    # to a file: use cases and adapters to src/composition/container.ts, ports to
+    # src/core/ports/outbound, rules to src/core/domain, RPCs to supabase/migrations.
+    # [?] now marks what is unsettled in the requirements, or not built at all.
+    #
+    # Not drawn: the Connections worked example from docs/ARCHITECTURE.md (connection,
+    # member, SendConnectionRequestUseCase, /connections). It is teaching material, not
+    # the event domain, and no migration creates its tables.
     #
     # L1 modelling decisions
     #  - No external system integrations are in scope (#79, #12). The incumbent tooling
@@ -51,13 +54,17 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
     #  - An adapter is drawn pointing AT the port it satisfies ("Implements."). That arrow
     #    is dependency inversion made visible: compilation points inward even though
     #    control, at runtime, flows outward through it.
-    #  - Modules with components are the ones Linear's Sprint 1 (6-20 Sep) has tickets for:
-    #    Identity & Access, Events, Registration. Venues, Equipment and Reporting are real
-    #    modules from the brief but have no ticket, so each is a single [?] placeholder —
-    #    naming the brief step it will come from without inventing its use cases.
+    #  - Modules with components are the ones with code behind them: Identity & Access,
+    #    Event Requests, Registration. Venues, Equipment and Reporting have tables and (for
+    #    the first two) wireframe pages but no core, so each stays a single [?] placeholder
+    #    naming the brief step it will come from, without inventing its use cases.
+    #  - Event Requests is one module drawn as four groups, one per staff workspace that
+    #    drives it plus what the three share. Nineteen use cases in one boundary do not lay
+    #    out. The per-module views ("components-*") are the readable way in; "components"
+    #    is the whole web application at once.
     #  - Composition-root and in-memory-adapter edges are modelled but excluded from the
-    #    "components" view: fourteen extra arrows that all say "wiring". They are drawn
-    #    in 03-sprint-1, where the module count is small enough to carry them.
+    #    "components" view: thirty-five extra arrows that all say "wiring". They are drawn
+    #    in the sprint lenses.
     # =========================================================================
 
     model {
@@ -109,122 +116,222 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
 
                     clock_port = component "Clock" "Port. Supplies the current time, so a use case can be tested without freezing globals." "src/core/ports/outbound" "Port"
 
-                    system_clock_ad = component "SystemClock" "Adapter. The real clock." "src/adapters/outbound/system" "Driven Adapter"
+                    # Only logout writes through the port. coordinator_decide_event_request
+                    # writes its own audit_record row inside the RPC's transaction.
+                    audit_logger_port = component "AuditLogger" "Port. Records who did what and when." "src/core/ports/outbound" "Port"
+
+                    system_clock_ad = component "systemClock" "Adapter. The real clock." "src/adapters/outbound/system" "Driven Adapter"
+
+                    supabase_audit_ad = component "SupabaseAuditLogger" "Adapter. Inserts audit_record rows as the service role." "src/adapters/outbound/supabase" "Driven Adapter"
 
                     # A real implementation of every port, not a mock — ARCHITECTURE.md s8.4.
                     # This is what lets the use-case tests run with no database and no server.
-                    in_memory_ad = component "In-memory adapters" "Adapters. Map-backed stand-in for every port; the test suite plugs these in instead of Supabase." "src/adapters/outbound/in-memory" "Driven Adapter"
+                    # AuditLogger is the one port without one: the logout test defines its own.
+                    in_memory_ad = component "In-memory adapters" "Adapters. Map-backed stand-ins for the ports; the test suite plugs these in instead of Supabase." "src/adapters/outbound/in-memory" "Driven Adapter"
                 }
 
                 # =============================================================
                 # IDENTITY & ACCESS   — Linear project "Users"
-                # Sprint 1: SPM-13 log in, SPM-14 log out. AccessPolicy also carries
-                # SPM-39's organisation-scoping rules, which Events reads.
+                # SPM-13 log in, SPM-14 log out, SPM-117 landing page, SPM-122 who is
+                # signed in. Every staff page and action resolves its caller through
+                # IdentifyStaffMember (getCurrentOrganiser / getCurrentCoordinator /
+                # getStaffWorkspaces in the composition root); only the staff shell's
+                # edge is drawn, to keep the one-to-everything wiring off the map.
                 # =============================================================
 
                 group "Identity & Access" {
 
-                    login_ui = component "Login page + sign-in action" "Driving adapter. Parses credentials, delegates, routes to the role's landing page." "src/app" "Driving Adapter"
+                    login_ui = component "Login page + login action" "Driving adapter. Parses credentials, delegates, routes to the landing page." "src/app/auth/login" "Driving Adapter"
 
-                    logout_ui = component "Sign-out action" "Driving adapter. Ends the session and returns to the login page." "src/app" "Driving Adapter"
+                    logout_ui = component "Logout action" "Driving adapter. Ends the session and returns to the login page." "src/app/auth/logout" "Driving Adapter"
 
-                    log_in_uc = component "LogInUseCase" "Verifies credentials, opens a session, resolves the caller's role." "src/core/use-cases" "Use Case"
+                    # Talks to Supabase directly through src/lib/supabase, not through a
+                    # use case: it only refreshes the cookie session and redirects.
+                    session_mw_ui = component "Session middleware" "Driving adapter. Refreshes the session; sends /staff visitors without one to login." "src/middleware.ts" "Driving Adapter"
 
-                    log_out_uc = component "LogOutUseCase" "Ends the session so a protected page cannot be reopened." "src/core/use-cases" "Use Case"
+                    staff_shell_ui = component "Staff shell" "Driving adapter. Shows a staff page only to its own role, with that role's queue." "src/app/staff/staff-shell.tsx" "Driving Adapter"
 
-                    user_account_e = component "UserAccount" "Domain. Role and client-organisation binding for one account." "src/core/domain" "Domain"
+                    login_uc = component "LoginUseCase" "Verifies credentials, opens a session, picks the landing page." "src/core/use-cases" "Use Case"
 
-                    access_policy_e = component "AccessPolicy" "Domain. Organisation-wide view, responsible-Organiser edit. The rule behind every scoped read." "src/core/domain" "Domain"
+                    logout_uc = component "LogoutUseCase" "Ends the session and records the logout." "src/core/use-cases" "Use Case"
 
-                    # [?] The port is certain — authentication is required. Its mechanism is
-                    # not: email/password, SSO and MFA were all raised and none chosen (#62).
-                    auth_gateway_port = component "AuthenticationGateway [?]" "Port. Verifies credentials, opens and clears sessions. Mechanism undecided [?]." "src/core/ports/outbound" "Port"
+                    identify_staff_uc = component "IdentifyStaffMemberUseCase" "Resolves the signed-in staff member, their workspaces and context." "src/core/use-cases" "Use Case"
 
-                    user_directory_port = component "UserDirectory" "Port. Looks up accounts and roles, and lists the Coordinators a manager may pick from." "src/core/ports/outbound" "Port"
+                    staff_member_e = component "staff-member" "Domain. Maps roles to workspaces, the landing page, and the Organiser and Coordinator contexts." "src/core/domain" "Domain"
 
-                    supabase_auth_ad = component "SupabaseAuthGateway [?]" "Adapter. Supabase Auth, cookie sessions via @supabase/ssr." "src/adapters/outbound/supabase" "Driven Adapter"
+                    auth_port = component "AuthPort" "Port. Logs in, reads the session, logs out." "src/core/ports/outbound" "Port"
 
-                    supabase_users_ad = component "SupabaseUserDirectory" "Adapter. Account and role rows, translated to domain types." "src/adapters/outbound/supabase" "Driven Adapter"
+                    user_repository_port = component "UserRepository" "Port. Finds the account and roles behind an auth user." "src/core/ports/outbound" "Port"
+
+                    supabase_auth_ad = component "SupabaseAuthAdapter" "Adapter. Supabase Auth, cookie sessions via @supabase/ssr." "src/adapters/outbound/supabase" "Driven Adapter"
+
+                    supabase_user_ad = component "SupabaseUserRepository" "Adapter. Account and role rows, read as the service role." "src/adapters/outbound/supabase" "Driven Adapter"
                 }
 
                 # =============================================================
-                # EVENTS   — Linear project "Events"
-                # Sprint 1: SPM-38 draft, SPM-31 submit, SPM-29 assign, SPM-39 org view.
+                # EVENT REQUESTS   — Linear project "Events"
+                # One module, drawn as four groups: one per staff workspace that
+                # drives it (src/app/staff/{requester,ops,coordinator}), plus the
+                # domain, ports and adapters the three share. In one group the
+                # nineteen use cases would not lay out legibly.
+                # Form input is checked at the edge by zod schemas in
+                # src/adapters/inbound; they belong to the actions that import them.
                 # =============================================================
 
-                group "Events" {
+                group "Event Requests: shared" {
 
-                    event_form_ui = component "Event request form" "Driving adapter. Save-draft and submit actions; turns field errors into messages." "src/app" "Driving Adapter"
+                    event_request_e = component "event-request" "Domain. Draft, Submitted, Under Review, Approved or Rejected; who may see, edit, assign and decide." "src/core/domain" "Domain"
 
-                    event_list_ui = component "Event list + detail pages" "Driving adapter. The Organiser's organisation-scoped read." "src/app" "Driving Adapter"
+                    event_request_repository_port = component "EventRequestRepository" "Port. Lists, finds and saves requests; records assignment, reassignment and decisions." "src/core/ports/outbound" "Port"
 
-                    assignment_ui = component "Assignment console" "Driving adapter. Pending requests and the Coordinator picker, for the Operations Manager." "src/app" "Driving Adapter"
+                    user_account_repository_port = component "UserAccountRepository" "Port. Names accounts; lists an organisation's Organisers and every Coordinator." "src/core/ports/outbound" "Port"
 
-                    save_draft_uc = component "SaveEventRequestDraftUseCase" "Stores an incomplete request as a Draft and returns it for later editing." "src/core/use-cases" "Use Case"
+                    client_org_repository_port = component "ClientOrganisationRepository" "Port. Names client organisations." "src/core/ports/outbound" "Port"
 
-                    # [?] The mandatory field set for submission is explicitly undecided —
-                    # "propose an appropriate set of information" (#72). Do not hard-code one.
-                    submit_request_uc = component "SubmitEventRequestUseCase" "Submits a Draft once it is complete. Mandatory field set undecided [?]." "src/core/use-cases" "Use Case"
+                    supabase_event_requests_ad = component "SupabaseEventRequestRepository" "Adapter. Event request RPCs; snake_case columns and ISO dates stop here." "src/adapters/outbound/supabase" "Driven Adapter"
 
-                    assign_coordinator_uc = component "AssignCoordinatorUseCase" "Attaches or replaces the responsible Coordinator. Takes effect immediately, no acceptance step." "src/core/use-cases" "Use Case"
+                    supabase_user_accounts_ad = component "SupabaseUserAccountRepository" "Adapter. Account name, Organiser and Coordinator RPCs." "src/adapters/outbound/supabase" "Driven Adapter"
 
-                    list_events_uc = component "ListOrganisationEventsUseCase" "Lists the events of the caller's client organisation, with per-event edit rights." "src/core/use-cases" "Use Case"
+                    supabase_client_orgs_ad = component "SupabaseClientOrganisationRepository" "Adapter. The organisation-name RPC." "src/adapters/outbound/supabase" "Driven Adapter"
+                }
 
-                    event_request_e = component "EventRequest" "Domain. Draft to Submitted to Assigned, and what each transition requires." "src/core/domain" "Domain"
+                # SPM-38 draft, SPM-31 submit, SPM-39 organisation view + reassign (AC5).
+                group "Event Requests: Organiser" {
 
-                    event_repository_port = component "EventRepository" "Port. Finds one event, lists an organisation's events, saves a request." "src/core/ports/outbound" "Port"
+                    request_form_ui = component "New request form + actions" "Driving adapter. Save draft, submit and discard, as the signed-in Organiser." "src/app/staff/requester/new" "Driving Adapter"
 
-                    supabase_events_ad = component "SupabaseEventRepository" "Adapter. Event rows; snake_case columns and ISO dates stop here." "src/adapters/outbound/supabase" "Driven Adapter"
+                    my_requests_ui = component "My requests + request detail" "Driving adapter. The Organiser's own requests, and one request." "src/app/staff/requester" "Driving Adapter"
+
+                    org_requests_ui = component "Organisation requests + reassign" "Driving adapter. The organisation's requests; hands one to another Organiser." "src/app/staff/requester/organisation" "Driving Adapter"
+
+                    save_draft_uc = component "SaveEventRequestDraftUseCase" "Creates or updates the Organiser's Draft." "src/core/use-cases" "Use Case"
+
+                    # The mandatory field set (name, date, start, end, attendance) is still a
+                    # placeholder in code: "propose an appropriate set" (#72) is unsettled.
+                    submit_request_uc = component "SubmitEventRequestUseCase" "Submits a new request or a Draft once complete. Mandatory field set undecided [?]." "src/core/use-cases" "Use Case"
+
+                    discard_draft_uc = component "DiscardEventRequestDraftUseCase" "Deletes the Organiser's own Draft." "src/core/use-cases" "Use Case"
+
+                    view_my_requests_uc = component "ViewMyEventRequestsUseCase" "Lists the requests the Organiser raised. Thin read." "src/core/use-cases" "Use Case"
+
+                    view_organiser_request_uc = component "ViewOrganiserEventRequestUseCase" "Reads one request for an Organiser in the same organisation." "src/core/use-cases" "Use Case"
+
+                    view_org_requests_uc = component "ViewOrganisationEventRequestsUseCase" "Lists the organisation's requests, each with edit rights." "src/core/use-cases" "Use Case"
+
+                    change_organiser_uc = component "ChangeEventOrganiserUseCase" "Hands a request to another Organiser in the organisation." "src/core/use-cases" "Use Case"
+
+                    list_org_organisers_uc = component "ListOrganisationOrganisersUseCase" "Lists who a request can be handed to. Thin read." "src/core/use-cases" "Use Case"
+                }
+
+                # SPM-29 view requests, SPM-130 assign a Coordinator.
+                group "Event Requests: Operations" {
+
+                    ops_console_ui = component "Assignment console + assign action" "Driving adapter. One request and the Coordinator picker." "src/app/staff/ops" "Driving Adapter"
+
+                    view_all_requests_uc = component "ViewAllEventRequestsUseCase" "Lists every request except Drafts, as unassigned or assigned." "src/core/use-cases" "Use Case"
+
+                    view_ops_request_uc = component "ViewOperationsEventRequestUseCase" "Reads one request and whether a Coordinator can be assigned." "src/core/use-cases" "Use Case"
+
+                    view_all_coordinators_uc = component "ViewAllEventCoordinatorsUseCase" "Lists every Coordinator. Thin read." "src/core/use-cases" "Use Case"
+
+                    assign_coordinator_uc = component "AssignEventCoordinatorUseCase" "Attaches or replaces the Coordinator. Immediate, no acceptance step." "src/core/use-cases" "Use Case"
+                }
+
+                # SPM-121 queue, SPM-32 view a request, SPM-34 approve or reject.
+                group "Event Requests: Coordinator" {
+
+                    coord_requests_ui = component "Coordinator queue, archive + request detail" "Driving adapter. Assigned requests and the approve or reject form." "src/app/staff/coordinator" "Driving Adapter"
+
+                    coord_events_ui = component "My events" "Driving adapter. The events the Coordinator is running." "src/app/staff/coordinator/events" "Driving Adapter"
+
+                    view_assigned_requests_uc = component "ViewAssignedEventRequestsUseCase" "Lists requests assigned to the caller and awaiting review." "src/core/use-cases" "Use Case"
+
+                    view_archived_uc = component "ViewArchivedEventRequestsUseCase" "Lists the caller's rejected and withdrawn requests." "src/core/use-cases" "Use Case"
+
+                    view_assigned_request_uc = component "ViewAssignedEventRequestUseCase" "Reads one request, only for the Coordinator assigned to it." "src/core/use-cases" "Use Case"
+
+                    decide_request_uc = component "DecideEventRequestUseCase" "Approves or rejects. Approval opens the Event in Planning." "src/core/use-cases" "Use Case"
+
+                    view_assigned_events_uc = component "ViewAssignedEventsUseCase" "Lists the caller's events, whatever their status. Thin read." "src/core/use-cases" "Use Case"
+
+                    coordinator_event_repository_port = component "CoordinatorEventRepository" "Port. Lists the events a Coordinator is assigned to." "src/core/ports/outbound" "Port"
+
+                    supabase_coord_events_ad = component "SupabaseCoordinatorEventRepository" "Adapter. The Coordinator's events RPC." "src/adapters/outbound/supabase" "Driven Adapter"
                 }
 
                 # =============================================================
                 # REGISTRATION   — Linear project "Registration & Attendees"
-                # Sprint 1: SPM-24 register, SPM-28 withdraw.
+                # SPM-24 register, SPM-28 withdraw, SPM-79 browse, SPM-81..86 rules.
+                # Attendees have no account: a name, an email and a reference link.
                 # Waiting list is out of Release 1, so no promotion path is modelled.
                 # =============================================================
 
                 group "Registration" {
 
-                    registration_ui = component "Event registration page" "Driving adapter. Register and withdraw actions on a confirmed event." "src/app" "Driving Adapter"
+                    events_browse_ui = component "Event list + event page + register action" "Driving adapter. Browse open events and register for one." "src/app/events" "Driving Adapter"
 
-                    register_uc = component "RegisterForEventUseCase" "Registers an Attendee when the event is Confirmed, open, and not yet full." "src/core/use-cases" "Use Case"
+                    registration_page_ui = component "Registration page + withdraw action" "Driving adapter. The reference link: view the registration, withdraw." "src/app/registrations/[reference]" "Driving Adapter"
 
-                    withdraw_uc = component "WithdrawRegistrationUseCase" "Releases a place and frees it for the next registrant." "src/core/use-cases" "Use Case"
+                    list_open_events_uc = component "ListEventsOpenForRegistrationUseCase" "Lists the events an Attendee can register for now." "src/core/use-cases" "Use Case"
 
-                    registration_e = component "Registration" "Domain. Capacity rule: refuse when full. No waiting list in Release 1." "src/core/domain" "Domain"
+                    view_event_for_registration_uc = component "ViewEventForRegistrationUseCase" "Reads one event, refused unless open for registration." "src/core/use-cases" "Use Case"
 
-                    registration_repository_port = component "RegistrationRepository" "Port. Counts an event's registrations, saves one, withdraws one." "src/core/ports/outbound" "Port"
+                    register_uc = component "RegisterForEventUseCase" "Registers an Attendee when the event is open and not yet full." "src/core/use-cases" "Use Case"
 
-                    supabase_registrations_ad = component "SupabaseRegistrationRepository" "Adapter. Registration rows and the live-count query." "src/adapters/outbound/supabase" "Driven Adapter"
+                    view_registration_uc = component "ViewRegistrationUseCase" "Resolves a registration reference." "src/core/use-cases" "Use Case"
+
+                    withdraw_uc = component "WithdrawRegistrationUseCase" "Withdraws a registration by its reference." "src/core/use-cases" "Use Case"
+
+                    event_e = component "event" "Domain. Open for registration, full, and whether withdrawal is still allowed." "src/core/domain" "Domain"
+
+                    registration_e = component "registration" "Domain. One live registration per email; withdrawn is final. No waiting list." "src/core/domain" "Domain"
+
+                    attendee_e = component "attendee" "Domain. A non-blank name and a normalised email." "src/core/domain" "Domain"
+
+                    event_catalogue_port = component "EventCatalogue" "Port. Lists Confirmed events and finds one." "src/core/ports/outbound" "Port"
+
+                    registration_repository_port = component "RegistrationRepository" "Port. Counts places, finds and saves registrations, records withdrawals." "src/core/ports/outbound" "Port"
+
+                    supabase_event_catalogue_ad = component "SupabaseEventCatalogue" "Adapter. Event rows readable by anonymous visitors." "src/adapters/outbound/supabase" "Driven Adapter"
+
+                    supabase_registrations_ad = component "SupabaseRegistrationRepository" "Adapter. Registration RPCs and the places-taken count." "src/adapters/outbound/supabase" "Driven Adapter"
                 }
 
                 # =============================================================
-                # NOTIFICATIONS   — Linear project "Notifications". No Sprint 1 ticket.
-                # The port is requirements-derived: the brief and 02-workflow both depend
-                # on handoff notifications. Only the delivery channel is missing.
+                # NOTIFICATIONS   — Linear project "Notifications"
+                # On main the Notifier port's only method (connectionRequested) serves
+                # the Connections worked example, which this map does not draw. No
+                # event-domain use case notifies anyone yet, and every staff inbox
+                # renders wireframe fixtures (src/lib/wireframe/notifications.ts).
                 # =============================================================
 
                 group "Notifications [?]" {
 
-                    notifier_port = component "Notifier" "Port. Announces what a role needs to know. In-app and email, configurable per type [?]." "src/core/ports/outbound" "Port"
+                    notifier_port = component "Notifier" "Port. Announces what a role needs to know. No event-domain method yet." "src/core/ports/outbound" "Port"
 
-                    logging_notifier_ad = component "LoggingNotifier [?]" "Adapter. Placeholder: writes to the log. No delivery channel is built yet." "src/adapters/outbound/logging" "Driven Adapter"
+                    logging_notifier_ad = component "LoggingNotifier" "Adapter. Writes to the log. No delivery channel is built." "src/adapters/outbound/logging" "Driven Adapter"
+
+                    notifications_placeholder = component "Notification inbox [?]" "Not built. Every staff role's inbox is a wireframe with fixture data." {
+                        tags "Placeholder"
+                    }
                 }
 
                 # =============================================================
-                # MODULES WITH NO TICKET YET — named, not designed.
-                # Each is one placeholder carrying the brief step it will grow from.
-                # Replace a placeholder with real components when its tickets are written.
+                # MODULES WITH NO CORE YET — named, not designed.
+                # Their tables exist in the initial schema and the venue and technical
+                # staff pages render wireframe fixtures (src/lib/wireframe), but no use
+                # case, port or adapter reads them. Replace a placeholder with real
+                # components when its tickets are built.
                 # =============================================================
 
                 group "Venues [?]" {
-                    venues_placeholder = component "Venue booking module [?]" "Not designed. Brief steps 6-7: search, request, approve, reject, block. No ticket yet." {
+                    venues_placeholder = component "Venue booking module [?]" "Wireframe pages only. Brief steps 6-7: search, request, approve, reject, block." {
                         tags "Placeholder"
                     }
                 }
 
                 group "Equipment [?]" {
-                    equipment_placeholder = component "Equipment module [?]" "Not designed. Brief step 8: availability check, reservation, technical support. No ticket yet." {
+                    equipment_placeholder = component "Equipment module [?]" "Wireframe pages only. Brief step 8: availability, reservation, technical support." {
                         tags "Placeholder"
                     }
                 }
@@ -298,48 +405,126 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         # L3 RELATIONSHIPS — driving adapters call use cases
         # ---------------------------------------------------------------------
 
-        epvbs.web.login_ui        -> epvbs.web.log_in_uc             "Delegates the parsed credentials."
-        epvbs.web.logout_ui       -> epvbs.web.log_out_uc            "Ends the session."
-        epvbs.web.event_form_ui   -> epvbs.web.save_draft_uc         "Saves the draft."
-        epvbs.web.event_form_ui   -> epvbs.web.submit_request_uc     "Submits the request."
-        epvbs.web.event_list_ui   -> epvbs.web.list_events_uc        "Reads the organisation's events."
-        epvbs.web.assignment_ui   -> epvbs.web.assign_coordinator_uc "Assigns or reassigns a Coordinator."
-        epvbs.web.registration_ui -> epvbs.web.register_uc           "Registers the Attendee."
-        epvbs.web.registration_ui -> epvbs.web.withdraw_uc           "Withdraws the registration."
+        epvbs.web.login_ui       -> epvbs.web.login_uc              "Delegates the parsed credentials."
+        epvbs.web.logout_ui      -> epvbs.web.logout_uc             "Ends the session."
+        epvbs.web.session_mw_ui  -> epvbs.auth                      "Refreshes the session; redirects /staff without one." "Supabase Auth"
+        epvbs.web.staff_shell_ui -> epvbs.web.identify_staff_uc     "Resolves the signed-in staff member and their workspaces."
+
+        # The staff shell also reads each role's queue for the sidebar.
+        epvbs.web.staff_shell_ui -> epvbs.web.view_my_requests_uc       "Reads the Organiser's queue."
+        epvbs.web.staff_shell_ui -> epvbs.web.view_all_requests_uc      "Reads the Operations queue."
+        epvbs.web.staff_shell_ui -> epvbs.web.view_all_coordinators_uc  "Reads the Coordinator list."
+        epvbs.web.staff_shell_ui -> epvbs.web.view_assigned_requests_uc "Reads the Coordinator's queue."
+        epvbs.web.staff_shell_ui -> epvbs.web.view_archived_uc          "Reads the Coordinator's archive."
+        epvbs.web.staff_shell_ui -> epvbs.web.view_assigned_events_uc   "Reads the Coordinator's events."
+
+        epvbs.web.request_form_ui -> epvbs.web.save_draft_uc             "Saves the draft."
+        epvbs.web.request_form_ui -> epvbs.web.submit_request_uc         "Submits the request."
+        epvbs.web.request_form_ui -> epvbs.web.discard_draft_uc          "Discards the draft."
+        epvbs.web.request_form_ui -> epvbs.web.view_organiser_request_uc "Loads a draft to keep editing."
+        epvbs.web.my_requests_ui  -> epvbs.web.view_my_requests_uc       "Lists the Organiser's requests."
+        epvbs.web.my_requests_ui  -> epvbs.web.view_organiser_request_uc "Reads one request."
+        epvbs.web.org_requests_ui -> epvbs.web.view_org_requests_uc      "Lists the organisation's requests."
+        epvbs.web.org_requests_ui -> epvbs.web.list_org_organisers_uc    "Lists who a request can go to."
+        epvbs.web.org_requests_ui -> epvbs.web.change_organiser_uc       "Hands the request to another Organiser."
+
+        epvbs.web.ops_console_ui -> epvbs.web.view_ops_request_uc      "Reads one request and whether it can be assigned."
+        epvbs.web.ops_console_ui -> epvbs.web.view_all_coordinators_uc "Lists the Coordinators to pick from."
+        epvbs.web.ops_console_ui -> epvbs.web.assign_coordinator_uc    "Assigns or reassigns a Coordinator."
+
+        epvbs.web.coord_requests_ui -> epvbs.web.view_assigned_requests_uc "Lists requests awaiting review."
+        epvbs.web.coord_requests_ui -> epvbs.web.view_archived_uc          "Lists rejected and withdrawn requests."
+        epvbs.web.coord_requests_ui -> epvbs.web.view_assigned_request_uc  "Reads one assigned request."
+        epvbs.web.coord_requests_ui -> epvbs.web.decide_request_uc         "Approves or rejects."
+        epvbs.web.coord_events_ui   -> epvbs.web.view_assigned_events_uc   "Lists the Coordinator's events."
+
+        epvbs.web.events_browse_ui     -> epvbs.web.list_open_events_uc            "Lists events open for registration."
+        epvbs.web.events_browse_ui     -> epvbs.web.view_event_for_registration_uc "Reads one open event."
+        epvbs.web.events_browse_ui     -> epvbs.web.register_uc                    "Registers the Attendee."
+        epvbs.web.registration_page_ui -> epvbs.web.view_registration_uc           "Reads the registration by reference."
+        epvbs.web.registration_page_ui -> epvbs.web.withdraw_uc                    "Withdraws the registration."
 
         # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — use cases ask the domain to decide
         # A use case orchestrates; every rule below lives in a domain component.
+        # Thin reads (ARCHITECTURE.md s11) have no domain edge: nothing can say no.
         # ---------------------------------------------------------------------
 
-        epvbs.web.log_in_uc             -> epvbs.web.user_account_e  "Resolves the account's role and organisation."
-        epvbs.web.list_events_uc        -> epvbs.web.access_policy_e "Asks what this caller may see and edit."
-        epvbs.web.save_draft_uc         -> epvbs.web.event_request_e "Builds a Draft."
-        epvbs.web.submit_request_uc     -> epvbs.web.event_request_e "Applies the submit transition."
-        epvbs.web.assign_coordinator_uc -> epvbs.web.event_request_e "Applies the assignment."
-        epvbs.web.register_uc           -> epvbs.web.event_request_e "Checks the event is Confirmed and open."
-        epvbs.web.register_uc           -> epvbs.web.registration_e  "Builds a registration against the capacity rule."
-        epvbs.web.withdraw_uc           -> epvbs.web.registration_e  "Applies the withdrawal and frees the place."
+        epvbs.web.login_uc          -> epvbs.web.staff_member_e "Picks the landing page for the account's roles."
+        epvbs.web.identify_staff_uc -> epvbs.web.staff_member_e "Derives the workspaces and the Organiser or Coordinator context."
+
+        epvbs.web.save_draft_uc             -> epvbs.web.event_request_e "Builds the Draft and checks edit rights."
+        epvbs.web.submit_request_uc         -> epvbs.web.event_request_e "Applies the submit rules: complete, future date, end after start."
+        epvbs.web.discard_draft_uc          -> epvbs.web.event_request_e "Checks the caller may still edit it."
+        epvbs.web.view_organiser_request_uc -> epvbs.web.event_request_e "Checks the caller's organisation may see it."
+        epvbs.web.view_org_requests_uc      -> epvbs.web.event_request_e "Asks what this caller may edit."
+        epvbs.web.change_organiser_uc       -> epvbs.web.event_request_e "Replaces the responsible Organiser."
+        epvbs.web.view_all_requests_uc      -> epvbs.web.event_request_e "Hides Drafts; splits unassigned from assigned."
+        epvbs.web.view_ops_request_uc       -> epvbs.web.event_request_e "Hides Drafts; asks whether a Coordinator can be assigned."
+        epvbs.web.assign_coordinator_uc     -> epvbs.web.event_request_e "Applies the assignment: Submitted to Under Review."
+        epvbs.web.view_assigned_requests_uc -> epvbs.web.event_request_e "Places each request in the Coordinator's queue."
+        epvbs.web.view_archived_uc          -> epvbs.web.event_request_e "Places each request in the archive."
+        epvbs.web.view_assigned_request_uc  -> epvbs.web.event_request_e "Refuses anyone but the assigned Coordinator."
+        epvbs.web.decide_request_uc         -> epvbs.web.event_request_e "Applies approval or rejection; rejection needs a reason."
+
+        epvbs.web.list_open_events_uc            -> epvbs.web.event_e        "Keeps the events open for registration."
+        epvbs.web.view_event_for_registration_uc -> epvbs.web.event_e        "Refuses an event not open for registration."
+        epvbs.web.register_uc                    -> epvbs.web.event_e        "Checks the event is open and not full."
+        epvbs.web.register_uc                    -> epvbs.web.registration_e "Refuses a second live registration; builds the new one."
+        epvbs.web.register_uc                    -> epvbs.web.attendee_e     "Validates the name and email."
+        epvbs.web.view_registration_uc           -> epvbs.web.registration_e "Asks whether it can still be withdrawn."
+        epvbs.web.withdraw_uc                    -> epvbs.web.registration_e "Applies the withdrawal."
+        epvbs.web.withdraw_uc                    -> epvbs.web.event_e        "Checks the event still allows withdrawal."
 
         # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — use cases require ports
         # ---------------------------------------------------------------------
 
-        epvbs.web.log_in_uc             -> epvbs.web.auth_gateway_port          "Verifies credentials and opens a session."
-        epvbs.web.log_in_uc             -> epvbs.web.user_directory_port        "Loads the account behind the credentials."
-        epvbs.web.log_out_uc            -> epvbs.web.auth_gateway_port          "Clears the session."
-        epvbs.web.save_draft_uc         -> epvbs.web.event_repository_port      "Saves the draft."
-        epvbs.web.submit_request_uc     -> epvbs.web.event_repository_port      "Saves the submitted request."
-        epvbs.web.submit_request_uc     -> epvbs.web.clock_port                 "Stamps the submission time."
-        epvbs.web.assign_coordinator_uc -> epvbs.web.user_directory_port        "Lists the Coordinators a manager may pick from."
-        epvbs.web.assign_coordinator_uc -> epvbs.web.event_repository_port      "Records the assignment."
-        epvbs.web.assign_coordinator_uc -> epvbs.web.notifier_port              "Announces the assignment to the assignee. [?]"
-        epvbs.web.list_events_uc        -> epvbs.web.event_repository_port      "Lists the organisation's events."
-        epvbs.web.register_uc           -> epvbs.web.event_repository_port      "Loads the event, its period and its capacity."
-        epvbs.web.register_uc           -> epvbs.web.registration_repository_port "Counts registrations, then saves one."
-        epvbs.web.register_uc           -> epvbs.web.clock_port                 "Checks the registration period is open."
-        epvbs.web.register_uc           -> epvbs.web.notifier_port              "Confirms the registration to the Attendee."
-        epvbs.web.withdraw_uc           -> epvbs.web.registration_repository_port "Withdraws the registration."
+        epvbs.web.login_uc          -> epvbs.web.auth_port            "Verifies credentials and opens a session."
+        epvbs.web.login_uc          -> epvbs.web.user_repository_port "Loads the account behind the credentials."
+        epvbs.web.logout_uc         -> epvbs.web.auth_port            "Reads, then ends, the session."
+        epvbs.web.logout_uc         -> epvbs.web.user_repository_port "Looks up who is logging out."
+        epvbs.web.logout_uc         -> epvbs.web.audit_logger_port    "Records the logout."
+        epvbs.web.identify_staff_uc -> epvbs.web.auth_port            "Reads the current session."
+        epvbs.web.identify_staff_uc -> epvbs.web.user_repository_port "Loads the account and its roles."
+
+        epvbs.web.save_draft_uc             -> epvbs.web.event_request_repository_port "Saves the draft."
+        epvbs.web.submit_request_uc         -> epvbs.web.event_request_repository_port "Saves the submitted request."
+        epvbs.web.submit_request_uc         -> epvbs.web.clock_port                    "Reads today for the future-date rule."
+        epvbs.web.discard_draft_uc          -> epvbs.web.event_request_repository_port "Deletes the draft."
+        epvbs.web.view_my_requests_uc       -> epvbs.web.event_request_repository_port "Lists the requests the Organiser raised."
+        epvbs.web.view_organiser_request_uc -> epvbs.web.event_request_repository_port "Finds the request."
+        epvbs.web.view_org_requests_uc      -> epvbs.web.event_request_repository_port "Lists the organisation's requests."
+        epvbs.web.change_organiser_uc       -> epvbs.web.event_request_repository_port "Records the new responsible Organiser."
+        epvbs.web.list_org_organisers_uc    -> epvbs.web.user_account_repository_port  "Lists the organisation's Organisers."
+
+        epvbs.web.view_all_requests_uc     -> epvbs.web.event_request_repository_port "Lists every request."
+        epvbs.web.view_ops_request_uc      -> epvbs.web.event_request_repository_port "Finds the request."
+        epvbs.web.view_all_coordinators_uc -> epvbs.web.user_account_repository_port  "Lists every Coordinator."
+        epvbs.web.assign_coordinator_uc    -> epvbs.web.user_account_repository_port  "Checks the assignee is a Coordinator."
+        epvbs.web.assign_coordinator_uc    -> epvbs.web.event_request_repository_port "Records the assignment."
+
+        epvbs.web.view_assigned_requests_uc -> epvbs.web.event_request_repository_port   "Lists the requests assigned to the caller."
+        epvbs.web.view_assigned_requests_uc -> epvbs.web.client_org_repository_port      "Names the client organisations."
+        epvbs.web.view_archived_uc          -> epvbs.web.event_request_repository_port   "Lists the requests assigned to the caller."
+        epvbs.web.view_archived_uc          -> epvbs.web.client_org_repository_port      "Names the client organisations."
+        epvbs.web.view_assigned_request_uc  -> epvbs.web.event_request_repository_port   "Finds the request."
+        epvbs.web.view_assigned_request_uc  -> epvbs.web.client_org_repository_port      "Names the client organisation."
+        epvbs.web.view_assigned_request_uc  -> epvbs.web.user_account_repository_port    "Names the responsible Organiser."
+        epvbs.web.decide_request_uc         -> epvbs.web.event_request_repository_port   "Records the decision; approval opens the Event."
+        epvbs.web.view_assigned_events_uc   -> epvbs.web.coordinator_event_repository_port "Lists the caller's events."
+
+        epvbs.web.list_open_events_uc            -> epvbs.web.event_catalogue_port         "Lists Confirmed events."
+        epvbs.web.list_open_events_uc            -> epvbs.web.clock_port                   "Reads now for the registration window."
+        epvbs.web.view_event_for_registration_uc -> epvbs.web.event_catalogue_port         "Finds the event."
+        epvbs.web.view_event_for_registration_uc -> epvbs.web.clock_port                   "Reads now for the registration window."
+        epvbs.web.register_uc                    -> epvbs.web.event_catalogue_port         "Loads the event and its capacity."
+        epvbs.web.register_uc                    -> epvbs.web.registration_repository_port "Counts places, checks for a live registration, saves."
+        epvbs.web.register_uc                    -> epvbs.web.clock_port                   "Checks the registration period is open."
+        epvbs.web.view_registration_uc           -> epvbs.web.registration_repository_port "Finds the registration by reference."
+        epvbs.web.view_registration_uc           -> epvbs.web.event_catalogue_port         "Loads its event."
+        epvbs.web.withdraw_uc                    -> epvbs.web.registration_repository_port "Records the withdrawal."
+        epvbs.web.withdraw_uc                    -> epvbs.web.event_catalogue_port         "Loads the event."
 
         # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — adapters implement ports
@@ -347,45 +532,90 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         # though control, at runtime, flows outward through the adapter.
         # ---------------------------------------------------------------------
 
-        epvbs.web.supabase_auth_ad          -> epvbs.web.auth_gateway_port           "Implements."
-        epvbs.web.supabase_users_ad         -> epvbs.web.user_directory_port         "Implements."
-        epvbs.web.supabase_events_ad        -> epvbs.web.event_repository_port       "Implements."
-        epvbs.web.supabase_registrations_ad -> epvbs.web.registration_repository_port "Implements."
-        epvbs.web.system_clock_ad           -> epvbs.web.clock_port                  "Implements."
-        epvbs.web.logging_notifier_ad       -> epvbs.web.notifier_port               "Implements."
+        epvbs.web.system_clock_ad             -> epvbs.web.clock_port                        "Implements."
+        epvbs.web.supabase_audit_ad           -> epvbs.web.audit_logger_port                 "Implements."
+        epvbs.web.supabase_auth_ad            -> epvbs.web.auth_port                         "Implements."
+        epvbs.web.supabase_user_ad            -> epvbs.web.user_repository_port              "Implements."
+        epvbs.web.supabase_event_requests_ad  -> epvbs.web.event_request_repository_port     "Implements."
+        epvbs.web.supabase_user_accounts_ad   -> epvbs.web.user_account_repository_port      "Implements."
+        epvbs.web.supabase_client_orgs_ad     -> epvbs.web.client_org_repository_port        "Implements."
+        epvbs.web.supabase_coord_events_ad    -> epvbs.web.coordinator_event_repository_port "Implements."
+        epvbs.web.supabase_event_catalogue_ad -> epvbs.web.event_catalogue_port              "Implements."
+        epvbs.web.supabase_registrations_ad   -> epvbs.web.registration_repository_port      "Implements."
+        epvbs.web.logging_notifier_ad         -> epvbs.web.notifier_port                     "Implements."
 
-        # The in-memory adapters implement every port. Six near-identical arrows would
-        # bury the module structure, so they are excluded from the "components" view and
-        # drawn in 03-sprint-1 instead.
-        epvbs.web.in_memory_ad -> epvbs.web.auth_gateway_port           "Implements, for tests."
-        epvbs.web.in_memory_ad -> epvbs.web.user_directory_port         "Implements, for tests."
-        epvbs.web.in_memory_ad -> epvbs.web.event_repository_port       "Implements, for tests."
-        epvbs.web.in_memory_ad -> epvbs.web.registration_repository_port "Implements, for tests."
-        epvbs.web.in_memory_ad -> epvbs.web.clock_port                  "Implements, for tests."
-        epvbs.web.in_memory_ad -> epvbs.web.notifier_port               "Implements, for tests."
+        # The in-memory adapters implement every port but AuditLogger. Ten near-identical
+        # arrows would bury the module structure, so they are excluded from the
+        # "components" view and drawn in the sprint lenses instead.
+        epvbs.web.in_memory_ad -> epvbs.web.clock_port                        "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.auth_port                         "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.user_repository_port              "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.event_request_repository_port     "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.user_account_repository_port      "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.client_org_repository_port        "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.coordinator_event_repository_port "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.event_catalogue_port              "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.registration_repository_port      "Implements, for tests."
+        epvbs.web.in_memory_ad -> epvbs.web.notifier_port                     "Implements, for tests."
 
         # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — the composition root hands each use case its adapters
-        # Same treatment: modelled here, drawn in 03-sprint-1.
+        # Same treatment: modelled here, drawn in the sprint lenses.
         # ---------------------------------------------------------------------
 
-        epvbs.web.composition_root -> epvbs.web.log_in_uc             "Constructs it with its adapters."
-        epvbs.web.composition_root -> epvbs.web.log_out_uc            "Constructs it with its adapters."
-        epvbs.web.composition_root -> epvbs.web.save_draft_uc         "Constructs it with its adapters."
-        epvbs.web.composition_root -> epvbs.web.submit_request_uc     "Constructs it with its adapters."
-        epvbs.web.composition_root -> epvbs.web.assign_coordinator_uc "Constructs it with its adapters."
-        epvbs.web.composition_root -> epvbs.web.list_events_uc        "Constructs it with its adapters."
-        epvbs.web.composition_root -> epvbs.web.register_uc           "Constructs it with its adapters."
-        epvbs.web.composition_root -> epvbs.web.withdraw_uc           "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.login_uc                       "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.logout_uc                      "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.identify_staff_uc              "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.save_draft_uc                  "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.submit_request_uc              "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.discard_draft_uc               "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_my_requests_uc            "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_organiser_request_uc      "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_org_requests_uc           "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.change_organiser_uc            "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.list_org_organisers_uc         "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_all_requests_uc           "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_ops_request_uc            "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_all_coordinators_uc       "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.assign_coordinator_uc          "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_assigned_requests_uc      "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_archived_uc               "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_assigned_request_uc       "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.decide_request_uc              "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_assigned_events_uc        "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.list_open_events_uc            "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_event_for_registration_uc "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.register_uc                    "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.view_registration_uc           "Constructs it with its adapters."
+        epvbs.web.composition_root -> epvbs.web.withdraw_uc                    "Constructs it with its adapters."
 
         # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — driven adapters reach infrastructure
+        # RPCs per adapter, for tracing (all security definer, in supabase/migrations):
+        #   event requests  organiser_event_requests, organiser_event_request,
+        #                   organiser_submit_event_request, organiser_save_event_request,
+        #                   organiser_discard_event_request_draft,
+        #                   organiser_reassign_event_request, operations_event_requests,
+        #                   operations_assign_event_coordinator, coordinator_event_requests,
+        #                   coordinator_decide_event_request (also writes audit_record)
+        #   user accounts   user_account_names, organisation_event_organisers,
+        #                   operations_event_coordinators
+        #   client orgs     client_organisation_names
+        #   coord. events   coordinator_events
+        #   registrations   attendee_places_taken, attendee_live_registration,
+        #                   attendee_register, attendee_registration, attendee_withdraw
+        # EventCatalogue, UserRepository and AuditLogger read or write tables directly.
         # ---------------------------------------------------------------------
 
-        epvbs.web.supabase_events_ad        -> epvbs.db   "Reads and writes event rows." "PostgREST"
-        epvbs.web.supabase_registrations_ad -> epvbs.db   "Reads and writes registration rows." "PostgREST"
-        epvbs.web.supabase_users_ad         -> epvbs.db   "Reads account and role rows." "PostgREST"
-        epvbs.web.supabase_auth_ad          -> epvbs.auth "Verifies credentials and refreshes sessions." "Supabase Auth"
+        epvbs.web.supabase_auth_ad            -> epvbs.auth "Signs in, reads claims, signs out." "Supabase Auth"
+        epvbs.web.supabase_user_ad            -> epvbs.db   "Reads the account and its roles, as the service role." "PostgREST"
+        epvbs.web.supabase_audit_ad           -> epvbs.db   "Inserts audit records, as the service role." "PostgREST"
+        epvbs.web.supabase_event_requests_ad  -> epvbs.db   "Reads and writes event requests." "PostgREST RPC"
+        epvbs.web.supabase_user_accounts_ad   -> epvbs.db   "Reads account names, Organisers and Coordinators." "PostgREST RPC"
+        epvbs.web.supabase_client_orgs_ad     -> epvbs.db   "Reads organisation names." "PostgREST RPC"
+        epvbs.web.supabase_coord_events_ad    -> epvbs.db   "Reads the Coordinator's events." "PostgREST RPC"
+        epvbs.web.supabase_event_catalogue_ad -> epvbs.db   "Reads Confirmed events." "PostgREST"
+        epvbs.web.supabase_registrations_ad   -> epvbs.db   "Reads and writes registrations." "PostgREST RPC"
     }
 
     views {
@@ -407,9 +637,72 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         component epvbs.web "components" "Inside the web application: the Ports & Adapters rings, grouped by module. Colour = ring, boundary = module." {
             include *
             # Wiring edges. Both say "the composition root assembles this"; drawn in
-            # 03-sprint-1, where three modules leave room for them.
+            # the sprint lenses, where there is room for them.
             exclude "epvbs.web.composition_root -> *"
             exclude "epvbs.web.in_memory_ad -> *"
+            autoLayout lr
+        }
+
+        # ---------------------------------------------------------------------
+        # ONE VIEW PER MODULE — the full "components" view is the whole system at
+        # once; each view below is one module's slice, driving adapter to database.
+        # ---------------------------------------------------------------------
+
+        component epvbs.web "components-identity" "Identity & Access: login, logout, the session middleware and the staff shell's role gate." {
+            include epvbs.web.login_ui epvbs.web.logout_ui epvbs.web.session_mw_ui epvbs.web.staff_shell_ui
+            include epvbs.web.login_uc epvbs.web.logout_uc epvbs.web.identify_staff_uc
+            include epvbs.web.staff_member_e
+            include epvbs.web.auth_port epvbs.web.user_repository_port epvbs.web.audit_logger_port
+            include epvbs.web.supabase_auth_ad epvbs.web.supabase_user_ad epvbs.web.supabase_audit_ad
+            include epvbs.db epvbs.auth
+            autoLayout lr
+        }
+
+        component epvbs.web "components-organiser" "Event Requests as the Organiser drives them: draft, submit, discard, view, and hand to another Organiser." {
+            include epvbs.web.request_form_ui epvbs.web.my_requests_ui epvbs.web.org_requests_ui
+            include epvbs.web.save_draft_uc epvbs.web.submit_request_uc epvbs.web.discard_draft_uc
+            include epvbs.web.view_my_requests_uc epvbs.web.view_organiser_request_uc epvbs.web.view_org_requests_uc
+            include epvbs.web.change_organiser_uc epvbs.web.list_org_organisers_uc
+            include epvbs.web.event_request_e
+            include epvbs.web.event_request_repository_port epvbs.web.user_account_repository_port epvbs.web.clock_port
+            include epvbs.web.supabase_event_requests_ad epvbs.web.supabase_user_accounts_ad epvbs.web.system_clock_ad
+            include epvbs.db
+            autoLayout lr
+        }
+
+        component epvbs.web "components-operations" "Event Requests as the Operations Manager drives them: the queue, one request, and assigning a Coordinator." {
+            include epvbs.web.ops_console_ui epvbs.web.staff_shell_ui
+            include epvbs.web.view_all_requests_uc epvbs.web.view_ops_request_uc epvbs.web.view_all_coordinators_uc epvbs.web.assign_coordinator_uc
+            include epvbs.web.event_request_e
+            include epvbs.web.event_request_repository_port epvbs.web.user_account_repository_port
+            include epvbs.web.supabase_event_requests_ad epvbs.web.supabase_user_accounts_ad
+            include epvbs.db
+            # The staff shell stays for its queue edge; its other role edges belong elsewhere.
+            exclude "epvbs.web.staff_shell_ui -> epvbs.web.view_my_requests_uc"
+            autoLayout lr
+        }
+
+        component epvbs.web "components-coordinator" "Event Requests as the Coordinator drives them: queue, archive, one request, the decision, and My events." {
+            include epvbs.web.coord_requests_ui epvbs.web.coord_events_ui
+            include epvbs.web.view_assigned_requests_uc epvbs.web.view_archived_uc epvbs.web.view_assigned_request_uc
+            include epvbs.web.decide_request_uc epvbs.web.view_assigned_events_uc
+            include epvbs.web.event_request_e
+            include epvbs.web.event_request_repository_port epvbs.web.client_org_repository_port
+            include epvbs.web.user_account_repository_port epvbs.web.coordinator_event_repository_port
+            include epvbs.web.supabase_event_requests_ad epvbs.web.supabase_client_orgs_ad
+            include epvbs.web.supabase_user_accounts_ad epvbs.web.supabase_coord_events_ad
+            include epvbs.db
+            autoLayout lr
+        }
+
+        component epvbs.web "components-registration" "Registration: an Attendee with no account browses open events, registers, and withdraws by reference." {
+            include epvbs.web.events_browse_ui epvbs.web.registration_page_ui
+            include epvbs.web.list_open_events_uc epvbs.web.view_event_for_registration_uc epvbs.web.register_uc
+            include epvbs.web.view_registration_uc epvbs.web.withdraw_uc
+            include epvbs.web.event_e epvbs.web.registration_e epvbs.web.attendee_e
+            include epvbs.web.event_catalogue_port epvbs.web.registration_repository_port epvbs.web.clock_port
+            include epvbs.web.supabase_event_catalogue_ad epvbs.web.supabase_registrations_ad epvbs.web.system_clock_ad
+            include epvbs.db attendee
             autoLayout lr
         }
 
@@ -540,7 +833,21 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                 color "#9673a6"
             }
 
-            element "Group:Events" {
+            # Event Requests is one module drawn as four groups, so all four share
+            # its red; the boundary label says which workspace drives each.
+            element "Group:Event Requests: shared" {
+                color "#b85450"
+            }
+
+            element "Group:Event Requests: Organiser" {
+                color "#b85450"
+            }
+
+            element "Group:Event Requests: Operations" {
+                color "#b85450"
+            }
+
+            element "Group:Event Requests: Coordinator" {
                 color "#b85450"
             }
 

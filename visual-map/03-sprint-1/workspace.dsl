@@ -38,7 +38,7 @@ workspace extends ../01-main/workspace.dsl {
         component epvbs.web "sprint1-components" "What Sprint 1 builds: Identity & Access, Events, Registration, and the shared platform under them." {
             include *
             # Named by the brief, no ticket in this cycle. They stay in 01-main.
-            exclude epvbs.web.venues_placeholder epvbs.web.equipment_placeholder epvbs.web.reporting_placeholder
+            exclude epvbs.web.venues_placeholder epvbs.web.equipment_placeholder epvbs.web.reporting_placeholder epvbs.web.notifications_placeholder
             autoLayout lr
             default
         }
@@ -54,19 +54,22 @@ workspace extends ../01-main/workspace.dsl {
             include *
 
             # Driving adapters — the Next.js side, ARCHITECTURE.md step 7.
-            exclude epvbs.web.login_ui epvbs.web.logout_ui
-            exclude epvbs.web.event_form_ui epvbs.web.event_list_ui epvbs.web.assignment_ui
-            exclude epvbs.web.registration_ui
+            exclude epvbs.web.login_ui epvbs.web.logout_ui epvbs.web.session_mw_ui epvbs.web.staff_shell_ui
+            exclude epvbs.web.request_form_ui epvbs.web.my_requests_ui epvbs.web.org_requests_ui
+            exclude epvbs.web.ops_console_ui epvbs.web.coord_requests_ui epvbs.web.coord_events_ui
+            exclude epvbs.web.events_browse_ui epvbs.web.registration_page_ui
 
             # Real driven adapters and the infrastructure behind them — steps 5-6.
             # The in-memory adapters stay: they are what makes this slice testable.
-            exclude epvbs.web.supabase_auth_ad epvbs.web.supabase_users_ad
-            exclude epvbs.web.supabase_events_ad epvbs.web.supabase_registrations_ad
+            exclude epvbs.web.supabase_auth_ad epvbs.web.supabase_user_ad epvbs.web.supabase_audit_ad
+            exclude epvbs.web.supabase_event_requests_ad epvbs.web.supabase_user_accounts_ad
+            exclude epvbs.web.supabase_client_orgs_ad epvbs.web.supabase_coord_events_ad
+            exclude epvbs.web.supabase_event_catalogue_ad epvbs.web.supabase_registrations_ad
             exclude epvbs.web.system_clock_ad epvbs.web.logging_notifier_ad
             exclude epvbs.db epvbs.auth
 
             # Modules with no Sprint 1 ticket.
-            exclude epvbs.web.venues_placeholder epvbs.web.equipment_placeholder epvbs.web.reporting_placeholder
+            exclude epvbs.web.venues_placeholder epvbs.web.equipment_placeholder epvbs.web.reporting_placeholder epvbs.web.notifications_placeholder
 
             autoLayout lr
         }
