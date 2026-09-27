@@ -39,6 +39,8 @@ workspace extends ../01-main/workspace.dsl {
             include *
             # Named by the brief, no ticket in this cycle. They stay in 01-main.
             exclude epvbs.web.venues_placeholder epvbs.web.equipment_placeholder epvbs.web.reporting_placeholder epvbs.web.notifications_placeholder
+            # Sprint 2 work in open PRs; see 04-sprint-2.
+            exclude "element.tag==Unmerged"
             autoLayout lr
             default
         }
@@ -71,6 +73,8 @@ workspace extends ../01-main/workspace.dsl {
             # Modules with no Sprint 1 ticket.
             exclude epvbs.web.venues_placeholder epvbs.web.equipment_placeholder epvbs.web.reporting_placeholder epvbs.web.notifications_placeholder
 
+            # Sprint 2 work in open PRs; see 04-sprint-2.
+            exclude "element.tag==Unmerged"
             autoLayout lr
         }
     }

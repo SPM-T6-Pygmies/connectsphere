@@ -229,3 +229,7 @@ grey, so the map reads at a glance as *built here, named but not designed there*
 Ring tags (`Driving Adapter`, `Use Case`, `Domain`, `Port`, `Driven Adapter`, `Composition Root`)
 cut across these groups and carry their own colours — see [`CONVENTIONS.md`](CONVENTIONS.md) →
 Tags & styles.
+
+A component, edge or external drawn **faded** (tag `Unmerged`, `opacity 35`) is in an open pull request,
+not on the main branch; its description ends with the PR number. See [`CONVENTIONS.md`](CONVENTIONS.md)
+→ Marker discipline.

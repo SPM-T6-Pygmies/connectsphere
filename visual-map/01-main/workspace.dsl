@@ -193,6 +193,13 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                     supabase_user_accounts_ad = component "SupabaseUserAccountRepository" "Adapter. Account name, Organiser and Coordinator RPCs." "src/adapters/outbound/supabase" "Driven Adapter"
 
                     supabase_client_orgs_ad = component "SupabaseClientOrganisationRepository" "Adapter. The organisation-name RPC." "src/adapters/outbound/supabase" "Driven Adapter"
+
+                    # UNMERGED — PR #57 (SPM-33). New table event_request_comment and its RPCs.
+                    clarification_message_e = component "clarification-message" "Domain. Which clarification is still open, and which one a reply resolves. PR #57." "src/core/domain" "Domain,Unmerged"
+
+                    clarification_thread_port = component "ClarificationThreadRepository" "Port. Reads, appends to and resolves a request's clarification thread. PR #57." "src/core/ports/outbound" "Port,Unmerged"
+
+                    supabase_clarification_ad = component "SupabaseClarificationThreadRepository" "Adapter. The clarification-thread RPCs. PR #57." "src/adapters/outbound/supabase" "Driven Adapter,Unmerged"
                 }
 
                 # SPM-38 draft, SPM-31 submit, SPM-39 organisation view + reassign (AC5).
@@ -221,6 +228,9 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                     change_organiser_uc = component "ChangeEventOrganiserUseCase" "Hands a request to another Organiser in the organisation." "src/core/use-cases" "Use Case"
 
                     list_org_organisers_uc = component "ListOrganisationOrganisersUseCase" "Lists who a request can be handed to. Thin read." "src/core/use-cases" "Use Case"
+
+                    # UNMERGED — PR #57 (SPM-33): the Organiser's reply on the request page.
+                    post_clarification_uc = component "PostClarificationMessageUseCase" "Posts the Organiser's reply to a clarification. PR #57." "src/core/use-cases" "Use Case,Unmerged"
                 }
 
                 # SPM-29 view requests, SPM-130 assign a Coordinator.
@@ -257,6 +267,30 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                     coordinator_event_repository_port = component "CoordinatorEventRepository" "Port. Lists the events a Coordinator is assigned to." "src/core/ports/outbound" "Port"
 
                     supabase_coord_events_ad = component "SupabaseCoordinatorEventRepository" "Adapter. The Coordinator's events RPC." "src/adapters/outbound/supabase" "Driven Adapter"
+
+                    # UNMERGED — PR #57 (SPM-33): return a request for clarification.
+                    request_clarification_uc = component "RequestClarificationUseCase" "Returns a request to the Organiser with a question. PR #57." "src/core/use-cases" "Use Case,Unmerged"
+
+                    post_coord_clarification_uc = component "PostCoordinatorClarificationMessageUseCase" "Posts the Coordinator's message on the thread. PR #57." "src/core/use-cases" "Use Case,Unmerged"
+
+                    resolve_clarification_uc = component "ResolveClarificationThreadUseCase" "Resolves one clarification; the last one puts the request back Under Review. PR #57." "src/core/use-cases" "Use Case,Unmerged"
+
+                    # UNMERGED — PRs #59-#62 (SPM-166..169), a stack. Drawn at #62's end state:
+                    # withdrawable from Submitted, Under Review or Returned.
+                    withdraw_request_uc = component "WithdrawEventRequestUseCase" "Records that the Organiser withdrew a request. PRs #59-#62." "src/core/use-cases" "Use Case,Unmerged"
+
+                    # UNMERGED — PR #55 (SPM-50): confirm an event once it is ready.
+                    coord_event_detail_ui = component "Event detail + confirm action" "Driving adapter. One event, what blocks it, and the confirm form. PR #55." "src/app/staff/coordinator/events/[id]" "Driving Adapter,Unmerged"
+
+                    view_coord_event_uc = component "ViewCoordinatorEventUseCase" "Reads one of the caller's events with its readiness. PR #55." "src/core/use-cases" "Use Case,Unmerged"
+
+                    confirm_event_uc = component "ConfirmEventUseCase" "Confirms a Planning event once no essential arrangement blocks it. PR #55." "src/core/use-cases" "Use Case,Unmerged"
+
+                    event_readiness_e = component "event-readiness" "Domain. Which essential arrangements block confirmation; Planning to Confirmed. PR #55." "src/core/domain" "Domain,Unmerged"
+
+                    event_readiness_port = component "EventReadinessRepository" "Port. Reads an event's essential arrangements. PR #55." "src/core/ports/outbound" "Port,Unmerged"
+
+                    supabase_event_readiness_ad = component "SupabaseEventReadinessRepository" "Adapter. The event-readiness RPC. PR #55." "src/adapters/outbound/supabase" "Driven Adapter,Unmerged"
                 }
 
                 # =============================================================
@@ -303,6 +337,15 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                 # the Connections worked example, which this map does not draw. No
                 # event-domain use case notifies anyone yet, and every staff inbox
                 # renders wireframe fixtures (src/lib/wireframe/notifications.ts).
+                #
+                # UNMERGED — PRs #63-#71 (SPM-57 and its sub-issues), one stack:
+                #   #63 Notifier gains eventCoordinatorAssigned; assignment notifies
+                #   #64 SupabaseRecordingNotifier records each one in `notification`
+                #   #66 NovuNotifier, the coordinator-assigned workflow, the bridge route
+                #   #67-#70 the browser inbox, triage and channel preferences, on Novu
+                #   #71 deletes the wireframe inbox (retires notifications_placeholder)
+                # The recorded rows and the inbox are two separate flows: the inbox
+                # reads Novu, never the notification table.
                 # =============================================================
 
                 group "Notifications [?]" {
@@ -310,6 +353,16 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                     notifier_port = component "Notifier" "Port. Announces what a role needs to know. No event-domain method yet." "src/core/ports/outbound" "Port"
 
                     logging_notifier_ad = component "LoggingNotifier" "Adapter. Writes to the log. No delivery channel is built." "src/adapters/outbound/logging" "Driven Adapter"
+
+                    supabase_recording_notifier_ad = component "SupabaseRecordingNotifier" "Adapter. Records each notification, then hands it on for delivery. PR #64." "src/adapters/outbound/supabase" "Driven Adapter,Unmerged"
+
+                    novu_notifier_ad = component "NovuNotifier" "Adapter. Triggers the Novu workflow for the notice. PR #66." "src/adapters/outbound/novu" "Driven Adapter,Unmerged"
+
+                    novu_bridge_ui = component "Novu bridge route" "Driving adapter. Serves the workflow definitions Novu Cloud runs. PR #66." "src/app/api/novu" "Driving Adapter,Unmerged"
+
+                    # Bypasses the core on purpose: the browser talks to Novu with an HMAC
+                    # subscriber hash the composition root signs (PR #67).
+                    staff_inbox_ui = component "Staff notifications inbox" "Driving adapter. Browser inbox, triage and preferences, straight on Novu. PRs #67-#70." "src/components/staff-notifications.tsx" "Driving Adapter,Unmerged"
 
                     notifications_placeholder = component "Notification inbox [?]" "Not built. Every staff role's inbox is a wireframe with fixture data." {
                         tags "Placeholder"
@@ -364,6 +417,10 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         # frames email as a notification-channel requirement, not a general integration.
         email = softwareSystem "Email Delivery Service [?]" "Carries outbound email notifications. Provider not chosen." "External"
 
+        # UNMERGED — PR #66 onward. In-app delivery and the staff inbox. No PR adds an
+        # email channel, so the email system above stays [?].
+        novu = softwareSystem "Novu Cloud" "Delivers in-app notifications and hosts each staff member's inbox. PR #66." "External,Unmerged"
+
         # ---------------------------------------------------------------------
         # L1 RELATIONSHIPS
         # ---------------------------------------------------------------------
@@ -387,6 +444,10 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         # Only the email channel crosses the system boundary, so only email is drawn at L1.
         epvbs -> email "Sends notifications and reminders. Event-driven." "Email"
 
+        # Declared before the L3 edges so Structurizr does not imply untagged copies.
+        epvbs -> novu "Sends in-app notifications; serves its workflows. Event-driven. PR #66." "HTTPS" "Unmerged"
+        novu  -> epvbs "Fetches the workflow definitions. PR #66." "HTTPS" "Unmerged"
+
         # ---------------------------------------------------------------------
         # L2 RELATIONSHIPS — every role reaches the same web application
         # ---------------------------------------------------------------------
@@ -400,6 +461,8 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
 
         epvbs.web -> epvbs.db   "Reads and writes events, accounts and registrations." "PostgREST"
         epvbs.web -> epvbs.auth "Verifies credentials and refreshes sessions." "Supabase Auth"
+        epvbs.web -> novu       "Triggers notifications; the browser reads the inbox. PR #66." "HTTPS" "Unmerged"
+        novu      -> epvbs.web  "Fetches the workflow definitions. PR #66." "HTTPS" "Unmerged"
 
         # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — driving adapters call use cases
@@ -590,6 +653,79 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         epvbs.web.composition_root -> epvbs.web.withdraw_uc                    "Constructs it with its adapters."
 
         # ---------------------------------------------------------------------
+        # L3 RELATIONSHIPS — UNMERGED (open Sprint 2 PRs, drawn faded)
+        # Merge risks found reading the PRs, which is why this is a forecast:
+        #  - #57 and #61 both claim error code CS013; #62 moves withdrawal to CS019
+        #    by editing #61's migration in place, so #61 must not merge alone.
+        #  - #57 and #60 both add methods to EventRequestRepository and its adapters;
+        #    #55, #57 and #62 all edit coordinator/actions.ts and container.ts.
+        #  - #68 derives the Novu subscriber prefix from the OS user; #70 adds an
+        #    unread NOVU_SUBSCRIBER_PREFIX to .env.example.
+        # When a PR merges, drop its "Unmerged" tags and "PR #" suffixes and re-check
+        # the element against main — that is the verification claim.
+        # ---------------------------------------------------------------------
+
+        # PR #55 — confirm an event
+        epvbs.web.coord_event_detail_ui -> epvbs.web.view_coord_event_uc "Reads the event and what blocks it." "" "Unmerged"
+        epvbs.web.coord_event_detail_ui -> epvbs.web.confirm_event_uc    "Confirms the event." "" "Unmerged"
+        epvbs.web.view_coord_event_uc -> epvbs.web.coordinator_event_repository_port "Finds the caller's event." "" "Unmerged"
+        epvbs.web.view_coord_event_uc -> epvbs.web.event_readiness_port              "Reads its essential arrangements." "" "Unmerged"
+        epvbs.web.view_coord_event_uc -> epvbs.web.client_org_repository_port        "Names the client organisation." "" "Unmerged"
+        epvbs.web.view_coord_event_uc -> epvbs.web.user_account_repository_port      "Names the people on the event." "" "Unmerged"
+        epvbs.web.confirm_event_uc    -> epvbs.web.event_readiness_e                 "Checks nothing blocks it; Planning to Confirmed." "" "Unmerged"
+        epvbs.web.confirm_event_uc    -> epvbs.web.event_readiness_port              "Reads its essential arrangements." "" "Unmerged"
+        epvbs.web.confirm_event_uc    -> epvbs.web.coordinator_event_repository_port "Finds the event; records the confirmation." "" "Unmerged"
+        epvbs.web.supabase_event_readiness_ad -> epvbs.web.event_readiness_port "Implements." "" "Unmerged"
+        epvbs.web.supabase_event_readiness_ad -> epvbs.db "Reads an event's arrangements." "PostgREST RPC" "Unmerged"
+        epvbs.web.in_memory_ad     -> epvbs.web.event_readiness_port "Implements, for tests." "" "Unmerged"
+        epvbs.web.composition_root -> epvbs.web.view_coord_event_uc  "Constructs it with its adapters." "" "Unmerged"
+        epvbs.web.composition_root -> epvbs.web.confirm_event_uc     "Constructs it with its adapters." "" "Unmerged"
+
+        # PR #57 — clarification
+        epvbs.web.coord_requests_ui -> epvbs.web.request_clarification_uc    "Returns the request with a question." "" "Unmerged"
+        epvbs.web.coord_requests_ui -> epvbs.web.post_coord_clarification_uc "Posts a message on the thread." "" "Unmerged"
+        epvbs.web.coord_requests_ui -> epvbs.web.resolve_clarification_uc    "Resolves a clarification." "" "Unmerged"
+        epvbs.web.my_requests_ui    -> epvbs.web.post_clarification_uc       "Posts the Organiser's reply." "" "Unmerged"
+        epvbs.web.request_clarification_uc    -> epvbs.web.event_request_e "Applies the return: to Returned." "" "Unmerged"
+        epvbs.web.resolve_clarification_uc    -> epvbs.web.event_request_e "Applies the resolve: back to Under Review." "" "Unmerged"
+        epvbs.web.resolve_clarification_uc    -> epvbs.web.clarification_message_e "Finds the clarification a reply resolves." "" "Unmerged"
+        epvbs.web.post_clarification_uc       -> epvbs.web.event_request_e "Checks the request can still be discussed." "" "Unmerged"
+        epvbs.web.post_coord_clarification_uc -> epvbs.web.event_request_e "Checks the request can still be discussed." "" "Unmerged"
+        epvbs.web.request_clarification_uc    -> epvbs.web.event_request_repository_port "Records the return and its question." "" "Unmerged"
+        epvbs.web.resolve_clarification_uc    -> epvbs.web.event_request_repository_port "Records the resolve." "" "Unmerged"
+        epvbs.web.resolve_clarification_uc    -> epvbs.web.clarification_thread_port     "Reads the thread." "" "Unmerged"
+        epvbs.web.post_clarification_uc       -> epvbs.web.event_request_repository_port "Finds the request." "" "Unmerged"
+        epvbs.web.post_clarification_uc       -> epvbs.web.clarification_thread_port     "Appends the message." "" "Unmerged"
+        epvbs.web.post_coord_clarification_uc -> epvbs.web.event_request_repository_port "Finds the request." "" "Unmerged"
+        epvbs.web.post_coord_clarification_uc -> epvbs.web.clarification_thread_port     "Appends the message." "" "Unmerged"
+        epvbs.web.view_assigned_request_uc    -> epvbs.web.clarification_thread_port     "Reads the thread." "" "Unmerged"
+        epvbs.web.view_organiser_request_uc   -> epvbs.web.clarification_thread_port     "Reads the thread." "" "Unmerged"
+        epvbs.web.supabase_clarification_ad -> epvbs.web.clarification_thread_port "Implements." "" "Unmerged"
+        epvbs.web.supabase_clarification_ad -> epvbs.db "Reads and writes the clarification thread." "PostgREST RPC" "Unmerged"
+        epvbs.web.in_memory_ad     -> epvbs.web.clarification_thread_port   "Implements, for tests." "" "Unmerged"
+        epvbs.web.composition_root -> epvbs.web.request_clarification_uc    "Constructs it with its adapters." "" "Unmerged"
+        epvbs.web.composition_root -> epvbs.web.post_coord_clarification_uc "Constructs it with its adapters." "" "Unmerged"
+        epvbs.web.composition_root -> epvbs.web.resolve_clarification_uc    "Constructs it with its adapters." "" "Unmerged"
+        epvbs.web.composition_root -> epvbs.web.post_clarification_uc       "Constructs it with its adapters." "" "Unmerged"
+
+        # PRs #59-#62 — record a request's withdrawal
+        epvbs.web.coord_requests_ui   -> epvbs.web.withdraw_request_uc           "Records the withdrawal." "" "Unmerged"
+        epvbs.web.withdraw_request_uc -> epvbs.web.event_request_e               "Applies the withdrawal: to Withdrawn." "" "Unmerged"
+        epvbs.web.withdraw_request_uc -> epvbs.web.event_request_repository_port "Records the withdrawal." "" "Unmerged"
+        epvbs.web.composition_root    -> epvbs.web.withdraw_request_uc           "Constructs it with its adapters." "" "Unmerged"
+
+        # PRs #63-#71 — notify the assigned Coordinator
+        epvbs.web.assign_coordinator_uc -> epvbs.web.notifier_port              "Tells the newly assigned Coordinator." "" "Unmerged"
+        epvbs.web.assign_coordinator_uc -> epvbs.web.client_org_repository_port "Names the organisation for the notice." "" "Unmerged"
+        epvbs.web.supabase_recording_notifier_ad -> epvbs.web.notifier_port    "Implements, wrapping another Notifier." "" "Unmerged"
+        epvbs.web.supabase_recording_notifier_ad -> epvbs.web.novu_notifier_ad "Hands each notice on for delivery." "" "Unmerged"
+        epvbs.web.supabase_recording_notifier_ad -> epvbs.db "Records each notification, as the service role." "PostgREST" "Unmerged"
+        epvbs.web.novu_notifier_ad -> epvbs.web.notifier_port "Implements." "" "Unmerged"
+        epvbs.web.novu_notifier_ad -> novu "Triggers the in-app workflow." "HTTPS" "Unmerged"
+        novu -> epvbs.web.novu_bridge_ui "Fetches the workflow definitions." "HTTPS" "Unmerged"
+        epvbs.web.staff_inbox_ui -> novu "Reads and triages the inbox; sets preferences." "HTTPS" "Unmerged"
+
+        # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — driven adapters reach infrastructure
         # RPCs per adapter, for tracing (all security definer, in supabase/migrations):
         #   event requests  organiser_event_requests, organiser_event_request,
@@ -667,6 +803,8 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
             include epvbs.web.event_request_repository_port epvbs.web.user_account_repository_port epvbs.web.clock_port
             include epvbs.web.supabase_event_requests_ad epvbs.web.supabase_user_accounts_ad epvbs.web.system_clock_ad
             include epvbs.db
+            # Unmerged, drawn faded: the Organiser's clarification reply (PR #57).
+            include epvbs.web.post_clarification_uc epvbs.web.clarification_thread_port epvbs.web.supabase_clarification_ad
             autoLayout lr
         }
 
@@ -679,6 +817,10 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
             include epvbs.db
             # The staff shell stays for its queue edge; its other role edges belong elsewhere.
             exclude "epvbs.web.staff_shell_ui -> epvbs.web.view_my_requests_uc"
+            # Unmerged, drawn faded: assignment notifies the Coordinator (PRs #63-#71).
+            include epvbs.web.notifier_port epvbs.web.client_org_repository_port
+            include epvbs.web.supabase_recording_notifier_ad epvbs.web.novu_notifier_ad epvbs.web.novu_bridge_ui
+            include epvbs.web.staff_inbox_ui novu
             autoLayout lr
         }
 
@@ -692,6 +834,12 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
             include epvbs.web.supabase_event_requests_ad epvbs.web.supabase_client_orgs_ad
             include epvbs.web.supabase_user_accounts_ad epvbs.web.supabase_coord_events_ad
             include epvbs.db
+            # Unmerged, drawn faded: clarification (#57), withdrawal (#59-#62), confirm (#55).
+            include epvbs.web.request_clarification_uc epvbs.web.post_coord_clarification_uc epvbs.web.resolve_clarification_uc
+            include epvbs.web.clarification_message_e epvbs.web.clarification_thread_port epvbs.web.supabase_clarification_ad
+            include epvbs.web.withdraw_request_uc
+            include epvbs.web.coord_event_detail_ui epvbs.web.view_coord_event_uc epvbs.web.confirm_event_uc
+            include epvbs.web.event_readiness_e epvbs.web.event_readiness_port epvbs.web.supabase_event_readiness_ad
             autoLayout lr
         }
 
@@ -882,6 +1030,19 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
             relationship "Notification" {
                 color "#1abc9c"
                 style dashed
+            }
+
+            # -------------------------------------------------------------
+            # UNMERGED — in an open PR, not on main. Faded, not hidden: the
+            # map shows where Sprint 2 is going without claiming it is built.
+            # -------------------------------------------------------------
+
+            element "Unmerged" {
+                opacity 35
+            }
+
+            relationship "Unmerged" {
+                opacity 35
             }
         }
     }
