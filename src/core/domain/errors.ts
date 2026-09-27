@@ -294,3 +294,96 @@ export class DraftNotEditableError extends DomainError {
     super(`Event request ${id} is not an editable draft.`);
   }
 }
+
+export class InvalidVenueIdError extends DomainError {
+  readonly code = "invalid_venue_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable venue id.`);
+  }
+}
+
+export class InvalidRoomLayoutIdError extends DomainError {
+  readonly code = "invalid_room_layout_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable room layout id.`);
+  }
+}
+
+/**
+ * SPM-46: the event a booking is for either does not exist or is not the
+ * caller's to plan -- one answer for both, as for requests (#91).
+ */
+export class CoordinatorEventNotFoundError extends DomainError {
+  readonly code = "coordinator_event_not_found";
+
+  constructor(readonly id: string) {
+    super(`Event ${id} was not found.`);
+  }
+}
+
+export class VenueNotFoundError extends DomainError {
+  readonly code = "venue_not_found";
+
+  constructor(readonly id: string) {
+    super("That venue is not available to book.");
+  }
+}
+
+export class NoBookingSlotsError extends DomainError {
+  readonly code = "no_booking_slots";
+
+  constructor() {
+    super("Choose at least one slot to book.");
+  }
+}
+
+export class InvalidBookingDateError extends DomainError {
+  readonly code = "invalid_booking_date";
+
+  constructor(readonly date: string) {
+    super(`"${date}" is not a valid date.`);
+  }
+}
+
+export class DuplicateBookingSlotError extends DomainError {
+  readonly code = "duplicate_booking_slot";
+
+  constructor(
+    readonly date: string,
+    readonly slot: string,
+  ) {
+    super(`${date} ${slot} is requested more than once.`);
+  }
+}
+
+/** SPM-104: a venue with more than one layout needs the request to say which it assumes (#112). */
+export class RoomLayoutRequiredError extends DomainError {
+  readonly code = "room_layout_required";
+
+  constructor() {
+    super("This venue supports more than one layout. Choose the one the event assumes.");
+  }
+}
+
+export class UnsupportedRoomLayoutError extends DomainError {
+  readonly code = "unsupported_room_layout";
+
+  constructor(readonly roomLayoutId: string) {
+    super("That layout is not one this venue supports.");
+  }
+}
+
+/** SPM-46: a hold or confirmed booking already has one of the slots -- a hard block (#35, #41). */
+export class VenueSlotUnavailableError extends DomainError {
+  readonly code = "venue_slot_unavailable";
+
+  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
+    super(
+      `The venue is already booked for ${slots
+        .map(({ date, slot }) => `${date} ${slot}`)
+        .join(", ")}. Choose other slots or another venue.`,
+    );
+  }
+}
