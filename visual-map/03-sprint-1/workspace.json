@@ -3,7 +3,7 @@
   "description" : "Cycle lens. What Sprint 1 (6-20 Sep) built, as it stands on main, and which part of it needs no infrastructure.",
   "documentation" : { },
   "id" : 3,
-  "lastModifiedDate" : "2026-09-27T15:13:25Z",
+  "lastModifiedDate" : "2026-09-27T15:16:04Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -2246,7 +2246,7 @@
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/supabase"
         }, {
-          "description" : "Port. Announces what a role needs to know. No event-domain method yet.",
+          "description" : "Port. Announces what a role needs to know. Channels configurable per type [?]; no event-domain method yet.",
           "documentation" : { },
           "group" : "Notifications [?]",
           "id" : "87",

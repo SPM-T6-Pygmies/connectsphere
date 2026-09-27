@@ -3,7 +3,7 @@
   "description" : "Cycle lens. What Sprint 2 (20 Sep - 4 Oct) is adding, all of it still in open pull requests, and the Sprint 2 modules not yet started.",
   "documentation" : { },
   "id" : 4,
-  "lastModifiedDate" : "2026-09-27T15:13:57Z",
+  "lastModifiedDate" : "2026-09-27T15:16:03Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -2246,7 +2246,7 @@
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/supabase"
         }, {
-          "description" : "Port. Announces what a role needs to know. No event-domain method yet.",
+          "description" : "Port. Announces what a role needs to know. Channels configurable per type [?]; no event-domain method yet.",
           "documentation" : { },
           "group" : "Notifications [?]",
           "id" : "87",

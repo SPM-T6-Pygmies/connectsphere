@@ -350,7 +350,7 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
 
                 group "Notifications [?]" {
 
-                    notifier_port = component "Notifier" "Port. Announces what a role needs to know. No event-domain method yet." "src/core/ports/outbound" "Port"
+                    notifier_port = component "Notifier" "Port. Announces what a role needs to know. Channels configurable per type [?]; no event-domain method yet." "src/core/ports/outbound" "Port"
 
                     logging_notifier_ad = component "LoggingNotifier" "Adapter. Writes to the log. No delivery channel is built." "src/adapters/outbound/logging" "Driven Adapter"
 

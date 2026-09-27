@@ -3,7 +3,7 @@
   "description" : "Journey lens. The 14-step path an event takes from an Organiser's draft to a closed event, as a sequence of interactions across the system boundary.",
   "documentation" : { },
   "id" : 2,
-  "lastModifiedDate" : "2026-09-27T15:12:31Z",
+  "lastModifiedDate" : "2026-09-27T15:16:04Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -2246,7 +2246,7 @@
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/supabase"
         }, {
-          "description" : "Port. Announces what a role needs to know. No event-domain method yet.",
+          "description" : "Port. Announces what a role needs to know. Channels configurable per type [?]; no event-domain method yet.",
           "documentation" : { },
           "group" : "Notifications [?]",
           "id" : "87",
