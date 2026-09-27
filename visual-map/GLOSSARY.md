@@ -6,9 +6,11 @@ ConnectSphere Event Services.
 **Source:** `spm-brain/raw/Customer Brief no. 1.md` (IS212 AY2026/27 T1 customer briefing).
 Terms are taken from the brief's own wording so the maps trace back to the customer's language.
 
-**Status:** `01-main/workspace.dsl` now models L1-L3, so the vocabulary below is partly *in* the map
-and partly still ahead of it — the venue, equipment and reporting sections describe modules the map
-names but has not designed. Two consequences:
+**Status:** `01-main/workspace.dsl` models L1-L3 and was checked against the code on 2026-09-27, so
+the vocabulary below is partly *built* and partly still ahead of it — the venue, equipment and
+reporting sections describe modules that have tables and wireframe pages but no core yet. Where the
+code has settled a term, the entry says **As built** and cites the schema or domain file. That is the
+team's decision, not the customer's, so any `[?]` on the customer rule stays. Two consequences:
 
 - The brief is **deliberately ambiguous** by design — business rules are to be settled in the
   customer Q&A sessions. Terms whose existence, rules, or shape the brief leaves open carry `[?]`
@@ -32,7 +34,9 @@ Authoring rules live in [`CONVENTIONS.md`](CONVENTIONS.md); DSL syntax in [`SYNT
 
 ## Actors / roles
 
-The five roles named in the brief (§3). Access to information and functionality depends on the role.
+The five roles named in the brief (§3), plus the Event Operations Manager from clarification. Access
+to information and functionality depends on the role. **As built:** all six are rows in the `role`
+table, linked to accounts through `user_account_role`, so one account may hold several roles.
 
 | Term | Internal / External | Role |
 | --- | --- | --- |
@@ -40,7 +44,8 @@ The five roles named in the brief (§3). Access to information and functionality
 | **Event Coordinator** | Internal | Assigned to a request and acts as the main ConnectSphere liaison. Reviews and approves requests, seeks clarification, identifies venues, raises venue and equipment requirements, tracks readiness, confirms the event. |
 | **Venue Staff** | Internal | Own venue information, availability, and booking decisions; approve or reject venue booking requests, block venues, and physically prepare the venue. |
 | **Technical Support Staff** | Internal | Own equipment records, availability, and reservations; review technical requirements and may be assigned to support an event on-site. |
-| **Attendee** | External | Participant who registers for and attends an event. Must not see internal planning information. |
+| **Event Operations Manager** | Internal | Assigns and reassigns Event Coordinators, following an SOP kept outside the system. Not in the brief; established by clarification (#73, #93, #94). |
+| **Attendee** | External | Participant who registers for and attends an event. Must not see internal planning information. **As built:** has no account — registers with a name and email and gets a reference link to view or withdraw the registration. |
 
 ## Domain concepts — event & request
 
@@ -48,7 +53,7 @@ The five roles named in the brief (§3). Access to information and functionality
 | --- | --- |
 | **Event Request** | What an Event Organiser submits: event name, description, purpose, preferred dates and times, expected attendance, venue requirements, room-layout preferences, accessibility needs, equipment requirements, registration requirements, and other special arrangements. |
 | **Draft Event Request** | An event request saved before submission, so incomplete information can be completed or reviewed later. |
-| **Event** | The record the request becomes once planning proceeds; carries the arrangements (venue, equipment, technical support, programme, registration) through to completion. Whether request and event are one record or two is not settled by the brief `[?]`. |
+| **Event** | The record the request becomes once planning proceeds; carries the arrangements (venue, equipment, technical support, programme, registration) through to completion. **As built:** two records. Approving an `event_request` creates an `event` in `Planning`, linked back by `event_request_id`. |
 | **Event Category** | Classification of an event — conference, workshop, training session, exhibition, meeting, seminar, networking event, or another type defined by ConnectSphere. |
 | **Event Status** | The stage an event has reached, so users can see where it stands. See [Codes / enums](#codes--enums). |
 | **Coordinator Assignment** | Attaching an Event Coordinator to an event as the responsible internal owner. Reassignment may be needed when staff responsibilities or availability change. |
@@ -100,7 +105,7 @@ The five roles named in the brief (§3). Access to information and functionality
 | **Attendee Registration** | An Attendee signing up for a confirmed event and providing the required registration information. Only for events where registration is enabled. |
 | **Registration Capacity** | The limit on registrations for an event. Registrations beyond it must be prevented or otherwise handled. |
 | **Registration Period** | When registration opens and closes. Attendees can only register while registration is available. |
-| **Waiting List** | Additional Attendees queued once an event reaches capacity `[?]` ("where supported" — promotion rules unconfirmed). |
+| **Waiting List** | Additional Attendees queued once an event reaches capacity `[?]` ("where supported" — promotion rules unconfirmed). Out of Release 1: a `waiting_list_entry` table exists but nothing uses it, and a full event simply refuses. |
 | **Registration Withdrawal** | An Attendee giving up their place where permitted; the released place may become available to another Attendee. |
 | **Attendance Recording** | Recording whether registered Attendees actually attended, so registration and attendance stay distinguishable. |
 
@@ -122,8 +127,8 @@ The five roles named in the brief (§3). Access to information and functionality
 | **Notification** | An in-application or other-channel message telling a user that something relevant changed — request submitted, coordinator assigned, clarification requested, request approved/rejected/returned, venue booking requested/approved/rejected/changed, equipment confirmed or unavailable, event confirmed, significant change requested, event rescheduled/postponed/cancelled, registration opening/closing/reaching capacity, waiting-list change, withdrawal affecting availability, upcoming event still incomplete, availability change affecting an upcoming event. Channel beyond in-app is unspecified `[?]`. |
 | **Reminder** | A time-driven prompt about upcoming events, incomplete arrangements, registration deadlines, preparation activities, or other time-sensitive matters `[?]` ("may" — not committed in the brief). |
 | **Event Calendar** | A calendar view of upcoming events, filtered by the viewer's role and access rights. |
-| **Activity History** | The record of significant actions — who performed the action and when — supporting accountability and troubleshooting. |
-| **Change History** | The record of how important event information changed over time, visible to users with appropriate access. Determining who changed what and when is a named pain point. |
+| **Activity History** | The record of significant actions — who performed the action and when — supporting accountability and troubleshooting. **As built:** `audit_record` rows with an `action` (logout, approved, rejected). |
+| **Change History** | The record of how important event information changed over time, visible to users with appropriate access. Determining who changed what and when is a named pain point. **As built:** the same `audit_record` table, using `field_changed` / `old_value` / `new_value` instead of `action`; nothing writes these rows yet. |
 | **Role-Based Dashboard** | A per-role overview of what needs attention — events requiring action, upcoming bookings, equipment requests, attendee registrations. |
 | **Event Report** | A summary of an event's details, schedule, venue, operational requirements, and registration information. |
 | **Venue Usage Report** | Venue bookings and usage over a selected period, for internal operational planning. |
@@ -155,26 +160,29 @@ against these steps.
 
 ## Codes / enums
 
-The brief gives these as examples rather than fixed sets — treat the whole section as `[?]` until the
-customer confirms it.
+The brief gives these as examples rather than fixed sets, so the customer may still change them `[?]`.
+**As built**, the schema fixes the sets below as check constraints (`supabase/migrations`), in the
+Title Case the database stores. A request and an event are separate records with separate statuses.
 
 | Code | Meaning |
 | --- | --- |
-| `draft` | Event status: saved but not yet submitted. |
-| `submitted` | Event status: sent to ConnectSphere, not yet picked up. |
-| `under review` | Event status: Coordinator is reviewing / seeking clarification. |
-| `approved` | Event status: planning may proceed. |
-| `planning` | Event status: arrangements being made. |
-| `awaiting arrangements` | Event status: blocked on venue, equipment, or support decisions. |
-| `confirmed` | Event status: essential arrangements complete and visible to the Organiser. |
-| `completed` | Event status: the event has taken place and been closed. |
-| `cancelled` | Event status: called off; reservations must be released. |
-| `rejected` | Event status: the request was declined, with the decision recorded. |
-| `available` / `tentatively held` / `confirmed` / `blocked` / `unavailable` | Venue availability states on the calendar. |
+| `Draft` | Request: saved but not submitted. Only the event name is needed. |
+| `Submitted` | Request: sent to ConnectSphere, no Coordinator yet. |
+| `Under Review` | Request: a Coordinator is assigned and reviewing. Assignment moves it here. |
+| `Returned` | Request: sent back to the Organiser for clarification. In an open PR (#57); nothing on main sets it. |
+| `Approved` | Request: planning may proceed. Approval creates the event in `Planning`. |
+| `Rejected` | Request: declined, with the reason recorded. |
+| `Withdrawn` | Request: the Organiser withdrew it. In open PRs (#59-#62); nothing on main sets it. |
+| `Planning` | Event: arrangements being made. |
+| `Blocked` | Event: held up by an essential arrangement. Probably the brief's "awaiting arrangements" `[?]` — no code sets it yet. |
+| `Confirmed` | Event: essential arrangements complete; visible to Attendees for registration. |
+| `Completed` | Event: has taken place and been closed. |
+| `Cancelled` | Event: called off; reservations must be released. |
+| `Registered` / `Waitlisted` / `Cancelled` / `Withdrawn` / `Attended` / `No Show` | Registration states. Release 1 uses `Registered` and `Withdrawn`. |
+| `available` / `tentatively held` / `confirmed` / `blocked` / `unavailable` | Venue availability states on the calendar. Not built. |
 | `conference` / `workshop` / `training session` / `exhibition` / `meeting` / `seminar` / `networking event` | Event categories, plus any other type ConnectSphere defines. |
 | `classroom` / `theatre` / `boardroom` / `banquet` / `exhibition` | Room layouts, plus any other arrangement. |
-| Equipment unavailability reasons | Reserved for another event, located at another venue, damaged, or under maintenance. Not stated as a formal enum `[?]`. |
-| Registration states | Registered, waitlisted, withdrawn, attended — implied by the registration features, never enumerated `[?]`. |
+| Equipment unavailability reasons | Reserved for another event, located at another venue, damaged, or under maintenance. Not stated as a formal enum `[?]`. The schema's equipment `operational_status` is Available / Reserved / In Use / Maintenance / Defective / Retired. |
 
 ## Non-functional vocabulary (brief §8)
 
@@ -199,16 +207,16 @@ implementation repo's Ports & Adapters layout (`src/core/ports`, `src/core/use-c
 
 | Suffix | Kind | Example identifier |
 | --- | --- | --- |
-| `_ui` | Driving adapter — page, Server Action, route handler (`src/app`). | `event_form_ui` |
+| `_ui` | Driving adapter — page, Server Action, route handler (`src/app`). | `request_form_ui` |
 | `_uc` | Use case (`src/core/use-cases`). | `submit_request_uc` |
 | `_e` | Domain entity, value object or rule set (`src/core/domain`). | `event_request_e` |
-| `_port` | Port the core owns (`src/core/ports`). | `event_repository_port` |
-| `_ad` | Driven adapter implementing a port (`src/adapters/outbound`). | `supabase_events_ad` |
-| `_t` | Database table component. | not yet used — the schema is undesigned |
+| `_port` | Port the core owns (`src/core/ports`). | `event_request_repository_port` |
+| `_ad` | Driven adapter implementing a port (`src/adapters/outbound`). | `supabase_event_requests_ad` |
+| `_t` | Database table component. | not yet used — the tables exist, but the map draws the database as one container |
 | `_placeholder` | A module the brief names that nothing has designed yet. | `venues_placeholder` |
 
-Display names carry the artifact name the code will use (`SubmitEventRequestUseCase`,
-`EventRepository`, `SupabaseEventRepository`); the identifier is the short handle.
+Display names carry the artifact name in the code (`SubmitEventRequestUseCase`,
+`EventRequestRepository`, `SupabaseEventRequestRepository`); the identifier is the short handle.
 
 ## Module colours (this project)
 
@@ -217,13 +225,13 @@ grey, so the map reads at a glance as *built here, named but not designed there*
 
 | Module group | Colour | State |
 | --- | --- | --- |
-| `Shared Platform` | grey `#7f7f7f` | Composition root, clock, test doubles |
-| `Identity & Access` | purple `#9673a6` | Sprint 1 |
-| `Events` | red `#b85450` | Sprint 1 |
-| `Registration` | green `#82b366` | Sprint 1 |
-| `Notifications [?]` | teal `#1abc9c` | Port only; no delivery channel built |
-| `Venues [?]` | muted `#b3b3b3` | Named by the brief, no ticket |
-| `Equipment [?]` | muted `#b3b3b3` | Named by the brief, no ticket |
+| `Shared Platform` | grey `#7f7f7f` | Composition root, clock, audit logger, test doubles |
+| `Identity & Access` | purple `#9673a6` | Built, Sprint 1 |
+| `Event Requests: shared` / `: Organiser` / `: Operations` / `: Coordinator` | red `#b85450` | One module, four groups; built, Sprint 1. Sprint 2 additions are in open PRs |
+| `Registration` | green `#82b366` | Built, Sprint 1 |
+| `Notifications [?]` | teal `#1abc9c` | Port only on main; delivery through Novu is in open PRs |
+| `Venues [?]` | muted `#b3b3b3` | Tables and wireframe pages, no core; Sprint 2 tickets not started |
+| `Equipment [?]` | muted `#b3b3b3` | Tables and wireframe pages, no core; Sprint 2 tickets not started |
 | `Reporting [?]` | muted `#b3b3b3` | Named by the brief, no ticket |
 
 Ring tags (`Driving Adapter`, `Use Case`, `Domain`, `Port`, `Driven Adapter`, `Composition Root`)
