@@ -36,9 +36,9 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
     #    every container to belong to a module group, but all three serve every module, so
     #    the group would be a box drawn around everything. Module grouping happens at L3,
     #    where it discriminates.
-    #  - Authentication is required but the method is undecided (#62), so "Authentication
-    #    Service" carries [?]. It is drawn because Supabase Auth is the standing assumption
-    #    behind the login tickets, not because the customer chose it.
+    #  - "Authentication Service" is Supabase Auth with email + password, as built for
+    #    SPM-13/14. The customer has still not chosen a method (#62), so only the
+    #    mechanism carries [?], not the container.
     #  - The email external system keeps its L1 edge and gains no container edge: no adapter
     #    sends email yet. The Notifier port's only implementation logs (see Notifications).
     #    An email edge at L2 today would claim a delivery path that does not exist.
@@ -76,18 +76,19 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
 
             tech_staff = person "Technical Support Staff" "Owns the equipment catalogue. Checks availability, reserves equipment, supports events on site."
 
-            # [?] Absent from the brief's role table, feature list and 14-step process.
-            # Established only by clarification (#73 assigns, #93 SOP outside the system,
-            # #94 reassignment). The team must still decide whether this is a distinct
-            # system role, a senior-coordinator permission, or an out-of-system actor.
-            ops_manager = person "Event Operations Manager [?]" "Assigns and reassigns Event Coordinators. Follows an SOP kept outside the system."
+            # Absent from the brief's role table, feature list and 14-step process, and
+            # established by clarification (#73 assigns, #93 SOP outside the system, #94
+            # reassignment). The [?] was dropped on 2026-09-27: it is a distinct system role,
+            # a row in the role table seeded as "Event Operations Manager" (supabase/seed.sql)
+            # with its own operations_* RPCs.
+            ops_manager = person "Event Operations Manager" "Assigns and reassigns Event Coordinators. Follows an SOP kept outside the system."
         }
 
         group "Client & participants (external)" {
 
             organiser = person "Event Organiser" "Client representative. Submits the event request, supplies requirements, requests changes."
 
-            attendee = person "Attendee" "Participant. Registers for a confirmed event, may join the waiting list, may withdraw."
+            attendee = person "Attendee" "Participant. Registers for a confirmed event with a name and email, no account; withdraws by reference."
         }
 
         # ---------------------------------------------------------------------
@@ -96,7 +97,7 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
 
         epvbs = softwareSystem "Event Planning and Venue Booking System" "Single platform for event requests, venue booking, equipment, registration, changes and reporting." {
 
-            web = container "Web Application" "Serves every role's pages and actions, and hosts the application core. Ports & Adapters inside." "Next.js 16 App Router / React 19" {
+            web = container "Web Application" "Serves every role's pages and actions, and hosts the application core. Ports & Adapters inside." "Next.js 16.3 App Router / React 19.2" {
 
                 # =============================================================
                 # SHARED PLATFORM — touched by every module
@@ -235,12 +236,16 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
                 }
             }
 
-            db = container "Application Database" "Events, accounts and registrations. Reached only through repository ports." "Supabase Postgres" "Database"
+            # Row-level security is on for every table with no policies, so callers get in
+            # only through security-definer RPCs (organiser_*, operations_*, coordinator_*,
+            # attendee_*) or narrow column grants. See supabase/migrations.
+            db = container "Application Database" "Event requests, events, accounts, registrations and the audit trail. Reached only through repository ports." "Supabase Postgres" "Database"
 
-            # [?] Drawn because Supabase Auth is the standing assumption behind SPM-13/14,
-            # not because the customer chose a method (#62). Account recovery and locked
-            # accounts are unspecified too (#64).
-            auth = container "Authentication Service [?]" "Verifies credentials and holds sessions. Mechanism undecided by the customer [?]." "Supabase Auth"
+            # Built: email + password through Supabase Auth (signInWithPassword, getClaims in
+            # SupabaseAuthAdapter), so the container itself is no longer [?]. The customer has
+            # still not chosen a method (#62), and account recovery and locked accounts are
+            # unspecified (#64), so the [?] now sits on the mechanism only.
+            auth = container "Authentication Service" "Verifies credentials and holds sessions. Email + password today; customer method undecided [?]." "Supabase Auth"
         }
 
         # ---------------------------------------------------------------------
@@ -257,7 +262,7 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         # ---------------------------------------------------------------------
 
         organiser   -> epvbs "Submits event and change requests; views confirmed arrangements."
-        attendee    -> epvbs "Registers for confirmed events, joins the waiting list, withdraws."
+        attendee    -> epvbs "Registers for confirmed events and withdraws."
         coordinator -> epvbs "Reviews and approves requests, requests venue + equipment, confirms and cancels events."
         venue_staff -> epvbs "Approves or rejects venue bookings, maintains the catalogue, blocks venues."
         tech_staff  -> epvbs "Checks and reserves equipment, records defects, supports events."
@@ -287,7 +292,7 @@ workspace "ConnectSphere — Event Planning and Venue Booking System" "Reference
         ops_manager -> epvbs.web "Assigns and reassigns Event Coordinators." "HTTPS"
 
         epvbs.web -> epvbs.db   "Reads and writes events, accounts and registrations." "PostgREST"
-        epvbs.web -> epvbs.auth "Verifies credentials and refreshes sessions. [?]" "Supabase Auth"
+        epvbs.web -> epvbs.auth "Verifies credentials and refreshes sessions." "Supabase Auth"
 
         # ---------------------------------------------------------------------
         # L3 RELATIONSHIPS — driving adapters call use cases

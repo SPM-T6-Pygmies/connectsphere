@@ -3,7 +3,7 @@
   "description" : "Journey lens. The 14-step path an event takes from an Organiser's draft to a closed event, as a sequence of interactions across the system boundary.",
   "documentation" : { },
   "id" : 2,
-  "lastModifiedDate" : "2026-09-05T19:48:13Z",
+  "lastModifiedDate" : "2026-09-27T15:03:52Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -78,7 +78,7 @@
       "description" : "Assigns and reassigns Event Coordinators. Follows an SOP kept outside the system.",
       "group" : "ConnectSphere (internal)",
       "id" : "4",
-      "name" : "Event Operations Manager [?]",
+      "name" : "Event Operations Manager",
       "properties" : {
         "structurizr.dsl.identifier" : "ops_manager"
       },
@@ -121,7 +121,7 @@
       } ],
       "tags" : "Element,Person"
     }, {
-      "description" : "Participant. Registers for a confirmed event, may join the waiting list, may withdraw.",
+      "description" : "Participant. Registers for a confirmed event with a name and email, no account; withdraws by reference.",
       "group" : "Client & participants (external)",
       "id" : "6",
       "name" : "Attendee",
@@ -129,7 +129,7 @@
         "structurizr.dsl.identifier" : "attendee"
       },
       "relationships" : [ {
-        "description" : "Registers for confirmed events, joins the waiting list, withdraws.",
+        "description" : "Registers for confirmed events and withdraws.",
         "destinationId" : "7",
         "id" : "48",
         "sourceId" : "6",
@@ -900,7 +900,7 @@
           "tags" : "Relationship",
           "technology" : "PostgREST"
         }, {
-          "description" : "Verifies credentials and refreshes sessions. [?]",
+          "description" : "Verifies credentials and refreshes sessions.",
           "destinationId" : "45",
           "id" : "66",
           "sourceId" : "8",
@@ -908,9 +908,9 @@
           "technology" : "Supabase Auth"
         } ],
         "tags" : "Element,Container",
-        "technology" : "Next.js 16 App Router / React 19"
+        "technology" : "Next.js 16.3 App Router / React 19.2"
       }, {
-        "description" : "Events, accounts and registrations. Reached only through repository ports.",
+        "description" : "Event requests, events, accounts, registrations and the audit trail. Reached only through repository ports.",
         "documentation" : { },
         "id" : "44",
         "name" : "Application Database",
@@ -920,10 +920,10 @@
         "tags" : "Element,Container,Database",
         "technology" : "Supabase Postgres"
       }, {
-        "description" : "Verifies credentials and holds sessions. Mechanism undecided by the customer [?].",
+        "description" : "Verifies credentials and holds sessions. Email + password today; customer method undecided [?].",
         "documentation" : { },
         "id" : "45",
-        "name" : "Authentication Service [?]",
+        "name" : "Authentication Service",
         "properties" : {
           "structurizr.dsl.identifier" : "epvbs.auth"
         },
