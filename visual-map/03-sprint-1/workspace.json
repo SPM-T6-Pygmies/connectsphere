@@ -1,9 +1,9 @@
 {
   "configuration" : { },
-  "description" : "Cycle lens. The part of the reference model Sprint 1 (6-20 Sep) actually builds, and the order it can be built in.",
+  "description" : "Cycle lens. What Sprint 1 (6-20 Sep) built, as it stands on main, and which part of it needs no infrastructure.",
   "documentation" : { },
   "id" : 3,
-  "lastModifiedDate" : "2026-09-27T15:10:50Z",
+  "lastModifiedDate" : "2026-09-27T15:13:25Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -4098,7 +4098,7 @@
         "vertices" : true
       },
       "containerId" : "8",
-      "description" : "What Sprint 1 builds: Identity & Access, Events, Registration, and the shared platform under them.",
+      "description" : "What Sprint 1 built: Identity & Access, Event Requests, Registration, and the shared platform under them.",
       "elements" : [ {
         "id" : "9",
         "x" : 0,

@@ -1,32 +1,36 @@
 workspace extends ../01-main/workspace.dsl {
 
     name "ConnectSphere — Sprint 1 Build Slice"
-    description "Cycle lens. The part of the reference model Sprint 1 (6-20 Sep) actually builds, and the order it can be built in."
+    description "Cycle lens. What Sprint 1 (6-20 Sep) built, as it stands on main, and which part of it needs no infrastructure."
 
     # =========================================================================
     # PROVENANCE  — read before editing
     # -------------------------------------------------------------------------
     # Source: Linear team "SPM - IS212", cycle "Sprint 1" (2026-09-06 → 2026-09-20).
-    #   Users                     SPM-13 log in, SPM-14 log out
-    #   Events                    SPM-38 draft, SPM-31 submit, SPM-29 assign,
-    #                             SPM-39 view my organisation's events
+    # The cycle was planned with 8 stories; it closed with 12 Done, plus sub-issues:
+    #   Users                     SPM-13 log in, SPM-14 log out (+ SPM-142 audit grant fix)
+    #   Events                    SPM-38 draft, SPM-31 submit, SPM-39 organisation view
+    #                             and reassign Organiser, SPM-29 view all requests,
+    #                             SPM-130 assign a Coordinator, SPM-121 Coordinator queue,
+    #                             SPM-32 view an assigned request, SPM-34 approve/reject
     #   Registration & Attendees  SPM-24 register, SPM-28 withdraw
-    #   (SPM-30 reassign is closed as a duplicate of SPM-29 and is not modelled.)
-    # Target shape: ../../docs/ARCHITECTURE.md
+    #   Not modelled: SPM-30 (duplicate of SPM-29), and SPM-95/96/97 (cancelled, folded
+    #   into SPM-29 and SPM-130). SPM-137 "My events" was cancelled in Linear but its use
+    #   case and page shipped anyway, so it is drawn.
     #
-    # NOTHING HERE IS VERIFIED AGAINST CODE — none of these tickets is built. This is
-    # the intended slice, not observed structure.
+    # VERIFIED AGAINST CODE on main @ f9c71d5 (2026-09-27): every component shown is in
+    # 01-main's verified model. Sprint 2 work in open PRs (tag "Unmerged") is excluded
+    # here; it is the 04-sprint-2 lens.
     #
     # Modelling decisions
     #  - Model elements all come from 01-main; this workspace adds views only. A module
     #    that gains tickets gains its components upstream, not here.
-    #  - Venues, Equipment and Reporting are excluded: no Sprint 1 ticket touches them.
-    #    Notifications stays, because SPM-24 promises the Attendee a confirmation and
-    #    02-workflow step 3.1 notifies the assigned Coordinator.
+    #  - Venues, Equipment, Reporting and the notification inbox are excluded: no Sprint 1
+    #    ticket touches them. The Notifier port stays in view only because the in-memory
+    #    adapters implement it.
     #  - Composition-root and in-memory wiring edges are DRAWN here and hidden in
-    #    01-main. With three modules there is room for them, and they are the two
-    #    things a first sprint gets wrong: constructing adapters inside a Server Action,
-    #    and having nothing to test a use case against.
+    #    01-main. They are the two things a first sprint gets wrong: constructing
+    #    adapters inside a Server Action, and having nothing to test a use case against.
     # =========================================================================
 
     views {
@@ -35,7 +39,7 @@ workspace extends ../01-main/workspace.dsl {
         # THE SLICE — every component the eight tickets touch, wiring included
         # ---------------------------------------------------------------------
 
-        component epvbs.web "sprint1-components" "What Sprint 1 builds: Identity & Access, Events, Registration, and the shared platform under them." {
+        component epvbs.web "sprint1-components" "What Sprint 1 built: Identity & Access, Event Requests, Registration, and the shared platform under them." {
             include *
             # Named by the brief, no ticket in this cycle. They stay in 01-main.
             exclude epvbs.web.venues_placeholder epvbs.web.equipment_placeholder epvbs.web.reporting_placeholder epvbs.web.notifications_placeholder
