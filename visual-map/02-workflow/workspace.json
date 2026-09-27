@@ -3,7 +3,7 @@
   "description" : "Journey lens. The 14-step path an event takes from an Organiser's draft to a closed event, as a sequence of interactions across the system boundary.",
   "documentation" : { },
   "id" : 2,
-  "lastModifiedDate" : "2026-09-27T15:10:50Z",
+  "lastModifiedDate" : "2026-09-27T15:12:31Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -4358,22 +4358,22 @@
         "order" : "1",
         "response" : false
       }, {
-        "description" : "Step 2 — Submission: submits the request. Mandatory fields and lead time undecided [?].",
+        "description" : "Step 2 — Submission: submits once name, future date, times and attendance are set. Final field set and lead time undecided [?].",
         "id" : "101",
         "order" : "2",
         "response" : false
       }, {
-        "description" : "Step 3 — Assignment: assigns an Event Coordinator. Manual, no acceptance step.",
+        "description" : "Step 3 — Assignment: assigns an Event Coordinator. Moves the request to Under Review; no acceptance step.",
         "id" : "106",
         "order" : "3",
         "response" : false
       }, {
-        "description" : "Step 4 — Review: requests clarification where information is incomplete or unclear.",
+        "description" : "Step 4 — Review: requests clarification where information is incomplete or unclear. [PR #57]",
         "id" : "103",
         "order" : "4",
         "response" : false
       }, {
-        "description" : "Step 5 — Initial approval: decides whether planning may proceed. Decision recorded either way.",
+        "description" : "Step 5 — Initial approval: approves, opening the event in Planning, or rejects with a reason.",
         "id" : "103",
         "order" : "5",
         "response" : false
@@ -4398,12 +4398,12 @@
         "order" : "9",
         "response" : false
       }, {
-        "description" : "Step 10 — Confirmation: confirms once essential arrangements are complete.",
+        "description" : "Step 10 — Confirmation: confirms once essential arrangements are complete. [PR #55]",
         "id" : "103",
         "order" : "10",
         "response" : false
       }, {
-        "description" : "Step 11 — Registration: registers within the permitted period, subject to capacity.",
+        "description" : "Step 11 — Registration: registers with a name and email, within the period, subject to capacity.",
         "id" : "102",
         "order" : "11",
         "response" : false
@@ -4458,27 +4458,27 @@
       "name" : "Dynamic View",
       "order" : 10,
       "relationships" : [ {
-        "description" : "Step 1 — Draft: saves an event request. Name, type, dates, attendance, requirements.",
+        "description" : "Step 1 — Draft: saves an event request. Only the event name is needed to save.",
         "id" : "101",
         "order" : "1",
         "response" : false
       }, {
-        "description" : "Step 2 — Submission: submits the request. Mandatory fields and lead time undecided [?].",
+        "description" : "Step 2 — Submission: submits once name, future date, times and attendance are set. Final field set and lead time undecided [?].",
         "id" : "101",
         "order" : "2",
         "response" : false
       }, {
-        "description" : "Step 3 — Assignment: assigns an Event Coordinator. Manual, follows an SOP kept outside the system.",
+        "description" : "Step 3 — Assignment: assigns an Event Coordinator, moving the request to Under Review. SOP kept outside the system.",
         "id" : "106",
         "order" : "3",
         "response" : false
       }, {
-        "description" : "Notifies the assignee. No acceptance step and no decline path.",
+        "description" : "Notifies the assignee. No acceptance step and no decline path. [PR #63-#71]",
         "id" : "108",
         "order" : "3.1",
         "response" : false
       }, {
-        "description" : "Step 4 — Review: requests clarification where information is incomplete or unclear.",
+        "description" : "Step 4 — Review: returns the request with a question where information is incomplete or unclear. [PR #57]",
         "id" : "103",
         "order" : "4",
         "response" : false
@@ -4488,7 +4488,7 @@
         "order" : "4.1",
         "response" : false
       }, {
-        "description" : "Answers. The exchange is retained on the event record.",
+        "description" : "Answers on the request's thread; the last resolved question puts it back Under Review. [PR #57]",
         "id" : "101",
         "order" : "4.2",
         "response" : false
@@ -4498,12 +4498,12 @@
         "order" : "4.3",
         "response" : false
       }, {
-        "description" : "Step 5 — Initial approval: decides whether planning may proceed. Commits nothing.",
+        "description" : "Step 5 — Initial approval: approves, opening the event in Planning, or rejects with a reason. Commits nothing.",
         "id" : "103",
         "order" : "5",
         "response" : false
       }, {
-        "description" : "Notifies of the decision. Approved, returned or rejected, all recorded.",
+        "description" : "Notifies of the decision, which stays on the request.",
         "id" : "107",
         "order" : "5.1",
         "response" : false
@@ -4598,7 +4598,7 @@
         "order" : "9.2",
         "response" : false
       }, {
-        "description" : "Step 10 — Confirmation: confirms once essential arrangements are complete.",
+        "description" : "Step 10 — Confirmation: confirms once no essential arrangement blocks it. [PR #55]",
         "id" : "103",
         "order" : "10",
         "response" : false
@@ -4652,7 +4652,7 @@
         "order" : "11",
         "response" : false
       }, {
-        "description" : "Registers within the permitted period, subject to capacity.",
+        "description" : "Registers with a name and email, no account, within the period and subject to capacity.",
         "id" : "102",
         "order" : "11.1",
         "response" : false
