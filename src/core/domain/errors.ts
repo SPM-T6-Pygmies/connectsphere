@@ -324,3 +324,71 @@ export class EventNotReadyForConfirmationError extends DomainError {
     );
   }
 }
+
+export class InvalidEquipmentItemIdError extends DomainError {
+  readonly code = "invalid_equipment_item_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable equipment item id.`);
+  }
+}
+
+/** SPM-41 AC3: a requirement is for at least one whole item. */
+export class InvalidEquipmentQuantityError extends DomainError {
+  readonly code = "invalid_equipment_quantity";
+
+  constructor(readonly quantity: number) {
+    super(`Quantity must be a whole number of at least 1, not ${quantity}.`);
+  }
+}
+
+/** SPM-41 AC5: technical requirements are optional, but bounded. */
+export class TechnicalRequirementsTooLongError extends DomainError {
+  readonly code = "technical_requirements_too_long";
+
+  constructor(readonly maxLength: number) {
+    super(`Technical requirements must be at most ${maxLength} characters.`);
+  }
+}
+
+/**
+ * SPM-41 AC2: one line per equipment type, so a second line for the same type
+ * is refused and the coordinator is pointed at the existing one.
+ *
+ * Takes no argument for the same reason `RegistrationAlreadyWithdrawnError`
+ * takes none: the Supabase adapter raises this one too, when a concurrent add
+ * of the same type landed first, and there it holds nothing to put in the
+ * message.
+ */
+export class DuplicateEquipmentRequirementError extends DomainError {
+  readonly code = "duplicate_equipment_requirement";
+
+  constructor() {
+    super("This event already has a line for that equipment type. Edit the existing line instead.");
+  }
+}
+
+/** SPM-41 AC13: a Completed or Cancelled event's equipment requirements are read-only. */
+export class EquipmentRequirementsLockedError extends DomainError {
+  readonly code = "equipment_requirements_locked";
+
+  constructor(readonly status: string) {
+    super(`Equipment requirements on a ${status} event are read-only.`);
+  }
+}
+
+/**
+ * SPM-41 AC11: once removal of a reserved line is requested, the line is
+ * Technical Support's to release (SPM-108) -- the coordinator can neither edit
+ * it nor remove it a second time.
+ */
+export class EquipmentRemovalAlreadyRequestedError extends DomainError {
+  readonly code = "equipment_removal_already_requested";
+
+  constructor() {
+    super(
+      "Removal of this line has already been requested. " +
+        "Technical Support Staff will release its equipment.",
+    );
+  }
+}
