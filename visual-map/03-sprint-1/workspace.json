@@ -1,9 +1,9 @@
 {
   "configuration" : { },
-  "description" : "Cycle lens. The part of the reference model Sprint 1 (6-20 Sep) actually builds, and the order it can be built in.",
+  "description" : "Cycle lens. What Sprint 1 (6-20 Sep) built, as it stands on main, and which part of it needs no infrastructure.",
   "documentation" : { },
   "id" : 3,
-  "lastModifiedDate" : "2026-09-05T19:48:42Z",
+  "lastModifiedDate" : "2026-09-27T15:16:04Z",
   "model" : {
     "people" : [ {
       "description" : "Assigned owner of an event. Reviews requests, raises venue + equipment needs, tracks readiness, confirms.",
@@ -16,13 +16,13 @@
       "relationships" : [ {
         "description" : "Reviews and approves requests, requests venue + equipment, confirms and cancels events.",
         "destinationId" : "7",
-        "id" : "49",
+        "id" : "103",
         "sourceId" : "1",
         "tags" : "Relationship"
       }, {
         "description" : "Reviews requests, arranges venue and equipment, confirms.",
         "destinationId" : "8",
-        "id" : "61",
+        "id" : "117",
         "sourceId" : "1",
         "tags" : "Relationship",
         "technology" : "HTTPS"
@@ -39,13 +39,13 @@
       "relationships" : [ {
         "description" : "Approves or rejects venue bookings, maintains the catalogue, blocks venues.",
         "destinationId" : "7",
-        "id" : "50",
+        "id" : "104",
         "sourceId" : "2",
         "tags" : "Relationship"
       }, {
         "description" : "Decides booking requests and maintains the venue catalogue.",
         "destinationId" : "8",
-        "id" : "62",
+        "id" : "118",
         "sourceId" : "2",
         "tags" : "Relationship",
         "technology" : "HTTPS"
@@ -62,13 +62,13 @@
       "relationships" : [ {
         "description" : "Checks and reserves equipment, records defects, supports events.",
         "destinationId" : "7",
-        "id" : "51",
+        "id" : "105",
         "sourceId" : "3",
         "tags" : "Relationship"
       }, {
         "description" : "Checks and reserves equipment, records defects.",
         "destinationId" : "8",
-        "id" : "63",
+        "id" : "119",
         "sourceId" : "3",
         "tags" : "Relationship",
         "technology" : "HTTPS"
@@ -78,20 +78,20 @@
       "description" : "Assigns and reassigns Event Coordinators. Follows an SOP kept outside the system.",
       "group" : "ConnectSphere (internal)",
       "id" : "4",
-      "name" : "Event Operations Manager [?]",
+      "name" : "Event Operations Manager",
       "properties" : {
         "structurizr.dsl.identifier" : "ops_manager"
       },
       "relationships" : [ {
         "description" : "Assigns and reassigns Event Coordinators.",
         "destinationId" : "7",
-        "id" : "52",
+        "id" : "106",
         "sourceId" : "4",
         "tags" : "Relationship"
       }, {
         "description" : "Assigns and reassigns Event Coordinators.",
         "destinationId" : "8",
-        "id" : "64",
+        "id" : "120",
         "sourceId" : "4",
         "tags" : "Relationship",
         "technology" : "HTTPS"
@@ -108,20 +108,20 @@
       "relationships" : [ {
         "description" : "Submits event and change requests; views confirmed arrangements.",
         "destinationId" : "7",
-        "id" : "47",
+        "id" : "101",
         "sourceId" : "5",
         "tags" : "Relationship"
       }, {
         "description" : "Drafts, submits and tracks their organisation's events.",
         "destinationId" : "8",
-        "id" : "59",
+        "id" : "115",
         "sourceId" : "5",
         "tags" : "Relationship",
         "technology" : "HTTPS"
       } ],
       "tags" : "Element,Person"
     }, {
-      "description" : "Participant. Registers for a confirmed event, may join the waiting list, may withdraw.",
+      "description" : "Participant. Registers for a confirmed event with a name and email, no account; withdraws by reference.",
       "group" : "Client & participants (external)",
       "id" : "6",
       "name" : "Attendee",
@@ -129,15 +129,15 @@
         "structurizr.dsl.identifier" : "attendee"
       },
       "relationships" : [ {
-        "description" : "Registers for confirmed events, joins the waiting list, withdraws.",
+        "description" : "Registers for confirmed events and withdraws.",
         "destinationId" : "7",
-        "id" : "48",
+        "id" : "102",
         "sourceId" : "6",
         "tags" : "Relationship"
       }, {
         "description" : "Registers for confirmed events and withdraws.",
         "destinationId" : "8",
-        "id" : "60",
+        "id" : "116",
         "sourceId" : "6",
         "tags" : "Relationship",
         "technology" : "HTTPS"
@@ -157,52 +157,196 @@
           },
           "relationships" : [ {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "15",
-            "id" : "110",
+            "destinationId" : "19",
+            "id" : "242",
             "sourceId" : "9",
             "tags" : "Relationship"
           }, {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "16",
-            "id" : "111",
+            "destinationId" : "20",
+            "id" : "243",
             "sourceId" : "9",
             "tags" : "Relationship"
           }, {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "26",
-            "id" : "112",
+            "destinationId" : "21",
+            "id" : "244",
             "sourceId" : "9",
             "tags" : "Relationship"
           }, {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "27",
-            "id" : "113",
+            "destinationId" : "40",
+            "id" : "245",
             "sourceId" : "9",
             "tags" : "Relationship"
           }, {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "28",
-            "id" : "114",
+            "destinationId" : "41",
+            "id" : "246",
             "sourceId" : "9",
             "tags" : "Relationship"
           }, {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "29",
-            "id" : "115",
+            "destinationId" : "42",
+            "id" : "247",
             "sourceId" : "9",
             "tags" : "Relationship"
           }, {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "34",
-            "id" : "116",
+            "destinationId" : "43",
+            "id" : "248",
             "sourceId" : "9",
             "tags" : "Relationship"
           }, {
             "description" : "Constructs it with its adapters.",
-            "destinationId" : "35",
-            "id" : "117",
+            "destinationId" : "44",
+            "id" : "249",
             "sourceId" : "9",
             "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "45",
+            "id" : "250",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "46",
+            "id" : "251",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "47",
+            "id" : "252",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "50",
+            "id" : "253",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "51",
+            "id" : "254",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "52",
+            "id" : "255",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "53",
+            "id" : "256",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "56",
+            "id" : "257",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "57",
+            "id" : "258",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "58",
+            "id" : "259",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "59",
+            "id" : "260",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "60",
+            "id" : "261",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "75",
+            "id" : "262",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "76",
+            "id" : "263",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "77",
+            "id" : "264",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "78",
+            "id" : "265",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "79",
+            "id" : "266",
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "68",
+            "id" : "279",
+            "sourceId" : "9",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "69",
+            "id" : "280",
+            "sourceId" : "9",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "63",
+            "id" : "302",
+            "sourceId" : "9",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "64",
+            "id" : "303",
+            "sourceId" : "9",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "65",
+            "id" : "304",
+            "sourceId" : "9",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "48",
+            "id" : "305",
+            "sourceId" : "9",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Constructs it with its adapters.",
+            "destinationId" : "66",
+            "id" : "309",
+            "sourceId" : "9",
+            "tags" : "Relationship,Unmerged"
           } ],
           "tags" : "Element,Component,Composition Root",
           "technology" : "src/composition/container.ts"
@@ -218,196 +362,372 @@
           "tags" : "Element,Component,Port",
           "technology" : "src/core/ports/outbound"
         }, {
-          "description" : "Adapter. The real clock.",
+          "description" : "Port. Records who did what and when.",
           "documentation" : { },
           "group" : "Shared Platform",
           "id" : "11",
-          "name" : "SystemClock",
+          "name" : "AuditLogger",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.audit_logger_port"
+          },
+          "tags" : "Element,Component,Port",
+          "technology" : "src/core/ports/outbound"
+        }, {
+          "description" : "Adapter. The real clock.",
+          "documentation" : { },
+          "group" : "Shared Platform",
+          "id" : "12",
+          "name" : "systemClock",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.system_clock_ad"
           },
           "relationships" : [ {
             "description" : "Implements.",
             "destinationId" : "10",
-            "id" : "102",
-            "sourceId" : "11",
+            "id" : "221",
+            "sourceId" : "12",
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/system"
         }, {
-          "description" : "Adapters. Map-backed stand-in for every port; the test suite plugs these in instead of Supabase.",
+          "description" : "Adapter. Inserts audit_record rows as the service role.",
           "documentation" : { },
           "group" : "Shared Platform",
-          "id" : "12",
+          "id" : "13",
+          "name" : "SupabaseAuditLogger",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_audit_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements.",
+            "destinationId" : "11",
+            "id" : "222",
+            "sourceId" : "13",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Inserts audit records, as the service role.",
+            "destinationId" : "97",
+            "id" : "321",
+            "sourceId" : "13",
+            "tags" : "Relationship",
+            "technology" : "PostgREST"
+          } ],
+          "tags" : "Element,Component,Driven Adapter",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Adapters. Map-backed stand-ins for the ports; the test suite plugs these in instead of Supabase.",
+          "documentation" : { },
+          "group" : "Shared Platform",
+          "id" : "14",
           "name" : "In-memory adapters",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.in_memory_ad"
           },
           "relationships" : [ {
             "description" : "Implements, for tests.",
-            "destinationId" : "19",
-            "id" : "104",
-            "sourceId" : "12",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Implements, for tests.",
-            "destinationId" : "20",
-            "id" : "105",
-            "sourceId" : "12",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Implements, for tests.",
-            "destinationId" : "31",
-            "id" : "106",
-            "sourceId" : "12",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Implements, for tests.",
-            "destinationId" : "37",
-            "id" : "107",
-            "sourceId" : "12",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Implements, for tests.",
             "destinationId" : "10",
-            "id" : "108",
-            "sourceId" : "12",
+            "id" : "232",
+            "sourceId" : "14",
             "tags" : "Relationship"
           }, {
             "description" : "Implements, for tests.",
-            "destinationId" : "39",
-            "id" : "109",
-            "sourceId" : "12",
+            "destinationId" : "23",
+            "id" : "233",
+            "sourceId" : "14",
             "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "24",
+            "id" : "234",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "28",
+            "id" : "235",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "29",
+            "id" : "236",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "30",
+            "id" : "237",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "61",
+            "id" : "238",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "83",
+            "id" : "239",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "84",
+            "id" : "240",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "87",
+            "id" : "241",
+            "sourceId" : "14",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "71",
+            "id" : "278",
+            "sourceId" : "14",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Implements, for tests.",
+            "destinationId" : "35",
+            "id" : "301",
+            "sourceId" : "14",
+            "tags" : "Relationship,Unmerged"
           } ],
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/in-memory"
         }, {
-          "description" : "Driving adapter. Parses credentials, delegates, routes to the role's landing page.",
+          "description" : "Driving adapter. Parses credentials, delegates, routes to the landing page.",
           "documentation" : { },
           "group" : "Identity & Access",
-          "id" : "13",
-          "name" : "Login page + sign-in action",
+          "id" : "15",
+          "name" : "Login page + login action",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.login_ui"
           },
           "relationships" : [ {
             "description" : "Delegates the parsed credentials.",
-            "destinationId" : "15",
-            "id" : "67",
-            "sourceId" : "13",
+            "destinationId" : "19",
+            "id" : "125",
+            "sourceId" : "15",
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component,Driving Adapter",
-          "technology" : "src/app"
+          "technology" : "src/app/auth/login"
         }, {
           "description" : "Driving adapter. Ends the session and returns to the login page.",
           "documentation" : { },
           "group" : "Identity & Access",
-          "id" : "14",
-          "name" : "Sign-out action",
+          "id" : "16",
+          "name" : "Logout action",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.logout_ui"
           },
           "relationships" : [ {
             "description" : "Ends the session.",
-            "destinationId" : "16",
-            "id" : "68",
-            "sourceId" : "14",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Driving Adapter",
-          "technology" : "src/app"
-        }, {
-          "description" : "Verifies credentials, opens a session, resolves the caller's role.",
-          "documentation" : { },
-          "group" : "Identity & Access",
-          "id" : "15",
-          "name" : "LogInUseCase",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.log_in_uc"
-          },
-          "relationships" : [ {
-            "description" : "Resolves the account's role and organisation.",
-            "destinationId" : "17",
-            "id" : "75",
-            "sourceId" : "15",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Verifies credentials and opens a session.",
-            "destinationId" : "19",
-            "id" : "83",
-            "sourceId" : "15",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Loads the account behind the credentials.",
             "destinationId" : "20",
-            "id" : "84",
-            "sourceId" : "15",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Use Case",
-          "technology" : "src/core/use-cases"
-        }, {
-          "description" : "Ends the session so a protected page cannot be reopened.",
-          "documentation" : { },
-          "group" : "Identity & Access",
-          "id" : "16",
-          "name" : "LogOutUseCase",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.log_out_uc"
-          },
-          "relationships" : [ {
-            "description" : "Clears the session.",
-            "destinationId" : "19",
-            "id" : "85",
+            "id" : "126",
             "sourceId" : "16",
             "tags" : "Relationship"
           } ],
-          "tags" : "Element,Component,Use Case",
-          "technology" : "src/core/use-cases"
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/auth/logout"
         }, {
-          "description" : "Domain. Role and client-organisation binding for one account.",
+          "description" : "Driving adapter. Refreshes the session; sends /staff visitors without one to login.",
           "documentation" : { },
           "group" : "Identity & Access",
           "id" : "17",
-          "name" : "UserAccount",
+          "name" : "Session middleware",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.user_account_e"
+            "structurizr.dsl.identifier" : "epvbs.web.session_mw_ui"
           },
-          "tags" : "Element,Component,Domain",
-          "technology" : "src/core/domain"
+          "relationships" : [ {
+            "description" : "Refreshes the session; redirects /staff without one.",
+            "destinationId" : "98",
+            "id" : "127",
+            "sourceId" : "17",
+            "tags" : "Relationship",
+            "technology" : "Supabase Auth"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/middleware.ts"
         }, {
-          "description" : "Domain. Organisation-wide view, responsible-Organiser edit. The rule behind every scoped read.",
+          "description" : "Driving adapter. Shows a staff page only to its own role, with that role's queue.",
           "documentation" : { },
           "group" : "Identity & Access",
           "id" : "18",
-          "name" : "AccessPolicy",
+          "name" : "Staff shell",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.access_policy_e"
+            "structurizr.dsl.identifier" : "epvbs.web.staff_shell_ui"
+          },
+          "relationships" : [ {
+            "description" : "Resolves the signed-in staff member and their workspaces.",
+            "destinationId" : "21",
+            "id" : "128",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the Organiser's queue.",
+            "destinationId" : "43",
+            "id" : "129",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the Operations queue.",
+            "destinationId" : "50",
+            "id" : "130",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the Coordinator list.",
+            "destinationId" : "52",
+            "id" : "131",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the Coordinator's queue.",
+            "destinationId" : "56",
+            "id" : "132",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the Coordinator's archive.",
+            "destinationId" : "57",
+            "id" : "133",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the Coordinator's events.",
+            "destinationId" : "60",
+            "id" : "134",
+            "sourceId" : "18",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/staff/staff-shell.tsx"
+        }, {
+          "description" : "Verifies credentials, opens a session, picks the landing page.",
+          "documentation" : { },
+          "group" : "Identity & Access",
+          "id" : "19",
+          "name" : "LoginUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.login_uc"
+          },
+          "relationships" : [ {
+            "description" : "Picks the landing page for the account's roles.",
+            "destinationId" : "22",
+            "id" : "157",
+            "sourceId" : "19",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Verifies credentials and opens a session.",
+            "destinationId" : "23",
+            "id" : "180",
+            "sourceId" : "19",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Loads the account behind the credentials.",
+            "destinationId" : "24",
+            "id" : "181",
+            "sourceId" : "19",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Ends the session and records the logout.",
+          "documentation" : { },
+          "group" : "Identity & Access",
+          "id" : "20",
+          "name" : "LogoutUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.logout_uc"
+          },
+          "relationships" : [ {
+            "description" : "Reads, then ends, the session.",
+            "destinationId" : "23",
+            "id" : "182",
+            "sourceId" : "20",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Looks up who is logging out.",
+            "destinationId" : "24",
+            "id" : "183",
+            "sourceId" : "20",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Records the logout.",
+            "destinationId" : "11",
+            "id" : "184",
+            "sourceId" : "20",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Resolves the signed-in staff member, their workspaces and context.",
+          "documentation" : { },
+          "group" : "Identity & Access",
+          "id" : "21",
+          "name" : "IdentifyStaffMemberUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.identify_staff_uc"
+          },
+          "relationships" : [ {
+            "description" : "Derives the workspaces and the Organiser or Coordinator context.",
+            "destinationId" : "22",
+            "id" : "158",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the current session.",
+            "destinationId" : "23",
+            "id" : "185",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Loads the account and its roles.",
+            "destinationId" : "24",
+            "id" : "186",
+            "sourceId" : "21",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Domain. Maps roles to workspaces, the landing page, and the Organiser and Coordinator contexts.",
+          "documentation" : { },
+          "group" : "Identity & Access",
+          "id" : "22",
+          "name" : "staff-member",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.staff_member_e"
           },
           "tags" : "Element,Component,Domain",
           "technology" : "src/core/domain"
         }, {
-          "description" : "Port. Verifies credentials, opens and clears sessions. Mechanism undecided [?].",
+          "description" : "Port. Logs in, reads the session, logs out.",
           "documentation" : { },
           "group" : "Identity & Access",
-          "id" : "19",
-          "name" : "AuthenticationGateway [?]",
+          "id" : "23",
+          "name" : "AuthPort",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.auth_gateway_port"
+            "structurizr.dsl.identifier" : "epvbs.web.auth_port"
           },
           "tags" : "Element,Component,Port",
           "technology" : "src/core/ports/outbound"
         }, {
-          "description" : "Port. Looks up accounts and roles, and lists the Coordinators a manager may pick from.",
+          "description" : "Port. Finds the account and roles behind an auth user.",
           "documentation" : { },
           "group" : "Identity & Access",
-          "id" : "20",
-          "name" : "UserDirectory",
+          "id" : "24",
+          "name" : "UserRepository",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.user_directory_port"
+            "structurizr.dsl.identifier" : "epvbs.web.user_repository_port"
           },
           "tags" : "Element,Component,Port",
           "technology" : "src/core/ports/outbound"
@@ -415,385 +735,1460 @@
           "description" : "Adapter. Supabase Auth, cookie sessions via @supabase/ssr.",
           "documentation" : { },
           "group" : "Identity & Access",
-          "id" : "21",
-          "name" : "SupabaseAuthGateway [?]",
+          "id" : "25",
+          "name" : "SupabaseAuthAdapter",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.supabase_auth_ad"
           },
           "relationships" : [ {
             "description" : "Implements.",
-            "destinationId" : "19",
-            "id" : "98",
-            "sourceId" : "21",
+            "destinationId" : "23",
+            "id" : "223",
+            "sourceId" : "25",
             "tags" : "Relationship"
           }, {
-            "description" : "Verifies credentials and refreshes sessions.",
-            "destinationId" : "45",
-            "id" : "121",
-            "sourceId" : "21",
+            "description" : "Signs in, reads claims, signs out.",
+            "destinationId" : "98",
+            "id" : "319",
+            "sourceId" : "25",
             "tags" : "Relationship",
             "technology" : "Supabase Auth"
           } ],
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/supabase"
         }, {
-          "description" : "Adapter. Account and role rows, translated to domain types.",
+          "description" : "Adapter. Account and role rows, read as the service role.",
           "documentation" : { },
           "group" : "Identity & Access",
-          "id" : "22",
-          "name" : "SupabaseUserDirectory",
+          "id" : "26",
+          "name" : "SupabaseUserRepository",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.supabase_users_ad"
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_user_ad"
           },
           "relationships" : [ {
             "description" : "Implements.",
-            "destinationId" : "20",
-            "id" : "99",
-            "sourceId" : "22",
+            "destinationId" : "24",
+            "id" : "224",
+            "sourceId" : "26",
             "tags" : "Relationship"
           }, {
-            "description" : "Reads account and role rows.",
-            "destinationId" : "44",
-            "id" : "120",
-            "sourceId" : "22",
+            "description" : "Reads the account and its roles, as the service role.",
+            "destinationId" : "97",
+            "id" : "320",
+            "sourceId" : "26",
             "tags" : "Relationship",
             "technology" : "PostgREST"
           } ],
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/supabase"
         }, {
-          "description" : "Driving adapter. Save-draft and submit actions; turns field errors into messages.",
+          "description" : "Domain. Draft, Submitted, Under Review, Approved or Rejected; who may see, edit, assign and decide.",
           "documentation" : { },
-          "group" : "Events",
-          "id" : "23",
-          "name" : "Event request form",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.event_form_ui"
-          },
-          "relationships" : [ {
-            "description" : "Saves the draft.",
-            "destinationId" : "26",
-            "id" : "69",
-            "sourceId" : "23",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Submits the request.",
-            "destinationId" : "27",
-            "id" : "70",
-            "sourceId" : "23",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Driving Adapter",
-          "technology" : "src/app"
-        }, {
-          "description" : "Driving adapter. The Organiser's organisation-scoped read.",
-          "documentation" : { },
-          "group" : "Events",
-          "id" : "24",
-          "name" : "Event list + detail pages",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.event_list_ui"
-          },
-          "relationships" : [ {
-            "description" : "Reads the organisation's events.",
-            "destinationId" : "29",
-            "id" : "71",
-            "sourceId" : "24",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Driving Adapter",
-          "technology" : "src/app"
-        }, {
-          "description" : "Driving adapter. Pending requests and the Coordinator picker, for the Operations Manager.",
-          "documentation" : { },
-          "group" : "Events",
-          "id" : "25",
-          "name" : "Assignment console",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.assignment_ui"
-          },
-          "relationships" : [ {
-            "description" : "Assigns or reassigns a Coordinator.",
-            "destinationId" : "28",
-            "id" : "72",
-            "sourceId" : "25",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Driving Adapter",
-          "technology" : "src/app"
-        }, {
-          "description" : "Stores an incomplete request as a Draft and returns it for later editing.",
-          "documentation" : { },
-          "group" : "Events",
-          "id" : "26",
-          "name" : "SaveEventRequestDraftUseCase",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.save_draft_uc"
-          },
-          "relationships" : [ {
-            "description" : "Builds a Draft.",
-            "destinationId" : "30",
-            "id" : "77",
-            "sourceId" : "26",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Saves the draft.",
-            "destinationId" : "31",
-            "id" : "86",
-            "sourceId" : "26",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Use Case",
-          "technology" : "src/core/use-cases"
-        }, {
-          "description" : "Submits a Draft once it is complete. Mandatory field set undecided [?].",
-          "documentation" : { },
-          "group" : "Events",
+          "group" : "Event Requests: shared",
           "id" : "27",
-          "name" : "SubmitEventRequestUseCase",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.submit_request_uc"
-          },
-          "relationships" : [ {
-            "description" : "Applies the submit transition.",
-            "destinationId" : "30",
-            "id" : "78",
-            "sourceId" : "27",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Saves the submitted request.",
-            "destinationId" : "31",
-            "id" : "87",
-            "sourceId" : "27",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Stamps the submission time.",
-            "destinationId" : "10",
-            "id" : "88",
-            "sourceId" : "27",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Use Case",
-          "technology" : "src/core/use-cases"
-        }, {
-          "description" : "Attaches or replaces the responsible Coordinator. Takes effect immediately, no acceptance step.",
-          "documentation" : { },
-          "group" : "Events",
-          "id" : "28",
-          "name" : "AssignCoordinatorUseCase",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.assign_coordinator_uc"
-          },
-          "relationships" : [ {
-            "description" : "Applies the assignment.",
-            "destinationId" : "30",
-            "id" : "79",
-            "sourceId" : "28",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Lists the Coordinators a manager may pick from.",
-            "destinationId" : "20",
-            "id" : "89",
-            "sourceId" : "28",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Records the assignment.",
-            "destinationId" : "31",
-            "id" : "90",
-            "sourceId" : "28",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Announces the assignment to the assignee. [?]",
-            "destinationId" : "39",
-            "id" : "91",
-            "sourceId" : "28",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Use Case",
-          "technology" : "src/core/use-cases"
-        }, {
-          "description" : "Lists the events of the caller's client organisation, with per-event edit rights.",
-          "documentation" : { },
-          "group" : "Events",
-          "id" : "29",
-          "name" : "ListOrganisationEventsUseCase",
-          "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.list_events_uc"
-          },
-          "relationships" : [ {
-            "description" : "Asks what this caller may see and edit.",
-            "destinationId" : "18",
-            "id" : "76",
-            "sourceId" : "29",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Lists the organisation's events.",
-            "destinationId" : "31",
-            "id" : "92",
-            "sourceId" : "29",
-            "tags" : "Relationship"
-          } ],
-          "tags" : "Element,Component,Use Case",
-          "technology" : "src/core/use-cases"
-        }, {
-          "description" : "Domain. Draft to Submitted to Assigned, and what each transition requires.",
-          "documentation" : { },
-          "group" : "Events",
-          "id" : "30",
-          "name" : "EventRequest",
+          "name" : "event-request",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.event_request_e"
           },
           "tags" : "Element,Component,Domain",
           "technology" : "src/core/domain"
         }, {
-          "description" : "Port. Finds one event, lists an organisation's events, saves a request.",
+          "description" : "Port. Lists, finds and saves requests; records assignment, reassignment and decisions.",
           "documentation" : { },
-          "group" : "Events",
-          "id" : "31",
-          "name" : "EventRepository",
+          "group" : "Event Requests: shared",
+          "id" : "28",
+          "name" : "EventRequestRepository",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.event_repository_port"
+            "structurizr.dsl.identifier" : "epvbs.web.event_request_repository_port"
           },
           "tags" : "Element,Component,Port",
           "technology" : "src/core/ports/outbound"
         }, {
-          "description" : "Adapter. Event rows; snake_case columns and ISO dates stop here.",
+          "description" : "Port. Names accounts; lists an organisation's Organisers and every Coordinator.",
           "documentation" : { },
-          "group" : "Events",
-          "id" : "32",
-          "name" : "SupabaseEventRepository",
+          "group" : "Event Requests: shared",
+          "id" : "29",
+          "name" : "UserAccountRepository",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.supabase_events_ad"
+            "structurizr.dsl.identifier" : "epvbs.web.user_account_repository_port"
+          },
+          "tags" : "Element,Component,Port",
+          "technology" : "src/core/ports/outbound"
+        }, {
+          "description" : "Port. Names client organisations.",
+          "documentation" : { },
+          "group" : "Event Requests: shared",
+          "id" : "30",
+          "name" : "ClientOrganisationRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.client_org_repository_port"
+          },
+          "tags" : "Element,Component,Port",
+          "technology" : "src/core/ports/outbound"
+        }, {
+          "description" : "Adapter. Event request RPCs; snake_case columns and ISO dates stop here.",
+          "documentation" : { },
+          "group" : "Event Requests: shared",
+          "id" : "31",
+          "name" : "SupabaseEventRequestRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_event_requests_ad"
           },
           "relationships" : [ {
             "description" : "Implements.",
-            "destinationId" : "31",
-            "id" : "100",
-            "sourceId" : "32",
+            "destinationId" : "28",
+            "id" : "225",
+            "sourceId" : "31",
             "tags" : "Relationship"
           }, {
-            "description" : "Reads and writes event rows.",
-            "destinationId" : "44",
-            "id" : "118",
-            "sourceId" : "32",
+            "description" : "Reads and writes event requests.",
+            "destinationId" : "97",
+            "id" : "322",
+            "sourceId" : "31",
             "tags" : "Relationship",
-            "technology" : "PostgREST"
+            "technology" : "PostgREST RPC"
           } ],
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/supabase"
         }, {
-          "description" : "Driving adapter. Register and withdraw actions on a confirmed event.",
+          "description" : "Adapter. Account name, Organiser and Coordinator RPCs.",
           "documentation" : { },
-          "group" : "Registration",
-          "id" : "33",
-          "name" : "Event registration page",
+          "group" : "Event Requests: shared",
+          "id" : "32",
+          "name" : "SupabaseUserAccountRepository",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.registration_ui"
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_user_accounts_ad"
           },
           "relationships" : [ {
-            "description" : "Registers the Attendee.",
-            "destinationId" : "34",
-            "id" : "73",
+            "description" : "Implements.",
+            "destinationId" : "29",
+            "id" : "226",
+            "sourceId" : "32",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads account names, Organisers and Coordinators.",
+            "destinationId" : "97",
+            "id" : "323",
+            "sourceId" : "32",
+            "tags" : "Relationship",
+            "technology" : "PostgREST RPC"
+          } ],
+          "tags" : "Element,Component,Driven Adapter",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Adapter. The organisation-name RPC.",
+          "documentation" : { },
+          "group" : "Event Requests: shared",
+          "id" : "33",
+          "name" : "SupabaseClientOrganisationRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_client_orgs_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements.",
+            "destinationId" : "30",
+            "id" : "227",
             "sourceId" : "33",
             "tags" : "Relationship"
           }, {
-            "description" : "Withdraws the registration.",
-            "destinationId" : "35",
-            "id" : "74",
+            "description" : "Reads organisation names.",
+            "destinationId" : "97",
+            "id" : "324",
             "sourceId" : "33",
+            "tags" : "Relationship",
+            "technology" : "PostgREST RPC"
+          } ],
+          "tags" : "Element,Component,Driven Adapter",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Domain. Which clarification is still open, and which one a reply resolves. PR #57.",
+          "documentation" : { },
+          "group" : "Event Requests: shared",
+          "id" : "34",
+          "name" : "clarification-message",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.clarification_message_e"
+          },
+          "tags" : "Element,Component,Domain,Unmerged",
+          "technology" : "src/core/domain"
+        }, {
+          "description" : "Port. Reads, appends to and resolves a request's clarification thread. PR #57.",
+          "documentation" : { },
+          "group" : "Event Requests: shared",
+          "id" : "35",
+          "name" : "ClarificationThreadRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.clarification_thread_port"
+          },
+          "tags" : "Element,Component,Port,Unmerged",
+          "technology" : "src/core/ports/outbound"
+        }, {
+          "description" : "Adapter. The clarification-thread RPCs. PR #57.",
+          "documentation" : { },
+          "group" : "Event Requests: shared",
+          "id" : "36",
+          "name" : "SupabaseClarificationThreadRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_clarification_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements.",
+            "destinationId" : "35",
+            "id" : "299",
+            "sourceId" : "36",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Reads and writes the clarification thread.",
+            "destinationId" : "97",
+            "id" : "300",
+            "sourceId" : "36",
+            "tags" : "Relationship,Unmerged",
+            "technology" : "PostgREST RPC"
+          } ],
+          "tags" : "Element,Component,Driven Adapter,Unmerged",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Driving adapter. Save draft, submit and discard, as the signed-in Organiser.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "37",
+          "name" : "New request form + actions",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.request_form_ui"
+          },
+          "relationships" : [ {
+            "description" : "Saves the draft.",
+            "destinationId" : "40",
+            "id" : "135",
+            "sourceId" : "37",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Submits the request.",
+            "destinationId" : "41",
+            "id" : "136",
+            "sourceId" : "37",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Discards the draft.",
+            "destinationId" : "42",
+            "id" : "137",
+            "sourceId" : "37",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Loads a draft to keep editing.",
+            "destinationId" : "44",
+            "id" : "138",
+            "sourceId" : "37",
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component,Driving Adapter",
-          "technology" : "src/app"
+          "technology" : "src/app/staff/requester/new"
         }, {
-          "description" : "Registers an Attendee when the event is Confirmed, open, and not yet full.",
+          "description" : "Driving adapter. The Organiser's own requests, and one request.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "38",
+          "name" : "My requests + request detail",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.my_requests_ui"
+          },
+          "relationships" : [ {
+            "description" : "Lists the Organiser's requests.",
+            "destinationId" : "43",
+            "id" : "139",
+            "sourceId" : "38",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads one request.",
+            "destinationId" : "44",
+            "id" : "140",
+            "sourceId" : "38",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Posts the Organiser's reply.",
+            "destinationId" : "48",
+            "id" : "284",
+            "sourceId" : "38",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/staff/requester"
+        }, {
+          "description" : "Driving adapter. The organisation's requests; hands one to another Organiser.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "39",
+          "name" : "Organisation requests + reassign",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.org_requests_ui"
+          },
+          "relationships" : [ {
+            "description" : "Lists the organisation's requests.",
+            "destinationId" : "45",
+            "id" : "141",
+            "sourceId" : "39",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists who a request can go to.",
+            "destinationId" : "47",
+            "id" : "142",
+            "sourceId" : "39",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Hands the request to another Organiser.",
+            "destinationId" : "46",
+            "id" : "143",
+            "sourceId" : "39",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/staff/requester/organisation"
+        }, {
+          "description" : "Creates or updates the Organiser's Draft.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "40",
+          "name" : "SaveEventRequestDraftUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.save_draft_uc"
+          },
+          "relationships" : [ {
+            "description" : "Builds the Draft and checks edit rights.",
+            "destinationId" : "27",
+            "id" : "159",
+            "sourceId" : "40",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Saves the draft.",
+            "destinationId" : "28",
+            "id" : "187",
+            "sourceId" : "40",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Submits a new request or a Draft once complete. Mandatory field set undecided [?].",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "41",
+          "name" : "SubmitEventRequestUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.submit_request_uc"
+          },
+          "relationships" : [ {
+            "description" : "Applies the submit rules: complete, future date, end after start.",
+            "destinationId" : "27",
+            "id" : "160",
+            "sourceId" : "41",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Saves the submitted request.",
+            "destinationId" : "28",
+            "id" : "188",
+            "sourceId" : "41",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads today for the future-date rule.",
+            "destinationId" : "10",
+            "id" : "189",
+            "sourceId" : "41",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Deletes the Organiser's own Draft.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "42",
+          "name" : "DiscardEventRequestDraftUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.discard_draft_uc"
+          },
+          "relationships" : [ {
+            "description" : "Checks the caller may still edit it.",
+            "destinationId" : "27",
+            "id" : "161",
+            "sourceId" : "42",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Deletes the draft.",
+            "destinationId" : "28",
+            "id" : "190",
+            "sourceId" : "42",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Lists the requests the Organiser raised. Thin read.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "43",
+          "name" : "ViewMyEventRequestsUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_my_requests_uc"
+          },
+          "relationships" : [ {
+            "description" : "Lists the requests the Organiser raised.",
+            "destinationId" : "28",
+            "id" : "191",
+            "sourceId" : "43",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Reads one request for an Organiser in the same organisation.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "44",
+          "name" : "ViewOrganiserEventRequestUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_organiser_request_uc"
+          },
+          "relationships" : [ {
+            "description" : "Checks the caller's organisation may see it.",
+            "destinationId" : "27",
+            "id" : "162",
+            "sourceId" : "44",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Finds the request.",
+            "destinationId" : "28",
+            "id" : "192",
+            "sourceId" : "44",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the thread.",
+            "destinationId" : "35",
+            "id" : "298",
+            "sourceId" : "44",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Lists the organisation's requests, each with edit rights.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "45",
+          "name" : "ViewOrganisationEventRequestsUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_org_requests_uc"
+          },
+          "relationships" : [ {
+            "description" : "Asks what this caller may edit.",
+            "destinationId" : "27",
+            "id" : "163",
+            "sourceId" : "45",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists the organisation's requests.",
+            "destinationId" : "28",
+            "id" : "193",
+            "sourceId" : "45",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Hands a request to another Organiser in the organisation.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "46",
+          "name" : "ChangeEventOrganiserUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.change_organiser_uc"
+          },
+          "relationships" : [ {
+            "description" : "Replaces the responsible Organiser.",
+            "destinationId" : "27",
+            "id" : "164",
+            "sourceId" : "46",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Records the new responsible Organiser.",
+            "destinationId" : "28",
+            "id" : "194",
+            "sourceId" : "46",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Lists who a request can be handed to. Thin read.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "47",
+          "name" : "ListOrganisationOrganisersUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.list_org_organisers_uc"
+          },
+          "relationships" : [ {
+            "description" : "Lists the organisation's Organisers.",
+            "destinationId" : "29",
+            "id" : "195",
+            "sourceId" : "47",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Posts the Organiser's reply to a clarification. PR #57.",
+          "documentation" : { },
+          "group" : "Event Requests: Organiser",
+          "id" : "48",
+          "name" : "PostClarificationMessageUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.post_clarification_uc"
+          },
+          "relationships" : [ {
+            "description" : "Checks the request can still be discussed.",
+            "destinationId" : "27",
+            "id" : "288",
+            "sourceId" : "48",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Finds the request.",
+            "destinationId" : "28",
+            "id" : "293",
+            "sourceId" : "48",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Appends the message.",
+            "destinationId" : "35",
+            "id" : "294",
+            "sourceId" : "48",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case,Unmerged",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Driving adapter. One request and the Coordinator picker.",
+          "documentation" : { },
+          "group" : "Event Requests: Operations",
+          "id" : "49",
+          "name" : "Assignment console + assign action",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.ops_console_ui"
+          },
+          "relationships" : [ {
+            "description" : "Reads one request and whether it can be assigned.",
+            "destinationId" : "51",
+            "id" : "144",
+            "sourceId" : "49",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists the Coordinators to pick from.",
+            "destinationId" : "52",
+            "id" : "145",
+            "sourceId" : "49",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Assigns or reassigns a Coordinator.",
+            "destinationId" : "53",
+            "id" : "146",
+            "sourceId" : "49",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/staff/ops"
+        }, {
+          "description" : "Lists every request except Drafts, as unassigned or assigned.",
+          "documentation" : { },
+          "group" : "Event Requests: Operations",
+          "id" : "50",
+          "name" : "ViewAllEventRequestsUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_all_requests_uc"
+          },
+          "relationships" : [ {
+            "description" : "Hides Drafts; splits unassigned from assigned.",
+            "destinationId" : "27",
+            "id" : "165",
+            "sourceId" : "50",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists every request.",
+            "destinationId" : "28",
+            "id" : "196",
+            "sourceId" : "50",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Reads one request and whether a Coordinator can be assigned.",
+          "documentation" : { },
+          "group" : "Event Requests: Operations",
+          "id" : "51",
+          "name" : "ViewOperationsEventRequestUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_ops_request_uc"
+          },
+          "relationships" : [ {
+            "description" : "Hides Drafts; asks whether a Coordinator can be assigned.",
+            "destinationId" : "27",
+            "id" : "166",
+            "sourceId" : "51",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Finds the request.",
+            "destinationId" : "28",
+            "id" : "197",
+            "sourceId" : "51",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Lists every Coordinator. Thin read.",
+          "documentation" : { },
+          "group" : "Event Requests: Operations",
+          "id" : "52",
+          "name" : "ViewAllEventCoordinatorsUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_all_coordinators_uc"
+          },
+          "relationships" : [ {
+            "description" : "Lists every Coordinator.",
+            "destinationId" : "29",
+            "id" : "198",
+            "sourceId" : "52",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Attaches or replaces the Coordinator. Immediate, no acceptance step.",
+          "documentation" : { },
+          "group" : "Event Requests: Operations",
+          "id" : "53",
+          "name" : "AssignEventCoordinatorUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.assign_coordinator_uc"
+          },
+          "relationships" : [ {
+            "description" : "Applies the assignment: Submitted to Under Review.",
+            "destinationId" : "27",
+            "id" : "167",
+            "sourceId" : "53",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Checks the assignee is a Coordinator.",
+            "destinationId" : "29",
+            "id" : "199",
+            "sourceId" : "53",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Records the assignment.",
+            "destinationId" : "28",
+            "id" : "200",
+            "sourceId" : "53",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Tells the newly assigned Coordinator.",
+            "destinationId" : "87",
+            "id" : "310",
+            "sourceId" : "53",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Names the organisation for the notice.",
+            "destinationId" : "30",
+            "id" : "311",
+            "sourceId" : "53",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Driving adapter. Assigned requests and the approve or reject form.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "54",
+          "name" : "Coordinator queue, archive + request detail",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.coord_requests_ui"
+          },
+          "relationships" : [ {
+            "description" : "Lists requests awaiting review.",
+            "destinationId" : "56",
+            "id" : "147",
+            "sourceId" : "54",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists rejected and withdrawn requests.",
+            "destinationId" : "57",
+            "id" : "148",
+            "sourceId" : "54",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads one assigned request.",
+            "destinationId" : "58",
+            "id" : "149",
+            "sourceId" : "54",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Approves or rejects.",
+            "destinationId" : "59",
+            "id" : "150",
+            "sourceId" : "54",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Returns the request with a question.",
+            "destinationId" : "63",
+            "id" : "281",
+            "sourceId" : "54",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Posts a message on the thread.",
+            "destinationId" : "64",
+            "id" : "282",
+            "sourceId" : "54",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Resolves a clarification.",
+            "destinationId" : "65",
+            "id" : "283",
+            "sourceId" : "54",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Records the withdrawal.",
+            "destinationId" : "66",
+            "id" : "306",
+            "sourceId" : "54",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/staff/coordinator"
+        }, {
+          "description" : "Driving adapter. The events the Coordinator is running.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "55",
+          "name" : "My events",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.coord_events_ui"
+          },
+          "relationships" : [ {
+            "description" : "Lists the Coordinator's events.",
+            "destinationId" : "60",
+            "id" : "151",
+            "sourceId" : "55",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/staff/coordinator/events"
+        }, {
+          "description" : "Lists requests assigned to the caller and awaiting review.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "56",
+          "name" : "ViewAssignedEventRequestsUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_assigned_requests_uc"
+          },
+          "relationships" : [ {
+            "description" : "Places each request in the Coordinator's queue.",
+            "destinationId" : "27",
+            "id" : "168",
+            "sourceId" : "56",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists the requests assigned to the caller.",
+            "destinationId" : "28",
+            "id" : "201",
+            "sourceId" : "56",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Names the client organisations.",
+            "destinationId" : "30",
+            "id" : "202",
+            "sourceId" : "56",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Lists the caller's rejected and withdrawn requests.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "57",
+          "name" : "ViewArchivedEventRequestsUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_archived_uc"
+          },
+          "relationships" : [ {
+            "description" : "Places each request in the archive.",
+            "destinationId" : "27",
+            "id" : "169",
+            "sourceId" : "57",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists the requests assigned to the caller.",
+            "destinationId" : "28",
+            "id" : "203",
+            "sourceId" : "57",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Names the client organisations.",
+            "destinationId" : "30",
+            "id" : "204",
+            "sourceId" : "57",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Reads one request, only for the Coordinator assigned to it.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "58",
+          "name" : "ViewAssignedEventRequestUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_assigned_request_uc"
+          },
+          "relationships" : [ {
+            "description" : "Refuses anyone but the assigned Coordinator.",
+            "destinationId" : "27",
+            "id" : "170",
+            "sourceId" : "58",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Finds the request.",
+            "destinationId" : "28",
+            "id" : "205",
+            "sourceId" : "58",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Names the client organisation.",
+            "destinationId" : "30",
+            "id" : "206",
+            "sourceId" : "58",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Names the responsible Organiser.",
+            "destinationId" : "29",
+            "id" : "207",
+            "sourceId" : "58",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the thread.",
+            "destinationId" : "35",
+            "id" : "297",
+            "sourceId" : "58",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Approves or rejects. Approval opens the Event in Planning.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "59",
+          "name" : "DecideEventRequestUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.decide_request_uc"
+          },
+          "relationships" : [ {
+            "description" : "Applies approval or rejection; rejection needs a reason.",
+            "destinationId" : "27",
+            "id" : "171",
+            "sourceId" : "59",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Records the decision; approval opens the Event.",
+            "destinationId" : "28",
+            "id" : "208",
+            "sourceId" : "59",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Lists the caller's events, whatever their status. Thin read.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "60",
+          "name" : "ViewAssignedEventsUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_assigned_events_uc"
+          },
+          "relationships" : [ {
+            "description" : "Lists the caller's events.",
+            "destinationId" : "61",
+            "id" : "209",
+            "sourceId" : "60",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Port. Lists the events a Coordinator is assigned to.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "61",
+          "name" : "CoordinatorEventRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.coordinator_event_repository_port"
+          },
+          "tags" : "Element,Component,Port",
+          "technology" : "src/core/ports/outbound"
+        }, {
+          "description" : "Adapter. The Coordinator's events RPC.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "62",
+          "name" : "SupabaseCoordinatorEventRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_coord_events_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements.",
+            "destinationId" : "61",
+            "id" : "228",
+            "sourceId" : "62",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads the Coordinator's events.",
+            "destinationId" : "97",
+            "id" : "325",
+            "sourceId" : "62",
+            "tags" : "Relationship",
+            "technology" : "PostgREST RPC"
+          } ],
+          "tags" : "Element,Component,Driven Adapter",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Returns a request to the Organiser with a question. PR #57.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "63",
+          "name" : "RequestClarificationUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.request_clarification_uc"
+          },
+          "relationships" : [ {
+            "description" : "Applies the return: to Returned.",
+            "destinationId" : "27",
+            "id" : "285",
+            "sourceId" : "63",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Records the return and its question.",
+            "destinationId" : "28",
+            "id" : "290",
+            "sourceId" : "63",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case,Unmerged",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Posts the Coordinator's message on the thread. PR #57.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "64",
+          "name" : "PostCoordinatorClarificationMessageUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.post_coord_clarification_uc"
+          },
+          "relationships" : [ {
+            "description" : "Checks the request can still be discussed.",
+            "destinationId" : "27",
+            "id" : "289",
+            "sourceId" : "64",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Finds the request.",
+            "destinationId" : "28",
+            "id" : "295",
+            "sourceId" : "64",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Appends the message.",
+            "destinationId" : "35",
+            "id" : "296",
+            "sourceId" : "64",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case,Unmerged",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Resolves one clarification; the last one puts the request back Under Review. PR #57.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "65",
+          "name" : "ResolveClarificationThreadUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.resolve_clarification_uc"
+          },
+          "relationships" : [ {
+            "description" : "Applies the resolve: back to Under Review.",
+            "destinationId" : "27",
+            "id" : "286",
+            "sourceId" : "65",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Finds the clarification a reply resolves.",
+            "destinationId" : "34",
+            "id" : "287",
+            "sourceId" : "65",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Records the resolve.",
+            "destinationId" : "28",
+            "id" : "291",
+            "sourceId" : "65",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Reads the thread.",
+            "destinationId" : "35",
+            "id" : "292",
+            "sourceId" : "65",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case,Unmerged",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Records that the Organiser withdrew a request. PRs #59-#62.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "66",
+          "name" : "WithdrawEventRequestUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.withdraw_request_uc"
+          },
+          "relationships" : [ {
+            "description" : "Applies the withdrawal: to Withdrawn.",
+            "destinationId" : "27",
+            "id" : "307",
+            "sourceId" : "66",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Records the withdrawal.",
+            "destinationId" : "28",
+            "id" : "308",
+            "sourceId" : "66",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case,Unmerged",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Driving adapter. One event, what blocks it, and the confirm form. PR #55.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "67",
+          "name" : "Event detail + confirm action",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.coord_event_detail_ui"
+          },
+          "relationships" : [ {
+            "description" : "Reads the event and what blocks it.",
+            "destinationId" : "68",
+            "id" : "267",
+            "sourceId" : "67",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Confirms the event.",
+            "destinationId" : "69",
+            "id" : "268",
+            "sourceId" : "67",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Driving Adapter,Unmerged",
+          "technology" : "src/app/staff/coordinator/events/[id]"
+        }, {
+          "description" : "Reads one of the caller's events with its readiness. PR #55.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "68",
+          "name" : "ViewCoordinatorEventUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_coord_event_uc"
+          },
+          "relationships" : [ {
+            "description" : "Finds the caller's event.",
+            "destinationId" : "61",
+            "id" : "269",
+            "sourceId" : "68",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Reads its essential arrangements.",
+            "destinationId" : "71",
+            "id" : "270",
+            "sourceId" : "68",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Names the client organisation.",
+            "destinationId" : "30",
+            "id" : "271",
+            "sourceId" : "68",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Names the people on the event.",
+            "destinationId" : "29",
+            "id" : "272",
+            "sourceId" : "68",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case,Unmerged",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Confirms a Planning event once no essential arrangement blocks it. PR #55.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "69",
+          "name" : "ConfirmEventUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.confirm_event_uc"
+          },
+          "relationships" : [ {
+            "description" : "Checks nothing blocks it; Planning to Confirmed.",
+            "destinationId" : "70",
+            "id" : "273",
+            "sourceId" : "69",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Reads its essential arrangements.",
+            "destinationId" : "71",
+            "id" : "274",
+            "sourceId" : "69",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Finds the event; records the confirmation.",
+            "destinationId" : "61",
+            "id" : "275",
+            "sourceId" : "69",
+            "tags" : "Relationship,Unmerged"
+          } ],
+          "tags" : "Element,Component,Use Case,Unmerged",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Domain. Which essential arrangements block confirmation; Planning to Confirmed. PR #55.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "70",
+          "name" : "event-readiness",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.event_readiness_e"
+          },
+          "tags" : "Element,Component,Domain,Unmerged",
+          "technology" : "src/core/domain"
+        }, {
+          "description" : "Port. Reads an event's essential arrangements. PR #55.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "71",
+          "name" : "EventReadinessRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.event_readiness_port"
+          },
+          "tags" : "Element,Component,Port,Unmerged",
+          "technology" : "src/core/ports/outbound"
+        }, {
+          "description" : "Adapter. The event-readiness RPC. PR #55.",
+          "documentation" : { },
+          "group" : "Event Requests: Coordinator",
+          "id" : "72",
+          "name" : "SupabaseEventReadinessRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_event_readiness_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements.",
+            "destinationId" : "71",
+            "id" : "276",
+            "sourceId" : "72",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Reads an event's arrangements.",
+            "destinationId" : "97",
+            "id" : "277",
+            "sourceId" : "72",
+            "tags" : "Relationship,Unmerged",
+            "technology" : "PostgREST RPC"
+          } ],
+          "tags" : "Element,Component,Driven Adapter,Unmerged",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Driving adapter. Browse open events and register for one.",
           "documentation" : { },
           "group" : "Registration",
-          "id" : "34",
+          "id" : "73",
+          "name" : "Event list + event page + register action",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.events_browse_ui"
+          },
+          "relationships" : [ {
+            "description" : "Lists events open for registration.",
+            "destinationId" : "75",
+            "id" : "152",
+            "sourceId" : "73",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads one open event.",
+            "destinationId" : "76",
+            "id" : "153",
+            "sourceId" : "73",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Registers the Attendee.",
+            "destinationId" : "77",
+            "id" : "154",
+            "sourceId" : "73",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/events"
+        }, {
+          "description" : "Driving adapter. The reference link: view the registration, withdraw.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "74",
+          "name" : "Registration page + withdraw action",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.registration_page_ui"
+          },
+          "relationships" : [ {
+            "description" : "Reads the registration by reference.",
+            "destinationId" : "78",
+            "id" : "155",
+            "sourceId" : "74",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Withdraws the registration.",
+            "destinationId" : "79",
+            "id" : "156",
+            "sourceId" : "74",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Driving Adapter",
+          "technology" : "src/app/registrations/[reference]"
+        }, {
+          "description" : "Lists the events an Attendee can register for now.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "75",
+          "name" : "ListEventsOpenForRegistrationUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.list_open_events_uc"
+          },
+          "relationships" : [ {
+            "description" : "Keeps the events open for registration.",
+            "destinationId" : "80",
+            "id" : "172",
+            "sourceId" : "75",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Lists Confirmed events.",
+            "destinationId" : "83",
+            "id" : "210",
+            "sourceId" : "75",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads now for the registration window.",
+            "destinationId" : "10",
+            "id" : "211",
+            "sourceId" : "75",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Reads one event, refused unless open for registration.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "76",
+          "name" : "ViewEventForRegistrationUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_event_for_registration_uc"
+          },
+          "relationships" : [ {
+            "description" : "Refuses an event not open for registration.",
+            "destinationId" : "80",
+            "id" : "173",
+            "sourceId" : "76",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Finds the event.",
+            "destinationId" : "83",
+            "id" : "212",
+            "sourceId" : "76",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads now for the registration window.",
+            "destinationId" : "10",
+            "id" : "213",
+            "sourceId" : "76",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Registers an Attendee when the event is open and not yet full.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "77",
           "name" : "RegisterForEventUseCase",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.register_uc"
           },
           "relationships" : [ {
-            "description" : "Checks the event is Confirmed and open.",
-            "destinationId" : "30",
-            "id" : "80",
-            "sourceId" : "34",
+            "description" : "Checks the event is open and not full.",
+            "destinationId" : "80",
+            "id" : "174",
+            "sourceId" : "77",
             "tags" : "Relationship"
           }, {
-            "description" : "Builds a registration against the capacity rule.",
-            "destinationId" : "36",
-            "id" : "81",
-            "sourceId" : "34",
+            "description" : "Refuses a second live registration; builds the new one.",
+            "destinationId" : "81",
+            "id" : "175",
+            "sourceId" : "77",
             "tags" : "Relationship"
           }, {
-            "description" : "Loads the event, its period and its capacity.",
-            "destinationId" : "31",
-            "id" : "93",
-            "sourceId" : "34",
+            "description" : "Validates the name and email.",
+            "destinationId" : "82",
+            "id" : "176",
+            "sourceId" : "77",
             "tags" : "Relationship"
           }, {
-            "description" : "Counts registrations, then saves one.",
-            "destinationId" : "37",
-            "id" : "94",
-            "sourceId" : "34",
+            "description" : "Loads the event and its capacity.",
+            "destinationId" : "83",
+            "id" : "214",
+            "sourceId" : "77",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Counts places, checks for a live registration, saves.",
+            "destinationId" : "84",
+            "id" : "215",
+            "sourceId" : "77",
             "tags" : "Relationship"
           }, {
             "description" : "Checks the registration period is open.",
             "destinationId" : "10",
-            "id" : "95",
-            "sourceId" : "34",
-            "tags" : "Relationship"
-          }, {
-            "description" : "Confirms the registration to the Attendee.",
-            "destinationId" : "39",
-            "id" : "96",
-            "sourceId" : "34",
+            "id" : "216",
+            "sourceId" : "77",
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component,Use Case",
           "technology" : "src/core/use-cases"
         }, {
-          "description" : "Releases a place and frees it for the next registrant.",
+          "description" : "Resolves a registration reference.",
           "documentation" : { },
           "group" : "Registration",
-          "id" : "35",
+          "id" : "78",
+          "name" : "ViewRegistrationUseCase",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.view_registration_uc"
+          },
+          "relationships" : [ {
+            "description" : "Asks whether it can still be withdrawn.",
+            "destinationId" : "81",
+            "id" : "177",
+            "sourceId" : "78",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Finds the registration by reference.",
+            "destinationId" : "84",
+            "id" : "217",
+            "sourceId" : "78",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Loads its event.",
+            "destinationId" : "83",
+            "id" : "218",
+            "sourceId" : "78",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Use Case",
+          "technology" : "src/core/use-cases"
+        }, {
+          "description" : "Withdraws a registration by its reference.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "79",
           "name" : "WithdrawRegistrationUseCase",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.withdraw_uc"
           },
           "relationships" : [ {
-            "description" : "Applies the withdrawal and frees the place.",
-            "destinationId" : "36",
-            "id" : "82",
-            "sourceId" : "35",
+            "description" : "Applies the withdrawal.",
+            "destinationId" : "81",
+            "id" : "178",
+            "sourceId" : "79",
             "tags" : "Relationship"
           }, {
-            "description" : "Withdraws the registration.",
-            "destinationId" : "37",
-            "id" : "97",
-            "sourceId" : "35",
+            "description" : "Checks the event still allows withdrawal.",
+            "destinationId" : "80",
+            "id" : "179",
+            "sourceId" : "79",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Records the withdrawal.",
+            "destinationId" : "84",
+            "id" : "219",
+            "sourceId" : "79",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Loads the event.",
+            "destinationId" : "83",
+            "id" : "220",
+            "sourceId" : "79",
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component,Use Case",
           "technology" : "src/core/use-cases"
         }, {
-          "description" : "Domain. Capacity rule: refuse when full. No waiting list in Release 1.",
+          "description" : "Domain. Open for registration, full, and whether withdrawal is still allowed.",
           "documentation" : { },
           "group" : "Registration",
-          "id" : "36",
-          "name" : "Registration",
+          "id" : "80",
+          "name" : "event",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.event_e"
+          },
+          "tags" : "Element,Component,Domain",
+          "technology" : "src/core/domain"
+        }, {
+          "description" : "Domain. One live registration per email; withdrawn is final. No waiting list.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "81",
+          "name" : "registration",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.registration_e"
           },
           "tags" : "Element,Component,Domain",
           "technology" : "src/core/domain"
         }, {
-          "description" : "Port. Counts an event's registrations, saves one, withdraws one.",
+          "description" : "Domain. A non-blank name and a normalised email.",
           "documentation" : { },
           "group" : "Registration",
-          "id" : "37",
+          "id" : "82",
+          "name" : "attendee",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.attendee_e"
+          },
+          "tags" : "Element,Component,Domain",
+          "technology" : "src/core/domain"
+        }, {
+          "description" : "Port. Lists Confirmed events and finds one.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "83",
+          "name" : "EventCatalogue",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.event_catalogue_port"
+          },
+          "tags" : "Element,Component,Port",
+          "technology" : "src/core/ports/outbound"
+        }, {
+          "description" : "Port. Counts places, finds and saves registrations, records withdrawals.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "84",
           "name" : "RegistrationRepository",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.registration_repository_port"
@@ -801,35 +2196,60 @@
           "tags" : "Element,Component,Port",
           "technology" : "src/core/ports/outbound"
         }, {
-          "description" : "Adapter. Registration rows and the live-count query.",
+          "description" : "Adapter. Event rows readable by anonymous visitors.",
           "documentation" : { },
           "group" : "Registration",
-          "id" : "38",
-          "name" : "SupabaseRegistrationRepository",
+          "id" : "85",
+          "name" : "SupabaseEventCatalogue",
           "properties" : {
-            "structurizr.dsl.identifier" : "epvbs.web.supabase_registrations_ad"
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_event_catalogue_ad"
           },
           "relationships" : [ {
             "description" : "Implements.",
-            "destinationId" : "37",
-            "id" : "101",
-            "sourceId" : "38",
+            "destinationId" : "83",
+            "id" : "229",
+            "sourceId" : "85",
             "tags" : "Relationship"
           }, {
-            "description" : "Reads and writes registration rows.",
-            "destinationId" : "44",
-            "id" : "119",
-            "sourceId" : "38",
+            "description" : "Reads Confirmed events.",
+            "destinationId" : "97",
+            "id" : "326",
+            "sourceId" : "85",
             "tags" : "Relationship",
             "technology" : "PostgREST"
           } ],
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/supabase"
         }, {
-          "description" : "Port. Announces what a role needs to know. In-app and email, configurable per type [?].",
+          "description" : "Adapter. Registration RPCs and the places-taken count.",
+          "documentation" : { },
+          "group" : "Registration",
+          "id" : "86",
+          "name" : "SupabaseRegistrationRepository",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_registrations_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements.",
+            "destinationId" : "84",
+            "id" : "230",
+            "sourceId" : "86",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Reads and writes registrations.",
+            "destinationId" : "97",
+            "id" : "327",
+            "sourceId" : "86",
+            "tags" : "Relationship",
+            "technology" : "PostgREST RPC"
+          } ],
+          "tags" : "Element,Component,Driven Adapter",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Port. Announces what a role needs to know. Channels configurable per type [?]; no event-domain method yet.",
           "documentation" : { },
           "group" : "Notifications [?]",
-          "id" : "39",
+          "id" : "87",
           "name" : "Notifier",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.notifier_port"
@@ -837,38 +2257,134 @@
           "tags" : "Element,Component,Port",
           "technology" : "src/core/ports/outbound"
         }, {
-          "description" : "Adapter. Placeholder: writes to the log. No delivery channel is built yet.",
+          "description" : "Adapter. Writes to the log. No delivery channel is built.",
           "documentation" : { },
           "group" : "Notifications [?]",
-          "id" : "40",
-          "name" : "LoggingNotifier [?]",
+          "id" : "88",
+          "name" : "LoggingNotifier",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.logging_notifier_ad"
           },
           "relationships" : [ {
             "description" : "Implements.",
-            "destinationId" : "39",
-            "id" : "103",
-            "sourceId" : "40",
+            "destinationId" : "87",
+            "id" : "231",
+            "sourceId" : "88",
             "tags" : "Relationship"
           } ],
           "tags" : "Element,Component,Driven Adapter",
           "technology" : "src/adapters/outbound/logging"
         }, {
-          "description" : "Not designed. Brief steps 6-7: search, request, approve, reject, block. No ticket yet.",
+          "description" : "Adapter. Records each notification, then hands it on for delivery. PR #64.",
+          "documentation" : { },
+          "group" : "Notifications [?]",
+          "id" : "89",
+          "name" : "SupabaseRecordingNotifier",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.supabase_recording_notifier_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements, wrapping another Notifier.",
+            "destinationId" : "87",
+            "id" : "312",
+            "sourceId" : "89",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Hands each notice on for delivery.",
+            "destinationId" : "90",
+            "id" : "313",
+            "sourceId" : "89",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Records each notification, as the service role.",
+            "destinationId" : "97",
+            "id" : "314",
+            "sourceId" : "89",
+            "tags" : "Relationship,Unmerged",
+            "technology" : "PostgREST"
+          } ],
+          "tags" : "Element,Component,Driven Adapter,Unmerged",
+          "technology" : "src/adapters/outbound/supabase"
+        }, {
+          "description" : "Adapter. Triggers the Novu workflow for the notice. PR #66.",
+          "documentation" : { },
+          "group" : "Notifications [?]",
+          "id" : "90",
+          "name" : "NovuNotifier",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.novu_notifier_ad"
+          },
+          "relationships" : [ {
+            "description" : "Implements.",
+            "destinationId" : "87",
+            "id" : "315",
+            "sourceId" : "90",
+            "tags" : "Relationship,Unmerged"
+          }, {
+            "description" : "Triggers the in-app workflow.",
+            "destinationId" : "100",
+            "id" : "316",
+            "sourceId" : "90",
+            "tags" : "Relationship,Unmerged",
+            "technology" : "HTTPS"
+          } ],
+          "tags" : "Element,Component,Driven Adapter,Unmerged",
+          "technology" : "src/adapters/outbound/novu"
+        }, {
+          "description" : "Driving adapter. Serves the workflow definitions Novu Cloud runs. PR #66.",
+          "documentation" : { },
+          "group" : "Notifications [?]",
+          "id" : "91",
+          "name" : "Novu bridge route",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.novu_bridge_ui"
+          },
+          "tags" : "Element,Component,Driving Adapter,Unmerged",
+          "technology" : "src/app/api/novu"
+        }, {
+          "description" : "Driving adapter. Browser inbox, triage and preferences, straight on Novu. PRs #67-#70.",
+          "documentation" : { },
+          "group" : "Notifications [?]",
+          "id" : "92",
+          "name" : "Staff notifications inbox",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.staff_inbox_ui"
+          },
+          "relationships" : [ {
+            "description" : "Reads and triages the inbox; sets preferences.",
+            "destinationId" : "100",
+            "id" : "318",
+            "sourceId" : "92",
+            "tags" : "Relationship,Unmerged",
+            "technology" : "HTTPS"
+          } ],
+          "tags" : "Element,Component,Driving Adapter,Unmerged",
+          "technology" : "src/components/staff-notifications.tsx"
+        }, {
+          "description" : "Not built. Every staff role's inbox is a wireframe with fixture data.",
+          "documentation" : { },
+          "group" : "Notifications [?]",
+          "id" : "93",
+          "name" : "Notification inbox [?]",
+          "properties" : {
+            "structurizr.dsl.identifier" : "epvbs.web.notifications_placeholder"
+          },
+          "tags" : "Element,Component,Placeholder"
+        }, {
+          "description" : "Wireframe pages only. Brief steps 6-7: search, request, approve, reject, block.",
           "documentation" : { },
           "group" : "Venues [?]",
-          "id" : "41",
+          "id" : "94",
           "name" : "Venue booking module [?]",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.venues_placeholder"
           },
           "tags" : "Element,Component,Placeholder"
         }, {
-          "description" : "Not designed. Brief step 8: availability check, reservation, technical support. No ticket yet.",
+          "description" : "Wireframe pages only. Brief step 8: availability, reservation, technical support.",
           "documentation" : { },
           "group" : "Equipment [?]",
-          "id" : "42",
+          "id" : "95",
           "name" : "Equipment module [?]",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.equipment_placeholder"
@@ -878,7 +2394,7 @@
           "description" : "Not designed. Brief step 14 plus event, venue-usage and registration reports. No ticket yet.",
           "documentation" : { },
           "group" : "Reporting [?]",
-          "id" : "43",
+          "id" : "96",
           "name" : "Reporting module [?]",
           "properties" : {
             "structurizr.dsl.identifier" : "epvbs.web.reporting_placeholder"
@@ -894,25 +2410,32 @@
         },
         "relationships" : [ {
           "description" : "Reads and writes events, accounts and registrations.",
-          "destinationId" : "44",
-          "id" : "65",
+          "destinationId" : "97",
+          "id" : "121",
           "sourceId" : "8",
           "tags" : "Relationship",
           "technology" : "PostgREST"
         }, {
-          "description" : "Verifies credentials and refreshes sessions. [?]",
-          "destinationId" : "45",
-          "id" : "66",
+          "description" : "Verifies credentials and refreshes sessions.",
+          "destinationId" : "98",
+          "id" : "122",
           "sourceId" : "8",
           "tags" : "Relationship",
           "technology" : "Supabase Auth"
+        }, {
+          "description" : "Triggers notifications; the browser reads the inbox. PR #66.",
+          "destinationId" : "100",
+          "id" : "123",
+          "sourceId" : "8",
+          "tags" : "Relationship,Unmerged",
+          "technology" : "HTTPS"
         } ],
         "tags" : "Element,Container",
-        "technology" : "Next.js 16 App Router / React 19"
+        "technology" : "Next.js 16.3 App Router / React 19.2"
       }, {
-        "description" : "Events, accounts and registrations. Reached only through repository ports.",
+        "description" : "Event requests, events, accounts, registrations and the audit trail. Reached only through repository ports.",
         "documentation" : { },
-        "id" : "44",
+        "id" : "97",
         "name" : "Application Database",
         "properties" : {
           "structurizr.dsl.identifier" : "epvbs.db"
@@ -920,10 +2443,10 @@
         "tags" : "Element,Container,Database",
         "technology" : "Supabase Postgres"
       }, {
-        "description" : "Verifies credentials and holds sessions. Mechanism undecided by the customer [?].",
+        "description" : "Verifies credentials and holds sessions. Email + password today; customer method undecided [?].",
         "documentation" : { },
-        "id" : "45",
-        "name" : "Authentication Service [?]",
+        "id" : "98",
+        "name" : "Authentication Service",
         "properties" : {
           "structurizr.dsl.identifier" : "epvbs.auth"
         },
@@ -940,61 +2463,99 @@
       "relationships" : [ {
         "description" : "Notifies of clarification requests, decisions, confirmation and changes. Event-driven.",
         "destinationId" : "5",
-        "id" : "53",
+        "id" : "107",
         "sourceId" : "7",
         "tags" : "Relationship,Notification",
         "technology" : "In-app"
       }, {
         "description" : "Notifies of assignment, venue and equipment decisions, and readiness gaps. Event-driven.",
         "destinationId" : "1",
-        "id" : "54",
+        "id" : "108",
         "sourceId" : "7",
         "tags" : "Relationship,Notification",
         "technology" : "In-app"
       }, {
         "description" : "Notifies of booking requests and changes affecting a venue. Event-driven.",
         "destinationId" : "2",
-        "id" : "55",
+        "id" : "109",
         "sourceId" : "7",
         "tags" : "Relationship,Notification",
         "technology" : "In-app"
       }, {
         "description" : "Notifies of equipment requirements and changes affecting a reservation. Event-driven.",
         "destinationId" : "3",
-        "id" : "56",
+        "id" : "110",
         "sourceId" : "7",
         "tags" : "Relationship,Notification",
         "technology" : "In-app"
       }, {
         "description" : "Notifies of registration opening, confirmation and event changes. Event-driven.",
         "destinationId" : "6",
-        "id" : "57",
+        "id" : "111",
         "sourceId" : "7",
         "tags" : "Relationship,Notification",
         "technology" : "In-app"
       }, {
         "description" : "Sends notifications and reminders. Event-driven.",
-        "destinationId" : "46",
-        "id" : "58",
+        "destinationId" : "99",
+        "id" : "112",
         "sourceId" : "7",
         "tags" : "Relationship",
         "technology" : "Email"
+      }, {
+        "description" : "Sends in-app notifications; serves its workflows. Event-driven. PR #66.",
+        "destinationId" : "100",
+        "id" : "113",
+        "sourceId" : "7",
+        "tags" : "Relationship,Unmerged",
+        "technology" : "HTTPS"
       } ],
       "tags" : "Element,Software System"
     }, {
       "description" : "Carries outbound email notifications. Provider not chosen.",
       "documentation" : { },
-      "id" : "46",
+      "id" : "99",
       "name" : "Email Delivery Service [?]",
       "properties" : {
         "structurizr.dsl.identifier" : "email"
       },
       "tags" : "Element,Software System,External"
+    }, {
+      "description" : "Delivers in-app notifications and hosts each staff member's inbox. PR #66.",
+      "documentation" : { },
+      "id" : "100",
+      "name" : "Novu Cloud",
+      "properties" : {
+        "structurizr.dsl.identifier" : "novu"
+      },
+      "relationships" : [ {
+        "description" : "Fetches the workflow definitions. PR #66.",
+        "destinationId" : "7",
+        "id" : "114",
+        "sourceId" : "100",
+        "tags" : "Relationship,Unmerged",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Fetches the workflow definitions. PR #66.",
+        "destinationId" : "8",
+        "id" : "124",
+        "sourceId" : "100",
+        "tags" : "Relationship,Unmerged",
+        "technology" : "HTTPS"
+      }, {
+        "description" : "Fetches the workflow definitions.",
+        "destinationId" : "91",
+        "id" : "317",
+        "sourceId" : "100",
+        "tags" : "Relationship,Unmerged",
+        "technology" : "HTTPS"
+      } ],
+      "tags" : "Element,Software System,External,Unmerged"
     } ]
   },
   "name" : "ConnectSphere — Sprint 1 Build Slice",
   "properties" : {
-    "structurizr.inspection.error" : "63",
+    "structurizr.inspection.error" : "200",
     "structurizr.inspection.info" : "0",
     "structurizr.inspection.ignore" : "0",
     "structurizr.inspection.warning" : "0"
@@ -1158,93 +2719,545 @@
         "id" : "45",
         "x" : 0,
         "y" : 0
+      }, {
+        "id" : "46",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "47",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "48",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "49",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "50",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "51",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "52",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "53",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "54",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "55",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "56",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "57",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "58",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "59",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "60",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "61",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "62",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "63",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "64",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "65",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "66",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "67",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "68",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "69",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "70",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "71",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "72",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "73",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "74",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "75",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "76",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "77",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "78",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "79",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "80",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "81",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "82",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "83",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "84",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "85",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "86",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "87",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "88",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "89",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "90",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "91",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "92",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "93",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "94",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "95",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "96",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "97",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "98",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "100",
+        "x" : 0,
+        "y" : 0
       } ],
       "externalContainerBoundariesVisible" : false,
       "key" : "components",
       "name" : "Component View: Event Planning and Venue Booking System - Web Application",
       "order" : 3,
       "relationships" : [ {
-        "id" : "100"
+        "id" : "125"
       }, {
-        "id" : "101"
+        "id" : "126"
       }, {
-        "id" : "102"
+        "id" : "127"
       }, {
-        "id" : "103"
+        "id" : "128"
       }, {
-        "id" : "118"
+        "id" : "129"
       }, {
-        "id" : "119"
+        "id" : "130"
       }, {
-        "id" : "120"
+        "id" : "131"
       }, {
-        "id" : "121"
+        "id" : "132"
       }, {
-        "id" : "67"
+        "id" : "133"
       }, {
-        "id" : "68"
+        "id" : "134"
       }, {
-        "id" : "69"
+        "id" : "135"
       }, {
-        "id" : "70"
+        "id" : "136"
       }, {
-        "id" : "71"
+        "id" : "137"
       }, {
-        "id" : "72"
+        "id" : "138"
       }, {
-        "id" : "73"
+        "id" : "139"
       }, {
-        "id" : "74"
+        "id" : "140"
       }, {
-        "id" : "75"
+        "id" : "141"
       }, {
-        "id" : "76"
+        "id" : "142"
       }, {
-        "id" : "77"
+        "id" : "143"
       }, {
-        "id" : "78"
+        "id" : "144"
       }, {
-        "id" : "79"
+        "id" : "145"
       }, {
-        "id" : "80"
+        "id" : "146"
       }, {
-        "id" : "81"
+        "id" : "147"
       }, {
-        "id" : "82"
+        "id" : "148"
       }, {
-        "id" : "83"
+        "id" : "149"
       }, {
-        "id" : "84"
+        "id" : "150"
       }, {
-        "id" : "85"
+        "id" : "151"
       }, {
-        "id" : "86"
+        "id" : "152"
       }, {
-        "id" : "87"
+        "id" : "153"
       }, {
-        "id" : "88"
+        "id" : "154"
       }, {
-        "id" : "89"
+        "id" : "155"
       }, {
-        "id" : "90"
+        "id" : "156"
       }, {
-        "id" : "91"
+        "id" : "157"
       }, {
-        "id" : "92"
+        "id" : "158"
       }, {
-        "id" : "93"
+        "id" : "159"
       }, {
-        "id" : "94"
+        "id" : "160"
       }, {
-        "id" : "95"
+        "id" : "161"
       }, {
-        "id" : "96"
+        "id" : "162"
       }, {
-        "id" : "97"
+        "id" : "163"
       }, {
-        "id" : "98"
+        "id" : "164"
       }, {
-        "id" : "99"
+        "id" : "165"
+      }, {
+        "id" : "166"
+      }, {
+        "id" : "167"
+      }, {
+        "id" : "168"
+      }, {
+        "id" : "169"
+      }, {
+        "id" : "170"
+      }, {
+        "id" : "171"
+      }, {
+        "id" : "172"
+      }, {
+        "id" : "173"
+      }, {
+        "id" : "174"
+      }, {
+        "id" : "175"
+      }, {
+        "id" : "176"
+      }, {
+        "id" : "177"
+      }, {
+        "id" : "178"
+      }, {
+        "id" : "179"
+      }, {
+        "id" : "180"
+      }, {
+        "id" : "181"
+      }, {
+        "id" : "182"
+      }, {
+        "id" : "183"
+      }, {
+        "id" : "184"
+      }, {
+        "id" : "185"
+      }, {
+        "id" : "186"
+      }, {
+        "id" : "187"
+      }, {
+        "id" : "188"
+      }, {
+        "id" : "189"
+      }, {
+        "id" : "190"
+      }, {
+        "id" : "191"
+      }, {
+        "id" : "192"
+      }, {
+        "id" : "193"
+      }, {
+        "id" : "194"
+      }, {
+        "id" : "195"
+      }, {
+        "id" : "196"
+      }, {
+        "id" : "197"
+      }, {
+        "id" : "198"
+      }, {
+        "id" : "199"
+      }, {
+        "id" : "200"
+      }, {
+        "id" : "201"
+      }, {
+        "id" : "202"
+      }, {
+        "id" : "203"
+      }, {
+        "id" : "204"
+      }, {
+        "id" : "205"
+      }, {
+        "id" : "206"
+      }, {
+        "id" : "207"
+      }, {
+        "id" : "208"
+      }, {
+        "id" : "209"
+      }, {
+        "id" : "210"
+      }, {
+        "id" : "211"
+      }, {
+        "id" : "212"
+      }, {
+        "id" : "213"
+      }, {
+        "id" : "214"
+      }, {
+        "id" : "215"
+      }, {
+        "id" : "216"
+      }, {
+        "id" : "217"
+      }, {
+        "id" : "218"
+      }, {
+        "id" : "219"
+      }, {
+        "id" : "220"
+      }, {
+        "id" : "221"
+      }, {
+        "id" : "222"
+      }, {
+        "id" : "223"
+      }, {
+        "id" : "224"
+      }, {
+        "id" : "225"
+      }, {
+        "id" : "226"
+      }, {
+        "id" : "227"
+      }, {
+        "id" : "228"
+      }, {
+        "id" : "229"
+      }, {
+        "id" : "230"
+      }, {
+        "id" : "231"
+      }, {
+        "id" : "267"
+      }, {
+        "id" : "268"
+      }, {
+        "id" : "269"
+      }, {
+        "id" : "270"
+      }, {
+        "id" : "271"
+      }, {
+        "id" : "272"
+      }, {
+        "id" : "273"
+      }, {
+        "id" : "274"
+      }, {
+        "id" : "275"
+      }, {
+        "id" : "276"
+      }, {
+        "id" : "277"
+      }, {
+        "id" : "281"
+      }, {
+        "id" : "282"
+      }, {
+        "id" : "283"
+      }, {
+        "id" : "284"
+      }, {
+        "id" : "285"
+      }, {
+        "id" : "286"
+      }, {
+        "id" : "287"
+      }, {
+        "id" : "288"
+      }, {
+        "id" : "289"
+      }, {
+        "id" : "290"
+      }, {
+        "id" : "291"
+      }, {
+        "id" : "292"
+      }, {
+        "id" : "293"
+      }, {
+        "id" : "294"
+      }, {
+        "id" : "295"
+      }, {
+        "id" : "296"
+      }, {
+        "id" : "297"
+      }, {
+        "id" : "298"
+      }, {
+        "id" : "299"
+      }, {
+        "id" : "300"
+      }, {
+        "id" : "306"
+      }, {
+        "id" : "307"
+      }, {
+        "id" : "308"
+      }, {
+        "id" : "310"
+      }, {
+        "id" : "311"
+      }, {
+        "id" : "312"
+      }, {
+        "id" : "313"
+      }, {
+        "id" : "314"
+      }, {
+        "id" : "315"
+      }, {
+        "id" : "316"
+      }, {
+        "id" : "317"
+      }, {
+        "id" : "318"
+      }, {
+        "id" : "319"
+      }, {
+        "id" : "320"
+      }, {
+        "id" : "321"
+      }, {
+        "id" : "322"
+      }, {
+        "id" : "323"
+      }, {
+        "id" : "324"
+      }, {
+        "id" : "325"
+      }, {
+        "id" : "326"
+      }, {
+        "id" : "327"
       } ]
     }, {
       "automaticLayout" : {
@@ -1255,7 +3268,837 @@
         "vertices" : true
       },
       "containerId" : "8",
-      "description" : "What Sprint 1 builds: Identity & Access, Events, Registration, and the shared platform under them.",
+      "description" : "Identity & Access: login, logout, the session middleware and the staff shell's role gate.",
+      "elements" : [ {
+        "id" : "11",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "13",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "15",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "16",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "17",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "19",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "20",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "22",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "24",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "25",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "26",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "97",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "98",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "components-identity",
+      "name" : "Component View: Event Planning and Venue Booking System - Web Application",
+      "order" : 4,
+      "relationships" : [ {
+        "id" : "125"
+      }, {
+        "id" : "126"
+      }, {
+        "id" : "127"
+      }, {
+        "id" : "128"
+      }, {
+        "id" : "157"
+      }, {
+        "id" : "158"
+      }, {
+        "id" : "180"
+      }, {
+        "id" : "181"
+      }, {
+        "id" : "182"
+      }, {
+        "id" : "183"
+      }, {
+        "id" : "184"
+      }, {
+        "id" : "185"
+      }, {
+        "id" : "186"
+      }, {
+        "id" : "222"
+      }, {
+        "id" : "223"
+      }, {
+        "id" : "224"
+      }, {
+        "id" : "319"
+      }, {
+        "id" : "320"
+      }, {
+        "id" : "321"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "Event Requests as the Organiser drives them: draft, submit, discard, view, and hand to another Organiser.",
+      "elements" : [ {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "37",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "38",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "39",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "40",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "41",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "42",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "43",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "44",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "45",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "46",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "47",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "48",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "97",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "components-organiser",
+      "name" : "Component View: Event Planning and Venue Booking System - Web Application",
+      "order" : 5,
+      "relationships" : [ {
+        "id" : "135"
+      }, {
+        "id" : "136"
+      }, {
+        "id" : "137"
+      }, {
+        "id" : "138"
+      }, {
+        "id" : "139"
+      }, {
+        "id" : "140"
+      }, {
+        "id" : "141"
+      }, {
+        "id" : "142"
+      }, {
+        "id" : "143"
+      }, {
+        "id" : "159"
+      }, {
+        "id" : "160"
+      }, {
+        "id" : "161"
+      }, {
+        "id" : "162"
+      }, {
+        "id" : "163"
+      }, {
+        "id" : "164"
+      }, {
+        "id" : "187"
+      }, {
+        "id" : "188"
+      }, {
+        "id" : "189"
+      }, {
+        "id" : "190"
+      }, {
+        "id" : "191"
+      }, {
+        "id" : "192"
+      }, {
+        "id" : "193"
+      }, {
+        "id" : "194"
+      }, {
+        "id" : "195"
+      }, {
+        "id" : "221"
+      }, {
+        "id" : "225"
+      }, {
+        "id" : "226"
+      }, {
+        "id" : "284"
+      }, {
+        "id" : "288"
+      }, {
+        "id" : "293"
+      }, {
+        "id" : "294"
+      }, {
+        "id" : "298"
+      }, {
+        "id" : "299"
+      }, {
+        "id" : "300"
+      }, {
+        "id" : "322"
+      }, {
+        "id" : "323"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "Event Requests as the Operations Manager drives them: the queue, one request, and assigning a Coordinator.",
+      "elements" : [ {
+        "id" : "18",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "49",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "50",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "51",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "52",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "53",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "87",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "89",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "90",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "91",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "92",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "97",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "100",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "components-operations",
+      "name" : "Component View: Event Planning and Venue Booking System - Web Application",
+      "order" : 6,
+      "relationships" : [ {
+        "id" : "130"
+      }, {
+        "id" : "131"
+      }, {
+        "id" : "144"
+      }, {
+        "id" : "145"
+      }, {
+        "id" : "146"
+      }, {
+        "id" : "165"
+      }, {
+        "id" : "166"
+      }, {
+        "id" : "167"
+      }, {
+        "id" : "196"
+      }, {
+        "id" : "197"
+      }, {
+        "id" : "198"
+      }, {
+        "id" : "199"
+      }, {
+        "id" : "200"
+      }, {
+        "id" : "225"
+      }, {
+        "id" : "226"
+      }, {
+        "id" : "310"
+      }, {
+        "id" : "311"
+      }, {
+        "id" : "312"
+      }, {
+        "id" : "313"
+      }, {
+        "id" : "314"
+      }, {
+        "id" : "315"
+      }, {
+        "id" : "316"
+      }, {
+        "id" : "317"
+      }, {
+        "id" : "318"
+      }, {
+        "id" : "322"
+      }, {
+        "id" : "323"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "Event Requests as the Coordinator drives them: queue, archive, one request, the decision, and My events.",
+      "elements" : [ {
+        "id" : "27",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "28",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "29",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "30",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "31",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "32",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "33",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "34",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "35",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "36",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "54",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "55",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "56",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "57",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "58",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "59",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "60",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "61",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "62",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "63",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "64",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "65",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "66",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "67",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "68",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "69",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "70",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "71",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "72",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "97",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "components-coordinator",
+      "name" : "Component View: Event Planning and Venue Booking System - Web Application",
+      "order" : 7,
+      "relationships" : [ {
+        "id" : "147"
+      }, {
+        "id" : "148"
+      }, {
+        "id" : "149"
+      }, {
+        "id" : "150"
+      }, {
+        "id" : "151"
+      }, {
+        "id" : "168"
+      }, {
+        "id" : "169"
+      }, {
+        "id" : "170"
+      }, {
+        "id" : "171"
+      }, {
+        "id" : "201"
+      }, {
+        "id" : "202"
+      }, {
+        "id" : "203"
+      }, {
+        "id" : "204"
+      }, {
+        "id" : "205"
+      }, {
+        "id" : "206"
+      }, {
+        "id" : "207"
+      }, {
+        "id" : "208"
+      }, {
+        "id" : "209"
+      }, {
+        "id" : "225"
+      }, {
+        "id" : "226"
+      }, {
+        "id" : "227"
+      }, {
+        "id" : "228"
+      }, {
+        "id" : "267"
+      }, {
+        "id" : "268"
+      }, {
+        "id" : "269"
+      }, {
+        "id" : "270"
+      }, {
+        "id" : "271"
+      }, {
+        "id" : "272"
+      }, {
+        "id" : "273"
+      }, {
+        "id" : "274"
+      }, {
+        "id" : "275"
+      }, {
+        "id" : "276"
+      }, {
+        "id" : "277"
+      }, {
+        "id" : "281"
+      }, {
+        "id" : "282"
+      }, {
+        "id" : "283"
+      }, {
+        "id" : "285"
+      }, {
+        "id" : "286"
+      }, {
+        "id" : "287"
+      }, {
+        "id" : "289"
+      }, {
+        "id" : "290"
+      }, {
+        "id" : "291"
+      }, {
+        "id" : "292"
+      }, {
+        "id" : "295"
+      }, {
+        "id" : "296"
+      }, {
+        "id" : "297"
+      }, {
+        "id" : "299"
+      }, {
+        "id" : "300"
+      }, {
+        "id" : "306"
+      }, {
+        "id" : "307"
+      }, {
+        "id" : "308"
+      }, {
+        "id" : "322"
+      }, {
+        "id" : "323"
+      }, {
+        "id" : "324"
+      }, {
+        "id" : "325"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "Registration: an Attendee with no account browses open events, registers, and withdraws by reference.",
+      "elements" : [ {
+        "id" : "6",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "10",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "12",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "73",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "74",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "75",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "76",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "77",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "78",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "79",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "80",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "81",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "82",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "83",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "84",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "85",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "86",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "97",
+        "x" : 0,
+        "y" : 0
+      } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "components-registration",
+      "name" : "Component View: Event Planning and Venue Booking System - Web Application",
+      "order" : 8,
+      "relationships" : [ {
+        "id" : "152"
+      }, {
+        "id" : "153"
+      }, {
+        "id" : "154"
+      }, {
+        "id" : "155"
+      }, {
+        "id" : "156"
+      }, {
+        "id" : "172"
+      }, {
+        "id" : "173"
+      }, {
+        "id" : "174"
+      }, {
+        "id" : "175"
+      }, {
+        "id" : "176"
+      }, {
+        "id" : "177"
+      }, {
+        "id" : "178"
+      }, {
+        "id" : "179"
+      }, {
+        "id" : "210"
+      }, {
+        "id" : "211"
+      }, {
+        "id" : "212"
+      }, {
+        "id" : "213"
+      }, {
+        "id" : "214"
+      }, {
+        "id" : "215"
+      }, {
+        "id" : "216"
+      }, {
+        "id" : "217"
+      }, {
+        "id" : "218"
+      }, {
+        "id" : "219"
+      }, {
+        "id" : "220"
+      }, {
+        "id" : "221"
+      }, {
+        "id" : "229"
+      }, {
+        "id" : "230"
+      }, {
+        "id" : "326"
+      }, {
+        "id" : "327"
+      } ]
+    }, {
+      "automaticLayout" : {
+        "edgeSeparation" : 50,
+        "nodeSeparation" : 50,
+        "rankDirection" : "LeftRight",
+        "rankSeparation" : 100,
+        "vertices" : true
+      },
+      "containerId" : "8",
+      "description" : "What Sprint 1 built: Identity & Access, Event Requests, Registration, and the shared platform under them.",
       "elements" : [ {
         "id" : "9",
         "x" : 0,
@@ -1357,18 +4200,6 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "34",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "35",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "36",
-        "x" : 0,
-        "y" : 0
-      }, {
         "id" : "37",
         "x" : 0,
         "y" : 0
@@ -1385,6 +4216,18 @@
         "x" : 0,
         "y" : 0
       }, {
+        "id" : "41",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "42",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "43",
+        "x" : 0,
+        "y" : 0
+      }, {
         "id" : "44",
         "x" : 0,
         "y" : 0
@@ -1392,121 +4235,453 @@
         "id" : "45",
         "x" : 0,
         "y" : 0
+      }, {
+        "id" : "46",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "47",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "49",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "50",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "51",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "52",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "53",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "54",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "55",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "56",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "57",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "58",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "59",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "60",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "61",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "62",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "73",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "74",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "75",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "76",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "77",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "78",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "79",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "80",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "81",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "82",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "83",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "84",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "85",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "86",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "87",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "88",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "97",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "98",
+        "x" : 0,
+        "y" : 0
       } ],
       "externalContainerBoundariesVisible" : false,
       "key" : "sprint1-components",
       "name" : "Component View: Event Planning and Venue Booking System - Web Application",
-      "order" : 4,
+      "order" : 9,
       "relationships" : [ {
-        "id" : "100"
+        "id" : "125"
       }, {
-        "id" : "101"
+        "id" : "126"
       }, {
-        "id" : "102"
+        "id" : "127"
       }, {
-        "id" : "103"
+        "id" : "128"
       }, {
-        "id" : "104"
+        "id" : "129"
       }, {
-        "id" : "105"
+        "id" : "130"
       }, {
-        "id" : "106"
+        "id" : "131"
       }, {
-        "id" : "107"
+        "id" : "132"
       }, {
-        "id" : "108"
+        "id" : "133"
       }, {
-        "id" : "109"
+        "id" : "134"
       }, {
-        "id" : "110"
+        "id" : "135"
       }, {
-        "id" : "111"
+        "id" : "136"
       }, {
-        "id" : "112"
+        "id" : "137"
       }, {
-        "id" : "113"
+        "id" : "138"
       }, {
-        "id" : "114"
+        "id" : "139"
       }, {
-        "id" : "115"
+        "id" : "140"
       }, {
-        "id" : "116"
+        "id" : "141"
       }, {
-        "id" : "117"
+        "id" : "142"
       }, {
-        "id" : "118"
+        "id" : "143"
       }, {
-        "id" : "119"
+        "id" : "144"
       }, {
-        "id" : "120"
+        "id" : "145"
       }, {
-        "id" : "121"
+        "id" : "146"
       }, {
-        "id" : "67"
+        "id" : "147"
       }, {
-        "id" : "68"
+        "id" : "148"
       }, {
-        "id" : "69"
+        "id" : "149"
       }, {
-        "id" : "70"
+        "id" : "150"
       }, {
-        "id" : "71"
+        "id" : "151"
       }, {
-        "id" : "72"
+        "id" : "152"
       }, {
-        "id" : "73"
+        "id" : "153"
       }, {
-        "id" : "74"
+        "id" : "154"
       }, {
-        "id" : "75"
+        "id" : "155"
       }, {
-        "id" : "76"
+        "id" : "156"
       }, {
-        "id" : "77"
+        "id" : "157"
       }, {
-        "id" : "78"
+        "id" : "158"
       }, {
-        "id" : "79"
+        "id" : "159"
       }, {
-        "id" : "80"
+        "id" : "160"
       }, {
-        "id" : "81"
+        "id" : "161"
       }, {
-        "id" : "82"
+        "id" : "162"
       }, {
-        "id" : "83"
+        "id" : "163"
       }, {
-        "id" : "84"
+        "id" : "164"
       }, {
-        "id" : "85"
+        "id" : "165"
       }, {
-        "id" : "86"
+        "id" : "166"
       }, {
-        "id" : "87"
+        "id" : "167"
       }, {
-        "id" : "88"
+        "id" : "168"
       }, {
-        "id" : "89"
+        "id" : "169"
       }, {
-        "id" : "90"
+        "id" : "170"
       }, {
-        "id" : "91"
+        "id" : "171"
       }, {
-        "id" : "92"
+        "id" : "172"
       }, {
-        "id" : "93"
+        "id" : "173"
       }, {
-        "id" : "94"
+        "id" : "174"
       }, {
-        "id" : "95"
+        "id" : "175"
       }, {
-        "id" : "96"
+        "id" : "176"
       }, {
-        "id" : "97"
+        "id" : "177"
       }, {
-        "id" : "98"
+        "id" : "178"
       }, {
-        "id" : "99"
+        "id" : "179"
+      }, {
+        "id" : "180"
+      }, {
+        "id" : "181"
+      }, {
+        "id" : "182"
+      }, {
+        "id" : "183"
+      }, {
+        "id" : "184"
+      }, {
+        "id" : "185"
+      }, {
+        "id" : "186"
+      }, {
+        "id" : "187"
+      }, {
+        "id" : "188"
+      }, {
+        "id" : "189"
+      }, {
+        "id" : "190"
+      }, {
+        "id" : "191"
+      }, {
+        "id" : "192"
+      }, {
+        "id" : "193"
+      }, {
+        "id" : "194"
+      }, {
+        "id" : "195"
+      }, {
+        "id" : "196"
+      }, {
+        "id" : "197"
+      }, {
+        "id" : "198"
+      }, {
+        "id" : "199"
+      }, {
+        "id" : "200"
+      }, {
+        "id" : "201"
+      }, {
+        "id" : "202"
+      }, {
+        "id" : "203"
+      }, {
+        "id" : "204"
+      }, {
+        "id" : "205"
+      }, {
+        "id" : "206"
+      }, {
+        "id" : "207"
+      }, {
+        "id" : "208"
+      }, {
+        "id" : "209"
+      }, {
+        "id" : "210"
+      }, {
+        "id" : "211"
+      }, {
+        "id" : "212"
+      }, {
+        "id" : "213"
+      }, {
+        "id" : "214"
+      }, {
+        "id" : "215"
+      }, {
+        "id" : "216"
+      }, {
+        "id" : "217"
+      }, {
+        "id" : "218"
+      }, {
+        "id" : "219"
+      }, {
+        "id" : "220"
+      }, {
+        "id" : "221"
+      }, {
+        "id" : "222"
+      }, {
+        "id" : "223"
+      }, {
+        "id" : "224"
+      }, {
+        "id" : "225"
+      }, {
+        "id" : "226"
+      }, {
+        "id" : "227"
+      }, {
+        "id" : "228"
+      }, {
+        "id" : "229"
+      }, {
+        "id" : "230"
+      }, {
+        "id" : "231"
+      }, {
+        "id" : "232"
+      }, {
+        "id" : "233"
+      }, {
+        "id" : "234"
+      }, {
+        "id" : "235"
+      }, {
+        "id" : "236"
+      }, {
+        "id" : "237"
+      }, {
+        "id" : "238"
+      }, {
+        "id" : "239"
+      }, {
+        "id" : "240"
+      }, {
+        "id" : "241"
+      }, {
+        "id" : "242"
+      }, {
+        "id" : "243"
+      }, {
+        "id" : "244"
+      }, {
+        "id" : "245"
+      }, {
+        "id" : "246"
+      }, {
+        "id" : "247"
+      }, {
+        "id" : "248"
+      }, {
+        "id" : "249"
+      }, {
+        "id" : "250"
+      }, {
+        "id" : "251"
+      }, {
+        "id" : "252"
+      }, {
+        "id" : "253"
+      }, {
+        "id" : "254"
+      }, {
+        "id" : "255"
+      }, {
+        "id" : "256"
+      }, {
+        "id" : "257"
+      }, {
+        "id" : "258"
+      }, {
+        "id" : "259"
+      }, {
+        "id" : "260"
+      }, {
+        "id" : "261"
+      }, {
+        "id" : "262"
+      }, {
+        "id" : "263"
+      }, {
+        "id" : "264"
+      }, {
+        "id" : "265"
+      }, {
+        "id" : "266"
+      }, {
+        "id" : "310"
+      }, {
+        "id" : "311"
+      }, {
+        "id" : "319"
+      }, {
+        "id" : "320"
+      }, {
+        "id" : "321"
+      }, {
+        "id" : "322"
+      }, {
+        "id" : "323"
+      }, {
+        "id" : "324"
+      }, {
+        "id" : "325"
+      }, {
+        "id" : "326"
+      }, {
+        "id" : "327"
       } ]
     }, {
       "automaticLayout" : {
@@ -1527,23 +4702,11 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "12",
+        "id" : "11",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "15",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "16",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "17",
-        "x" : 0,
-        "y" : 0
-      }, {
-        "id" : "18",
+        "id" : "14",
         "x" : 0,
         "y" : 0
       }, {
@@ -1555,7 +4718,19 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "26",
+        "id" : "21",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "22",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "23",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "24",
         "x" : 0,
         "y" : 0
       }, {
@@ -1575,108 +4750,328 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "31",
+        "id" : "40",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "34",
+        "id" : "41",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "35",
+        "id" : "42",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "36",
+        "id" : "43",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "37",
+        "id" : "44",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "39",
+        "id" : "45",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "46",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "47",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "50",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "51",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "52",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "53",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "56",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "57",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "58",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "59",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "60",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "61",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "75",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "76",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "77",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "78",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "79",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "80",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "81",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "82",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "83",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "84",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "87",
         "x" : 0,
         "y" : 0
       } ],
       "externalContainerBoundariesVisible" : false,
       "key" : "sprint1-core",
       "name" : "Component View: Event Planning and Venue Booking System - Web Application",
-      "order" : 5,
+      "order" : 10,
       "relationships" : [ {
-        "id" : "104"
+        "id" : "157"
       }, {
-        "id" : "105"
+        "id" : "158"
       }, {
-        "id" : "106"
+        "id" : "159"
       }, {
-        "id" : "107"
+        "id" : "160"
       }, {
-        "id" : "108"
+        "id" : "161"
       }, {
-        "id" : "109"
+        "id" : "162"
       }, {
-        "id" : "110"
+        "id" : "163"
       }, {
-        "id" : "111"
+        "id" : "164"
       }, {
-        "id" : "112"
+        "id" : "165"
       }, {
-        "id" : "113"
+        "id" : "166"
       }, {
-        "id" : "114"
+        "id" : "167"
       }, {
-        "id" : "115"
+        "id" : "168"
       }, {
-        "id" : "116"
+        "id" : "169"
       }, {
-        "id" : "117"
+        "id" : "170"
       }, {
-        "id" : "75"
+        "id" : "171"
       }, {
-        "id" : "76"
+        "id" : "172"
       }, {
-        "id" : "77"
+        "id" : "173"
       }, {
-        "id" : "78"
+        "id" : "174"
       }, {
-        "id" : "79"
+        "id" : "175"
       }, {
-        "id" : "80"
+        "id" : "176"
       }, {
-        "id" : "81"
+        "id" : "177"
       }, {
-        "id" : "82"
+        "id" : "178"
       }, {
-        "id" : "83"
+        "id" : "179"
       }, {
-        "id" : "84"
+        "id" : "180"
       }, {
-        "id" : "85"
+        "id" : "181"
       }, {
-        "id" : "86"
+        "id" : "182"
       }, {
-        "id" : "87"
+        "id" : "183"
       }, {
-        "id" : "88"
+        "id" : "184"
       }, {
-        "id" : "89"
+        "id" : "185"
       }, {
-        "id" : "90"
+        "id" : "186"
       }, {
-        "id" : "91"
+        "id" : "187"
       }, {
-        "id" : "92"
+        "id" : "188"
       }, {
-        "id" : "93"
+        "id" : "189"
       }, {
-        "id" : "94"
+        "id" : "190"
       }, {
-        "id" : "95"
+        "id" : "191"
       }, {
-        "id" : "96"
+        "id" : "192"
       }, {
-        "id" : "97"
+        "id" : "193"
+      }, {
+        "id" : "194"
+      }, {
+        "id" : "195"
+      }, {
+        "id" : "196"
+      }, {
+        "id" : "197"
+      }, {
+        "id" : "198"
+      }, {
+        "id" : "199"
+      }, {
+        "id" : "200"
+      }, {
+        "id" : "201"
+      }, {
+        "id" : "202"
+      }, {
+        "id" : "203"
+      }, {
+        "id" : "204"
+      }, {
+        "id" : "205"
+      }, {
+        "id" : "206"
+      }, {
+        "id" : "207"
+      }, {
+        "id" : "208"
+      }, {
+        "id" : "209"
+      }, {
+        "id" : "210"
+      }, {
+        "id" : "211"
+      }, {
+        "id" : "212"
+      }, {
+        "id" : "213"
+      }, {
+        "id" : "214"
+      }, {
+        "id" : "215"
+      }, {
+        "id" : "216"
+      }, {
+        "id" : "217"
+      }, {
+        "id" : "218"
+      }, {
+        "id" : "219"
+      }, {
+        "id" : "220"
+      }, {
+        "id" : "232"
+      }, {
+        "id" : "233"
+      }, {
+        "id" : "234"
+      }, {
+        "id" : "235"
+      }, {
+        "id" : "236"
+      }, {
+        "id" : "237"
+      }, {
+        "id" : "238"
+      }, {
+        "id" : "239"
+      }, {
+        "id" : "240"
+      }, {
+        "id" : "241"
+      }, {
+        "id" : "242"
+      }, {
+        "id" : "243"
+      }, {
+        "id" : "244"
+      }, {
+        "id" : "245"
+      }, {
+        "id" : "246"
+      }, {
+        "id" : "247"
+      }, {
+        "id" : "248"
+      }, {
+        "id" : "249"
+      }, {
+        "id" : "250"
+      }, {
+        "id" : "251"
+      }, {
+        "id" : "252"
+      }, {
+        "id" : "253"
+      }, {
+        "id" : "254"
+      }, {
+        "id" : "255"
+      }, {
+        "id" : "256"
+      }, {
+        "id" : "257"
+      }, {
+        "id" : "258"
+      }, {
+        "id" : "259"
+      }, {
+        "id" : "260"
+      }, {
+        "id" : "261"
+      }, {
+        "id" : "262"
+      }, {
+        "id" : "263"
+      }, {
+        "id" : "264"
+      }, {
+        "id" : "265"
+      }, {
+        "id" : "266"
+      }, {
+        "id" : "310"
+      }, {
+        "id" : "311"
       } ]
     } ],
     "configuration" : {
@@ -1743,7 +5138,16 @@
           "tag" : "Group:Equipment [?]"
         }, {
           "color" : "#b85450",
-          "tag" : "Group:Events"
+          "tag" : "Group:Event Requests: Coordinator"
+        }, {
+          "color" : "#b85450",
+          "tag" : "Group:Event Requests: Operations"
+        }, {
+          "color" : "#b85450",
+          "tag" : "Group:Event Requests: Organiser"
+        }, {
+          "color" : "#b85450",
+          "tag" : "Group:Event Requests: shared"
         }, {
           "color" : "#9673a6",
           "tag" : "Group:Identity & Access"
@@ -1789,6 +5193,9 @@
           "strokeWidth" : 2,
           "tag" : "Software System"
         }, {
+          "opacity" : 35,
+          "tag" : "Unmerged"
+        }, {
           "background" : "#dae8fc",
           "color" : "#1f3864",
           "stroke" : "#6c8ebf",
@@ -1803,6 +5210,9 @@
           "routing" : "Orthogonal",
           "tag" : "Relationship",
           "thickness" : 2
+        }, {
+          "opacity" : 35,
+          "tag" : "Unmerged"
         } ]
       },
       "terminology" : { }
@@ -1845,11 +5255,15 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "44",
+        "id" : "97",
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "45",
+        "id" : "98",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "100",
         "x" : 0,
         "y" : 0
       } ],
@@ -1858,21 +5272,25 @@
       "name" : "Container View: Event Planning and Venue Booking System",
       "order" : 2,
       "relationships" : [ {
-        "id" : "59"
+        "id" : "115"
       }, {
-        "id" : "60"
+        "id" : "116"
       }, {
-        "id" : "61"
+        "id" : "117"
       }, {
-        "id" : "62"
+        "id" : "118"
       }, {
-        "id" : "63"
+        "id" : "119"
       }, {
-        "id" : "64"
+        "id" : "120"
       }, {
-        "id" : "65"
+        "id" : "121"
       }, {
-        "id" : "66"
+        "id" : "122"
+      }, {
+        "id" : "123"
+      }, {
+        "id" : "124"
       } ],
       "softwareSystemId" : "7"
     } ],
@@ -1914,7 +5332,11 @@
         "x" : 0,
         "y" : 0
       }, {
-        "id" : "46",
+        "id" : "99",
+        "x" : 0,
+        "y" : 0
+      }, {
+        "id" : "100",
         "x" : 0,
         "y" : 0
       } ],
@@ -1923,19 +5345,23 @@
       "name" : "System Context View: Event Planning and Venue Booking System",
       "order" : 1,
       "relationships" : [ {
-        "id" : "47"
+        "id" : "101"
       }, {
-        "id" : "48"
+        "id" : "102"
       }, {
-        "id" : "49"
+        "id" : "103"
       }, {
-        "id" : "50"
+        "id" : "104"
       }, {
-        "id" : "51"
+        "id" : "105"
       }, {
-        "id" : "52"
+        "id" : "106"
       }, {
-        "id" : "58"
+        "id" : "112"
+      }, {
+        "id" : "113"
+      }, {
+        "id" : "114"
       } ],
       "softwareSystemId" : "7"
     } ]

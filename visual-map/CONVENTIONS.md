@@ -218,6 +218,11 @@ discipline around them is what makes the map trustworthy.
 
 - `[?]` in a name or description — **inferred / unconfirmed** element or relationship. Example: `manual_result_ui = component "Manual Result Entry UI [?]" "..."`.
 - `"NOT FOUND in code"` / `"???"` in a description — a **known gap**; the integration is believed to exist but isn't evidenced in source. Tag the element `External Unknown` where applicable.
+- `Unmerged` tag, with `PR #NN.` closing the description — **in an open pull request, not on the
+  main branch**. The code exists and was read, so it is not `[?]`, but it may still change in review.
+  Styled at `opacity 35` for both elements and relationships, so the map shows where the work is
+  going without claiming it is built. Tag every edge that only the PR adds too, including new edges
+  onto merged components. Draw a stack of PRs at its end state.
 
 **Where each marker lives:**
 
@@ -227,6 +232,9 @@ discipline around them is what makes the map trustworthy.
   `## Provenance notes` section, each with its reasoning — never lost in the migration.
 - A `NOT FOUND` / `???` element should also carry the `External Unknown` tag so the gap is visible
   on the diagram, not just in text.
+
+Dropping an `Unmerged` tag once its PR merges is the same kind of claim: re-read the element on the
+main branch, then remove the tag and the `PR #NN` suffix together.
 
 **Removing a marker is a verification claim.** Dropping a `[?]` asserts you checked the fact against
 source. So only remove one when you've actually confirmed it, and **record the confirmation** rather
