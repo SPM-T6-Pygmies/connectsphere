@@ -221,7 +221,11 @@ function buildRegistry(existing, cases, domains, tickets) {
     const prior = byKey.get(key);
     // Authorship is settled once, like the id: re-blaming a moved line would
     // credit whoever last touched the file rather than whoever wrote the test.
-    const authored = prior?.CreatedBy ? prior : blameFor(c.file).get(c.line) ?? {};
+    // "Not Committed Yet" is git blame's own placeholder for an unresolved
+    // line, not a real answer -- it must not count as settled, or a row
+    // stays stuck on it forever, even once the line is actually committed.
+    const settled = Boolean(prior?.CreatedBy) && prior.CreatedBy !== "Not Committed Yet";
+    const authored = settled ? prior : (blameFor(c.file).get(c.line) ?? {});
     rows.push({
       TestID: prior?.TestID ?? "",
       Domain: domainFor(c.file, domains),
@@ -237,8 +241,8 @@ function buildRegistry(existing, cases, domains, tickets) {
       TestSteps: `pnpm test -- ${c.file} -t ${JSON.stringify(c.testCase)}`,
       TestData: prior?.TestData ?? "",
       ExpectedResult: prior?.ExpectedResult ?? "",
-      CreatedBy: prior?.CreatedBy || authored.author || authored.CreatedBy || "",
-      DateCreated: prior?.DateCreated || authored.date || authored.DateCreated || "",
+      CreatedBy: (settled && prior.CreatedBy) || authored.author || authored.CreatedBy || "",
+      DateCreated: (settled && prior.DateCreated) || authored.date || authored.DateCreated || "",
       ActualResult: prior?.ActualResult ?? "",
       Status: prior?.Status || "Not Executed",
       Remarks: prior?.Remarks ?? "",

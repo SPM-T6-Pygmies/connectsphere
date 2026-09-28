@@ -82,7 +82,7 @@ use `999999` (check it does not exist).
 - Network tab: the document request is **403**
 - No person's name appears on the screen, only the role
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
 
 ---
 
@@ -97,7 +97,7 @@ use `999999` (check it does not exist).
 - The access-denied screen, naming the Event Coordinator
 - Network tab: **403**
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
 
 ---
 
@@ -121,7 +121,7 @@ use `999999` (check it does not exist).
 - Word-for-word the same text on both screens
 - `<not-mine-name>` and other request details appear in neither page source
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
 
 ---
 
@@ -137,11 +137,11 @@ use `999999` (check it does not exist).
   `venue@test.com` → `/staff/venue`)
 - That page loads normally (200), not another denial
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
 
 ---
 
-### TC-DENY-005: An Organiser with no client organisation gets no link (AC5)
+### TC-DENY-005: An Organiser with no client organisation sees a distinct message and is signed out to login (AC5, SPM-188)
 
 **Preconditions:** Local database only. Detach the second Organiser from their
 organisation:
@@ -162,10 +162,18 @@ update user_account set client_organisation_id = null where name = 'Test Organis
    ```
 
 **Expected Result:**
-- The access-denied screen, naming the Event Organiser
-- **No** "Go back to your workspace" link, since there is nowhere they can go
+- Heading reads "Something went wrong." — not "You don't have access to this page."
+- Message reads exactly "Please contact your respective Event Coordinator for
+  support." — not "...Event Organiser" (this account has no org, so calling
+  it an access question and naming the Organiser's own role was circular)
+- A **"Back to login"** button is shown — not "Go back to your workspace" and
+  not no link at all
+- Clicking it signs the account out and lands on `/auth/login` — verify by
+  then opening `/staff/requester` directly: it redirects to `/auth/login`
+  (signed out), it does **not** show this same access-denied screen again
+- Network tab: **403** on the original denied page
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
 
 ---
 
@@ -183,7 +191,7 @@ update user_account set client_organisation_id = null where name = 'Test Organis
 - At 1280px: the content sits centred in a narrow column and the button fits its
   label
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
 
 ---
 
@@ -222,7 +230,7 @@ update user_account_role
    and role_id = (select role_id from role where role_name = 'Attendee');
 ```
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
 
 ---
 
@@ -254,4 +262,4 @@ someone is already signed in.
 
 **Cleanup:** Same as TC-DENY-007.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-28
