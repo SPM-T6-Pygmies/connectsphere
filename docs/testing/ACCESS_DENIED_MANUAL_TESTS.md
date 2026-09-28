@@ -1,0 +1,186 @@
+# Access-Denied Manual Tests (SPM-16)
+
+## Overview
+
+Browser checks for the shared access-denied screen shown on any `/staff/*`
+page a signed-in user may not open. They cover what the unit tests cannot: that
+each page really shows the screen with a 403, that it gives nothing away about
+whether a record exists, and that it works at mobile width.
+
+The rules behind the screen are unit-tested (tagged `SPM-16`): which role each
+page area names (`pageAreaOwner`) and where the link goes (`homeWorkspaceFor`).
+
+These cases are registered as `MT-0011`–`MT-0016` in
+[`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them,
+tick the boxes below **and** set `Status`, `ExecutedBy` and `LastPassedDate` on
+the matching rows. CI cannot verify a manual case for you.
+
+---
+
+## Test Environment Setup
+
+### Prerequisites
+
+- Local Supabase with the seed and the sample requests:
+  ```bash
+  supabase start
+  supabase db reset
+  supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+  ```
+- `pnpm dev:local`
+- Browser DevTools open on the **Network** tab (to read the HTTP status)
+
+### Test Accounts
+
+Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
+
+| Account | Role | Own workspace |
+| --- | --- | --- |
+| `organiser@test.com` | Event Organiser | `/staff/requester` |
+| `coordinator@test.com` | Event Coordinator | `/staff/coordinator` |
+| `ops@test.com` | Event Operations Manager | `/staff/ops` |
+| `venue@test.com` | Venue Staff | `/staff/venue` |
+| `support@test.com` | Technical Support Staff | `/staff/technical` |
+
+### Finding a request ID that exists but isn't the coordinator's
+
+Every sample request is either assigned to Test Coordinator or to nobody, so an
+unassigned one is "someone else's" from the coordinator's point of view:
+
+```sql
+select event_request_id, event_name, status
+  from event_request
+ where assigned_coordinator_user_account_id is null
+   and status <> 'Draft'
+ limit 1;
+```
+
+Call its ID `<not-mine>` and its name `<not-mine-name>` below. For a missing ID
+use `999999` (check it does not exist).
+
+---
+
+## Test Cases
+
+### TC-DENY-001: Wrong workspace shows the access-denied screen (AC1, AC4)
+
+**Preconditions:** Signed in as each account below in turn.
+
+**Steps:** For each row, open the URL.
+
+| Signed in as | Open | Message must end with |
+| --- | --- | --- |
+| `venue@test.com` | `/staff/ops` | Please contact your respective Event Operations Manager. |
+| `ops@test.com` | `/staff/requester` | Please contact your respective Event Organiser. |
+| `organiser@test.com` | `/staff/coordinator` | Please contact your respective Event Coordinator. |
+| `coordinator@test.com` | `/staff/venue` | Please contact your respective Venue Staff. |
+| `venue@test.com` | `/staff/technical` | Please contact your respective Technical Support Staff. |
+
+**Expected Result:**
+- Heading "You don't have access to this page." and the message in the table
+- No 404 page, and none of that role's content (no queue, no sidebar)
+- Network tab: the document request is **403**
+- No person's name appears on the screen, only the role
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-002: A record that isn't theirs shows the access-denied screen (AC2)
+
+**Preconditions:** Signed in as `coordinator@test.com`; `<not-mine>` found as above.
+
+**Steps:**
+1. Open `/staff/coordinator/<not-mine>`
+
+**Expected Result:**
+- The access-denied screen, naming the Event Coordinator
+- Network tab: **403**
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-003: A record that isn't theirs and a missing ID look identical (AC3)
+
+**Preconditions:** As TC-DENY-002.
+
+**Steps:**
+1. Open `/staff/coordinator/<not-mine>`. Note the status and the text on the page.
+2. Open `/staff/coordinator/999999`. Note the same.
+3. On both, view the page source (Ctrl/Cmd+U) and search for `<not-mine-name>`.
+4. Repeat 1–3 signed in as `ops@test.com` with `/staff/ops/<draft>` vs
+   `/staff/ops/999999`. Operations never sees drafts, so a draft is the record
+   that exists but isn't theirs:
+   ```sql
+   select event_request_id, event_name from event_request where status = 'Draft' limit 1;
+   ```
+
+**Expected Result:**
+- Same HTTP status (**403**) for both URLs
+- Word-for-word the same text on both screens
+- `<not-mine-name>` and other request details appear in neither page source
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-004: "Go back to your workspace" opens the user's own workspace (AC5)
+
+**Preconditions:** On any access-denied screen from TC-DENY-001.
+
+**Steps:**
+1. Click **Go back to your workspace**
+
+**Expected Result:**
+- Lands on the signed-in user's own workspace from the accounts table (e.g.
+  `venue@test.com` → `/staff/venue`)
+- That page loads normally (200), not another denial
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-005: An Organiser with no client organisation gets no link (AC5)
+
+**Preconditions:** Local database only. Detach the second Organiser from their
+organisation:
+
+```sql
+update user_account set client_organisation_id = null where name = 'Test Organiser 2';
+```
+
+**Steps:**
+1. Sign in as `organiser2@test.com`
+2. Open `/staff/requester`
+3. Afterwards, put the organisation back:
+   ```sql
+   update user_account u
+      set client_organisation_id = c.client_organisation_id
+     from client_organisation c
+    where u.name = 'Test Organiser 2' and c.name = 'Test Organisation';
+   ```
+
+**Expected Result:**
+- The access-denied screen, naming the Event Organiser
+- **No** "Go back to your workspace" link, since there is nowhere they can go
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-006: The screen works at mobile and desktop widths (AC6)
+
+**Preconditions:** On any access-denied screen from TC-DENY-001.
+
+**Steps:**
+1. DevTools device toolbar at **375 × 667** (iPhone SE)
+2. Then at **1280 × 800**
+
+**Expected Result:**
+- At 375px: the heading and message wrap and stay readable, the button is full
+  width and easy to tap, and there is no horizontal scroll
+- At 1280px: the content sits centred in a narrow column and the button fits its
+  label
+
+**Status:** [ ] Pass [ ] Fail
