@@ -1,4 +1,4 @@
-import { forbidden, notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import {
   Card,
@@ -70,7 +70,7 @@ export async function LoadedAssignDetail({
   ]);
 
   if (eventRequestResult === null) {
-    notFound();
+    forbidden();
   }
 
   return (

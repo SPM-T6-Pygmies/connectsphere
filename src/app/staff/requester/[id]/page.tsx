@@ -1,4 +1,4 @@
-import { forbidden, notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { buildViewOrganiserEventRequest, getCurrentOrganiser } from "@/composition/container";
 
@@ -15,7 +15,7 @@ export default async function Page({ params }: PageProps<"/staff/requester/[id]"
   const result = await viewOrganiserEventRequest.execute({ id, ...organiser });
 
   if (result === null) {
-    notFound();
+    forbidden();
   }
 
   return (
