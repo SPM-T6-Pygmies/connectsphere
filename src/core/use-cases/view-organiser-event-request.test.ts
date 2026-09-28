@@ -160,3 +160,31 @@ describe("ViewOrganiserEventRequestUseCase thread closing (SPM-33)", () => {
   });
 });
 
+
+describe("ViewOrganiserEventRequestUseCase assigned coordinator", () => {
+  it("names the assigned Event Coordinator", async () => {
+    const useCase = buildUseCase([
+      request({ status: "Under Review", assignedCoordinatorUserAccountId: COORDINATOR }),
+    ]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.assignedCoordinatorName).toBe("Nadia Rahman");
+  });
+
+  it("reports no coordinator while none is assigned", async () => {
+    const useCase = buildUseCase([request({ assignedCoordinatorUserAccountId: null })]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.assignedCoordinatorName).toBeNull();
+  });
+});

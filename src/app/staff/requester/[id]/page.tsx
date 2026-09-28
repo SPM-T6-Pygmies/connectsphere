@@ -23,6 +23,7 @@ export default async function Page({ params }: PageProps<"/staff/requester/[id]"
       eventRequest={result.eventRequest}
       clarificationThread={result.clarificationThread}
       canDiscuss={result.canDiscuss}
+      assignedCoordinatorName={result.assignedCoordinatorName}
       organiserName={organiser.name}
     />
   );

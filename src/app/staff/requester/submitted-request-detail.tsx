@@ -28,11 +28,10 @@ function formatInstantTime(iso: string): string {
 /**
  * How far along the request has travelled.
  *
- * Coordinator assignment and arrangement confirmation have no adapter yet
- * (SPM-39, SPM-73), so those steps read as not-yet-started rather than
- * inventing a coordinator or a booking the store does not have.
+ * Arrangement confirmation has no adapter yet (SPM-73), so that step reads
+ * as not-yet-started rather than inventing a booking the store does not have.
  */
-function timeline(request: EventRequestView) {
+function timeline(request: EventRequestView, coordinatorName: string | null) {
   const reviewed =
     request.status === "Under Review" ||
     request.status === "Approved" ||
@@ -46,7 +45,11 @@ function timeline(request: EventRequestView) {
       done: request.submittedAt !== null,
       detail: request.submittedAt?.slice(0, 10) ?? "Not submitted",
     },
-    { label: "Coordinator assigned", done: false, detail: "Awaiting assignment" },
+    {
+      label: "Coordinator assigned",
+      done: coordinatorName !== null,
+      detail: coordinatorName ?? "Awaiting assignment",
+    },
     { label: "Under review", done: reviewed, detail: reviewed ? "Reviewed by your coordinator" : "Not started" },
     {
       label: "Approved to plan",
@@ -72,6 +75,7 @@ export function SubmittedRequestDetail({
   clarificationThread,
   organiserName,
   canDiscuss,
+  assignedCoordinatorName,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -81,6 +85,8 @@ export function SubmittedRequestDetail({
   organiserName: string;
   /** Whether the thread still takes messages, from the use case. */
   canDiscuss: boolean;
+  /** Null until Operations assigns a coordinator. */
+  assignedCoordinatorName: string | null;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -154,7 +160,7 @@ export function SubmittedRequestDetail({
             </CardHeader>
             <CardContent>
               <ol className="space-y-4">
-                {timeline(eventRequest).map((entry) => (
+                {timeline(eventRequest, assignedCoordinatorName).map((entry) => (
                   <li key={entry.label} className="flex gap-3">
                     <span
                       className={

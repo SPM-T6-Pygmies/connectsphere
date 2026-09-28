@@ -36,6 +36,8 @@ export interface ViewOrganiserEventRequestResult {
    * `canDiscussEventRequest`. False once the request is decided.
    */
   readonly canDiscuss: boolean;
+  /** The assigned Event Coordinator's name, or null until Operations assigns one (SPM-97). */
+  readonly assignedCoordinatorName: string | null;
 }
 
 export interface ViewOrganiserEventRequestDeps {
@@ -75,15 +77,18 @@ export class ViewOrganiserEventRequestUseCase {
     }
 
     const messages = await this.deps.clarificationThread.messagesFor(request.id);
-    // One batched lookup for the whole thread rather than one per message.
-    const names = await this.deps.userAccounts.findNamesByIds(
-      messages.map((message) => message.authorUserAccountId),
-    );
+    const coordinatorId = request.assignedCoordinatorUserAccountId;
+    // One batched lookup for the whole thread and the coordinator rather than one per person.
+    const names = await this.deps.userAccounts.findNamesByIds([
+      ...messages.map((message) => message.authorUserAccountId),
+      ...(coordinatorId === null ? [] : [coordinatorId]),
+    ]);
 
     return {
       eventRequest: toEventRequestView(request),
       clarificationThread: toClarificationThreadView(messages, names),
       canDiscuss: canDiscussEventRequest(request.status),
+      assignedCoordinatorName: coordinatorId === null ? null : (names.get(coordinatorId) ?? null),
     };
   }
 }
