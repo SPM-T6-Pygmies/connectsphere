@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { clientOrganisationId } from "./client-organisation";
 import {
   coordinatorContextFor,
+  homeWorkspaceFor,
   landingWorkspaceFor,
   organiserContextFor,
   pageAreaOwner,
@@ -92,5 +93,28 @@ describe("pageAreaOwner (SPM-16)", () => {
     ["technical", "Technical Support Staff"],
   ] as const)("names %s's owner as %s", (area, role) => {
     expect(pageAreaOwner(area)).toBe(role);
+  });
+});
+
+describe("homeWorkspaceFor (SPM-16)", () => {
+  it.each([
+    ["Event Coordinator", "coordinator"],
+    ["Event Operations Manager", "ops"],
+    ["Venue Staff", "venue"],
+    ["Technical Support Staff", "technical"],
+  ])("sends %s back to %s", (role, workspace) => {
+    expect(homeWorkspaceFor(member([role]))).toBe(workspace);
+  });
+
+  it("sends an Event Organiser with a client organisation back to requester", () => {
+    expect(homeWorkspaceFor(member(["Event Organiser"], ORG))).toBe("requester");
+  });
+
+  it("has nowhere to send an Event Organiser with no client organisation", () => {
+    expect(homeWorkspaceFor(member(["Event Organiser"]))).toBeNull();
+  });
+
+  it("has nowhere to send someone with no staff role", () => {
+    expect(homeWorkspaceFor(member(["Attendee"]))).toBeNull();
   });
 });

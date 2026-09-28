@@ -74,6 +74,21 @@ export function organiserContextFor(member: StaffMember): OrganiserContext | nul
   };
 }
 
+/**
+ * Where a member of staff denied a page is sent back to: their landing
+ * workspace, provided they can actually open it (SPM-16 AC5). An Organiser
+ * with no client organisation lands on requester but is refused every page
+ * there, so they have nowhere to go -- the same as someone with no staff role.
+ */
+export function homeWorkspaceFor(member: StaffMember): StaffWorkspace | null {
+  const landing = landingWorkspaceFor(member.roles);
+  if (landing === "requester" && organiserContextFor(member) === null) {
+    return null;
+  }
+
+  return landing;
+}
+
 /** Who a member of staff acts as on the Coordinator's screens: only an Event Coordinator. */
 export function coordinatorContextFor(member: StaffMember): CoordinatorContext | null {
   if (!member.roles.includes("Event Coordinator")) {
