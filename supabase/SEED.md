@@ -11,7 +11,7 @@ supabase db reset
 ```
 
 `db reset` replays every migration into a fresh database and then runs
-[`seed.sql`](seed.sql), which creates the twelve test logins below, their
+[`seed.sql`](seed.sql), which creates the ten test logins below, their
 `user_account` rows and roles, and links the two together.
 
 That is the whole setup — you can log in immediately.
@@ -33,8 +33,11 @@ That is the whole setup — you can log in immediately.
 | Venue Staff (second) | `venue2@test.com` | `TestPass123!` |
 | Technical Support Staff | `support@test.com` | `TestPass123!` |
 | Technical Support Staff (second) | `support2@test.com` | `TestPass123!` |
-| Attendee | `attendee@test.com` | `TestPass123!` |
-| Attendee (second) | `attendee2@test.com` | `TestPass123!` |
+
+Attendees are deliberately not seeded here: the customer confirmed they never
+get an account (registration is by name and email, no login), so an "Attendee"
+test login would not model anything the real system does. Login rejects any
+account with no staff role rather than send it anywhere.
 
 For local and test use only. Don't create these accounts on a production
 project.
@@ -74,7 +77,7 @@ select u.name, u.auth_user_id is not null as linked, au.email, r.role_name
  order by u.user_account_id;
 ```
 
-Expected: twelve rows, every one with `linked = t` and a role.
+Expected: ten rows, every one with `linked = t` and a role.
 
 ## Adding a test user
 
