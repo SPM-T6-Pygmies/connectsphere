@@ -306,11 +306,6 @@
       "title": "Logout audit write likely fails after audit_record grants were revoked",
       "parent": null,
       "status": "Done"
-    },
-    "SPM-16": {
-      "title": "Clear access-denied response",
-      "parent": null,
-      "status": "In Progress"
     }
   }
 }
