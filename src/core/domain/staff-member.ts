@@ -62,6 +62,19 @@ export function hasNoStaffWorkspace(workspaces: readonly StaffWorkspace[]): bool
 }
 
 /**
+ * True when a staff member holds a real staff role but has nowhere to land
+ * -- today only an Event Organiser with no client organisation (SPM-188).
+ * A broken account, not a genuine access question: distinct from
+ * `hasNoStaffWorkspace`, which is no staff role at all.
+ */
+export function isStaffWithNoHome(
+  workspaces: readonly StaffWorkspace[],
+  homeWorkspace: StaffWorkspace | null,
+): boolean {
+  return !hasNoStaffWorkspace(workspaces) && homeWorkspace === null;
+}
+
+/**
  * Who to contact about a page in this workspace's area: the role that owns
  * it, never an individual (SPM-16 AC4).
  */

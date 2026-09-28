@@ -5,6 +5,7 @@ import {
   coordinatorContextFor,
   hasNoStaffWorkspace,
   homeWorkspaceFor,
+  isStaffWithNoHome,
   landingWorkspaceFor,
   organiserContextFor,
   pageAreaOwner,
@@ -133,5 +134,28 @@ describe("hasNoStaffWorkspace (SPM-192)", () => {
     // homeWorkspaceFor is null for these same roles -- this pins down that
     // hasNoStaffWorkspace answers a different question and must stay false.
     expect(hasNoStaffWorkspace(workspacesFor(["Event Organiser"]))).toBe(false);
+  });
+});
+
+describe("isStaffWithNoHome (SPM-188)", () => {
+  it("is true for an Event Organiser with no client organisation", () => {
+    const roles = ["Event Organiser"];
+    expect(isStaffWithNoHome(workspacesFor(roles), homeWorkspaceFor(member(roles)))).toBe(true);
+  });
+
+  it("is false for someone with no staff role at all -- that's hasNoStaffWorkspace's case", () => {
+    const roles = ["Attendee"];
+    expect(isStaffWithNoHome(workspacesFor(roles), homeWorkspaceFor(member(roles)))).toBe(false);
+  });
+
+  it("is false for a staff member who has a home to go to", () => {
+    const roles = ["Event Coordinator"];
+    expect(isStaffWithNoHome(workspacesFor(roles), homeWorkspaceFor(member(roles)))).toBe(false);
+  });
+
+  it("is false for an Event Organiser who does have a client organisation", () => {
+    expect(
+      isStaffWithNoHome(workspacesFor(["Event Organiser"]), homeWorkspaceFor(member(["Event Organiser"], ORG))),
+    ).toBe(false);
   });
 });
