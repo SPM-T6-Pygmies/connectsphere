@@ -11,7 +11,7 @@ supabase db reset
 ```
 
 `db reset` replays every migration into a fresh database and then runs
-[`seed.sql`](seed.sql), which creates the six test logins below, their
+[`seed.sql`](seed.sql), which creates the twelve test logins below, their
 `user_account` rows and roles, and links the two together.
 
 That is the whole setup — you can log in immediately.
@@ -26,9 +26,15 @@ That is the whole setup — you can log in immediately.
 | Event Organiser | `organiser@test.com` | `TestPass123!` |
 | Event Organiser (second, same organisation) | `organiser2@test.com` | `TestPass123!` |
 | Event Coordinator | `coordinator@test.com` | `TestPass123!` |
+| Event Coordinator (second) | `coordinator2@test.com` | `TestPass123!` |
 | Event Operations Manager | `ops@test.com` | `TestPass123!` |
+| Event Operations Manager (second) | `ops2@test.com` | `TestPass123!` |
 | Venue Staff | `venue@test.com` | `TestPass123!` |
+| Venue Staff (second) | `venue2@test.com` | `TestPass123!` |
 | Technical Support Staff | `support@test.com` | `TestPass123!` |
+| Technical Support Staff (second) | `support2@test.com` | `TestPass123!` |
+| Attendee | `attendee@test.com` | `TestPass123!` |
+| Attendee (second) | `attendee2@test.com` | `TestPass123!` |
 
 For local and test use only. Don't create these accounts on a production
 project.
@@ -68,7 +74,7 @@ select u.name, u.auth_user_id is not null as linked, au.email, r.role_name
  order by u.user_account_id;
 ```
 
-Expected: six rows, every one with `linked = t` and a role.
+Expected: twelve rows, every one with `linked = t` and a role.
 
 ## Adding a test user
 
