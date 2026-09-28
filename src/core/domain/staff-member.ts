@@ -51,6 +51,17 @@ export function workspacesFor(roles: readonly string[]): StaffWorkspace[] {
 }
 
 /**
+ * True when a signed-in user holds no staff role at all, so there is no page
+ * area they could have been denied from and nowhere in /staff to send them
+ * back to (SPM-192). Login already refuses this account (`NoStaffRoleError`)
+ * -- this is the backstop for a session that reaches /staff some other way,
+ * e.g. a role changed after the session was issued.
+ */
+export function hasNoStaffWorkspace(workspaces: readonly StaffWorkspace[]): boolean {
+  return workspaces.length === 0;
+}
+
+/**
  * Who to contact about a page in this workspace's area: the role that owns
  * it, never an individual (SPM-16 AC4).
  */

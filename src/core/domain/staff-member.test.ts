@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { clientOrganisationId } from "./client-organisation";
 import {
   coordinatorContextFor,
+  hasNoStaffWorkspace,
   homeWorkspaceFor,
   landingWorkspaceFor,
   organiserContextFor,
@@ -116,5 +117,21 @@ describe("homeWorkspaceFor (SPM-16)", () => {
 
   it("has nowhere to send someone with no staff role", () => {
     expect(homeWorkspaceFor(member(["Attendee"]))).toBeNull();
+  });
+});
+
+describe("hasNoStaffWorkspace (SPM-192)", () => {
+  it("is true for someone with no staff workspace, such as an Attendee", () => {
+    expect(hasNoStaffWorkspace(workspacesFor(["Attendee"]))).toBe(true);
+  });
+
+  it("is false for a staff member who has at least one workspace", () => {
+    expect(hasNoStaffWorkspace(workspacesFor(["Event Coordinator"]))).toBe(false);
+  });
+
+  it("is false for an Event Organiser with no client organisation, who still has a workspace", () => {
+    // homeWorkspaceFor is null for these same roles -- this pins down that
+    // hasNoStaffWorkspace answers a different question and must stay false.
+    expect(hasNoStaffWorkspace(workspacesFor(["Event Organiser"]))).toBe(false);
   });
 });
