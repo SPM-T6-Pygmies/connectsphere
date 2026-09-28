@@ -5,6 +5,7 @@ import {
   coordinatorContextFor,
   landingWorkspaceFor,
   organiserContextFor,
+  pageAreaOwner,
   workspacesFor,
   type StaffMember,
 } from "./staff-member";
@@ -79,5 +80,17 @@ describe("coordinatorContextFor (SPM-122)", () => {
 
   it("does not act as a Coordinator for any other role", () => {
     expect(coordinatorContextFor(member(["Event Organiser"], ORG))).toBeNull();
+  });
+});
+
+describe("pageAreaOwner (SPM-16)", () => {
+  it.each([
+    ["requester", "Event Organiser"],
+    ["coordinator", "Event Coordinator"],
+    ["ops", "Event Operations Manager"],
+    ["venue", "Venue Staff"],
+    ["technical", "Technical Support Staff"],
+  ] as const)("names %s's owner as %s", (area, role) => {
+    expect(pageAreaOwner(area)).toBe(role);
   });
 });

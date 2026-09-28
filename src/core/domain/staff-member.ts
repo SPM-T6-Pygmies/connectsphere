@@ -13,6 +13,15 @@ const WORKSPACE_BY_ROLE: ReadonlyMap<string, StaffWorkspace> = new Map([
   ["Technical Support Staff", "technical"],
 ]);
 
+/**
+ * The role that owns each workspace's page area -- the one a user denied a
+ * page there is told to contact (SPM-16). Read off the same table, so a
+ * workspace can never be owned by a role that does not work in it.
+ */
+const OWNER_BY_WORKSPACE: ReadonlyMap<StaffWorkspace, string> = new Map(
+  [...WORKSPACE_BY_ROLE].map(([role, workspace]) => [workspace, role]),
+);
+
 /** A signed-in member of staff, as far as deciding what they may act as goes. */
 export interface StaffMember {
   readonly userAccountId: UserAccountId;
@@ -39,6 +48,14 @@ export function workspacesFor(roles: readonly string[]): StaffWorkspace[] {
     const workspace = WORKSPACE_BY_ROLE.get(role);
     return workspace === undefined ? [] : [workspace];
   });
+}
+
+/**
+ * Who to contact about a page in this workspace's area: the role that owns
+ * it, never an individual (SPM-16 AC4).
+ */
+export function pageAreaOwner(area: StaffWorkspace): string {
+  return OWNER_BY_WORKSPACE.get(area)!;
 }
 
 /**
