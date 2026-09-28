@@ -370,15 +370,23 @@ export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
 }
 
 /**
- * The signed-in member of staff as the staff chrome shows them: their name
- * and the workspaces they may open. Null when nobody is signed in or the auth
- * user has no `user_account`.
+ * The signed-in member of staff as the staff chrome shows them: their name,
+ * the workspaces they may open, and the one an access-denied screen sends
+ * them back to. Null when nobody is signed in or the auth user has no
+ * `user_account`.
  */
 export async function getSignedInStaffMember(): Promise<{
   readonly name: string;
   readonly workspaces: readonly StaffWorkspace[];
+  readonly homeWorkspace: StaffWorkspace | null;
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   const member = await identifyStaffMember.execute();
-  return member && { name: member.name, workspaces: member.workspaces };
+  return (
+    member && {
+      name: member.name,
+      workspaces: member.workspaces,
+      homeWorkspace: member.homeWorkspace,
+    }
+  );
 }
