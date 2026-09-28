@@ -44,7 +44,7 @@ const IS_FORM_FIELD = new Set<string>(FORM_FIELDS);
 /**
  * The signed-in Organiser every action here acts as.
  *
- * The requester pages are not found for anyone else, so arriving here without
+ * The requester pages deny access to anyone else, so arriving here without
  * one means the action was posted to directly -- a fault that reaches the
  * error boundary, not a message to render against the form.
  */

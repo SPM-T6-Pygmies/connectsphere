@@ -1,6 +1,6 @@
 import { FilePlusIcon } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -83,7 +83,7 @@ function RequestTable({
 export default async function RequesterPage() {
   const organiser = await getCurrentOrganiser();
   if (organiser === null) {
-    notFound();
+    forbidden();
   }
 
   const viewMyEventRequests = await buildViewMyEventRequests();

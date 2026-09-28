@@ -191,7 +191,7 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  *
  * `null` covers every case that isn't a coordinator -- no session, no matching
  * `user_account`, or a role other than Event Coordinator -- so callers answer
- * with a not-found rather than someone else's queue (#91). Same shape as
+ * with access denied rather than someone else's queue (#91). Same shape as
  * `getCurrentOrganiser` below.
  */
 /**
@@ -347,7 +347,7 @@ async function buildIdentifyStaffMember(): Promise<IdentifyStaffMemberUseCase> {
  *
  * `null` covers every case that isn't one -- no session, no matching
  * `user_account`, a role other than Event Organiser, or an Organiser with no
- * client organisation set -- so callers answer with a not-found rather than
+ * client organisation set -- so callers answer with access denied rather than
  * someone else's requests (#91). Same shape as `getCurrentCoordinator` above.
  */
 export async function getCurrentOrganiser(): Promise<{
@@ -362,7 +362,7 @@ export async function getCurrentOrganiser(): Promise<{
 /**
  * The staff workspaces the signed-in member of staff may open. Empty when
  * nobody is signed in or the auth user has no `user_account`, so a caller
- * checking its own workspace answers with a not-found either way.
+ * checking its own workspace answers with access denied either way.
  */
 export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
   const identifyStaffMember = await buildIdentifyStaffMember();
