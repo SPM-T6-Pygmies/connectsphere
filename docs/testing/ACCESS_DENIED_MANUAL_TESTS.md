@@ -10,7 +10,7 @@ whether a record exists, and that it works at mobile width.
 The rules behind the screen are unit-tested (tagged `SPM-16`): which role each
 page area names (`pageAreaOwner`) and where the link goes (`homeWorkspaceFor`).
 
-These cases are registered as `MT-0011`–`MT-0016` in
+These cases are registered as `MT-0011`–`MT-0017` in
 [`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them,
 tick the boxes below **and** set `Status`, `ExecutedBy` and `LastPassedDate` on
 the matching rows. CI cannot verify a manual case for you.
@@ -182,5 +182,76 @@ update user_account set client_organisation_id = null where name = 'Test Organis
   width and easy to tap, and there is no horizontal scroll
 - At 1280px: the content sits centred in a narrow column and the button fits its
   label
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-007: Login is refused for an account with no staff role (SPM-192)
+
+Attendees are never seeded with an account (they don't get one in the real
+product — see [`supabase/SEED.md`](../../supabase/SEED.md)), so this uses a
+temporary role swap on an existing test account instead.
+
+**Preconditions:** Local database only.
+
+```sql
+-- Give Test Organiser 2 the Attendee role instead of Event Organiser
+update user_account_role
+   set role_id = (select role_id from role where role_name = 'Attendee')
+ where user_account_id = (select user_account_id from user_account where name = 'Test Organiser 2')
+   and role_id = (select role_id from role where role_name = 'Event Organiser');
+```
+
+**Steps:**
+1. Go to `/auth/login`. Enter `organiser2@test.com` / `TestPass123!` and submit.
+
+**Expected Result:**
+- Login is refused — you stay on `/auth/login`, never redirected into `/staff`
+- Error message: "Authorised users only. For attendees, please visit the
+  events page." with "events page" a working link to `/events`
+- No session is left behind: opening `/staff/requester` afterwards redirects
+  to `/auth/login` (signed out), not to the access-denied screen
+
+**Cleanup:**
+
+```sql
+update user_account_role
+   set role_id = (select role_id from role where role_name = 'Event Organiser')
+ where user_account_id = (select user_account_id from user_account where name = 'Test Organiser 2')
+   and role_id = (select role_id from role where role_name = 'Attendee');
+```
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-008: A session that loses its only staff role still gets the access-denied screen (SPM-192)
+
+The backstop for a session issued before a role change, since login itself
+already refuses this account (TC-DENY-007) — a role can still change after
+someone is already signed in.
+
+**Preconditions:** Local database only.
+
+**Steps:**
+1. Sign in as `organiser2@test.com` / `TestPass123!` normally.
+2. Without signing out, in SQL, remove their staff role the same way as
+   TC-DENY-007's setup:
+   ```sql
+   update user_account_role
+      set role_id = (select role_id from role where role_name = 'Attendee')
+    where user_account_id = (select user_account_id from user_account where name = 'Test Organiser 2')
+      and role_id = (select role_id from role where role_name = 'Event Organiser');
+   ```
+3. In the still-signed-in browser tab, open `/staff/requester`.
+
+**Expected Result:**
+- The access-denied screen, not a 404
+- Message is exactly "Please contact your respective Event Organiser."
+- A **"Back to home"** link is shown, pointing at `/`
+- Network tab: **403**
+
+**Cleanup:** Same as TC-DENY-007.
 
 **Status:** [ ] Pass [ ] Fail
