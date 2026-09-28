@@ -1,4 +1,4 @@
-import { InvalidCredentialsError } from "../domain/errors";
+import { InvalidCredentialsError, NoStaffRoleError } from "../domain/errors";
 import { landingWorkspaceFor, type StaffWorkspace } from "../domain/staff-member";
 import type { AuthPort } from "../ports/outbound/auth-port";
 import type { UserRepository } from "../ports/outbound/user-repository";
@@ -12,8 +12,8 @@ export interface LoginResult {
   readonly userId: string;
   readonly roles: string[];
   readonly expiresAt: string;
-  /** Where to send them now -- null when they have no staff role to land in (`landingWorkspaceFor`). */
-  readonly landingWorkspace: StaffWorkspace | null;
+  /** Where to send them now -- always resolvable, since a login with no staff role is refused before returning (`NoStaffRoleError`). */
+  readonly landingWorkspace: StaffWorkspace;
 }
 
 export interface LoginDeps {
@@ -39,11 +39,19 @@ export class LoginUseCase {
       throw new InvalidCredentialsError();
     }
 
+    const landingWorkspace = landingWorkspaceFor(user.roles);
+    if (landingWorkspace === null) {
+      // Sign the just-created session back out: a rejected login should not
+      // leave the caller with a valid cookie for a page they can't reach.
+      await auth.logout();
+      throw new NoStaffRoleError();
+    }
+
     return {
       userId: user.userId,
       roles: user.roles,
       expiresAt: authResult.expiresAt.toISOString(),
-      landingWorkspace: landingWorkspaceFor(user.roles),
+      landingWorkspace,
     };
   }
 }
