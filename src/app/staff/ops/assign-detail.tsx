@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 
 import {
   Card,
@@ -10,6 +10,7 @@ import {
 import {
   buildViewAllEventCoordinators,
   buildViewOperationsEventRequest,
+  getStaffWorkspaces,
 } from "@/composition/container";
 import type { EventCoordinatorDetails } from "@/core/use-cases/view-all-event-coordinators";
 import type { OperationsEventRequest } from "@/core/use-cases/operations-event-request";
@@ -52,6 +53,13 @@ export async function LoadedAssignDetail({
   id: string;
   origin?: DetailOrigin;
 }) {
+  // Checked here rather than left to `StaffShell`: the shell only runs once
+  // this has rendered, and by then the request and every coordinator would
+  // already have been read for someone who may not open Operations.
+  if (!(await getStaffWorkspaces()).includes("ops")) {
+    forbidden();
+  }
+
   const [viewEventRequest, viewEventCoordinators] = await Promise.all([
     buildViewOperationsEventRequest(),
     buildViewAllEventCoordinators(),
