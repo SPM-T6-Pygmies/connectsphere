@@ -3,6 +3,7 @@ import type { EquipmentItemId } from "./equipment-item";
 import {
   DuplicateEquipmentRequirementError,
   EquipmentRemovalAlreadyRequestedError,
+  EquipmentRemovalNotRequestedError,
   EquipmentRequirementsLockedError,
   InvalidEquipmentQuantityError,
   TechnicalRequirementsTooLongError,
@@ -30,7 +31,8 @@ export interface EquipmentRequirement {
   readonly recheckRequired: boolean;
   /**
    * The coordinator removed a reserved line (AC11). It stays, with its
-   * equipment held, until Technical Support release it (SPM-108).
+   * equipment held, until Technical Support release it (SPM-108) or the
+   * coordinator undoes the removal (AC17).
    */
   readonly removalRequested: boolean;
 }
@@ -137,6 +139,22 @@ export function removeEquipmentRequirement(
     kind: "removalRequested",
     line: { ...line, recheckRequired: true, removalRequested: true },
   };
+}
+
+/**
+ * AC17: the coordinator changed their mind before Technical Support released
+ * the equipment, so the line is kept. It stays flagged -- Technical Support
+ * may already have seen the removal and should re-check either way.
+ */
+export function undoEquipmentRemoval(
+  event: CoordinatorEvent,
+  line: EquipmentRequirement,
+): EquipmentRequirement {
+  assertEditable(event);
+  if (!line.removalRequested) {
+    throw new EquipmentRemovalNotRequestedError();
+  }
+  return { ...line, removalRequested: false };
 }
 
 function assertEditable(event: CoordinatorEvent): void {

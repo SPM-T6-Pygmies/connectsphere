@@ -378,17 +378,27 @@ export class EquipmentRequirementsLockedError extends DomainError {
 }
 
 /**
- * SPM-41 AC11: once removal of a reserved line is requested, the line is
- * Technical Support's to release (SPM-108) -- the coordinator can neither edit
- * it nor remove it a second time.
+ * SPM-41 AC11: once removal of a reserved line is requested, the line waits
+ * for Technical Support to release it (SPM-108). Until then the coordinator
+ * can only undo the removal (AC17) -- not edit the line or remove it again.
  */
 export class EquipmentRemovalAlreadyRequestedError extends DomainError {
   readonly code = "equipment_removal_already_requested";
 
   constructor() {
-    super(
-      "Removal of this line has already been requested. " +
-        "Technical Support Staff will release its equipment.",
-    );
+    super("Removal of this line has already been requested. Undo the removal to change it.");
+  }
+}
+
+/**
+ * SPM-41 AC17: only a line whose removal is pending can have that removal
+ * undone. A second undo is a refusal rather than a no-op, the same choice
+ * `RegistrationAlreadyWithdrawnError` makes for a second withdrawal.
+ */
+export class EquipmentRemovalNotRequestedError extends DomainError {
+  readonly code = "equipment_removal_not_requested";
+
+  constructor() {
+    super("This line has no pending removal to undo.");
   }
 }

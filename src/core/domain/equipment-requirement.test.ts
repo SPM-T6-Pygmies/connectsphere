@@ -11,12 +11,14 @@ import {
   equipmentRequirementsEditable,
   recordEquipmentRequirement,
   removeEquipmentRequirement,
+  undoEquipmentRemoval,
   type EquipmentRequirement,
   type NewEquipmentRequirement,
 } from "./equipment-requirement";
 import {
   DuplicateEquipmentRequirementError,
   EquipmentRemovalAlreadyRequestedError,
+  EquipmentRemovalNotRequestedError,
   EquipmentRequirementsLockedError,
   InvalidEquipmentItemIdError,
   InvalidEquipmentQuantityError,
@@ -357,6 +359,44 @@ describe("removeEquipmentRequirement (SPM-182)", () => {
 
   it.each(LOCKED)("refuses to remove a line on a %s event", (status) => {
     expect(() => removeEquipmentRequirement(event({ status }), line())).toThrow(
+      EquipmentRequirementsLockedError,
+    );
+  });
+});
+
+describe("undoEquipmentRemoval (SPM-182)", () => {
+  const pendingRemoval = () => reserved({ removalRequested: true, recheckRequired: true });
+
+  it("keeps the line, still flagged for re-check and with its equipment held", () => {
+    expect(undoEquipmentRemoval(event(), pendingRemoval())).toEqual(
+      reserved({ removalRequested: false, recheckRequired: true }),
+    );
+  });
+
+  it("lets the coordinator edit the line again once the removal is undone", () => {
+    const restored = undoEquipmentRemoval(event(), pendingRemoval());
+    expect(
+      editEquipmentRequirement(event(), restored, {
+        quantityRequested: 3,
+        technicalRequirements: "HDMI input",
+      }).line.quantityRequested,
+    ).toBe(3);
+  });
+
+  it("refuses to undo a removal that was never requested", () => {
+    expect(() => undoEquipmentRemoval(event(), reserved())).toThrow(
+      EquipmentRemovalNotRequestedError,
+    );
+  });
+
+  it.each(EDITABLE)("undoes a removal on a %s event", (status) => {
+    expect(undoEquipmentRemoval(event({ status }), pendingRemoval()).removalRequested).toBe(
+      false,
+    );
+  });
+
+  it.each(LOCKED)("refuses to undo a removal on a %s event", (status) => {
+    expect(() => undoEquipmentRemoval(event({ status }), pendingRemoval())).toThrow(
       EquipmentRequirementsLockedError,
     );
   });
