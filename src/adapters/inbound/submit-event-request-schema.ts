@@ -104,7 +104,7 @@ export const submitEventRequestSchema = z.object({
   preferredEndTime: optionalDateTime,
   expectedAttendance: optionalAttendance,
   venueRequirements: optionalText,
-  roomLayoutPreferences: optionalOptions(STANDARD_LAYOUTS),
+  roomLayoutPreferences: optionalOptions(STANDARD_LAYOUTS, 1),
   accessibilityNeeds: optionalOptions(ACCESSIBILITY_OPTIONS),
   equipmentRequirements: optionalText,
   registrationRequirements: optionalText,
