@@ -110,7 +110,10 @@ describe("DecideEventRequestUseCase (SPM-139)", () => {
     ).rejects.toBeInstanceOf(EventRequestNotFoundError);
   });
 
-  it.each(["Returned", "Approved", "Rejected"] as const)(
+  // `Returned` used to sit in this matrix. SPM-33 decision 4 widened
+  // `assertDecidable` to admit it, and the positive cases live in their own
+  // (SPM-33) block below -- the rule is that ticket's, not this one's.
+  it.each(["Approved", "Rejected"] as const)(
     "refuses to decide a %s request and stores nothing",
     async (status) => {
       const existing = request({ status, decisionRecord: "Earlier decision." });
@@ -127,4 +130,63 @@ describe("DecideEventRequestUseCase (SPM-139)", () => {
       expect(eventRequests.all()).toEqual([existing]);
     },
   );
+});
+
+/**
+ * SPM-33 decision 4, not SPM-139's rule: a `Returned` request can be approved
+ * or rejected directly, without the Coordinator first marking the
+ * clarification resolved. Resolve is the "I am no longer waiting" signal, not
+ * a gate in front of deciding.
+ */
+describe("DecideEventRequestUseCase on a returned request (SPM-33)", () => {
+  it("approves a Returned request without resolving the clarification first", async () => {
+    const { useCase, eventRequests } = buildUseCase([request({ status: "Returned" })]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      decision: "approve",
+      decisionRecord: "Answered in the thread.",
+    });
+
+    expect(result).toEqual({ eventRequestId: "request-1", status: "Approved" });
+    await expect(eventRequests.findById(eventRequestId("request-1"))).resolves.toMatchObject({
+      status: "Approved",
+      decisionRecord: "Answered in the thread.",
+    });
+  });
+
+  it("rejects a Returned request directly, keeping the reason", async () => {
+    const { useCase, eventRequests } = buildUseCase([request({ status: "Returned" })]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      decision: "reject",
+      decisionRecord: "No answer and the date has passed.",
+    });
+
+    expect(result.status).toBe("Rejected");
+    await expect(eventRequests.findById(eventRequestId("request-1"))).resolves.toMatchObject({
+      decisionRecord: "No answer and the date has passed.",
+    });
+  });
+
+  it("still refuses another coordinator's returned request as not found (#91)", async () => {
+    const existing = request({
+      status: "Returned",
+      assignedCoordinatorUserAccountId: OTHER_COORDINATOR,
+    });
+    const { useCase, eventRequests } = buildUseCase([existing]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: COORDINATOR,
+        decision: "approve",
+        decisionRecord: "",
+      }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+    expect(eventRequests.all()).toEqual([existing]);
+  });
 });
