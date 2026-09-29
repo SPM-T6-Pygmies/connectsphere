@@ -6,6 +6,7 @@ import {
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
+import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/supabase-event-readiness-repository";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
@@ -18,6 +19,7 @@ import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
+import type { EquipmentRequirementRepository } from "@/core/ports/outbound/equipment-requirement-repository";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventReadinessRepository } from "@/core/ports/outbound/event-readiness-repository";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
@@ -42,6 +44,11 @@ import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
+import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
+import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
+import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
+import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
+import { ViewEventEquipmentUseCase } from "@/core/use-cases/view-event-equipment";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
@@ -199,6 +206,7 @@ async function coordinatorAdapters(): Promise<{
   readiness: EventReadinessRepository;
   clientOrganisations: ClientOrganisationRepository;
   userAccounts: UserAccountRepository;
+  equipment: EquipmentRequirementRepository;
 }> {
   const client = await createSupabaseServerClient();
   return {
@@ -207,6 +215,7 @@ async function coordinatorAdapters(): Promise<{
     readiness: new SupabaseEventReadinessRepository(client),
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
+    equipment: new SupabaseEquipmentRequirementRepository(client),
   };
 }
 
@@ -260,6 +269,41 @@ export async function buildConfirmEvent(): Promise<ConfirmEventUseCase> {
   const { events, readiness } = await coordinatorAdapters();
 
   return new ConfirmEventUseCase({ events, readiness });
+}
+
+/** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */
+export async function buildViewEventEquipment(): Promise<ViewEventEquipmentUseCase> {
+  const { events, equipment } = await coordinatorAdapters();
+
+  return new ViewEventEquipmentUseCase({ events, equipment });
+}
+
+/** SPM-41 AC1-5: the assigned coordinator adds a line to an event's equipment requirements. */
+export async function buildRecordEquipmentRequirement(): Promise<RecordEquipmentRequirementUseCase> {
+  const { events, equipment } = await coordinatorAdapters();
+
+  return new RecordEquipmentRequirementUseCase({ events, equipment });
+}
+
+/** SPM-41 AC7-9: the assigned coordinator changes a line's quantity or technical requirements. */
+export async function buildEditEquipmentRequirement(): Promise<EditEquipmentRequirementUseCase> {
+  const { events, equipment } = await coordinatorAdapters();
+
+  return new EditEquipmentRequirementUseCase({ events, equipment });
+}
+
+/** SPM-41 AC10-11: the assigned coordinator removes a line. */
+export async function buildRemoveEquipmentRequirement(): Promise<RemoveEquipmentRequirementUseCase> {
+  const { events, equipment } = await coordinatorAdapters();
+
+  return new RemoveEquipmentRequirementUseCase({ events, equipment });
+}
+
+/** SPM-41 AC17: the assigned coordinator takes back a removal Technical Support have not yet acted on. */
+export async function buildUndoEquipmentRemoval(): Promise<UndoEquipmentRemovalUseCase> {
+  const { events, equipment } = await coordinatorAdapters();
+
+  return new UndoEquipmentRemovalUseCase({ events, equipment });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */

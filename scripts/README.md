@@ -57,3 +57,30 @@ supabase db query --file scripts/seed-coordinator-view/seed.sql --linked
 - It also refuses files with more than one statement, which is why each script
   is a single `do` block or CTE.
 - The request list is duplicated across all three files. Change one, change all.
+
+## seed-equipment
+
+An equipment catalogue and one event with requirements, for the coordinator's
+event page (SPM-41). The event is Founders' Gala Dinner — seed-coordinator-view
+seeds its request as Approved but opens no event for it, so this does, the way
+approving it in the app would. It has one line Technical Support have already
+reserved against (Projector) and one they have not (Wireless microphone), so
+editing either kind can be tried.
+
+| File           | What it does                                                          |
+| -------------- | --------------------------------------------------------------------- |
+| `seed.sql`     | Inserts the catalogue, the event and its lines. Safe to re-run.       |
+| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.     |
+| `teardown.sql` | Deletes the event (its lines go with it) and the unused catalogue.   |
+
+Run seed-coordinator-view first — this script stops with an error naming the
+missing request if you have not:
+
+```bash
+supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+supabase db query --file scripts/seed-equipment/seed.sql --local
+supabase db query --file scripts/seed-equipment/verify.sql --local
+```
+
+The same gotchas apply as above, and the catalogue and line lists are
+duplicated across all three files.
