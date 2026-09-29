@@ -394,3 +394,59 @@ export class ClarificationThreadClosedError extends DomainError {
     super("This request has been decided, so its clarification thread is closed.");
   }
 }
+
+export class InvalidVenueIdError extends DomainError {
+  readonly code = "invalid_venue_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable venue id.`);
+  }
+}
+
+/**
+ * SPM-42: a venue record the catalogue would not accept -- a missing location,
+ * a layout with no capacity, hours that run backwards. The reason is written
+ * for the person filling in the form, so it can be shown as it is.
+ */
+export class InvalidVenueError extends DomainError {
+  readonly code = "invalid_venue";
+
+  /** Which form field the reason is about, so the screen can flag that one. */
+  constructor(
+    reason: string,
+    readonly field: VenueField | null = null,
+  ) {
+    super(reason);
+  }
+}
+
+export type VenueField =
+  | "location"
+  | "facilities"
+  | "accessibility"
+  | "operatingHoursStart"
+  | "operatingHoursEnd"
+  | "capacity"
+  | "bookingHorizonDays"
+  | "layouts";
+
+export class VenueNotFoundError extends DomainError {
+  readonly code = "venue_not_found";
+
+  constructor() {
+    super("That venue is not in the catalogue.");
+  }
+}
+
+/**
+ * SPM-42 (#66): only Venue Staff maintain the catalogue. Argument-free because
+ * the Supabase functions raise it too, when the database's own role check
+ * refuses a write the application let through.
+ */
+export class VenueMaintenanceNotPermittedError extends DomainError {
+  readonly code = "venue_maintenance_not_permitted";
+
+  constructor() {
+    super("Only Venue Staff can create or update venues.");
+  }
+}

@@ -11,6 +11,7 @@ import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-ev
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
+import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
@@ -54,6 +55,9 @@ import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-orga
 import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
+import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
+import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
+import { ListVenuesUseCase, ViewVenueUseCase } from "@/core/use-cases/view-venues";
 
 /**
  * The composition root: the one module allowed to know both sides.
@@ -381,4 +385,36 @@ export async function getSignedInStaffMember(): Promise<{
   const identifyStaffMember = await buildIdentifyStaffMember();
   const member = await identifyStaffMember.execute();
   return member && { name: member.name, workspaces: member.workspaces };
+}
+
+async function venueCatalogue(): Promise<SupabaseVenueCatalogue> {
+  return new SupabaseVenueCatalogue(await createSupabaseServerClient());
+}
+
+/** SPM-42: the venue catalogue, as Venue Staff and Event Coordinators read it. */
+export async function buildListVenues(): Promise<ListVenuesUseCase> {
+  return new ListVenuesUseCase({ venues: await venueCatalogue() });
+}
+
+export async function buildViewVenue(): Promise<ViewVenueUseCase> {
+  return new ViewVenueUseCase({ venues: await venueCatalogue() });
+}
+
+/** SPM-146: Venue Staff add a venue and its layouts. */
+export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
+  return new CreateVenueUseCase({ venues: await venueCatalogue() });
+}
+
+/** SPM-147: Venue Staff update a venue and its layouts. */
+export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
+  return new UpdateVenueUseCase({ venues: await venueCatalogue() });
+}
+
+/**
+ * The signed-in member's roles as far as venue maintenance goes: "Venue Staff"
+ * exactly when they may open the venue workspace (`workspacesFor` maps that one
+ * role to it), none otherwise. The database re-checks the real role on write.
+ */
+export async function getVenueMaintenanceRoles(): Promise<readonly string[]> {
+  return (await getStaffWorkspaces()).includes("venue") ? ["Venue Staff"] : [];
 }

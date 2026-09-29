@@ -81,6 +81,15 @@ export function railItems(role: StaffRole): RailItem[] {
     },
   ]
 
+  if (role === "venue") {
+    items.push({
+      section: "action",
+      title: "Venues",
+      url: "/staff/venue/catalogue",
+      icon: Building2Icon,
+    })
+  }
+
   if (role === "requester") {
     items.push(
       {
