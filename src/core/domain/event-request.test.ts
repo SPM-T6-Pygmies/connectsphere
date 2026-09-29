@@ -12,6 +12,7 @@ import {
   DecisionReasonRequiredError,
   EventRequestNotDecidableError,
   EventRequestNotReturnableError,
+  EventRequestNotWithdrawableError,
   IncompleteEventRequestError,
   PreferredDateNotInFutureError,
   PreferredEndTimeNotAfterStartError,
@@ -35,6 +36,7 @@ import {
   returnEventRequest,
   saveEventRequestDraft,
   submitEventRequest,
+  withdrawEventRequest,
   type EventRequest,
 } from "./event-request";
 import { userAccountId } from "./user-account";
@@ -542,6 +544,45 @@ describe("rejectEventRequest (SPM-138)", () => {
       );
     },
   );
+});
+
+describe("withdrawEventRequest (SPM-166)", () => {
+  it("withdraws a request under review", () => {
+    expect(withdrawEventRequest(request({ status: "Under Review" }), "").status).toBe("Withdrawn");
+  });
+
+  it("records the coordinator's note, trimmed, as the decision record", () => {
+    const withdrawn = withdrawEventRequest(
+      request({ status: "Under Review" }),
+      "  Organiser called to withdraw.  ",
+    );
+
+    expect(withdrawn.decisionRecord).toBe("Organiser called to withdraw.");
+  });
+
+  it("records no decision record when the note is blank -- a note is optional", () => {
+    expect(
+      withdrawEventRequest(request({ status: "Under Review" }), "   ").decisionRecord,
+    ).toBeNull();
+  });
+
+  it.each(["Draft", "Submitted", "Returned", "Approved", "Rejected", "Withdrawn"] as const)(
+    "refuses to withdraw a %s request -- only one under review can be (#103)",
+    (status) => {
+      expect(() => withdrawEventRequest(request({ status }), "")).toThrow(
+        EventRequestNotWithdrawableError,
+      );
+    },
+  );
+
+  it("leaves the request it was given untouched", () => {
+    const original = request({ status: "Under Review" });
+
+    withdrawEventRequest(original, "Organiser called to withdraw.");
+
+    expect(original.status).toBe("Under Review");
+    expect(original.decisionRecord).toBeNull();
+  });
 });
 
 describe("returnEventRequest (SPM-33)", () => {
