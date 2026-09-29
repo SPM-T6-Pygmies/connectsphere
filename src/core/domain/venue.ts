@@ -1,5 +1,12 @@
 import type { Brand } from "./brand";
 import { InvalidVenueError, InvalidVenueIdError, type VenueField } from "./errors";
+import {
+  ACCESSIBILITY_OPTIONS,
+  FACILITY_OPTIONS,
+  formatOptionList,
+  parseOptionList,
+  unknownOptions,
+} from "./venue-options";
 
 export type VenueId = Brand<string, "VenueId">;
 
@@ -44,7 +51,7 @@ export interface Venue extends VenueDetails {
   readonly id: VenueId;
 }
 
-/** The layouts the catalogue names. Any other layout is "another" -- free text. */
+/** The only room layouts a venue can list, so requests and venues match by name. */
 export const STANDARD_LAYOUTS = [
   "Classroom",
   "Theatre",
@@ -71,10 +78,16 @@ export function canMaintainVenues(roles: readonly string[]): boolean {
  */
 export function defineVenue(input: VenueDetails): VenueDetails {
   const location = requiredText(input.location, "Enter the location.", "location");
-  const facilities = requiredText(input.facilities, "Enter the facilities.", "facilities");
-  const accessibility = requiredText(
+  const facilities = requiredOptions(
+    input.facilities,
+    FACILITY_OPTIONS,
+    "Select at least one facility.",
+    "facilities",
+  );
+  const accessibility = requiredOptions(
     input.accessibility,
-    "Enter the accessibility details.",
+    ACCESSIBILITY_OPTIONS,
+    "Select at least one accessibility feature.",
     "accessibility",
   );
 
@@ -125,6 +138,12 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     if (name.length === 0) {
       throw new InvalidVenueError("Every room layout needs a name.", "layouts");
     }
+    if (!(STANDARD_LAYOUTS as readonly string[]).includes(name)) {
+      throw new InvalidVenueError(
+        `${name} is not a room layout -- choose one of ${STANDARD_LAYOUTS.join(", ")}.`,
+        "layouts",
+      );
+    }
     if (!Number.isInteger(layout.capacity) || layout.capacity <= 0) {
       throw new InvalidVenueError(
         `Enter a capacity above 0 for the ${name} layout -- it is not worked out for you.`,
@@ -157,4 +176,24 @@ function requiredText(value: string | null, message: string, field: VenueField):
     throw new InvalidVenueError(message, field);
   }
   return trimmed;
+}
+
+function requiredOptions(
+  value: string | null,
+  allowed: readonly string[],
+  message: string,
+  field: VenueField,
+): string {
+  const selected = parseOptionList(value);
+  if (selected.length === 0) {
+    throw new InvalidVenueError(message, field);
+  }
+  const unknown = unknownOptions(value, allowed);
+  if (unknown.length > 0) {
+    throw new InvalidVenueError(
+      `${unknown.join(", ")} is not an option -- choose from ${allowed.join(", ")}.`,
+      field,
+    );
+  }
+  return formatOptionList(selected);
 }

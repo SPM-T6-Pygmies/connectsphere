@@ -20,8 +20,11 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
+import { STANDARD_LAYOUTS } from "@/core/domain/venue";
+import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
+import { OptionCheckboxes, OptionSelect } from "../../option-fields";
 import { PageHeader } from "../../page-header";
 import { TimePicker } from "../../time-picker";
 import {
@@ -339,10 +342,14 @@ export function NewRequestForm({
                 label="Room layout preference"
                 errors={errors?.roomLayoutPreferences}
               >
-                <Input
+                <OptionSelect
                   id="roomLayoutPreferences"
-                  placeholder="Theatre, cabaret, classroom…"
-                  {...field("roomLayoutPreferences")}
+                  name="roomLayoutPreferences"
+                  options={STANDARD_LAYOUTS}
+                  blank="No preference"
+                  aria-invalid={errors?.roomLayoutPreferences !== undefined}
+                  value={values.roomLayoutPreferences}
+                  onChange={(value) => set("roomLayoutPreferences", value)}
                 />
               </Field>
             </CardContent>
@@ -370,10 +377,11 @@ export function NewRequestForm({
                 label="Accessibility needs"
                 errors={errors?.accessibilityNeeds}
               >
-                <Textarea
-                  id="accessibilityNeeds"
-                  placeholder="Step-free access, hearing loop, captions…"
-                  {...field("accessibilityNeeds")}
+                <OptionCheckboxes
+                  name="accessibilityNeeds"
+                  options={ACCESSIBILITY_OPTIONS}
+                  value={values.accessibilityNeeds}
+                  onChange={(value) => set("accessibilityNeeds", value)}
                 />
               </Field>
               <Field

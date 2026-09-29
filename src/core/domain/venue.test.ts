@@ -7,7 +7,7 @@ function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
   return {
     location: "Level 3, Marina Bay Hall",
     facilities: "Projector, PA system",
-    accessibility: "Step-free entrance",
+    accessibility: "Step-free access",
     operatingHoursStart: "08:00",
     operatingHoursEnd: "22:00",
     capacity: 300,
@@ -37,16 +37,16 @@ describe("defineVenue (SPM-42)", () => {
   });
 
   it("trims text", () => {
-    const venue = defineVenue(details({ location: "  Hall A  ", facilities: " Mic " }));
+    const venue = defineVenue(details({ location: "  Hall A  ", facilities: " Wi-Fi ,Projector " }));
 
     expect(venue.location).toBe("Hall A");
-    expect(venue.facilities).toBe("Mic");
+    expect(venue.facilities).toBe("Wi-Fi, Projector");
   });
 
-  it("accepts a layout the catalogue does not name, such as a free-text 'another'", () => {
-    const venue = defineVenue(details({ layouts: [{ name: " U-shape ", capacity: 30 }] }));
+  it("trims a layout name", () => {
+    const venue = defineVenue(details({ layouts: [{ name: " Banquet ", capacity: 30 }] }));
 
-    expect(venue.layouts).toEqual([{ name: "U-shape", capacity: 30 }]);
+    expect(venue.layouts).toEqual([{ name: "Banquet", capacity: 30 }]);
   });
 
   describe("every field is mandatory", () => {
@@ -83,13 +83,21 @@ describe("defineVenue (SPM-42)", () => {
     );
   });
 
-  it("refuses the same layout twice, ignoring case", () => {
+  it.each([
+    ["facilities", { facilities: "Projector, Trampoline" }],
+    ["accessibility", { accessibility: "Moat" }],
+    ["layouts", { layouts: [{ name: "U-shape", capacity: 30 }] }],
+  ] as const)("refuses a value outside the %s list", (field, overrides) => {
+    expect(flaggedField(details(overrides))).toBe(field);
+  });
+
+  it("refuses the same layout twice", () => {
     expect(() =>
       defineVenue(
         details({
           layouts: [
             { name: "Theatre", capacity: 100 },
-            { name: "theatre", capacity: 120 },
+            { name: "Theatre", capacity: 120 },
           ],
         }),
       ),

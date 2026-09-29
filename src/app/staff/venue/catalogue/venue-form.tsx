@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
+import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "@/core/domain/venue-options";
 
+import { OptionCheckboxes, OptionSelect } from "../../option-fields";
 import { TimePicker } from "../../time-picker";
 import type { VenueFormState } from "./actions";
 
@@ -154,14 +155,11 @@ export function VenueForm({
             error={errors?.facilities}
             className="sm:col-span-2"
           >
-            <Textarea
-              id="facilities"
+            <OptionCheckboxes
               name="facilities"
-              placeholder="Projector, PA system, breakout rooms…"
-              required
-              aria-invalid={errors?.facilities !== undefined}
+              options={FACILITY_OPTIONS}
               value={facilities}
-              onChange={(event) => setFacilities(event.target.value)}
+              onChange={setFacilities}
             />
           </Field>
           <Field
@@ -171,14 +169,11 @@ export function VenueForm({
             error={errors?.accessibility}
             className="sm:col-span-2"
           >
-            <Textarea
-              id="accessibility"
+            <OptionCheckboxes
               name="accessibility"
-              placeholder="Step-free access, hearing loop, accessible toilets…"
-              required
-              aria-invalid={errors?.accessibility !== undefined}
+              options={ACCESSIBILITY_OPTIONS}
               value={accessibility}
-              onChange={(event) => setAccessibility(event.target.value)}
+              onChange={setAccessibility}
             />
           </Field>
         </CardContent>
@@ -250,12 +245,6 @@ export function VenueForm({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <datalist id="standard-layouts">
-            {STANDARD_LAYOUTS.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
-
           {layouts.map((row, index) => (
             <div key={row.key} className="grid items-start gap-4 sm:grid-cols-[1fr_1fr_auto]">
               <Field
@@ -264,15 +253,15 @@ export function VenueForm({
                 required
                 error={errors?.[`layouts.${index}.name`]}
               >
-                <Input
+                <OptionSelect
                   id={`layoutName-${row.key}`}
                   name="layoutName"
-                  list="standard-layouts"
-                  placeholder="Theatre, cabaret, classroom…"
+                  options={STANDARD_LAYOUTS}
+                  blank="Select a layout"
                   required
                   aria-invalid={errors?.[`layouts.${index}.name`] !== undefined}
                   value={row.name}
-                  onChange={(event) => updateLayout(row.key, { name: event.target.value })}
+                  onChange={(name) => updateLayout(row.key, { name })}
                 />
               </Field>
               <Field

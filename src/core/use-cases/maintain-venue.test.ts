@@ -29,7 +29,7 @@ function newVenue(overrides: Partial<CreateVenueCommand> = {}): CreateVenueComma
     roles: STAFF,
     location: "Marina Bay Hall",
     facilities: "Projector",
-    accessibility: "Step-free",
+    accessibility: "Step-free access",
     operatingHoursStart: "08:00",
     operatingHoursEnd: "22:00",
     capacity: 300,
@@ -102,12 +102,12 @@ describe("UpdateVenueUseCase (SPM-147)", () => {
       venueId: venue.id,
       layouts: [
         { name: "Theatre", capacity: 200 },
-        { name: "U-shape", capacity: 40 },
+        { name: "Banquet", capacity: 40 },
       ],
     });
 
     const { venue: reread } = await view.execute({ venueId: venue.id });
-    expect(reread.layouts.map((layout) => layout.name)).toEqual(["Theatre", "U-shape"]);
+    expect(reread.layouts.map((layout) => layout.name)).toEqual(["Theatre", "Banquet"]);
   });
 
   it("edits the venue's attributes", async () => {
