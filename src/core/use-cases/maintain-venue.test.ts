@@ -143,6 +143,60 @@ describe("UpdateVenueUseCase (SPM-147)", () => {
   });
 });
 
+describe("Venue lists are enforced on save (SPM-42)", () => {
+  it("rejects a facility outside the list on create and stores nothing", async () => {
+    const { create, list } = build();
+
+    await expect(create.execute(newVenue({ facilities: "Trampoline" }))).rejects.toBeInstanceOf(
+      InvalidVenueError,
+    );
+    expect((await list.execute()).venues).toEqual([]);
+  });
+
+  it("stores several facilities and accessibility features chosen from the lists", async () => {
+    const { create, view } = build();
+    const { venue } = await create.execute(
+      newVenue({
+        facilities: "Projector, Wi-Fi",
+        accessibility: "Hearing loop, Lift access",
+      }),
+    );
+
+    const stored = (await view.execute({ venueId: venue.id })).venue;
+
+    expect(stored.facilities).toBe("Projector, Wi-Fi");
+    expect(stored.accessibility).toBe("Hearing loop, Lift access");
+  });
+
+  it("leaves the stored venue unchanged when an update picks an unlisted layout", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue());
+
+    await expect(
+      update.execute({
+        ...newVenue(),
+        venueId: venue.id,
+        layouts: [{ name: "Cabaret", capacity: 40 }],
+      }),
+    ).rejects.toBeInstanceOf(InvalidVenueError);
+
+    expect((await view.execute({ venueId: venue.id })).venue.layouts).toHaveLength(2);
+  });
+
+  it("rejects an update that clears every accessibility feature", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue());
+
+    await expect(
+      update.execute({ ...newVenue(), venueId: venue.id, accessibility: "" }),
+    ).rejects.toBeInstanceOf(InvalidVenueError);
+
+    expect((await view.execute({ venueId: venue.id })).venue.accessibility).toBe(
+      "Step-free access",
+    );
+  });
+});
+
 describe("Access control for venue maintenance (SPM-148)", () => {
   it("lets Venue Staff create and update, whatever the venue or location", async () => {
     const { create, update } = build();

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { InvalidVenueError, type VenueField } from "./errors";
-import { canMaintainVenues, defineVenue, type VenueDetails } from "./venue";
+import { canMaintainVenues, defineVenue, STANDARD_LAYOUTS, type VenueDetails } from "./venue";
+import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "./venue-options";
 
 function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
   return {
@@ -141,6 +142,69 @@ describe("defineVenue (SPM-42)", () => {
     it("refuses a time that is not HH:MM", () => {
       expect(flaggedField(details({ operatingHoursStart: "8am" }))).toBe("operatingHoursStart");
     });
+  });
+});
+
+describe("facilities, accessibility and layouts come from fixed lists (SPM-42)", () => {
+  it("accepts every listed facility, accessibility feature and layout at once", () => {
+    const venue = defineVenue(
+      details({
+        facilities: FACILITY_OPTIONS.join(", "),
+        accessibility: ACCESSIBILITY_OPTIONS.join(", "),
+        layouts: STANDARD_LAYOUTS.map((name) => ({ name, capacity: 50 })),
+      }),
+    );
+
+    expect(venue.facilities).toBe("Projector, PA system, Wi-Fi, Breakout rooms, Catering area");
+    expect(venue.layouts).toHaveLength(STANDARD_LAYOUTS.length);
+  });
+
+  it.each(FACILITY_OPTIONS)("accepts %s as the only facility", (facility) => {
+    expect(defineVenue(details({ facilities: facility })).facilities).toBe(facility);
+  });
+
+  it.each(ACCESSIBILITY_OPTIONS)("accepts %s as the only accessibility feature", (feature) => {
+    expect(defineVenue(details({ accessibility: feature })).accessibility).toBe(feature);
+  });
+
+  it("stores a selection as its labels joined by a comma and a space", () => {
+    expect(defineVenue(details({ facilities: "Wi-Fi,Projector" })).facilities).toBe(
+      "Wi-Fi, Projector",
+    );
+  });
+
+  it.each(["", "  ", ",", " , "])("refuses an empty selection %j, flagging facilities", (facilities) => {
+    expect(flaggedField(details({ facilities }))).toBe("facilities");
+  });
+
+  it("refuses an empty accessibility selection, flagging accessibility", () => {
+    expect(flaggedField(details({ accessibility: "," }))).toBe("accessibility");
+  });
+
+  it("refuses one unlisted value among listed ones", () => {
+    expect(flaggedField(details({ facilities: "Projector, Trampoline" }))).toBe("facilities");
+  });
+
+  it("refuses the old free-text wording", () => {
+    expect(flaggedField(details({ accessibility: "Step-free entrance" }))).toBe("accessibility");
+  });
+
+  it("refuses a listed value spelled in another case", () => {
+    expect(flaggedField(details({ facilities: "projector" }))).toBe("facilities");
+  });
+
+  it("names the offending value and the allowed ones in the message", () => {
+    expect(() => defineVenue(details({ facilities: "Trampoline" }))).toThrow(
+      /Trampoline.*Projector/,
+    );
+  });
+
+  it.each(STANDARD_LAYOUTS)("accepts %s as a layout", (name) => {
+    expect(defineVenue(details({ layouts: [{ name, capacity: 10 }] })).layouts[0].name).toBe(name);
+  });
+
+  it("refuses a layout outside the list, flagging layouts", () => {
+    expect(flaggedField(details({ layouts: [{ name: "Cabaret", capacity: 40 }] }))).toBe("layouts");
   });
 });
 
