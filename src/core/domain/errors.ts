@@ -402,3 +402,24 @@ export class EquipmentRemovalNotRequestedError extends DomainError {
     super("This line has no pending removal to undo.");
   }
 }
+
+/** SPM-41 AC4: an equipment requirement's type must be picked from the catalogue. */
+export class EquipmentItemNotInCatalogueError extends DomainError {
+  readonly code = "equipment_item_not_in_catalogue";
+
+  constructor(readonly equipmentItemId: string) {
+    super(`Equipment item ${equipmentItemId} is not in the catalogue.`);
+  }
+}
+
+/**
+ * SPM-41: an edit, removal or undo named a type the event has no line for --
+ * the line was removed in the meantime, or never existed.
+ */
+export class EquipmentRequirementNotFoundError extends DomainError {
+  readonly code = "equipment_requirement_not_found";
+
+  constructor(readonly equipmentItemId: string) {
+    super(`This event has no equipment line for item ${equipmentItemId}.`);
+  }
+}

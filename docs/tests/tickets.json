@@ -321,6 +321,11 @@
       "title": "Equipment requirement rules in the domain",
       "parent": "SPM-41",
       "status": "In Progress"
+    },
+    "SPM-184": {
+      "title": "Record / edit / remove / list use cases, port and in-memory adapter",
+      "parent": "SPM-41",
+      "status": "In Progress"
     }
   }
 }

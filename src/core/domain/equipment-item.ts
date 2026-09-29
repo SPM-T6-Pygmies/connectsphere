@@ -15,3 +15,10 @@ export function equipmentItemId(raw: string): EquipmentItemId {
   }
   return trimmed as EquipmentItemId;
 }
+
+/** One entry in the equipment catalogue, as a coordinator picks from it (SPM-41 AC1, AC4). */
+export interface EquipmentCatalogueItem {
+  readonly id: EquipmentItemId;
+  /** What the catalogue calls it -- "Projector", "Wireless microphone". */
+  readonly type: string;
+}
