@@ -423,3 +423,19 @@ export class EquipmentRequirementNotFoundError extends DomainError {
     super(`This event has no equipment line for item ${equipmentItemId}.`);
   }
 }
+
+/**
+ * SPM-41: Technical Support reserved against a line after the coordinator's
+ * change was decided, so the change was not stored -- deciding it again
+ * against the new reservation may flag it where it would not have been.
+ *
+ * Takes no argument: only the Supabase adapter raises this, when it loses the
+ * race, and there it holds nothing to put in the message.
+ */
+export class EquipmentRequirementConflictError extends DomainError {
+  readonly code = "equipment_requirement_conflict";
+
+  constructor() {
+    super("Technical Support Staff have just reserved equipment against this line. Reload and try again.");
+  }
+}

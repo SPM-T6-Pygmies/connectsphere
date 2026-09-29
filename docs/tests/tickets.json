@@ -326,6 +326,11 @@
       "title": "Record / edit / remove / list use cases, port and in-memory adapter",
       "parent": "SPM-41",
       "status": "In Progress"
+    },
+    "SPM-185": {
+      "title": "Supabase functions and repository adapter",
+      "parent": "SPM-41",
+      "status": "In Progress"
     }
   }
 }
