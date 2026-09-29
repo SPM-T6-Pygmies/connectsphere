@@ -49,7 +49,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
     await expect(identify(user(["Event Coordinator"]))).resolves.toEqual({
       name: "Sam",
       organiser: null,
-      coordinator: { userAccountId: "user-1" },
+      coordinator: { userAccountId: "user-1", name: "Sam" },
       workspaces: ["coordinator"],
     });
   });

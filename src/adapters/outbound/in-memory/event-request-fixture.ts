@@ -1,3 +1,4 @@
+import type { NewClarificationMessage } from "@/core/domain/clarification-message";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import {
   eventRequestId,
@@ -49,6 +50,26 @@ export function eventRequestFixture(overrides: Partial<EventRequest> = {}): Even
     createdAt: new Date("2026-09-01T00:00:00.000Z"),
     updatedAt: new Date("2026-09-01T00:00:00.000Z"),
     submittedAt: null,
+    ...overrides,
+  };
+}
+
+/**
+ * A message to seed a thread with, defaulting to an ordinary comment.
+ *
+ * `NewClarificationMessage` has six members and tests usually care about one,
+ * so this keeps a seeded exchange readable -- the same reason
+ * `eventRequestDetails` exists.
+ */
+export function clarificationMessage(
+  overrides: Partial<NewClarificationMessage> = {},
+): NewClarificationMessage {
+  return {
+    eventRequestId: eventRequestId("request-1"),
+    authorUserAccountId: userAccountId("coordinator-1"),
+    body: "How many need step-free access?",
+    parentId: null,
+    isClarificationRequest: false,
     ...overrides,
   };
 }

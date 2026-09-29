@@ -294,3 +294,103 @@ export class DraftNotEditableError extends DomainError {
     super(`Event request ${id} is not an editable draft.`);
   }
 }
+
+/**
+ * SPM-33 AC2: a clarification can only be requested on a request that is still
+ * pre-decision -- `Submitted`, `Under Review`, or already `Returned` (decision
+ * 5: a request can be returned more than once, with or without a Resolve in
+ * between). A decided request has no clarification left to ask for.
+ *
+ * Takes no argument for the same reason `EventRequestNotDecidableError` takes
+ * none: the Supabase adapter raises this one too, after losing a race to a
+ * concurrent decision, and there it holds no status to put in the message.
+ */
+export class EventRequestNotReturnableError extends DomainError {
+  readonly code = "event_request_not_returnable";
+
+  constructor() {
+    super("This event request can no longer be returned for clarification.");
+  }
+}
+
+/**
+ * SPM-33 AC3: a clarification request must say what needs clarifying -- by the
+ * same rule that makes a rejection state its reason.
+ */
+export class ClarificationMessageRequiredError extends DomainError {
+  readonly code = "clarification_message_required";
+
+  constructor() {
+    super("Say what needs clarifying.");
+  }
+}
+
+/**
+ * SPM-33 AC6: only a `Returned` request can be marked resolved -- resolving is
+ * the Coordinator's "I am no longer waiting on the Organiser" signal, and there
+ * is nothing to stop waiting for on a request that was never returned.
+ *
+ * Argument-free for the same race-losing reason as the two above.
+ */
+export class ClarificationNotResolvableError extends DomainError {
+  readonly code = "clarification_not_resolvable";
+
+  constructor() {
+    super("This event request is not waiting on the Organiser.");
+  }
+}
+
+export class InvalidClarificationMessageIdError extends DomainError {
+  readonly code = "invalid_clarification_message_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable clarification message id.`);
+  }
+}
+
+/**
+ * SPM-33 decision 6: comment threading follows Linear -- top-level messages
+ * with one level of reply -- so a reply's parent must itself be top-level, and
+ * must be on the same request.
+ *
+ * Argument-free like the other clarification errors: the Supabase function
+ * raises this one too, and there it holds nothing useful to name.
+ */
+export class ClarificationReplyNotTopLevelError extends DomainError {
+  readonly code = "clarification_reply_not_top_level";
+
+  constructor() {
+    super("You can only reply to a top-level message.");
+  }
+}
+
+/**
+ * SPM-33 AC6: only a question the Coordinator asked can be marked answered,
+ * and only once. An ordinary comment asked for nothing, and a resolved
+ * question is already cleared.
+ *
+ * Argument-free like the other clarification errors: the Supabase function
+ * raises this one too, after losing a race to a concurrent resolve.
+ */
+export class ClarificationThreadNotResolvableError extends DomainError {
+  readonly code = "clarification_thread_not_resolvable";
+
+  constructor() {
+    super("That is not an open question on this request.");
+  }
+}
+
+/**
+ * SPM-33: a decided request's clarification thread is closed -- nothing more
+ * can be posted, replied or resolved on it. See `canDiscussEventRequest`.
+ *
+ * Argument-free for the same reason: the Supabase functions raise it too,
+ * after losing a race to a concurrent decision.
+ */
+export class ClarificationThreadClosedError extends DomainError {
+  readonly code = "clarification_thread_closed";
+
+  constructor() {
+    super("This request has been decided, so its clarification thread is closed.");
+  }
+}
