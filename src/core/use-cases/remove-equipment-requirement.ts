@@ -30,7 +30,8 @@ export class RemoveEquipmentRequirementUseCase {
   async execute(command: RemoveEquipmentRequirementCommand): Promise<EquipmentRequirementChange> {
     const { events, equipment } = this.deps;
     const id = eventId(command.eventId);
-    const event = await assignedEvent(events, id, userAccountId(command.userAccountId));
+    const caller = userAccountId(command.userAccountId);
+    const event = await assignedEvent(events, id, caller);
 
     const [catalogue, current] = await Promise.all([equipment.catalogue(), equipment.forEvent(id)]);
     const itemId = equipmentItemId(command.equipmentItemId);
@@ -38,9 +39,9 @@ export class RemoveEquipmentRequirementUseCase {
     const removal = removeEquipmentRequirement(event, line);
 
     if (removal.kind === "deleted") {
-      await equipment.delete(id, itemId);
+      await equipment.delete(id, itemId, caller);
     } else {
-      await equipment.update(id, removal.line);
+      await equipment.update(id, removal.line, caller);
     }
 
     return describeChange({

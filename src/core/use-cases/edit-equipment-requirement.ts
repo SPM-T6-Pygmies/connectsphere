@@ -32,7 +32,8 @@ export class EditEquipmentRequirementUseCase {
   async execute(command: EditEquipmentRequirementCommand): Promise<EquipmentRequirementChange> {
     const { events, equipment } = this.deps;
     const id = eventId(command.eventId);
-    const event = await assignedEvent(events, id, userAccountId(command.userAccountId));
+    const caller = userAccountId(command.userAccountId);
+    const event = await assignedEvent(events, id, caller);
 
     const [catalogue, current] = await Promise.all([equipment.catalogue(), equipment.forEvent(id)]);
     const itemId = equipmentItemId(command.equipmentItemId);
@@ -43,7 +44,7 @@ export class EditEquipmentRequirementUseCase {
     });
 
     if (edit.changed) {
-      await equipment.update(id, edit.line);
+      await equipment.update(id, edit.line, caller);
     }
 
     return describeChange({

@@ -6,6 +6,7 @@ import type {
   EventEquipment,
 } from "@/core/ports/outbound/equipment-requirement-repository";
 
+/** Takes the acting coordinator on writes, as the port does, but has no audit trail to record it in. */
 export class InMemoryEquipmentRequirementRepository implements EquipmentRequirementRepository {
   private readonly items: readonly EquipmentCatalogueItem[];
   private readonly events = new Map<string, EventEquipment>();

@@ -29,14 +29,15 @@ export class UndoEquipmentRemovalUseCase {
   async execute(command: UndoEquipmentRemovalCommand): Promise<EquipmentRequirementChange> {
     const { events, equipment } = this.deps;
     const id = eventId(command.eventId);
-    const event = await assignedEvent(events, id, userAccountId(command.userAccountId));
+    const caller = userAccountId(command.userAccountId);
+    const event = await assignedEvent(events, id, caller);
 
     const [catalogue, current] = await Promise.all([equipment.catalogue(), equipment.forEvent(id)]);
     const itemId = equipmentItemId(command.equipmentItemId);
     const { line, reservation } = existingLine(current, itemId);
     const restored = undoEquipmentRemoval(event, line);
 
-    await equipment.update(id, restored);
+    await equipment.update(id, restored, caller);
 
     return describeChange({
       action: "removalUndone",

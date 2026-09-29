@@ -31,15 +31,25 @@ export interface EquipmentRequirementRepository {
 
   forEvent(eventId: EventId): Promise<EventEquipment>;
 
+  /*
+   * The writes below take the acting coordinator so a store can re-check the
+   * assignment at the moment it writes and record who made the change -- the
+   * same reason `CoordinatorEventRepository.confirmEvent` takes `confirmedBy`.
+   */
+
   /**
    * Stores a new line, opening the event's reservation (status Requested) first
    * if it has none. Returns the reservation's id.
    */
-  add(eventId: EventId, line: EquipmentRequirement): Promise<string>;
+  add(eventId: EventId, line: EquipmentRequirement, actor: UserAccountId): Promise<string>;
 
-  /** Replaces the stored line for `line.equipmentItemId`. */
-  update(eventId: EventId, line: EquipmentRequirement): Promise<void>;
+  /**
+   * Replaces the stored line for `line.equipmentItemId`. `line.quantityReserved`
+   * is what the domain decided against: a store may refuse the write if
+   * Technical Support have reserved against the line since.
+   */
+  update(eventId: EventId, line: EquipmentRequirement, actor: UserAccountId): Promise<void>;
 
   /** Deletes the line outright -- only ever for an unreserved line (AC10). */
-  delete(eventId: EventId, equipmentItemId: EquipmentItemId): Promise<void>;
+  delete(eventId: EventId, equipmentItemId: EquipmentItemId, actor: UserAccountId): Promise<void>;
 }

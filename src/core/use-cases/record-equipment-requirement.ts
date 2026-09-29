@@ -36,7 +36,8 @@ export class RecordEquipmentRequirementUseCase {
   async execute(command: RecordEquipmentRequirementCommand): Promise<EquipmentRequirementChange> {
     const { events, equipment } = this.deps;
     const id = eventId(command.eventId);
-    const event = await assignedEvent(events, id, userAccountId(command.userAccountId));
+    const caller = userAccountId(command.userAccountId);
+    const event = await assignedEvent(events, id, caller);
 
     const [catalogue, current] = await Promise.all([equipment.catalogue(), equipment.forEvent(id)]);
     const item = catalogueItem(catalogue, equipmentItemId(command.equipmentItemId));
@@ -46,7 +47,7 @@ export class RecordEquipmentRequirementUseCase {
       technicalRequirements: command.technicalRequirements,
     });
 
-    const reservationId = await equipment.add(id, line);
+    const reservationId = await equipment.add(id, line, caller);
 
     return describeChange({
       action: "recorded",
