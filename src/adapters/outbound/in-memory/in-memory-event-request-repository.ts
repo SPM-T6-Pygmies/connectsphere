@@ -143,6 +143,11 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
     await this.thread?.resolve(messageId, new Date(request.updatedAt));
   }
 
+  /** Stores the withdrawn request. The audit record is not modelled in memory. */
+  async withdrawEventRequest(request: EventRequest): Promise<void> {
+    this.rows.set(request.id, request);
+  }
+
   /** Test-only window on what was stored, so a test can assert nothing was written. */
   all(): readonly EventRequest[] {
     return [...this.rows.values()];

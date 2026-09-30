@@ -54,6 +54,7 @@ import { ListOrganisationOrganisersUseCase } from "@/core/use-cases/list-organis
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
 import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
+import { WithdrawEventRequestUseCase } from "@/core/use-cases/withdraw-event-request";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
 import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
@@ -299,6 +300,13 @@ export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCa
   const { eventRequests } = await coordinatorAdapters();
 
   return new DecideEventRequestUseCase({ eventRequests });
+}
+
+/** SPM-101: the assigned coordinator records a withdrawal the Organiser asked for. */
+export async function buildWithdrawEventRequest(): Promise<WithdrawEventRequestUseCase> {
+  const { eventRequests } = await coordinatorAdapters();
+
+  return new WithdrawEventRequestUseCase({ eventRequests });
 }
 
 /**

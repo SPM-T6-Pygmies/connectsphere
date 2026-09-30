@@ -9,6 +9,7 @@ import {
   toDecideArgs,
   toDomain,
   toMyEventRequestSummary,
+  toWithdrawArgs,
   type EventRequestRow,
 } from "./event-request-mapper";
 
@@ -184,5 +185,33 @@ describe("event request mapper", () => {
         /Unknown event request status "Archived"/,
       );
     });
+  });
+});
+
+describe("toWithdrawArgs (SPM-168)", () => {
+  it("maps a withdrawal to the coordinator withdrawal RPC arguments, naming who withdrew it", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("12"),
+      status: "Withdrawn",
+      decisionRecord: "Organiser called to withdraw.",
+      assignedCoordinatorUserAccountId: userAccountId("9"),
+    });
+
+    expect(toWithdrawArgs(request, userAccountId("9"))).toEqual({
+      p_event_request_id: 12,
+      p_coordinator_user_account_id: 9,
+      p_note: "Organiser called to withdraw.",
+    });
+  });
+
+  it("gives no withdrawal arguments when either id was never one of ours", () => {
+    const withdrawn = { status: "Withdrawn" as const };
+
+    expect(
+      toWithdrawArgs(eventRequestFixture({ ...withdrawn, id: eventRequestId("request-1") }), userAccountId("9")),
+    ).toBeNull();
+    expect(
+      toWithdrawArgs(eventRequestFixture({ ...withdrawn, id: eventRequestId("12") }), userAccountId("coordinator-1")),
+    ).toBeNull();
   });
 });
