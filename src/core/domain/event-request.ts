@@ -7,6 +7,7 @@ import {
   EventRequestNotAssignableError,
   EventRequestNotDecidableError,
   EventRequestNotReturnableError,
+  EventRequestNotWithdrawableError,
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
   PreferredDateNotInFutureError,
@@ -633,4 +634,42 @@ export function resolveClarification(request: EventRequest): EventRequest {
   }
 
   return { ...request, status: "Under Review" };
+}
+
+/** The statuses a request can be withdrawn from: any point before it is decided. */
+const WITHDRAWABLE_STATUSES: ReadonlySet<EventRequestStatus> = new Set([
+  "Submitted",
+  "Under Review",
+  "Returned",
+]);
+
+/**
+ * Whether a request in this status can be withdrawn (SPM-101): at any point
+ * before it is approved or rejected -- `Submitted`, `Under Review`, or
+ * `Returned` with a question open (team decision, 2026-09-24, widening #103's
+ * "while it is under review"). After approval, pulling out is an event
+ * cancellation, not a withdrawal. A `Draft` has nothing to withdraw: its
+ * Organiser discards it instead.
+ *
+ * Asked by the Coordinator's detail page as well as by
+ * `withdrawEventRequest`, so the control and the rule cannot disagree.
+ */
+export function canWithdrawEventRequest(status: EventRequestStatus): boolean {
+  return WITHDRAWABLE_STATUSES.has(status);
+}
+
+/**
+ * SPM-101: the assigned Coordinator records a withdrawal the Organiser asked
+ * for outside the system (#103). Withdrawal is not a decision, so it has its
+ * own source-state rule -- `canWithdrawEventRequest` -- rather than
+ * `assertDecidable`'s.
+ *
+ * The note is optional, so a blank one records nothing, as for approval.
+ */
+export function withdrawEventRequest(request: EventRequest, note: string): EventRequest {
+  if (!canWithdrawEventRequest(request.status)) {
+    throw new EventRequestNotWithdrawableError();
+  }
+
+  return { ...request, status: "Withdrawn", decisionRecord: note.trim() || null };
 }
