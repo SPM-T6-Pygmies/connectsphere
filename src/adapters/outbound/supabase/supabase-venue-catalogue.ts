@@ -9,7 +9,7 @@ import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import type { SupabaseServerClient } from "./client";
 import { toVenue, toVenueArgument, type VenueRow } from "./venue-mapper";
 
-// Raised by supabase/migrations/20260924000000_venue_catalogue_maintenance.sql.
+// Raised by supabase/migrations/20260930000000_venue_catalogue_maintenance.sql.
 const NOT_PERMITTED = "CS020";
 const NOT_FOUND = "CS021";
 const INVALID = "CS022";

@@ -2,7 +2,7 @@
 -- `venue.booking_horizon_days`, which already exist as columns.
 --
 -- No table change. The three catalogue functions from
--- 20260924000000_venue_catalogue_maintenance.sql are replaced to read and write
+-- 20260930000000_venue_catalogue_maintenance.sql are replaced to read and write
 -- the two columns. `venue.capacity` is stored exactly as supplied: it is not
 -- derived from the layouts and not compared with them -- which figure wins is
 -- SPM-106. `setup_time_minutes` / `turnaround_time_minutes` stay untouched
