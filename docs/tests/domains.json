@@ -22,5 +22,9 @@
   {
     "domain": "Connections",
     "match": ["connection"]
+  },
+  {
+    "domain": "Equipment",
+    "match": ["equipment"]
   }
 ]

@@ -57,6 +57,11 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-40": {
+      "title": "Maintain the equipment catalogue",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-78": {
       "title": "Event Operations Manager landing view (frontend)",
       "parent": "SPM-29",

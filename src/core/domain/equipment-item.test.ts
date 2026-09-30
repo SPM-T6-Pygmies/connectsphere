@@ -88,7 +88,7 @@ describe("updateEquipmentStock (SPM-40)", () => {
   });
 });
 
-describe("equipmentItemId", () => {
+describe("equipmentItemId (SPM-40)", () => {
   it("refuses a blank id", () => {
     expect(() => equipmentItemId("  ")).toThrow(InvalidEquipmentItemIdError);
   });
