@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { venueSearchSchema } from "./venue-search-schema";
 
-describe("venueSearchSchema (SPM-151)", () => {
+describe("venueSearchSchema (SPM-44)", () => {
   it("reads missing and blank filters as not applied", () => {
     const blank = {
       layout: null,

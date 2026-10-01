@@ -306,6 +306,11 @@
       "title": "Logout audit write likely fails after audit_record grants were revoked",
       "parent": null,
       "status": "Done"
+    },
+    "SPM-44": {
+      "title": "Search and filter venues",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }

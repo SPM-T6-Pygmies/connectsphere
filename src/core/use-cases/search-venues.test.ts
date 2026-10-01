@@ -51,7 +51,7 @@ function build(venues: Venue[], busy: BusyInterval[] = []) {
 
 const ids = (result: { venues: readonly Venue[] }) => result.venues.map((v) => v.id);
 
-describe("SearchVenuesUseCase (SPM-151)", () => {
+describe("SearchVenuesUseCase (SPM-44)", () => {
   it("excludes a venue booked during the searched window, keeps one that is free", async () => {
     const busy = [
       {
@@ -100,6 +100,22 @@ describe("SearchVenuesUseCase (SPM-151)", () => {
     const result = await build([venue("a")]).execute(search({ layout: "Banquet" }));
 
     expect(result.venues).toEqual([]);
+  });
+
+  it("reports how many venues each filter left out", async () => {
+    const result = await build([
+      venue("a"),
+      venue("b", { facilities: "Projector" }),
+      venue("c", { bookingHorizonDays: 1 }),
+    ]).execute(
+      search({ facilities: ["Wi-Fi"], date: "2026-11-05", startTime: "10:00", endTime: "11:00" }),
+    );
+
+    expect(ids(result)).toEqual(["a"]);
+    expect(result.excluded).toEqual([
+      { reason: "facilities", count: 1 },
+      { reason: "beyondHorizon", count: 1 },
+    ]);
   });
 
   it("refuses a search for a date already past in Singapore", async () => {

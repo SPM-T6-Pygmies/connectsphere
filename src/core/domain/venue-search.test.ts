@@ -82,7 +82,7 @@ function flaggedField(search: VenueSearchInput): VenueSearchField | null {
   throw new Error("expected defineVenueSearch to refuse");
 }
 
-describe("matchesAttributes (SPM-149)", () => {
+describe("matchesAttributes (SPM-44)", () => {
   it("matches a layout that seats the attendance", () => {
     expect(matchesAttributes(venue(), criteria({ layout: "Theatre", attendance: 150 }))).toBe(true);
   });
@@ -109,8 +109,8 @@ describe("matchesAttributes (SPM-149)", () => {
     expect(matchesAttributes(venue(), criteria({ attendance: 201 }))).toBe(false);
   });
 
-  it("never falls back to the venue-level capacity (SPM-106)", () => {
-    // venue.capacity is 300; no layout seats 250.
+  it("never falls back to the venue-level capacity", () => {
+    // SPM-106: venue.capacity is 300, but no layout seats 250.
     expect(matchesAttributes(venue(), criteria({ attendance: 250 }))).toBe(false);
   });
 
@@ -139,7 +139,7 @@ describe("matchesAttributes (SPM-149)", () => {
   });
 });
 
-describe("isOpenFor (SPM-150)", () => {
+describe("isOpenFor (SPM-44)", () => {
   it("is open for a window exactly matching the operating hours", () => {
     expect(openFor("09:00", "17:00")).toBe(true);
   });
@@ -154,6 +154,14 @@ describe("isOpenFor (SPM-150)", () => {
 
   it("is not open when a live booking overlaps the window", () => {
     expect(openFor("10:00", "13:00", [booked("12:00", "15:00")])).toBe(false);
+  });
+
+  it("is not open when a booking lies wholly inside the window", () => {
+    expect(openFor("10:00", "16:00", [booked("12:00", "15:00")])).toBe(false);
+  });
+
+  it("is not open when a booking covers the whole window", () => {
+    expect(openFor("13:00", "14:00", [booked("12:00", "15:00")])).toBe(false);
   });
 
   it("is open when a booking only touches the window's edge", () => {
@@ -191,7 +199,7 @@ describe("isOpenFor (SPM-150)", () => {
   });
 });
 
-describe("venue search (SPM-151)", () => {
+describe("venue search (SPM-44)", () => {
   it("with every filter blank, returns the whole catalogue", () => {
     const catalogue = [venue(), venue({ id: venueId("2"), facilities: null })];
 
