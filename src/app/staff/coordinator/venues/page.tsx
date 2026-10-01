@@ -136,7 +136,8 @@ export default async function VenueSearchPage({
         description="Narrow the catalogue to venues that could host the event. Times are Singapore time. Check suitability before booking."
       />
       <div className="space-y-6">
-        <VenueSearchForm initial={initial} errors={errors} />
+        {/* Keyed on the search so Clear (same route, new query) remounts it with fresh state. */}
+        <VenueSearchForm key={JSON.stringify(initial)} initial={initial} errors={errors} />
         {searchable ? <SearchSummary outcome={outcome} values={initial} /> : null}
         {!searchable || outcome.venues.length === 0 ? null : (
           <div className="rounded-xl border">
