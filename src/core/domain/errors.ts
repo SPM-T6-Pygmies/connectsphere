@@ -296,6 +296,19 @@ export class InvalidCredentialsError extends DomainError {
 }
 
 /**
+ * Login is for staff only -- an Attendee is never issued an account (they
+ * register by name and email, no credential), so any account with no staff
+ * role reaching this far is refused rather than sent anywhere in `/staff`.
+ */
+export class NoStaffRoleError extends DomainError {
+  readonly code = "no_staff_role";
+
+  constructor() {
+    super("This account has no staff role.");
+  }
+}
+
+/**
  * SPM-38: a draft may only be edited by its own responsible Organiser, and
  * only while it is still `Draft` -- the same rule `eventRequestAccessFor`
  * already draws for viewing. Once a coordinator has taken it further, or it

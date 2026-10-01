@@ -1,5 +1,5 @@
 import { LockIcon } from "lucide-react";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -38,7 +38,7 @@ export function EventDetail({
   const event = eventById(id);
 
   if (!event) {
-    notFound();
+    forbidden();
   }
 
   // The open tab lives in the URL so a coordinator can send a colleague

@@ -1,6 +1,6 @@
 import { ArrowLeftIcon } from "lucide-react"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { forbidden } from "next/navigation"
 import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
@@ -233,11 +233,11 @@ export async function StaffShell({
   coordinatorSection?: CoordinatorSection
 }) {
   // Every staff screen renders inside this shell, so this is where a signed-in
-  // user who does not hold the screen's role gets a not-found -- before any
+  // user who does not hold the screen's role is denied access -- before any
   // queue is read on their behalf.
   const member = await getSignedInStaffMember()
   if (member === null || !member.workspaces.includes(role)) {
-    notFound()
+    forbidden()
   }
 
   const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection)

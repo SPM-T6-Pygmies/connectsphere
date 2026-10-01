@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,7 +19,19 @@ export function LoginForm() {
     <form action={formAction} className="space-y-4">
       {state.status === "error" && (
         <Alert variant="destructive">
-          <AlertDescription>{state.message}</AlertDescription>
+          <AlertDescription>
+            {state.message}
+            {state.showEventsLink && (
+              <>
+                {" "}
+                For attendees, please visit the{" "}
+                <Link href="/events" className="underline">
+                  events page
+                </Link>
+                .
+              </>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 
