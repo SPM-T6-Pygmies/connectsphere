@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +35,18 @@ export function VenueSearchForm({
   const [layout, setLayout] = useState(initial.layout);
   const [facilities, setFacilities] = useState(initial.facilities);
   const [accessibility, setAccessibility] = useState(initial.accessibility);
+  const form = useRef<HTMLFormElement>(null);
+
+  // Clear also navigates to the bare route; this covers edits not yet searched.
+  function clear() {
+    form.current?.reset();
+    setLayout("");
+    setFacilities("");
+    setAccessibility("");
+  }
 
   return (
-    <form method="get" className="space-y-4 rounded-xl border p-4">
+    <form ref={form} method="get" className="space-y-4 rounded-xl border p-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="date" label="Date" error={errors.date}>
           <Input id="date" name="date" type="date" defaultValue={initial.date} aria-invalid={!!errors.date} />
@@ -108,7 +117,9 @@ export function VenueSearchForm({
           Search
         </Button>
         <Button asChild variant="outline" size="sm">
-          <Link href="/staff/coordinator/venues">Clear</Link>
+          <Link href="/staff/coordinator/venues" onClick={clear}>
+            Clear
+          </Link>
         </Button>
       </div>
     </form>
