@@ -458,6 +458,31 @@ export type VenueField =
   | "bookingHorizonDays"
   | "layouts";
 
+/**
+ * SPM-44: venue search criteria that cannot be searched on -- an end time
+ * before the start, a date without times, a facility that is not an option.
+ * Written for the Coordinator, so it can be shown as it is.
+ */
+export class InvalidVenueSearchError extends DomainError {
+  readonly code = "invalid_venue_search";
+
+  constructor(
+    reason: string,
+    readonly field: VenueSearchField | null = null,
+  ) {
+    super(reason);
+  }
+}
+
+export type VenueSearchField =
+  | "layout"
+  | "attendance"
+  | "facilities"
+  | "accessibility"
+  | "date"
+  | "startTime"
+  | "endTime";
+
 export class VenueNotFoundError extends DomainError {
   readonly code = "venue_not_found";
 

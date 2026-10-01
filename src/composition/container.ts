@@ -11,6 +11,7 @@ import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-ev
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
+import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
 import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
@@ -57,6 +58,7 @@ import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
 import { WithdrawEventRequestUseCase } from "@/core/use-cases/withdraw-event-request";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
+import { SearchVenuesUseCase } from "@/core/use-cases/search-venues";
 import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
 import { ListVenuesUseCase, ViewVenueUseCase } from "@/core/use-cases/view-venues";
 
@@ -414,6 +416,17 @@ export async function buildListVenues(): Promise<ListVenuesUseCase> {
 
 export async function buildViewVenue(): Promise<ViewVenueUseCase> {
   return new ViewVenueUseCase({ venues: await venueCatalogue() });
+}
+
+/** SPM-44: an Event Coordinator searches the catalogue. Venues are in Singapore (#36). */
+export async function buildSearchVenues(): Promise<SearchVenuesUseCase> {
+  const client = await createSupabaseServerClient();
+  return new SearchVenuesUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    availability: new SupabaseVenueAvailability(client),
+    clock: systemClock,
+    timeZone: "Asia/Singapore",
+  });
 }
 
 /** SPM-146: Venue Staff add a venue and its layouts. */
