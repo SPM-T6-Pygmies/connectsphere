@@ -51,6 +51,7 @@ export async function CoordinatorDetail({
       clarificationThread={result.clarificationThread}
       canDiscuss={result.canDiscuss}
       coordinatorName={coordinator.name}
+      canWithdraw={result.canWithdraw}
       origin={origin}
     />
   );

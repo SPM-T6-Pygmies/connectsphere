@@ -1,5 +1,6 @@
 import {
   canDiscussEventRequest,
+  canWithdrawEventRequest,
   coordinatorRequestStateFor,
   coordinatorSectionFor,
   eventRequestAccessForCoordinator,
@@ -51,6 +52,12 @@ export interface ViewAssignedEventRequestResult {
    * `canDiscussEventRequest`. False once the request is decided.
    */
   readonly canDiscuss: boolean;
+  /**
+   * Whether the Coordinator can record a withdrawal now (SPM-101) -- see
+   * `canWithdrawEventRequest`. Asked here rather than worked out from `state`,
+   * which reads `Submitted` and `Under Review` alike.
+   */
+  readonly canWithdraw: boolean;
 }
 
 export interface ViewAssignedEventRequestDeps {
@@ -106,6 +113,7 @@ export class ViewAssignedEventRequestUseCase {
       section: coordinatorSectionFor(request.status),
       clarificationThread: toClarificationThreadView(messages, names),
       canDiscuss: canDiscussEventRequest(request.status),
+      canWithdraw: canWithdrawEventRequest(request.status),
     };
   }
 }
