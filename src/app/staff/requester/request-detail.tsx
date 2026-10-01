@@ -1,5 +1,5 @@
 import { CheckIcon } from "lucide-react";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -69,7 +69,7 @@ export function RequestDetail({
   const event = eventById(id);
 
   if (!event) {
-    notFound();
+    forbidden();
   }
 
   const request = event.request;

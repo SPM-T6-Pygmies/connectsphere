@@ -36,6 +36,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       organiser: { userAccountId: "user-1", clientOrganisationId: "org-a", name: "Sam" },
       coordinator: null,
       workspaces: ["requester"],
+      homeWorkspace: "requester",
     });
   });
 
@@ -51,6 +52,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       organiser: null,
       coordinator: { userAccountId: "user-1", name: "Sam" },
       workspaces: ["coordinator"],
+      homeWorkspace: "coordinator",
     });
   });
 
@@ -60,6 +62,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       organiser: null,
       coordinator: null,
       workspaces: ["ops"],
+      homeWorkspace: "ops",
     });
   });
 
@@ -73,5 +76,19 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
     const result = await identify(user(["Venue Staff"]));
 
     expect(result?.name).toBe("Sam");
+  });
+});
+
+describe("IdentifyStaffMemberUseCase home workspace (SPM-16)", () => {
+  it("sends a member of staff back to the workspace of their role", async () => {
+    const result = await identify(user(["Venue Staff"]));
+
+    expect(result?.homeWorkspace).toBe("venue");
+  });
+
+  it("has nowhere to send an Organiser who has no client organisation", async () => {
+    const result = await identify(user(["Event Organiser"]));
+
+    expect(result?.homeWorkspace).toBeNull();
   });
 });

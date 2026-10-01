@@ -1,5 +1,5 @@
 import { AlertTriangleIcon, CheckIcon } from "lucide-react";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,7 @@ export function BookingDetail({
   const entry = bookingById(id);
 
   if (!entry) {
-    notFound();
+    forbidden();
   }
 
   const { event, booking } = entry;
