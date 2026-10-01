@@ -195,9 +195,10 @@ describe("venue search (SPM-151)", () => {
   it("with every filter blank, returns the whole catalogue", () => {
     const catalogue = [venue(), venue({ id: venueId("2"), facilities: null })];
 
-    expect(searchVenues(catalogue, defineVenueSearch(input(), TODAY), [], TODAY, SG)).toEqual(
-      catalogue,
-    );
+    expect(searchVenues(catalogue, defineVenueSearch(input(), TODAY), [], TODAY, SG)).toEqual({
+      venues: catalogue,
+      excluded: [],
+    });
   });
 
   it("combines attribute and availability filters", () => {
@@ -217,19 +218,58 @@ describe("venue search (SPM-151)", () => {
 
     expect(
       searchVenues([free, taken, tooSmall], search, [booked("12:00", "15:00", "2")], TODAY, SG),
-    ).toEqual([free]);
+    ).toEqual({
+      venues: [free],
+      excluded: [
+        { reason: "capacity", count: 1 },
+        { reason: "booked", count: 1 },
+      ],
+    });
   });
 
   it("returns an empty list when nothing matches", () => {
     const search = defineVenueSearch(input({ layout: "Banquet" }), TODAY);
 
-    expect(searchVenues([venue()], search, [], TODAY, SG)).toEqual([]);
+    expect(searchVenues([venue()], search, [], TODAY, SG)).toEqual({
+      venues: [],
+      excluded: [{ reason: "layout", count: 1 }],
+    });
   });
 
   it("returns venues only -- no verdict or flag (#83)", () => {
-    const [result] = searchVenues([venue()], criteria(), [], TODAY, SG);
+    const [result] = searchVenues([venue()], criteria(), [], TODAY, SG).venues;
 
     expect(result).toEqual(venue());
+  });
+
+  it.each([
+    ["layout", criteria({ layout: "Banquet" })],
+    ["capacity", criteria({ layout: "Boardroom", attendance: 100 })],
+    ["facilities", criteria({ facilities: ["Wi-Fi"] })],
+    ["accessibility", criteria({ accessibility: ["Hearing loop"] })],
+    ["outsideHours", criteria({ window: { date: "2026-11-02", start: "08:00", end: "10:00" } })],
+    ["beyondHorizon", criteria({ window: { date: "2026-12-02", start: "10:00", end: "11:00" } })],
+    ["booked", criteria({ window: { date: "2026-11-02", start: "12:00", end: "13:00" } })],
+  ] as const)("names %s as the reason a venue was left out", (reason, search) => {
+    const { excluded } = searchVenues([venue()], search, [booked("12:00", "15:00")], TODAY, SG);
+
+    expect(excluded).toEqual([{ reason, count: 1 }]);
+  });
+
+  it("names missing hours as the reason when a window is searched", () => {
+    const search = criteria({ window: { date: "2026-11-02", start: "10:00", end: "11:00" } });
+
+    expect(
+      searchVenues([venue({ operatingHoursEnd: null })], search, [], TODAY, SG).excluded,
+    ).toEqual([{ reason: "hoursUnknown", count: 1 }]);
+  });
+
+  it("counts a venue once, under the first filter it fails", () => {
+    const search = criteria({ layout: "Banquet", facilities: ["Wi-Fi"] });
+
+    expect(searchVenues([venue(), venue({ id: venueId("2") })], search, [], TODAY, SG).excluded).toEqual(
+      [{ reason: "layout", count: 2 }],
+    );
   });
 
   it("treats blank text as no filter", () => {

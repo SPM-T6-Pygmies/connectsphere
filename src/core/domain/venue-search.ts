@@ -120,8 +120,34 @@ function defineWindow(input: VenueSearchInput, today: string): VenueSearchWindow
 }
 
 /**
- * The venues that meet every criterion given, in the order the catalogue
- * listed them. An empty list is an answer, not an error.
+ * Why a venue was left out of a search, named after the filter it failed.
+ * Explains the filter, not the venue's suitability (#83).
+ */
+export const EXCLUSION_REASONS = [
+  "layout",
+  "capacity",
+  "facilities",
+  "accessibility",
+  "hoursUnknown",
+  "outsideHours",
+  "beyondHorizon",
+  "booked",
+] as const;
+
+export type ExclusionReason = (typeof EXCLUSION_REASONS)[number];
+
+export interface VenueSearchOutcome {
+  /** The candidates, in the order the catalogue listed them. May be empty. */
+  readonly venues: Venue[];
+  /**
+   * How many venues each reason left out, in `EXCLUSION_REASONS` order, zero
+   * counts omitted. A venue is counted once, under the first filter it fails.
+   */
+  readonly excluded: readonly { readonly reason: ExclusionReason; readonly count: number }[];
+}
+
+/**
+ * The venues that meet every criterion given, and why the rest did not.
  *
  * `busy` must cover the searched window; `timeZone` (IANA) is where the
  * venues' wall-clock times -- operating hours and the window -- are read.
@@ -132,13 +158,32 @@ export function searchVenues(
   busy: readonly BusyInterval[],
   today: string,
   timeZone: string,
-): Venue[] {
-  return venues.filter(
-    (venue) =>
-      matchesAttributes(venue, criteria) &&
-      (criteria.window === null ||
-        isOpenFor(venue, criteria.window, busy, today, timeZone)),
-  );
+): VenueSearchOutcome {
+  const matched: Venue[] = [];
+  const counts = new Map<ExclusionReason, number>();
+  for (const venue of venues) {
+    const reason =
+      attributeMismatch(venue, criteria) ??
+      (criteria.window === null
+        ? null
+        : unavailability(venue, criteria.window, busy, today, timeZone));
+    if (reason === null) {
+      matched.push(venue);
+    } else {
+      counts.set(reason, (counts.get(reason) ?? 0) + 1);
+    }
+  }
+  return {
+    venues: matched,
+    excluded: EXCLUSION_REASONS.filter((reason) => counts.has(reason)).map((reason) => ({
+      reason,
+      count: counts.get(reason) ?? 0,
+    })),
+  };
+}
+
+export function matchesAttributes(venue: Venue, criteria: VenueSearchCriteria): boolean {
+  return attributeMismatch(venue, criteria) === null;
 }
 
 /**
@@ -146,28 +191,25 @@ export function searchVenues(
  * venue whose Theatre seats 200 does not match "Boardroom for 100" because its
  * Boardroom seats 20. The venue-level `capacity` is never consulted (SPM-106).
  */
-export function matchesAttributes(venue: Venue, criteria: VenueSearchCriteria): boolean {
+function attributeMismatch(venue: Venue, criteria: VenueSearchCriteria): ExclusionReason | null {
   const { layout, attendance } = criteria;
-  if (layout !== null || attendance !== null) {
-    const fits = venue.layouts.some(
-      (candidate) =>
-        (layout === null || candidate.name === layout) &&
-        (attendance === null || candidate.capacity >= attendance),
-    );
-    if (!fits) return false;
+  if (layout !== null && !venue.layouts.some((candidate) => candidate.name === layout)) {
+    return "layout";
   }
-
-  return (
-    includesAll(venue.facilities, criteria.facilities) &&
-    includesAll(venue.accessibility, criteria.accessibility)
-  );
+  if (
+    attendance !== null &&
+    !venue.layouts.some(
+      (candidate) =>
+        (layout === null || candidate.name === layout) && candidate.capacity >= attendance,
+    )
+  ) {
+    return "capacity";
+  }
+  if (!includesAll(venue.facilities, criteria.facilities)) return "facilities";
+  if (!includesAll(venue.accessibility, criteria.accessibility)) return "accessibility";
+  return null;
 }
 
-/**
- * Whether the venue could be booked for the whole window: inside its operating
- * hours, within its booking horizon, and not overlapping a live booking. A
- * venue missing the hours or horizon cannot be shown to be open, so it is not.
- */
 export function isOpenFor(
   venue: Venue,
   window: VenueSearchWindow,
@@ -175,26 +217,42 @@ export function isOpenFor(
   today: string,
   timeZone: string,
 ): boolean {
+  return unavailability(venue, window, busy, today, timeZone) === null;
+}
+
+/**
+ * Whether the venue could be booked for the whole window: inside its operating
+ * hours, within its booking horizon, and not overlapping a live booking. A
+ * venue missing the hours or horizon cannot be shown to be open, so it is not.
+ */
+function unavailability(
+  venue: Venue,
+  window: VenueSearchWindow,
+  busy: readonly BusyInterval[],
+  today: string,
+  timeZone: string,
+): ExclusionReason | null {
   const { operatingHoursStart: opens, operatingHoursEnd: closes, bookingHorizonDays } = venue;
   if (opens === null || closes === null || bookingHorizonDays === null) {
-    return false;
+    return "hoursUnknown";
   }
   if (window.start < opens || window.end > closes) {
-    return false;
+    return "outsideHours";
   }
   if (daysBetween(today, window.date) > bookingHorizonDays) {
-    return false;
+    return "beyondHorizon";
   }
 
   const from = instantAt(window.date, window.start, timeZone).getTime();
   const to = instantAt(window.date, window.end, timeZone).getTime();
   // Half-open: a booking ending as the window starts leaves the venue free.
-  return !busy.some(
+  const booked = busy.some(
     (interval) =>
       interval.venueId === venue.id &&
       interval.startsAt.getTime() < to &&
       interval.endsAt.getTime() > from,
   );
+  return booked ? "booked" : null;
 }
 
 /** The instants the window spans, so a caller can fetch the bookings it needs. */

@@ -1,4 +1,3 @@
-import type { Venue } from "../domain/venue";
 import {
   calendarDate,
   defineVenueSearch,
@@ -6,6 +5,7 @@ import {
   windowInstants,
   type BusyInterval,
   type VenueSearchInput,
+  type VenueSearchOutcome,
 } from "../domain/venue-search";
 import type { Clock } from "../ports/outbound/clock";
 import type { VenueAvailability } from "../ports/outbound/venue-availability";
@@ -19,10 +19,8 @@ export interface SearchVenuesDeps {
   readonly timeZone: string;
 }
 
-export interface SearchVenuesResult {
-  /** Candidates only -- no suitability verdict (#83). May be empty. */
-  readonly venues: readonly Venue[];
-}
+/** Candidates only -- no suitability verdict (#83) -- and why the rest were left out. */
+export type SearchVenuesResult = VenueSearchOutcome;
 
 /**
  * SPM-44: an Event Coordinator narrows the catalogue by attributes and by when
@@ -44,8 +42,6 @@ export class SearchVenuesUseCase {
       busy = await availability.busyIntervals(from, to);
     }
 
-    return {
-      venues: searchVenues(await venues.list(), criteria, busy, today, timeZone),
-    };
+    return searchVenues(await venues.list(), criteria, busy, today, timeZone);
   }
 }
