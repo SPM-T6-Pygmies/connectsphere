@@ -38,10 +38,12 @@ export function VenueSearchForm({
 
   return (
     <form method="get" className="space-y-4 rounded-xl border p-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field id="date" label="Date" error={errors.date}>
           <Input id="date" name="date" type="date" defaultValue={initial.date} aria-invalid={!!errors.date} />
         </Field>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field id="startTime" label="Start time" error={errors.startTime}>
           <Input
             id="startTime"
@@ -60,6 +62,8 @@ export function VenueSearchForm({
             aria-invalid={!!errors.endTime}
           />
         </Field>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field id="layout" label="Room layout" error={errors.layout}>
           <OptionSelect
             id="layout"
