@@ -503,3 +503,43 @@ export class VenueMaintenanceNotPermittedError extends DomainError {
     super("Only Venue Staff can create or update venues.");
   }
 }
+
+/**
+ * SPM-104: a booking records the room layout it assumes, so capacity can be
+ * checked against the figure that actually applies. No layout, no booking.
+ */
+export class RoomLayoutRequiredError extends DomainError {
+  readonly code = "room_layout_required";
+
+  constructor() {
+    super("Choose the room layout this booking assumes.");
+  }
+}
+
+export class UnsupportedRoomLayoutError extends DomainError {
+  readonly code = "unsupported_room_layout";
+
+  constructor(layout: string) {
+    super(`This venue does not support the ${layout} layout.`);
+  }
+}
+
+export class BookingNotFoundError extends DomainError {
+  readonly code = "booking_not_found";
+
+  constructor() {
+    super("That booking does not exist.");
+  }
+}
+
+/**
+ * SPM-104: the layout can be changed while Venue Staff have not yet decided.
+ * Once they have, the layout is part of what they decided on.
+ */
+export class BookingRoomLayoutNotChangeableError extends DomainError {
+  readonly code = "booking_room_layout_not_changeable";
+
+  constructor(status: string) {
+    super(`The layout of a ${status} booking can no longer be changed.`);
+  }
+}

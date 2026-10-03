@@ -28,6 +28,10 @@
     "match": ["connection"]
   },
   {
+    "domain": "Venue Booking",
+    "match": ["booking"]
+  },
+  {
     "domain": "Venue Catalogue",
     "match": ["venue"]
   }
