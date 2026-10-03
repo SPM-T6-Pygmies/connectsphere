@@ -6,7 +6,7 @@ catalogue on the **Equipment** page (`/staff/technical/equipment`, the box icon 
 the sidebar): adding equipment from the **Add equipment** button and updating the
 quantity and location of the cards.
 
-These cases are registered as `MT-0014`–`MT-0021` in
+These cases are registered as `MT-0035`–`MT-0042` in
 [`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them
 against the local Supabase stack, tick the boxes below **and** set `Status` and
 `LastPassedDate` on the matching rows. CI cannot verify a manual case for you.

@@ -5,11 +5,13 @@ import { redirect } from "next/navigation";
 import { loginSchema } from "@/adapters/inbound/login-schema";
 import { buildLogin } from "@/composition/container";
 import { createClient } from "@/lib/supabase/server";
-import { InvalidCredentialsError } from "@/core/domain/errors";
+import { InvalidCredentialsError, NoStaffRoleError } from "@/core/domain/errors";
 
 export interface LoginState {
   status: "idle" | "error" | "success";
   message?: string;
+  /** Set for a NoStaffRoleError, so the form can point an Attendee at /events. */
+  showEventsLink?: boolean;
 }
 
 export async function loginAction(
@@ -38,14 +40,20 @@ export async function loginAction(
       data: { roles: result.roles }
     });
 
-    // With no staff role to land in there is no workspace page, so this ends
-    // on a not-found, as it did before the landing moved into the domain.
-    redirect(result.landingWorkspace === null ? "/staff" : `/staff/${result.landingWorkspace}`);
+    redirect(`/staff/${result.landingWorkspace}`);
   } catch (error) {
     if (error instanceof InvalidCredentialsError) {
       return {
         status: "error",
         message: "Invalid credentials",
+      };
+    }
+
+    if (error instanceof NoStaffRoleError) {
+      return {
+        status: "error",
+        message: "Authorised users only.",
+        showEventsLink: true,
       };
     }
 

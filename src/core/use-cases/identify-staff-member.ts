@@ -1,6 +1,7 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
   coordinatorContextFor,
+  homeWorkspaceFor,
   organiserContextFor,
   workspacesFor,
   type StaffMember,
@@ -23,6 +24,8 @@ export interface IdentifyStaffMemberResult {
   readonly coordinator: { readonly userAccountId: string; readonly name: string } | null;
   /** The staff workspaces the member may open -- see `workspacesFor`. */
   readonly workspaces: readonly StaffWorkspace[];
+  /** Where an access-denied screen sends them back to -- see `homeWorkspaceFor`. */
+  readonly homeWorkspace: StaffWorkspace | null;
 }
 
 export interface IdentifyStaffMemberDeps {
@@ -60,6 +63,7 @@ export class IdentifyStaffMemberUseCase {
       organiser: organiser && { ...organiser, name: user.name },
       coordinator: coordinator && { ...coordinator, name: user.name },
       workspaces: workspacesFor(member.roles),
+      homeWorkspace: homeWorkspaceFor(member),
     };
   }
 }

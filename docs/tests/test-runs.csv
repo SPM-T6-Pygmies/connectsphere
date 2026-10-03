@@ -8,3 +8,6 @@ RunDate,Commit,PR,Branch,TotalCases,Passed,Failed,DurationSeconds,DomainBreakdow
 2026-09-29,43e34d1,60,main,526,526,0,5.0,Authentication:40/40 Event Registration:71/71 Event Staffing:42/42 Request Review:55/55 Event Requests:224/224 Connections:9/9 Unmapped:85/85,CI run 36578767617
 2026-09-29,dc54a56,61,main,526,526,0,5.0,Authentication:40/40 Event Registration:71/71 Event Staffing:42/42 Request Review:55/55 Event Requests:224/224 Connections:9/9 Unmapped:85/85,CI run 36581281929
 2026-09-29,2cd9aa8,,main,543,543,0,5.5,Authentication:40/40 Event Registration:71/71 Event Staffing:42/42 Request Review:62/62 Event Requests:234/234 Connections:9/9 Unmapped:85/85,CI run 36582370438
+2026-09-30,7c25942,,main,648,648,0,5.8,Authentication:40/40 Event Registration:71/71 Event Staffing:42/42 Request Review:62/62 Event Requests:244/244 Connections:9/9 Venue Catalogue:95/95 Unmapped:85/85,CI run 36734942662
+2026-10-01,89d39d4,74,main,670,670,0,5.6,Authentication:62/62 Event Registration:71/71 Event Staffing:42/42 Request Review:62/62 Event Requests:244/244 Connections:9/9 Venue Catalogue:95/95 Unmapped:85/85,CI run 36850415175
+2026-10-01,287c6c7,78,main,724,724,0,6.0,Authentication:62/62 Event Registration:71/71 Event Staffing:42/42 Request Review:62/62 Event Requests:244/244 Connections:9/9 Venue Catalogue:149/149 Unmapped:85/85,CI run 36852902606

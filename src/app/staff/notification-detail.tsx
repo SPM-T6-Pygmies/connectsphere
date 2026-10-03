@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { NOTIFICATIONS, type StaffRole } from "@/lib/wireframe";
 
@@ -34,7 +34,7 @@ export function NotificationDetail({
   );
 
   if (!notification) {
-    notFound();
+    forbidden();
   }
 
   const { target } = notification;

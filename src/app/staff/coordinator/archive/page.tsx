@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import {
   Table,
@@ -63,7 +63,7 @@ function ArchivedRequestTable({ requests }: { requests: readonly AssignedEventRe
 export default async function CoordinatorArchivePage() {
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const viewArchivedEventRequests = await buildViewArchivedEventRequests();

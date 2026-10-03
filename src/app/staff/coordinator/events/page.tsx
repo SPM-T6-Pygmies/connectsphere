@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import {
   Table,
@@ -71,7 +71,7 @@ function AssignedEventTable({ events }: { events: readonly AssignedEventSummary[
 export default async function CoordinatorEventsPage() {
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const viewAssignedEvents = await buildViewAssignedEvents();
