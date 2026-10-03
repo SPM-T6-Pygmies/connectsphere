@@ -1,4 +1,4 @@
--- SPT-50: the assigned Event Coordinator confirms an event once every
+-- SPM-50: the assigned Event Coordinator confirms an event once every
 -- essential arrangement is complete.
 --
 -- Three functions:
