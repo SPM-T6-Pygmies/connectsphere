@@ -1,5 +1,6 @@
 import { Novu } from "@novu/api";
 
+import { InMemoryEquipmentCatalogue } from "@/adapters/outbound/in-memory/in-memory-equipment-catalogue";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
 import { subscriberHash } from "@/adapters/outbound/novu/subscriber-hash";
@@ -29,6 +30,7 @@ import type { BookingRepository } from "@/core/ports/outbound/booking-repository
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
+import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { Notifier } from "@/core/ports/outbound/notifier";
@@ -64,7 +66,10 @@ import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organise
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
 import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
+import { CreateEquipmentItemUseCase } from "@/core/use-cases/create-equipment-item";
+import { ListEquipmentCatalogueUseCase } from "@/core/use-cases/list-equipment-catalogue";
 import { ListOrganisationOrganisersUseCase } from "@/core/use-cases/list-organisation-organisers";
+import { UpdateEquipmentStockUseCase } from "@/core/use-cases/update-equipment-stock";
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
 import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
@@ -548,4 +553,34 @@ export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
  */
 export async function getVenueMaintenanceRoles(): Promise<readonly string[]> {
   return (await getStaffWorkspaces()).includes("venue") ? ["Venue Staff"] : [];
+}
+
+/**
+ * SPM-40: the equipment catalogue.
+ *
+ * TEMPORARY STUB. There is no Supabase adapter for the `equipment_item` table
+ * yet, so the catalogue is an in-memory one that lives as long as the server
+ * process: records are lost on restart and are not shared between instances.
+ * Replacing it is this one function plus a `SupabaseEquipmentCatalogue` (and the
+ * RLS/RPC migration it needs) -- no use case, action or screen changes.
+ *
+ * Held on `globalThis` so a dev-server module reload does not empty it.
+ */
+const equipmentStub = globalThis as typeof globalThis & { __equipmentCatalogue?: EquipmentCatalogue };
+
+function buildEquipmentCatalogue(): EquipmentCatalogue {
+  equipmentStub.__equipmentCatalogue ??= new InMemoryEquipmentCatalogue();
+  return equipmentStub.__equipmentCatalogue;
+}
+
+export async function buildListEquipmentCatalogue(): Promise<ListEquipmentCatalogueUseCase> {
+  return new ListEquipmentCatalogueUseCase({ equipment: buildEquipmentCatalogue() });
+}
+
+export async function buildCreateEquipmentItem(): Promise<CreateEquipmentItemUseCase> {
+  return new CreateEquipmentItemUseCase({ equipment: buildEquipmentCatalogue() });
+}
+
+export async function buildUpdateEquipmentStock(): Promise<UpdateEquipmentStockUseCase> {
+  return new UpdateEquipmentStockUseCase({ equipment: buildEquipmentCatalogue() });
 }

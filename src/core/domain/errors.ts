@@ -561,6 +561,49 @@ export class ClarificationThreadClosedError extends DomainError {
   }
 }
 
+export class InvalidEquipmentItemIdError extends DomainError {
+  readonly code = "invalid_equipment_item_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable equipment item id.`);
+  }
+}
+
+export class EquipmentItemNotFoundError extends DomainError {
+  readonly code = "equipment_item_not_found";
+
+  constructor(id: string) {
+    super(`No equipment item exists with id ${id}.`);
+  }
+}
+
+/** SPM-40 AC1: a catalogue record must say what the equipment is. */
+export class EquipmentTypeRequiredError extends DomainError {
+  readonly code = "equipment_type_required";
+
+  constructor() {
+    super("Enter the equipment type.");
+  }
+}
+
+/** SPM-40 AC1: a catalogue record must say where the equipment is kept. */
+export class EquipmentLocationRequiredError extends DomainError {
+  readonly code = "equipment_location_required";
+
+  constructor() {
+    super("Enter where the equipment is kept.");
+  }
+}
+
+/** SPM-40: the quantity available is a count -- whole, and never below zero. */
+export class InvalidEquipmentQuantityError extends DomainError {
+  readonly code = "invalid_equipment_quantity";
+
+  constructor() {
+    super("Quantity must be a whole number, zero or more.");
+  }
+}
+
 export class InvalidVenueIdError extends DomainError {
   readonly code = "invalid_venue_id";
 
