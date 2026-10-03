@@ -64,11 +64,18 @@ export class NovuNotifier implements Notifier {
     return this.logging.eventRequestDecided(notice);
   }
 
-  async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
+  eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
+    return this.trigger(COORDINATOR_ASSIGNED_WORKFLOW_ID, notice);
+  }
+
+  private async trigger(
+    workflowId: string,
+    notice: { readonly recipientUserAccountId: string },
+  ): Promise<void> {
     let result: TriggerEventResponseDto;
     try {
       ({ result } = await this.novu.trigger({
-        workflowId: COORDINATOR_ASSIGNED_WORKFLOW_ID,
+        workflowId,
         to: `${this.subscriberPrefix}${notice.recipientUserAccountId}`,
         payload: { ...notice },
         bridgeUrl: this.bridgeUrl,
@@ -78,14 +85,13 @@ export class NovuNotifier implements Notifier {
       // unknown workflow surfaces as "Response validation failed"), so carry
       // the raw body -- it is what says `workflow_not_found`.
       const body = error instanceof Error && "body" in error ? String(error.body) : null;
-      throw new Error(
-        `Novu rejected ${COORDINATOR_ASSIGNED_WORKFLOW_ID}${body === null ? "" : `: ${body}`}`,
-        { cause: error },
-      );
+      throw new Error(`Novu rejected ${workflowId}${body === null ? "" : `: ${body}`}`, {
+        cause: error,
+      });
     }
     const failure = triggerFailure(result);
     if (failure !== null) {
-      throw new Error(`Novu did not process ${COORDINATOR_ASSIGNED_WORKFLOW_ID}: ${failure}`);
+      throw new Error(`Novu did not process ${workflowId}: ${failure}`);
     }
   }
 }
