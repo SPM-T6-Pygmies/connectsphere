@@ -7,6 +7,7 @@ import {
   FilePlusIcon,
   InboxIcon,
   MapPinIcon,
+  PackageIcon,
   ProjectorIcon,
   SendIcon,
   UserCheckIcon,
@@ -67,6 +68,8 @@ export const RAIL: Record<StaffRole, RailItem[]> = {
     { section: "needsReview", title: "Needs review", url: "/staff/technical", icon: ProjectorIcon },
     { section: "reviewed", title: "Reviewed", url: "/staff/technical/reviewed", icon: CheckIcon },
     { section: "archive", title: "Archive", url: "/staff/technical/archive", icon: ArchiveIcon },
+    // Not a queue of reservations: standing stock, so an "action" entry.
+    { section: "action", title: "Equipment", url: "/staff/technical/equipment", icon: PackageIcon },
   ],
 }
 
