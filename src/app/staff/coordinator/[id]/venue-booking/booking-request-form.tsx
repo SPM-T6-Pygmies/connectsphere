@@ -66,7 +66,7 @@ function TimeSelect({
       aria-label={label}
       value={value}
       onChange={(change) => onChange(change.target.value)}
-      className={`${SELECT_CLASS} w-auto`}
+      className={SELECT_CLASS.replace("w-full", "w-auto")}
     >
       <option value="">--:--</option>
       {times.map((time) => (

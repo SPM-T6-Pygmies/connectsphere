@@ -177,9 +177,9 @@ export function VenueTab({ event, activity }: TabProps) {
         <CardHeader>
           <CardTitle>Booking</CardTitle>
           <CardDescription>
-            Venues are booked in AM, PM and Night slots. A venue can hold only
-            one live booking per slot — double-booking is blocked outright, not
-            warned about.
+            Venues are booked by start and end time, on the quarter hour. A venue
+            can hold only one live booking at any time — double-booking is
+            blocked outright, not warned about.
           </CardDescription>
         </CardHeader>
         <CardContent>

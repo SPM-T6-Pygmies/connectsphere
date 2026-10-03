@@ -147,8 +147,9 @@ export default async function VenueBookingPage({
             <CardHeader>
               <CardTitle>New booking request</CardTitle>
               <CardDescription>
-                Venues are booked in AM, PM and Night slots. A slot another
-                event already holds cannot be requested.
+                Venues are booked by start and end time, on the quarter hour and
+                within the venue&apos;s hours. A time another event already holds
+                cannot be requested.
               </CardDescription>
             </CardHeader>
             <CardContent>
