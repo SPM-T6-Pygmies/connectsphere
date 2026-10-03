@@ -61,9 +61,8 @@ export default async function CoordinatorEventPage({
     notFound();
   }
 
-  const { event, clientOrganisationName, owningOrganiserName, readiness, canConfirm, blockingArrangements } =
+  const { event, clientOrganisationName, owningOrganiserName, readiness, confirmation, blockingArrangements } =
     result;
-  const alreadyConfirmed = event.status === "Confirmed" || event.status === "Completed";
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
 
   return (
@@ -155,12 +154,18 @@ export default async function CoordinatorEventPage({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {alreadyConfirmed ? (
+              {confirmation === "already-confirmed" ? (
                 <Alert>
                   <CheckIcon />
                   <AlertTitle>Already {event.status.toLowerCase()}</AlertTitle>
                 </Alert>
-              ) : blockingArrangements.length > 0 ? (
+              ) : confirmation === "not-in-planning" ? (
+                <Alert variant="destructive">
+                  <AlertTriangleIcon />
+                  <AlertTitle>Cannot confirm -- this event is {event.status.toLowerCase()}</AlertTitle>
+                  <AlertDescription>Only an event in planning can be confirmed.</AlertDescription>
+                </Alert>
+              ) : confirmation === "blocked-by-arrangements" ? (
                 <Alert variant="destructive">
                   <AlertTriangleIcon />
                   <AlertTitle>
@@ -185,7 +190,9 @@ export default async function CoordinatorEventPage({
                 </Alert>
               )}
 
-              {alreadyConfirmed ? null : <ConfirmForm eventId={event.id} canConfirm={canConfirm} />}
+              {confirmation === "ready" || confirmation === "blocked-by-arrangements" ? (
+                <ConfirmForm eventId={event.id} canConfirm={confirmation === "ready"} />
+              ) : null}
             </CardContent>
           </Card>
         </div>

@@ -100,7 +100,7 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
       userAccountId: COORDINATOR,
     });
 
-    expect(result?.canConfirm).toBe(true);
+    expect(result?.confirmation).toBe("ready");
     expect(result?.blockingArrangements).toEqual([]);
   });
 
@@ -120,20 +120,28 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
       userAccountId: COORDINATOR,
     });
 
-    expect(result?.canConfirm).toBe(false);
+    expect(result?.confirmation).toBe("blocked-by-arrangements");
     expect(result?.blockingArrangements).toEqual(["venue"]);
   });
 
-  it("reports not confirmable once the event is past Planning, even with nothing blocking", async () => {
-    const useCase = buildUseCase([seedEvent({ status: "Confirmed" })]);
+  it.each([
+    ["Confirmed", "already-confirmed"],
+    ["Completed", "already-confirmed"],
+    ["Blocked", "not-in-planning"],
+    ["Cancelled", "not-in-planning"],
+  ] as const)(
+    "reports a %s event as %s, not ready, even with nothing blocking",
+    async (status, confirmation) => {
+      const useCase = buildUseCase([seedEvent({ status })]);
 
-    const result = await useCase.execute({
-      id: "event-1",
-      userAccountId: COORDINATOR,
-    });
+      const result = await useCase.execute({
+        id: "event-1",
+        userAccountId: COORDINATOR,
+      });
 
-    expect(result?.canConfirm).toBe(false);
-  });
+      expect(result?.confirmation).toBe(confirmation);
+    },
+  );
 
   it.each([
     [

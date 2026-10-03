@@ -120,9 +120,34 @@ export function blockingArrangements(readiness: EventReadiness): readonly Arrang
     .map((arrangement) => arrangement.type);
 }
 
+/**
+ * Where an event stands on confirmation, and why -- so a screen can say why
+ * it cannot be confirmed instead of deciding that from the status itself.
+ */
+export type ConfirmationState =
+  | "ready"
+  | "blocked-by-arrangements"
+  /** Confirmed or Completed: there is nothing left to confirm. */
+  | "already-confirmed"
+  /** Blocked or Cancelled: only a Planning event can be confirmed. */
+  | "not-in-planning";
+
+export function confirmationState(
+  event: CoordinatorEvent,
+  readiness: EventReadiness,
+): ConfirmationState {
+  if (event.status === "Confirmed" || event.status === "Completed") {
+    return "already-confirmed";
+  }
+  if (event.status !== "Planning") {
+    return "not-in-planning";
+  }
+  return blockingArrangements(readiness).length > 0 ? "blocked-by-arrangements" : "ready";
+}
+
 /** Whether the event may be confirmed right now: `Planning`, with nothing essential left incomplete. */
 export function canConfirm(event: CoordinatorEvent, readiness: EventReadiness): boolean {
-  return event.status === "Planning" && blockingArrangements(readiness).length === 0;
+  return confirmationState(event, readiness) === "ready";
 }
 
 /**

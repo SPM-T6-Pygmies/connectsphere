@@ -14,6 +14,7 @@ import {
   assessReadiness,
   blockingArrangements,
   canConfirm,
+  confirmationState,
   confirmEvent,
   type ArrangementReadiness,
   type EventReadiness,
@@ -262,6 +263,40 @@ describe("canConfirm (SPM-50)", () => {
     "is false when status is %s, even with nothing blocking",
     (status) => {
       expect(canConfirm(event({ status }), readiness([]))).toBe(false);
+    },
+  );
+});
+
+describe("confirmationState (SPM-50)", () => {
+  it("is ready in Planning with nothing blocking", () => {
+    expect(confirmationState(event({ status: "Planning" }), readiness([]))).toBe("ready");
+  });
+
+  it("is blocked by arrangements in Planning with something incomplete", () => {
+    expect(
+      confirmationState(
+        event({ status: "Planning" }),
+        readiness([{ type: "venue", complete: false, detail: "" }]),
+      ),
+    ).toBe("blocked-by-arrangements");
+  });
+
+  it.each(["Confirmed", "Completed"] as CoordinatorEventStatus[])(
+    "is already confirmed when %s",
+    (status) => {
+      expect(confirmationState(event({ status }), readiness([]))).toBe("already-confirmed");
+    },
+  );
+
+  it.each(["Blocked", "Cancelled"] as CoordinatorEventStatus[])(
+    "is not in planning when %s, even with an incomplete arrangement",
+    (status) => {
+      expect(
+        confirmationState(
+          event({ status }),
+          readiness([{ type: "venue", complete: false, detail: "" }]),
+        ),
+      ).toBe("not-in-planning");
     },
   );
 });

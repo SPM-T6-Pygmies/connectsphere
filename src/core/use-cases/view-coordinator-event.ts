@@ -3,8 +3,9 @@ import { eventId } from "../domain/event";
 import {
   assessReadiness,
   blockingArrangements,
-  canConfirm,
+  confirmationState,
   type ArrangementType,
+  type ConfirmationState,
   type EventReadiness,
 } from "../domain/event-readiness";
 import { userAccountId } from "../domain/user-account";
@@ -23,8 +24,8 @@ export interface ViewCoordinatorEventResult {
   readonly clientOrganisationName: string;
   readonly owningOrganiserName: string;
   readonly readiness: EventReadiness;
-  readonly canConfirm: boolean;
-  /** What blocks confirmation right now -- empty when `canConfirm` is true. */
+  readonly confirmation: ConfirmationState;
+  /** What blocks confirmation right now -- empty unless `confirmation` is `blocked-by-arrangements`. */
   readonly blockingArrangements: readonly ArrangementType[];
 }
 
@@ -76,7 +77,7 @@ export class ViewCoordinatorEventUseCase {
       clientOrganisationName: organisationNames.get(event.clientOrganisationId) ?? "",
       owningOrganiserName: organiserNames.get(event.owningOrganiserUserAccountId) ?? "",
       readiness,
-      canConfirm: canConfirm(event, readiness),
+      confirmation: confirmationState(event, readiness),
       blockingArrangements: blockingArrangements(readiness),
     };
   }
