@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { buildViewAssignedEventRequest, getCurrentCoordinator } from "@/composition/container";
 
@@ -28,7 +28,7 @@ export async function CoordinatorDetail({
 }) {
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const viewAssignedEventRequest = await buildViewAssignedEventRequest();
@@ -38,7 +38,7 @@ export async function CoordinatorDetail({
   });
 
   if (result === null) {
-    notFound();
+    forbidden();
   }
 
   return (

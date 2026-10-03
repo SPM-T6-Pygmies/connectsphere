@@ -33,12 +33,16 @@ begin
   for s in
     select *
       from (values
-        ('00000000-0000-4000-8000-000000000001'::uuid, 'organiser@test.com',   'TestPass123!', 'Test Organiser',     'Event Organiser',          'Test Organisation'),
-        ('00000000-0000-4000-8000-000000000002'::uuid, 'organiser2@test.com',  'TestPass123!', 'Test Organiser 2',   'Event Organiser',          'Test Organisation'),
-        ('00000000-0000-4000-8000-000000000003'::uuid, 'coordinator@test.com', 'TestPass123!', 'Test Coordinator',   'Event Coordinator',        null),
-        ('00000000-0000-4000-8000-000000000004'::uuid, 'ops@test.com',         'TestPass123!', 'Test Ops Manager',   'Event Operations Manager', null),
-        ('00000000-0000-4000-8000-000000000005'::uuid, 'venue@test.com',       'TestPass123!', 'Test Venue Staff',   'Venue Staff',              null),
-        ('00000000-0000-4000-8000-000000000006'::uuid, 'support@test.com',     'TestPass123!', 'Test Support Staff', 'Technical Support Staff',  null)
+        ('00000000-0000-4000-8000-000000000001'::uuid, 'organiser@test.com',    'TestPass123!', 'Test Organiser',       'Event Organiser',          'Test Organisation'),
+        ('00000000-0000-4000-8000-000000000002'::uuid, 'organiser2@test.com',   'TestPass123!', 'Test Organiser 2',     'Event Organiser',          'Test Organisation'),
+        ('00000000-0000-4000-8000-000000000003'::uuid, 'coordinator@test.com',  'TestPass123!', 'Test Coordinator',     'Event Coordinator',        null),
+        ('00000000-0000-4000-8000-000000000007'::uuid, 'coordinator2@test.com', 'TestPass123!', 'Test Coordinator 2',   'Event Coordinator',        null),
+        ('00000000-0000-4000-8000-000000000004'::uuid, 'ops@test.com',          'TestPass123!', 'Test Ops Manager',     'Event Operations Manager', null),
+        ('00000000-0000-4000-8000-000000000008'::uuid, 'ops2@test.com',         'TestPass123!', 'Test Ops Manager 2',   'Event Operations Manager', null),
+        ('00000000-0000-4000-8000-000000000005'::uuid, 'venue@test.com',        'TestPass123!', 'Test Venue Staff',     'Venue Staff',              null),
+        ('00000000-0000-4000-8000-000000000009'::uuid, 'venue2@test.com',       'TestPass123!', 'Test Venue Staff 2',   'Venue Staff',              null),
+        ('00000000-0000-4000-8000-000000000006'::uuid, 'support@test.com',      'TestPass123!', 'Test Support Staff',   'Technical Support Staff',  null),
+        ('00000000-0000-4000-8000-000000000010'::uuid, 'support2@test.com',     'TestPass123!', 'Test Support Staff 2', 'Technical Support Staff',  null)
       ) as t (auth_user_id, email, password, name, role_name, organisation)
   loop
     -- Fail loudly rather than leaving half-seeded rows behind: a role name that

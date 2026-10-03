@@ -26,5 +26,9 @@
   {
     "domain": "Connections",
     "match": ["connection"]
+  },
+  {
+    "domain": "Venue Catalogue",
+    "match": ["venue"]
   }
 ]

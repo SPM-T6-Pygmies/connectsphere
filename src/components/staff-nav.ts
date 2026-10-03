@@ -80,6 +80,24 @@ export function railItems(role: StaffRole): RailItem[] {
     },
   ]
 
+  if (role === "coordinator") {
+    items.push({
+      section: "action",
+      title: "Find a venue",
+      url: "/staff/coordinator/venues",
+      icon: Building2Icon,
+    })
+  }
+
+  if (role === "venue") {
+    items.push({
+      section: "action",
+      title: "Venues",
+      url: "/staff/venue/catalogue",
+      icon: Building2Icon,
+    })
+  }
+
   if (role === "requester") {
     items.push(
       {
