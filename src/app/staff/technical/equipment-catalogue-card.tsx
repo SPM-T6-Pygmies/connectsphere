@@ -28,8 +28,8 @@ export async function EquipmentCatalogueCard() {
         <div className="space-y-1.5">
           <CardTitle>Equipment catalogue</CardTitle>
           <CardDescription>
-            Pooled counts, not individual units. Items can be collected the day
-            before and come back into the pool the day after return.
+            Tracked by quantity, not individual units. Items can be collected
+            the day before and are available again the day after return.
           </CardDescription>
         </div>
         <AddEquipmentSheet />

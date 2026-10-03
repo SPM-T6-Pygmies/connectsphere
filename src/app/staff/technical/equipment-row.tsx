@@ -35,7 +35,7 @@ export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
             </div>
 
             <label className="text-muted-foreground grid gap-1 text-xs">
-              In pool
+              Quantity
               <Input
                 name="quantity"
                 inputMode="numeric"

@@ -104,7 +104,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 ## TC-EQUIP-004 Update quantity and location (AC2, AC3)
 
 **Steps**
-1. On the Projector (4K) card, change **In pool** to `4` and **Location** to `Store B`.
+1. On the Projector (4K) card, change **Quantity** to `4` and **Location** to `Store B`.
 2. Click **Update**, then reload the page.
 
 **Expected Result**
@@ -119,7 +119,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 ## TC-EQUIP-005 A bad update is refused (AC2)
 
 **Steps**
-1. On the Wireless microphone card, change **In pool** to `-5` and click **Update**. Reload.
+1. On the Wireless microphone card, change **Quantity** to `-5` and click **Update**. Reload.
 
 **Expected Result**
 - "Quantity must be a whole number, zero or more." appears on that card.
@@ -149,7 +149,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 2. Tap **Add equipment**.
 
 **Expected Result**
-- Cards stack one per row with labelled **In pool** and **Location** fields and **Update**.
+- Cards stack one per row with labelled **Quantity** and **Location** fields and **Update**.
 - The Add equipment panel opens beside a sliver of the page, and every field fits on screen.
 - The page does not scroll sideways.
 
