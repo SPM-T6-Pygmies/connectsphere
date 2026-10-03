@@ -379,6 +379,19 @@ export class UnsupportedRoomLayoutError extends DomainError {
   }
 }
 
+/**
+ * SPM-104: the layout is the coordinator's to change only while the request
+ * is still pending. Once Venue Staff have answered it, the answer was given
+ * for the layout then on record.
+ */
+export class BookingRoomLayoutNotChangeableError extends DomainError {
+  readonly code = "booking_room_layout_not_changeable";
+
+  constructor(readonly status: string) {
+    super("The layout can only be changed while the request is waiting for Venue Staff.");
+  }
+}
+
 /** SPM-46: a hold or confirmed booking already has one of the slots -- a hard block (#35, #41). */
 export class VenueSlotUnavailableError extends DomainError {
   readonly code = "venue_slot_unavailable";

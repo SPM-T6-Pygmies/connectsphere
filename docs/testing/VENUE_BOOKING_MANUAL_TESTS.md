@@ -70,3 +70,42 @@ layouts).
 - [ ] Sign in as anyone who is not this event's coordinator and open
       `/staff/coordinator/<request id>/venue-booking` directly. It shows
       *not found*.
+
+### TC-VENUE-BOOK-007 The page checks the event against the chosen layout (SPM-104)
+
+Needs an approved event with an expected attendance (for example 100) on the
+right-hand card.
+
+- [ ] Choose **Seminar Room 2-1** and pick **Boardroom**. A line under the
+      layouts reads like *Boardroom seats 20 · 100 expected, 80 over*, in red.
+- [ ] Pick **Classroom** instead. The line follows the layout picked, using
+      Classroom's own seats, not the venue-wide figure.
+- [ ] Choose **Main Hall** and **Theatre** (seats more than the attendance). The
+      line says the event fits, and is not red.
+- [ ] Send a request for an over-capacity layout. It is **not** blocked (the
+      team has not decided between block and warn, SPM-107); the new row in
+      *Booking requests for this event* shows the same red capacity line.
+
+### TC-VENUE-BOOK-008 Change the layout of a pending request (SPM-104)
+
+- [ ] On a **Requested** row for a venue with several layouts, a layout picker
+      and **Change layout** button appear. The button is disabled until a
+      different layout is picked.
+- [ ] Change **Boardroom** to **Classroom** and save. The row shows
+      **Classroom**, the capacity line is re-checked against Classroom, and a
+      confirmation repeats it.
+- [ ] A venue with only one layout (Studio) or none (Rooftop Terrace) shows no
+      picker on its row.
+- [ ] `select * from audit_record where entity_type = 'booking' order by
+      occurred_at desc limit 1` shows `field_changed = 'room_layout'` with the
+      old and new layout names.
+
+### TC-VENUE-BOOK-009 A layout can no longer change once Venue Staff answer (SPM-104)
+
+- [ ] Approve or reject the request as Venue Staff (SPM-22). Reload the page as
+      the coordinator: that row no longer offers a layout picker.
+- [ ] With a second **Requested** row open in the browser, set that booking to
+      `Confirmed` by hand (as in TC-VENUE-BOOK-005), then press **Change
+      layout** on the stale page. The page answers that the layout can only be
+      changed while the request is waiting for Venue Staff, and the layout is
+      unchanged.
