@@ -2,6 +2,7 @@ import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
+  EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -35,6 +36,12 @@ export class LoggingNotifier implements Notifier {
   async clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} asked to clarify event request ${notice.eventRequestId}`,
+    );
+  }
+
+  async eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} told event request ${notice.eventRequestId} was ${notice.decision}`,
     );
   }
 }

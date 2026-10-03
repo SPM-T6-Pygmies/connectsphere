@@ -4,6 +4,7 @@ import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
+  EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -38,6 +39,11 @@ export class SupabaseRecordingNotifier implements Notifier {
   // Not recorded yet (SPM-237).
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     return this.inner.clarificationRequested(notice);
+  }
+
+  // Not recorded yet (SPM-238).
+  eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
+    return this.inner.eventRequestDecided(notice);
   }
 
   async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {

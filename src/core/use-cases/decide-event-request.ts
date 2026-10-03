@@ -4,10 +4,12 @@ import {
   eventRequestAccessForCoordinator,
   eventRequestId,
   rejectEventRequest,
+  type EventRequest,
   type EventRequestStatus,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type { Notifier } from "../ports/outbound/notifier";
 
 export interface DecideEventRequestCommand {
   readonly id: string;
@@ -25,6 +27,7 @@ export interface DecideEventRequestResult {
 
 export interface DecideEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
+  readonly notifier: Notifier;
 }
 
 /**
@@ -35,6 +38,9 @@ export interface DecideEventRequestDeps {
  * is deliberately not distinguishable from not-found (#91). Whether the
  * request can still be decided, and whether a rejection has its reason, are
  * the domain transitions' calls, not this file's.
+ *
+ * Once the decision is stored, the responsible Organiser is told of it
+ * (SPM-60). A refused decision throws before this, so it notifies no one.
  */
 export class DecideEventRequestUseCase {
   constructor(private readonly deps: DecideEventRequestDeps) {}
@@ -55,11 +61,23 @@ export class DecideEventRequestUseCase {
     if (command.decision === "approve") {
       const approved = approveEventRequest(request, command.decisionRecord);
       await eventRequests.approveEventRequest(approved, decidedBy);
+      await this.notifyOrganiser(approved, "approved");
       return { eventRequestId: approved.id, status: approved.status };
     }
 
     const rejected = rejectEventRequest(request, command.decisionRecord);
     await eventRequests.rejectEventRequest(rejected, decidedBy);
+    await this.notifyOrganiser(rejected, "rejected");
     return { eventRequestId: rejected.id, status: rejected.status };
+  }
+
+  private notifyOrganiser(decided: EventRequest, decision: "approved" | "rejected"): Promise<void> {
+    return this.deps.notifier.eventRequestDecided({
+      recipientUserAccountId: decided.responsibleOrganiserId,
+      eventRequestId: decided.id,
+      eventName: decided.details.eventName,
+      decision,
+      decisionRecord: decided.decisionRecord,
+    });
   }
 }

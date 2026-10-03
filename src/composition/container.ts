@@ -353,7 +353,7 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
 export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCase> {
   const { eventRequests } = await coordinatorAdapters();
 
-  return new DecideEventRequestUseCase({ eventRequests });
+  return new DecideEventRequestUseCase({ eventRequests, notifier: recordedNotifier() });
 }
 
 /** SPM-101: the assigned coordinator records a withdrawal the Organiser asked for. */

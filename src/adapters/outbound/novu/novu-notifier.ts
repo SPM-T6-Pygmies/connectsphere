@@ -7,6 +7,7 @@ import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
+  EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -56,6 +57,11 @@ export class NovuNotifier implements Notifier {
   // No Novu workflow for clarification requests yet (SPM-237).
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     return this.logging.clarificationRequested(notice);
+  }
+
+  // No Novu workflow for review decisions yet (SPM-238).
+  eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
+    return this.logging.eventRequestDecided(notice);
   }
 
   async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {

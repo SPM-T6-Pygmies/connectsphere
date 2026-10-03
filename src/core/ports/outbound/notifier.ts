@@ -45,6 +45,22 @@ export interface ClarificationRequestedNotice {
 }
 
 /**
+ * What an Event Organiser is told when the assigned coordinator approves or
+ * rejects their request (SPM-60). `decisionRecord` is the coordinator's reason
+ * for a rejection, or their optional note on an approval.
+ *
+ * A return is not a decision here: it is a clarification request, notified as
+ * `ClarificationRequestedNotice`.
+ */
+export interface EventRequestDecidedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly decision: "approved" | "rejected";
+  readonly decisionRecord: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -56,4 +72,5 @@ export interface Notifier {
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void>;
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void>;
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void>;
+  eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void>;
 }
