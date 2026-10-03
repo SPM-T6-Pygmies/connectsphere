@@ -7,7 +7,7 @@ import type {
   CoordinatorEventRepository,
 } from "@/core/ports/outbound/coordinator-event-repository";
 
-/** An event as seeded: the view, plus the fields only `findById`/`confirmEvent` need. */
+/** An event as seeded: the view, plus the fields only `findAssignedById`/`confirmEvent` need. */
 export interface SeedCoordinatorEvent extends AssignedEventSummary {
   readonly assignedCoordinatorUserAccountId: string | null;
   readonly description: string | null;
@@ -38,8 +38,13 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
       }));
   }
 
-  async findById(id: CoordinatorEvent["id"]): Promise<CoordinatorEvent | null> {
-    const row = this.rows.find((event) => event.id === id);
+  async findAssignedById(
+    coordinatorId: UserAccountId,
+    id: CoordinatorEvent["id"],
+  ): Promise<CoordinatorEvent | null> {
+    const row = this.rows.find(
+      (event) => event.id === id && event.assignedCoordinatorUserAccountId === coordinatorId,
+    );
     if (row === undefined) {
       return null;
     }

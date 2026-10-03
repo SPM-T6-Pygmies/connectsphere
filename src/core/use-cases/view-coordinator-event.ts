@@ -55,17 +55,20 @@ export class ViewCoordinatorEventUseCase {
     const id = eventId(command.id);
     const caller = userAccountId(command.userAccountId);
 
-    const event = await this.deps.events.findById(id);
-    if (event === null || event.assignedCoordinatorUserAccountId !== caller) {
+    const event = await this.deps.events.findAssignedById(caller, id);
+    if (event === null) {
       return null;
     }
 
     const [facts, organisationNames, organiserNames] = await Promise.all([
-      this.deps.readiness.factsFor(id),
+      this.deps.readiness.factsFor(caller, id),
       this.deps.clientOrganisations.findNamesByIds([event.clientOrganisationId]),
       this.deps.userAccounts.findNamesByIds([event.owningOrganiserUserAccountId]),
     ]);
 
+    if (facts === null) {
+      return null;
+    }
     const readiness = assessReadiness(facts);
 
     return {

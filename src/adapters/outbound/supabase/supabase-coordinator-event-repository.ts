@@ -67,13 +67,20 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
   }
 
   /** Through `coordinator_event`, not the table -- same reason as `listByAssignedCoordinator` above. */
-  async findById(id: CoordinatorEvent["id"]): Promise<CoordinatorEvent | null> {
+  async findAssignedById(
+    coordinatorId: UserAccountId,
+    id: CoordinatorEvent["id"],
+  ): Promise<CoordinatorEvent | null> {
     const key = toKey(id);
-    if (key === null) {
+    const coordinatorKey = toKey(coordinatorId);
+    if (key === null || coordinatorKey === null) {
       return null;
     }
 
-    const { data, error } = await this.client.rpc("coordinator_event", { p_event_id: key });
+    const { data, error } = await this.client.rpc("coordinator_event", {
+      p_event_id: key,
+      p_coordinator_user_account_id: coordinatorKey,
+    });
 
     if (error) {
       throw new Error(`Failed to look up event: ${error.message}`, { cause: error });
@@ -112,16 +119,19 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventNotConfirmableError(event.status);
       }
       if (error.code === NOT_READY) {
-        throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event));
+        throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event, confirmedBy));
       }
       throw new Error(`Failed to confirm event: ${error.message}`, { cause: error });
     }
   }
 
   /** Names what a losing race to `coordinator_confirm_event` was blocked by -- the SQLSTATE alone cannot carry the list. */
-  private async blockingArrangements(event: CoordinatorEvent): Promise<readonly ArrangementType[]> {
-    const facts = await new SupabaseEventReadinessRepository(this.client).factsFor(event.id);
-    return blockingArrangements(assessReadiness(facts));
+  private async blockingArrangements(
+    event: CoordinatorEvent,
+    confirmedBy: UserAccountId,
+  ): Promise<readonly ArrangementType[]> {
+    const facts = await new SupabaseEventReadinessRepository(this.client).factsFor(confirmedBy, event.id);
+    return facts === null ? [] : blockingArrangements(assessReadiness(facts));
   }
 
   /**

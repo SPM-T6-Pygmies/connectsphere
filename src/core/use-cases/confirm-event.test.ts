@@ -57,7 +57,16 @@ function buildUseCase(
   readiness: readonly ReadinessFacts[] = [],
 ) {
   const eventsRepo = new InMemoryCoordinatorEventRepository(events);
-  const readinessRepo = new InMemoryEventReadinessRepository(readiness);
+  const readinessRepo = new InMemoryEventReadinessRepository(
+      readiness,
+      new Map(
+        events.flatMap((event) =>
+          event.assignedCoordinatorUserAccountId === null
+            ? []
+            : [[event.id, event.assignedCoordinatorUserAccountId] as const],
+        ),
+      ),
+    );
   const useCase = new ConfirmEventUseCase({
     events: eventsRepo,
     readiness: readinessRepo,

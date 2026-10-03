@@ -1,4 +1,5 @@
 import type { EventId } from "../../domain/event";
+import type { UserAccountId } from "../../domain/user-account";
 import type { ReadinessFacts } from "../../domain/event-readiness";
 
 /**
@@ -12,6 +13,10 @@ import type { ReadinessFacts } from "../../domain/event-readiness";
  * SPM-109 without the event repository changing at all.
  */
 export interface EventReadinessRepository {
-  /** An event with no essential-arrangement rows reads back with no essential types -- vacuously ready, not a gap (decision 1, SPM-144). */
-  factsFor(eventId: EventId): Promise<ReadinessFacts>;
+  /**
+   * Null unless the event is assigned to this coordinator (#91). An event with
+   * no essential-arrangement rows reads back with no essential types --
+   * vacuously ready, not a gap (decision 1, SPM-144).
+   */
+  factsFor(coordinatorId: UserAccountId, eventId: EventId): Promise<ReadinessFacts | null>;
 }

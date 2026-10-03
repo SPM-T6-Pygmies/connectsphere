@@ -61,7 +61,16 @@ function buildUseCase(
 ) {
   return new ViewCoordinatorEventUseCase({
     events: new InMemoryCoordinatorEventRepository(events),
-    readiness: new InMemoryEventReadinessRepository(readiness),
+    readiness: new InMemoryEventReadinessRepository(
+      readiness,
+      new Map(
+        events.flatMap((event) =>
+          event.assignedCoordinatorUserAccountId === null
+            ? []
+            : [[event.id, event.assignedCoordinatorUserAccountId] as const],
+        ),
+      ),
+    ),
     clientOrganisations: new InMemoryClientOrganisationRepository(ORG_NAMES),
     userAccounts: new InMemoryUserAccountRepository({ names: ORGANISER_NAMES }),
   });

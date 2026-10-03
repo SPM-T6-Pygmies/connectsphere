@@ -41,12 +41,13 @@ export class ConfirmEventUseCase {
     const id = eventId(command.id);
     const confirmedBy = userAccountId(command.userAccountId);
 
-    const event = await events.findById(id);
-    if (event === null || event.assignedCoordinatorUserAccountId !== confirmedBy) {
+    const event = await events.findAssignedById(confirmedBy, id);
+    const facts = event === null ? null : await readiness.factsFor(confirmedBy, id);
+    if (event === null || facts === null) {
       throw new EventNotFoundError(command.id);
     }
 
-    const eventReadiness = assessReadiness(await readiness.factsFor(id));
+    const eventReadiness = assessReadiness(facts);
     const confirmed = confirmEvent(event, eventReadiness);
 
     await events.confirmEvent(confirmed, confirmedBy);

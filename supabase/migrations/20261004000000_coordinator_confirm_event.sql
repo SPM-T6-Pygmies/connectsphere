@@ -3,18 +3,20 @@
 --
 -- Three functions:
 --
---   coordinator_event(p_event_id)
---     A single event row by id, the same single-row-by-id shape as
---     organiser_event_request -- not scoped to a coordinator here; the
---     caller checks assigned_coordinator_user_account_id itself, the same
---     way DecideEventRequestUseCase checks a fetched event_request (#91).
+--   coordinator_event(p_event_id, p_coordinator_user_account_id)
+--     A single event row, only when it is assigned to that coordinator --
+--     scoped like its sibling coordinator_events, so the anon key cannot
+--     read an arbitrary event by guessing ids. Another coordinator's event
+--     and a missing one look the same (#91).
 --
---   event_readiness(p_event_id)
+--   event_readiness(p_event_id, p_coordinator_user_account_id)
 --     Facts only, one row: which arrangement types are essential for the
 --     event, where its earliest Confirmed booking is (on the event or any of
 --     its sessions), its agenda, and its registration flag and dates. What
 --     counts as complete -- and which types are evaluated at all -- is the
 --     domain's `assessReadiness` (src/core/domain/event-readiness.ts).
+--     Scoped to the assigned coordinator, like coordinator_event; no row
+--     otherwise.
 --
 --   coordinator_confirm_event(p_event_id, p_coordinator_user_account_id)
 --     Re-checks assignment, status and readiness under a row lock before
@@ -39,11 +41,14 @@
 
 begin;
 
--- An earlier version of this migration returned one row per arrangement.
+-- An earlier version of this migration took no coordinator, and its
+-- event_readiness returned one row per arrangement.
+drop function if exists public.coordinator_event(bigint);
 drop function if exists public.event_readiness(bigint);
 
 create or replace function public.coordinator_event(
-  p_event_id bigint
+  p_event_id bigint,
+  p_coordinator_user_account_id bigint
 )
 returns public.event
 language sql
@@ -53,11 +58,13 @@ stable
 as $$
   select *
   from public.event
-  where event_id = p_event_id;
+  where event_id = p_event_id
+    and assigned_coordinator_user_account_id = p_coordinator_user_account_id;
 $$;
 
 create or replace function public.event_readiness(
-  p_event_id bigint
+  p_event_id bigint,
+  p_coordinator_user_account_id bigint
 )
 returns table (
   essential_types text[],
@@ -100,7 +107,8 @@ as $$
     e.registration_open_date,
     e.registration_close_date
   from public.event e
-  where e.event_id = p_event_id;
+  where e.event_id = p_event_id
+    and e.assigned_coordinator_user_account_id = p_coordinator_user_account_id;
 $$;
 
 create or replace function public.coordinator_confirm_event(
@@ -140,7 +148,7 @@ begin
   -- venue, programme and registration are evaluated. Change both together.
   select count(*)
   into v_blocking_count
-  from public.event_readiness(p_event_id) r
+  from public.event_readiness(p_event_id, p_coordinator_user_account_id) r
   cross join lateral unnest(r.essential_types) as t(arrangement_type)
   where case t.arrangement_type
     when 'venue' then r.confirmed_venue_location is null
@@ -169,12 +177,12 @@ begin
 end;
 $$;
 
-revoke execute on function public.coordinator_event(bigint) from public;
-revoke execute on function public.event_readiness(bigint) from public;
+revoke execute on function public.coordinator_event(bigint, bigint) from public;
+revoke execute on function public.event_readiness(bigint, bigint) from public;
 revoke execute on function public.coordinator_confirm_event(bigint, bigint) from public;
 
-grant execute on function public.coordinator_event(bigint) to anon, authenticated;
-grant execute on function public.event_readiness(bigint) to anon, authenticated;
+grant execute on function public.coordinator_event(bigint, bigint) to anon, authenticated;
+grant execute on function public.event_readiness(bigint, bigint) to anon, authenticated;
 grant execute on function public.coordinator_confirm_event(bigint, bigint) to anon, authenticated;
 
 commit;
