@@ -10,21 +10,16 @@
 --     way DecideEventRequestUseCase checks a fetched event_request (#91).
 --
 --   event_readiness(p_event_id)
---     Only the essential arrangements this ticket can evaluate automatically
---     -- venue, programme, registration. equipment/technical_support/other
---     are excluded: no schema signal decides them yet (SPM-144 tracks
---     deciding essentiality at all; equipment's own completeness is
---     SPM-109's). A venue counts complete if *any* of the event's bookings,
---     or any of its sessions' bookings, is Confirmed -- multi-session
---     aggregation is not a verified rule, just the simplest one that does not
---     block confirmation on an unrelated session's booking. `detail` is a
---     short plain-English explanation of *why* -- the booked venue's name,
---     the agenda text, or the registration window -- so the coordinator's
---     screen can say what's true instead of a bare done/outstanding badge.
+--     Facts only, one row: which arrangement types are essential for the
+--     event, where its earliest Confirmed booking is (on the event or any of
+--     its sessions), its agenda, and its registration flag and dates. What
+--     counts as complete -- and which types are evaluated at all -- is the
+--     domain's `assessReadiness` (src/core/domain/event-readiness.ts).
 --
 --   coordinator_confirm_event(p_event_id, p_coordinator_user_account_id)
 --     Re-checks assignment, status and readiness under a row lock before
---     writing -- the schema's own comment above event_essential_arrangement
+--     writing. The readiness check restates `assessReadiness` in SQL as the
+--     last line of defence (§8.6) -- keep the two in sync -- the schema's own comment above event_essential_arrangement
 --     ("enforced in application/trigger logic ... spans
 --     event_essential_arrangement rows") is what this function is. Writes an
 --     audit_record row in the same transaction as the status change.
@@ -44,6 +39,9 @@
 
 begin;
 
+-- An earlier version of this migration returned one row per arrangement.
+drop function if exists public.event_readiness(bigint);
+
 create or replace function public.coordinator_event(
   p_event_id bigint
 )
@@ -62,9 +60,12 @@ create or replace function public.event_readiness(
   p_event_id bigint
 )
 returns table (
-  arrangement_type text,
-  is_complete boolean,
-  detail text
+  essential_types text[],
+  confirmed_venue_location text,
+  programme_agenda text,
+  registration_enabled boolean,
+  registration_open_date date,
+  registration_close_date date
 )
 language sql
 security definer
@@ -72,50 +73,34 @@ set search_path = ''
 stable
 as $$
   select
-    eea.arrangement_type,
-    case eea.arrangement_type
-      when 'venue' then vb.venue_id is not null
-      when 'programme' then e.programme_agenda is not null and btrim(e.programme_agenda) <> ''
-      when 'registration' then e.registration_enabled_flag
-        and e.registration_open_date is not null
-        and e.registration_close_date is not null
-    end as is_complete,
-    case eea.arrangement_type
-      when 'venue' then coalesce(
-        'Confirmed at ' || vb.location || '.',
-        'No confirmed venue booking yet.'
-      )
-      when 'programme' then case
-        when e.programme_agenda is not null and btrim(e.programme_agenda) <> '' then
-          left(e.programme_agenda, 80)
-          || (case when length(e.programme_agenda) > 80 then '…' else '' end)
-        else 'No agenda has been written yet.'
-      end
-      when 'registration' then case
-        when e.registration_enabled_flag
-             and e.registration_open_date is not null
-             and e.registration_close_date is not null then
-          'Open ' || e.registration_open_date || ' to ' || e.registration_close_date || '.'
-        when not e.registration_enabled_flag then 'Registration is not enabled for this event.'
-        else 'Registration is enabled, but the open/close dates are not set yet.'
-      end
-    end as detail
-  from public.event_essential_arrangement eea
-  join public.event e on e.event_id = eea.event_id
-  left join lateral (
-    select v.location, b.venue_id
-    from public.booking b
-    join public.venue v on v.venue_id = b.venue_id
-    where b.status = 'Confirmed'
-      and (
-        b.event_id = eea.event_id
-        or b.session_id in (select s.session_id from public.session s where s.event_id = eea.event_id)
-      )
-    limit 1
-  ) vb on true
-  where eea.event_id = p_event_id
-    and eea.is_essential
-    and eea.arrangement_type in ('venue', 'programme', 'registration');
+    coalesce(
+      array(
+        select eea.arrangement_type
+        from public.event_essential_arrangement eea
+        where eea.event_id = e.event_id
+          and eea.is_essential
+        order by eea.arrangement_type
+      ),
+      '{}'
+    ),
+    (
+      select v.location
+      from public.booking b
+      join public.venue v on v.venue_id = b.venue_id
+      where b.status = 'Confirmed'
+        and (
+          b.event_id = e.event_id
+          or b.session_id in (select s.session_id from public.session s where s.event_id = e.event_id)
+        )
+      order by b.created_at, b.booking_id
+      limit 1
+    ),
+    e.programme_agenda,
+    e.registration_enabled_flag,
+    e.registration_open_date,
+    e.registration_close_date
+  from public.event e
+  where e.event_id = p_event_id;
 $$;
 
 create or replace function public.coordinator_confirm_event(
@@ -151,10 +136,20 @@ begin
       using errcode = 'CS021';
   end if;
 
+  -- Restates `assessReadiness` (src/core/domain/event-readiness.ts): only
+  -- venue, programme and registration are evaluated. Change both together.
   select count(*)
   into v_blocking_count
-  from public.event_readiness(p_event_id)
-  where not is_complete;
+  from public.event_readiness(p_event_id) r
+  cross join lateral unnest(r.essential_types) as t(arrangement_type)
+  where case t.arrangement_type
+    when 'venue' then r.confirmed_venue_location is null
+    when 'programme' then coalesce(r.programme_agenda, '') !~ '\S'
+    when 'registration' then not coalesce(r.registration_enabled, false)
+      or r.registration_open_date is null
+      or r.registration_close_date is null
+    else false
+  end;
 
   if v_blocking_count > 0 then
     raise exception 'Event % still has % incomplete essential arrangement(s)',

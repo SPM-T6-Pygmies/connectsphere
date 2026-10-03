@@ -11,10 +11,7 @@ import {
   EventNotReadyForConfirmationError,
 } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
-import type {
-  ArrangementReadiness,
-  EventReadiness,
-} from "@/core/domain/event-readiness";
+import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { ConfirmEventUseCase } from "./confirm-event";
@@ -41,15 +38,23 @@ function seedEvent(
   };
 }
 
-function seedReadiness(
-  essentialArrangements: readonly ArrangementReadiness[],
-): EventReadiness {
-  return { eventId: eventId("event-1"), essentialArrangements };
+/** Facts for event-1, every arrangement incomplete unless overridden. */
+function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
+  return {
+    eventId: eventId("event-1"),
+    essentialTypes: [],
+    confirmedVenueLocation: null,
+    programmeAgenda: null,
+    registrationEnabled: false,
+    registrationOpenDate: null,
+    registrationCloseDate: null,
+    ...overrides,
+  };
 }
 
 function buildUseCase(
   events: readonly SeedCoordinatorEvent[],
-  readiness: readonly EventReadiness[] = [],
+  readiness: readonly ReadinessFacts[] = [],
 ) {
   const eventsRepo = new InMemoryCoordinatorEventRepository(events);
   const readinessRepo = new InMemoryEventReadinessRepository(readiness);
@@ -65,10 +70,11 @@ describe("ConfirmEventUseCase (SPM-50)", () => {
     const { useCase, eventsRepo } = buildUseCase(
       [seedEvent()],
       [
-        seedReadiness([
-          { type: "venue", complete: true, detail: "" },
-          { type: "programme", complete: true, detail: "" },
-        ]),
+        seedFacts({
+          essentialTypes: ["venue", "programme"],
+          confirmedVenueLocation: "Main Hall",
+          programmeAgenda: "Talks, then lunch",
+        }),
       ],
     );
 
@@ -86,7 +92,7 @@ describe("ConfirmEventUseCase (SPM-50)", () => {
   it("confirms even while a non-essential arrangement is incomplete (AC2)", async () => {
     const { useCase } = buildUseCase(
       [seedEvent()],
-      [seedReadiness([{ type: "venue", complete: true, detail: "" }])],
+      [seedFacts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall" })],
     );
 
     await expect(
@@ -98,10 +104,10 @@ describe("ConfirmEventUseCase (SPM-50)", () => {
     const { useCase, eventsRepo } = buildUseCase(
       [seedEvent()],
       [
-        seedReadiness([
-          { type: "venue", complete: false, detail: "" },
-          { type: "programme", complete: true, detail: "" },
-        ]),
+        seedFacts({
+          essentialTypes: ["venue", "programme"],
+          programmeAgenda: "Talks, then lunch",
+        }),
       ],
     );
 

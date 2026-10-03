@@ -1,6 +1,7 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
 import {
+  assessReadiness,
   blockingArrangements,
   canConfirm,
   type ArrangementType,
@@ -59,11 +60,13 @@ export class ViewCoordinatorEventUseCase {
       return null;
     }
 
-    const [readiness, organisationNames, organiserNames] = await Promise.all([
-      this.deps.readiness.readinessFor(id),
+    const [facts, organisationNames, organiserNames] = await Promise.all([
+      this.deps.readiness.factsFor(id),
       this.deps.clientOrganisations.findNamesByIds([event.clientOrganisationId]),
       this.deps.userAccounts.findNamesByIds([event.owningOrganiserUserAccountId]),
     ]);
+
+    const readiness = assessReadiness(facts);
 
     return {
       event,

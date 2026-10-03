@@ -31,6 +31,88 @@ export interface EventReadiness {
   readonly essentialArrangements: readonly ArrangementReadiness[];
 }
 
+/**
+ * What the store knows about an event's arrangements, before any judgement
+ * about whether they are complete -- that judgement is `assessReadiness`'s.
+ */
+export interface ReadinessFacts {
+  readonly eventId: EventId;
+  /** Every arrangement type marked essential for this event. */
+  readonly essentialTypes: readonly ArrangementType[];
+  /** Where the event's earliest Confirmed booking is, on the event or any of its sessions; null when there is none. */
+  readonly confirmedVenueLocation: string | null;
+  readonly programmeAgenda: string | null;
+  readonly registrationEnabled: boolean;
+  /** ISO calendar dates, `YYYY-MM-DD`. */
+  readonly registrationOpenDate: string | null;
+  readonly registrationCloseDate: string | null;
+}
+
+/**
+ * The arrangements SPM-50 can judge automatically. Equipment, technical
+ * support and other have no completeness signal yet (SPM-144 decides
+ * essentiality at all; equipment's own completeness is SPM-109's), so they
+ * neither block nor pass confirmation.
+ */
+const EVALUATED: readonly ArrangementType[] = ["venue", "programme", "registration"];
+
+/** How much of the agenda the detail quotes. */
+const AGENDA_PREVIEW_LENGTH = 80;
+
+function assessArrangement(type: ArrangementType, facts: ReadinessFacts): ArrangementReadiness {
+  switch (type) {
+    case "venue":
+      // Any one Confirmed booking counts, not one per session: multi-session
+      // aggregation is unspecified, and this is the rule that does not block
+      // confirmation on an unrelated session's booking.
+      return facts.confirmedVenueLocation === null
+        ? { type, complete: false, detail: "No confirmed venue booking yet." }
+        : { type, complete: true, detail: `Confirmed at ${facts.confirmedVenueLocation}.` };
+    case "programme": {
+      const agenda = facts.programmeAgenda?.trim() ?? "";
+      if (agenda === "") {
+        return { type, complete: false, detail: "No agenda has been written yet." };
+      }
+      const preview =
+        agenda.length > AGENDA_PREVIEW_LENGTH ? `${agenda.slice(0, AGENDA_PREVIEW_LENGTH)}…` : agenda;
+      return { type, complete: true, detail: preview };
+    }
+    case "registration":
+      if (!facts.registrationEnabled) {
+        return { type, complete: false, detail: "Registration is not enabled for this event." };
+      }
+      if (facts.registrationOpenDate === null || facts.registrationCloseDate === null) {
+        return {
+          type,
+          complete: false,
+          detail: "Registration is enabled, but the open/close dates are not set yet.",
+        };
+      }
+      return {
+        type,
+        complete: true,
+        detail: `Open ${facts.registrationOpenDate} to ${facts.registrationCloseDate}.`,
+      };
+    default:
+      throw new Error(`${type} is not an arrangement SPM-50 evaluates.`);
+  }
+}
+
+/**
+ * SPM-50: which of an event's essential arrangements are complete, and why.
+ *
+ * `coordinator_confirm_event` restates these rules in SQL as the last check
+ * under its row lock (§8.6) -- a change here must be made there too.
+ */
+export function assessReadiness(facts: ReadinessFacts): EventReadiness {
+  return {
+    eventId: facts.eventId,
+    essentialArrangements: EVALUATED.filter((type) => facts.essentialTypes.includes(type)).map(
+      (type) => assessArrangement(type, facts),
+    ),
+  };
+}
+
 /** The essential arrangements still not complete -- what AC1 names when confirmation is refused. */
 export function blockingArrangements(readiness: EventReadiness): readonly ArrangementType[] {
   return readiness.essentialArrangements

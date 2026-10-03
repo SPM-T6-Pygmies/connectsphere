@@ -1,7 +1,7 @@
 import type { CoordinatorEventStatus } from "../domain/coordinator-event";
 import { EventNotFoundError } from "../domain/errors";
 import { eventId } from "../domain/event";
-import { confirmEvent } from "../domain/event-readiness";
+import { assessReadiness, confirmEvent } from "../domain/event-readiness";
 import { userAccountId } from "../domain/user-account";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type { EventReadinessRepository } from "../ports/outbound/event-readiness-repository";
@@ -46,7 +46,7 @@ export class ConfirmEventUseCase {
       throw new EventNotFoundError(command.id);
     }
 
-    const eventReadiness = await readiness.readinessFor(id);
+    const eventReadiness = assessReadiness(await readiness.factsFor(id));
     const confirmed = confirmEvent(event, eventReadiness);
 
     await events.confirmEvent(confirmed, confirmedBy);

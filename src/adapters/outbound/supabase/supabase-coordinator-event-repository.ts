@@ -4,7 +4,11 @@ import {
   EventNotFoundError,
   EventNotReadyForConfirmationError,
 } from "@/core/domain/errors";
-import type { ArrangementType } from "@/core/domain/event-readiness";
+import {
+  assessReadiness,
+  blockingArrangements,
+  type ArrangementType,
+} from "@/core/domain/event-readiness";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   AssignedEventSummary,
@@ -12,6 +16,7 @@ import type {
 } from "@/core/ports/outbound/coordinator-event-repository";
 
 import type { SupabaseServerClient } from "./client";
+import { SupabaseEventReadinessRepository } from "./supabase-event-readiness-repository";
 import {
   toAssignedEventSummary,
   toCoordinatorEvent,
@@ -107,22 +112,16 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventNotConfirmableError(event.status);
       }
       if (error.code === NOT_READY) {
-        throw new EventNotReadyForConfirmationError(await this.blockingArrangements(eventKey));
+        throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event));
       }
       throw new Error(`Failed to confirm event: ${error.message}`, { cause: error });
     }
   }
 
   /** Names what a losing race to `coordinator_confirm_event` was blocked by -- the SQLSTATE alone cannot carry the list. */
-  private async blockingArrangements(eventKey: number): Promise<readonly ArrangementType[]> {
-    const { data, error } = await this.client.rpc("event_readiness", { p_event_id: eventKey });
-
-    if (error) {
-      throw new Error(`Failed to look up event readiness: ${error.message}`, { cause: error });
-    }
-
-    const rows = (data ?? []) as unknown as { arrangement_type: ArrangementType; is_complete: boolean }[];
-    return rows.filter((row) => !row.is_complete).map((row) => row.arrangement_type);
+  private async blockingArrangements(event: CoordinatorEvent): Promise<readonly ArrangementType[]> {
+    const facts = await new SupabaseEventReadinessRepository(this.client).factsFor(event.id);
+    return blockingArrangements(assessReadiness(facts));
   }
 
   /**

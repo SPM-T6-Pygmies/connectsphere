@@ -9,10 +9,7 @@ import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventId } from "@/core/domain/event";
-import type {
-  ArrangementReadiness,
-  EventReadiness,
-} from "@/core/domain/event-readiness";
+import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
@@ -44,15 +41,23 @@ function seedEvent(
   };
 }
 
-function seedReadiness(
-  essentialArrangements: readonly ArrangementReadiness[],
-): EventReadiness {
-  return { eventId: eventId("event-1"), essentialArrangements };
+/** Facts for event-1, every arrangement incomplete unless overridden. */
+function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
+  return {
+    eventId: eventId("event-1"),
+    essentialTypes: [],
+    confirmedVenueLocation: null,
+    programmeAgenda: null,
+    registrationEnabled: false,
+    registrationOpenDate: null,
+    registrationCloseDate: null,
+    ...overrides,
+  };
 }
 
 function buildUseCase(
   events: readonly SeedCoordinatorEvent[],
-  readiness: readonly EventReadiness[] = [],
+  readiness: readonly ReadinessFacts[] = [],
 ) {
   return new ViewCoordinatorEventUseCase({
     events: new InMemoryCoordinatorEventRepository(events),
@@ -78,7 +83,7 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
   it("reports confirmable when every essential arrangement is complete", async () => {
     const useCase = buildUseCase(
       [seedEvent()],
-      [seedReadiness([{ type: "venue", complete: true, detail: "" }])],
+      [seedFacts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall" })],
     );
 
     const result = await useCase.execute({
@@ -94,10 +99,10 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
     const useCase = buildUseCase(
       [seedEvent()],
       [
-        seedReadiness([
-          { type: "venue", complete: false, detail: "" },
-          { type: "programme", complete: true, detail: "" },
-        ]),
+        seedFacts({
+          essentialTypes: ["venue", "programme"],
+          programmeAgenda: "Talks, then lunch",
+        }),
       ],
     );
 
