@@ -331,6 +331,16 @@
       "title": "Supabase functions and repository adapter",
       "parent": "SPM-41",
       "status": "In Progress"
+    },
+    "SPM-186": {
+      "title": "Coordinator equipment section on the event page",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-187": {
+      "title": "Technical Support \"Needs re-check\" list",
+      "parent": "SPM-41",
+      "status": "Todo"
     }
   }
 }

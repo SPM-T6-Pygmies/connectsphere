@@ -12,6 +12,7 @@ export interface SeedCoordinatorEvent extends AssignedEventSummary {
   readonly assignedCoordinatorUserAccountId: string | null;
   readonly description: string | null;
   readonly expectedAttendance: number | null;
+  readonly statedEquipmentNeeds: string | null;
   readonly clientOrganisationId: string;
   readonly owningOrganiserUserAccountId: string;
 }
@@ -69,6 +70,7 @@ function toCoordinatorEvent(row: SeedCoordinatorEvent): CoordinatorEvent {
     status: row.status,
     preferredDate: row.preferredDate,
     expectedAttendance: row.expectedAttendance,
+    statedEquipmentNeeds: row.statedEquipmentNeeds,
     clientOrganisationId: clientOrganisationId(row.clientOrganisationId),
     owningOrganiserUserAccountId: userAccountId(row.owningOrganiserUserAccountId),
     assignedCoordinatorUserAccountId:

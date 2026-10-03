@@ -29,6 +29,8 @@ export interface ViewEventEquipmentResult {
   };
   /** False on a Completed or Cancelled event, whose lines are read-only (AC13). */
   readonly editable: boolean;
+  /** The Organiser's originally stated equipment needs, shown beside the lines as context (AC6). */
+  readonly statedEquipmentNeeds: string | null;
   readonly lines: readonly EquipmentLineView[];
   /** What a new line's type can be picked from (AC1). */
   readonly catalogue: readonly EquipmentCatalogueItem[];
@@ -58,6 +60,7 @@ export class ViewEventEquipmentUseCase {
     return {
       event: { id: event.id, name: event.name, status: event.status },
       editable: equipmentRequirementsEditable(event.status),
+      statedEquipmentNeeds: event.statedEquipmentNeeds,
       lines: current.lines.map((line) => ({
         equipmentItemId: line.equipmentItemId,
         equipmentType: typeOf.get(line.equipmentItemId) ?? line.equipmentItemId,

@@ -24,6 +24,8 @@ export interface CoordinatorEvent {
   /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
   readonly preferredDate: string | null;
   readonly expectedAttendance: number | null;
+  /** What the Organiser originally said the event needs, free text, as context for the equipment lines (SPM-41 AC6). */
+  readonly statedEquipmentNeeds: string | null;
   readonly clientOrganisationId: ClientOrganisationId;
   readonly owningOrganiserUserAccountId: UserAccountId;
   readonly assignedCoordinatorUserAccountId: UserAccountId | null;

@@ -23,6 +23,7 @@ describe("ViewEventEquipmentUseCase (SPM-184)", () => {
     expect(result).toEqual({
       event: { id: "event-1", name: "Founders' Gala Dinner", status: "Planning" },
       editable: true,
+      statedEquipmentNeeds: null,
       lines: [
         {
           equipmentItemId: PROJECTOR,
@@ -47,6 +48,26 @@ describe("ViewEventEquipmentUseCase (SPM-184)", () => {
       ],
       catalogue: CATALOGUE,
     });
+  });
+
+  it("AC6 (SPM-186): shows the Organiser's originally stated equipment needs alongside the lines", async () => {
+    const stated = "Two projectors and a stage microphone for the keynote.";
+    const result = await view(buildEquipmentDeps([seedEvent({ statedEquipmentNeeds: stated })])).execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+    });
+
+    expect(result?.statedEquipmentNeeds).toBe(stated);
+    expect(result?.lines).toHaveLength(2);
+  });
+
+  it("AC6 (SPM-186): shows no stated needs when the Organiser gave none", async () => {
+    const result = await view(buildEquipmentDeps([seedEvent({ statedEquipmentNeeds: null })])).execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+    });
+
+    expect(result?.statedEquipmentNeeds).toBeNull();
   });
 
   it("marks a Completed event's lines read-only", async () => {

@@ -37,6 +37,7 @@ export function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCo
     assignedCoordinatorUserAccountId: COORDINATOR,
     description: null,
     expectedAttendance: 220,
+    statedEquipmentNeeds: null,
     clientOrganisationId: "org-1",
     owningOrganiserUserAccountId: "organiser-1",
     ...overrides,

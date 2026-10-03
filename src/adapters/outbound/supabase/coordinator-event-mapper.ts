@@ -70,6 +70,7 @@ export interface CoordinatorEventRecordRow {
   status: string;
   preferred_date: string | null;
   expected_attendance: number | null;
+  equipment_requirements: string | null;
   client_organisation_id: number;
   owning_organiser_user_account_id: number;
   assigned_coordinator_user_account_id: number | null;
@@ -83,6 +84,7 @@ export function toCoordinatorEvent(row: CoordinatorEventRecordRow): CoordinatorE
     status: toStatus(row.status),
     preferredDate: row.preferred_date,
     expectedAttendance: row.expected_attendance,
+    statedEquipmentNeeds: row.equipment_requirements,
     clientOrganisationId: clientOrganisationId(String(row.client_organisation_id)),
     owningOrganiserUserAccountId: userAccountId(String(row.owning_organiser_user_account_id)),
     assignedCoordinatorUserAccountId:
