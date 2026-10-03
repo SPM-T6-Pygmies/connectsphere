@@ -26,7 +26,7 @@ brew install infisical/get-cli/infisical
 pnpm add -g @infisical/cli
 
 infisical login          # authenticate this machine — choose "US Cloud" when prompted
-           # link this repo to an Infisical project
+infisical init           # link this repo to an Infisical project
 pnpm dev:local           # shortcut for: supabase start && infisical run --env=dev -- pnpm dev
 pnpm dev:remote          # shortcut for: infisical run --env=prod -- pnpm dev
 ```
