@@ -2,9 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 
+import { changeBookingRoomLayoutSchema } from "@/adapters/inbound/change-booking-room-layout-schema";
 import { submitVenueBookingRequestSchema } from "@/adapters/inbound/submit-venue-booking-request-schema";
-import { buildSubmitVenueBookingRequest, getCurrentCoordinator } from "@/composition/container";
+import {
+  buildChangeBookingRoomLayout,
+  buildSubmitVenueBookingRequest,
+  getCurrentCoordinator,
+} from "@/composition/container";
 import { CoordinatorEventNotFoundError, DomainError } from "@/core/domain/errors";
+
+import { describeCapacity } from "../../../booking-capacity-message";
 
 export type SubmitVenueBookingRequestState =
   | { status: "idle" }
@@ -60,4 +67,56 @@ export async function submitVenueBookingRequestAction(
     bookingId: submitted.bookingId,
     venueLocation: submitted.venueLocation,
   };
+}
+
+export type ChangeBookingRoomLayoutState =
+  | { status: "idle" }
+  | { status: "changed"; bookingId: string; summary: string }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-104: the assigned Event Coordinator moves a pending booking request to
+ * another layout of the same venue.
+ *
+ * As with the submit action, who is asking comes from `getCurrentCoordinator()`
+ * on the server, never from the form, and a broken business rule comes back as
+ * a message.
+ */
+export async function changeBookingRoomLayoutAction(
+  _previous: ChangeBookingRoomLayoutState,
+  formData: FormData,
+): Promise<ChangeBookingRoomLayoutState> {
+  const parsed = changeBookingRoomLayoutSchema.safeParse({
+    eventId: String(formData.get("eventId") ?? ""),
+    eventRequestId: String(formData.get("eventRequestId") ?? ""),
+    bookingId: String(formData.get("bookingId") ?? ""),
+    roomLayout: String(formData.get("roomLayout") ?? ""),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the layout." };
+  }
+
+  const { eventRequestId, ...command } = parsed.data;
+
+  let changed: { bookingId: string; summary: string };
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new CoordinatorEventNotFoundError(command.eventId);
+    }
+
+    const changeBookingRoomLayout = await buildChangeBookingRoomLayout();
+    const result = await changeBookingRoomLayout.execute({ ...command, ...coordinator });
+    changed = { bookingId: result.bookingId, summary: describeCapacity(result.capacity).text };
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
+
+  return { status: "changed", ...changed };
 }
