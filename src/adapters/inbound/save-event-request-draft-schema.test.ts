@@ -81,3 +81,43 @@ describe("saveEventRequestDraftSchema (SPM-93)", () => {
     ).toBe(false);
   });
 });
+
+describe("saveEventRequestDraftSchema: accessibility and layout come from the venue lists (SPM-42)", () => {
+  it("accepts several accessibility needs and a listed layout", () => {
+    const parsed = saveEventRequestDraftSchema.parse({
+      ...FORM,
+      accessibilityNeeds: "Step-free access, Hearing loop",
+      roomLayoutPreferences: "Theatre",
+    });
+
+    expect(parsed.accessibilityNeeds).toBe("Step-free access, Hearing loop");
+    expect(parsed.roomLayoutPreferences).toBe("Theatre");
+  });
+
+  it("accepts both left blank, as null -- neither is mandatory", () => {
+    const parsed = saveEventRequestDraftSchema.parse(FORM);
+
+    expect(parsed.accessibilityNeeds).toBeNull();
+    expect(parsed.roomLayoutPreferences).toBeNull();
+  });
+
+  it("refuses an accessibility need outside the list", () => {
+    const parsed = saveEventRequestDraftSchema.safeParse({ ...FORM, accessibilityNeeds: "Step-free access, Moat" });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0].path).toEqual(["accessibilityNeeds"]);
+  });
+
+  it("refuses a room layout outside the list", () => {
+    const parsed = saveEventRequestDraftSchema.safeParse({ ...FORM, roomLayoutPreferences: "Cabaret" });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0].path).toEqual(["roomLayoutPreferences"]);
+  });
+
+  it("refuses more than one room layout -- the request picks one", () => {
+    const parsed = saveEventRequestDraftSchema.safeParse({ ...FORM, roomLayoutPreferences: "Theatre, Banquet" });
+
+    expect(parsed.success).toBe(false);
+  });
+});

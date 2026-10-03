@@ -3,7 +3,6 @@ import {
   type BookingId,
   type BookingRequest,
   type OccupiedSlot,
-  type VenueId,
 } from "@/core/domain/booking";
 import {
   CoordinatorEventNotFoundError,
@@ -15,6 +14,7 @@ import {
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
+import type { VenueId } from "@/core/domain/venue";
 import type {
   BookingRepository,
   EventBookingSummary,
@@ -103,11 +103,11 @@ export class SupabaseBookingRepository implements BookingRepository {
         case EVENT_NOT_FOUND:
           throw new CoordinatorEventNotFoundError(request.eventId);
         case VENUE_NOT_FOUND:
-          throw new VenueNotFoundError(request.venueId);
+          throw new VenueNotFoundError();
         case LAYOUT_REQUIRED:
           throw new RoomLayoutRequiredError();
         case LAYOUT_UNSUPPORTED:
-          throw new UnsupportedRoomLayoutError(request.roomLayoutId ?? "");
+          throw new UnsupportedRoomLayoutError(request.roomLayout ?? "");
         case SLOTS_INVALID:
           // The domain refuses these before the call; reaching here means the
           // two disagree, and the date is the likeliest culprit.

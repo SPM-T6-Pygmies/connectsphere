@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import { STANDARD_LAYOUTS } from "@/core/domain/venue";
+import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
+
+import { optionalOptions } from "./option-list-schema";
+
 /**
  * The "save a draft" form's shape (SPM-38/SPM-94) -- and only its shape.
  *
@@ -56,8 +61,8 @@ export const saveEventRequestDraftSchema = z.object({
   preferredEndTime: optionalDateTime,
   expectedAttendance: optionalAttendance,
   venueRequirements: optionalText,
-  roomLayoutPreferences: optionalText,
-  accessibilityNeeds: optionalText,
+  roomLayoutPreferences: optionalOptions(STANDARD_LAYOUTS, 1),
+  accessibilityNeeds: optionalOptions(ACCESSIBILITY_OPTIONS),
   equipmentRequirements: optionalText,
   registrationRequirements: optionalText,
   generalProgramme: optionalText,

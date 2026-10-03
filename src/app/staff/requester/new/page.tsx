@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { buildViewOrganiserEventRequest, getCurrentOrganiser } from "@/composition/container";
 
@@ -56,7 +56,7 @@ export default async function NewRequestPage({
 }: PageProps<"/staff/requester/new">) {
   const organiser = await getCurrentOrganiser();
   if (organiser === null) {
-    notFound();
+    forbidden();
   }
 
   const { draft } = await searchParams;

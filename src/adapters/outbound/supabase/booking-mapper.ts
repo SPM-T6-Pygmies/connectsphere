@@ -1,26 +1,13 @@
 import {
   BOOKING_SLOTS,
-  roomLayoutId,
-  venueId,
   type BookingRequest,
   type BookingSlot,
   type BookingStatus,
   type OccupiedSlot,
 } from "@/core/domain/booking";
 import type { EventBookingSummary } from "@/core/ports/outbound/booking-repository";
-import type { BookableVenueSummary } from "@/core/ports/outbound/venue-catalogue";
 
 import { toKey } from "./coordinator-event-mapper";
-
-/** A row of `bookable_venues()`. */
-export interface BookableVenueRow {
-  venue_id: number;
-  location: string;
-  capacity: number | null;
-  facilities: string | null;
-  accessibility: string | null;
-  layouts: ReadonlyArray<{ room_layout_id: number; name: string; capacity: number | null }>;
-}
 
 /** A row of `venue_booked_slots()`. */
 export interface BookedSlotRow {
@@ -71,21 +58,6 @@ function toDate(raw: string): string {
   return raw.slice(0, 10);
 }
 
-export function toBookableVenueSummary(row: BookableVenueRow): BookableVenueSummary {
-  return {
-    id: venueId(String(row.venue_id)),
-    location: row.location,
-    capacity: row.capacity,
-    facilities: row.facilities,
-    accessibility: row.accessibility,
-    supportedLayouts: row.layouts.map((layout) => ({
-      id: roomLayoutId(String(layout.room_layout_id)),
-      name: layout.name,
-      capacity: layout.capacity,
-    })),
-  };
-}
-
 export function toOccupiedSlot(row: BookedSlotRow): OccupiedSlot {
   return { date: toDate(row.slot_date), slot: toSlot(row.slot), status: toStatus(row.status) };
 }
@@ -105,7 +77,8 @@ export interface SubmitBookingArgs {
   p_coordinator_user_account_id: number;
   p_event_id: number;
   p_venue_id: number;
-  p_room_layout_id: number | null;
+  /** The layout's name; the function resolves it to the venue's own layout. */
+  p_room_layout: string | null;
   p_slots: ReadonlyArray<{ date: string; slot: BookingSlot }>;
 }
 
@@ -114,12 +87,8 @@ export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs 
   const coordinator = toKey(request.requestedBy);
   const event = toKey(request.eventId);
   const venue = toKey(request.venueId);
-  const layout = request.roomLayoutId === null ? null : toKey(request.roomLayoutId);
 
   if (coordinator === null || event === null || venue === null) {
-    return null;
-  }
-  if (request.roomLayoutId !== null && layout === null) {
     return null;
   }
 
@@ -127,7 +96,7 @@ export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs 
     p_coordinator_user_account_id: coordinator,
     p_event_id: event,
     p_venue_id: venue,
-    p_room_layout_id: layout,
+    p_room_layout: request.roomLayout,
     p_slots: request.slots.map(({ date, slot }) => ({ date, slot })),
   };
 }

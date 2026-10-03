@@ -2,14 +2,13 @@ import type { Brand } from "./brand";
 import {
   DuplicateBookingSlotError,
   InvalidBookingDateError,
-  InvalidRoomLayoutIdError,
-  InvalidVenueIdError,
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueSlotUnavailableError,
 } from "./errors";
 import type { UserAccountId } from "./user-account";
+import type { Venue, VenueId } from "./venue";
 
 /** `booking_slot_value_chk`: venues are booked in three fixed slots a day (#50). */
 export type BookingSlot = "AM" | "PM" | "Night";
@@ -26,43 +25,12 @@ export type BookingStatus =
   | "Released"
   | "Cancelled";
 
-export type VenueId = Brand<string, "VenueId">;
-export type RoomLayoutId = Brand<string, "RoomLayoutId">;
 export type BookingId = Brand<string, "BookingId">;
-
-export function venueId(raw: string): VenueId {
-  const trimmed = raw.trim();
-  if (trimmed.length === 0) {
-    throw new InvalidVenueIdError(raw);
-  }
-  return trimmed as VenueId;
-}
-
-export function roomLayoutId(raw: string): RoomLayoutId {
-  const trimmed = raw.trim();
-  if (trimmed.length === 0) {
-    throw new InvalidRoomLayoutIdError(raw);
-  }
-  return trimmed as RoomLayoutId;
-}
 
 /** One slot on one calendar day. `date` is `YYYY-MM-DD`, Singapore time (#36). */
 export interface SlotOnDate {
   readonly date: string;
   readonly slot: BookingSlot;
-}
-
-/** A layout a venue supports, with the capacity that applies in it (#112). */
-export interface VenueLayout {
-  readonly id: RoomLayoutId;
-  readonly name: string;
-  readonly capacity: number | null;
-}
-
-/** What a booking request needs to know about the venue it names. */
-export interface BookableVenue {
-  readonly id: VenueId;
-  readonly supportedLayouts: readonly VenueLayout[];
 }
 
 /** A slot some existing booking at the venue already sits on. */
@@ -74,8 +42,11 @@ export interface OccupiedSlot extends SlotOnDate {
 export interface BookingRequest {
   readonly eventId: string;
   readonly venueId: VenueId;
-  /** Null only when the venue has no layouts on record to choose from. */
-  readonly roomLayoutId: RoomLayoutId | null;
+  /**
+   * The name of a layout the venue supports -- layouts are matched by name, as
+   * the catalogue keeps them (SPM-42). Null only when the venue has none.
+   */
+  readonly roomLayout: string | null;
   /** Sorted by date, then by slot within the day. */
   readonly slots: readonly SlotOnDate[];
   readonly requestedBy: UserAccountId;
@@ -125,21 +96,18 @@ function compareSlots(a: SlotOnDate, b: SlotOnDate): number {
  * to make: a venue with a single layout takes that layout, and one with none
  * on record has nothing to choose from.
  */
-export function chooseRoomLayout(
-  venue: BookableVenue,
-  requested: RoomLayoutId | null,
-): RoomLayoutId | null {
+export function chooseRoomLayout(venue: Venue, requested: string | null): string | null {
   if (requested !== null) {
-    if (!venue.supportedLayouts.some((layout) => layout.id === requested)) {
+    if (!venue.layouts.some((layout) => layout.name === requested)) {
       throw new UnsupportedRoomLayoutError(requested);
     }
     return requested;
   }
 
-  if (venue.supportedLayouts.length > 1) {
+  if (venue.layouts.length > 1) {
     throw new RoomLayoutRequiredError();
   }
-  return venue.supportedLayouts[0]?.id ?? null;
+  return venue.layouts[0]?.name ?? null;
 }
 
 /** The requested slots that an existing hold or confirmed booking already has. */
@@ -162,8 +130,8 @@ export function clashingSlots(
  */
 export function requestVenueBooking(input: {
   readonly eventId: string;
-  readonly venue: BookableVenue;
-  readonly roomLayoutId: RoomLayoutId | null;
+  readonly venue: Venue;
+  readonly roomLayout: string | null;
   readonly slots: readonly SlotOnDate[];
   readonly requestedBy: UserAccountId;
   readonly occupied: readonly OccupiedSlot[];
@@ -184,7 +152,7 @@ export function requestVenueBooking(input: {
     seen.add(key);
   }
 
-  const roomLayout = chooseRoomLayout(input.venue, input.roomLayoutId);
+  const roomLayout = chooseRoomLayout(input.venue, input.roomLayout);
 
   const clashes = clashingSlots(input.slots, input.occupied);
   if (clashes.length > 0) {
@@ -194,7 +162,7 @@ export function requestVenueBooking(input: {
   return {
     eventId: input.eventId,
     venueId: input.venue.id,
-    roomLayoutId: roomLayout,
+    roomLayout,
     slots: [...input.slots].sort(compareSlots),
     requestedBy: input.requestedBy,
     status: "Requested",

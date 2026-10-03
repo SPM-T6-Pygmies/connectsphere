@@ -4,9 +4,9 @@ import type {
   BookingStatus,
   OccupiedSlot,
   SlotOnDate,
-  VenueId,
 } from "../../domain/booking";
 import type { UserAccountId } from "../../domain/user-account";
+import type { VenueId } from "../../domain/venue";
 
 /** One booking already raised for an event, as the coordinator's booking page lists it. */
 export interface EventBookingSummary {

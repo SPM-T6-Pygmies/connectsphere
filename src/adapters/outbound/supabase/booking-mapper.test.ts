@@ -1,36 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  toBookableVenueSummary,
   toEventBookingSummary,
   toOccupiedSlot,
   toSubmitBookingArgs,
 } from "./booking-mapper";
 import { toCoordinatorEventDetails } from "./coordinator-event-mapper";
-import { roomLayoutId, venueId, type BookingRequest } from "@/core/domain/booking";
+import type { BookingRequest } from "@/core/domain/booking";
 import { userAccountId } from "@/core/domain/user-account";
+import { venueId } from "@/core/domain/venue";
 
 describe("booking mapper (SPM-46)", () => {
-  it("reads a venue with its supported layouts, ids as opaque strings", () => {
-    expect(
-      toBookableVenueSummary({
-        venue_id: 3,
-        location: "Main Hall",
-        capacity: 300,
-        facilities: "Stage",
-        accessibility: null,
-        layouts: [{ room_layout_id: 9, name: "Banquet", capacity: 180 }],
-      }),
-    ).toEqual({
-      id: "3",
-      location: "Main Hall",
-      capacity: 300,
-      facilities: "Stage",
-      accessibility: null,
-      supportedLayouts: [{ id: "9", name: "Banquet", capacity: 180 }],
-    });
-  });
-
   it("reads a booked slot, keeping only the calendar date", () => {
     expect(toOccupiedSlot({ slot_date: "2026-10-05", slot: "Night", status: "Confirmed" })).toEqual({
       date: "2026-10-05",
@@ -69,29 +49,28 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
   const request: BookingRequest = {
     eventId: "7",
     venueId: venueId("3"),
-    roomLayoutId: roomLayoutId("9"),
+    roomLayout: "Banquet",
     slots: [{ date: "2026-10-05", slot: "AM" }],
     requestedBy: userAccountId("2"),
     status: "Requested",
   };
 
-  it("sends the chosen layout as a key, not as text", () => {
+  it("sends the chosen layout by name, for the database to resolve", () => {
     expect(toSubmitBookingArgs(request)).toEqual({
       p_coordinator_user_account_id: 2,
       p_event_id: 7,
       p_venue_id: 3,
-      p_room_layout_id: 9,
+      p_room_layout: "Banquet",
       p_slots: [{ date: "2026-10-05", slot: "AM" }],
     });
   });
 
   it("sends no layout when the venue has none", () => {
-    expect(toSubmitBookingArgs({ ...request, roomLayoutId: null })?.p_room_layout_id).toBeNull();
+    expect(toSubmitBookingArgs({ ...request, roomLayout: null })?.p_room_layout).toBeNull();
   });
 
   it("gives up on an id this store could not have issued", () => {
     expect(toSubmitBookingArgs({ ...request, venueId: venueId("hall") })).toBeNull();
-    expect(toSubmitBookingArgs({ ...request, roomLayoutId: roomLayoutId("theatre") })).toBeNull();
   });
 });
 

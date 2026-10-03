@@ -1,11 +1,7 @@
-import {
-  requestVenueBooking,
-  roomLayoutId,
-  venueId,
-  type BookingSlot,
-} from "../domain/booking";
+import { requestVenueBooking, type BookingSlot } from "../domain/booking";
 import { CoordinatorEventNotFoundError, VenueNotFoundError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
+import { venueId } from "../domain/venue";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
@@ -15,8 +11,8 @@ export interface SubmitVenueBookingRequestCommand {
   /** The Event Coordinator asking. */
   readonly userAccountId: string;
   readonly venueId: string;
-  /** Null when the form offered no choice. */
-  readonly roomLayoutId: string | null;
+  /** The name of a layout the venue supports; null when the form offered no choice. */
+  readonly roomLayout: string | null;
   readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: BookingSlot }>;
 }
 
@@ -55,9 +51,9 @@ export class SubmitVenueBookingRequestUseCase {
       throw new CoordinatorEventNotFoundError(command.eventId);
     }
 
-    const venue = await venues.findBookable(venueId(command.venueId));
+    const venue = await venues.find(venueId(command.venueId));
     if (venue === null) {
-      throw new VenueNotFoundError(command.venueId);
+      throw new VenueNotFoundError();
     }
 
     const dates = [...new Set(command.slots.map(({ date }) => date))];
@@ -66,7 +62,7 @@ export class SubmitVenueBookingRequestUseCase {
     const request = requestVenueBooking({
       eventId: event.id,
       venue,
-      roomLayoutId: command.roomLayoutId === null ? null : roomLayoutId(command.roomLayoutId),
+      roomLayout: command.roomLayout,
       slots: command.slots,
       requestedBy,
       occupied,

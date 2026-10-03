@@ -6,7 +6,7 @@ const VALID = {
   eventId: "7",
   eventRequestId: "3",
   venueId: "2",
-  roomLayoutId: "5",
+  roomLayout: "5",
   slots: ["2026-10-05|AM", "2026-10-05|Night"],
 };
 
@@ -22,7 +22,7 @@ describe("submitVenueBookingRequestSchema (SPM-46)", () => {
   });
 
   it("reads a blank layout as no layout chosen", () => {
-    expect(submitVenueBookingRequestSchema.parse({ ...VALID, roomLayoutId: "" }).roomLayoutId).toBeNull();
+    expect(submitVenueBookingRequestSchema.parse({ ...VALID, roomLayout: "" }).roomLayout).toBeNull();
   });
 
   it("leaves an empty slot list for the domain to refuse", () => {

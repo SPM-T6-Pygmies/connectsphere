@@ -1,21 +1,30 @@
-import type { BookableVenue, VenueId } from "../../domain/booking";
-
-/** A venue as a coordinator weighs it up when asking to book it. */
-export interface BookableVenueSummary extends BookableVenue {
-  readonly location: string;
-  /** The venue-wide figure; per-layout capacity is on each layout (#112, SPM-106). */
-  readonly capacity: number | null;
-  readonly facilities: string | null;
-  readonly accessibility: string | null;
-}
+import type { Venue, VenueDetails, VenueId } from "../../domain/venue";
 
 /**
- * Driven port: the venue catalogue, read-only, as booking needs it.
- *
- * Maintaining the catalogue is SPM-42's; this is only the read a booking
- * request depends on.
+ * Driven port: the catalogue of venues Event Coordinators evaluate and Venue
+ * Staff maintain (SPM-42). Phrased as the catalogue's own conversation -- what
+ * is listed, what is added, what is revised -- not as table operations.
  */
 export interface VenueCatalogue {
-  listBookable(): Promise<readonly BookableVenueSummary[]>;
-  findBookable(id: VenueId): Promise<BookableVenueSummary | null>;
+  list(): Promise<readonly Venue[]>;
+
+  /** Null when the venue is not in the catalogue. */
+  find(id: VenueId): Promise<Venue | null>;
+
+  /**
+   * Stores a new venue with its layouts and returns it as stored -- read back,
+   * so the caller sees what actually persisted.
+   *
+   * Throws `VenueMaintenanceNotPermittedError` if the store refuses the caller.
+   */
+  add(details: VenueDetails): Promise<Venue>;
+
+  /**
+   * Replaces a venue's attributes and its set of supported layouts (layouts not
+   * in `details` are removed) and returns the venue as stored.
+   *
+   * Throws `VenueNotFoundError`, or `VenueMaintenanceNotPermittedError` if the
+   * store refuses the caller.
+   */
+  revise(id: VenueId, details: VenueDetails): Promise<Venue>;
 }

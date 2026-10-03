@@ -3,9 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   chooseRoomLayout,
   requestVenueBooking,
-  roomLayoutId,
-  venueId,
-  type BookableVenue,
   type BookingStatus,
   type OccupiedSlot,
   type SlotOnDate,
@@ -19,15 +16,23 @@ import {
   VenueSlotUnavailableError,
 } from "./errors";
 import { userAccountId } from "./user-account";
+import { venueId, type Venue } from "./venue";
 
-const THEATRE = roomLayoutId("layout-theatre");
-const CLASSROOM = roomLayoutId("layout-classroom");
-const BANQUET = roomLayoutId("layout-banquet");
+const THEATRE = "Theatre";
+const CLASSROOM = "Classroom";
+const BANQUET = "Banquet";
 
-function venue(layouts: readonly (typeof THEATRE)[] = [THEATRE, CLASSROOM]): BookableVenue {
+function venue(layouts: readonly string[] = [THEATRE, CLASSROOM]): Venue {
   return {
     id: venueId("venue-1"),
-    supportedLayouts: layouts.map((id) => ({ id, name: id, capacity: 100 })),
+    location: "Harbour Hall",
+    facilities: null,
+    accessibility: null,
+    operatingHoursStart: null,
+    operatingHoursEnd: null,
+    capacity: null,
+    bookingHorizonDays: null,
+    layouts: layouts.map((name) => ({ name, capacity: 100 })),
   };
 }
 
@@ -38,12 +43,12 @@ function occupied(date: string, slot: SlotOnDate["slot"], status: BookingStatus)
 function request(
   slots: readonly SlotOnDate[],
   existing: readonly OccupiedSlot[] = [],
-  layout: typeof THEATRE | null = THEATRE,
+  layout: string | null = THEATRE,
 ) {
   return requestVenueBooking({
     eventId: "event-1",
     venue: venue(),
-    roomLayoutId: layout,
+    roomLayout: layout,
     slots,
     requestedBy: userAccountId("coordinator-1"),
     occupied: existing,
@@ -55,7 +60,7 @@ describe("requestVenueBooking (SPM-46)", () => {
     expect(request([{ date: "2026-10-05", slot: "AM" }])).toEqual({
       eventId: "event-1",
       venueId: "venue-1",
-      roomLayoutId: THEATRE,
+      roomLayout: THEATRE,
       slots: [{ date: "2026-10-05", slot: "AM" }],
       requestedBy: "coordinator-1",
       status: "Requested",

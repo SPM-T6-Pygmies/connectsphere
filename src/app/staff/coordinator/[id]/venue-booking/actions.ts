@@ -26,7 +26,7 @@ export async function submitVenueBookingRequestAction(
     eventId: String(formData.get("eventId") ?? ""),
     eventRequestId: String(formData.get("eventRequestId") ?? ""),
     venueId: String(formData.get("venueId") ?? ""),
-    roomLayoutId: String(formData.get("roomLayoutId") ?? ""),
+    roomLayout: String(formData.get("roomLayout") ?? ""),
     slots: formData.getAll("slot").map(String),
   });
 

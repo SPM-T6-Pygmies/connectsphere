@@ -4,11 +4,12 @@ import type {
   CoordinatorEventDetails,
   CoordinatorEventRepository,
 } from "../ports/outbound/coordinator-event-repository";
-import type { BookableVenueSummary, VenueCatalogue } from "../ports/outbound/venue-catalogue";
+import type { Venue } from "../domain/venue";
+import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 
 export type { EventBookingSummary } from "../ports/outbound/booking-repository";
 export type { CoordinatorEventDetails } from "../ports/outbound/coordinator-event-repository";
-export type { BookableVenueSummary } from "../ports/outbound/venue-catalogue";
+export type { Venue } from "../domain/venue";
 
 export interface ViewVenueBookingOptionsCommand {
   /** The approved request the coordinator opened the event from. */
@@ -18,7 +19,7 @@ export interface ViewVenueBookingOptionsCommand {
 
 export interface ViewVenueBookingOptionsResult {
   readonly event: CoordinatorEventDetails;
-  readonly venues: readonly BookableVenueSummary[];
+  readonly venues: readonly Venue[];
   readonly bookings: readonly EventBookingSummary[];
 }
 
@@ -54,7 +55,7 @@ export class ViewVenueBookingOptionsUseCase {
     }
 
     const [venues, bookings] = await Promise.all([
-      this.deps.venues.listBookable(),
+      this.deps.venues.list(),
       this.deps.bookings.listForEvent(coordinatorId, event.id),
     ]);
 

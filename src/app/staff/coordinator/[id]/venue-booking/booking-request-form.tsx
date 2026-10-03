@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BOOKING_SLOTS, type BookingSlot } from "@/core/domain/booking";
-import type { BookableVenueSummary } from "@/core/use-cases/view-venue-booking-options";
+import type { Venue } from "@/core/use-cases/view-venue-booking-options";
 
 import { submitVenueBookingRequestAction, type SubmitVenueBookingRequestState } from "./actions";
 
@@ -23,7 +23,7 @@ interface DateRow {
   readonly slots: readonly BookingSlot[];
 }
 
-function venueMeta(venue: BookableVenueSummary): string {
+function venueMeta(venue: Venue): string {
   return [
     venue.capacity === null ? null : `holds ${venue.capacity}`,
     venue.facilities,
@@ -34,8 +34,8 @@ function venueMeta(venue: BookableVenueSummary): string {
 }
 
 /** A single-layout venue takes its only layout, so there is nothing to pick. */
-function defaultLayout(venue: BookableVenueSummary | undefined): string {
-  return venue?.supportedLayouts.length === 1 ? venue.supportedLayouts[0].id : "";
+function defaultLayout(venue: Venue | undefined): string {
+  return venue?.layouts.length === 1 ? venue.layouts[0].name : "";
 }
 
 /**
@@ -53,13 +53,13 @@ export function BookingRequestForm({
   eventId: string;
   eventRequestId: string;
   defaultDate: string | null;
-  venues: readonly BookableVenueSummary[];
+  venues: readonly Venue[];
 }) {
   const [state, formAction, pending] = useActionState(submitVenueBookingRequestAction, INITIAL);
   const idPrefix = useId();
 
   const [venueId, setVenueId] = useState("");
-  const [layoutId, setLayoutId] = useState("");
+  const [layout, setLayout] = useState("");
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<readonly DateRow[]>([
     { key: 0, date: defaultDate ?? "", slots: [] },
@@ -72,22 +72,22 @@ export function BookingRequestForm({
   if (state.status === "submitted" && state.bookingId !== clearedFor) {
     setClearedFor(state.bookingId);
     setVenueId("");
-    setLayoutId("");
+    setLayout("");
     setRows([{ key: 0, date: defaultDate ?? "", slots: [] }]);
     setNextKey(1);
   }
 
   const venue = venues.find((candidate) => candidate.id === venueId);
-  const needsLayoutChoice = (venue?.supportedLayouts.length ?? 0) > 1;
+  const needsLayoutChoice = (venue?.layouts.length ?? 0) > 1;
   const chosenSlots = rows.flatMap((row) =>
     row.date === "" ? [] : row.slots.map((slot) => `${row.date}|${slot}`),
   );
   const canSubmit =
-    venue !== undefined && chosenSlots.length > 0 && (!needsLayoutChoice || layoutId !== "");
+    venue !== undefined && chosenSlots.length > 0 && (!needsLayoutChoice || layout !== "");
 
   function chooseVenue(id: string) {
     setVenueId(id);
-    setLayoutId(defaultLayout(venues.find((candidate) => candidate.id === id)));
+    setLayout(defaultLayout(venues.find((candidate) => candidate.id === id)));
   }
 
   function updateRow(key: number, change: Partial<Omit<DateRow, "key">>) {
@@ -130,7 +130,7 @@ export function BookingRequestForm({
     >
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="eventRequestId" value={eventRequestId} />
-      <input type="hidden" name="roomLayoutId" value={layoutId} />
+      <input type="hidden" name="roomLayout" value={layout} />
       {chosenSlots.map((value, index) => (
         // Keyed by position: two rows on the same day can repeat a slot, and
         // the server, not a duplicate-key collision here, should refuse that.
@@ -164,37 +164,32 @@ export function BookingRequestForm({
             <p className="text-sm font-medium" id={`${idPrefix}-layout`}>
               Room layout
             </p>
-            {venue.supportedLayouts.length === 0 ? (
+            {venue.layouts.length === 0 ? (
               <p className="text-muted-foreground text-xs">
                 This venue has no layouts on record, so there is none to choose.
               </p>
-            ) : venue.supportedLayouts.length === 1 ? (
+            ) : venue.layouts.length === 1 ? (
               <p className="text-muted-foreground text-xs">
-                {venue.supportedLayouts[0].name}
-                {venue.supportedLayouts[0].capacity === null
-                  ? ""
-                  : ` (holds ${venue.supportedLayouts[0].capacity})`}{" "}
-                — the only layout this venue supports.
+                {venue.layouts[0].name} (holds {venue.layouts[0].capacity}) — the only layout this
+                venue supports.
               </p>
             ) : (
               <div role="radiogroup" aria-labelledby={`${idPrefix}-layout`} className="grid gap-2 sm:grid-cols-2">
-                {venue.supportedLayouts.map((layout) => (
+                {venue.layouts.map((option) => (
                   <label
-                    key={layout.id}
+                    key={option.name}
                     className="has-[:checked]:border-primary has-[:checked]:bg-primary/5 hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg border p-3"
                   >
                     <input
                       type="radio"
                       name={`${idPrefix}-layout-choice`}
-                      value={layout.id}
-                      checked={layoutId === layout.id}
-                      onChange={() => setLayoutId(layout.id)}
+                      value={option.name}
+                      checked={layout === option.name}
+                      onChange={() => setLayout(option.name)}
                     />
                     <span className="text-sm">
-                      <span className="font-medium">{layout.name}</span>
-                      {layout.capacity === null ? null : (
-                        <span className="text-muted-foreground"> · holds {layout.capacity}</span>
-                      )}
+                      <span className="font-medium">{option.name}</span>
+                      <span className="text-muted-foreground"> · holds {option.capacity}</span>
                     </span>
                   </label>
                 ))}

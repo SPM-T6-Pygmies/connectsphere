@@ -1,10 +1,6 @@
-import type {
-  BookingId,
-  BookingRequest,
-  OccupiedSlot,
-  VenueId,
-} from "@/core/domain/booking";
+import type { BookingId, BookingRequest, OccupiedSlot } from "@/core/domain/booking";
 import type { UserAccountId } from "@/core/domain/user-account";
+import type { VenueId } from "@/core/domain/venue";
 import type {
   BookingRepository,
   EventBookingSummary,
@@ -14,7 +10,6 @@ import type {
 export interface StoredBooking extends EventBookingSummary {
   readonly eventId: string;
   readonly venueId: string;
-  readonly roomLayoutId: string | null;
   readonly requestedBy: string;
 }
 
@@ -25,7 +20,6 @@ export class InMemoryBookingRepository implements BookingRepository {
   constructor(
     seed: readonly StoredBooking[] = [],
     private readonly venueLocations: ReadonlyMap<string, string> = new Map(),
-    private readonly layoutNames: ReadonlyMap<string, string> = new Map(),
   ) {
     this.rows = [...seed];
     this.nextId = seed.length + 1;
@@ -65,9 +59,7 @@ export class InMemoryBookingRepository implements BookingRepository {
       eventId: request.eventId,
       venueId: request.venueId,
       venueLocation: this.venueLocations.get(request.venueId) ?? request.venueId,
-      roomLayoutId: request.roomLayoutId,
-      roomLayoutName:
-        request.roomLayoutId === null ? null : (this.layoutNames.get(request.roomLayoutId) ?? null),
+      roomLayoutName: request.roomLayout,
       status: request.status,
       slots: request.slots,
       requestedBy: request.requestedBy,

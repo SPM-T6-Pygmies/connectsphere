@@ -21,12 +21,12 @@ rows — CI cannot verify a manual case for you.
 ### Test Accounts
 - **Account 1 (Event Organiser)**
   - Email: `organiser@test.com`
-  - Password: `Test123!`
+  - Password: `TestPass123!`
   - Roles: Event Organiser
 
 - **Account 2 (Event Coordinator)**
   - Email: `coordinator@test.com`
-  - Password: `Test123!`
+  - Password: `TestPass123!`
   - Roles: Event Coordinator
 
 ### Pre-Test Checklist
@@ -47,14 +47,14 @@ rows — CI cannot verify a manual case for you.
 
 **Steps:**
 1. Enter email: `organiser@test.com`
-2. Enter password: `Test123!`
+2. Enter password: `TestPass123!`
 3. Click "Log in" button
 4. Observe redirect behavior
 5. Note the URL and page content
 
 **Expected Result:**
 - Form submission succeeds without errors
-- User is redirected to `/staff/organiser/dashboard`
+- User is redirected to `/staff/requester`
 - Dashboard displays role-appropriate content
 - Account menu (sidebar footer) shows logged-in user name and role
 
@@ -93,7 +93,7 @@ rows — CI cannot verify a manual case for you.
 
 **Steps:**
 1. Enter email: `nonexistent@test.com`
-2. Enter password: `Test123!`
+2. Enter password: `TestPass123!`
 3. Click "Log in" button
 4. Observe error handling
 
@@ -116,7 +116,7 @@ rows — CI cannot verify a manual case for you.
 
 **Steps:**
 1. Note: No auth cookies present before login
-2. Log in with valid credentials (organiser@test.com / Test123!)
+2. Log in with valid credentials (organiser@test.com / TestPass123!)
 3. After redirect to dashboard, check Cookies tab
 4. Look for cookies starting with `sb-`
 
@@ -133,7 +133,7 @@ rows — CI cannot verify a manual case for you.
 ### TC-LOGIN-005: Session Persists Across Page Refresh
 
 **Preconditions:**
-- User logged in at `/staff/organiser/dashboard`
+- User logged in at `/staff/requester`
 - Session cookie present
 
 **Steps:**
@@ -158,7 +158,7 @@ rows — CI cannot verify a manual case for you.
 ### TC-LOGOUT-001: Happy Path - Successful Logout
 
 **Preconditions:**
-- User is logged in at `/staff/organiser/dashboard`
+- User is logged in at `/staff/requester`
 - Session cookie exists
 
 **Steps:**
@@ -207,7 +207,7 @@ rows — CI cannot verify a manual case for you.
 1. Note auth cookie: `sb-<project-id>-auth-token`
 2. Click logout and complete TC-LOGOUT-001
 3. Check Cookies tab again
-4. Refresh at `/staff/organiser/dashboard`
+4. Refresh at `/staff/requester`
 
 **Expected Result:**
 - Auth cookie removed/cleared after logout
@@ -255,8 +255,8 @@ SELECT * FROM audit_record WHERE action = 'logout' ORDER BY audit_record_id DESC
 - User logged out at `/auth/login`
 
 **Steps:**
-1. Try manually navigating to `/staff/organiser/dashboard`
-2. Try navigating to `/staff/coordinator/dashboard`
+1. Try manually navigating to `/staff/requester`
+2. Try navigating to `/staff/coordinator`
 3. Try navigating to public routes: `/` and `/events`
 
 **Expected Result:**
@@ -296,6 +296,8 @@ SELECT * FROM audit_record WHERE action = 'logout' ORDER BY audit_record_id DESC
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-09-13  
+**Document Version:** 1.1  
+**Last Updated:** 2026-09-28 — corrected stale password (`Test123!` → `TestPass123!`)
+and dead routes (`/staff/organiser/dashboard` → `/staff/requester`,
+`/staff/coordinator/dashboard` → `/staff/coordinator`) against the current app.  
 **Related Tickets:** SPM-13 (Login), SPM-14 (Logout)

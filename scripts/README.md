@@ -6,6 +6,13 @@ Runs the test suite and reports it by domain. Also keeps
 [`docs/tests/`](../docs/tests/README.md) — the test-case registry and the record
 of what passed at each merge to `main`. CI runs it; see that README.
 
+## novu-clear.mjs
+
+`pnpm novu:clear` deletes your own local subscribers, and their notifications,
+from Novu's Development environment. Run it after `teardown.sql` or
+`supabase db reset`: Postgres cannot cascade into Novu. It only touches ids
+with your `<username>-` prefix, never a teammate's or Production's.
+
 ## seed SQL
 
 One-off SQL for putting test data into a Supabase database. None of it runs

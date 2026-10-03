@@ -33,9 +33,11 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
   it("acts as an Event Organiser for their client organisation", async () => {
     await expect(identify(user(["Event Organiser"], "org-a"))).resolves.toEqual({
       name: "Sam",
+      userAccountId: "user-1",
       organiser: { userAccountId: "user-1", clientOrganisationId: "org-a", name: "Sam" },
       coordinator: null,
       workspaces: ["requester"],
+      homeWorkspace: "requester",
     });
   });
 
@@ -48,18 +50,22 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
   it("acts as an Event Coordinator", async () => {
     await expect(identify(user(["Event Coordinator"]))).resolves.toEqual({
       name: "Sam",
+      userAccountId: "user-1",
       organiser: null,
       coordinator: { userAccountId: "user-1", name: "Sam" },
       workspaces: ["coordinator"],
+      homeWorkspace: "coordinator",
     });
   });
 
   it("acts as neither for a role with no Organiser or Coordinator screens", async () => {
     await expect(identify(user(["Event Operations Manager"]))).resolves.toEqual({
       name: "Sam",
+      userAccountId: "user-1",
       organiser: null,
       coordinator: null,
       workspaces: ["ops"],
+      homeWorkspace: "ops",
     });
   });
 
@@ -73,5 +79,27 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
     const result = await identify(user(["Venue Staff"]));
 
     expect(result?.name).toBe("Sam");
+  });
+});
+
+describe("IdentifyStaffMemberUseCase home workspace (SPM-16)", () => {
+  it("sends a member of staff back to the workspace of their role", async () => {
+    const result = await identify(user(["Venue Staff"]));
+
+    expect(result?.homeWorkspace).toBe("venue");
+  });
+
+  it("has nowhere to send an Organiser who has no client organisation", async () => {
+    const result = await identify(user(["Event Organiser"]));
+
+    expect(result?.homeWorkspace).toBeNull();
+  });
+});
+
+describe("IdentifyStaffMemberUseCase (SPM-174)", () => {
+  it("gives the member's own user account whatever their role, as the inbox subscriber", async () => {
+    const result = await identify(user(["Venue Staff"]));
+
+    expect(result?.userAccountId).toBe("user-1");
   });
 });

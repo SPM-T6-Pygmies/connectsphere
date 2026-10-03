@@ -3,17 +3,20 @@ import { describe, expect, it } from "vitest";
 import { InMemoryBookingRepository } from "@/adapters/outbound/in-memory/in-memory-booking-repository";
 import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
-import { roomLayoutId, venueId } from "@/core/domain/booking";
+import { venueId, type Venue } from "@/core/domain/venue";
 
 import { ViewVenueBookingOptionsUseCase } from "./view-venue-booking-options";
 
-const HALL = {
+const HALL: Venue = {
   id: venueId("venue-hall"),
   location: "Main Hall",
   capacity: 300,
   facilities: "Stage",
   accessibility: "Step-free",
-  supportedLayouts: [{ id: roomLayoutId("layout-theatre"), name: "Theatre", capacity: 300 }],
+  operatingHoursStart: null,
+  operatingHoursEnd: null,
+  bookingHorizonDays: null,
+  layouts: [{ name: "Theatre", capacity: 300 }],
 };
 
 function buildUseCase() {
@@ -40,7 +43,6 @@ function buildUseCase() {
         eventId: "event-1",
         venueId: "venue-hall",
         venueLocation: "Main Hall",
-        roomLayoutId: "layout-theatre",
         roomLayoutName: "Theatre",
         status: "Requested",
         slots: [{ date: "2026-10-05", slot: "AM" }],
@@ -52,7 +54,6 @@ function buildUseCase() {
         eventId: "event-other",
         venueId: "venue-hall",
         venueLocation: "Main Hall",
-        roomLayoutId: null,
         roomLayoutName: null,
         status: "Confirmed",
         slots: [{ date: "2026-10-06", slot: "AM" }],

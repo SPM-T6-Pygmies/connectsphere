@@ -9,14 +9,13 @@ import {
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
-import { roomLayoutId, venueId } from "@/core/domain/booking";
 import {
   CoordinatorEventNotFoundError,
   RoomLayoutRequiredError,
   VenueNotFoundError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
-import type { BookableVenueSummary } from "@/core/ports/outbound/venue-catalogue";
+import { venueId, type Venue } from "@/core/domain/venue";
 
 import { SubmitVenueBookingRequestUseCase } from "./submit-venue-booking-request";
 
@@ -33,25 +32,31 @@ const EVENT: SeedCoordinatorEvent = {
   assignedCoordinatorUserAccountId: COORDINATOR,
 };
 
-const HALL: BookableVenueSummary = {
+const HALL: Venue = {
   id: venueId("venue-hall"),
   location: "Main Hall",
   capacity: 300,
   facilities: null,
   accessibility: null,
-  supportedLayouts: [
-    { id: roomLayoutId("layout-theatre"), name: "Theatre", capacity: 300 },
-    { id: roomLayoutId("layout-banquet"), name: "Banquet", capacity: 180 },
+  operatingHoursStart: null,
+  operatingHoursEnd: null,
+  bookingHorizonDays: null,
+  layouts: [
+    { name: "Theatre", capacity: 300 },
+    { name: "Banquet", capacity: 180 },
   ],
 };
 
-const STUDIO: BookableVenueSummary = {
+const STUDIO: Venue = {
   id: venueId("venue-studio"),
   location: "Studio",
   capacity: 40,
   facilities: null,
   accessibility: null,
-  supportedLayouts: [{ id: roomLayoutId("layout-classroom"), name: "Classroom", capacity: 40 }],
+  operatingHoursStart: null,
+  operatingHoursEnd: null,
+  bookingHorizonDays: null,
+  layouts: [{ name: "Classroom", capacity: 40 }],
 };
 
 function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): StoredBooking {
@@ -60,7 +65,6 @@ function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): 
     eventId: "event-other",
     venueId: venue,
     venueLocation: venue,
-    roomLayoutId: null,
     roomLayoutName: null,
     status: "Confirmed",
     slots: [{ date, slot }],
@@ -87,7 +91,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       eventId: "event-1",
       userAccountId: COORDINATOR,
       venueId: "venue-hall",
-      roomLayoutId: "layout-banquet",
+      roomLayout: "Banquet",
       slots: [
         { date: "2026-10-05", slot: "PM" },
         { date: "2026-10-05", slot: "AM" },
@@ -99,7 +103,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       expect.objectContaining({
         eventId: "event-1",
         venueId: "venue-hall",
-        roomLayoutId: "layout-banquet",
+        roomLayoutName: "Banquet",
         status: "Requested",
         requestedBy: COORDINATOR,
         slots: [
@@ -117,11 +121,11 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       eventId: "event-1",
       userAccountId: COORDINATOR,
       venueId: "venue-studio",
-      roomLayoutId: null,
+      roomLayout: null,
       slots: [{ date: "2026-10-05", slot: "AM" }],
     });
 
-    expect(bookings.all()[0]).toMatchObject({ roomLayoutId: "layout-classroom" });
+    expect(bookings.all()[0]).toMatchObject({ roomLayoutName: "Classroom" });
   });
 
   it("refuses a multi-layout venue with no layout chosen, storing nothing (AC2)", async () => {
@@ -132,7 +136,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         eventId: "event-1",
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
-        roomLayoutId: null,
+        roomLayout: null,
         slots: [{ date: "2026-10-05", slot: "AM" }],
       }),
     ).rejects.toThrow(RoomLayoutRequiredError);
@@ -147,7 +151,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         eventId: "event-1",
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
-        roomLayoutId: "layout-theatre",
+        roomLayout: "Theatre",
         slots: [{ date: "2026-10-05", slot: "PM" }],
       }),
     ).rejects.toThrow(VenueSlotUnavailableError);
@@ -161,7 +165,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       eventId: "event-1",
       userAccountId: COORDINATOR,
       venueId: "venue-hall",
-      roomLayoutId: "layout-theatre",
+      roomLayout: "Theatre",
       slots: [{ date: "2026-10-05", slot: "PM" }],
     });
 
@@ -176,7 +180,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         eventId: "event-1",
         userAccountId: OTHER_COORDINATOR,
         venueId: "venue-hall",
-        roomLayoutId: "layout-theatre",
+        roomLayout: "Theatre",
         slots: [{ date: "2026-10-05", slot: "AM" }],
       }),
     ).rejects.toThrow(CoordinatorEventNotFoundError);
@@ -191,7 +195,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         eventId: "event-404",
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
-        roomLayoutId: "layout-theatre",
+        roomLayout: "Theatre",
         slots: [{ date: "2026-10-05", slot: "AM" }],
       }),
     ).rejects.toThrow(CoordinatorEventNotFoundError);
@@ -205,7 +209,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         eventId: "event-1",
         userAccountId: COORDINATOR,
         venueId: "venue-404",
-        roomLayoutId: null,
+        roomLayout: null,
         slots: [{ date: "2026-10-05", slot: "AM" }],
       }),
     ).rejects.toThrow(VenueNotFoundError);
