@@ -392,6 +392,28 @@ export class VenueSlotUnavailableError extends DomainError {
   }
 }
 
+/** SPM-22: no such booking, or one Venue Staff may not see. */
+export class BookingNotFoundError extends DomainError {
+  readonly code = "booking_not_found";
+
+  constructor(readonly bookingId: string) {
+    super("That booking request does not exist.");
+  }
+}
+
+/**
+ * SPM-22: only a request still waiting for Venue Staff can be decided. Takes no
+ * status for the reason `EventRequestNotDecidableError` takes none: the
+ * Supabase adapter raises it too, after losing a race to another decision.
+ */
+export class BookingNotDecidableError extends DomainError {
+  readonly code = "booking_not_decidable";
+
+  constructor() {
+    super("This booking request has already been decided.");
+  }
+}
+
 /**
  * SPM-33 AC2: a clarification can only be requested on a request that is still
  * pre-decision -- `Submitted`, `Under Review`, or already `Returned` (decision
