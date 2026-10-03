@@ -256,7 +256,10 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  * dependency here -- see `EventRequestRepository.returnEventRequest`.
  */
 export async function buildRequestClarification(): Promise<RequestClarificationUseCase> {
-  return new RequestClarificationUseCase({ eventRequests: await eventRequestAdapters() });
+  return new RequestClarificationUseCase({
+    eventRequests: await eventRequestAdapters(),
+    notifier: recordedNotifier(),
+  });
 }
 
 /** SPM-33 AC6: the Coordinator marks one question answered, resuming the request if it was the last. */

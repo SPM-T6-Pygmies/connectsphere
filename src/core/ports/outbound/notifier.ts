@@ -33,6 +33,18 @@ export interface OrganiserCoordinatorAssignedNotice {
 }
 
 /**
+ * What an Event Organiser is told when the assigned coordinator returns their
+ * request with a clarification question (SPM-59). `message` is the question as
+ * stored, so the notification states what was asked.
+ */
+export interface ClarificationRequestedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly message: string;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -43,4 +55,5 @@ export interface Notifier {
   connectionRequested(connection: Connection): Promise<void>;
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void>;
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void>;
+  clarificationRequested(notice: ClarificationRequestedNotice): Promise<void>;
 }

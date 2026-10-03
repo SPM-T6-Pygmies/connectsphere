@@ -2,6 +2,7 @@ import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import { coordinatorAssignedRow } from "@/adapters/outbound/supabase/notification-row";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -32,6 +33,11 @@ export class SupabaseRecordingNotifier implements Notifier {
   // Not recorded yet (SPM-236).
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
     return this.inner.organiserCoordinatorAssigned(notice);
+  }
+
+  // Not recorded yet (SPM-237).
+  clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
+    return this.inner.clarificationRequested(notice);
   }
 
   async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {

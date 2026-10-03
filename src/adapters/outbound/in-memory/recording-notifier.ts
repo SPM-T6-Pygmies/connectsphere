@@ -1,5 +1,6 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -9,6 +10,7 @@ export class RecordingNotifier implements Notifier {
   readonly sent: Connection[] = [];
   readonly coordinatorAssignments: EventCoordinatorAssignedNotice[] = [];
   readonly organiserCoordinatorAssignments: OrganiserCoordinatorAssignedNotice[] = [];
+  readonly clarificationRequests: ClarificationRequestedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
     this.sent.push(connection);
@@ -20,5 +22,9 @@ export class RecordingNotifier implements Notifier {
 
   async organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
     this.organiserCoordinatorAssignments.push(notice);
+  }
+
+  async clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
+    this.clarificationRequests.push(notice);
   }
 }

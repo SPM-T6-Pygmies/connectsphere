@@ -1,5 +1,6 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -28,6 +29,12 @@ export class LoggingNotifier implements Notifier {
   async organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} told event request ${notice.eventRequestId} has a coordinator`,
+    );
+  }
+
+  async clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} asked to clarify event request ${notice.eventRequestId}`,
     );
   }
 }

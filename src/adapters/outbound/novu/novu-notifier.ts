@@ -5,6 +5,7 @@ import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -50,6 +51,11 @@ export class NovuNotifier implements Notifier {
   // No Novu workflow for the organiser's side yet (SPM-236).
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
     return this.logging.organiserCoordinatorAssigned(notice);
+  }
+
+  // No Novu workflow for clarification requests yet (SPM-237).
+  clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
+    return this.logging.clarificationRequested(notice);
   }
 
   async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
