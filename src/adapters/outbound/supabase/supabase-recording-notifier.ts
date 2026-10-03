@@ -1,5 +1,6 @@
 import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import {
+  clarificationRequestedRow,
   coordinatorAssignedRow,
   organiserCoordinatorAssignedRow,
   type NotificationRow,
@@ -41,9 +42,10 @@ export class SupabaseRecordingNotifier implements Notifier {
     );
   }
 
-  // Not recorded yet (SPM-237).
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
-    return this.inner.clarificationRequested(notice);
+    return this.recordAndDeliver(clarificationRequestedRow(notice), () =>
+      this.inner.clarificationRequested(notice),
+    );
   }
 
   // Not recorded yet (SPM-238).

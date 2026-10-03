@@ -2,8 +2,10 @@ import {
   coordinatorAssignedMessage,
   type NotificationMessage,
 } from "@/adapters/outbound/notification-content/coordinator-assigned";
+import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import type {
+  ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
   OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -43,5 +45,14 @@ export function organiserCoordinatorAssignedRow(
     "organiser-coordinator-assigned",
     notice,
     organiserCoordinatorAssignedMessage(notice),
+  );
+}
+
+/** The `notification` row telling an Organiser what their coordinator asked (SPM-59). */
+export function clarificationRequestedRow(notice: ClarificationRequestedNotice): NotificationRow {
+  return eventRequestNotificationRow(
+    "clarification-requested",
+    notice,
+    clarificationRequestedMessage(notice),
   );
 }

@@ -92,3 +92,14 @@ describe("notificationItem (SPM-58)", () => {
     expect(item.status).toBe("Coordinator assigned")
   })
 })
+
+describe("notificationItem (SPM-59)", () => {
+  it("names a returned request's notice a clarification request", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["clarification-requested"] }),
+    )
+
+    expect(item.status).toBe("Clarification requested")
+  })
+})

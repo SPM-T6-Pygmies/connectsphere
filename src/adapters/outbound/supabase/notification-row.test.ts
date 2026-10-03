@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { coordinatorAssignedRow, organiserCoordinatorAssignedRow } from "./notification-row";
+import {
+  clarificationRequestedRow,
+  coordinatorAssignedRow,
+  organiserCoordinatorAssignedRow,
+} from "./notification-row";
 
 describe("coordinatorAssignedRow (SPM-177)", () => {
   it("records an in-app coordinator assignment as Pending against its recipient and request", () => {
@@ -43,6 +47,24 @@ describe("organiserCoordinatorAssignedRow (SPM-58)", () => {
       related_event_request_id: "42",
       message_content:
         "Arjun Nair is coordinating Founders' Day\nArjun Nair is now your point of contact at ConnectSphere for Founders' Day.",
+    });
+  });
+});
+
+describe("clarificationRequestedRow (SPM-59)", () => {
+  it("records the clarification notice as Pending against the organiser and the request", () => {
+    expect(
+      clarificationRequestedRow({
+        recipientUserAccountId: "3",
+        eventRequestId: "42",
+        eventName: "Founders' Day",
+        message: "Which rooms?",
+      }),
+    ).toMatchObject({
+      recipient_user_account_id: "3",
+      trigger_scenario: "clarification-requested",
+      status: "Pending",
+      related_event_request_id: "42",
     });
   });
 });

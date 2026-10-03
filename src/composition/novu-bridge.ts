@@ -1,5 +1,6 @@
 import { serve } from "@novu/framework/next";
 
+import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clarification-requested";
 import { coordinatorAssigned } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 
@@ -18,7 +19,9 @@ type Bridge = ReturnType<typeof serve>;
 let bridge: Bridge | undefined;
 
 function handlers(): Bridge {
-  bridge ??= serve({ workflows: [coordinatorAssigned, organiserCoordinatorAssigned] });
+  bridge ??= serve({
+    workflows: [coordinatorAssigned, organiserCoordinatorAssigned, clarificationRequested],
+  });
   return bridge;
 }
 
