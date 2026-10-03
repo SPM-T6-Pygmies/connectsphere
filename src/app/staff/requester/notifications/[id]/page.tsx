@@ -9,7 +9,7 @@ export default async function Page({
 
   return <NotificationDetail
       role="requester"
-      notificationId={id}
+      recordId={id}
       tab={tab}
       activity={activity}
     />;

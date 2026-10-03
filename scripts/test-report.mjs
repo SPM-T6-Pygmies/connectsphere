@@ -15,6 +15,7 @@
  *   pnpm test:report --record   ...and stamp Pass + append a run row (CI, main)
  */
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync, appendFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -221,7 +222,11 @@ function buildRegistry(existing, cases, domains, tickets) {
     const prior = byKey.get(key);
     // Authorship is settled once, like the id: re-blaming a moved line would
     // credit whoever last touched the file rather than whoever wrote the test.
-    const authored = prior?.CreatedBy ? prior : blameFor(c.file).get(c.line) ?? {};
+    // "Not Committed Yet" is git blame's own placeholder for an unresolved
+    // line, not a real answer -- it must not count as settled, or a row
+    // stays stuck on it forever, even once the line is actually committed.
+    const settled = Boolean(prior?.CreatedBy) && prior.CreatedBy !== "Not Committed Yet";
+    const authored = settled ? prior : (blameFor(c.file).get(c.line) ?? {});
     rows.push({
       TestID: prior?.TestID ?? "",
       Domain: domainFor(c.file, domains),
@@ -237,8 +242,8 @@ function buildRegistry(existing, cases, domains, tickets) {
       TestSteps: `pnpm test -- ${c.file} -t ${JSON.stringify(c.testCase)}`,
       TestData: prior?.TestData ?? "",
       ExpectedResult: prior?.ExpectedResult ?? "",
-      CreatedBy: prior?.CreatedBy || authored.author || authored.CreatedBy || "",
-      DateCreated: prior?.DateCreated || authored.date || authored.DateCreated || "",
+      CreatedBy: (settled && prior.CreatedBy) || authored.author || authored.CreatedBy || "",
+      DateCreated: (settled && prior.DateCreated) || authored.date || authored.DateCreated || "",
       ActualResult: prior?.ActualResult ?? "",
       Status: prior?.Status || "Not Executed",
       Remarks: prior?.Remarks ?? "",
@@ -262,18 +267,41 @@ function buildRegistry(existing, cases, domains, tickets) {
     a.Suite.localeCompare(b.Suite) ||
     a.TestCase.localeCompare(b.TestCase));
 
-  // IDs are handed out after the sort, so a fresh registry reads in order and an
-  // existing one keeps every ID it already had. Retired IDs are never reused.
-  let nextId = existing.reduce((max, r) => {
-    const m = /^UT-(\d+)$/.exec(r.TestID ?? "");
-    return m ? Math.max(max, Number(m[1])) : max;
-  }, 0);
+  // A row that already has an ID keeps it, retired or not. A new row's ID is a
+  // hash of its identity, not "the next number": two branches cut from the same
+  // main each add different tests and so mint different IDs, instead of both
+  // claiming the same next counter value and colliding on rebase.
+  const taken = new Set(sorted.map((r) => r.TestID).filter(Boolean));
   for (const row of sorted) {
-    if (!row.TestID) row.TestID = `UT-${String(++nextId).padStart(4, "0")}`;
+    if (row.TestID) continue;
+    row.TestID = hashId(keyOf(row), taken);
+    taken.add(row.TestID);
   }
 
   return sorted;
 }
+
+/**
+ * UT-<6 hex of sha1(key)>. Six hex is 16.7M values against a few hundred cases,
+ * so a clash is vanishingly rare; if one happens anyway, widen to eight rather
+ * than ever handing out an ID that is already taken.
+ */
+function hashId(key, taken) {
+  const hex = createHash("sha1").update(key).digest("hex");
+  const short = `UT-${hex.slice(0, 6)}`;
+  return taken.has(short) ? `UT-${hex.slice(0, 8)}` : short;
+}
+
+/** IDs that appear on more than one row -- a merge or rebase can do this silently. */
+const duplicateIds = (rows) => {
+  const seen = new Set();
+  const dupes = new Set();
+  for (const r of rows) {
+    if (!r.TestID) continue;
+    (seen.has(r.TestID) ? dupes : seen).add(r.TestID);
+  }
+  return [...dupes];
+};
 
 /* ---------------------------------------------------------------- the report */
 
@@ -412,6 +440,14 @@ if (mode === "--update") {
 }
 
 if (mode === "--check") {
+  // Checked on the committed file, not the rebuild: --update would paper over a
+  // duplicate that a rebase introduced, and it must be seen and fixed instead.
+  const dupes = duplicateIds(existing);
+  if (dupes.length > 0) {
+    console.error(`\n✖ ${path.relative(ROOT, REGISTRY)} has duplicate TestIDs: ${dupes.join(", ")}`);
+    console.error(`  Blank the ID cell on the newer row, then run \`pnpm test:report --update\`.\n`);
+    process.exit(1);
+  }
   const want = writeTable(rebuilt, COLUMNS);
   const have = existsSync(REGISTRY) ? readFileSync(REGISTRY, "utf8") : "";
   if (want !== have) {

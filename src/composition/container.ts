@@ -1,8 +1,14 @@
+import { Novu } from "@novu/api";
+
+import { InMemoryEquipmentCatalogue } from "@/adapters/outbound/in-memory/in-memory-equipment-catalogue";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
+import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
+import { subscriberHash } from "@/adapters/outbound/novu/subscriber-hash";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/adapters/outbound/supabase/client";
+import { SupabaseClarificationThreadRepository } from "@/adapters/outbound/supabase/supabase-clarification-thread-repository";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
@@ -11,16 +17,22 @@ import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/s
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
+import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
+import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
+import { SupabaseRecordingNotifier } from "@/adapters/outbound/supabase/supabase-recording-notifier";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
+import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
+import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventReadinessRepository } from "@/core/ports/outbound/event-readiness-repository";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
+import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
@@ -28,6 +40,10 @@ import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-even
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
+import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
+import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
+import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
+import { ResolveClarificationThreadUseCase } from "@/core/use-cases/resolve-clarification-thread";
 import type { StaffWorkspace } from "@/core/domain/staff-member";
 import { IdentifyStaffMemberUseCase } from "@/core/use-cases/identify-staff-member";
 import { LoginUseCase } from "@/core/use-cases/login";
@@ -47,11 +63,21 @@ import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organise
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
 import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
+import { CreateEquipmentItemUseCase } from "@/core/use-cases/create-equipment-item";
+import { ListEquipmentCatalogueUseCase } from "@/core/use-cases/list-equipment-catalogue";
 import { ListOrganisationOrganisersUseCase } from "@/core/use-cases/list-organisation-organisers";
+import { UpdateEquipmentStockUseCase } from "@/core/use-cases/update-equipment-stock";
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
 import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
+import { WithdrawEventRequestUseCase } from "@/core/use-cases/withdraw-event-request";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
+import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
+import { SearchVenuesUseCase } from "@/core/use-cases/search-venues";
+import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
+import { ListVenuesUseCase, ViewVenueUseCase } from "@/core/use-cases/view-venues";
+
+import { novuSubscriberPrefix } from "./novu-subscriber";
 
 /**
  * The composition root: the one module allowed to know both sides.
@@ -138,8 +164,12 @@ export async function buildViewMyEventRequests(): Promise<ViewMyEventRequestsUse
 }
 
 export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEventRequestUseCase> {
+  const client = await createSupabaseServerClient();
+
   return new ViewOrganiserEventRequestUseCase({
-    eventRequests: await eventRequestAdapters(),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+    userAccounts: new SupabaseUserAccountRepository(client),
   });
 }
 
@@ -166,7 +196,29 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
   return new AssignEventCoordinatorUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+    notifier: recordedNotifier(),
   });
+}
+
+/**
+ * Novu when it can actually run our workflows, the log otherwise -- so CI and
+ * local dev without Novu need nothing extra -- and either way recorded in the
+ * `notification` table (SPM-177).
+ *
+ * A deployment needs only the key: its workflows are synced to Novu. Locally
+ * they are not, so Novu can reach them only through a `novu dev` tunnel, and a
+ * trigger without `NOVU_BRIDGE_URL` just fails with `workflow_not_found`.
+ */
+function recordedNotifier(): Notifier {
+  const secretKey = process.env.NOVU_SECRET_KEY;
+  const bridgeUrl = process.env.NOVU_BRIDGE_URL || undefined;
+  const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
+  const delivering =
+    secretKey && novuCanRun
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
+      : new LoggingNotifier();
+  return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
@@ -185,10 +237,60 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  *
  * `null` covers every case that isn't a coordinator -- no session, no matching
  * `user_account`, or a role other than Event Coordinator -- so callers answer
- * with a not-found rather than someone else's queue (#91). Same shape as
+ * with access denied rather than someone else's queue (#91). Same shape as
  * `getCurrentOrganiser` below.
  */
-export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
+/**
+ * SPM-33: the Coordinator returns a request for clarification.
+ *
+ * Only the event request repository: opening a clarification writes the
+ * status and the question in one transaction, so the thread is not a second
+ * dependency here -- see `EventRequestRepository.returnEventRequest`.
+ */
+export async function buildRequestClarification(): Promise<RequestClarificationUseCase> {
+  return new RequestClarificationUseCase({ eventRequests: await eventRequestAdapters() });
+}
+
+/** SPM-33 AC6: the Coordinator marks one question answered, resuming the request if it was the last. */
+export async function buildResolveClarificationThread(): Promise<ResolveClarificationThreadUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ResolveClarificationThreadUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+  });
+}
+
+/** SPM-33 AC4-AC5: the responsible Organiser answers on the thread. Appends, and nothing else. */
+export async function buildPostClarificationMessage(): Promise<PostClarificationMessageUseCase> {
+  const client = await createSupabaseServerClient();
+  return new PostClarificationMessageUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+  });
+}
+
+/** SPM-33 AC5: the assigned Coordinator follows up, without returning the request again. */
+export async function buildPostCoordinatorClarificationMessage(): Promise<PostCoordinatorClarificationMessageUseCase> {
+  const client = await createSupabaseServerClient();
+  return new PostCoordinatorClarificationMessageUseCase({
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clarificationThread: new SupabaseClarificationThreadRepository(client),
+  });
+}
+
+/**
+ * The thread store, for the two view use cases that read it alongside their
+ * request. Not exported: reading the thread is never a call of its own, so
+ * nothing outside this module needs a handle on it.
+ */
+async function buildClarificationThread(): Promise<ClarificationThreadRepository> {
+  return new SupabaseClarificationThreadRepository(await createSupabaseServerClient());
+}
+
+export async function getCurrentCoordinator(): Promise<{
+  readonly userAccountId: string;
+  readonly name: string;
+} | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.coordinator ?? null;
 }
@@ -228,7 +330,12 @@ export async function buildViewArchivedEventRequests(): Promise<ViewArchivedEven
 export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEventRequestUseCase> {
   const { eventRequests, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
-  return new ViewAssignedEventRequestUseCase({ eventRequests, clientOrganisations, userAccounts });
+  return new ViewAssignedEventRequestUseCase({
+    eventRequests,
+    clarificationThread: await buildClarificationThread(),
+    clientOrganisations,
+    userAccounts,
+  });
 }
 
 /** SPM-34: the assigned coordinator approves or rejects a request. */
@@ -236,6 +343,13 @@ export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCa
   const { eventRequests } = await coordinatorAdapters();
 
   return new DecideEventRequestUseCase({ eventRequests });
+}
+
+/** SPM-101: the assigned coordinator records a withdrawal the Organiser asked for. */
+export async function buildWithdrawEventRequest(): Promise<WithdrawEventRequestUseCase> {
+  const { eventRequests } = await coordinatorAdapters();
+
+  return new WithdrawEventRequestUseCase({ eventRequests });
 }
 
 /**
@@ -302,7 +416,7 @@ async function buildIdentifyStaffMember(): Promise<IdentifyStaffMemberUseCase> {
  *
  * `null` covers every case that isn't one -- no session, no matching
  * `user_account`, a role other than Event Organiser, or an Organiser with no
- * client organisation set -- so callers answer with a not-found rather than
+ * client organisation set -- so callers answer with access denied rather than
  * someone else's requests (#91). Same shape as `getCurrentCoordinator` above.
  */
 export async function getCurrentOrganiser(): Promise<{
@@ -317,7 +431,7 @@ export async function getCurrentOrganiser(): Promise<{
 /**
  * The staff workspaces the signed-in member of staff may open. Empty when
  * nobody is signed in or the auth user has no `user_account`, so a caller
- * checking its own workspace answers with a not-found either way.
+ * checking its own workspace answers with access denied either way.
  */
 export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
   const identifyStaffMember = await buildIdentifyStaffMember();
@@ -325,15 +439,107 @@ export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
 }
 
 /**
- * The signed-in member of staff as the staff chrome shows them: their name
- * and the workspaces they may open. Null when nobody is signed in or the auth
- * user has no `user_account`.
+ * The signed-in member of staff as the staff chrome shows them: their name,
+ * the workspaces they may open, the one an access-denied screen sends them
+ * back to, and who their notification inbox belongs to. Null when nobody is
+ * signed in or the auth user has no `user_account`.
+ *
+ * `subscriberHash` is null without `NOVU_SECRET_KEY`, and the chrome then
+ * shows no inbox. The key itself never leaves the server.
  */
 export async function getSignedInStaffMember(): Promise<{
   readonly name: string;
   readonly workspaces: readonly StaffWorkspace[];
+  readonly homeWorkspace: StaffWorkspace | null;
+  readonly subscriberId: string;
+  readonly subscriberHash: string | null;
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   const member = await identifyStaffMember.execute();
-  return member && { name: member.name, workspaces: member.workspaces };
+  if (member === null) {
+    return null;
+  }
+
+  const secretKey = process.env.NOVU_SECRET_KEY;
+  const subscriberId = `${novuSubscriberPrefix()}${member.userAccountId}`;
+  return {
+    name: member.name,
+    workspaces: member.workspaces,
+    homeWorkspace: member.homeWorkspace,
+    subscriberId,
+    subscriberHash: secretKey ? subscriberHash(subscriberId, secretKey) : null,
+  };
+}
+
+async function venueCatalogue(): Promise<SupabaseVenueCatalogue> {
+  return new SupabaseVenueCatalogue(await createSupabaseServerClient());
+}
+
+/** SPM-42: the venue catalogue, as Venue Staff and Event Coordinators read it. */
+export async function buildListVenues(): Promise<ListVenuesUseCase> {
+  return new ListVenuesUseCase({ venues: await venueCatalogue() });
+}
+
+export async function buildViewVenue(): Promise<ViewVenueUseCase> {
+  return new ViewVenueUseCase({ venues: await venueCatalogue() });
+}
+
+/** SPM-44: an Event Coordinator searches the catalogue. Venues are in Singapore (#36). */
+export async function buildSearchVenues(): Promise<SearchVenuesUseCase> {
+  const client = await createSupabaseServerClient();
+  return new SearchVenuesUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    availability: new SupabaseVenueAvailability(client),
+    clock: systemClock,
+    timeZone: "Asia/Singapore",
+  });
+}
+
+/** SPM-146: Venue Staff add a venue and its layouts. */
+export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
+  return new CreateVenueUseCase({ venues: await venueCatalogue() });
+}
+
+/** SPM-147: Venue Staff update a venue and its layouts. */
+export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
+  return new UpdateVenueUseCase({ venues: await venueCatalogue() });
+}
+
+/**
+ * The signed-in member's roles as far as venue maintenance goes: "Venue Staff"
+ * exactly when they may open the venue workspace (`workspacesFor` maps that one
+ * role to it), none otherwise. The database re-checks the real role on write.
+ */
+export async function getVenueMaintenanceRoles(): Promise<readonly string[]> {
+  return (await getStaffWorkspaces()).includes("venue") ? ["Venue Staff"] : [];
+}
+
+/**
+ * SPM-40: the equipment catalogue.
+ *
+ * TEMPORARY STUB. There is no Supabase adapter for the `equipment_item` table
+ * yet, so the catalogue is an in-memory one that lives as long as the server
+ * process: records are lost on restart and are not shared between instances.
+ * Replacing it is this one function plus a `SupabaseEquipmentCatalogue` (and the
+ * RLS/RPC migration it needs) -- no use case, action or screen changes.
+ *
+ * Held on `globalThis` so a dev-server module reload does not empty it.
+ */
+const equipmentStub = globalThis as typeof globalThis & { __equipmentCatalogue?: EquipmentCatalogue };
+
+function buildEquipmentCatalogue(): EquipmentCatalogue {
+  equipmentStub.__equipmentCatalogue ??= new InMemoryEquipmentCatalogue();
+  return equipmentStub.__equipmentCatalogue;
+}
+
+export async function buildListEquipmentCatalogue(): Promise<ListEquipmentCatalogueUseCase> {
+  return new ListEquipmentCatalogueUseCase({ equipment: buildEquipmentCatalogue() });
+}
+
+export async function buildCreateEquipmentItem(): Promise<CreateEquipmentItemUseCase> {
+  return new CreateEquipmentItemUseCase({ equipment: buildEquipmentCatalogue() });
+}
+
+export async function buildUpdateEquipmentStock(): Promise<UpdateEquipmentStockUseCase> {
+  return new UpdateEquipmentStockUseCase({ equipment: buildEquipmentCatalogue() });
 }

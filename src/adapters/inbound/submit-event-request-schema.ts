@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import { STANDARD_LAYOUTS } from "@/core/domain/venue";
+import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
+
+import { optionalOptions } from "./option-list-schema";
+
 /**
  * The event request form's shape -- and only its shape.
  *
@@ -99,8 +104,8 @@ export const submitEventRequestSchema = z.object({
   preferredEndTime: optionalDateTime,
   expectedAttendance: optionalAttendance,
   venueRequirements: optionalText,
-  roomLayoutPreferences: optionalText,
-  accessibilityNeeds: optionalText,
+  roomLayoutPreferences: optionalOptions(STANDARD_LAYOUTS, 1),
+  accessibilityNeeds: optionalOptions(ACCESSIBILITY_OPTIONS),
   equipmentRequirements: optionalText,
   registrationRequirements: optionalText,
   generalProgramme: optionalText,

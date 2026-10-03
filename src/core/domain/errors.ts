@@ -217,6 +217,21 @@ export class EventRequestNotDecidableError extends DomainError {
   }
 }
 
+/**
+ * SPM-101: only a request not yet decided can be withdrawn (#103), and a
+ * withdrawn request stays withdrawn.
+ *
+ * Takes no argument for the same reason `EventRequestNotDecidableError` takes
+ * none: the Supabase adapter raises it too, after losing a race.
+ */
+export class EventRequestNotWithdrawableError extends DomainError {
+  readonly code = "event_request_not_withdrawable";
+
+  constructor() {
+    super("Only an event request that has not been decided can be withdrawn.");
+  }
+}
+
 /** SPM-34: a rejection must say why -- the reason is the decision record it keeps. */
 export class DecisionReasonRequiredError extends DomainError {
   readonly code = "decision_reason_required";
@@ -281,6 +296,19 @@ export class InvalidCredentialsError extends DomainError {
 }
 
 /**
+ * Login is for staff only -- an Attendee is never issued an account (they
+ * register by name and email, no credential), so any account with no staff
+ * role reaching this far is refused rather than sent anywhere in `/staff`.
+ */
+export class NoStaffRoleError extends DomainError {
+  readonly code = "no_staff_role";
+
+  constructor() {
+    super("This account has no staff role.");
+  }
+}
+
+/**
  * SPM-38: a draft may only be edited by its own responsible Organiser, and
  * only while it is still `Draft` -- the same rule `eventRequestAccessFor`
  * already draws for viewing. Once a coordinator has taken it further, or it
@@ -309,6 +337,24 @@ export class EventNotConfirmableError extends DomainError {
 }
 
 /**
+ * SPM-33 AC2: a clarification can only be requested on a request that is still
+ * pre-decision -- `Submitted`, `Under Review`, or already `Returned` (decision
+ * 5: a request can be returned more than once, with or without a Resolve in
+ * between). A decided request has no clarification left to ask for.
+ *
+ * Takes no argument for the same reason `EventRequestNotDecidableError` takes
+ * none: the Supabase adapter raises this one too, after losing a race to a
+ * concurrent decision, and there it holds no status to put in the message.
+ */
+export class EventRequestNotReturnableError extends DomainError {
+  readonly code = "event_request_not_returnable";
+
+  constructor() {
+    super("This event request can no longer be returned for clarification.");
+  }
+}
+
+/**
  * SPM-50 AC1: confirmation is blocked while an essential arrangement is
  * incomplete, and the incomplete ones are named -- carries the list rather
  * than a rendered sentence, the same choice `IncompleteEventRequestError`
@@ -322,5 +368,211 @@ export class EventNotReadyForConfirmationError extends DomainError {
       `This event cannot be confirmed: ${blockingArrangements.join(", ")} ` +
         `${blockingArrangements.length === 1 ? "is" : "are"} not complete.`,
     );
+  }
+}
+
+/**
+ * SPM-33 AC3: a clarification request must say what needs clarifying -- by the
+ * same rule that makes a rejection state its reason.
+ */
+export class ClarificationMessageRequiredError extends DomainError {
+  readonly code = "clarification_message_required";
+
+  constructor() {
+    super("Say what needs clarifying.");
+  }
+}
+
+/**
+ * SPM-33 AC6: only a `Returned` request can be marked resolved -- resolving is
+ * the Coordinator's "I am no longer waiting on the Organiser" signal, and there
+ * is nothing to stop waiting for on a request that was never returned.
+ *
+ * Argument-free for the same race-losing reason as the two above.
+ */
+export class ClarificationNotResolvableError extends DomainError {
+  readonly code = "clarification_not_resolvable";
+
+  constructor() {
+    super("This event request is not waiting on the Organiser.");
+  }
+}
+
+export class InvalidClarificationMessageIdError extends DomainError {
+  readonly code = "invalid_clarification_message_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable clarification message id.`);
+  }
+}
+
+/**
+ * SPM-33 decision 6: comment threading follows Linear -- top-level messages
+ * with one level of reply -- so a reply's parent must itself be top-level, and
+ * must be on the same request.
+ *
+ * Argument-free like the other clarification errors: the Supabase function
+ * raises this one too, and there it holds nothing useful to name.
+ */
+export class ClarificationReplyNotTopLevelError extends DomainError {
+  readonly code = "clarification_reply_not_top_level";
+
+  constructor() {
+    super("You can only reply to a top-level message.");
+  }
+}
+
+/**
+ * SPM-33 AC6: only a question the Coordinator asked can be marked answered,
+ * and only once. An ordinary comment asked for nothing, and a resolved
+ * question is already cleared.
+ *
+ * Argument-free like the other clarification errors: the Supabase function
+ * raises this one too, after losing a race to a concurrent resolve.
+ */
+export class ClarificationThreadNotResolvableError extends DomainError {
+  readonly code = "clarification_thread_not_resolvable";
+
+  constructor() {
+    super("That is not an open question on this request.");
+  }
+}
+
+/**
+ * SPM-33: a decided request's clarification thread is closed -- nothing more
+ * can be posted, replied or resolved on it. See `canDiscussEventRequest`.
+ *
+ * Argument-free for the same reason: the Supabase functions raise it too,
+ * after losing a race to a concurrent decision.
+ */
+export class ClarificationThreadClosedError extends DomainError {
+  readonly code = "clarification_thread_closed";
+
+  constructor() {
+    super("This request has been decided, so its clarification thread is closed.");
+  }
+}
+
+export class InvalidEquipmentItemIdError extends DomainError {
+  readonly code = "invalid_equipment_item_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable equipment item id.`);
+  }
+}
+
+export class EquipmentItemNotFoundError extends DomainError {
+  readonly code = "equipment_item_not_found";
+
+  constructor(id: string) {
+    super(`No equipment item exists with id ${id}.`);
+  }
+}
+
+/** SPM-40 AC1: a catalogue record must say what the equipment is. */
+export class EquipmentTypeRequiredError extends DomainError {
+  readonly code = "equipment_type_required";
+
+  constructor() {
+    super("Enter the equipment type.");
+  }
+}
+
+/** SPM-40 AC1: a catalogue record must say where the equipment is kept. */
+export class EquipmentLocationRequiredError extends DomainError {
+  readonly code = "equipment_location_required";
+
+  constructor() {
+    super("Enter where the equipment is kept.");
+  }
+}
+
+/** SPM-40: the quantity available is a count -- whole, and never below zero. */
+export class InvalidEquipmentQuantityError extends DomainError {
+  readonly code = "invalid_equipment_quantity";
+
+  constructor() {
+    super("Quantity must be a whole number, zero or more.");
+  }
+}
+
+export class InvalidVenueIdError extends DomainError {
+  readonly code = "invalid_venue_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable venue id.`);
+  }
+}
+
+/**
+ * SPM-42: a venue record the catalogue would not accept -- a missing location,
+ * a layout with no capacity, hours that run backwards. The reason is written
+ * for the person filling in the form, so it can be shown as it is.
+ */
+export class InvalidVenueError extends DomainError {
+  readonly code = "invalid_venue";
+
+  /** Which form field the reason is about, so the screen can flag that one. */
+  constructor(
+    reason: string,
+    readonly field: VenueField | null = null,
+  ) {
+    super(reason);
+  }
+}
+
+export type VenueField =
+  | "location"
+  | "facilities"
+  | "accessibility"
+  | "operatingHoursStart"
+  | "operatingHoursEnd"
+  | "capacity"
+  | "bookingHorizonDays"
+  | "layouts";
+
+/**
+ * SPM-44: venue search criteria that cannot be searched on -- an end time
+ * before the start, a date without times, a facility that is not an option.
+ * Written for the Coordinator, so it can be shown as it is.
+ */
+export class InvalidVenueSearchError extends DomainError {
+  readonly code = "invalid_venue_search";
+
+  constructor(
+    reason: string,
+    readonly field: VenueSearchField | null = null,
+  ) {
+    super(reason);
+  }
+}
+
+export type VenueSearchField =
+  | "layout"
+  | "attendance"
+  | "facilities"
+  | "accessibility"
+  | "date"
+  | "startTime"
+  | "endTime";
+
+export class VenueNotFoundError extends DomainError {
+  readonly code = "venue_not_found";
+
+  constructor() {
+    super("That venue is not in the catalogue.");
+  }
+}
+
+/**
+ * SPM-42 (#66): only Venue Staff maintain the catalogue. Argument-free because
+ * the Supabase functions raise it too, when the database's own role check
+ * refuses a write the application let through.
+ */
+export class VenueMaintenanceNotPermittedError extends DomainError {
+  readonly code = "venue_maintenance_not_permitted";
+
+  constructor() {
+    super("Only Venue Staff can create or update venues.");
   }
 }

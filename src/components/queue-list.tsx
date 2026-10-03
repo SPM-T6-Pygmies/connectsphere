@@ -44,12 +44,14 @@ export function QueueList({
                 {item.meta}
               </span>
             </div>
-            <div className="flex w-full min-w-0 items-center gap-2">
-              <StatusBadge status={item.status} />
-              {item.unread ? (
-                <span className="bg-primary ml-auto size-1.5 shrink-0 rounded-full" />
-              ) : null}
-            </div>
+            {item.status || item.unread ? (
+              <div className="flex w-full min-w-0 items-center gap-2">
+                {item.status ? <StatusBadge status={item.status} /> : null}
+                {item.unread ? (
+                  <span className="bg-primary ml-auto size-1.5 shrink-0 rounded-full" />
+                ) : null}
+              </div>
+            ) : null}
             <span className="line-clamp-2 w-full text-xs whitespace-break-spaces">
               {item.teaser}
             </span>

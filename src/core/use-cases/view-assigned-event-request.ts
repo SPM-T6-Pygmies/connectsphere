@@ -1,4 +1,6 @@
 import {
+  canDiscussEventRequest,
+  canWithdrawEventRequest,
   coordinatorRequestStateFor,
   coordinatorSectionFor,
   eventRequestAccessForCoordinator,
@@ -7,11 +9,17 @@ import {
   type CoordinatorSection,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
+import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
-import { toEventRequestView, type EventRequestView } from "./event-request-view";
+import {
+  toClarificationThreadView,
+  toEventRequestView,
+  type ClarificationMessageView,
+  type EventRequestView,
+} from "./event-request-view";
 
 export interface ViewAssignedEventRequestCommand {
   readonly id: string;
@@ -30,10 +38,31 @@ export interface ViewAssignedEventRequestResult {
   readonly state: CoordinatorRequestState | null;
   /** Which of the Coordinator's sections the request now lives under -- see `coordinatorSectionFor`. */
   readonly section: CoordinatorSection;
+  /**
+   * The clarification exchange so far, oldest first (SPM-33 AC4).
+   *
+   * Part of the request's view rather than a second call: the access check
+   * that decides whether this Coordinator may see the request is the same one
+   * that decides whether they may read its thread, and running it once is what
+   * stops the two drifting apart.
+   */
+  readonly clarificationThread: readonly ClarificationMessageView[];
+  /**
+   * Whether the thread is still open to new messages -- see
+   * `canDiscussEventRequest`. False once the request is decided.
+   */
+  readonly canDiscuss: boolean;
+  /**
+   * Whether the Coordinator can record a withdrawal now (SPM-101) -- see
+   * `canWithdrawEventRequest`. Asked here rather than worked out from `state`,
+   * which reads `Submitted` and `Under Review` alike.
+   */
+  readonly canWithdraw: boolean;
 }
 
 export interface ViewAssignedEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
+  readonly clarificationThread: ClarificationThreadRepository;
   readonly clientOrganisations: ClientOrganisationRepository;
   readonly userAccounts: UserAccountRepository;
 }
@@ -64,17 +93,27 @@ export class ViewAssignedEventRequestUseCase {
       return null;
     }
 
-    const [organisationNames, organiserNames] = await Promise.all([
+    const [organisationNames, messages] = await Promise.all([
       this.deps.clientOrganisations.findNamesByIds([request.clientOrganisationId]),
-      this.deps.userAccounts.findNamesByIds([request.responsibleOrganiserId]),
+      this.deps.clarificationThread.messagesFor(request.id),
+    ]);
+
+    // One batched lookup covering the Organiser and everyone who has spoken on
+    // the thread, rather than one per message.
+    const names = await this.deps.userAccounts.findNamesByIds([
+      request.responsibleOrganiserId,
+      ...messages.map((message) => message.authorUserAccountId),
     ]);
 
     return {
       eventRequest: toEventRequestView(request),
-      requestingOrganiserName: organiserNames.get(request.responsibleOrganiserId) ?? "",
+      requestingOrganiserName: names.get(request.responsibleOrganiserId) ?? "",
       clientOrganisationName: organisationNames.get(request.clientOrganisationId) ?? "",
       state: coordinatorRequestStateFor(request.status),
       section: coordinatorSectionFor(request.status),
+      clarificationThread: toClarificationThreadView(messages, names),
+      canDiscuss: canDiscussEventRequest(request.status),
+      canWithdraw: canWithdrawEventRequest(request.status),
     };
   }
 }

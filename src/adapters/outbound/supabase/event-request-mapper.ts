@@ -249,6 +249,29 @@ export function toDecideArgs(
   };
 }
 
+/**
+ * Arguments for `coordinator_withdraw_event_request` (SPM-101). As with
+ * `toDecideArgs`, the coordinator is the caller, not whoever the request says
+ * is assigned: the function checks the two agree.
+ */
+export function toWithdrawArgs(
+  request: EventRequest,
+  withdrawnBy: UserAccountId,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey = toKey(withdrawnBy);
+
+  if (requestKey === null || coordinatorKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_coordinator_user_account_id: coordinatorKey,
+    p_note: request.decisionRecord,
+  };
+}
+
 export function toSaveArgs(request: EventRequest): Record<string, unknown> | null {
   const key = toKey(request.id);
   if (key === null) {
@@ -273,5 +296,58 @@ export function toSaveArgs(request: EventRequest): Record<string, unknown> | nul
     p_other_special_arrangements: request.details.otherSpecialArrangements,
     p_status: request.status,
     p_requesting_user_account_id: toKey(request.responsibleOrganiserId),
+  };
+}
+
+/**
+ * Arguments for `coordinator_return_event_request` (SPM-33).
+ *
+ * The message is passed alongside the request rather than read off it: a
+ * return's question is not a field of `EventRequest`, it is the first message
+ * of the thread, and the function writes both in one transaction.
+ */
+export function toReturnArgs(
+  request: EventRequest,
+  returnedBy: UserAccountId,
+  message: string,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey = toKey(returnedBy);
+
+  if (requestKey === null || coordinatorKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_coordinator_user_account_id: coordinatorKey,
+    p_message: message,
+  };
+}
+
+/**
+ * Arguments for `coordinator_resolve_clarification_thread` (SPM-33 AC6).
+ *
+ * The request's own new status is not sent: whether resolving this question
+ * also puts the request back in the decision queue depends on what else is
+ * still open, which the function derives under its own lock.
+ */
+export function toResolveClarificationThreadArgs(
+  request: EventRequest,
+  resolvedBy: UserAccountId,
+  messageId: string,
+): Record<string, unknown> | null {
+  const requestKey = toKey(request.id);
+  const coordinatorKey = toKey(resolvedBy);
+  const commentKey = toKey(messageId);
+
+  if (requestKey === null || coordinatorKey === null || commentKey === null) {
+    return null;
+  }
+
+  return {
+    p_event_request_id: requestKey,
+    p_coordinator_user_account_id: coordinatorKey,
+    p_comment_id: commentKey,
   };
 }

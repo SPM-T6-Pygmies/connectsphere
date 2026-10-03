@@ -2,7 +2,6 @@ import { reservationsNeedingReview } from "@/lib/wireframe";
 
 import { QueueEmptyState } from "../queue-empty-state";
 import { StaffShell } from "../staff-shell";
-import { EquipmentCatalogueCard } from "./equipment-catalogue-card";
 
 export const metadata = { title: "Needs review | ConnectSphere" };
 
@@ -19,7 +18,6 @@ export default function TechnicalPage() {
             : "Choose one from the list to review it."
         }
       />
-      <EquipmentCatalogueCard />
     </StaffShell>
   );
 }
