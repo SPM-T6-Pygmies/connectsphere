@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { buildListEquipmentRechecks, getCurrentTechnicalSupport } from "@/composition/container";
 
@@ -9,10 +9,11 @@ import { EquipmentRechecksCard } from "./equipment-rechecks-card";
 export const metadata = { title: "Needs review | ConnectSphere" };
 
 export default async function TechnicalPage() {
-  // Anyone who is not Technical Support Staff is refused the list (SPM-41 AC16).
+  // Anyone who is not Technical Support Staff is refused the list with the
+  // shared access-denied screen (SPM-41 AC16, SPM-16).
   const technicalSupport = await getCurrentTechnicalSupport();
   if (technicalSupport === null) {
-    notFound();
+    forbidden();
   }
 
   const listEquipmentRechecks = await buildListEquipmentRechecks();
