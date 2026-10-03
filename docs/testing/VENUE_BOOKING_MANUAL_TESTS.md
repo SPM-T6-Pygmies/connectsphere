@@ -6,10 +6,11 @@ Browser checks for the coordinator's **Request a venue** page. The rules behind
 it (layout choice, slot clashes, who may book) are covered by automated tests;
 these cases check the page itself, end to end against Supabase.
 
-They are registered as `MT-0011`–`MT-0016` in
-[`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them,
-tick the boxes below **and** set `Status` and `LastPassedDate` on the matching
-rows — CI cannot verify a manual case for you.
+They are registered as `TC-VENUE-BOOK-001`–`TC-VENUE-BOOK-006` in
+[`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
+them, tick the boxes below **and** report each in the PR description's
+`## Manual test results` table — CI records it in
+[`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
 ## Setup
 
