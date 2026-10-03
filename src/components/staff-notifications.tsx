@@ -14,6 +14,8 @@ const APPLICATION_IDENTIFIER = process.env.NEXT_PUBLIC_NOVU_APPLICATION_IDENTIFI
 export type NotificationView = "inbox" | "archived"
 
 export interface StaffNotifications {
+  /** Whether Novu is set up for this environment -- without it there is no inbox to act on. */
+  readonly configured: boolean
   /** True until Novu first answers, so an empty list is not mistaken for none. */
   readonly loading: boolean
   readonly view: NotificationView
@@ -31,6 +33,7 @@ export interface StaffNotifications {
 }
 
 const NONE: StaffNotifications = {
+  configured: false,
   loading: false,
   view: "inbox",
   setView: () => {},
@@ -68,6 +71,7 @@ function NovuFeed({ role, children }: { role: StaffRole; children: ReactNode }) 
     }
 
     return {
+      configured: true,
       loading: isLoading,
       view,
       setView,

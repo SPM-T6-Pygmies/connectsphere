@@ -23,6 +23,12 @@ export const coordinatorAssigned = workflow(
     await step.inApp("inbox", async () => coordinatorAssignedInApp(payload));
   },
   {
+    // What the preferences sheet calls it (SPM-180).
+    name: "Coordinator assigned",
+    // SPM-57 exists so a coordinator learns of their assignment, so no one may
+    // switch it off. Novu locks a whole workflow, not one channel: when email
+    // is added here, decide whether it may be turned off (SPM-180).
+    preferences: { all: { enabled: true, readOnly: true } },
     // The staff inbox names a notification's trigger by this tag (SPM-174).
     tags: [COORDINATOR_ASSIGNED_WORKFLOW_ID],
     // Mirrors `EventCoordinatorAssignedNotice`; the notifier sends it whole.

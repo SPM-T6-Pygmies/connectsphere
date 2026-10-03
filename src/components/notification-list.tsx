@@ -8,8 +8,10 @@ import {
   MoreHorizontalIcon,
 } from "lucide-react"
 import Link from "next/link"
+import { useState } from "react"
 
 import { StatusBadge } from "@/app/staff/status-badge"
+import { NotificationPreferences } from "@/components/notification-preferences"
 import { useStaffNotifications } from "@/components/staff-notifications"
 import { Button } from "@/components/ui/button"
 import {
@@ -92,33 +94,44 @@ export function NotificationList({ activePath }: { activePath: string }) {
   )
 }
 
-/** The inbox list's menu: which view, and the bulk actions (SPM-179). */
+/** The inbox list's menu: which view, the bulk actions (SPM-179) and preferences (SPM-180). */
 export function NotificationMenu() {
-  const { view, setView, unread, markAllRead, archiveAllRead } = useStaffNotifications()
+  const { configured, view, setView, unread, markAllRead, archiveAllRead } =
+    useStaffNotifications()
+  const [preferencesOpen, setPreferencesOpen] = useState(false)
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label="Notification options">
-          <MoreHorizontalIcon />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuRadioGroup
-          value={view}
-          onValueChange={(value) => setView(value === "archived" ? "archived" : "inbox")}
-        >
-          <DropdownMenuRadioItem value="inbox">Inbox</DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="archived">Archived</DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem disabled={unread === 0} onSelect={markAllRead}>
-          Mark all read
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={view === "archived"} onSelect={archiveAllRead}>
-          Archive all read
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label="Notification options">
+            <MoreHorizontalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuRadioGroup
+            value={view}
+            onValueChange={(value) => setView(value === "archived" ? "archived" : "inbox")}
+          >
+            <DropdownMenuRadioItem value="inbox">Inbox</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="archived">Archived</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={unread === 0} onSelect={markAllRead}>
+            Mark all read
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={view === "archived"} onSelect={archiveAllRead}>
+            Archive all read
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={!configured} onSelect={() => setPreferencesOpen(true)}>
+            Preferences
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {configured ? (
+        <NotificationPreferences open={preferencesOpen} onOpenChange={setPreferencesOpen} />
+      ) : null}
+    </>
   )
 }
