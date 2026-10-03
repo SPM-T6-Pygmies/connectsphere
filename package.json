@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:local": "supabase start && infisical run --env=dev -- pnpm dev",
+    "dev:local": "supabase start && infisical run --env=dev -- npx novu@latest dev --port 3000 --headless --run 'pnpm dev'",
     "dev:remote": "infisical run --env=prod -- pnpm dev",
     "build": "next build",
     "start": "next start",
@@ -17,6 +17,8 @@
     "visual-map": "docker run -it --rm -p 8080:8080 -e AUTO_REFRESH_INTERVAL=5000 -v \"$(pwd)/visual-map\":/usr/local/structurizr structurizr/structurizr local"
   },
   "dependencies": {
+    "@novu/api": "^3.19.1",
+    "@novu/framework": "^2.13.2",
     "@supabase/ssr": "^0.12.6",
     "@supabase/supabase-js": "^2.115.0",
     "class-variance-authority": "^0.7.1",
