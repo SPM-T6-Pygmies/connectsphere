@@ -2,7 +2,11 @@ import {
   coordinatorAssignedMessage,
   type NotificationMessage,
 } from "@/adapters/outbound/notification-content/coordinator-assigned";
-import type { EventCoordinatorAssignedNotice } from "@/core/ports/outbound/notifier";
+import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
+import type {
+  EventCoordinatorAssignedNotice,
+  OrganiserCoordinatorAssignedNotice,
+} from "@/core/ports/outbound/notifier";
 
 /** A `notification` row as recorded before delivery: in-app, Pending, about one event request. */
 export type NotificationRow = ReturnType<typeof eventRequestNotificationRow>;
@@ -28,5 +32,16 @@ export function coordinatorAssignedRow(notice: EventCoordinatorAssignedNotice): 
     "coordinator-assigned",
     notice,
     coordinatorAssignedMessage(notice),
+  );
+}
+
+/** The `notification` row telling an Organiser who their coordinator is (SPM-58). */
+export function organiserCoordinatorAssignedRow(
+  notice: OrganiserCoordinatorAssignedNotice,
+): NotificationRow {
+  return eventRequestNotificationRow(
+    "organiser-coordinator-assigned",
+    notice,
+    organiserCoordinatorAssignedMessage(notice),
   );
 }

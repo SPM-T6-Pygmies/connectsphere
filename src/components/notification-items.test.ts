@@ -77,3 +77,18 @@ describe("notificationItem (SPM-179)", () => {
     expect(notificationItem("coordinator", notification({ isArchived: true })).archived).toBe(true)
   })
 })
+
+describe("notificationItem (SPM-58)", () => {
+  it("opens the organiser's request from their inbox and names it a coordinator assignment", () => {
+    const item = notificationItem(
+      "requester",
+      notification({
+        redirect: { url: "/staff/requester/10" },
+        tags: ["organiser-coordinator-assigned"],
+      }),
+    )
+
+    expect(item.href).toBe("/staff/requester/notifications/10")
+    expect(item.status).toBe("Coordinator assigned")
+  })
+})

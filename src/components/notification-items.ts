@@ -19,6 +19,7 @@ export interface InboxNotification {
  */
 const TRIGGERS: Readonly<Record<string, NotificationTrigger>> = {
   "coordinator-assigned": "Coordinator assigned",
+  "organiser-coordinator-assigned": "Coordinator assigned",
 }
 
 /**
