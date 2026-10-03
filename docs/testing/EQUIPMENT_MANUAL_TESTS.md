@@ -19,6 +19,10 @@ The cases are registered as `MT-0035`–`MT-0043` in
 the boxes below **and** set `Status`, `ExecutedBy` and `LastPassedDate` on the
 matching rows. CI cannot verify a manual case for you.
 
+**Last run:** all nine cases passed on 3/10/2026 at commit `7afd371` (see each case's Status and
+Screenshots). A browser script drove the cases and checked each expected result, including the
+database checks; the screenshots are in [`../screenshots/`](../screenshots/).
+
 **Run the cases in order**, or re-seed (below) between them: TC-EQUIP-004 changes
 the reserved Projector line, and later cases expect that.
 
@@ -96,7 +100,9 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
   with no badges (AC1).
 - The Projector and Wireless microphone lines are unchanged.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (8/8 checks)
+
+**Screenshots:** [step1-organiser-needs-and-lines](../screenshots/SPM-41_TC-EQUIP-001_step1-organiser-needs-and-lines.jpg) · [step3-livestream-line-added](../screenshots/SPM-41_TC-EQUIP-001_step3-livestream-line-added.jpg)
 
 ---
 
@@ -122,7 +128,9 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 - Nothing is added for a refused row. Only the last two rows add a line: PA speaker
   (with its 500-character notes) and Presentation laptop.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (11/11 checks)
+
+**Screenshots:** [refused-1-ac2](../screenshots/SPM-41_TC-EQUIP-002_refused-1-ac2.jpg) · [refused-4-ac3](../screenshots/SPM-41_TC-EQUIP-002_refused-4-ac3.jpg) · [refused-6-ac5](../screenshots/SPM-41_TC-EQUIP-002_refused-6-ac5.jpg) · [accepted-pa-speaker-and-laptop](../screenshots/SPM-41_TC-EQUIP-002_accepted-pa-speaker-and-laptop.jpg)
 
 ---
 
@@ -145,7 +153,9 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 - Signed in as `support@test.com`, `/staff/technical` still says *Nothing needs
   re-checking.* after these three steps.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (6/6 checks)
+
+**Screenshots:** [step1-microphone-5-no-badge](../screenshots/SPM-41_TC-EQUIP-003_step1-microphone-5-no-badge.jpg) · [step2-projector-saved-unchanged](../screenshots/SPM-41_TC-EQUIP-003_step2-projector-saved-unchanged.jpg) · [step3-microphone-removed](../screenshots/SPM-41_TC-EQUIP-003_step3-microphone-removed.jpg) · [step4-technical-support-list-empty](../screenshots/SPM-41_TC-EQUIP-003_step4-technical-support-list-empty.jpg)
 
 ---
 
@@ -172,7 +182,9 @@ This is the end-to-end case across both roles.
 - In the database, the Projector's `line_state` is now `Under review` and its
   `quantity_reserved` is still `2` (query in TC-EQUIP-009).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (6/6 checks)
+
+**Screenshots:** [step2-edit-warning](../screenshots/SPM-41_TC-EQUIP-004_step2-edit-warning.jpg) · [step3-projector-needs-recheck](../screenshots/SPM-41_TC-EQUIP-004_step3-projector-needs-recheck.jpg) · [step4-technical-support-list-changed](../screenshots/SPM-41_TC-EQUIP-004_step4-technical-support-list-changed.jpg)
 
 ---
 
@@ -202,7 +214,9 @@ This is the end-to-end case across both roles.
 - In the database, after step 2 and again after step 5, the Projector's `line_state`
   is `Under review`: undoing the removal does not put it back to `Reserved`.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (9/9 checks)
+
+**Screenshots:** [step2-remove-warning](../screenshots/SPM-41_TC-EQUIP-005_step2-remove-warning.jpg) · [step3-removal-requested](../screenshots/SPM-41_TC-EQUIP-005_step3-removal-requested.jpg) · [step4-technical-support-removal-requested](../screenshots/SPM-41_TC-EQUIP-005_step4-technical-support-removal-requested.jpg) · [step5-removal-undone](../screenshots/SPM-41_TC-EQUIP-005_step5-removal-undone.jpg) · [step6-technical-support-changed-again](../screenshots/SPM-41_TC-EQUIP-005_step6-technical-support-changed-again.jpg)
 
 ---
 
@@ -227,7 +241,9 @@ This is the end-to-end case across both roles.
   are still listed, but there are no **Edit**, **Remove** or **Undo removal**
   buttons and no **Add equipment** form.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (6/6 checks)
+
+**Screenshots:** [read-only-completed](../screenshots/SPM-41_TC-EQUIP-006_read-only-completed.jpg) · [read-only-cancelled](../screenshots/SPM-41_TC-EQUIP-006_read-only-cancelled.jpg)
 
 ---
 
@@ -254,7 +270,9 @@ This is the end-to-end case across both roles.
   `/staff/coordinator/events/999999` and compare. No equipment lines, no stated
   needs and no forms are shown.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (3/3 checks)
+
+**Screenshots:** [step2-unassigned-event](../screenshots/SPM-41_TC-EQUIP-007_step2-unassigned-event.jpg) · [compare-missing-event](../screenshots/SPM-41_TC-EQUIP-007_compare-missing-event.jpg)
 
 ---
 
@@ -274,7 +292,9 @@ This is the end-to-end case across both roles.
   Support Staff.* The Network tab shows **403** for the page request (SPM-16).
 - Neither screen shows any equipment, event or line.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (8/8 checks)
+
+**Screenshots:** [step1-technical-support-sees-list](../screenshots/SPM-41_TC-EQUIP-008_step1-technical-support-sees-list.jpg) · [step2-coordinator-access-denied](../screenshots/SPM-41_TC-EQUIP-008_step2-coordinator-access-denied.jpg) · [step3-venue-staff-access-denied](../screenshots/SPM-41_TC-EQUIP-008_step3-venue-staff-access-denied.jpg)
 
 ---
 
@@ -318,4 +338,6 @@ them without re-seeding.
   made in the earlier cases, each with *Test Coordinator* as the actor (AC18). The
   removal request and the undo are their own rows (AC11, AC17).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7afd371`, run in Chrome via Playwright by Claude for JameszLau (9/9 checks)
+
+**Screenshots:** 
