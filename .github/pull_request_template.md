@@ -23,6 +23,18 @@ Closes SPM-<!-- issue number. "Closes"/"Fixes" moves the Linear issue on merge; 
 
 - [ ]
 
+## Manual test results
+
+<!-- One row per manual case in docs/tests/manual-registry.csv that you ran for this change, by its
+     CaseID. Result is Pass, Fail, Blocked or Not Executed; a Fail or Blocked row fails the PR check.
+     Link screenshots or a recording under Evidence. When this PR merges, CI records each row against
+     it in docs/tests/manual-runs.csv -- don't edit that file by hand. Delete the section if no manual
+     case is affected. -->
+
+| CaseID | Result | Actual result | Remarks | Evidence |
+| --- | --- | --- | --- | --- |
+|  |  |  |  |  |
+
 ## Deploy Notes
 
 <!-- REQUIRED if this PR touches any of the below. Mark anything blocking with :warning:. Delete if none apply.
