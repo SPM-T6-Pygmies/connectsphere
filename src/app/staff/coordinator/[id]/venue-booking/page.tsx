@@ -15,7 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
+import {
+  buildViewVenueBookingOptions,
+  getCurrentCoordinator,
+} from "@/composition/container";
 import type {
   CoordinatorEventDetails,
   EventBookingSummary,
@@ -44,7 +47,11 @@ function eventTime(event: CoordinatorEventDetails): string | null {
     : null;
 }
 
-function BookingsTable({ bookings }: { bookings: readonly EventBookingSummary[] }) {
+function BookingsTable({
+  bookings,
+}: {
+  bookings: readonly EventBookingSummary[];
+}) {
   if (bookings.length === 0) {
     return (
       <EmptyState
@@ -59,7 +66,7 @@ function BookingsTable({ bookings }: { bookings: readonly EventBookingSummary[] 
       <TableHeader>
         <TableRow>
           <TableHead>Venue</TableHead>
-          <TableHead>Slots</TableHead>
+          <TableHead>Times</TableHead>
           <TableHead>Layout</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
@@ -67,9 +74,13 @@ function BookingsTable({ bookings }: { bookings: readonly EventBookingSummary[] 
       <TableBody>
         {bookings.map((booking) => (
           <TableRow key={booking.id}>
-            <TableCell className="font-medium">{booking.venueLocation}</TableCell>
+            <TableCell className="font-medium">
+              {booking.venueLocation}
+            </TableCell>
             <TableCell className="text-muted-foreground text-xs whitespace-normal">
-              {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
+              {booking.slots
+                .map(({ date, start, end }) => `${date} ${start}–${end}`)
+                .join(", ")}
             </TableCell>
             <TableCell className="text-muted-foreground">
               {booking.roomLayoutName ?? "—"}
@@ -101,7 +112,10 @@ export default async function VenueBookingPage({
   }
 
   const viewVenueBookingOptions = await buildViewVenueBookingOptions();
-  const result = await viewVenueBookingOptions.execute({ eventRequestId: id, ...coordinator });
+  const result = await viewVenueBookingOptions.execute({
+    eventRequestId: id,
+    ...coordinator,
+  });
   if (result === null) {
     notFound();
   }
@@ -172,10 +186,22 @@ export default async function VenueBookingPage({
                 fields={[
                   { label: "Preferred date", value: event.preferredDate },
                   { label: "Time", value: eventTime(event) },
-                  { label: "Expected attendance", value: event.expectedAttendance },
-                  { label: "Layout preference", value: event.roomLayoutPreference },
-                  { label: "Venue requirements", value: event.venueRequirements },
-                  { label: "Accessibility", value: event.accessibilityRequirements },
+                  {
+                    label: "Expected attendance",
+                    value: event.expectedAttendance,
+                  },
+                  {
+                    label: "Layout preference",
+                    value: event.roomLayoutPreference,
+                  },
+                  {
+                    label: "Venue requirements",
+                    value: event.venueRequirements,
+                  },
+                  {
+                    label: "Accessibility",
+                    value: event.accessibilityRequirements,
+                  },
                 ]}
               />
             </CardContent>

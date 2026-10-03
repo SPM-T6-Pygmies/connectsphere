@@ -1,12 +1,12 @@
-import { ArrowLeftIcon } from "lucide-react"
-import Link from "next/link"
-import { forbidden } from "next/navigation"
-import type { CSSProperties, ReactNode } from "react"
+import { ArrowLeftIcon } from "lucide-react";
+import Link from "next/link";
+import { forbidden } from "next/navigation";
+import type { CSSProperties, ReactNode } from "react";
 
-import { AppSidebar } from "@/components/app-sidebar"
-import { MobileQueue } from "@/components/mobile-queue"
-import { StaffBottomNav } from "@/components/staff-bottom-nav"
-import { StaffNotificationsProvider } from "@/components/staff-notifications"
+import { AppSidebar } from "@/components/app-sidebar";
+import { MobileQueue } from "@/components/mobile-queue";
+import { StaffBottomNav } from "@/components/staff-bottom-nav";
+import { StaffNotificationsProvider } from "@/components/staff-notifications";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,13 +14,13 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   buildViewAllEventCoordinators,
   buildViewAllEventRequests,
@@ -33,17 +33,17 @@ import {
   getCurrentOrganiser,
   getCurrentVenueStaff,
   getSignedInStaffMember,
-} from "@/composition/container"
+} from "@/composition/container";
 import {
   ROLE_LABELS,
   type ListPaneItem,
   type SidebarSection,
   type StaffRole,
-} from "@/lib/wireframe"
+} from "@/lib/wireframe";
 
-import { requestStateLabel } from "./coordinator/request-state-badge"
+import { requestStateLabel } from "./coordinator/request-state-badge";
 
-export { PageHeader } from "./page-header"
+export { PageHeader } from "./page-header";
 
 /**
  * The requester's own queue pane, from the same use case the "My event
@@ -51,13 +51,13 @@ export { PageHeader } from "./page-header"
  * `listPaneItems` still falls back to for every other role's queue.
  */
 async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
-  const organiser = await getCurrentOrganiser()
+  const organiser = await getCurrentOrganiser();
   if (organiser === null) {
-    return []
+    return [];
   }
 
-  const viewMyEventRequests = await buildViewMyEventRequests()
-  const { eventRequests } = await viewMyEventRequests.execute(organiser)
+  const viewMyEventRequests = await buildViewMyEventRequests();
+  const { eventRequests } = await viewMyEventRequests.execute(organiser);
 
   return eventRequests.map((request) => ({
     id: request.id,
@@ -69,24 +69,29 @@ async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
     meta: request.preferredDate ?? "No date",
     teaser: request.description ?? "Nothing filled in yet.",
     status: request.status,
-  }))
+  }));
 }
 
 async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
   const [viewAllEventRequests, viewAllEventCoordinators] = await Promise.all([
     buildViewAllEventRequests(),
     buildViewAllEventCoordinators(),
-  ])
+  ]);
   const [{ eventRequests }, { eventCoordinators }] = await Promise.all([
     viewAllEventRequests.execute(),
     viewAllEventCoordinators.execute(),
-  ])
+  ]);
   const coordinatorNames = new Map(
-    eventCoordinators.map((coordinator) => [coordinator.userAccountId, coordinator.name]),
-  )
+    eventCoordinators.map((coordinator) => [
+      coordinator.userAccountId,
+      coordinator.name,
+    ]),
+  );
 
   return eventRequests
-    .filter((request) => request.queue === (assigned ? "assigned" : "unassigned"))
+    .filter(
+      (request) => request.queue === (assigned ? "assigned" : "unassigned"),
+    )
     .map((request) => ({
       id: request.id,
       href: `/staff/ops/${request.id}`,
@@ -95,10 +100,10 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
       teaser:
         request.assignedCoordinatorUserAccountId === null
           ? "No coordinator assigned yet."
-          : coordinatorNames.get(request.assignedCoordinatorUserAccountId) ??
-            "Coordinator assigned",
+          : (coordinatorNames.get(request.assignedCoordinatorUserAccountId) ??
+            "Coordinator assigned"),
       status: request.status,
-    }))
+    }));
 }
 
 /**
@@ -109,13 +114,14 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
  * status -- see `requestStateLabel`.
  */
 async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
-  const coordinator = await getCurrentCoordinator()
+  const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    return []
+    return [];
   }
 
-  const viewAssignedEventRequests = await buildViewAssignedEventRequests()
-  const { eventRequests } = await viewAssignedEventRequests.execute(coordinator)
+  const viewAssignedEventRequests = await buildViewAssignedEventRequests();
+  const { eventRequests } =
+    await viewAssignedEventRequests.execute(coordinator);
 
   return eventRequests.map((request) => ({
     id: request.id,
@@ -124,18 +130,19 @@ async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
     meta: request.preferredDate ?? "No date",
     teaser: request.clientOrganisationName,
     status: requestStateLabel(request.state),
-  }))
+  }));
 }
 
 /** The coordinator's Archive pane, from the same use case the Archive page reads. */
 async function getQueueItemsForCoordinatorArchive(): Promise<ListPaneItem[]> {
-  const coordinator = await getCurrentCoordinator()
+  const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    return []
+    return [];
   }
 
-  const viewArchivedEventRequests = await buildViewArchivedEventRequests()
-  const { eventRequests } = await viewArchivedEventRequests.execute(coordinator)
+  const viewArchivedEventRequests = await buildViewArchivedEventRequests();
+  const { eventRequests } =
+    await viewArchivedEventRequests.execute(coordinator);
 
   return eventRequests.map((request) => ({
     id: request.id,
@@ -144,18 +151,18 @@ async function getQueueItemsForCoordinatorArchive(): Promise<ListPaneItem[]> {
     meta: request.preferredDate ?? "No date",
     teaser: request.clientOrganisationName,
     status: requestStateLabel(request.state),
-  }))
+  }));
 }
 
 /** The coordinator's "My events" queue pane, from the same use case the page reads (SPM-137). */
 async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
-  const coordinator = await getCurrentCoordinator()
+  const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    return []
+    return [];
   }
 
-  const viewAssignedEvents = await buildViewAssignedEvents()
-  const { events } = await viewAssignedEvents.execute(coordinator)
+  const viewAssignedEvents = await buildViewAssignedEvents();
+  const { events } = await viewAssignedEvents.execute(coordinator);
 
   return events.map((event) => ({
     id: event.id,
@@ -168,30 +175,35 @@ async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
     meta: event.preferredDate ?? "No date",
     teaser: event.clientOrganisationName,
     status: event.status,
-  }))
+  }));
 }
 
 /**
  * Venue Staff's queue pane for one of their three lists, from the same use
  * case the pages read -- real booking requests, not the wireframe fixtures.
  */
-async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneItem[]> {
-  const staff = await getCurrentVenueStaff()
+async function getQueueItemsForVenue(
+  section: VenueSection,
+): Promise<ListPaneItem[]> {
+  const staff = await getCurrentVenueStaff();
   if (staff === null) {
-    return []
+    return [];
   }
 
-  const reviewBookingRequests = await buildReviewBookingRequests()
-  const bookings = await reviewBookingRequests.list(staff.userAccountId, section)
+  const reviewBookingRequests = await buildReviewBookingRequests();
+  const bookings = await reviewBookingRequests.list(
+    staff.userAccountId,
+    section,
+  );
 
   return bookings.map((booking) => ({
     id: booking.id,
     href: `/staff/venue/${booking.id}`,
     title: booking.venueLocation,
     meta: booking.slots[0]?.date ?? "No date",
-    teaser: `${booking.event.name} · ${booking.slots.map(({ slot }) => slot).join(" + ")}`,
+    teaser: `${booking.event.name} · ${booking.slots.map(({ start, end }) => `${start}–${end}`).join(" + ")}`,
     status: booking.status,
-  }))
+  }));
 }
 
 async function getRespectiveQueueItems(
@@ -201,12 +213,12 @@ async function getRespectiveQueueItems(
   venueSection: VenueSection | undefined,
 ): Promise<ListPaneItem[] | undefined> {
   if (role === "requester") {
-    return getQueueItemsForRequester()
+    return getQueueItemsForRequester();
   }
 
   if (role === "ops") {
-    const assigned = crumbs.some((crumb) => crumb.label === "Assigned")
-    return getQueueItemsForOps(assigned)
+    const assigned = crumbs.some((crumb) => crumb.label === "Assigned");
+    return getQueueItemsForOps(assigned);
   }
 
   if (role === "coordinator") {
@@ -214,27 +226,27 @@ async function getRespectiveQueueItems(
       ? getQueueItemsForCoordinatorEvents()
       : coordinatorSection === "archive"
         ? getQueueItemsForCoordinatorArchive()
-        : getQueueItemsForCoordinatorRequests()
+        : getQueueItemsForCoordinatorRequests();
   }
 
   // Only Venue Staff's three booking lists have rows here; their catalogue and
   // inbox screens pass no section and keep the fallback.
   if (role === "venue" && venueSection !== undefined) {
-    return getQueueItemsForVenue(venueSection)
+    return getQueueItemsForVenue(venueSection);
   }
 
-  return undefined
+  return undefined;
 }
 
 /** Which of Venue Staff's lists to fill: requests to decide, decided bookings, or the archive. */
-export type VenueSection = "requests" | "decided" | "archive"
+export type VenueSection = "requests" | "decided" | "archive";
 
 /** Which of the coordinator's panes to fill: their open requests, their events, or their archive. */
-export type CoordinatorSection = "requests" | "events" | "archive"
+export type CoordinatorSection = "requests" | "events" | "archive";
 
 export interface Crumb {
-  readonly label: string
-  readonly href?: string
+  readonly label: string;
+  readonly href?: string;
 }
 
 /**
@@ -253,10 +265,10 @@ export async function StaffShell({
   coordinatorSection = "requests",
   venueSection,
 }: {
-  role: StaffRole
-  crumbs: readonly Crumb[]
+  role: StaffRole;
+  crumbs: readonly Crumb[];
   /** Overrides path-based section inference for details loaded from real data. */
-  activeSection?: SidebarSection
+  activeSection?: SidebarSection;
   /**
    * Whether the list pane starts open.
    *
@@ -265,32 +277,40 @@ export async function StaffShell({
    * Detail and inbox screens keep it, because there the pane is how you get
    * to the next thing. The header trigger overrides either way.
    */
-  defaultOpen?: boolean
-  children: ReactNode
-  coordinatorSection?: CoordinatorSection
-  venueSection?: VenueSection
+  defaultOpen?: boolean;
+  children: ReactNode;
+  coordinatorSection?: CoordinatorSection;
+  venueSection?: VenueSection;
 }) {
   // Every staff screen renders inside this shell, so this is where a signed-in
   // user who does not hold the screen's role is denied access -- before any
   // queue is read on their behalf.
-  const member = await getSignedInStaffMember()
+  const member = await getSignedInStaffMember();
   if (member === null || !member.workspaces.includes(role)) {
-    forbidden()
+    forbidden();
   }
 
-  const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection, venueSection)
+  const queueItems = await getRespectiveQueueItems(
+    role,
+    crumbs,
+    coordinatorSection,
+    venueSection,
+  );
 
   // Detail screens route through `detailCrumbs`, which always gives two crumbs
   // with an href on the first; index screens give one with none. So the crumbs
   // already say both "is this a detail route" and where back goes -- and they
   // distinguish a record opened from its queue from the same record opened
   // from the inbox, which is what makes the arrow land where it came from.
-  const backHref = crumbs.length > 1 ? crumbs.at(-2)?.href : undefined
+  const backHref = crumbs.length > 1 ? crumbs.at(-2)?.href : undefined;
 
   const inbox =
     member.subscriberHash === null
       ? null
-      : { subscriberId: member.subscriberId, subscriberHash: member.subscriberHash }
+      : {
+          subscriberId: member.subscriberId,
+          subscriberHash: member.subscriberHash,
+        };
 
   return (
     <StaffNotificationsProvider role={role} inbox={inbox}>
@@ -372,5 +392,5 @@ export async function StaffShell({
         <StaffBottomNav role={role} />
       </SidebarProvider>
     </StaffNotificationsProvider>
-  )
+  );
 }

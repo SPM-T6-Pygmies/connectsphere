@@ -7,10 +7,13 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOOKING_SLOTS, type BookingSlot } from "@/core/domain/booking";
+import { gridTimes } from "@/core/domain/booking";
 import type { Venue } from "@/core/use-cases/view-venue-booking-options";
 
-import { submitVenueBookingRequestAction, type SubmitVenueBookingRequestState } from "./actions";
+import {
+  submitVenueBookingRequestAction,
+  type SubmitVenueBookingRequestState,
+} from "./actions";
 
 const INITIAL: SubmitVenueBookingRequestState = { status: "idle" };
 
@@ -20,7 +23,16 @@ const SELECT_CLASS =
 interface DateRow {
   readonly key: number;
   readonly date: string;
-  readonly slots: readonly BookingSlot[];
+  readonly start: string;
+  readonly end: string;
+}
+
+/** Without opening hours on record the grid covers the whole day. */
+function timesFor(venue: Venue | undefined): string[] {
+  return gridTimes(
+    venue?.operatingHoursStart ?? "00:00",
+    venue?.operatingHoursEnd ?? "24:00",
+  );
 }
 
 function venueMeta(venue: Venue): string {
@@ -38,9 +50,37 @@ function defaultLayout(venue: Venue | undefined): string {
   return venue?.layouts.length === 1 ? venue.layouts[0].name : "";
 }
 
+function TimeSelect({
+  label,
+  value,
+  times,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  times: readonly string[];
+  onChange: (time: string) => void;
+}) {
+  return (
+    <select
+      aria-label={label}
+      value={value}
+      onChange={(change) => onChange(change.target.value)}
+      className={`${SELECT_CLASS} w-auto`}
+    >
+      <option value="">--:--</option>
+      {times.map((time) => (
+        <option key={time} value={time}>
+          {time}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 /**
- * SPM-46 / SPM-104: one venue, its layout, and one or more slots on one or
- * more days. Every field is held in state, so a refused request keeps what
+ * SPM-46 / SPM-104: one venue, its layout, and a start and end time, on the
+ * quarter hour and within the venue's hours, on one or more days. Every field is held in state, so a refused request keeps what
  * was chosen. The server decides everything -- a clash, a missing layout --
  * and this only keeps the Submit button honest.
  */
@@ -55,14 +95,17 @@ export function BookingRequestForm({
   defaultDate: string | null;
   venues: readonly Venue[];
 }) {
-  const [state, formAction, pending] = useActionState(submitVenueBookingRequestAction, INITIAL);
+  const [state, formAction, pending] = useActionState(
+    submitVenueBookingRequestAction,
+    INITIAL,
+  );
   const idPrefix = useId();
 
   const [venueId, setVenueId] = useState("");
   const [layout, setLayout] = useState("");
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<readonly DateRow[]>([
-    { key: 0, date: defaultDate ?? "", slots: [] },
+    { key: 0, date: defaultDate ?? "", start: "", end: "" },
   ]);
 
   // A sent request starts the form afresh -- its row is in the list below now.
@@ -73,17 +116,22 @@ export function BookingRequestForm({
     setClearedFor(state.bookingId);
     setVenueId("");
     setLayout("");
-    setRows([{ key: 0, date: defaultDate ?? "", slots: [] }]);
+    setRows([{ key: 0, date: defaultDate ?? "", start: "", end: "" }]);
     setNextKey(1);
   }
 
   const venue = venues.find((candidate) => candidate.id === venueId);
   const needsLayoutChoice = (venue?.layouts.length ?? 0) > 1;
+  const times = timesFor(venue);
   const chosenSlots = rows.flatMap((row) =>
-    row.date === "" ? [] : row.slots.map((slot) => `${row.date}|${slot}`),
+    row.date === "" || row.start === "" || row.end === ""
+      ? []
+      : [`${row.date}|${row.start}|${row.end}`],
   );
   const canSubmit =
-    venue !== undefined && chosenSlots.length > 0 && (!needsLayoutChoice || layout !== "");
+    venue !== undefined &&
+    chosenSlots.length > 0 &&
+    (!needsLayoutChoice || layout !== "");
 
   function chooseVenue(id: string) {
     setVenueId(id);
@@ -91,19 +139,16 @@ export function BookingRequestForm({
   }
 
   function updateRow(key: number, change: Partial<Omit<DateRow, "key">>) {
-    setRows((current) => current.map((row) => (row.key === key ? { ...row, ...change } : row)));
-  }
-
-  function toggleSlot(row: DateRow, slot: BookingSlot) {
-    updateRow(row.key, {
-      slots: row.slots.includes(slot)
-        ? row.slots.filter((candidate) => candidate !== slot)
-        : BOOKING_SLOTS.filter((candidate) => candidate === slot || row.slots.includes(candidate)),
-    });
+    setRows((current) =>
+      current.map((row) => (row.key === key ? { ...row, ...change } : row)),
+    );
   }
 
   function addRow() {
-    setRows((current) => [...current, { key: nextKey, date: "", slots: [] }]);
+    setRows((current) => [
+      ...current,
+      { key: nextKey, date: "", start: "", end: "" },
+    ]);
     setNextKey((key) => key + 1);
   }
 
@@ -132,9 +177,14 @@ export function BookingRequestForm({
       <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <input type="hidden" name="roomLayout" value={layout} />
       {chosenSlots.map((value, index) => (
-        // Keyed by position: two rows on the same day can repeat a slot, and
-        // the server, not a duplicate-key collision here, should refuse that.
-        <input key={`${index}-${value}`} type="hidden" name="slot" value={value} />
+        // Keyed by position: two rows on the same day can overlap, and the
+        // server, not a duplicate-key collision here, should refuse that.
+        <input
+          key={`${index}-${value}`}
+          type="hidden"
+          name="slot"
+          value={value}
+        />
       ))}
 
       <fieldset className="space-y-5" disabled={pending}>
@@ -170,11 +220,15 @@ export function BookingRequestForm({
               </p>
             ) : venue.layouts.length === 1 ? (
               <p className="text-muted-foreground text-xs">
-                {venue.layouts[0].name} (holds {venue.layouts[0].capacity}) — the only layout this
-                venue supports.
+                {venue.layouts[0].name} (holds {venue.layouts[0].capacity}) —
+                the only layout this venue supports.
               </p>
             ) : (
-              <div role="radiogroup" aria-labelledby={`${idPrefix}-layout`} className="grid gap-2 sm:grid-cols-2">
+              <div
+                role="radiogroup"
+                aria-labelledby={`${idPrefix}-layout`}
+                className="grid gap-2 sm:grid-cols-2"
+              >
                 {venue.layouts.map((option) => (
                   <label
                     key={option.name}
@@ -189,7 +243,10 @@ export function BookingRequestForm({
                     />
                     <span className="text-sm">
                       <span className="font-medium">{option.name}</span>
-                      <span className="text-muted-foreground"> · holds {option.capacity}</span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        · holds {option.capacity}
+                      </span>
                     </span>
                   </label>
                 ))}
@@ -199,41 +256,53 @@ export function BookingRequestForm({
         ) : null}
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Dates and slots</p>
+          <p className="text-sm font-medium">Dates and times</p>
           {rows.map((row, index) => (
             <div
               key={row.key}
               className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border p-3"
             >
-              <Label htmlFor={`${idPrefix}-date-${row.key}`} className="sr-only">
+              <Label
+                htmlFor={`${idPrefix}-date-${row.key}`}
+                className="sr-only"
+              >
                 Date {index + 1}
               </Label>
               <Input
                 id={`${idPrefix}-date-${row.key}`}
                 type="date"
                 value={row.date}
-                onChange={(change) => updateRow(row.key, { date: change.target.value })}
+                onChange={(change) =>
+                  updateRow(row.key, { date: change.target.value })
+                }
                 className="w-auto"
               />
-              <div className="flex gap-4" role="group" aria-label={`Slots on date ${index + 1}`}>
-                {BOOKING_SLOTS.map((slot) => (
-                  <label key={slot} className="flex items-center gap-1.5 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={row.slots.includes(slot)}
-                      onChange={() => toggleSlot(row, slot)}
-                    />
-                    {slot}
-                  </label>
-                ))}
-              </div>
+              <TimeSelect
+                label={`Start time, date ${index + 1}`}
+                value={row.start}
+                times={times.slice(0, -1)}
+                onChange={(start) => updateRow(row.key, { start })}
+              />
+              <span aria-hidden>to</span>
+              <TimeSelect
+                label={`End time, date ${index + 1}`}
+                value={row.end}
+                times={times.filter(
+                  (time) => row.start === "" || time > row.start,
+                )}
+                onChange={(end) => updateRow(row.key, { end })}
+              />
               {rows.length > 1 ? (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className="ml-auto"
-                  onClick={() => setRows((current) => current.filter((r) => r.key !== row.key))}
+                  onClick={() =>
+                    setRows((current) =>
+                      current.filter((r) => r.key !== row.key),
+                    )
+                  }
                   aria-label={`Remove date ${index + 1}`}
                 >
                   <XIcon aria-hidden />
@@ -259,7 +328,8 @@ export function BookingRequestForm({
         <Alert role="status">
           <CircleCheck aria-hidden />
           <AlertTitle>
-            Booking request sent for {state.venueLocation}. Venue Staff will review it.
+            Booking request sent for {state.venueLocation}. Venue Staff will
+            review it.
           </AlertTitle>
         </Alert>
       ) : null}
