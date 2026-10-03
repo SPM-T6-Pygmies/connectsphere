@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import type { Novu } from "@novu/api";
+import { describe, expect, it, vi } from "vitest";
 
-import { triggerFailure } from "./novu-notifier";
+import { NovuNotifier, triggerFailure } from "./novu-notifier";
 
 describe("triggerFailure (SPM-173)", () => {
   it("accepts a trigger Novu acknowledged and processed", () => {
@@ -19,5 +20,40 @@ describe("triggerFailure (SPM-173)", () => {
 
   it("reports a trigger Novu did not acknowledge", () => {
     expect(triggerFailure({ acknowledged: false, status: "error" })).toBe("error");
+  });
+});
+
+describe("NovuNotifier (SPM-178)", () => {
+  const notice = {
+    recipientUserAccountId: "2",
+    eventRequestId: "10",
+    eventName: "Quarterly Partner Forum",
+    clientOrganisationName: null,
+    preferredDate: null,
+    preferredStartTime: null,
+    preferredEndTime: null,
+  };
+
+  function novuThatAccepts() {
+    const trigger = vi.fn().mockResolvedValue({ result: { acknowledged: true, status: "processed" } });
+    return { novu: { trigger } as unknown as Novu, trigger };
+  }
+
+  it("sends to the recipient's own subscriber on a deployment", async () => {
+    const { novu, trigger } = novuThatAccepts();
+
+    await new NovuNotifier(novu).eventCoordinatorAssigned(notice);
+
+    expect(trigger).toHaveBeenCalledWith(expect.objectContaining({ to: "2" }));
+  });
+
+  it("sends to the developer's own prefixed subscriber locally", async () => {
+    const { novu, trigger } = novuThatAccepts();
+
+    await new NovuNotifier(novu, "https://tunnel.novu.sh/api/novu", "sam-").eventCoordinatorAssigned(
+      notice,
+    );
+
+    expect(trigger).toHaveBeenCalledWith(expect.objectContaining({ to: "sam-2" }));
   });
 });
