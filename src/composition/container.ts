@@ -6,6 +6,7 @@ import {
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
+import { SupabaseEquipmentRecheckRepository } from "@/adapters/outbound/supabase/supabase-equipment-recheck-repository";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/supabase-event-readiness-repository";
@@ -45,6 +46,7 @@ import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
+import { ListEquipmentRechecksUseCase } from "@/core/use-cases/list-equipment-rechecks";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
@@ -198,6 +200,26 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
 export async function getCurrentCoordinator(): Promise<{ readonly userAccountId: string } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.coordinator ?? null;
+}
+
+/**
+ * Who Technical Support's screens are acting as: the signed-in Technical
+ * Support Staff member (SPM-41 AC16).
+ *
+ * `null` covers every case that isn't one -- no session, no matching
+ * `user_account`, or no Technical Support Staff role -- so callers refuse the
+ * page rather than show the re-check list. Same shape as `getCurrentCoordinator`.
+ */
+export async function getCurrentTechnicalSupport(): Promise<{ readonly userAccountId: string } | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.technicalSupport ?? null;
+}
+
+/** SPM-41 AC15: the equipment lines Technical Support Staff must re-check. */
+export async function buildListEquipmentRechecks(): Promise<ListEquipmentRechecksUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ListEquipmentRechecksUseCase({ rechecks: new SupabaseEquipmentRecheckRepository(client) });
 }
 
 async function coordinatorAdapters(): Promise<{
