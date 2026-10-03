@@ -8,7 +8,13 @@ against the real app and database. The rules behind the screens are unit-tested
 the pages show the right thing, that the warning appears before a reserved line is
 saved, and that a change made by the coordinator reaches Technical Support.
 
-The cases are registered as `MT-0035`–`MT-0042` in
+A reserved line the coordinator changes, or asks to remove, goes from **Reserved**
+to **Under review**: the screens show this as the **Needs re-check** badge, and it
+is what puts the line on Technical Support's list. TC-EQUIP-009 checks the state
+itself in the database. The access-denied screen in TC-EQUIP-008 comes from SPM-16
+([`ACCESS_DENIED_MANUAL_TESTS.md`](ACCESS_DENIED_MANUAL_TESTS.md)).
+
+The cases are registered as `MT-0035`–`MT-0043` in
 [`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them, tick
 the boxes below **and** set `Status`, `ExecutedBy` and `LastPassedDate` on the
 matching rows. CI cannot verify a manual case for you.
@@ -48,6 +54,7 @@ Password for both: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.
 | --- | --- | --- |
 | `coordinator@test.com` | Event Coordinator | Recording, editing and removing lines |
 | `support@test.com` | Technical Support Staff | The "Needs re-check" list |
+| `venue@test.com` | Venue Staff | Being refused the list (TC-EQUIP-008) |
 
 ### The seeded event
 
@@ -162,6 +169,8 @@ This is the end-to-end case across both roles.
 - Step 4: **Needs re-check** lists *Founders' Gala Dinner* (with its date),
   *Projector*, Requested **3**, Reserved **2**, marked **Changed** (AC15).
 - No other line is on the list.
+- In the database, the Projector's `line_state` is now `Under review` and its
+  `quantity_reserved` is still `2` (query in TC-EQUIP-009).
 
 **Status:** [ ] Pass [ ] Fail
 
@@ -190,6 +199,8 @@ This is the end-to-end case across both roles.
   *Reserved 2* remain, and Edit and Remove are offered again (AC17).
 - Step 6: the list shows Projector again, marked **Changed**, not Removal requested
   (AC15, AC17).
+- In the database, after step 2 and again after step 5, the Projector's `line_state`
+  is `Under review`: undoing the removal does not put it back to `Reserved`.
 
 **Status:** [ ] Pass [ ] Fail
 
@@ -256,7 +267,56 @@ This is the end-to-end case across both roles.
 
 **Expected Result:**
 - Step 1: **Needs re-check** is shown, read-only (no buttons on its rows).
-- Steps 2 and 3: no list. The page is refused: the "not found" page on this branch,
-  and the access-denied screen with a 403 once SPM-16's change is in the branch.
+- Steps 2 and 3: no list. Each shows the access-denied screen: the heading *You
+  don’t have access to this page.* and *Please contact your respective Technical
+  Support Staff.* The Network tab shows **403** for the page request (SPM-16).
+- Neither screen shows any equipment, event or line.
+
+(An event that is not the coordinator's own stays "not found", as TC-EQUIP-007
+checks: AC14 asks for that on the equipment page itself.)
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-EQUIP-009: The line's state and the audit trail are recorded (AC8, AC11, AC17, AC18)
+
+Checks the database after TC-EQUIP-003 to TC-EQUIP-005, so run it straight after
+them without re-seeding.
+
+**Preconditions:** TC-EQUIP-001 to TC-EQUIP-005 have been run in order.
+
+**Steps:**
+1. Read the lines of the event:
+   ```sql
+   select i.type, l.line_state, l.quantity_requested, l.quantity_reserved,
+          l.removal_requested_at is not null as removal_requested
+     from equipment_reservation_line l
+     join equipment_item i using (equipment_item_id)
+     join equipment_reservation r using (equipment_reservation_id)
+     join event e on e.event_id = r.event_id
+    where e.name = 'Founders'' Gala Dinner'
+    order by i.type;
+   ```
+2. Read what was recorded about the changes:
+   ```sql
+   select a.action, u.name as actor, a.occurred_at
+     from audit_record a
+     left join user_account u on u.user_account_id = a.actor_user_account_id
+     join equipment_reservation r on r.equipment_reservation_id = a.entity_id
+     join event e on e.event_id = r.event_id
+    where a.entity_type = 'equipment_reservation'
+      and e.name = 'Founders'' Gala Dinner'
+    order by a.occurred_at;
+   ```
+
+**Expected Result:**
+- Step 1: **Projector** is `Under review` with `quantity_requested` 3 and
+  `quantity_reserved` 2 (AC8, AC17). Lines nothing was reserved against, such as
+  Livestream kit, are `Requested`. No line is `Reserved` and changed at the same
+  time: a changed reserved line is always `Under review` (AC8).
+- Step 2: one row for every add, edit, removal request, removal undone and delete
+  made in the earlier cases, each with *Test Coordinator* as the actor (AC18). The
+  removal request and the undo are their own rows (AC11, AC17).
 
 **Status:** [ ] Pass [ ] Fail
