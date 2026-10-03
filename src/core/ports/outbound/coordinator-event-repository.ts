@@ -1,4 +1,4 @@
-import type { CoordinatorEventStatus } from "../../domain/coordinator-event";
+import type { CoordinatorEvent, CoordinatorEventStatus } from "../../domain/coordinator-event";
 import type { UserAccountId } from "../../domain/user-account";
 
 /**
@@ -46,4 +46,13 @@ export interface CoordinatorEventRepository {
     coordinatorId: UserAccountId,
     eventRequestId: string,
   ): Promise<CoordinatorEventDetails | null>;
+
+  /** The event with this id if it is assigned to this coordinator; `null` otherwise, whether it is someone else's or does not exist (#91). */
+  findAssignedById(
+    coordinatorId: UserAccountId,
+    id: CoordinatorEvent["id"],
+  ): Promise<CoordinatorEvent | null>;
+
+  /** SPM-50: persists the event's confirmation. `confirmedBy` is who confirmed it, for the audit trail. */
+  confirmEvent(event: CoordinatorEvent, confirmedBy: UserAccountId): Promise<void>;
 }

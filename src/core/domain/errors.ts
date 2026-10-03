@@ -415,6 +415,19 @@ export class BookingNotDecidableError extends DomainError {
 }
 
 /**
+ * SPM-50: only an event in `Planning` can be confirmed -- `Blocked`,
+ * `Confirmed`, `Completed` and `Cancelled` all refuse, each for its own
+ * reason the ticket and schema leave undefined beyond "not Planning".
+ */
+export class EventNotConfirmableError extends DomainError {
+  readonly code = "event_not_confirmable";
+
+  constructor(readonly status: string) {
+    super(`An event with status ${status} cannot be confirmed.`);
+  }
+}
+
+/**
  * SPM-33 AC2: a clarification can only be requested on a request that is still
  * pre-decision -- `Submitted`, `Under Review`, or already `Returned` (decision
  * 5: a request can be returned more than once, with or without a Resolve in
@@ -429,6 +442,23 @@ export class EventRequestNotReturnableError extends DomainError {
 
   constructor() {
     super("This event request can no longer be returned for clarification.");
+  }
+}
+
+/**
+ * SPM-50 AC1: confirmation is blocked while an essential arrangement is
+ * incomplete, and the incomplete ones are named -- carries the list rather
+ * than a rendered sentence, the same choice `IncompleteEventRequestError`
+ * already makes for the same reason.
+ */
+export class EventNotReadyForConfirmationError extends DomainError {
+  readonly code = "event_not_ready_for_confirmation";
+
+  constructor(readonly blockingArrangements: readonly string[]) {
+    super(
+      `This event cannot be confirmed: ${blockingArrangements.join(", ")} ` +
+        `${blockingArrangements.length === 1 ? "is" : "are"} not complete.`,
+    );
   }
 }
 
