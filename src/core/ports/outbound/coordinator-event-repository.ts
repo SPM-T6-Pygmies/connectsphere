@@ -1,4 +1,4 @@
-import type { CoordinatorEventStatus } from "../../domain/coordinator-event";
+import type { CoordinatorEvent, CoordinatorEventStatus } from "../../domain/coordinator-event";
 import type { UserAccountId } from "../../domain/user-account";
 
 /**
@@ -19,4 +19,10 @@ export interface AssignedEventSummary {
 /** Driven port: events, scoped the way a coordinator is allowed to see them. */
 export interface CoordinatorEventRepository {
   listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly AssignedEventSummary[]>;
+
+  /** A single event, or `null` if there is none with this id. Scoping to the caller is the use case's job, not this lookup's. */
+  findById(id: CoordinatorEvent["id"]): Promise<CoordinatorEvent | null>;
+
+  /** SPM-50: persists the event's confirmation. `confirmedBy` is who confirmed it, for the audit trail. */
+  confirmEvent(event: CoordinatorEvent, confirmedBy: UserAccountId): Promise<void>;
 }

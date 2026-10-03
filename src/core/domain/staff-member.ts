@@ -98,6 +98,20 @@ export function organiserContextFor(member: StaffMember): OrganiserContext | nul
   };
 }
 
+/** Who a member of staff acts as on Technical Support's screens. */
+export interface TechnicalSupportContext {
+  readonly userAccountId: UserAccountId;
+}
+
+/** Who a member of staff acts as on Technical Support's screens: only Technical Support Staff (SPM-41 AC16). */
+export function technicalSupportContextFor(member: StaffMember): TechnicalSupportContext | null {
+  if (!member.roles.includes("Technical Support Staff")) {
+    return null;
+  }
+
+  return { userAccountId: member.userAccountId };
+}
+
 /**
  * Where a member of staff denied a page is sent back to: their landing
  * workspace, provided they can actually open it (SPM-16 AC5). An Organiser

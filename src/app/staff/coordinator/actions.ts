@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { confirmEventSchema } from "@/adapters/inbound/confirm-event-schema";
 import { decideEventRequestSchema } from "@/adapters/inbound/decide-event-request-schema";
 import { postClarificationMessageSchema } from "@/adapters/inbound/post-clarification-message-schema";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/adapters/inbound/request-clarification-schema";
 import { withdrawEventRequestSchema } from "@/adapters/inbound/withdraw-event-request-schema";
 import {
+  buildConfirmEvent,
   buildDecideEventRequest,
   buildPostCoordinatorClarificationMessage,
   buildRequestClarification,
@@ -17,7 +19,7 @@ import {
   buildWithdrawEventRequest,
   getCurrentCoordinator,
 } from "@/composition/container";
-import { DomainError, EventRequestNotFoundError } from "@/core/domain/errors";
+import { DomainError, EventNotFoundError, EventRequestNotFoundError } from "@/core/domain/errors";
 
 export type DecideEventRequestState =
   | { status: "idle" }
@@ -71,6 +73,50 @@ export async function decideEventRequestAction(
   revalidatePath("/staff/coordinator", "layout");
 
   return { status: "decided" };
+}
+
+export type ConfirmEventState =
+  | { status: "idle" }
+  | { status: "confirmed" }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-50: the assigned Event Coordinator confirms an event.
+ *
+ * The page already computes and disables the button when something essential
+ * is incomplete -- this action's own check is defence against a change that
+ * landed between that read and this submit, not the primary way a coordinator
+ * finds out what's blocking.
+ */
+export async function confirmEventAction(
+  _previous: ConfirmEventState,
+  formData: FormData,
+): Promise<ConfirmEventState> {
+  const parsed = confirmEventSchema.safeParse({ id: String(formData.get("id") ?? "") });
+
+  if (!parsed.success) {
+    return { status: "error", message: "The event is missing." };
+  }
+
+  try {
+    // Same not-found-shaped scoping as deciding a request (#91).
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new EventNotFoundError(parsed.data.id);
+    }
+
+    const confirmEvent = await buildConfirmEvent();
+    await confirmEvent.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "confirmed" };
 }
 
 export type ClarificationComposerState =

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { toAssignedEventSummary, type CoordinatorEventRow } from "./coordinator-event-mapper";
+import {
+  toAssignedEventSummary,
+  toCoordinatorEvent,
+  type CoordinatorEventRecordRow,
+  type CoordinatorEventRow,
+} from "./coordinator-event-mapper";
 
 describe("coordinator event mapper (SPM-137)", () => {
   const row: CoordinatorEventRow = {
@@ -34,5 +39,30 @@ describe("coordinator event mapper (SPM-137)", () => {
 
   it("leaves an organisation the name lookup did not return unnamed, rather than failing", () => {
     expect(toAssignedEventSummary(row, new Map()).clientOrganisationName).toBe("");
+  });
+});
+
+describe("toCoordinatorEvent (SPM-186)", () => {
+  const record: CoordinatorEventRecordRow = {
+    event_id: 5,
+    name: "Operations Roadmap Conference",
+    description: null,
+    status: "Planning",
+    preferred_date: "2026-11-20",
+    expected_attendance: 120,
+    equipment_requirements: "Two projectors and a stage microphone.",
+    client_organisation_id: 1,
+    owning_organiser_user_account_id: 7,
+    assigned_coordinator_user_account_id: 2,
+  };
+
+  it("AC6: carries the Organiser's stated equipment needs from the event row", () => {
+    expect(toCoordinatorEvent(record).statedEquipmentNeeds).toBe(
+      "Two projectors and a stage microphone.",
+    );
+  });
+
+  it("AC6: maps an event with no stated equipment needs to none", () => {
+    expect(toCoordinatorEvent({ ...record, equipment_requirements: null }).statedEquipmentNeeds).toBeNull();
   });
 });
