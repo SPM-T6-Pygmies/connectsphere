@@ -37,7 +37,7 @@ const STATUSES: readonly BookingStatus[] = [
 ];
 
 // Data crossing inward is untrusted too, even from our own database.
-function toStatus(raw: string): BookingStatus {
+export function toStatus(raw: string): BookingStatus {
   const status = STATUSES.find((candidate) => candidate === raw);
   if (status === undefined) {
     throw new Error(`Unknown booking status "${raw}" in the booking table.`);
@@ -45,7 +45,7 @@ function toStatus(raw: string): BookingStatus {
   return status;
 }
 
-function toSlot(raw: string): BookingSlot {
+export function toSlot(raw: string): BookingSlot {
   const slot = BOOKING_SLOTS.find((candidate) => candidate === raw);
   if (slot === undefined) {
     throw new Error(`Unknown booking slot "${raw}" in the booking_slot table.`);
@@ -54,7 +54,7 @@ function toSlot(raw: string): BookingSlot {
 }
 
 /** `date` columns arrive as `YYYY-MM-DD`; keep only that, whatever else comes with it. */
-function toDate(raw: string): string {
+export function toDate(raw: string): string {
   return raw.slice(0, 10);
 }
 
