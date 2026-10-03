@@ -219,7 +219,7 @@ export async function BookingDetail({
               <CardTitle>Decision</CardTitle>
               <CardDescription>
                 Approving confirms this booking and holds the venue for the
-                slots above. Nothing else can take them.
+                times above. Nothing else can take them.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

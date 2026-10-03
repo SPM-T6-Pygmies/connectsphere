@@ -341,7 +341,7 @@ export class NoBookingSlotsError extends DomainError {
   readonly code = "no_booking_slots";
 
   constructor() {
-    super("Choose at least one slot to book.");
+    super("Choose at least one date and time to book.");
   }
 }
 
