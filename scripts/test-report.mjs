@@ -25,18 +25,37 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TESTS_DIR = path.join(ROOT, "docs", "tests");
 const REGISTRY = path.join(TESTS_DIR, "test-registry.csv");
 const RUNS = path.join(TESTS_DIR, "test-runs.csv");
+const MANUAL = path.join(TESTS_DIR, "manual-registry.csv");
+const MANUAL_RUNS = path.join(TESTS_DIR, "manual-runs.csv");
 const DOMAINS = path.join(TESTS_DIR, "domains.json");
 const TICKETS = path.join(TESTS_DIR, "tickets.json");
 
 // Ordered to mirror the IS212 test case template: the specification fields
 // first (written once), then the execution record (one per run).
 const COLUMNS = [
-  "TestID", "Domain", "Quadrant", "Source", "Ticket", "TicketTitle", "UserStory", "AC",
+  "TestID", "Domain", "Quadrant", "Ticket", "TicketTitle", "UserStory", "AC",
   "File", "Suite", "TestCase",
   "Preconditions", "TestSteps", "TestData", "ExpectedResult",
   "CreatedBy", "DateCreated",
-  "ActualResult", "Status", "Remarks", "ExecutedBy", "LastPassedCommit", "LastPassedDate",
+  "ActualResult", "Status", "Remarks",
 ];
+
+// Manual cases are a separate file with their own lifecycle: the specification
+// is written once by hand, and every execution is a row in the manual ledger.
+// Keeping them out of the automated registry means CI never has to guess which
+// rows it may stamp, and a manual result never rides in the same diff as a
+// regenerated test row.
+const MANUAL_COLUMNS = [
+  "CaseID", "Domain", "Ticket", "TicketTitle", "UserStory", "AC", "Scenario",
+  "Preconditions", "TestSteps", "TestData", "ExpectedResult", "StepsDoc",
+  "CreatedBy", "DateCreated", "Status",
+];
+const MANUAL_RUN_COLUMNS = [
+  "RunDate", "CaseID", "Result", "ActualResult", "Remarks", "ExecutedBy",
+  "PR", "Commit", "Environment", "Evidence",
+];
+const MANUAL_STATUSES = ["Active", "Retired"];
+const MANUAL_RESULTS = ["Pass", "Fail", "Blocked", "Not Executed"];
 
 // Every automated test here plugs fakes into ports -- no database, no network,
 // no framework, and not a single beforeEach in the suite. That makes the
@@ -202,16 +221,10 @@ function domainFor(file, domains) {
  * Surviving auto rows keep every human column *and* their recorded status, so a
  * regeneration is a no-op unless the suite itself changed. A case the run no
  * longer reports is marked Retired rather than dropped, so a deleted test shows
- * up in the PR diff. Manual rows are passed through untouched.
+ * up in the PR diff.
  */
 function buildRegistry(existing, cases, domains, tickets) {
-  const byKey = new Map(existing.filter((r) => r.Source !== "manual").map((r) => [keyOf(r), r]));
-  // Manual rows keep their hand-set Ticket, but still get the title and parent
-  // user story filled in from the ticket map.
-  const manual = existing.filter((r) => r.Source === "manual").map((r) => {
-    const issue = tickets[r.Ticket];
-    return issue ? { ...r, TicketTitle: issue.title, UserStory: issue.parent ?? r.Ticket } : r;
-  });
+  const byKey = new Map(existing.map((r) => [keyOf(r), r]));
 
   const seen = new Set();
   const rows = [];
@@ -231,7 +244,6 @@ function buildRegistry(existing, cases, domains, tickets) {
       TestID: prior?.TestID ?? "",
       Domain: domainFor(c.file, domains),
       Quadrant: prior?.Quadrant || "Q1",
-      Source: "auto",
       ...ticketFor(c.suite, c.testCase, tickets),
       AC: prior?.AC ?? "",
       File: c.file,
@@ -247,9 +259,6 @@ function buildRegistry(existing, cases, domains, tickets) {
       ActualResult: prior?.ActualResult ?? "",
       Status: prior?.Status || "Not Executed",
       Remarks: prior?.Remarks ?? "",
-      ExecutedBy: prior?.ExecutedBy ?? "",
-      LastPassedCommit: prior?.LastPassedCommit ?? "",
-      LastPassedDate: prior?.LastPassedDate ?? "",
     });
   }
 
@@ -259,10 +268,9 @@ function buildRegistry(existing, cases, domains, tickets) {
 
   const order = new Map(domains.map((d, i) => [d.domain, i]));
   const rank = (r) => (order.has(r.Domain) ? order.get(r.Domain) : domains.length);
-  const sorted = [...rows, ...manual].sort((a, b) =>
+  const sorted = rows.sort((a, b) =>
     rank(a) - rank(b) ||
     (a.Domain).localeCompare(b.Domain) ||
-    a.Source.localeCompare(b.Source) ||
     a.File.localeCompare(b.File) ||
     a.Suite.localeCompare(b.Suite) ||
     a.TestCase.localeCompare(b.TestCase));
@@ -303,23 +311,70 @@ const duplicateIds = (rows) => {
   return [...dupes];
 };
 
+/**
+ * The manual specification, with the title and parent user story refilled from
+ * the ticket map so they cannot drift from the ticket. Everything else is hand
+ * written and is never reordered or rewritten.
+ */
+function buildManual(existing, tickets) {
+  return existing.map((r) => {
+    const issue = tickets[r.Ticket];
+    return issue ? { ...r, TicketTitle: issue.title, UserStory: issue.parent ?? r.Ticket } : r;
+  });
+}
+
+/** Latest result per case: the ledger is append-only, so the last row wins. */
+function latestManualResults(runs) {
+  return new Map(runs.map((r) => [r.CaseID, r]));
+}
+
+/** Things a hand edit can get wrong in the manual spec or its ledger. */
+function manualProblems(manual, runs) {
+  const problems = [];
+  const ids = new Set();
+  for (const m of manual) {
+    if (!m.CaseID) problems.push("a manual case has no CaseID");
+    else if (ids.has(m.CaseID)) problems.push(`duplicate manual CaseID ${m.CaseID}`);
+    ids.add(m.CaseID);
+    if (!MANUAL_STATUSES.includes(m.Status)) {
+      problems.push(`${m.CaseID}: Status "${m.Status}" is not one of ${MANUAL_STATUSES.join(", ")}`);
+    }
+    if (m.StepsDoc && !existsSync(path.join(ROOT, m.StepsDoc))) {
+      problems.push(`${m.CaseID}: StepsDoc ${m.StepsDoc} does not exist`);
+    }
+  }
+  for (const r of runs) {
+    if (!ids.has(r.CaseID)) problems.push(`manual-runs: ${r.CaseID || "(blank)"} is not a known manual case`);
+    if (!MANUAL_RESULTS.includes(r.Result)) {
+      problems.push(`manual-runs: ${r.CaseID} Result "${r.Result}" is not one of ${MANUAL_RESULTS.join(", ")}`);
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(r.RunDate)) {
+      problems.push(`manual-runs: ${r.CaseID} RunDate "${r.RunDate}" is not YYYY-MM-DD`);
+    }
+  }
+  return problems;
+}
+
 /* ---------------------------------------------------------------- the report */
 
-function summarise(cases, rows, domains) {
+function summarise(cases, rows, domains, manual, latest) {
   const idByKey = new Map(rows.map((r) => [keyOf(r), r.TestID]));
   const names = [...domains.map((d) => d.domain), "Unmapped"];
-  const groups = new Map(names.map((n) => [n, { name: n, total: 0, passed: 0, failures: [], manual: 0 }]));
+  const groups = new Map(names.map((n) => [n, { name: n, total: 0, passed: 0, failures: [], manual: 0, manualPassed: 0 }]));
 
   for (const c of cases) {
     const name = domainFor(c.file, domains);
-    if (!groups.has(name)) groups.set(name, { name, total: 0, passed: 0, failures: [], manual: 0 });
+    if (!groups.has(name)) groups.set(name, { name, total: 0, passed: 0, failures: [], manual: 0, manualPassed: 0 });
     const g = groups.get(name);
     g.total += 1;
     if (c.passed) g.passed += 1;
     else g.failures.push({ ...c, testId: idByKey.get(keyOf(c)) ?? "—" });
   }
-  for (const r of rows) {
-    if (r.Source === "manual" && groups.has(r.Domain)) groups.get(r.Domain).manual += 1;
+  for (const m of manual) {
+    if (m.Status !== "Active" || !groups.has(m.Domain)) continue;
+    const g = groups.get(m.Domain);
+    g.manual += 1;
+    if (latest.get(m.CaseID)?.Result === "Pass") g.manualPassed += 1;
   }
   return [...groups.values()].filter((g) => g.total > 0 || g.manual > 0);
 }
@@ -338,7 +393,7 @@ function printReport(groups, cases, rows) {
   for (const g of groups) {
     const ok = g.failures.length === 0;
     const counts = `${String(g.passed).padStart(4)}/${String(g.total).padEnd(4)}`;
-    const manual = g.manual > 0 ? `  · ${g.manual} manual` : "";
+    const manual = g.manual > 0 ? `  · ${g.manualPassed}/${g.manual} manual passed` : "";
     console.log(`  ${ok ? "✔" : "✖"} ${g.name.padEnd(width)} ${counts} auto${manual}`);
     for (const f of g.failures) {
       console.log(`      ✖ ${f.testId}  ${f.suite ? f.suite + " > " : ""}${f.testCase}`);
@@ -357,7 +412,7 @@ function printReport(groups, cases, rows) {
     const lines = [
       `### Test report — ${passed}/${total} passed`, "",
       "| | Domain | Auto | Manual |", "|---|---|---|---|",
-      ...groups.map((g) => `| ${g.failures.length === 0 ? "✅" : "❌"} | ${g.name} | ${g.passed}/${g.total} | ${g.manual || "—"} |`),
+      ...groups.map((g) => `| ${g.failures.length === 0 ? "✅" : "❌"} | ${g.name} | ${g.passed}/${g.total} | ${g.manual ? `${g.manualPassed}/${g.manual}` : "—"} |`),
     ];
     for (const g of groups) {
       for (const f of g.failures) lines.push("", `**${f.testId}** \`${f.file}\` — ${f.suite} > ${f.testCase}`);
@@ -386,11 +441,10 @@ function recordRun(rows, groups, cases, durationMs) {
   // Only the per-case outcome is stamped here. Who ran it, at which commit and
   // when describe the *run*, and the whole suite runs at once -- copying them
   // onto every row would write one fact 368 times and rewrite the file on every
-  // merge. They live in the ledger, one row per run. ExecutedBy and the
-  // LastPassed columns stay for manual cases, which really are run one at a time.
+  // merge. They live in the ledger, one row per run.
   const ran = new Set(cases.filter((c) => c.passed).map(keyOf));
   const stamped = rows.map((r) =>
-    r.Source === "auto" && ran.has(keyOf(r))
+    ran.has(keyOf(r))
       ? { ...r, Status: "Pass", ActualResult: "As specified" }
       : r);
 
@@ -421,10 +475,13 @@ if (domains.length === 0) console.error(`Warning: no domain map at ${path.relati
 const { cases, durationMs } = runVitest();
 const existing = readTable(REGISTRY, COLUMNS);
 const rebuilt = buildRegistry(existing, cases, domains, tickets);
+const manualExisting = readTable(MANUAL, MANUAL_COLUMNS);
+const manualRebuilt = buildManual(manualExisting, tickets);
+const manualRuns = readTable(MANUAL_RUNS, MANUAL_RUN_COLUMNS);
 
 // The report reads the on-disk registry so that --check reports what is committed.
 const reportRows = mode === "--update" || existing.length === 0 ? rebuilt : existing;
-const groups = summarise(cases, reportRows, domains);
+const groups = summarise(cases, reportRows, domains, manualRebuilt, latestManualResults(manualRuns));
 printReport(groups, cases, reportRows);
 
 const failed = cases.filter((c) => !c.passed);
@@ -437,6 +494,8 @@ mkdirSync(TESTS_DIR, { recursive: true });
 if (mode === "--update") {
   writeFileSync(REGISTRY, writeTable(rebuilt, COLUMNS));
   console.log(`Wrote ${rebuilt.length} rows to ${path.relative(ROOT, REGISTRY)}`);
+  writeFileSync(MANUAL, writeTable(manualRebuilt, MANUAL_COLUMNS));
+  console.log(`Wrote ${manualRebuilt.length} rows to ${path.relative(ROOT, MANUAL)}`);
 }
 
 if (mode === "--check") {
@@ -448,10 +507,19 @@ if (mode === "--check") {
     console.error(`  Blank the ID cell on the newer row, then run \`pnpm test:report --update\`.\n`);
     process.exit(1);
   }
-  const want = writeTable(rebuilt, COLUMNS);
-  const have = existsSync(REGISTRY) ? readFileSync(REGISTRY, "utf8") : "";
-  if (want !== have) {
-    console.error(`\n✖ ${path.relative(ROOT, REGISTRY)} does not match the test suite.`);
+  const problems = manualProblems(manualExisting, manualRuns);
+  if (problems.length > 0) {
+    console.error(`\n✖ The manual registry or ledger has problems:`);
+    for (const p of problems) console.error(`  - ${p}`);
+    console.error("");
+    process.exit(1);
+  }
+  const stale = [
+    [REGISTRY, writeTable(rebuilt, COLUMNS)],
+    [MANUAL, writeTable(manualRebuilt, MANUAL_COLUMNS)],
+  ].filter(([file, want]) => (existsSync(file) ? readFileSync(file, "utf8") : "") !== want);
+  if (stale.length > 0) {
+    for (const [file] of stale) console.error(`\n✖ ${path.relative(ROOT, file)} does not match the test suite.`);
     console.error(`  Run \`pnpm test:report --update\` and commit the result.\n`);
     process.exit(1);
   }
