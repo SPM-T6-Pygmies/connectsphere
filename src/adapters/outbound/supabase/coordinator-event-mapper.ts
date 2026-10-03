@@ -2,7 +2,10 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import { userAccountId } from "@/core/domain/user-account";
-import type { AssignedEventSummary } from "@/core/ports/outbound/coordinator-event-repository";
+import type {
+  AssignedEventSummary,
+  CoordinatorEventDetails,
+} from "@/core/ports/outbound/coordinator-event-repository";
 
 /**
  * The `event` table's shape, named the way the database names it -- only the
@@ -17,6 +20,16 @@ export interface CoordinatorEventRow {
   preferred_date: string | null;
   assigned_coordinator_user_account_id: number | null;
   client_organisation_id: number;
+}
+
+/** The same row with the columns a venue booking request carries (SPM-46). */
+export interface CoordinatorEventDetailsRow extends CoordinatorEventRow {
+  start_time: string | null;
+  end_time: string | null;
+  expected_attendance: number | null;
+  venue_requirements: string | null;
+  room_layout_preference: string | null;
+  accessibility_requirements: string | null;
 }
 
 /** The domain's ids are opaque strings; this store numbers its rows. */
@@ -59,6 +72,23 @@ export function toAssignedEventSummary(
     clientOrganisationName: organisationNames.get(row.client_organisation_id) ?? "",
     preferredDate: row.preferred_date,
     status: toStatus(row.status),
+  };
+}
+
+/** One event as the coordinator's venue booking page reads it (SPM-46). */
+export function toCoordinatorEventDetails(row: CoordinatorEventDetailsRow): CoordinatorEventDetails {
+  return {
+    id: String(row.event_id),
+    eventRequestId: row.event_request_id === null ? null : String(row.event_request_id),
+    name: row.name,
+    status: toStatus(row.status),
+    preferredDate: row.preferred_date,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    expectedAttendance: row.expected_attendance,
+    venueRequirements: row.venue_requirements,
+    roomLayoutPreference: row.room_layout_preference,
+    accessibilityRequirements: row.accessibility_requirements,
   };
 }
 

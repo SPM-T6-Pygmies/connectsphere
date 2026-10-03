@@ -324,6 +324,97 @@ export class DraftNotEditableError extends DomainError {
 }
 
 /**
+ * SPM-46: the event a booking is for either does not exist or is not the
+ * caller's to plan -- one answer for both, as for requests (#91).
+ */
+export class CoordinatorEventNotFoundError extends DomainError {
+  readonly code = "coordinator_event_not_found";
+
+  constructor(readonly id: string) {
+    super(`Event ${id} was not found.`);
+  }
+}
+
+export class NoBookingSlotsError extends DomainError {
+  readonly code = "no_booking_slots";
+
+  constructor() {
+    super("Choose at least one slot to book.");
+  }
+}
+
+export class InvalidBookingDateError extends DomainError {
+  readonly code = "invalid_booking_date";
+
+  constructor(readonly date: string) {
+    super(`"${date}" is not a valid date.`);
+  }
+}
+
+export class DuplicateBookingSlotError extends DomainError {
+  readonly code = "duplicate_booking_slot";
+
+  constructor(
+    readonly date: string,
+    readonly slot: string,
+  ) {
+    super(`${date} ${slot} is requested more than once.`);
+  }
+}
+
+/** SPM-104: a venue with more than one layout needs the request to say which it assumes (#112). */
+export class RoomLayoutRequiredError extends DomainError {
+  readonly code = "room_layout_required";
+
+  constructor() {
+    super("This venue supports more than one layout. Choose the one the event assumes.");
+  }
+}
+
+export class UnsupportedRoomLayoutError extends DomainError {
+  readonly code = "unsupported_room_layout";
+
+  constructor(readonly roomLayout: string) {
+    super("That layout is not one this venue supports.");
+  }
+}
+
+/** SPM-46: a hold or confirmed booking already has one of the slots -- a hard block (#35, #41). */
+export class VenueSlotUnavailableError extends DomainError {
+  readonly code = "venue_slot_unavailable";
+
+  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
+    super(
+      `The venue is already booked for ${slots
+        .map(({ date, slot }) => `${date} ${slot}`)
+        .join(", ")}. Choose other slots or another venue.`,
+    );
+  }
+}
+
+/** SPM-22: no such booking, or one Venue Staff may not see. */
+export class BookingNotFoundError extends DomainError {
+  readonly code = "booking_not_found";
+
+  constructor(readonly bookingId: string) {
+    super("That booking request does not exist.");
+  }
+}
+
+/**
+ * SPM-22: only a request still waiting for Venue Staff can be decided. Takes no
+ * status for the reason `EventRequestNotDecidableError` takes none: the
+ * Supabase adapter raises it too, after losing a race to another decision.
+ */
+export class BookingNotDecidableError extends DomainError {
+  readonly code = "booking_not_decidable";
+
+  constructor() {
+    super("This booking request has already been decided.");
+  }
+}
+
+/**
  * SPM-50: only an event in `Planning` can be confirmed -- `Blocked`,
  * `Confirmed`, `Completed` and `Cancelled` all refuse, each for its own
  * reason the ticket and schema leave undefined beyond "not Planning".

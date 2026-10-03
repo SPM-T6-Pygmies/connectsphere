@@ -37,6 +37,7 @@ function AssignedEventTable({ events }: { events: readonly AssignedEventSummary[
             <TableHead>Client organisation</TableHead>
             <TableHead>Preferred date</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead className="text-right">Venue</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -54,6 +55,17 @@ function AssignedEventTable({ events }: { events: readonly AssignedEventSummary[
               <TableCell className="text-muted-foreground">{event.preferredDate ?? "—"}</TableCell>
               <TableCell>
                 <StatusBadge status={event.status} />
+              </TableCell>
+              <TableCell className="text-right">
+                {/* SPM-46: keyed by the request, like every other event link here. */}
+                {event.eventRequestId === null ? null : (
+                  <Link
+                    href={`/staff/coordinator/${event.eventRequestId}/venue-booking`}
+                    className="text-sm hover:underline"
+                  >
+                    Request a venue
+                  </Link>
+                )}
               </TableCell>
             </TableRow>
           ))}

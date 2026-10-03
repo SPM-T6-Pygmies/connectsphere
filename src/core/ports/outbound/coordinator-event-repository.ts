@@ -16,9 +16,36 @@ export interface AssignedEventSummary {
   readonly status: CoordinatorEventStatus;
 }
 
+/**
+ * One event as the coordinator plans its venue (SPM-46): its timing and the
+ * requirements a booking request carries to Venue Staff.
+ */
+export interface CoordinatorEventDetails {
+  readonly id: string;
+  readonly eventRequestId: string | null;
+  readonly name: string;
+  readonly status: CoordinatorEventStatus;
+  /** ISO calendar date, `YYYY-MM-DD`. */
+  readonly preferredDate: string | null;
+  /** ISO instants. */
+  readonly startTime: string | null;
+  readonly endTime: string | null;
+  readonly expectedAttendance: number | null;
+  readonly venueRequirements: string | null;
+  readonly roomLayoutPreference: string | null;
+  readonly accessibilityRequirements: string | null;
+}
+
 /** Driven port: events, scoped the way a coordinator is allowed to see them. */
 export interface CoordinatorEventRepository {
   listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly AssignedEventSummary[]>;
+  /** The caller's event with this id, or null if there is none assigned to them. */
+  findAssigned(coordinatorId: UserAccountId, eventId: string): Promise<CoordinatorEventDetails | null>;
+  /** The caller's event opened from this request, or null if there is none assigned to them. */
+  findAssignedByRequest(
+    coordinatorId: UserAccountId,
+    eventRequestId: string,
+  ): Promise<CoordinatorEventDetails | null>;
 
   /** The event with this id if it is assigned to this coordinator; `null` otherwise, whether it is someone else's or does not exist (#91). */
   findAssignedById(

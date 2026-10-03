@@ -24,6 +24,10 @@
     "match": ["event-request", "submit-event-request", "save-event-request-draft", "discard"]
   },
   {
+    "domain": "Venue Booking",
+    "match": ["booking"]
+  },
+  {
     "domain": "Connections",
     "match": ["connection"]
   },

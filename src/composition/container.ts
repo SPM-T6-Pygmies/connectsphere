@@ -23,8 +23,11 @@ import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supa
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
+import { SupabaseBookingRepository } from "@/adapters/outbound/supabase/supabase-booking-repository";
+import { SupabaseBookingReviewRepository } from "@/adapters/outbound/supabase/supabase-booking-review-repository";
 import { SupabaseRecordingNotifier } from "@/adapters/outbound/supabase/supabase-recording-notifier";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
+import type { BookingRepository } from "@/core/ports/outbound/booking-repository";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
@@ -35,11 +38,14 @@ import type { EventRequestRepository } from "@/core/ports/outbound/event-request
 import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
+import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
+import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
+import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
@@ -53,6 +59,7 @@ import { RegisterForEventUseCase } from "@/core/use-cases/register-for-event";
 import { SaveEventRequestDraftUseCase } from "@/core/use-cases/save-event-request-draft";
 import { SendConnectionRequestUseCase } from "@/core/use-cases/send-connection-request";
 import { SubmitEventRequestUseCase } from "@/core/use-cases/submit-event-request";
+import { SubmitVenueBookingRequestUseCase } from "@/core/use-cases/submit-venue-booking-request";
 import { ViewArchivedEventRequestsUseCase } from "@/core/use-cases/view-archived-event-requests";
 import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-event-request";
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
@@ -70,6 +77,7 @@ import { UpdateEquipmentStockUseCase } from "@/core/use-cases/update-equipment-s
 import { ViewOrganisationEventRequestsUseCase } from "@/core/use-cases/view-organisation-event-requests";
 import { ViewOperationsEventRequestUseCase } from "@/core/use-cases/view-operations-event-request";
 import { ViewRegistrationUseCase } from "@/core/use-cases/view-registration";
+import { ViewVenueBookingOptionsUseCase } from "@/core/use-cases/view-venue-booking-options";
 import { WithdrawEventRequestUseCase } from "@/core/use-cases/withdraw-event-request";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
@@ -360,6 +368,59 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCa
   const { events } = await coordinatorAdapters();
 
   return new ViewAssignedEventsUseCase({ events });
+}
+
+async function venueBookingAdapters(): Promise<{
+  events: CoordinatorEventRepository;
+  venues: VenueCatalogue;
+  bookings: BookingRepository;
+}> {
+  const client = await createSupabaseServerClient();
+  return {
+    events: new SupabaseCoordinatorEventRepository(client),
+    venues: new SupabaseVenueCatalogue(client),
+    bookings: new SupabaseBookingRepository(client),
+  };
+}
+
+/** SPM-46: the coordinator's booking page -- the event, the venues, the bookings so far. */
+export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOptionsUseCase> {
+  return new ViewVenueBookingOptionsUseCase(await venueBookingAdapters());
+}
+
+/** SPM-46 / SPM-104: the assigned coordinator submits a venue booking request. */
+export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
+  return new SubmitVenueBookingRequestUseCase(await venueBookingAdapters());
+}
+
+/** SPM-22: the signed-in Venue Staff member, or null for anyone else (answered as not found, #91). */
+export async function getCurrentVenueStaff(): Promise<{
+  readonly userAccountId: string;
+  readonly name: string;
+} | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  const member = await identifyStaffMember.execute();
+  return member !== null && member.workspaces.includes("venue")
+    ? { userAccountId: member.userAccountId, name: member.name }
+    : null;
+}
+
+/** SPM-22: the booking requests Venue Staff work from, and one request beside its venue. */
+export async function buildReviewBookingRequests(): Promise<ReviewBookingRequestsUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ReviewBookingRequestsUseCase({
+    reviews: new SupabaseBookingReviewRepository(client),
+    venues: new SupabaseVenueCatalogue(client),
+  });
+}
+
+/** SPM-22: Venue Staff approve or reject a booking request. */
+export async function buildDecideBookingRequest(): Promise<DecideBookingRequestUseCase> {
+  const client = await createSupabaseServerClient();
+  return new DecideBookingRequestUseCase({
+    reviews: new SupabaseBookingReviewRepository(client),
+    bookings: new SupabaseBookingRepository(client),
+  });
 }
 
 /** SPM-50: one event and its confirmation readiness, to the coordinator it is assigned to. */

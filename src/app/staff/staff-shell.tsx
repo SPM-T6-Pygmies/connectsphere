@@ -26,10 +26,12 @@ import {
   buildViewAllEventRequests,
   buildViewArchivedEventRequests,
   buildViewAssignedEventRequests,
+  buildReviewBookingRequests,
   buildViewAssignedEvents,
   buildViewMyEventRequests,
   getCurrentCoordinator,
   getCurrentOrganiser,
+  getCurrentVenueStaff,
   getSignedInStaffMember,
 } from "@/composition/container"
 import {
@@ -165,10 +167,34 @@ async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
   }))
 }
 
+/**
+ * Venue Staff's queue pane for one of their three lists, from the same use
+ * case the pages read -- real booking requests, not the wireframe fixtures.
+ */
+async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneItem[]> {
+  const staff = await getCurrentVenueStaff()
+  if (staff === null) {
+    return []
+  }
+
+  const reviewBookingRequests = await buildReviewBookingRequests()
+  const bookings = await reviewBookingRequests.list(staff.userAccountId, section)
+
+  return bookings.map((booking) => ({
+    id: booking.id,
+    href: `/staff/venue/${booking.id}`,
+    title: booking.venueLocation,
+    meta: booking.slots[0]?.date ?? "No date",
+    teaser: `${booking.event.name} · ${booking.slots.map(({ slot }) => slot).join(" + ")}`,
+    status: booking.status,
+  }))
+}
+
 async function getRespectiveQueueItems(
   role: StaffRole,
   crumbs: readonly Crumb[],
   coordinatorSection: CoordinatorSection,
+  venueSection: VenueSection | undefined,
 ): Promise<ListPaneItem[] | undefined> {
   if (role === "requester") {
     return getQueueItemsForRequester()
@@ -187,8 +213,17 @@ async function getRespectiveQueueItems(
         : getQueueItemsForCoordinatorRequests()
   }
 
+  // Only Venue Staff's three booking lists have rows here; their catalogue and
+  // inbox screens pass no section and keep the fallback.
+  if (role === "venue" && venueSection !== undefined) {
+    return getQueueItemsForVenue(venueSection)
+  }
+
   return undefined
 }
+
+/** Which of Venue Staff's lists to fill: requests to decide, decided bookings, or the archive. */
+export type VenueSection = "requests" | "decided" | "archive"
 
 /** Which of the coordinator's panes to fill: their open requests, their events, or their archive. */
 export type CoordinatorSection = "requests" | "events" | "archive"
@@ -212,6 +247,7 @@ export async function StaffShell({
   defaultOpen = true,
   children,
   coordinatorSection = "requests",
+  venueSection,
 }: {
   role: StaffRole
   crumbs: readonly Crumb[]
@@ -228,6 +264,7 @@ export async function StaffShell({
   defaultOpen?: boolean
   children: ReactNode
   coordinatorSection?: CoordinatorSection
+  venueSection?: VenueSection
 }) {
   // Every staff screen renders inside this shell, so this is where a signed-in
   // user who does not hold the screen's role is denied access -- before any
@@ -237,7 +274,7 @@ export async function StaffShell({
     forbidden()
   }
 
-  const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection)
+  const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection, venueSection)
 
   // Detail screens route through `detailCrumbs`, which always gives two crumbs
   // with an href on the first; index screens give one with none. So the crumbs
