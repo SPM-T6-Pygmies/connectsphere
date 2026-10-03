@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 
 import { QueueList } from "@/components/queue-list"
 import { isRailDestination, resolveQueue } from "@/components/staff-nav"
+import { useStaffNotifications } from "@/components/staff-notifications"
 import { Badge } from "@/components/ui/badge"
 import type { ListPaneItem, SidebarSection, StaffRole } from "@/lib/wireframe"
 
@@ -28,6 +29,8 @@ export function MobileQueue({
   queueItems?: readonly ListPaneItem[]
 }) {
   const pathname = usePathname()
+  const notifications = useStaffNotifications()
+  const { unread } = notifications
 
   // Detail routes are full-screen, and the requester's "action" entries (New
   // request, Organisation events) are not queues.
@@ -35,11 +38,12 @@ export function MobileQueue({
     return null
   }
 
-  const { section, heading, items, unread } = resolveQueue({
+  const { section, heading, items } = resolveQueue({
     role,
     pathname,
     activeSection,
     queueItems,
+    notifications: notifications.items,
   })
 
   return (
@@ -56,7 +60,11 @@ export function MobileQueue({
           <span className="text-muted-foreground text-xs">{items.length}</span>
         )}
       </div>
-      <QueueList items={items} activePath={pathname} />
+      <QueueList
+        items={items}
+        activePath={pathname}
+        onOpen={section === "notifications" ? notifications.markRead : undefined}
+      />
     </section>
   )
 }

@@ -6,6 +6,7 @@ import type { CSSProperties, ReactNode } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { MobileQueue } from "@/components/mobile-queue"
 import { StaffBottomNav } from "@/components/staff-bottom-nav"
+import { StaffNotificationsProvider } from "@/components/staff-notifications"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -249,81 +250,90 @@ export async function StaffShell({
   // from the inbox, which is what makes the arrow land where it came from.
   const backHref = crumbs.length > 1 ? crumbs.at(-2)?.href : undefined
 
+  const inbox =
+    member.subscriberHash === null
+      ? null
+      : { subscriberId: member.userAccountId, subscriberHash: member.subscriberHash }
+
   return (
-    // The two-pane sidebar is the icon rail plus a list pane, so it needs the
-    // wider track; the rail's own width comes from --sidebar-width-icon.
-    <SidebarProvider
-      defaultOpen={defaultOpen}
-      style={{ "--sidebar-width": "23rem" } as CSSProperties}
-    >
-      <AppSidebar
-        role={role}
-        name={member.name}
-        queueItems={queueItems}
-        activeSection={activeSection}
-      />
+    <StaffNotificationsProvider role={role} inbox={inbox}>
       {/*
-        min-w-0: SidebarInset is a flex item in SidebarProvider's row, so its
-        default min-width:auto lets a table wider than the viewport widen the
-        whole page instead of scrolling inside Table's own overflow-x-auto.
+        The two-pane sidebar is the icon rail plus a list pane, so it needs the
+        wider track; the rail's own width comes from --sidebar-width-icon.
       */}
-      <SidebarInset className="min-w-0">
-        <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
-          {/* Below md there is no list pane to toggle; the arrow goes back. */}
-          <SidebarTrigger className="-ml-1 hidden md:flex" />
-          {backHref ? (
-            <Link
-              href={backHref}
-              aria-label="Back"
-              className="hover:bg-accent -ml-1 flex size-7 items-center justify-center rounded-md md:hidden"
-            >
-              <ArrowLeftIcon className="size-4" />
-            </Link>
-          ) : null}
-          <Separator
-            orientation="vertical"
-            className="mr-2 hidden data-vertical:h-4 data-vertical:self-auto md:block"
-          />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink asChild>
-                  <Link href={`/staff/${role}`}>{ROLE_LABELS[role]}</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              {crumbs.map((crumb, index) => (
-                <div key={crumb.label} className="contents">
-                  <BreadcrumbSeparator className="hidden md:block" />
-                  <BreadcrumbItem>
-                    {crumb.href && index < crumbs.length - 1 ? (
-                      <BreadcrumbLink asChild>
-                        <Link href={crumb.href}>{crumb.label}</Link>
-                      </BreadcrumbLink>
-                    ) : (
-                      <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                    )}
-                  </BreadcrumbItem>
-                </div>
-              ))}
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
+      <SidebarProvider
+        defaultOpen={defaultOpen}
+        style={{ "--sidebar-width": "23rem" } as CSSProperties}
+      >
+        <AppSidebar
+          role={role}
+          name={member.name}
+          queueItems={queueItems}
+          activeSection={activeSection}
+        />
         {/*
-          The bottom bar is fixed, so it is out of flow: pad the content past
-          it below md. md:pb-6 is spelled out rather than left to md:p-6 --
-          Tailwind emits padding before padding-bottom, and media blocks carry
-          no extra specificity, so relying on order would be a bet.
+          min-w-0: SidebarInset is a flex item in SidebarProvider's row, so its
+          default min-width:auto lets a table wider than the viewport widen the
+          whole page instead of scrolling inside Table's own overflow-x-auto.
         */}
-        <div className="flex flex-1 flex-col gap-6 p-4 pb-[calc(var(--staff-bottom-nav-height)+env(safe-area-inset-bottom))] md:p-6 md:pb-6">
-          <MobileQueue
-            role={role}
-            activeSection={activeSection}
-            queueItems={queueItems}
-          />
-          {children}
-        </div>
-      </SidebarInset>
-      <StaffBottomNav role={role} />
-    </SidebarProvider>
+        <SidebarInset className="min-w-0">
+          <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
+            {/* Below md there is no list pane to toggle; the arrow goes back. */}
+            <SidebarTrigger className="-ml-1 hidden md:flex" />
+            {backHref ? (
+              <Link
+                href={backHref}
+                aria-label="Back"
+                className="hover:bg-accent -ml-1 flex size-7 items-center justify-center rounded-md md:hidden"
+              >
+                <ArrowLeftIcon className="size-4" />
+              </Link>
+            ) : null}
+            <Separator
+              orientation="vertical"
+              className="mr-2 hidden data-vertical:h-4 data-vertical:self-auto md:block"
+            />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink asChild>
+                    <Link href={`/staff/${role}`}>{ROLE_LABELS[role]}</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                {crumbs.map((crumb, index) => (
+                  <div key={crumb.label} className="contents">
+                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbItem>
+                      {crumb.href && index < crumbs.length - 1 ? (
+                        <BreadcrumbLink asChild>
+                          <Link href={crumb.href}>{crumb.label}</Link>
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+                  </div>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </header>
+          {/*
+            The bottom bar is fixed, so it is out of flow: pad the content past
+            it below md. md:pb-6 is spelled out rather than left to md:p-6 --
+            Tailwind emits padding before padding-bottom, and media blocks carry
+            no extra specificity, so relying on order would be a bet.
+          */}
+          <div className="flex flex-1 flex-col gap-6 p-4 pb-[calc(var(--staff-bottom-nav-height)+env(safe-area-inset-bottom))] md:p-6 md:pb-6">
+            <MobileQueue
+              role={role}
+              activeSection={activeSection}
+              queueItems={queueItems}
+            />
+            {children}
+          </div>
+        </SidebarInset>
+        <StaffBottomNav role={role} />
+      </SidebarProvider>
+    </StaffNotificationsProvider>
   )
 }
