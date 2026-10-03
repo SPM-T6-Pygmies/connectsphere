@@ -1,37 +1,41 @@
 import { venueId } from "@/core/domain/venue";
-import type { BusyInterval } from "@/core/domain/venue-search";
+import type { BookedSlot } from "@/core/domain/venue-search";
 import type { VenueAvailability } from "@/core/ports/outbound/venue-availability";
 
+import { toTime } from "./booking-mapper";
 import type { SupabaseServerClient } from "./client";
 
-/** One interval as `public.venue_busy_intervals()` returns it. */
-interface BusyIntervalRow {
+/** One slot as `public.venues_booked_on()` returns it. */
+interface BookedSlotRow {
   venue_id: number;
-  starts_at: string;
-  ends_at: string;
+  slot_date: string;
+  start: string;
+  end: string;
 }
 
 /**
- * Busy intervals from Postgres, through `venue_busy_intervals`, which derives a
- * booking's time from the event or session it books
- * (supabase/migrations/20261001000000_venue_busy_intervals.sql).
+ * Booked times from Postgres, through `venues_booked_on`, which reads the
+ * `booking_slot` rows of live bookings -- the same slots a booking request
+ * checks for a clash (supabase/migrations/20261003010000_venues_booked_on.sql).
  */
 export class SupabaseVenueAvailability implements VenueAvailability {
   constructor(private readonly client: SupabaseServerClient) {}
 
-  async busyIntervals(from: Date, to: Date): Promise<readonly BusyInterval[]> {
-    const { data, error } = await this.client.rpc("venue_busy_intervals", {
-      p_from: from.toISOString(),
-      p_to: to.toISOString(),
+  async bookedSlots(date: string): Promise<readonly BookedSlot[]> {
+    const { data, error } = await this.client.rpc("venues_booked_on", {
+      p_date: date,
     });
     if (error) {
-      throw new Error(`Failed to read venue bookings: ${error.message}`, { cause: error });
+      throw new Error(`Failed to read venue bookings: ${error.message}`, {
+        cause: error,
+      });
     }
 
-    return (data as BusyIntervalRow[]).map((row) => ({
+    return (data as BookedSlotRow[]).map((row) => ({
       venueId: venueId(String(row.venue_id)),
-      startsAt: new Date(row.starts_at),
-      endsAt: new Date(row.ends_at),
+      date: row.slot_date.slice(0, 10),
+      start: toTime(row.start),
+      end: toTime(row.end),
     }));
   }
 }

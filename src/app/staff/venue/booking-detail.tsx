@@ -10,7 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { buildReviewBookingRequests, getCurrentVenueStaff } from "@/composition/container";
+import {
+  buildReviewBookingRequests,
+  getCurrentVenueStaff,
+} from "@/composition/container";
 import { BookingNotFoundError } from "@/core/domain/errors";
 import type { BookingReviewDetail } from "@/core/use-cases/review-booking-requests";
 
@@ -31,7 +34,9 @@ function formatInstantTime(iso: string): string {
 }
 
 function formatInstantDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
+  return new Date(iso).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Singapore",
+  });
 }
 
 function sectionOf(status: string): {
@@ -40,18 +45,32 @@ function sectionOf(status: string): {
   queueHref: string;
 } {
   if (status === "Requested") {
-    return { section: "requests", queueLabel: "Requests", queueHref: "/staff/venue" };
+    return {
+      section: "requests",
+      queueLabel: "Requests",
+      queueHref: "/staff/venue",
+    };
   }
   if (status === "Tentative Hold" || status === "Confirmed") {
-    return { section: "decided", queueLabel: "Decided", queueHref: "/staff/venue/decided" };
+    return {
+      section: "decided",
+      queueLabel: "Decided",
+      queueHref: "/staff/venue/decided",
+    };
   }
-  return { section: "archive", queueLabel: "Archive", queueHref: "/staff/venue/archive" };
+  return {
+    section: "archive",
+    queueLabel: "Archive",
+    queueHref: "/staff/venue/archive",
+  };
 }
 
 function FitAlert({ detail }: { detail: BookingReviewDetail }) {
   const { booking, venue } = detail;
   const needed = booking.event.expectedAttendance;
-  const layout = venue?.layouts.find((candidate) => candidate.name === booking.roomLayoutName);
+  const layout = venue?.layouts.find(
+    (candidate) => candidate.name === booking.roomLayoutName,
+  );
   const capacity = layout?.capacity ?? venue?.capacity ?? null;
 
   if (needed === null || capacity === null) {
@@ -109,13 +128,21 @@ export async function BookingDetail({
     event.startTime !== null && event.endTime !== null
       ? `${formatInstantTime(event.startTime)} – ${formatInstantTime(event.endTime)}`
       : null;
-  const slots = booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
+  const slots = booking.slots
+    .map(({ date, start, end }) => `${date} ${start}–${end}`)
+    .join(", ");
 
   return (
     <StaffShell
       role="venue"
       venueSection={section}
-      crumbs={detailCrumbs("venue", origin, queueLabel, booking.venueLocation, queueHref)}
+      crumbs={detailCrumbs(
+        "venue",
+        origin,
+        queueLabel,
+        booking.venueLocation,
+        queueHref,
+      )}
     >
       <PageHeader
         title={booking.venueLocation}
@@ -129,7 +156,8 @@ export async function BookingDetail({
             <CardHeader>
               <CardTitle>Fit against this venue</CardTitle>
               <CardDescription>
-                What the coordinator asked for, checked against what this room actually is.
+                What the coordinator asked for, checked against what this room
+                actually is.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -147,7 +175,8 @@ export async function BookingDetail({
                       {
                         label: "Operating hours",
                         value:
-                          venue.operatingHoursStart !== null && venue.operatingHoursEnd !== null
+                          venue.operatingHoursStart !== null &&
+                          venue.operatingHoursEnd !== null
                             ? `${venue.operatingHoursStart} - ${venue.operatingHoursEnd}`
                             : null,
                       },
@@ -164,14 +193,19 @@ export async function BookingDetail({
                       {venue.layouts.map((layout) => (
                         <Badge
                           key={layout.name}
-                          variant={layout.name === booking.roomLayoutName ? "default" : "outline"}
+                          variant={
+                            layout.name === booking.roomLayoutName
+                              ? "default"
+                              : "outline"
+                          }
                         >
                           {layout.name} · {layout.capacity}
                         </Badge>
                       ))}
                     </div>
                     <p className="text-muted-foreground mt-2 text-xs">
-                      The coordinator asked for {booking.roomLayoutName ?? "no particular layout"}.
+                      The coordinator asked for{" "}
+                      {booking.roomLayoutName ?? "no particular layout"}.
                       Capacity is per layout, not one number for the room.
                     </p>
                   </div>
@@ -184,23 +218,36 @@ export async function BookingDetail({
             <CardHeader>
               <CardTitle>Decision</CardTitle>
               <CardDescription>
-                Approving confirms this booking and holds the venue for the slots above. Nothing
-                else can take them.
+                Approving confirms this booking and holds the venue for the
+                times above. Nothing else can take them.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {decided ? (
-                <Alert variant={booking.status === "Rejected" ? "destructive" : "default"}>
-                  {booking.status === "Rejected" ? <AlertTriangleIcon /> : <CheckIcon />}
+                <Alert
+                  variant={
+                    booking.status === "Rejected" ? "destructive" : "default"
+                  }
+                >
+                  {booking.status === "Rejected" ? (
+                    <AlertTriangleIcon />
+                  ) : (
+                    <CheckIcon />
+                  )}
                   <AlertTitle>
                     Already decided — {booking.status}
-                    {booking.decidedByName ? ` by ${booking.decidedByName}` : ""}
+                    {booking.decidedByName
+                      ? ` by ${booking.decidedByName}`
+                      : ""}
                   </AlertTitle>
                   {booking.rejectionNote ? (
                     <AlertDescription>
                       <p>{booking.rejectionNote}</p>
                       {booking.suggestedAlternativeLocation ? (
-                        <p>Suggested instead: {booking.suggestedAlternativeLocation}</p>
+                        <p>
+                          Suggested instead:{" "}
+                          {booking.suggestedAlternativeLocation}
+                        </p>
                       ) : null}
                     </AlertDescription>
                   ) : null}
@@ -234,12 +281,27 @@ export async function BookingDetail({
                   { label: "Category", value: event.category },
                   { label: "Date", value: event.preferredDate },
                   { label: "Time", value: eventTime },
-                  { label: "Expected attendance", value: event.expectedAttendance },
+                  {
+                    label: "Expected attendance",
+                    value: event.expectedAttendance,
+                  },
                   { label: "Room layout", value: event.roomLayoutPreference },
-                  { label: "Accessibility needs", value: event.accessibilityRequirements },
-                  { label: "Venue requirements", value: event.venueRequirements },
-                  { label: "Equipment requirements", value: event.equipmentRequirements },
-                  { label: "Other arrangements", value: event.specialArrangements },
+                  {
+                    label: "Accessibility needs",
+                    value: event.accessibilityRequirements,
+                  },
+                  {
+                    label: "Venue requirements",
+                    value: event.venueRequirements,
+                  },
+                  {
+                    label: "Equipment requirements",
+                    value: event.equipmentRequirements,
+                  },
+                  {
+                    label: "Other arrangements",
+                    value: event.specialArrangements,
+                  },
                 ]}
               />
             </CardContent>

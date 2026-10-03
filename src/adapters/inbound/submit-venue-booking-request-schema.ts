@@ -1,13 +1,12 @@
 import { z } from "zod";
 
-import { BOOKING_SLOTS } from "@/core/domain/booking";
-
 /**
  * What the coordinator's booking request form submits (SPM-46).
  *
- * Shape only: each slot arrives as `YYYY-MM-DD|AM`. Whether the date is a
- * real day, whether a slot repeats, whether the venue needs a layout and
- * whether a slot is already taken are business rules, and they stay in the
+ * Shape only: each time arrives as `YYYY-MM-DD|HH:MM|HH:MM` (date, start,
+ * end). Whether the date is a real day, whether the times are on the quarter
+ * hour and inside the venue's hours, whether two overlap, whether the venue
+ * needs a layout and whether a time is already taken are business rules, and they stay in the
  * domain (`requestVenueBooking`) so every caller gets the same answer.
  */
 export const submitVenueBookingRequestSchema = z.object({
@@ -21,12 +20,17 @@ export const submitVenueBookingRequestSchema = z.object({
   slots: z.array(
     z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}\|(AM|PM|Night)$/, "A slot is not in a form the server can read.")
+      .regex(
+        /^\d{4}-\d{2}-\d{2}\|\d{1,2}:\d{2}\|\d{1,2}:\d{2}$/,
+        "A time is not in a form the server can read.",
+      )
       .transform((value) => {
-        const [date, slot] = value.split("|");
-        return { date, slot: BOOKING_SLOTS.find((candidate) => candidate === slot)! };
+        const [date, start, end] = value.split("|");
+        return { date, start, end };
       }),
   ),
 });
 
-export type SubmitVenueBookingRequestInput = z.infer<typeof submitVenueBookingRequestSchema>;
+export type SubmitVenueBookingRequestInput = z.infer<
+  typeof submitVenueBookingRequestSchema
+>;

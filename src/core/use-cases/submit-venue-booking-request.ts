@@ -1,5 +1,8 @@
-import { requestVenueBooking, type BookingSlot } from "../domain/booking";
-import { CoordinatorEventNotFoundError, VenueNotFoundError } from "../domain/errors";
+import { requestVenueBooking, type SlotOnDate } from "../domain/booking";
+import {
+  CoordinatorEventNotFoundError,
+  VenueNotFoundError,
+} from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
@@ -13,7 +16,7 @@ export interface SubmitVenueBookingRequestCommand {
   readonly venueId: string;
   /** The name of a layout the venue supports; null when the form offered no choice. */
   readonly roomLayout: string | null;
-  readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: BookingSlot }>;
+  readonly slots: readonly SlotOnDate[];
 }
 
 export interface SubmitVenueBookingRequestResult {
@@ -57,7 +60,8 @@ export class SubmitVenueBookingRequestUseCase {
     }
 
     const dates = [...new Set(command.slots.map(({ date }) => date))];
-    const occupied = dates.length === 0 ? [] : await bookings.listSlotsAt(venue.id, dates);
+    const occupied =
+      dates.length === 0 ? [] : await bookings.listSlotsAt(venue.id, dates);
 
     const request = requestVenueBooking({
       eventId: event.id,

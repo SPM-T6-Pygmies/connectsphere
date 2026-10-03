@@ -12,16 +12,38 @@ import { venueId } from "@/core/domain/venue";
 
 describe("booking mapper (SPM-46)", () => {
   it("reads a booked slot, keeping only the calendar date", () => {
-    expect(toOccupiedSlot({ slot_date: "2026-10-05", slot: "Night", status: "Confirmed" })).toEqual({
+    expect(
+      toOccupiedSlot({
+        slot_date: "2026-10-05",
+        start_time: "18:00:00",
+        end_time: "24:00:00",
+        status: "Confirmed",
+      }),
+    ).toEqual({
       date: "2026-10-05",
-      slot: "Night",
+      start: "18:00",
+      end: "24:00",
       status: "Confirmed",
     });
   });
 
-  it("refuses a slot or status the schema does not allow", () => {
-    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "Evening", status: "Confirmed" })).toThrow();
-    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "AM", status: "Pending" })).toThrow();
+  it("refuses a time or status the schema does not allow", () => {
+    expect(() =>
+      toOccupiedSlot({
+        slot_date: "2026-10-05",
+        start_time: "18:10",
+        end_time: "19:00",
+        status: "Confirmed",
+      }),
+    ).toThrow();
+    expect(() =>
+      toOccupiedSlot({
+        slot_date: "2026-10-05",
+        start_time: "09:00",
+        end_time: "10:00",
+        status: "Pending",
+      }),
+    ).toThrow();
   });
 
   it("reads an event's booking with its layout name and slots", () => {
@@ -32,14 +54,14 @@ describe("booking mapper (SPM-46)", () => {
         room_layout_name: null,
         status: "Requested",
         created_at: "2026-09-28T02:00:00+00:00",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        slots: [{ date: "2026-10-05", start: "09:00", end: "10:30" }],
       }),
     ).toEqual({
       id: "12",
       venueLocation: "Studio",
       roomLayoutName: null,
       status: "Requested",
-      slots: [{ date: "2026-10-05", slot: "AM" }],
+      slots: [{ date: "2026-10-05", start: "09:00", end: "10:30" }],
       requestedAt: "2026-09-28T02:00:00+00:00",
     });
   });
@@ -50,7 +72,7 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
     eventId: "7",
     venueId: venueId("3"),
     roomLayout: "Banquet",
-    slots: [{ date: "2026-10-05", slot: "AM" }],
+    slots: [{ date: "2026-10-05", start: "09:00", end: "10:30" }],
     requestedBy: userAccountId("2"),
     status: "Requested",
   };
@@ -61,16 +83,20 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
       p_event_id: 7,
       p_venue_id: 3,
       p_room_layout: "Banquet",
-      p_slots: [{ date: "2026-10-05", slot: "AM" }],
+      p_slots: [{ date: "2026-10-05", start: "09:00", end: "10:30" }],
     });
   });
 
   it("sends no layout when the venue has none", () => {
-    expect(toSubmitBookingArgs({ ...request, roomLayout: null })?.p_room_layout).toBeNull();
+    expect(
+      toSubmitBookingArgs({ ...request, roomLayout: null })?.p_room_layout,
+    ).toBeNull();
   });
 
   it("gives up on an id this store could not have issued", () => {
-    expect(toSubmitBookingArgs({ ...request, venueId: venueId("hall") })).toBeNull();
+    expect(
+      toSubmitBookingArgs({ ...request, venueId: venueId("hall") }),
+    ).toBeNull();
   });
 });
 

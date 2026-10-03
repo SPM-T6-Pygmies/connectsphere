@@ -9,10 +9,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildSearchVenues, getCurrentCoordinator } from "@/composition/container";
+import {
+  buildSearchVenues,
+  getCurrentCoordinator,
+} from "@/composition/container";
 import { InvalidVenueSearchError } from "@/core/domain/errors";
 import type { Venue } from "@/core/domain/venue";
-import type { ExclusionReason, VenueSearchOutcome } from "@/core/domain/venue-search";
+import type {
+  ExclusionReason,
+  VenueSearchOutcome,
+} from "@/core/domain/venue-search";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { formatTimeOnly } from "../../time-picker";
@@ -30,8 +36,16 @@ function countVenues(count: number): string {
   return `${count} ${count === 1 ? "venue" : "venues"}`;
 }
 
+/** The searched window as the Coordinator typed it: "09:00–10:30". */
+function window(values: VenueSearchValues): string {
+  return `${values.startTime}–${values.endTime}`;
+}
+
 /** Why `count` venues were left out, in the Coordinator's terms. */
-function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): string {
+function exclusionMessage(
+  reason: ExclusionReason,
+  values: VenueSearchValues,
+): string {
   switch (reason) {
     case "layout":
       return `no ${values.layout} layout`;
@@ -46,11 +60,11 @@ function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): s
     case "hoursUnknown":
       return "no operating hours or booking horizon recorded";
     case "outsideHours":
-      return `not open for all of ${formatTimeOnly(values.startTime)} – ${formatTimeOnly(values.endTime)}`;
+      return `not open for all of ${window(values)}`;
     case "beyondHorizon":
       return `cannot be booked as far ahead as ${values.date}`;
     case "booked":
-      return "already booked during that time";
+      return `already booked during ${window(values)}`;
   }
 }
 
@@ -64,7 +78,9 @@ function SearchSummary({
   const found = outcome.venues.length;
   return (
     <div className="space-y-1 text-sm" role="status">
-      <p className="font-medium">{found === 0 ? "No venues found" : `${countVenues(found)} found`}</p>
+      <p className="font-medium">
+        {found === 0 ? "No venues found" : `${countVenues(found)} found`}
+      </p>
       {outcome.excluded.length === 0 ? null : (
         <ul className="text-muted-foreground list-disc pl-5">
           {outcome.excluded.map(({ reason, count }) => (
@@ -76,7 +92,7 @@ function SearchSummary({
       )}
       {found === 0 && outcome.excluded.length > 0 ? (
         <p className="text-muted-foreground">
-          Try a different time, a smaller attendance or fewer facilities.
+          Try different times, a smaller attendance or fewer facilities.
         </p>
       ) : null}
     </div>
@@ -137,8 +153,14 @@ export default async function VenueSearchPage({
       />
       <div className="space-y-6">
         {/* Keyed on the search so Clear (same route, new query) remounts it with fresh state. */}
-        <VenueSearchForm key={JSON.stringify(initial)} initial={initial} errors={errors} />
-        {searchable ? <SearchSummary outcome={outcome} values={initial} /> : null}
+        <VenueSearchForm
+          key={JSON.stringify(initial)}
+          initial={initial}
+          errors={errors}
+        />
+        {searchable ? (
+          <SearchSummary outcome={outcome} values={initial} />
+        ) : null}
         {!searchable || outcome.venues.length === 0 ? null : (
           <div className="rounded-xl border">
             <Table>
@@ -154,12 +176,20 @@ export default async function VenueSearchPage({
               <TableBody>
                 {outcome.venues.map((venue) => (
                   <TableRow key={venue.id}>
-                    <TableCell className="font-medium">{venue.location}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ") || "—"}
+                    <TableCell className="font-medium">
+                      {venue.location}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{hours(venue)}</TableCell>
-                    <TableCell className="text-muted-foreground">{venue.facilities ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {venue.layouts
+                        .map((l) => `${l.name} (${l.capacity})`)
+                        .join(", ") || "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {hours(venue)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {venue.facilities ?? "—"}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {venue.accessibility ?? "—"}
                     </TableCell>

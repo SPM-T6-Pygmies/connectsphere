@@ -2,7 +2,7 @@ import type { BookingId, DecidedBooking } from "@/core/domain/booking";
 import { venueId } from "@/core/domain/venue";
 import type { BookingForReview } from "@/core/ports/outbound/booking-review-repository";
 
-import { toDate, toSlot, toStatus } from "./booking-mapper";
+import { toDate, toSlotOnDate, toStatus } from "./booking-mapper";
 import { toKey } from "./coordinator-event-mapper";
 
 /** One booking in the JSON `venue_staff_bookings()` returns. */
@@ -12,7 +12,7 @@ export interface BookingReviewRow {
   venue_id: number;
   venue_location: string;
   room_layout_name: string | null;
-  slots: ReadonlyArray<{ date: string; slot: string }>;
+  slots: ReadonlyArray<{ date: string; start: string; end: string }>;
   requested_by_name: string;
   requested_at: string;
   decided_by_name: string | null;
@@ -42,7 +42,7 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
     venueId: venueId(String(row.venue_id)),
     venueLocation: row.venue_location,
     roomLayoutName: row.room_layout_name,
-    slots: row.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
+    slots: row.slots.map(toSlotOnDate),
     requestedByName: row.requested_by_name,
     requestedAt: row.requested_at,
     decidedByName: row.decided_by_name,
@@ -53,7 +53,10 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
       status: row.event.status,
       organisationName: row.event.organisation_name,
       category: row.event.category,
-      preferredDate: row.event.preferred_date === null ? null : toDate(row.event.preferred_date),
+      preferredDate:
+        row.event.preferred_date === null
+          ? null
+          : toDate(row.event.preferred_date),
       startTime: row.event.start_time,
       endTime: row.event.end_time,
       expectedAttendance: row.event.expected_attendance,
@@ -75,12 +78,20 @@ export interface DecideBookingArgs {
   p_suggested_alternative_venue_id: number | null;
 }
 
-export function toDecideBookingArgs(decided: DecidedBooking): DecideBookingArgs | null {
+export function toDecideBookingArgs(
+  decided: DecidedBooking,
+): DecideBookingArgs | null {
   const staff = toKey(decided.decidedBy);
   const booking = toKey(decided.id);
   const alternative =
-    decided.suggestedAlternative === null ? null : toKey(decided.suggestedAlternative);
-  if (staff === null || booking === null || (decided.suggestedAlternative !== null && alternative === null)) {
+    decided.suggestedAlternative === null
+      ? null
+      : toKey(decided.suggestedAlternative);
+  if (
+    staff === null ||
+    booking === null ||
+    (decided.suggestedAlternative !== null && alternative === null)
+  ) {
     return null;
   }
 

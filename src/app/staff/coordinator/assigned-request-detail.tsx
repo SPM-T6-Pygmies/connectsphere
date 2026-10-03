@@ -228,7 +228,7 @@ export function AssignedRequestDetail({
               <CardHeader>
                 <CardTitle>Venue</CardTitle>
                 <CardDescription>
-                  Ask Venue Staff for a venue and slots for this event.
+                  Ask Venue Staff for a venue and times for this event.
                 </CardDescription>
               </CardHeader>
               <CardContent>

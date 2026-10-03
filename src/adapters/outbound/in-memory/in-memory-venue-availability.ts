@@ -1,14 +1,11 @@
-import type { BusyInterval } from "@/core/domain/venue-search";
+import type { BookedSlot } from "@/core/domain/venue-search";
 import type { VenueAvailability } from "@/core/ports/outbound/venue-availability";
 
-/** Busy intervals held in an array; same overlap contract as the Supabase one. */
+/** Booked slots held in an array; same contract as the Supabase one. */
 export class InMemoryVenueAvailability implements VenueAvailability {
-  constructor(private readonly busy: readonly BusyInterval[] = []) {}
+  constructor(private readonly booked: readonly BookedSlot[] = []) {}
 
-  async busyIntervals(from: Date, to: Date): Promise<readonly BusyInterval[]> {
-    return this.busy.filter(
-      (interval) =>
-        interval.startsAt.getTime() < to.getTime() && interval.endsAt.getTime() > from.getTime(),
-    );
+  async bookedSlots(date: string): Promise<readonly BookedSlot[]> {
+    return this.booked.filter((held) => held.date === date);
   }
 }

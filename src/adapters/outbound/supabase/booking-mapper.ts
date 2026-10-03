@@ -1,9 +1,9 @@
 import {
-  BOOKING_SLOTS,
+  isGridTime,
   type BookingRequest,
-  type BookingSlot,
   type BookingStatus,
   type OccupiedSlot,
+  type SlotOnDate,
 } from "@/core/domain/booking";
 import type { EventBookingSummary } from "@/core/ports/outbound/booking-repository";
 
@@ -12,7 +12,8 @@ import { toKey } from "./coordinator-event-mapper";
 /** A row of `venue_booked_slots()`. */
 export interface BookedSlotRow {
   slot_date: string;
-  slot: string;
+  start_time: string;
+  end_time: string;
   status: string;
 }
 
@@ -23,7 +24,7 @@ export interface EventBookingRow {
   room_layout_name: string | null;
   status: string;
   created_at: string;
-  slots: ReadonlyArray<{ date: string; slot: string }>;
+  slots: ReadonlyArray<{ date: string; start: string; end: string }>;
 }
 
 /** Exactly the six values `booking_status_chk` allows. */
@@ -45,12 +46,14 @@ export function toStatus(raw: string): BookingStatus {
   return status;
 }
 
-export function toSlot(raw: string): BookingSlot {
-  const slot = BOOKING_SLOTS.find((candidate) => candidate === raw);
-  if (slot === undefined) {
-    throw new Error(`Unknown booking slot "${raw}" in the booking_slot table.`);
+/** A time of day on the 15-minute grid, as `HH:MM`; `24:00` is the end of the day. */
+export function toTime(raw: string): string {
+  // `time` columns can arrive with seconds; the grid has none.
+  const time = raw.slice(0, 5);
+  if (!isGridTime(time)) {
+    throw new Error(`Unknown booking time "${raw}" in the booking_slot table.`);
   }
-  return slot;
+  return time;
 }
 
 /** `date` columns arrive as `YYYY-MM-DD`; keep only that, whatever else comes with it. */
@@ -59,16 +62,36 @@ export function toDate(raw: string): string {
 }
 
 export function toOccupiedSlot(row: BookedSlotRow): OccupiedSlot {
-  return { date: toDate(row.slot_date), slot: toSlot(row.slot), status: toStatus(row.status) };
+  return {
+    date: toDate(row.slot_date),
+    start: toTime(row.start_time),
+    end: toTime(row.end_time),
+    status: toStatus(row.status),
+  };
 }
 
-export function toEventBookingSummary(row: EventBookingRow): EventBookingSummary {
+/** One stretch of time as the functions return it inside a booking's `slots`. */
+export function toSlotOnDate(row: {
+  date: string;
+  start: string;
+  end: string;
+}): SlotOnDate {
+  return {
+    date: toDate(row.date),
+    start: toTime(row.start),
+    end: toTime(row.end),
+  };
+}
+
+export function toEventBookingSummary(
+  row: EventBookingRow,
+): EventBookingSummary {
   return {
     id: String(row.booking_id),
     venueLocation: row.venue_location,
     roomLayoutName: row.room_layout_name,
     status: toStatus(row.status),
-    slots: row.slots.map(({ date, slot }) => ({ date: toDate(date), slot: toSlot(slot) })),
+    slots: row.slots.map(toSlotOnDate),
     requestedAt: row.created_at,
   };
 }
@@ -79,11 +102,13 @@ export interface SubmitBookingArgs {
   p_venue_id: number;
   /** The layout's name; the function resolves it to the venue's own layout. */
   p_room_layout: string | null;
-  p_slots: ReadonlyArray<{ date: string; slot: BookingSlot }>;
+  p_slots: ReadonlyArray<{ date: string; start: string; end: string }>;
 }
 
 /** Null when an id is not one this store could have issued. */
-export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs | null {
+export function toSubmitBookingArgs(
+  request: BookingRequest,
+): SubmitBookingArgs | null {
   const coordinator = toKey(request.requestedBy);
   const event = toKey(request.eventId);
   const venue = toKey(request.venueId);
@@ -97,6 +122,10 @@ export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs 
     p_event_id: event,
     p_venue_id: venue,
     p_room_layout: request.roomLayout,
-    p_slots: request.slots.map(({ date, slot }) => ({ date, slot })),
+    p_slots: request.slots.map(({ date, start, end }) => ({
+      date,
+      start,
+      end,
+    })),
   };
 }

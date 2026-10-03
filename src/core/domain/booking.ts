@@ -2,9 +2,11 @@ import type { Brand } from "./brand";
 import {
   BookingNotDecidableError,
   DecisionReasonRequiredError,
-  DuplicateBookingSlotError,
   InvalidBookingDateError,
+  InvalidBookingTimeError,
   NoBookingSlotsError,
+  OutsideOperatingHoursError,
+  OverlappingBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueSlotUnavailableError,
@@ -12,11 +14,48 @@ import {
 import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
 
-/** `booking_slot_value_chk`: venues are booked in three fixed slots a day (#50). */
-export type BookingSlot = "AM" | "PM" | "Night";
+/** Bookings are made on a 15-minute grid (#50). */
+export const GRID_MINUTES = 15;
 
-/** In the order they fall in a day, which is also the order a request is shown in. */
-export const BOOKING_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
+const TIME = /^(?:[01]\d|2[0-3]):[0-5]\d$|^24:00$/;
+
+/** `HH:MM` as minutes since midnight; `24:00` is the end of the day. Null when not a time. */
+export function toMinutes(time: string): number | null {
+  if (!TIME.test(time)) {
+    return null;
+  }
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+/** Whether a time falls on the 15-minute grid. */
+export function isGridTime(time: string): boolean {
+  const minutes = toMinutes(time);
+  return minutes !== null && minutes % GRID_MINUTES === 0;
+}
+
+/**
+ * Every grid time from `from` to `to`, inclusive, as `HH:MM` -- what a start or
+ * end can be chosen from. `to` of `24:00` is the end of the day.
+ */
+export function gridTimes(from: string, to: string): string[] {
+  const start = toMinutes(from);
+  const end = toMinutes(to);
+  if (start === null || end === null) {
+    return [];
+  }
+  const times: string[] = [];
+  for (
+    let m = Math.ceil(start / GRID_MINUTES) * GRID_MINUTES;
+    m <= end;
+    m += GRID_MINUTES
+  ) {
+    times.push(
+      `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`,
+    );
+  }
+  return times;
+}
 
 /** `booking_status_chk`. */
 export type BookingStatus =
@@ -29,13 +68,17 @@ export type BookingStatus =
 
 export type BookingId = Brand<string, "BookingId">;
 
-/** One slot on one calendar day. `date` is `YYYY-MM-DD`, Singapore time (#36). */
+/**
+ * One stretch of time on one calendar day. `date` is `YYYY-MM-DD`, Singapore
+ * time (#36); `start` and `end` are `HH:MM` on the 15-minute grid, start first.
+ */
 export interface SlotOnDate {
   readonly date: string;
-  readonly slot: BookingSlot;
+  readonly start: string;
+  readonly end: string;
 }
 
-/** A slot some existing booking at the venue already sits on. */
+/** A stretch of time some existing booking at the venue already sits on. */
 export interface OccupiedSlot extends SlotOnDate {
   readonly status: BookingStatus;
 }
@@ -77,19 +120,28 @@ function isCalendarDate(raw: string): boolean {
     return false;
   }
   const parsed = new Date(`${raw}T00:00:00.000Z`);
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === raw;
-}
-
-function slotKey({ date, slot }: SlotOnDate): string {
-  return `${date}|${slot}`;
+  return (
+    !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === raw
+  );
 }
 
 function compareSlots(a: SlotOnDate, b: SlotOnDate): number {
-  return a.date === b.date
-    ? BOOKING_SLOTS.indexOf(a.slot) - BOOKING_SLOTS.indexOf(b.slot)
-    : a.date < b.date
-      ? -1
-      : 1;
+  if (a.date !== b.date) {
+    return a.date < b.date ? -1 : 1;
+  }
+  return (toMinutes(a.start) ?? 0) - (toMinutes(b.start) ?? 0);
+}
+
+/**
+ * Whether two stretches of time share any time. Touching is not sharing: a
+ * booking that ends at 11:00 does not clash with one that starts at 11:00.
+ */
+export function slotsOverlap(a: SlotOnDate, b: SlotOnDate): boolean {
+  return (
+    a.date === b.date &&
+    (toMinutes(a.start) ?? 0) < (toMinutes(b.end) ?? 0) &&
+    (toMinutes(b.start) ?? 0) < (toMinutes(a.end) ?? 0)
+  );
 }
 
 /**
@@ -98,7 +150,10 @@ function compareSlots(a: SlotOnDate, b: SlotOnDate): number {
  * to make: a venue with a single layout takes that layout, and one with none
  * on record has nothing to choose from.
  */
-export function chooseRoomLayout(venue: Venue, requested: string | null): string | null {
+export function chooseRoomLayout(
+  venue: Venue,
+  requested: string | null,
+): string | null {
   if (requested !== null) {
     if (!venue.layouts.some((layout) => layout.name === requested)) {
       throw new UnsupportedRoomLayoutError(requested);
@@ -112,13 +167,50 @@ export function chooseRoomLayout(venue: Venue, requested: string | null): string
   return venue.layouts[0]?.name ?? null;
 }
 
-/** The requested slots that an existing hold or confirmed booking already has. */
+/** The requested stretches that overlap one an existing hold or confirmed booking has. */
 export function clashingSlots(
   requested: readonly SlotOnDate[],
   occupied: readonly OccupiedSlot[],
 ): SlotOnDate[] {
-  const taken = new Set(occupied.filter((o) => holdsSlot(o.status)).map(slotKey));
-  return requested.filter((slot) => taken.has(slotKey(slot)));
+  const held = occupied.filter((o) => holdsSlot(o.status));
+  return requested.filter((slot) =>
+    held.some((other) => slotsOverlap(slot, other)),
+  );
+}
+
+/**
+ * A stretch must be a real start and end on the 15-minute grid, start before
+ * end -- and, where the venue says when it operates, inside those hours. A venue
+ * with no hours on record sets no bound.
+ */
+function checkTimes(slot: SlotOnDate, venue: Venue): void {
+  const start = toMinutes(slot.start);
+  const end = toMinutes(slot.end);
+  if (
+    start === null ||
+    end === null ||
+    start % GRID_MINUTES !== 0 ||
+    end % GRID_MINUTES !== 0 ||
+    start >= end
+  ) {
+    throw new InvalidBookingTimeError(slot);
+  }
+
+  const opens =
+    venue.operatingHoursStart === null
+      ? null
+      : toMinutes(venue.operatingHoursStart);
+  const closes =
+    venue.operatingHoursEnd === null
+      ? null
+      : toMinutes(venue.operatingHoursEnd);
+  if (opens !== null && closes !== null && (start < opens || end > closes)) {
+    throw new OutsideOperatingHoursError(
+      slot,
+      venue.operatingHoursStart ?? "",
+      venue.operatingHoursEnd ?? "",
+    );
+  }
 }
 
 /**
@@ -142,16 +234,18 @@ export function requestVenueBooking(input: {
     throw new NoBookingSlotsError();
   }
 
-  const seen = new Set<string>();
   for (const slot of input.slots) {
     if (!isCalendarDate(slot.date)) {
       throw new InvalidBookingDateError(slot.date);
     }
-    const key = slotKey(slot);
-    if (seen.has(key)) {
-      throw new DuplicateBookingSlotError(slot.date, slot.slot);
+    checkTimes(slot, input.venue);
+  }
+
+  const sorted = [...input.slots].sort(compareSlots);
+  for (let i = 1; i < sorted.length; i += 1) {
+    if (slotsOverlap(sorted[i - 1], sorted[i])) {
+      throw new OverlappingBookingSlotsError(sorted[i].date);
     }
-    seen.add(key);
   }
 
   const roomLayout = chooseRoomLayout(input.venue, input.roomLayout);
@@ -165,7 +259,7 @@ export function requestVenueBooking(input: {
     eventId: input.eventId,
     venueId: input.venue.id,
     roomLayout,
-    slots: [...input.slots].sort(compareSlots),
+    slots: sorted,
     requestedBy: input.requestedBy,
     status: "Requested",
   };

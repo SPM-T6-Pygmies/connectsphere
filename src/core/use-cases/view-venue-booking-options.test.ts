@@ -48,7 +48,7 @@ function buildUseCase() {
         venueLocation: "Main Hall",
         roomLayoutName: "Theatre",
         status: "Requested",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        slots: [{ date: "2026-10-05", start: "09:00", end: "10:30" }],
         requestedBy: "coordinator-1",
         requestedAt: "2026-09-27T00:00:00.000Z",
       },
@@ -59,7 +59,7 @@ function buildUseCase() {
         venueLocation: "Main Hall",
         roomLayoutName: null,
         status: "Confirmed",
-        slots: [{ date: "2026-10-06", slot: "AM" }],
+        slots: [{ date: "2026-10-06", start: "09:00", end: "10:30" }],
         requestedBy: "coordinator-2",
         requestedAt: "2026-09-27T00:00:00.000Z",
       },
@@ -83,12 +83,17 @@ describe("ViewVenueBookingOptionsUseCase (SPM-46)", () => {
       venueRequirements: "Stage and projector",
     });
     expect(result?.venues).toEqual([HALL]);
-    expect(result?.bookings.map((booking) => booking.id)).toEqual(["booking-1"]);
+    expect(result?.bookings.map((booking) => booking.id)).toEqual([
+      "booking-1",
+    ]);
   });
 
   it("returns nothing to a coordinator the event is not assigned to (#91)", async () => {
     await expect(
-      buildUseCase().execute({ eventRequestId: "request-1", userAccountId: "coordinator-2" }),
+      buildUseCase().execute({
+        eventRequestId: "request-1",
+        userAccountId: "coordinator-2",
+      }),
     ).resolves.toBeNull();
   });
 });

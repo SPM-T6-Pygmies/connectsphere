@@ -149,7 +149,9 @@ export class EventAlreadyCompletedError extends DomainError {
   readonly code = "event_already_completed";
 
   constructor() {
-    super("This event has already taken place, so the registration cannot be withdrawn.");
+    super(
+      "This event has already taken place, so the registration cannot be withdrawn.",
+    );
   }
 }
 
@@ -339,7 +341,7 @@ export class NoBookingSlotsError extends DomainError {
   readonly code = "no_booking_slots";
 
   constructor() {
-    super("Choose at least one slot to book.");
+    super("Choose at least one date and time to book.");
   }
 }
 
@@ -351,14 +353,49 @@ export class InvalidBookingDateError extends DomainError {
   }
 }
 
-export class DuplicateBookingSlotError extends DomainError {
-  readonly code = "duplicate_booking_slot";
+export class OverlappingBookingSlotsError extends DomainError {
+  readonly code = "overlapping_booking_slots";
+
+  constructor(readonly date: string) {
+    super(
+      `Two of the times requested on ${date} overlap. Give each its own time.`,
+    );
+  }
+}
+
+/** A start and end that are not on the 15-minute grid, or not in order. */
+export class InvalidBookingTimeError extends DomainError {
+  readonly code = "invalid_booking_time";
 
   constructor(
-    readonly date: string,
-    readonly slot: string,
+    readonly slot: {
+      readonly date: string;
+      readonly start: string;
+      readonly end: string;
+    },
   ) {
-    super(`${date} ${slot} is requested more than once.`);
+    super(
+      `${slot.date} ${slot.start}–${slot.end} is not a valid time. Choose a start and an end on the quarter hour, with the end after the start.`,
+    );
+  }
+}
+
+/** The time asked for falls outside the hours the venue operates. */
+export class OutsideOperatingHoursError extends DomainError {
+  readonly code = "outside_operating_hours";
+
+  constructor(
+    readonly slot: {
+      readonly date: string;
+      readonly start: string;
+      readonly end: string;
+    },
+    readonly opens: string,
+    readonly closes: string,
+  ) {
+    super(
+      `${slot.date} ${slot.start}–${slot.end} is outside the venue's operating hours, ${opens}–${closes}.`,
+    );
   }
 }
 
@@ -367,7 +404,9 @@ export class RoomLayoutRequiredError extends DomainError {
   readonly code = "room_layout_required";
 
   constructor() {
-    super("This venue supports more than one layout. Choose the one the event assumes.");
+    super(
+      "This venue supports more than one layout. Choose the one the event assumes.",
+    );
   }
 }
 
@@ -383,11 +422,17 @@ export class UnsupportedRoomLayoutError extends DomainError {
 export class VenueSlotUnavailableError extends DomainError {
   readonly code = "venue_slot_unavailable";
 
-  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
+  constructor(
+    readonly slots: ReadonlyArray<{
+      readonly date: string;
+      readonly start: string;
+      readonly end: string;
+    }>,
+  ) {
     super(
       `The venue is already booked for ${slots
-        .map(({ date, slot }) => `${date} ${slot}`)
-        .join(", ")}. Choose other slots or another venue.`,
+        .map(({ date, start, end }) => `${date} ${start}–${end}`)
+        .join(", ")}. Choose other times or another venue.`,
     );
   }
 }
@@ -540,7 +585,9 @@ export class ClarificationThreadClosedError extends DomainError {
   readonly code = "clarification_thread_closed";
 
   constructor() {
-    super("This request has been decided, so its clarification thread is closed.");
+    super(
+      "This request has been decided, so its clarification thread is closed.",
+    );
   }
 }
 

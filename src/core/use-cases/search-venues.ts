@@ -2,8 +2,7 @@ import {
   calendarDate,
   defineVenueSearch,
   searchVenues,
-  windowInstants,
-  type BusyInterval,
+  type BookedSlot,
   type VenueSearchInput,
   type VenueSearchOutcome,
 } from "../domain/venue-search";
@@ -15,7 +14,7 @@ export interface SearchVenuesDeps {
   readonly venues: VenueCatalogue;
   readonly availability: VenueAvailability;
   readonly clock: Clock;
-  /** IANA zone the venues' wall-clock times are in, e.g. `"Asia/Singapore"`. */
+  /** IANA zone "today" is read in, e.g. `"Asia/Singapore"`. */
   readonly timeZone: string;
 }
 
@@ -24,7 +23,7 @@ export type SearchVenuesResult = VenueSearchOutcome;
 
 /**
  * SPM-44: an Event Coordinator narrows the catalogue by attributes and by when
- * the event runs. Bookings are only fetched when a date and times are given.
+ * the event runs. Bookings are only fetched when a date and slots are given.
  *
  * Throws `InvalidVenueSearchError` for criteria that cannot be searched on.
  */
@@ -36,12 +35,11 @@ export class SearchVenuesUseCase {
     const today = calendarDate(clock.now(), timeZone);
     const criteria = defineVenueSearch(command, today);
 
-    let busy: readonly BusyInterval[] = [];
+    let booked: readonly BookedSlot[] = [];
     if (criteria.window !== null) {
-      const { from, to } = windowInstants(criteria.window, timeZone);
-      busy = await availability.busyIntervals(from, to);
+      booked = await availability.bookedSlots(criteria.window.date);
     }
 
-    return searchVenues(await venues.list(), criteria, busy, today, timeZone);
+    return searchVenues(await venues.list(), criteria, booked, today);
   }
 }

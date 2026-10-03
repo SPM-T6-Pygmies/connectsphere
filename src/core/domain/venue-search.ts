@@ -1,6 +1,11 @@
+import { isGridTime, toMinutes, type SlotOnDate } from "./booking";
 import { InvalidVenueSearchError } from "./errors";
 import { STANDARD_LAYOUTS, type Venue, type VenueId } from "./venue";
-import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS, parseOptionList } from "./venue-options";
+import {
+  ACCESSIBILITY_OPTIONS,
+  FACILITY_OPTIONS,
+  parseOptionList,
+} from "./venue-options";
 
 /**
  * SPM-44: narrowing the venue catalogue to candidates.
@@ -19,20 +24,19 @@ export interface VenueSearchCriteria {
   readonly window: VenueSearchWindow | null;
 }
 
-/** When the event would run, as local wall-clock time at the venue. */
+/** When the event would run: one day, from a start time to an end time. */
 export interface VenueSearchWindow {
   /** `YYYY-MM-DD`. */
   readonly date: string;
-  /** `HH:MM`, 24-hour. */
+  /** `HH:MM` on the 15-minute grid. */
   readonly start: string;
+  /** `HH:MM` on the 15-minute grid, after `start`. */
   readonly end: string;
 }
 
-/** A span during which a venue is held by a live booking. */
-export interface BusyInterval {
+/** A stretch of time a venue is held for by a live booking. */
+export interface BookedSlot extends SlotOnDate {
   readonly venueId: VenueId;
-  readonly startsAt: Date;
-  readonly endsAt: Date;
 }
 
 export interface VenueSearchInput {
@@ -41,22 +45,29 @@ export interface VenueSearchInput {
   readonly facilities: readonly string[];
   readonly accessibility: readonly string[];
   readonly date: string | null;
+  /** `HH:MM`; blank when not given. */
   readonly startTime: string | null;
   readonly endTime: string | null;
 }
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_OF_DAY = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
  * The only way to obtain `VenueSearchCriteria`. Refuses a search that cannot be
- * answered: a date without both times (or times without a date), an end that
- * is not after the start, a date already past, or a value that is not an
- * option. `today` is `YYYY-MM-DD` at the venues.
+ * answered: a date without a start and end time (or a time without a date), a
+ * time off the 15-minute grid or an end not after the start, a date already
+ * past, or a value that is not an option. `today` is `YYYY-MM-DD` at
+ * the venues.
  */
-export function defineVenueSearch(input: VenueSearchInput, today: string): VenueSearchCriteria {
+export function defineVenueSearch(
+  input: VenueSearchInput,
+  today: string,
+): VenueSearchCriteria {
   const layout = blankToNull(input.layout);
-  if (layout !== null && !(STANDARD_LAYOUTS as readonly string[]).includes(layout)) {
+  if (
+    layout !== null &&
+    !(STANDARD_LAYOUTS as readonly string[]).includes(layout)
+  ) {
     throw new InvalidVenueSearchError(
       `${layout} is not a room layout -- choose one of ${STANDARD_LAYOUTS.join(", ")}.`,
       "layout",
@@ -64,15 +75,26 @@ export function defineVenueSearch(input: VenueSearchInput, today: string): Venue
   }
 
   const attendance = input.attendance;
-  if (attendance !== null && (!Number.isInteger(attendance) || attendance <= 0)) {
+  if (
+    attendance !== null &&
+    (!Number.isInteger(attendance) || attendance <= 0)
+  ) {
     throw new InvalidVenueSearchError(
       "Attendance must be a whole number above 0.",
       "attendance",
     );
   }
 
-  const facilities = knownOptions(input.facilities, FACILITY_OPTIONS, "facilities");
-  const accessibility = knownOptions(input.accessibility, ACCESSIBILITY_OPTIONS, "accessibility");
+  const facilities = knownOptions(
+    input.facilities,
+    FACILITY_OPTIONS,
+    "facilities",
+  );
+  const accessibility = knownOptions(
+    input.accessibility,
+    ACCESSIBILITY_OPTIONS,
+    "accessibility",
+  );
 
   return {
     layout,
@@ -83,7 +105,10 @@ export function defineVenueSearch(input: VenueSearchInput, today: string): Venue
   };
 }
 
-function defineWindow(input: VenueSearchInput, today: string): VenueSearchWindow | null {
+function defineWindow(
+  input: VenueSearchInput,
+  today: string,
+): VenueSearchWindow | null {
   const date = blankToNull(input.date);
   const start = blankToNull(input.startTime);
   const end = blankToNull(input.endTime);
@@ -104,17 +129,28 @@ function defineWindow(input: VenueSearchInput, today: string): VenueSearchWindow
     throw new InvalidVenueSearchError("Enter the date as YYYY-MM-DD.", "date");
   }
   if (date < today) {
-    throw new InvalidVenueSearchError("Choose a date from today onwards.", "date");
+    throw new InvalidVenueSearchError(
+      "Choose a date from today onwards.",
+      "date",
+    );
   }
-  if (!TIME_OF_DAY.test(start)) {
-    throw new InvalidVenueSearchError("Enter the start time as HH:MM.", "startTime");
+  if (!isGridTime(start)) {
+    throw new InvalidVenueSearchError(
+      "Choose a start time on the quarter hour.",
+      "startTime",
+    );
   }
-  if (!TIME_OF_DAY.test(end)) {
-    throw new InvalidVenueSearchError("Enter the end time as HH:MM.", "endTime");
+  if (!isGridTime(end)) {
+    throw new InvalidVenueSearchError(
+      "Choose an end time on the quarter hour.",
+      "endTime",
+    );
   }
-  // Zero-padded HH:MM, so string order is time order.
-  if (end <= start) {
-    throw new InvalidVenueSearchError("End time must be later than the start time.", "endTime");
+  if ((toMinutes(end) ?? 0) <= (toMinutes(start) ?? 0)) {
+    throw new InvalidVenueSearchError(
+      "End time must be later than the start time.",
+      "endTime",
+    );
   }
   return { date, start, end };
 }
@@ -143,21 +179,22 @@ export interface VenueSearchOutcome {
    * How many venues each reason left out, in `EXCLUSION_REASONS` order, zero
    * counts omitted. A venue is counted once, under the first filter it fails.
    */
-  readonly excluded: readonly { readonly reason: ExclusionReason; readonly count: number }[];
+  readonly excluded: readonly {
+    readonly reason: ExclusionReason;
+    readonly count: number;
+  }[];
 }
 
 /**
  * The venues that meet every criterion given, and why the rest did not.
  *
- * `busy` must cover the searched window; `timeZone` (IANA) is where the
- * venues' wall-clock times -- operating hours and the window -- are read.
+ * `booked` must cover the searched date.
  */
 export function searchVenues(
   venues: readonly Venue[],
   criteria: VenueSearchCriteria,
-  busy: readonly BusyInterval[],
+  booked: readonly BookedSlot[],
   today: string,
-  timeZone: string,
 ): VenueSearchOutcome {
   const matched: Venue[] = [];
   const counts = new Map<ExclusionReason, number>();
@@ -166,7 +203,7 @@ export function searchVenues(
       attributeMismatch(venue, criteria) ??
       (criteria.window === null
         ? null
-        : unavailability(venue, criteria.window, busy, today, timeZone));
+        : unavailability(venue, criteria.window, booked, today));
     if (reason === null) {
       matched.push(venue);
     } else {
@@ -175,14 +212,19 @@ export function searchVenues(
   }
   return {
     venues: matched,
-    excluded: EXCLUSION_REASONS.filter((reason) => counts.has(reason)).map((reason) => ({
-      reason,
-      count: counts.get(reason) ?? 0,
-    })),
+    excluded: EXCLUSION_REASONS.filter((reason) => counts.has(reason)).map(
+      (reason) => ({
+        reason,
+        count: counts.get(reason) ?? 0,
+      }),
+    ),
   };
 }
 
-export function matchesAttributes(venue: Venue, criteria: VenueSearchCriteria): boolean {
+export function matchesAttributes(
+  venue: Venue,
+  criteria: VenueSearchCriteria,
+): boolean {
   return attributeMismatch(venue, criteria) === null;
 }
 
@@ -191,79 +233,81 @@ export function matchesAttributes(venue: Venue, criteria: VenueSearchCriteria): 
  * venue whose Theatre seats 200 does not match "Boardroom for 100" because its
  * Boardroom seats 20. The venue-level `capacity` is never consulted (SPM-106).
  */
-function attributeMismatch(venue: Venue, criteria: VenueSearchCriteria): ExclusionReason | null {
+function attributeMismatch(
+  venue: Venue,
+  criteria: VenueSearchCriteria,
+): ExclusionReason | null {
   const { layout, attendance } = criteria;
-  if (layout !== null && !venue.layouts.some((candidate) => candidate.name === layout)) {
+  if (
+    layout !== null &&
+    !venue.layouts.some((candidate) => candidate.name === layout)
+  ) {
     return "layout";
   }
   if (
     attendance !== null &&
     !venue.layouts.some(
       (candidate) =>
-        (layout === null || candidate.name === layout) && candidate.capacity >= attendance,
+        (layout === null || candidate.name === layout) &&
+        candidate.capacity >= attendance,
     )
   ) {
     return "capacity";
   }
   if (!includesAll(venue.facilities, criteria.facilities)) return "facilities";
-  if (!includesAll(venue.accessibility, criteria.accessibility)) return "accessibility";
+  if (!includesAll(venue.accessibility, criteria.accessibility))
+    return "accessibility";
   return null;
 }
 
 export function isOpenFor(
   venue: Venue,
   window: VenueSearchWindow,
-  busy: readonly BusyInterval[],
+  booked: readonly BookedSlot[],
   today: string,
-  timeZone: string,
 ): boolean {
-  return unavailability(venue, window, busy, today, timeZone) === null;
+  return unavailability(venue, window, booked, today) === null;
 }
 
 /**
- * Whether the venue could be booked for the whole window: inside its operating
- * hours, within its booking horizon, and not overlapping a live booking. A
- * venue missing the hours or horizon cannot be shown to be open, so it is not.
+ * Whether the venue could be booked for the whole window: operating from before
+ * the start to after the end, within its booking horizon, and with no live
+ * booking overlapping it. A venue missing the hours or horizon cannot be shown
+ * to be open, so it is not.
  */
 function unavailability(
   venue: Venue,
   window: VenueSearchWindow,
-  busy: readonly BusyInterval[],
+  booked: readonly BookedSlot[],
   today: string,
-  timeZone: string,
 ): ExclusionReason | null {
-  const { operatingHoursStart: opens, operatingHoursEnd: closes, bookingHorizonDays } = venue;
+  const {
+    operatingHoursStart: opens,
+    operatingHoursEnd: closes,
+    bookingHorizonDays,
+  } = venue;
   if (opens === null || closes === null || bookingHorizonDays === null) {
     return "hoursUnknown";
   }
-  if (window.start < opens || window.end > closes) {
+  const start = toMinutes(window.start) ?? 0;
+  const end = toMinutes(window.end) ?? 0;
+  if (start < (toMinutes(opens) ?? 0) || end > (toMinutes(closes) ?? 0)) {
     return "outsideHours";
   }
   if (daysBetween(today, window.date) > bookingHorizonDays) {
     return "beyondHorizon";
   }
 
-  const from = instantAt(window.date, window.start, timeZone).getTime();
-  const to = instantAt(window.date, window.end, timeZone).getTime();
-  // Half-open: a booking ending as the window starts leaves the venue free.
-  const booked = busy.some(
-    (interval) =>
-      interval.venueId === venue.id &&
-      interval.startsAt.getTime() < to &&
-      interval.endsAt.getTime() > from,
+  // Half-open: a booking that ends as the window starts, or starts as it ends,
+  // does not overlap it.
+  const taken = booked.some(
+    (held) =>
+      held.venueId === venue.id &&
+      held.date === window.date &&
+      (toMinutes(held.start) ?? 0) < end &&
+      start < (toMinutes(held.end) ?? 0),
   );
-  return booked ? "booked" : null;
-}
-
-/** The instants the window spans, so a caller can fetch the bookings it needs. */
-export function windowInstants(
-  window: VenueSearchWindow,
-  timeZone: string,
-): { from: Date; to: Date } {
-  return {
-    from: instantAt(window.date, window.start, timeZone),
-    to: instantAt(window.date, window.end, timeZone),
-  };
+  return taken ? "booked" : null;
 }
 
 /** `now`'s calendar date (`YYYY-MM-DD`) in `timeZone`. */
@@ -276,39 +320,17 @@ export function calendarDate(now: Date, timeZone: string): string {
   }).format(now);
 }
 
-/**
- * The instant that is `time` on `date` on a wall clock in `timeZone`. Reads the
- * zone's offset at that moment, which is exact for a zone without daylight
- * saving -- Singapore is the only one served (#36).
- */
-function instantAt(date: string, time: string, timeZone: string): Date {
-  const asUtc = Date.parse(`${date}T${time}:00Z`);
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).formatToParts(new Date(asUtc));
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    Number(parts.find((p) => p.type === type)?.value);
-  const wallClock = Date.UTC(
-    part("year"),
-    part("month") - 1,
-    part("day"),
-    part("hour"),
-    part("minute"),
-  );
-  return new Date(asUtc - (wallClock - asUtc));
-}
-
 function daysBetween(from: string, to: string): number {
-  return (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000;
+  return (
+    (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) /
+    86_400_000
+  );
 }
 
-function includesAll(stored: string | null, wanted: readonly string[]): boolean {
+function includesAll(
+  stored: string | null,
+  wanted: readonly string[],
+): boolean {
   const have = parseOptionList(stored);
   return wanted.every((option) => have.includes(option));
 }
@@ -318,7 +340,9 @@ function knownOptions(
   allowed: readonly string[],
   field: "facilities" | "accessibility",
 ): string[] {
-  const selected = values.map((value) => value.trim()).filter((value) => value.length > 0);
+  const selected = values
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
   const unknown = selected.filter((value) => !allowed.includes(value));
   if (unknown.length > 0) {
     throw new InvalidVenueSearchError(

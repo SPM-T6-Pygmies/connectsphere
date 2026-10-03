@@ -6,7 +6,7 @@ import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-
 
 import { InvalidVenueSearchError } from "../domain/errors";
 import { venueId, type Venue } from "../domain/venue";
-import type { BusyInterval, VenueSearchInput } from "../domain/venue-search";
+import type { BookedSlot, VenueSearchInput } from "../domain/venue-search";
 import { SearchVenuesUseCase } from "./search-venues";
 
 // 1 Nov 2026, 10:00 in Singapore.
@@ -40,30 +40,80 @@ function search(overrides: Partial<VenueSearchInput> = {}): VenueSearchInput {
   };
 }
 
-function build(venues: Venue[], busy: BusyInterval[] = []) {
+function build(venues: Venue[], booked: BookedSlot[] = []) {
   return new SearchVenuesUseCase({
     venues: new InMemoryVenueCatalogue(venues),
-    availability: new InMemoryVenueAvailability(busy),
+    availability: new InMemoryVenueAvailability(booked),
     clock: new FixedClock(NOW),
     timeZone: "Asia/Singapore",
   });
 }
 
-const ids = (result: { venues: readonly Venue[] }) => result.venues.map((v) => v.id);
+const ids = (result: { venues: readonly Venue[] }) =>
+  result.venues.map((v) => v.id);
 
 describe("SearchVenuesUseCase (SPM-44)", () => {
-  it("excludes a venue booked during the searched window, keeps one that is free", async () => {
-    const busy = [
+  it("excludes a venue booked during the searched time, keeps one that is free", async () => {
+    const booked: BookedSlot[] = [
       {
         venueId: venueId("a"),
-        startsAt: new Date("2026-11-05T10:00:00+08:00"),
-        endsAt: new Date("2026-11-05T15:00:00+08:00"),
+        date: "2026-11-05",
+        start: "13:00",
+        end: "15:00",
       },
     ];
-    const useCase = build([venue("a"), venue("b")], busy);
+    const useCase = build([venue("a"), venue("b")], booked);
 
     const result = await useCase.execute(
-      search({ date: "2026-11-05", startTime: "10:00", endTime: "15:00" }),
+      search({ date: "2026-11-05", startTime: "13:00", endTime: "14:00" }),
+    );
+
+    expect(ids(result)).toEqual(["b"]);
+  });
+
+  it("keeps a venue booked at another time, back to back, or on another day", async () => {
+    const booked: BookedSlot[] = [
+      {
+        venueId: venueId("a"),
+        date: "2026-11-05",
+        start: "09:00",
+        end: "10:00",
+      },
+      {
+        venueId: venueId("a"),
+        date: "2026-11-05",
+        start: "12:00",
+        end: "13:00",
+      },
+      {
+        venueId: venueId("b"),
+        date: "2026-11-06",
+        start: "13:00",
+        end: "14:00",
+      },
+    ];
+    const useCase = build([venue("a"), venue("b")], booked);
+
+    const result = await useCase.execute(
+      search({ date: "2026-11-05", startTime: "13:00", endTime: "14:00" }),
+    );
+
+    expect(ids(result)).toEqual(["a", "b"]);
+  });
+
+  it("excludes a venue booked for only part of the searched time", async () => {
+    const booked: BookedSlot[] = [
+      {
+        venueId: venueId("a"),
+        date: "2026-11-05",
+        start: "13:00",
+        end: "15:00",
+      },
+    ];
+    const useCase = build([venue("a"), venue("b")], booked);
+
+    const result = await useCase.execute(
+      search({ date: "2026-11-05", startTime: "12:00", endTime: "16:00" }),
     );
 
     expect(ids(result)).toEqual(["b"]);
@@ -82,8 +132,8 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
         attendance: 100,
         facilities: ["Wi-Fi"],
         date: "2026-11-05",
-        startTime: "10:00",
-        endTime: "15:00",
+        startTime: "13:00",
+        endTime: "14:00",
       }),
     );
 
@@ -97,7 +147,9 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
   });
 
   it("returns an empty list when no venue matches", async () => {
-    const result = await build([venue("a")]).execute(search({ layout: "Banquet" }));
+    const result = await build([venue("a")]).execute(
+      search({ layout: "Banquet" }),
+    );
 
     expect(result.venues).toEqual([]);
   });
@@ -108,7 +160,12 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
       venue("b", { facilities: "Projector" }),
       venue("c", { bookingHorizonDays: 1 }),
     ]).execute(
-      search({ facilities: ["Wi-Fi"], date: "2026-11-05", startTime: "10:00", endTime: "11:00" }),
+      search({
+        facilities: ["Wi-Fi"],
+        date: "2026-11-05",
+        startTime: "09:00",
+        endTime: "10:00",
+      }),
     );
 
     expect(ids(result)).toEqual(["a"]);
@@ -121,7 +178,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
   it("refuses a search for a date already past in Singapore", async () => {
     await expect(
       build([venue("a")]).execute(
-        search({ date: "2026-10-31", startTime: "10:00", endTime: "11:00" }),
+        search({ date: "2026-10-31", startTime: "09:00", endTime: "10:00" }),
       ),
     ).rejects.toBeInstanceOf(InvalidVenueSearchError);
   });

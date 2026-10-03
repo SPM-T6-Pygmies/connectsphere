@@ -7,7 +7,9 @@ import {
 import {
   CoordinatorEventNotFoundError,
   InvalidBookingDateError,
+  InvalidBookingTimeError,
   NoBookingSlotsError,
+  OverlappingBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueNotFoundError,
@@ -37,6 +39,9 @@ const LAYOUT_REQUIRED = "CS022";
 const LAYOUT_UNSUPPORTED = "CS023";
 const SLOTS_INVALID = "CS024";
 const SLOT_TAKEN = "CS025";
+const TIME_INVALID = "CS026";
+const OUTSIDE_HOURS = "CS027";
+const SLOTS_OVERLAP = "CS028";
 
 /**
  * Reached through `security definer` functions, not the tables: `booking`
@@ -45,7 +50,10 @@ const SLOT_TAKEN = "CS025";
 export class SupabaseBookingRepository implements BookingRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
-  async listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedSlot[]> {
+  async listSlotsAt(
+    venue: VenueId,
+    dates: readonly string[],
+  ): Promise<readonly OccupiedSlot[]> {
     const key = toKey(venue);
     if (key === null || dates.length === 0) {
       return [];
@@ -56,7 +64,10 @@ export class SupabaseBookingRepository implements BookingRepository {
       p_dates: [...dates],
     });
     if (error) {
-      throw new Error(`Failed to read the venue's booked slots: ${error.message}`, { cause: error });
+      throw new Error(
+        `Failed to read the venue's booked slots: ${error.message}`,
+        { cause: error },
+      );
     }
 
     return ((data ?? []) as unknown as BookedSlotRow[]).map(toOccupiedSlot);
@@ -72,15 +83,22 @@ export class SupabaseBookingRepository implements BookingRepository {
       return [];
     }
 
-    const { data, error } = await this.client.rpc("coordinator_event_bookings", {
-      p_coordinator_user_account_id: coordinator,
-      p_event_id: event,
-    });
+    const { data, error } = await this.client.rpc(
+      "coordinator_event_bookings",
+      {
+        p_coordinator_user_account_id: coordinator,
+        p_event_id: event,
+      },
+    );
     if (error) {
-      throw new Error(`Failed to list the event's bookings: ${error.message}`, { cause: error });
+      throw new Error(`Failed to list the event's bookings: ${error.message}`, {
+        cause: error,
+      });
     }
 
-    return ((data ?? []) as unknown as EventBookingRow[]).map(toEventBookingSummary);
+    return ((data ?? []) as unknown as EventBookingRow[]).map(
+      toEventBookingSummary,
+    );
   }
 
   /**
@@ -97,7 +115,10 @@ export class SupabaseBookingRepository implements BookingRepository {
       throw new CoordinatorEventNotFoundError(request.eventId);
     }
 
-    const { data, error } = await this.client.rpc("coordinator_submit_booking_request", args);
+    const { data, error } = await this.client.rpc(
+      "coordinator_submit_booking_request",
+      args,
+    );
     if (error) {
       switch (error.code) {
         case EVENT_NOT_FOUND:
@@ -113,13 +134,32 @@ export class SupabaseBookingRepository implements BookingRepository {
           // two disagree, and the date is the likeliest culprit.
           throw request.slots.length === 0
             ? new NoBookingSlotsError()
-            : new InvalidBookingDateError(request.slots.map(({ date }) => date).join(", "));
+            : new InvalidBookingDateError(
+                request.slots.map(({ date }) => date).join(", "),
+              );
+        case TIME_INVALID:
+          // As above: the domain refuses these first, so the two disagree.
+          throw new InvalidBookingTimeError(request.slots[0]);
+        case OUTSIDE_HOURS:
+          // The domain checks the hours the venue lists before the call; the
+          // database found them different, so name no hours it did not give.
+          throw new Error(
+            "A requested time is outside the venue's operating hours.",
+            {
+              cause: error,
+            },
+          );
+        case SLOTS_OVERLAP:
+          throw new OverlappingBookingSlotsError(request.slots[0].date);
         case SLOT_TAKEN:
           throw new VenueSlotUnavailableError(await this.takenOf(request));
         default:
-          throw new Error(`Failed to submit the booking request: ${error.message}`, {
-            cause: error,
-          });
+          throw new Error(
+            `Failed to submit the booking request: ${error.message}`,
+            {
+              cause: error,
+            },
+          );
       }
     }
 
@@ -128,10 +168,9 @@ export class SupabaseBookingRepository implements BookingRepository {
 
   /** Which of the request's slots were taken, for a message that names them. */
   private async takenOf(request: BookingRequest) {
-    const occupied = await this.listSlotsAt(
-      request.venueId,
-      [...new Set(request.slots.map(({ date }) => date))],
-    );
+    const occupied = await this.listSlotsAt(request.venueId, [
+      ...new Set(request.slots.map(({ date }) => date)),
+    ]);
     return clashingSlots(request.slots, occupied);
   }
 }

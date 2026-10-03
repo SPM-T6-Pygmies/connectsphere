@@ -6,8 +6,8 @@ import { parseOptionList } from "@/core/domain/venue-options";
  * The venue search's query string (SPM-44) -- and only its shape.
  *
  * Every filter is optional, so a blank or missing one becomes null (or an empty
- * list). Whether a date needs times, or an end comes after its start, is
- * `defineVenueSearch`'s call. Facilities and accessibility arrive as one
+ * list). Whether a date needs a start and end time, or a time is on the quarter hour,
+ * is `defineVenueSearch`'s call. Facilities and accessibility arrive as one
  * comma-separated value each, as `OptionCheckboxes` posts them.
  */
 const param = z

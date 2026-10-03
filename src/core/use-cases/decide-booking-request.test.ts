@@ -28,7 +28,11 @@ function booking(
     venueId: venueId(venue),
     venueLocation: `Venue ${venue}`,
     roomLayoutName: "Theatre",
-    slots: [{ date: "2026-10-22", slot }],
+    slots: [
+      slot === "AM"
+        ? { date: "2026-10-22", start: "09:00", end: "10:00" }
+        : { date: "2026-10-22", start: "13:00", end: "14:00" },
+    ],
     requestedByName: "Coordinator",
     requestedAt: "2026-10-01T00:00:00.000Z",
     decidedByName: null,
@@ -67,16 +71,27 @@ function build(rows: BookingForReview[]) {
       requestedAt: row.requestedAt,
     })),
   );
-  return { reviews, useCase: new DecideBookingRequestUseCase({ reviews, bookings }) };
+  return {
+    reviews,
+    useCase: new DecideBookingRequestUseCase({ reviews, bookings }),
+  };
 }
 
 describe("DecideBookingRequestUseCase (SPM-22)", () => {
   it("approving confirms the booking and says where", async () => {
     const { useCase, reviews } = build([booking("b1", "Requested")]);
 
-    const result = await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+    const result = await useCase.execute({
+      bookingId: "b1",
+      userAccountId: STAFF,
+      decision: "approve",
+    });
 
-    expect(result).toEqual({ bookingId: "b1", status: "Confirmed", venueLocation: "Venue v1" });
+    expect(result).toEqual({
+      bookingId: "b1",
+      status: "Confirmed",
+      venueLocation: "Venue v1",
+    });
     expect(reviews.all()[0]?.status).toBe("Confirmed");
   });
 
@@ -91,7 +106,10 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
       suggestedAlternative: null,
     });
 
-    expect(reviews.all()[0]).toMatchObject({ status: "Rejected", rejectionNote: "Closed that day" });
+    expect(reviews.all()[0]).toMatchObject({
+      status: "Rejected",
+      rejectionNote: "Closed that day",
+    });
   });
 
   it("refuses a rejection with no reason and leaves the booking waiting", async () => {
@@ -116,18 +134,33 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
     ]);
 
     await expect(
-      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
+      useCase.execute({
+        bookingId: "b1",
+        userAccountId: STAFF,
+        decision: "approve",
+      }),
     ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
     expect(reviews.all()[0]?.status).toBe("Requested");
   });
 
   it("approves the second of two requests for one slot only if the first was not approved", async () => {
-    const { useCase } = build([booking("b1", "Requested"), booking("b2", "Requested")]);
+    const { useCase } = build([
+      booking("b1", "Requested"),
+      booking("b2", "Requested"),
+    ]);
 
-    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+    await useCase.execute({
+      bookingId: "b1",
+      userAccountId: STAFF,
+      decision: "approve",
+    });
 
     await expect(
-      useCase.execute({ bookingId: "b2", userAccountId: STAFF, decision: "approve" }),
+      useCase.execute({
+        bookingId: "b2",
+        userAccountId: STAFF,
+        decision: "approve",
+      }),
     ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
   });
 
@@ -135,7 +168,11 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
     const { useCase } = build([booking("b1", "Rejected")]);
 
     await expect(
-      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
+      useCase.execute({
+        bookingId: "b1",
+        userAccountId: STAFF,
+        decision: "approve",
+      }),
     ).rejects.toBeInstanceOf(BookingNotDecidableError);
   });
 
@@ -143,10 +180,18 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
     const { useCase } = build([booking("b1", "Requested")]);
 
     await expect(
-      useCase.execute({ bookingId: "b1", userAccountId: "someone-else", decision: "approve" }),
+      useCase.execute({
+        bookingId: "b1",
+        userAccountId: "someone-else",
+        decision: "approve",
+      }),
     ).rejects.toBeInstanceOf(BookingNotFoundError);
     await expect(
-      useCase.execute({ bookingId: "nope", userAccountId: STAFF, decision: "approve" }),
+      useCase.execute({
+        bookingId: "nope",
+        userAccountId: STAFF,
+        decision: "approve",
+      }),
     ).rejects.toBeInstanceOf(BookingNotFoundError);
   });
 });

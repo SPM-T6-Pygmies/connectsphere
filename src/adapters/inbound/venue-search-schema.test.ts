@@ -15,7 +15,9 @@ describe("venueSearchSchema (SPM-44)", () => {
     };
 
     expect(venueSearchSchema.parse({})).toEqual(blank);
-    expect(venueSearchSchema.parse({ layout: " ", attendance: "", facilities: "" })).toEqual(blank);
+    expect(
+      venueSearchSchema.parse({ layout: " ", attendance: "", facilities: "" }),
+    ).toEqual(blank);
   });
 
   it("reads a filled-in search", () => {
@@ -26,8 +28,8 @@ describe("venueSearchSchema (SPM-44)", () => {
         facilities: "Projector, Wi-Fi",
         accessibility: "Lift access",
         date: "2026-11-05",
-        startTime: "10:00",
-        endTime: "15:00",
+        startTime: "09:00",
+        endTime: "10:30",
       }),
     ).toEqual({
       layout: "Theatre",
@@ -35,17 +37,32 @@ describe("venueSearchSchema (SPM-44)", () => {
       facilities: ["Projector", "Wi-Fi"],
       accessibility: ["Lift access"],
       date: "2026-11-05",
-      startTime: "10:00",
-      endTime: "15:00",
+      startTime: "09:00",
+      endTime: "10:30",
+    });
+  });
+
+  it("reads the start and end time, trimmed, and a blank one as not given", () => {
+    expect(
+      venueSearchSchema.parse({ startTime: " 09:15 ", endTime: "" }),
+    ).toMatchObject({
+      startTime: "09:15",
+      endTime: null,
     });
   });
 
   it("takes the first of a repeated parameter", () => {
-    expect(venueSearchSchema.parse({ layout: ["Theatre", "Banquet"] }).layout).toBe("Theatre");
+    expect(
+      venueSearchSchema.parse({ layout: ["Theatre", "Banquet"] }).layout,
+    ).toBe("Theatre");
   });
 
   it("refuses attendance that is not a whole number", () => {
-    expect(venueSearchSchema.safeParse({ attendance: "ten" }).success).toBe(false);
-    expect(venueSearchSchema.safeParse({ attendance: "2.5" }).success).toBe(false);
+    expect(venueSearchSchema.safeParse({ attendance: "ten" }).success).toBe(
+      false,
+    );
+    expect(venueSearchSchema.safeParse({ attendance: "2.5" }).success).toBe(
+      false,
+    );
   });
 });
