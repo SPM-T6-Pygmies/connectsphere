@@ -348,18 +348,24 @@ create table equipment_reservation_line (
   fulfilment_status        text not null default 'Pending',
   defect_notes             text,
   technical_requirements   text,
-  recheck_required_at      timestamptz,
   removal_requested_at     timestamptz,
+  line_state               text not null default 'Requested',
     -- added 2026-09-28 (SPM-183, SPM-41 AC5/AC8/AC11): the coordinator's notes
-    -- for Technical Support, and when a reserved line was changed or its
-    -- removal requested. quantity_reserved <= quantity_requested was dropped
+    -- for Technical Support, and when a reserved line's removal was requested.
+    -- line_state added 2026-10-03: Requested (nothing reserved), Reserved, or
+    -- Under review once a reserved line is changed or its removal requested.
+    -- Technical Support move it out of Under review (SPM-108). quantity_reserved <= quantity_requested was dropped
     -- at the same time: a reserved line may be cut below what is held until
     -- Technical Support release the excess (SPM-41 AC8).
   unique (equipment_reservation_id, equipment_item_id),
   constraint equipment_reservation_line_fulfilment_chk
     check (fulfilment_status in ('Pending', 'Fulfilled', 'Partially Fulfilled', 'Unfulfilled')),
   constraint equipment_reservation_line_technical_requirements_chk
-    check (technical_requirements is null or char_length(technical_requirements) <= 500)
+    check (technical_requirements is null or char_length(technical_requirements) <= 500),
+  constraint equipment_reservation_line_state_chk
+    check (line_state in ('Requested', 'Reserved', 'Under review')),
+  constraint equipment_reservation_line_state_reserved_chk
+    check ((line_state = 'Requested') = (quantity_reserved = 0))
 );
 
 -- ---------------------------------------------------------------------------

@@ -23,7 +23,7 @@ const projector: EventEquipmentRow = {
   quantity_requested: 2,
   quantity_reserved: 2,
   technical_requirements: "HDMI input",
-  recheck_required: true,
+  line_state: "Under review",
   removal_requested: false,
 };
 
@@ -44,7 +44,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
       toEventEquipment([
         projector,
         { ...projector, equipment_item_id: 2, quantity_requested: 4, quantity_reserved: 0,
-          technical_requirements: null, recheck_required: false },
+          technical_requirements: null, line_state: "Requested" },
       ]),
     ).toEqual({
       reservation: { id: "10", reviewerUserAccountId: "6" },
@@ -79,7 +79,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           quantity_requested: null,
           quantity_reserved: null,
           technical_requirements: null,
-          recheck_required: null,
+          line_state: null,
           removal_requested: null,
         },
       ]),

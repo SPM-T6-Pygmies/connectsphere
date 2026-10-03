@@ -24,8 +24,8 @@ catalogue (type) as (
          ('Presentation laptop'), ('Livestream kit')
 ),
 lines (type, expected) as (
-  values ('Projector',           '2 requested, 2 reserved, not flagged'),
-         ('Wireless microphone', '4 requested, 0 reserved, not flagged')
+  values ('Projector',           '2 requested, 2 reserved, Reserved'),
+         ('Wireless microphone', '4 requested, 0 reserved, Requested')
 ),
 checks as (
   select 'catalogue ' || c.type as check_name, 'present' as expected,
@@ -47,8 +47,7 @@ checks as (
   select 'line ' || l.type, l.expected,
          coalesce((
            select x.quantity_requested || ' requested, ' || x.quantity_reserved || ' reserved, '
-                  || case when x.recheck_required_at is null and x.removal_requested_at is null
-                          then 'not flagged' else 'flagged' end
+                  || x.line_state
            from event e
            join public.equipment_reservation r on r.event_id = e.event_id
            join public.equipment_reservation_line x on x.equipment_reservation_id = r.equipment_reservation_id

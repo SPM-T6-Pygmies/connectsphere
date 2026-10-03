@@ -1,5 +1,5 @@
 import { equipmentItemId, type EquipmentCatalogueItem } from "@/core/domain/equipment-item";
-import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
+import type { EquipmentLineState, EquipmentRequirement } from "@/core/domain/equipment-requirement";
 import {
   DuplicateEquipmentRequirementError,
   EquipmentItemNotInCatalogueError,
@@ -11,8 +11,6 @@ import {
 } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 import type { EventEquipment } from "@/core/ports/outbound/equipment-requirement-repository";
-
-import { lineState } from "./equipment-line-state";
 
 /** A row of `coordinator_equipment_catalogue`. */
 export interface EquipmentCatalogueRow {
@@ -31,7 +29,7 @@ export interface EventEquipmentRow {
   quantity_requested: number | null;
   quantity_reserved: number | null;
   technical_requirements: string | null;
-  recheck_required: boolean | null;
+  line_state: EquipmentLineState | null;
   removal_requested: boolean | null;
 }
 
@@ -62,7 +60,7 @@ export function toEventEquipment(rows: readonly EventEquipmentRow[]): EventEquip
               quantityRequested: row.quantity_requested ?? 0,
               technicalRequirements: row.technical_requirements,
               quantityReserved: row.quantity_reserved ?? 0,
-              state: lineState(row.quantity_reserved ?? 0, row.recheck_required ?? false),
+              state: row.line_state ?? "Requested",
               removalRequested: row.removal_requested ?? false,
             },
           ],

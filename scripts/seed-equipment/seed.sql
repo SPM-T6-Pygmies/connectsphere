@@ -90,9 +90,10 @@ begin
 
   insert into public.equipment_reservation_line (
     equipment_reservation_id, equipment_item_id, quantity_requested, quantity_reserved,
-    fulfilment_status, technical_requirements
+    line_state, fulfilment_status, technical_requirements
   )
-  select v_reservation, i.equipment_item_id, l.requested, l.reserved, l.fulfilment, l.notes
+  select v_reservation, i.equipment_item_id, l.requested, l.reserved,
+         case when l.reserved > 0 then 'Reserved' else 'Requested' end, l.fulfilment, l.notes
   from (values
     ('Projector',           2, 2, 'Fulfilled', 'HDMI input; mounted above the stage.'),
     ('Wireless microphone', 4, 0, 'Pending',   null)

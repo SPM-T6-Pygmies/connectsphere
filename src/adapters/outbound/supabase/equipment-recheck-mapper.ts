@@ -1,7 +1,7 @@
 import { equipmentItemId } from "@/core/domain/equipment-item";
+import type { EquipmentLineState } from "@/core/domain/equipment-requirement";
 import { NotTechnicalSupportStaffError, type DomainError } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
-import { lineState } from "./equipment-line-state";
 import type { UnderReviewEquipmentLine } from "@/core/ports/outbound/equipment-recheck-repository";
 
 /** A row of `technical_support_equipment_rechecks`: one line under review, with its event and type. */
@@ -14,7 +14,7 @@ export interface UnderReviewEquipmentRow {
   quantity_requested: number;
   quantity_reserved: number;
   technical_requirements: string | null;
-  recheck_required: boolean;
+  line_state: EquipmentLineState;
   removal_requested: boolean;
 }
 
@@ -27,7 +27,7 @@ export function toUnderReviewEquipmentLine(row: UnderReviewEquipmentRow): UnderR
       quantityRequested: row.quantity_requested,
       technicalRequirements: row.technical_requirements,
       quantityReserved: row.quantity_reserved,
-      state: lineState(row.quantity_reserved, row.recheck_required),
+      state: row.line_state,
       removalRequested: row.removal_requested,
     },
   };

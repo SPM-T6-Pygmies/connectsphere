@@ -17,7 +17,7 @@ const projector: UnderReviewEquipmentRow = {
   quantity_requested: 3,
   quantity_reserved: 2,
   technical_requirements: "HDMI input",
-  recheck_required: true,
+  line_state: "Under review",
   removal_requested: false,
 };
 
