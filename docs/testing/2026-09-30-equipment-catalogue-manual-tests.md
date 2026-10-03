@@ -2,8 +2,9 @@
 
 ## Overview
 Manual browser tests for Technical Support Staff maintaining the equipment
-catalogue: creating equipment records and updating the quantity and location of
-existing ones.
+catalogue on the **Equipment** page (`/staff/technical/equipment`, the box icon in
+the sidebar): adding equipment from the **Add equipment** button and updating the
+quantity and location of the cards.
 
 These cases are registered as `MT-0014`–`MT-0021` in
 [`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them
@@ -15,7 +16,7 @@ against the local Supabase stack, tick the boxes below **and** set `Status` and
 ## Test Environment Setup
 
 ### Prerequisites
-- Running: `pnpm dev:local`
+- Running: `pnpm dev:local` (open it at `http://localhost:3000`)
 - **The catalogue is an in-memory stub for now.** There is no Supabase adapter for
   `equipment_item` yet (see `buildEquipmentCatalogue` in
   `src/composition/container.ts`), so records live as long as the dev server and
@@ -30,25 +31,25 @@ against the local Supabase stack, tick the boxes below **and** set `Status` and
 
 ## Run record
 
-First run on 2026-09-30, driven through a headless browser by Claude for Arin,
-against commit `dfcc33d`. **This run used
+Run on 2026-10-03, driven through a headless browser by Claude for Arin, on the
+branch before its commit of this doc. **This run used
 the in-memory stub and a sandbox-only stand-in for Supabase sign-in**, because no
 Supabase project was available in the sandbox. The registry rows are therefore
 left as `Not Executed`: re-run against `pnpm dev:local` and set `Status` yourself.
 
 | Case | AC | Result | Screenshot |
 | --- | --- | --- | --- |
-| TC-EQUIP-001 | AC4 | Pass | `01-catalogue-starts-empty` |
-| TC-EQUIP-002 | AC1 | Pass | `02-two-records-created` |
-| TC-EQUIP-003 | AC1 | Pass | `03-invalid-create-refused` |
-| TC-EQUIP-004 | AC2, AC3 | Pass | `04`, `05`, `06` |
-| TC-EQUIP-005 | AC2 | Pass | `07-invalid-update-refused` |
-| TC-EQUIP-006 | AC1 | Pass | `08-catalogue-on-reviewed-section` |
-| TC-EQUIP-007 | AC1, AC2 | Pass | `09-catalogue-on-phone-width` |
-| TC-EQUIP-008 | Role | Pass | `10-other-role-cannot-open-catalogue` |
+| TC-EQUIP-001 | AC4 | Pass | `01-equipment-page-empty` |
+| TC-EQUIP-002 | AC1 | Pass | `02-add-equipment-panel`, `03-two-cards` |
+| TC-EQUIP-003 | AC1 | Pass | `04-invalid-add-refused` |
+| TC-EQUIP-004 | AC2, AC3 | Pass | `05-update-persists-after-reload` |
+| TC-EQUIP-005 | AC2 | Pass | `06-invalid-update-refused` |
+| TC-EQUIP-006 | AC1 | Pass | `07-reviewed-has-no-catalogue` |
+| TC-EQUIP-007 | AC1, AC2 | Pass | `08`, `09` |
+| TC-EQUIP-008 | Role | Pass | `10-other-role-cannot-open-equipment` |
 
 Screenshots are in [`../screenshots/`](../screenshots), named
-`2026-09-30-spm-40-<nn>-<name>.png`.
+`2026-10-03-spm-40-<nn>-<name>.png`.
 
 ---
 
@@ -56,110 +57,114 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 
 **Steps**
 1. Restart the dev server. Log in as `support@test.com`.
-2. Open **Needs review** (`/staff/technical`) and find the **Equipment catalogue** card.
+2. Click **Equipment** in the sidebar (box icon, `/staff/technical/equipment`).
 
 **Expected Result**
-- The card says "The catalogue is empty. Add the first item below."
+- The **Equipment catalogue** card says "The catalogue is empty. Use Add equipment to add the first item."
 - None of the old placeholder items (Projector (4K), Wireless microphone, ...) are listed.
 
-![Catalogue starts empty](../screenshots/2026-09-30-spm-40-01-catalogue-starts-empty.png)
+![Equipment page, empty](../screenshots/2026-10-03-spm-40-01-equipment-page-empty.png)
 
 ---
 
-## TC-EQUIP-002 Create equipment records (AC1)
+## TC-EQUIP-002 Add equipment (AC1)
 
 **Steps**
-1. In **Add equipment**, enter Type `Projector (4K)`, Description `Ceiling-mount capable`,
-   Quantity `6`, Location `Store A`, and click **Add equipment**.
-2. Add a second record: Type `Wireless microphone`, no description, Quantity `24`, Location `Store A`.
+1. Click **Add equipment** (top right of the card). A panel opens on the right.
+2. Enter Type `Projector (4K)`, Description `Ceiling-mount capable`, Quantity `6`,
+   Location `Store A`, and click **Add equipment** in the panel.
+3. Add a second item the same way: Type `Wireless microphone`, no description, Quantity `24`, Location `Store A`.
 
 **Expected Result**
-- Each add shows "<type> added to the catalogue." and the form clears.
-- Both records are listed with their quantity and location; the description shows under the type.
+- The panel closes after each add, and the item appears at once as its own card.
+- Each card shows the type, the description under it (when there is one), and the
+  quantity and location in editable fields with an **Update** button.
 - The "catalogue is empty" message is gone.
 
-![Two records created](../screenshots/2026-09-30-spm-40-02-two-records-created.png)
+![Add equipment panel](../screenshots/2026-10-03-spm-40-02-add-equipment-panel.png)
+![Two cards](../screenshots/2026-10-03-spm-40-03-two-cards.png)
 
 ---
 
-## TC-EQUIP-003 An invalid record is refused (AC1)
+## TC-EQUIP-003 An invalid item is refused (AC1)
 
 **Steps**
-1. Leave Type and Location blank, enter Quantity `-1` and Description `keep me`, click **Add equipment**.
+1. Open the **Add equipment** panel. Leave Type and Location blank, enter Quantity `-1`
+   and Description `keep me`, and click **Add equipment** in the panel.
 
 **Expected Result**
 - Errors under Type ("Enter the equipment type."), Location ("Enter where the equipment is kept.")
   and Quantity ("Quantity must be a whole number, zero or more."), plus "Check the highlighted fields."
-- What was typed (`-1`, `keep me`) is kept. No record is added.
+- The panel stays open with what was typed (`-1`, `keep me`) kept. No card is added.
 
-![Invalid create refused](../screenshots/2026-09-30-spm-40-03-invalid-create-refused.png)
+![Invalid add refused](../screenshots/2026-10-03-spm-40-04-invalid-add-refused.png)
 
 ---
 
 ## TC-EQUIP-004 Update quantity and location (AC2, AC3)
 
 **Steps**
-1. On the Projector (4K) row, change **In pool** to `4` and **Location** to `Store B`.
+1. On the Projector (4K) card, change **In pool** to `4` and **Location** to `Store B`.
 2. Click **Update**, then reload the page.
 
 **Expected Result**
-- The row shows "Saved." After the reload Projector (4K) still shows `4` at `Store B`.
-- The Wireless microphone row is unchanged (`24`, `Store A`).
+- The card shows "Saved." After the reload Projector (4K) still shows `4` at `Store B`.
+- The Wireless microphone card is unchanged (`24`, `Store A`).
 - The screen reports the quantity available and nothing finer (no per-unit records).
 
-![Before update](../screenshots/2026-09-30-spm-40-04-before-update-projector.png)
-![Saved](../screenshots/2026-09-30-spm-40-05-projector-updated-saved.png)
-![Persists after reload](../screenshots/2026-09-30-spm-40-06-update-persists-after-reload.png)
+![Persists after reload](../screenshots/2026-10-03-spm-40-05-update-persists-after-reload.png)
 
 ---
 
 ## TC-EQUIP-005 A bad update is refused (AC2)
 
 **Steps**
-1. On the Wireless microphone row, change **In pool** to `-5` and click **Update**. Reload.
+1. On the Wireless microphone card, change **In pool** to `-5` and click **Update**. Reload.
 
 **Expected Result**
-- "Quantity must be a whole number, zero or more." appears on that row.
+- "Quantity must be a whole number, zero or more." appears on that card.
 - After the reload Wireless microphone is still `24`.
 
-![Invalid update refused](../screenshots/2026-09-30-spm-40-07-invalid-update-refused.png)
+![Invalid update refused](../screenshots/2026-10-03-spm-40-06-invalid-update-refused.png)
 
 ---
 
-## TC-EQUIP-006 The catalogue shows on the other technical sections (AC1)
+## TC-EQUIP-006 The catalogue lives only on the Equipment page (AC1)
 
 **Steps**
-1. Open **Reviewed** (`/staff/technical/reviewed`).
+1. Open **Needs review** (`/staff/technical`), **Reviewed** and **Archive** in turn.
 
 **Expected Result**
-- The same live catalogue is shown, with the updated values.
+- None of them shows the equipment catalogue; it is reached from **Equipment** in the sidebar.
 
-![Reviewed section](../screenshots/2026-09-30-spm-40-08-catalogue-on-reviewed-section.png)
+![Reviewed section](../screenshots/2026-10-03-spm-40-07-reviewed-has-no-catalogue.png)
 
 ---
 
 ## TC-EQUIP-007 Usable at phone width (AC1, AC2)
 
 **Steps**
-1. Open `/staff/technical` in a 390px-wide window.
+1. Open `/staff/technical/equipment` in a 390px-wide window. (On a phone, **Equipment** is in the
+   menu drawer behind the last button of the bottom bar, not in the bar itself.)
+2. Tap **Add equipment**.
 
 **Expected Result**
-- Each record stacks: type, then labelled **In pool** and **Location** fields, then **Update**.
-- Every field and button is fully on screen; the page does not scroll sideways.
-- (The floating bottom bar overlapping the "Add equipment" heading in the screenshot is a
-  full-page-capture artefact; the shell pads the content past it.)
+- Cards stack one per row with labelled **In pool** and **Location** fields and **Update**.
+- The Add equipment panel opens beside a sliver of the page, and every field fits on screen.
+- The page does not scroll sideways.
 
-![Phone width](../screenshots/2026-09-30-spm-40-09-catalogue-on-phone-width.png)
+![Phone width](../screenshots/2026-10-03-spm-40-08-equipment-on-phone-width.png)
+![Panel on a phone](../screenshots/2026-10-03-spm-40-09-add-panel-on-phone-width.png)
 
 ---
 
-## TC-EQUIP-008 Other roles cannot open the catalogue
+## TC-EQUIP-008 Other roles cannot open the Equipment page
 
 **Steps**
-1. Log in as `ops@test.com` and open `/staff/technical` directly.
+1. Log in as `ops@test.com` and open `/staff/technical/equipment` directly.
 
 **Expected Result**
 - The page responds 404 and no catalogue content is shown. The blank page is the app's
   existing not-found behaviour for a role mismatch, not something specific to this feature.
 
-![Other role](../screenshots/2026-09-30-spm-40-10-other-role-cannot-open-catalogue.png)
+![Other role](../screenshots/2026-10-03-spm-40-10-other-role-cannot-open-equipment.png)
