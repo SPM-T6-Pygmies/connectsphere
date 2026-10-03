@@ -62,8 +62,10 @@ Password for both: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.
 
 ### The seeded event
 
-**Founders' Gala Dinner**, Planning, assigned to Test Coordinator. Open it from
-`/staff/coordinator/events` (its page is `/staff/coordinator/events/<id>`). It has
+**Founders' Gala Dinner**, Planning, assigned to Test Coordinator. Open **My events** in the
+sidebar and click the event (its page is `/staff/coordinator/events/<id>`). The equipment
+section is only on this event page: the approved *request* page for the same event shows
+the Organiser's stated text as a read-only field and has no way to add lines. It has
 two lines:
 
 | Type | Requested | Reserved | State |
