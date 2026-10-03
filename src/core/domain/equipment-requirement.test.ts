@@ -384,9 +384,27 @@ describe("removeEquipmentRequirement (SPM-182)", () => {
 describe("undoEquipmentRemoval (SPM-182)", () => {
   const pendingRemoval = () => reserved({ removalRequested: true, state: "Under review" });
 
-  it("keeps the line, still under review and with its equipment held", () => {
+  it("returns the line to Reserved, with its equipment held, when nothing else differs", () => {
     expect(undoEquipmentRemoval(event(), pendingRemoval())).toEqual(
-      reserved({ removalRequested: false, state: "Under review" }),
+      reserved({ removalRequested: false, state: "Reserved", reviewBaseline: null }),
+    );
+  });
+
+  it("keeps the line under review, as changed, when it was also changed before the removal", () => {
+    const changedThenRemoved = reserved({
+      quantityRequested: 3,
+      removalRequested: true,
+      state: "Under review",
+      reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
+    });
+
+    expect(undoEquipmentRemoval(event(), changedThenRemoved)).toEqual(
+      reserved({
+        quantityRequested: 3,
+        removalRequested: false,
+        state: "Under review",
+        reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
+      }),
     );
   });
 
@@ -435,11 +453,22 @@ describe("recheckReason (SPM-187)", () => {
     expect(removal.kind === "removalRequested" && recheckReason(removal.line)).toBe("removalRequested");
   });
 
-  it("AC15: names a line whose removal was undone as changed, since it stays under review", () => {
-    const removal = removeEquipmentRequirement(event(), reserved());
+  it("AC15: names a line that was changed, then removed, then undone as changed", () => {
+    const edited = editEquipmentRequirement(event(), reserved(), {
+      quantityRequested: 3,
+      technicalRequirements: "HDMI input",
+    });
+    const removal = removeEquipmentRequirement(event(), edited.line);
     const undone = removal.kind === "removalRequested" ? undoEquipmentRemoval(event(), removal.line) : null;
 
     expect(undone && recheckReason(undone)).toBe("changed");
+  });
+
+  it("AC15: leaves out a line whose removal was requested and then undone with nothing else changed", () => {
+    const removal = removeEquipmentRequirement(event(), reserved());
+    const undone = removal.kind === "removalRequested" ? undoEquipmentRemoval(event(), removal.line) : null;
+
+    expect(undone && recheckReason(undone)).toBeNull();
   });
 
   it("AC15: leaves out a line that is not under review", () => {
@@ -539,14 +568,21 @@ describe("reverting an edit to a reserved line (SPM-232)", () => {
     });
   });
 
-  it("AC17: an undone removal stays under review, but a later edit back to the original clears it", () => {
+  it("AC17: an undone removal of an unchanged line returns it to Reserved", () => {
     const removal = removeEquipmentRequirement(event(), reserved());
     const undone = removal.kind === "removalRequested" ? undoEquipmentRemoval(event(), removal.line) : null;
-    expect(undone?.state).toBe("Under review");
 
-    const edited = change(undone as EquipmentRequirement, 3);
-    expect(edited.line.state).toBe("Under review");
-    expect(change(edited.line, 2)).toMatchObject({ reviewCleared: true });
+    expect(undone).toMatchObject({ state: "Reserved", reviewBaseline: null, removalRequested: false });
+  });
+
+  it("AC17: an undone removal of a changed line stays under review, and editing it back to the original clears it", () => {
+    const edited = change(reserved(), 3);
+    const removal = removeEquipmentRequirement(event(), edited.line);
+    const undone = removal.kind === "removalRequested" ? undoEquipmentRemoval(event(), removal.line) : null;
+    expect(undone?.state).toBe("Under review");
+    expect(undone?.reviewBaseline).toEqual({ quantityRequested: 2, technicalRequirements: NOTES });
+
+    expect(change(undone as EquipmentRequirement, 2)).toMatchObject({ reviewCleared: true });
   });
 
   it("AC7: an unreserved line never remembers anything", () => {

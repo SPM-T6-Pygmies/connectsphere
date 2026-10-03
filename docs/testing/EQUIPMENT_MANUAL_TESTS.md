@@ -12,10 +12,10 @@ A reserved line the coordinator changes, or asks to remove, goes from **Reserved
 to **Under review**: the screens show this as the **Needs re-check** badge, and it
 is what puts the line on Technical Support's list. TC-EQUIP-009 checks the state
 itself in the database. TC-EQUIP-010 checks that editing a line back to what Technical Support
-reserved against clears the re-check. The access-denied screen in TC-EQUIP-008 comes from SPM-16
+reserved against clears the re-check, and TC-EQUIP-011 that withdrawing a removal request does the same. The access-denied screen in TC-EQUIP-008 comes from SPM-16
 ([`ACCESS_DENIED_MANUAL_TESTS.md`](ACCESS_DENIED_MANUAL_TESTS.md)).
 
-The cases are registered as `MT-0035`–`MT-0044` in
+The cases are registered as `MT-0035`–`MT-0045` in
 [`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them, tick
 the boxes below **and** set `Status`, `ExecutedBy` and `LastPassedDate` on the
 matching rows. CI cannot verify a manual case for you.
@@ -211,7 +211,9 @@ This is the end-to-end case across both roles.
   Remove (AC11, AC17).
 - Step 4: the list shows Projector marked **Removal requested** (AC15).
 - Step 5: the line is kept, **Removal requested** is gone, **Needs re-check** and
-  *Reserved 2* remain, and Edit and Remove are offered again (AC17).
+  *Reserved 2* remain, and Edit and Remove are offered again (AC17). It stays flagged because
+  the quantity was also changed to 3 in TC-EQUIP-004, so it still differs from what Technical
+  Support reserved against. TC-EQUIP-011 covers a line with no other change.
 - Step 6: the list shows Projector again, marked **Changed**, not Removal requested
   (AC15, AC17).
 - In the database, after step 2 and again after step 5, the Projector's `line_state`
@@ -384,3 +386,38 @@ review; changing it back to exactly that means there is nothing for them to re-c
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `d0b9acd`, run in Chrome via Playwright for JameszLau (9/9 checks)
 
 **Screenshots:** [step1-edited-to-1-still-needs-recheck](../screenshots/SPM-41_TC-EQUIP-010_step1-edited-to-1-still-needs-recheck.jpg) · [step2-technical-support-list-requested-1](../screenshots/SPM-41_TC-EQUIP-010_step2-technical-support-list-requested-1.jpg) · [step3-edited-to-3-still-needs-recheck](../screenshots/SPM-41_TC-EQUIP-010_step3-edited-to-3-still-needs-recheck.jpg) · [step4-edited-back-to-2-recheck-cleared](../screenshots/SPM-41_TC-EQUIP-010_step4-edited-back-to-2-recheck-cleared.jpg) · [step5-technical-support-list-empty](../screenshots/SPM-41_TC-EQUIP-010_step5-technical-support-list-empty.jpg)
+
+---
+
+### TC-EQUIP-011: Withdrawing a removal request clears the re-check when nothing else differs (AC17, AC15)
+
+**Preconditions:** After TC-EQUIP-010, the Projector is *Requested 2 · Reserved 2* with no
+badge besides **Reserved**: nothing differs from what Technical Support reserved against.
+Signed in as `coordinator@test.com`.
+
+**Steps:**
+1. On **Projector**, press **Remove**, read the panel, then press **Request removal**.
+2. Sign in as `support@test.com` and open `/staff/technical`.
+3. As the coordinator, press **Undo removal** on the Projector.
+4. As `support@test.com`, open `/staff/technical` again.
+5. Check the database:
+   ```sql
+   select i.type, l.line_state, l.reviewed_quantity_requested,
+          l.removal_requested_at is not null as removal_requested
+     from equipment_reservation_line l
+     join equipment_item i using (equipment_item_id)
+    where i.type = 'Projector';
+   ```
+
+**Expected Result:**
+- Step 1: the panel says the request can be undone until Technical Support release the
+  equipment. The line then shows **Reserved**, **Needs re-check** and **Removal requested**,
+  with only **Undo removal** offered.
+- Step 2: the list shows Projector, Requested **2**, Reserved **2**, marked **Removal requested**.
+- Step 3: the line shows *Requested 2 · Reserved 2* with the **Reserved** badge only: **Removal
+  requested** and **Needs re-check** are both gone, and Edit and Remove are offered again (AC17).
+- Step 4: the list says *Nothing needs re-checking.* The request is no longer valid (AC15).
+- Step 5: `line_state` is `Reserved`, `reviewed_quantity_requested` is empty, and
+  `removal_requested` is `false`.
+
+**Status:** [ ] Pass [ ] Fail

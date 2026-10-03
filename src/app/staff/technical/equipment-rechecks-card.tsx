@@ -22,7 +22,8 @@ export function EquipmentRechecksCard({ rechecks }: { rechecks: readonly Equipme
         <CardTitle>Needs re-check</CardTitle>
         <CardDescription>
           Lines a coordinator changed or asked to remove after equipment was reserved against them.
-          The reserved equipment stays held until you release it.
+          The reserved equipment stays held until you release it. A request the coordinator
+          withdraws, or a change they reverse, leaves this list.
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -204,8 +204,11 @@ export function removeEquipmentRequirement(
 
 /**
  * AC17: the coordinator changed their mind before Technical Support released
- * the equipment, so the line is kept. It stays under review -- Technical
- * Support may already have seen the removal and should re-check either way.
+ * the equipment, so the removal request is withdrawn and the line is kept, its
+ * equipment still held. If nothing else about the line differs from what
+ * Technical Support last had, they have nothing to do: it returns to Reserved
+ * and leaves their list. If the coordinator had also changed it, it stays
+ * under review as changed, until it is edited back (AC19).
  */
 export function undoEquipmentRemoval(
   event: CoordinatorEvent,
@@ -215,7 +218,11 @@ export function undoEquipmentRemoval(
   if (!line.removalRequested) {
     throw new EquipmentRemovalNotRequestedError();
   }
-  return { ...line, removalRequested: false };
+  const withdrawn = { ...line, removalRequested: false };
+  if (line.reviewBaseline !== null && isBaseline(withdrawn, line.reviewBaseline)) {
+    return { ...withdrawn, state: "Reserved", reviewBaseline: null };
+  }
+  return withdrawn;
 }
 
 function baselineOf(line: EquipmentRequirement): EquipmentReviewBaseline {

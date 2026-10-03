@@ -47,7 +47,8 @@ export class UndoEquipmentRemovalUseCase {
       before: line,
       after: restored,
       changed: true,
-      underReview: false,
+      underReview: restored.state === "Under review",
+      reviewCleared: restored.state === "Reserved",
     });
   }
 }

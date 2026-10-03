@@ -212,7 +212,8 @@ function RemoveForm({
       {line.reserved ? (
         <RecheckWarning>
           Equipment is reserved against it, so the line is not deleted. It is marked removal
-          requested, and the equipment stays held until they release it.
+          requested, and the equipment stays held until they release it. Until then you can undo
+          the request, which withdraws it.
         </RecheckWarning>
       ) : (
         <p className="text-sm">Remove {line.equipmentType} from this event? The line is deleted.</p>
