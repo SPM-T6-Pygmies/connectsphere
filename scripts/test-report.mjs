@@ -15,6 +15,8 @@
  *   pnpm test:report --record   ...and stamp Pass + append a run row (CI, main)
  *   pnpm test:report --check-pr-body   validate a PR's "Manual test results" table
  *                               (PR_BODY, PR_TITLE, PR_BRANCH in the environment)
+ *   pnpm test:report --record-manual   append that table to manual-runs.csv
+ *                               (CI, main; PR_BODY, PR_NUMBER, PR_AUTHOR, GITHUB_SHA)
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -405,9 +407,14 @@ function prProblems(results, manual) {
   return problems;
 }
 
-/** Active cases for the tickets a PR is about that its table does not mention. */
-function unreportedCases(results, manual, title, branch) {
-  const tickets = new Set(`${title ?? ""} ${branch ?? ""}`.match(/SPM-\d+/gi)?.map((t) => t.toUpperCase()));
+/**
+ * Active cases for the tickets a PR is about that its table does not mention.
+ * The PR's tickets come from its title, its branch name and its
+ * "Closes/Fixes/Refs SPM-n" lines; the title only has one as a trailing tag.
+ */
+function unreportedCases(results, manual, title, body, branch) {
+  const linked = (body ?? "").match(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|refs?)\s+SPM-\d+/gi) ?? [];
+  const tickets = new Set(`${title ?? ""} ${branch ?? ""} ${linked.join(" ")}`.match(/SPM-\d+/gi)?.map((t) => t.toUpperCase()));
   const reported = new Set(results.map((r) => r.CaseID));
   return manual.filter((m) => m.Status === "Active" && tickets.has(m.Ticket) && !reported.has(m.CaseID));
 }
@@ -488,7 +495,10 @@ const git = (...args) => spawnSync("git", args, { cwd: ROOT, encoding: "utf8" })
 function recordRun(rows, groups, cases, durationMs) {
   const commit = process.env.GITHUB_SHA || git("rev-parse", "HEAD");
   const branch = process.env.GITHUB_REF_NAME || git("rev-parse", "--abbrev-ref", "HEAD");
-  const pr = /Merge pull request #(\d+)/.exec(git("log", "-1", "--pretty=%B"))?.[1] ?? "";
+  // A squash merge leaves no "Merge pull request" line, so CI passes the number
+  // it looked up from the commit.
+  const pr = process.env.PR_NUMBER
+    || /Merge pull request #(\d+)/.exec(git("log", "-1", "--pretty=%B"))?.[1] || "";
   const date = new Date().toISOString().slice(0, 10);
 
   const runBy = process.env.GITHUB_RUN_ID
@@ -520,8 +530,8 @@ function recordRun(rows, groups, cases, durationMs) {
 /* ---------------------------------------------------------------- main */
 
 const mode = process.argv[2] ?? "";
-if (mode && !["--check", "--update", "--record", "--check-pr-body"].includes(mode)) {
-  console.error(`Unknown option ${mode}. Expected --check, --update, --record or --check-pr-body.`);
+if (mode && !["--check", "--update", "--record", "--check-pr-body", "--record-manual"].includes(mode)) {
+  console.error(`Unknown option ${mode}. Expected --check, --update, --record, --check-pr-body or --record-manual.`);
   process.exit(2);
 }
 
@@ -532,7 +542,7 @@ const manualRuns = readTable(MANUAL_RUNS, MANUAL_RUN_COLUMNS);
 if (mode === "--check-pr-body") {
   const results = parsePrManualResults(process.env.PR_BODY);
   const problems = prProblems(results, manualExisting);
-  for (const m of unreportedCases(results, manualExisting, process.env.PR_TITLE, process.env.PR_BRANCH)) {
+  for (const m of unreportedCases(results, manualExisting, process.env.PR_TITLE, process.env.PR_BODY, process.env.PR_BRANCH)) {
     console.log(`::warning::${m.CaseID} (${m.Ticket}) has manual steps but no row in "Manual test results": ${m.Scenario}`);
   }
   if (problems.length > 0) {
@@ -542,6 +552,30 @@ if (mode === "--check-pr-body") {
     process.exit(1);
   }
   console.log(`✔ ${results.length} manual result(s) reported.`);
+  process.exit(0);
+}
+
+// Runs once a PR has merged. It repeats the PR check first, so a Fail that
+// somehow got through is refused here too rather than filed as a pass.
+if (mode === "--record-manual") {
+  const results = parsePrManualResults(process.env.PR_BODY);
+  const problems = prProblems(results, manualExisting);
+  if (problems.length > 0) {
+    for (const p of problems) console.error(`✖ ${p}`);
+    process.exit(1);
+  }
+  const pr = process.env.PR_NUMBER ?? "";
+  // A re-run of the job must not record the same PR twice.
+  const done = new Set(manualRuns.filter((r) => r.PR === pr && pr).map((r) => r.CaseID));
+  const date = new Date().toISOString().slice(0, 10);
+  const added = results
+    .filter((r) => r.Result !== "Not Executed" && !done.has(r.CaseID))
+    .map((r) => ({
+      RunDate: date, ...r, ExecutedBy: process.env.PR_AUTHOR ?? "", PR: pr,
+      Commit: (process.env.GITHUB_SHA ?? "").slice(0, 7), Environment: "",
+    }));
+  if (added.length > 0) writeFileSync(MANUAL_RUNS, writeTable([...manualRuns, ...added], MANUAL_RUN_COLUMNS));
+  console.log(`Recorded ${added.length} manual result(s) for PR #${pr || "?"}.`);
   process.exit(0);
 }
 

@@ -1,0 +1,3 @@
+# Append-only ledgers: two records adding a last line must both survive a rebase.
+docs/tests/test-runs.csv merge=union
+docs/tests/manual-runs.csv merge=union
