@@ -361,6 +361,201 @@
       "title": "Record each notification in the notification table",
       "parent": "SPM-57",
       "status": "Todo"
+    },
+    "SPM-19": {
+      "title": "Automatic Venue Availability Update upon Booking Confirmation",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-22": {
+      "title": "Review and Decide on Venue Booking Requests",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-33": {
+      "title": "Request clarification on an event request",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-41": {
+      "title": "Specify equipment requirements for an event",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-42": {
+      "title": "Maintain the venue catalogue",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-46": {
+      "title": "Submit a venue booking request",
+      "parent": null,
+      "status": "In Review"
+    },
+    "SPM-47": {
+      "title": "Receive notification of relevant event activity",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-59": {
+      "title": "Notify the organiser of a clarification request",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-73": {
+      "title": "Notify an attendee of a waiting-list status change",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-101": {
+      "title": "Record the withdrawal of a submitted event request",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-104": {
+      "title": "Record the chosen room layout on a booking",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-106": {
+      "title": "Resolve venue.capacity vs per-layout capacity precedence",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-109": {
+      "title": "Mark an equipment requirement as essential",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-144": {
+      "title": "Decide how arrangement essentiality is determined and recorded",
+      "parent": "SPM-50",
+      "status": "Backlog"
+    },
+    "SPM-145": {
+      "title": "verify that schema is set up correctly",
+      "parent": "SPM-42",
+      "status": "Done"
+    },
+    "SPM-146": {
+      "title": "create a venue record",
+      "parent": "SPM-42",
+      "status": "Done"
+    },
+    "SPM-147": {
+      "title": "update venue record",
+      "parent": "SPM-42",
+      "status": "Done"
+    },
+    "SPM-148": {
+      "title": "access control for venue maintenance",
+      "parent": "SPM-42",
+      "status": "Done"
+    },
+    "SPM-149": {
+      "title": "build attribute filters",
+      "parent": "SPM-44",
+      "status": "In Review"
+    },
+    "SPM-150": {
+      "title": "build date & slot filter",
+      "parent": "SPM-44",
+      "status": "In Progress"
+    },
+    "SPM-151": {
+      "title": "combine attributes & date filters",
+      "parent": "SPM-44",
+      "status": "In Review"
+    },
+    "SPM-156": {
+      "title": "Return and resolve transitions in the event request domain",
+      "parent": "SPM-33",
+      "status": "Done"
+    },
+    "SPM-157": {
+      "title": "Clarification thread: domain type, port and in-memory adapter",
+      "parent": "SPM-33",
+      "status": "Done"
+    },
+    "SPM-158": {
+      "title": "Coordinator clarification use cases: request and resolve",
+      "parent": "SPM-33",
+      "status": "Done"
+    },
+    "SPM-159": {
+      "title": "Post-a-clarification-message use case",
+      "parent": "SPM-33",
+      "status": "Done"
+    },
+    "SPM-160": {
+      "title": "Persist the clarification thread and the return/resolve in Supabase",
+      "parent": "SPM-33",
+      "status": "Done"
+    },
+    "SPM-161": {
+      "title": "Clarification controls and thread on the coordinator request detail",
+      "parent": "SPM-33",
+      "status": "Done"
+    },
+    "SPM-162": {
+      "title": "Clarification thread and reply on the organiser request detail",
+      "parent": "SPM-33",
+      "status": "Done"
+    },
+    "SPM-166": {
+      "title": "Withdraw transition in the event request domain",
+      "parent": "SPM-101",
+      "status": "Done"
+    },
+    "SPM-167": {
+      "title": "Withdraw-event-request use case, port and in-memory adapter",
+      "parent": "SPM-101",
+      "status": "Done"
+    },
+    "SPM-168": {
+      "title": "Persist event request withdrawal in Supabase",
+      "parent": "SPM-101",
+      "status": "Done"
+    },
+    "SPM-169": {
+      "title": "Record-withdrawal action on the coordinator's request page",
+      "parent": "SPM-101",
+      "status": "Done"
+    },
+    "SPM-172": {
+      "title": "Notify the assigned coordinator through the Notifier port",
+      "parent": "SPM-57",
+      "status": "Done"
+    },
+    "SPM-188": {
+      "title": "Build access-denied screen and page-area message",
+      "parent": "SPM-16",
+      "status": "Done"
+    },
+    "SPM-189": {
+      "title": "Show access-denied on wrong-workspace access",
+      "parent": "SPM-16",
+      "status": "Done"
+    },
+    "SPM-190": {
+      "title": "Show access-denied on records the user can't see",
+      "parent": "SPM-16",
+      "status": "Done"
+    },
+    "SPM-192": {
+      "title": "Refuse login for accounts with no staff role",
+      "parent": "SPM-16",
+      "status": "Done"
+    },
+    "SPM-218": {
+      "title": "Place a tentative hold on a venue slot",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-219": {
+      "title": "Confirm or release a tentative hold",
+      "parent": null,
+      "status": "Backlog"
     }
   }
 }
