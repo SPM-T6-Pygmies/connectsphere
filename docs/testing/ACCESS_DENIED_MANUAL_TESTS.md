@@ -10,10 +10,11 @@ whether a record exists, and that it works at mobile width.
 The rules behind the screen are unit-tested (tagged `SPM-16`): which role each
 page area names (`pageAreaOwner`) and where the link goes (`homeWorkspaceFor`).
 
-These cases are registered as `MT-0011`–`MT-0017` in
-[`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them,
-tick the boxes below **and** set `Status`, `ExecutedBy` and `LastPassedDate` on
-the matching rows. CI cannot verify a manual case for you.
+These cases are registered as `TC-DENY-001`–`TC-DENY-008` in
+[`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
+them, tick the boxes below **and** report each in the PR description's
+`## Manual test results` table — CI records it in
+[`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
 ---
 

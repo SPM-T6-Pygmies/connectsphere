@@ -1,6 +1,7 @@
 # Tests
 
-Two files, because a test case and a test run are different things.
+Specification and execution are kept apart, for automated and manual cases
+alike, because a test case and a test run are different things.
 
 > **One specification, many executions.** The same case is re-run across
 > browsers, builds, environments and sprints to detect regressions.
@@ -10,15 +11,17 @@ Two files, because a test case and a test run are different things.
 
 | File | What it is |
 | --- | --- |
-| [`test-registry.csv`](test-registry.csv) | The **specification**. One row per test case. Changes when the requirement changes. |
-| [`test-runs.csv`](test-runs.csv) | The **execution record**. One row per green merge to `main`. Append-only. |
+| [`test-registry.csv`](test-registry.csv) | The **specification** of every automated case. One row per test, generated from the suite. |
+| [`test-runs.csv`](test-runs.csv) | The **execution record** of the suite. One row per green merge to `main`. Append-only. |
+| [`manual-registry.csv`](manual-registry.csv) | The **specification** of every manual case. One row per case, written by hand once. |
+| [`manual-runs.csv`](manual-runs.csv) | The **execution record** of manual cases. One row per case per run, linked to the PR. Append-only. |
 | [`domains.json`](domains.json) | Which feature area each test file belongs to. |
 
 ## The registry
 
 Generated from a real test run, so it cannot drift from the suite. The columns
-you edit by hand — `Ticket`, `AC`, `ExpectedResult`, `Notes` — are preserved
-across regenerations, matched on file + suite + test name.
+you edit by hand — `AC`, `ExpectedResult`, `TestData` and `Remarks` — are
+preserved across regenerations, matched on file + suite + test name.
 
 ```bash
 pnpm test:report            # print the per-domain table
@@ -36,16 +39,15 @@ then the execution record.
 
 | Column | Template field | |
 | --- | --- | --- |
-| `TestID` | Test Case ID | `UT-####` automated, `MT-####` manual. Assigned once, never reused — an ID quoted in a ticket always means the same case. |
+| `TestID` | Test Case ID | Assigned once, never reused — an ID quoted in a ticket always means the same case. Older cases are `UT-####`; a new case gets `UT-` plus six hex digits hashed from its file, suite and name, so two branches adding different tests can never claim the same ID. Don't renumber, and if `--check` reports a duplicate, blank the newer row's ID cell and run `--update`. |
 | `Suite` + `TestCase` | Test Scenario | The `describe` path and the test name. |
 | `Preconditions` | Pre-conditions | Constant for `auto` rows: every automated test builds its own in-memory fixtures. There is no database, no network and not one `beforeEach` in the suite, so there is nothing to reset between runs. |
 | `TestSteps` | Test Steps | The exact command that runs this one case. Copy it and paste it. |
-| `TestData` | Test Data | Manual rows only. For an `auto` row the inputs are the fixtures in the test body — written next to the assertion that uses them, reviewed in the same PR, and not duplicated here. |
-| `ExpectedResult` | Expected Result | Manual rows. For an `auto` row the assertion *is* the expected result. |
+| `TestData` | Test Data | The inputs are the fixtures in the test body — written next to the assertion that uses them, reviewed in the same PR, and not duplicated here. |
+| `ExpectedResult` | Expected Result | The assertion *is* the expected result. |
 | `CreatedBy` / `DateCreated` | Created By, Date of Creation | Read from `git blame` on the line the test starts at. Nobody types these, and they cannot be wrong. |
 | `Domain` | — | From `domains.json`. |
-| `Quadrant` | — | `Q1`–`Q4` of the Agile Testing Quadrants. Automated unit/integration tests are `Q1`; manual and UAT are `Q3`. |
-| `Source` | — | `auto` (from vitest) or `manual`. |
+| `Quadrant` | — | `Q1`–`Q4` of the Agile Testing Quadrants. Automated unit/integration tests are `Q1`. |
 | `Ticket` / `AC` | — | **The traceability chain.** `user story → acceptance criteria → test case → test class → code`. |
 
 ### Execution record — one per run
@@ -55,8 +57,6 @@ then the execution record.
 | `ActualResult` | Actual Result | `As specified` on a recorded pass. Only green runs are ever recorded, so a recorded case's actual result is its expected one by construction. |
 | `Status` | Pass/Fail/Not Executed/Blocked | `Pass` means it passed **at the most recent run in [`test-runs.csv`](test-runs.csv)**, not that it passes now. `Not Executed` means it has not yet been through a green merge. `Retired` is ours: the test no longer exists. |
 | `Remarks` | Remarks | |
-| `ExecutedBy` | Executed By | Manual rows only — see below. |
-| `LastPassedDate` / `LastPassedCommit` | Date of Execution | Manual rows only — see below. |
 
 **Which build a pass refers to is in the ledger, not on the row.** The whole
 suite runs at once, so every automated case would otherwise carry an identical
@@ -65,10 +65,6 @@ copy of the same commit, date and runner — one fact written 368 times, and a
 
 A merge therefore changes only the rows whose outcome actually changed: none at
 all for a typical merge, and one row per test for a merge that adds tests.
-
-`ExecutedBy`, `LastPassedDate` and `LastPassedCommit` stay for **manual** rows,
-which really are executed one at a time, by a named person, on a date that
-differs from case to case.
 
 ### Why three template fields are not prose here
 
@@ -117,25 +113,68 @@ snapshot of Sprint 1 (Linear cycle 2) — extend it as later sprints land.
 say `SPM-28`, filter on it, and every case that is evidence for it is there
 regardless of which sub-task produced it.
 
-### Manual and UAT cases
-
-Add them by hand with `Source` set to `manual` and an `MT-` id. The generator
-never deletes, reorders or re-statuses a manual row, and CI does not try to
-verify one — you set `Status` and `LastPassedDate` yourself when you run it.
-The steps live in [`../testing/`](../testing); the registry row points at them so
-one document covers the whole test basis.
-
 ### A deleted test is not a removed row
 
 If a test disappears, its row is kept and marked `Retired` rather than dropped,
 so it shows up in the PR diff. Delete the row deliberately once you have decided
 the case is genuinely gone, not just renamed.
 
+## Manual and UAT cases
+
+Manual cases are not in `test-registry.csv`. They are executed one at a time, by
+a named person, so they follow the same two-file split with different writers.
+
+### The specification — `manual-registry.csv`
+
+Add a row by hand when you write a manual case, once. The columns are the
+specification half of the template: `CaseID`, `Scenario`, `Preconditions`,
+`TestSteps`, `TestData`, `ExpectedResult`, plus `Ticket`, `AC`, `Domain` and a
+`StepsDoc` pointing at the write-up in [`../testing/`](../testing) when there is
+one. `CaseID` is the `TC-<AREA>-NNN` id used in that document, so it is unique
+within the feature you are writing and means the same case forever. `Status` is
+`Active`, or `Retired` once the case is gone. `--update` only refills
+`TicketTitle` and `UserStory` from `tickets.json`; it never reorders or rewrites
+what you wrote.
+
+### The execution record — `manual-runs.csv`
+
+One row per case per run: `RunDate`, `CaseID`, `Result`
+(`Pass`/`Fail`/`Blocked`/`Not Executed`), `ActualResult`, `Remarks`,
+`ExecutedBy`, `PR`, `Commit`, `Environment`, `Evidence`. **Do not edit it by
+hand.** The input is the PR description:
+
+```markdown
+## Manual test results
+
+| CaseID | Result | Actual result | Remarks | Evidence |
+| --- | --- | --- | --- | --- |
+| TC-WITHDRAW-001 | Pass | Withdrawn with the note shown | Chrome, local | docs/screenshots/… |
+```
+
+- **While the PR is open**, the *PR manual results* check validates the table. An
+  unknown or retired `CaseID`, a `Result` outside the four values, or a `Fail` or
+  `Blocked` row fails it — a finding to fix before merge, not a result to file
+  away. A case for one of the PR's tickets with no row only warns, so a PR that
+  touches an unrelated feature needs nothing here.
+- **When the PR merges**, CI appends one row per reported case to
+  `manual-runs.csv`, with the PR number, its author and the merge commit. Rows
+  marked `Not Executed` are not recorded. Re-running the job does not record a PR
+  twice.
+
+A case's current status is its **latest row**, shown with its date and PR in the
+report (`4/11 manual passed` per domain). A merge to an unrelated feature does
+not invalidate it, so nobody retests the whole suite after every merge: re-run a
+case in the PR that changes its feature, and the ledger remembers when and in
+which PR it last passed.
+
 ## The run record
 
 Written only by CI, only on a green merge to `main`. One row per merge with the
 commit, the PR, the totals and the per-domain breakdown — the evidence that the
-suite was green at that build. Failing runs are not recorded.
+suite was green at that build. Failing runs are not recorded. The same job
+appends the merged PR's manual results to `manual-runs.csv`. Both ledgers are
+append-only and marked `merge=union` in `.gitattributes`, so two records landing
+close together keep both rows when the job rebases.
 
 ### Recording runs
 
