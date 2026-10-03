@@ -116,7 +116,9 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventNotFoundError(event.id);
       }
       if (error.code === NOT_CONFIRMABLE) {
-        throw new EventNotConfirmableError(event.status);
+        // The status read before the call was Planning, or the domain would
+        // have refused; DETAIL is what it is now, after the race was lost.
+        throw new EventNotConfirmableError(error.details || event.status);
       }
       if (error.code === NOT_READY) {
         throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event, confirmedBy));

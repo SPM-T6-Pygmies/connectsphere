@@ -30,7 +30,7 @@
 -- SupabaseCoordinatorEventRepository (CS001-CS004 belong to attendee
 -- registration, CS010-CS012 to coordinator_decide_event_request):
 --   CS020  no such event, or not assigned to this coordinator (#91)
---   CS021  the event is not in Planning
+--   CS021  the event is not in Planning; DETAIL carries its current status
 --   CS022  an essential arrangement is still incomplete -- the adapter calls
 --          event_readiness again to name which ones, rather than trying to
 --          carry the list through the SQLSTATE
@@ -141,7 +141,7 @@ begin
   if v_event.status <> 'Planning' then
     raise exception 'Event % with status % cannot be confirmed',
       p_event_id, v_event.status
-      using errcode = 'CS021';
+      using errcode = 'CS021', detail = v_event.status;
   end if;
 
   -- Restates `assessReadiness` (src/core/domain/event-readiness.ts): only
