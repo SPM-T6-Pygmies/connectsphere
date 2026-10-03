@@ -4,6 +4,8 @@ import { NotTechnicalSupportStaffError, type DomainError } from "@/core/domain/e
 import { eventId } from "@/core/domain/event";
 import type { UnderReviewEquipmentLine } from "@/core/ports/outbound/equipment-recheck-repository";
 
+import { toReviewBaseline } from "./equipment-requirement-mapper";
+
 /** A row of `technical_support_equipment_rechecks`: one line under review, with its event and type. */
 export interface UnderReviewEquipmentRow {
   event_id: number;
@@ -15,6 +17,8 @@ export interface UnderReviewEquipmentRow {
   quantity_reserved: number;
   technical_requirements: string | null;
   line_state: EquipmentLineState;
+  reviewed_quantity_requested: number | null;
+  reviewed_technical_requirements: string | null;
   removal_requested: boolean;
 }
 
@@ -28,6 +32,7 @@ export function toUnderReviewEquipmentLine(row: UnderReviewEquipmentRow): UnderR
       technicalRequirements: row.technical_requirements,
       quantityReserved: row.quantity_reserved,
       state: row.line_state,
+      reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
       removalRequested: row.removal_requested,
     },
   };

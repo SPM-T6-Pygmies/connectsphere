@@ -62,15 +62,23 @@ function newRequirement(
 }
 
 function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequirement {
-  return {
+  const built: EquipmentRequirement = {
     equipmentItemId: PROJECTOR,
     quantityRequested: 2,
     technicalRequirements: "HDMI input",
     quantityReserved: 0,
     state: "Requested",
+    reviewBaseline: null,
     removalRequested: false,
     ...overrides,
   };
+  // A line under review always remembers what it was reviewed as; default to its own values.
+  return built.state === "Under review" && overrides.reviewBaseline === undefined
+    ? {
+        ...built,
+        reviewBaseline: { quantityRequested: built.quantityRequested, technicalRequirements: built.technicalRequirements },
+      }
+    : built;
 }
 
 const reserved = (overrides: Partial<EquipmentRequirement> = {}) =>
@@ -106,6 +114,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
       technicalRequirements: "HDMI input",
       quantityReserved: 0,
       state: "Requested",
+      reviewBaseline: null,
       removalRequested: false,
     });
   });
@@ -223,6 +232,7 @@ describe("editEquipmentRequirement (SPM-182)", () => {
       line: line({ quantityRequested: 3 }),
       changed: true,
       underReview: false,
+      reviewCleared: false,
     });
   });
 
@@ -233,9 +243,14 @@ describe("editEquipmentRequirement (SPM-182)", () => {
         technicalRequirements: "HDMI input",
       }),
     ).toEqual({
-      line: reserved({ quantityRequested: 4, state: "Under review" }),
+      line: reserved({
+        quantityRequested: 4,
+        state: "Under review",
+        reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
+      }),
       changed: true,
       underReview: true,
+      reviewCleared: false,
     });
   });
 
@@ -266,7 +281,7 @@ describe("editEquipmentRequirement (SPM-182)", () => {
         quantityRequested: 2,
         technicalRequirements: "HDMI input",
       }),
-    ).toEqual({ line: original, changed: false, underReview: false });
+    ).toEqual({ line: original, changed: false, underReview: false, reviewCleared: false });
   });
 
   it("treats blank technical requirements as unchanged from none", () => {
@@ -447,5 +462,97 @@ describe("recheckReason (SPM-187)", () => {
     });
 
     expect(recheckReason(edit.line)).toBeNull();
+  });
+});
+
+describe("reverting an edit to a reserved line (SPM-232)", () => {
+  const NOTES = "HDMI input";
+  const change = (target: EquipmentRequirement, quantityRequested: number, technicalRequirements: string | null = NOTES) =>
+    editEquipmentRequirement(event(), target, { quantityRequested, technicalRequirements });
+
+  it("AC19: remembers what Technical Support had when a reserved line first goes under review", () => {
+    const edit = change(reserved(), 1);
+
+    expect(edit.line.state).toBe("Under review");
+    expect(edit.line.reviewBaseline).toEqual({ quantityRequested: 2, technicalRequirements: NOTES });
+  });
+
+  it("AC19: returns to Reserved and clears the review when edited back to the original", () => {
+    const first = change(reserved(), 1);
+    const back = change(first.line, 2);
+
+    expect(back).toMatchObject({ changed: true, underReview: false, reviewCleared: true });
+    expect(back.line.state).toBe("Reserved");
+    expect(back.line.reviewBaseline).toBeNull();
+    expect(back.line.quantityRequested).toBe(2);
+    expect(back.line.quantityReserved).toBe(2);
+    expect(recheckReason(back.line)).toBeNull();
+  });
+
+  it("AC19: keeps comparing with the original across several edits", () => {
+    const toOne = change(reserved(), 1);
+    const toThree = change(toOne.line, 3);
+
+    expect(toThree).toMatchObject({ underReview: true, reviewCleared: false });
+    expect(toThree.line.state).toBe("Under review");
+    expect(toThree.line.reviewBaseline).toEqual({ quantityRequested: 2, technicalRequirements: NOTES });
+    expect(change(toThree.line, 2)).toMatchObject({ reviewCleared: true });
+  });
+
+  it("AC19: compares the technical requirements as well as the quantity", () => {
+    const notesOnly = change(reserved(), 2, "HDMI and USB-C input");
+    expect(change(notesOnly.line, 2, NOTES).line.state).toBe("Reserved");
+
+    const both = change(reserved(), 1, "HDMI and USB-C input");
+    const quantityOnly = change(both.line, 2, "HDMI and USB-C input");
+    expect(quantityOnly.line.state).toBe("Under review");
+    expect(quantityOnly.reviewCleared).toBe(false);
+  });
+
+  it("AC19: treats going back to no technical requirements as the original when there were none", () => {
+    const original = reserved({ technicalRequirements: null });
+    const changed = change(original, 2, "Needs a stand");
+
+    expect(change(changed.line, 2, null)).toMatchObject({ reviewCleared: true });
+  });
+
+  it("AC19: a line that was reverted can go under review again", () => {
+    const back = change(change(reserved(), 1).line, 2);
+    const again = change(back.line, 1);
+
+    expect(again.line.state).toBe("Under review");
+    expect(again.line.reviewBaseline).toEqual({ quantityRequested: 2, technicalRequirements: NOTES });
+  });
+
+  it("AC19: leaves a line under review alone when the save changes nothing", () => {
+    const underReview = change(reserved(), 1).line;
+
+    expect(change(underReview, 1)).toEqual({ line: underReview, changed: false, underReview: false, reviewCleared: false });
+  });
+
+  it("AC19: remembers the original when removal of a reserved line is requested", () => {
+    const removal = removeEquipmentRequirement(event(), reserved());
+
+    expect(removal.kind === "removalRequested" && removal.line.reviewBaseline).toEqual({
+      quantityRequested: 2,
+      technicalRequirements: NOTES,
+    });
+  });
+
+  it("AC17: an undone removal stays under review, but a later edit back to the original clears it", () => {
+    const removal = removeEquipmentRequirement(event(), reserved());
+    const undone = removal.kind === "removalRequested" ? undoEquipmentRemoval(event(), removal.line) : null;
+    expect(undone?.state).toBe("Under review");
+
+    const edited = change(undone as EquipmentRequirement, 3);
+    expect(edited.line.state).toBe("Under review");
+    expect(change(edited.line, 2)).toMatchObject({ reviewCleared: true });
+  });
+
+  it("AC7: an unreserved line never remembers anything", () => {
+    const edit = change(line(), 3);
+
+    expect(edit.line.reviewBaseline).toBeNull();
+    expect(edit.reviewCleared).toBe(false);
   });
 });

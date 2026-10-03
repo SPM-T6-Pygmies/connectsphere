@@ -18,6 +18,8 @@ const projector: UnderReviewEquipmentRow = {
   quantity_reserved: 2,
   technical_requirements: "HDMI input",
   line_state: "Under review",
+  reviewed_quantity_requested: 2,
+  reviewed_technical_requirements: "HDMI input",
   removal_requested: false,
 };
 
@@ -32,6 +34,7 @@ describe("equipment re-check mapper (SPM-187)", () => {
         technicalRequirements: "HDMI input",
         quantityReserved: 2,
         state: "Under review",
+        reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
         removalRequested: false,
       },
     });

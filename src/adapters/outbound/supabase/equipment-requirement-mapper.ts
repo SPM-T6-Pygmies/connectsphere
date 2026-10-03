@@ -1,5 +1,9 @@
 import { equipmentItemId, type EquipmentCatalogueItem } from "@/core/domain/equipment-item";
-import type { EquipmentLineState, EquipmentRequirement } from "@/core/domain/equipment-requirement";
+import type {
+  EquipmentLineState,
+  EquipmentRequirement,
+  EquipmentReviewBaseline,
+} from "@/core/domain/equipment-requirement";
 import {
   DuplicateEquipmentRequirementError,
   EquipmentItemNotInCatalogueError,
@@ -30,7 +34,17 @@ export interface EventEquipmentRow {
   quantity_reserved: number | null;
   technical_requirements: string | null;
   line_state: EquipmentLineState | null;
+  reviewed_quantity_requested: number | null;
+  reviewed_technical_requirements: string | null;
   removal_requested: boolean | null;
+}
+
+/** What Technical Support last had reserved against: present exactly while a line is Under review. */
+export function toReviewBaseline(
+  quantityRequested: number | null,
+  technicalRequirements: string | null,
+): EquipmentReviewBaseline | null {
+  return quantityRequested === null ? null : { quantityRequested, technicalRequirements };
 }
 
 export function toCatalogueItem(row: EquipmentCatalogueRow): EquipmentCatalogueItem {
@@ -61,6 +75,7 @@ export function toEventEquipment(rows: readonly EventEquipmentRow[]): EventEquip
               technicalRequirements: row.technical_requirements,
               quantityReserved: row.quantity_reserved ?? 0,
               state: row.line_state ?? "Requested",
+              reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
               removalRequested: row.removal_requested ?? false,
             },
           ],

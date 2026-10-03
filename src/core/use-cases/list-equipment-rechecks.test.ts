@@ -17,6 +17,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     technicalRequirements: null,
     quantityReserved: 2,
     state: "Under review",
+    reviewBaseline: { quantityRequested: 2, technicalRequirements: null },
     removalRequested: false,
     ...overrides,
   };

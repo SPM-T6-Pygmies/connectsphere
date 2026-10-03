@@ -40,6 +40,8 @@ export interface EquipmentRequirementChange {
   readonly changed: boolean;
   /** This change left the line under review for Technical Support to re-check (AC8, AC11). */
   readonly underReview: boolean;
+  /** This change put a line under review back to what Technical Support had, so they have nothing to re-check (AC19). */
+  readonly reviewCleared: boolean;
 }
 
 /**
@@ -91,8 +93,9 @@ export function describeChange(params: {
   readonly after: EquipmentRequirement | null;
   readonly changed: boolean;
   readonly underReview: boolean;
+  readonly reviewCleared?: boolean;
 }): EquipmentRequirementChange {
-  const { action, event, reservation, item, before, after, changed, underReview } = params;
+  const { action, event, reservation, item, before, after, changed, underReview, reviewCleared = false } = params;
   return {
     action,
     event: { id: event.id, name: event.name, preferredDate: event.preferredDate },
@@ -104,5 +107,6 @@ export function describeChange(params: {
     quantityAfter: after?.quantityRequested ?? null,
     changed,
     underReview,
+    reviewCleared,
   };
 }

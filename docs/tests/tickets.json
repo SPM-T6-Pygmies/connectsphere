@@ -342,6 +342,11 @@
       "parent": "SPM-41",
       "status": "Todo"
     },
+    "SPM-232": {
+      "title": "Clear the re-check when a coordinator edits a line back to what was reserved",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
     "SPM-44": {
       "title": "Search and filter venues",
       "parent": null,

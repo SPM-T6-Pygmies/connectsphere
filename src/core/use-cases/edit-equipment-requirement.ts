@@ -56,6 +56,7 @@ export class EditEquipmentRequirementUseCase {
       after: edit.line,
       changed: edit.changed,
       underReview: edit.underReview,
+      reviewCleared: edit.reviewCleared,
     });
   }
 }

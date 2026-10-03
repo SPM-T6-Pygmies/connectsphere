@@ -24,6 +24,8 @@ const projector: EventEquipmentRow = {
   quantity_reserved: 2,
   technical_requirements: "HDMI input",
   line_state: "Under review",
+  reviewed_quantity_requested: 2,
+  reviewed_technical_requirements: "HDMI input",
   removal_requested: false,
 };
 
@@ -44,7 +46,8 @@ describe("equipment requirement mapper (SPM-185)", () => {
       toEventEquipment([
         projector,
         { ...projector, equipment_item_id: 2, quantity_requested: 4, quantity_reserved: 0,
-          technical_requirements: null, line_state: "Requested" },
+          technical_requirements: null, line_state: "Requested",
+          reviewed_quantity_requested: null, reviewed_technical_requirements: null },
       ]),
     ).toEqual({
       reservation: { id: "10", reviewerUserAccountId: "6" },
@@ -55,6 +58,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           technicalRequirements: "HDMI input",
           quantityReserved: 2,
           state: "Under review",
+          reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
           removalRequested: false,
         },
         {
@@ -63,6 +67,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           technicalRequirements: null,
           quantityReserved: 0,
           state: "Requested",
+          reviewBaseline: null,
           removalRequested: false,
         },
       ],
@@ -80,6 +85,8 @@ describe("equipment requirement mapper (SPM-185)", () => {
           quantity_reserved: null,
           technical_requirements: null,
           line_state: null,
+          reviewed_quantity_requested: null,
+          reviewed_technical_requirements: null,
           removal_requested: null,
         },
       ]),

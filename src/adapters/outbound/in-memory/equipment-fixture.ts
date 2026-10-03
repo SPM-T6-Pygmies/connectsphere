@@ -47,15 +47,23 @@ export function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCo
 /** A line with nothing reserved; give it `quantityReserved` and it is `Reserved`, or pass `state: "Under review"`. */
 export function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequirement {
   const quantityReserved = overrides.quantityReserved ?? 0;
-  return {
+  const built: EquipmentRequirement = {
     equipmentItemId: MICROPHONE,
     quantityRequested: 4,
     technicalRequirements: null,
     quantityReserved,
     state: quantityReserved > 0 ? "Reserved" : "Requested",
+    reviewBaseline: null,
     removalRequested: false,
     ...overrides,
   };
+  // A line under review always remembers what it was reviewed as; default to its own values.
+  return built.state === "Under review" && built.reviewBaseline === null && overrides.reviewBaseline === undefined
+    ? {
+        ...built,
+        reviewBaseline: { quantityRequested: built.quantityRequested, technicalRequirements: built.technicalRequirements },
+      }
+    : built;
 }
 
 /** Projector x2, both reserved by REVIEWER; Wireless microphone x4, none reserved. */

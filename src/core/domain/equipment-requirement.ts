@@ -34,6 +34,8 @@ export interface EquipmentRequirement {
    * exactly when `quantityReserved` is 0.
    */
   readonly state: EquipmentLineState;
+  /** What Technical Support last had reserved against. Set exactly while the line is `Under review`. */
+  readonly reviewBaseline: EquipmentReviewBaseline | null;
   /**
    * The coordinator removed a reserved line (AC11). It stays, with its
    * equipment held, until Technical Support release it (SPM-108) or the
@@ -43,6 +45,16 @@ export interface EquipmentRequirement {
 }
 
 export type EquipmentLineState = "Requested" | "Reserved" | "Under review";
+
+/**
+ * What Technical Support last had reserved against a line, kept while the line
+ * is Under review: editing the line back to exactly this means there is nothing
+ * left to re-check, so it returns to Reserved (AC19).
+ */
+export interface EquipmentReviewBaseline {
+  readonly quantityRequested: number;
+  readonly technicalRequirements: string | null;
+}
 
 /** What the coordinator enters for a line. The type is chosen once, when the line is added. */
 export interface EquipmentRequirementDetails {
@@ -60,6 +72,8 @@ export interface EquipmentRequirementEdit {
   readonly changed: boolean;
   /** This edit left a reserved line under review for Technical Support to re-check (AC8). */
   readonly underReview: boolean;
+  /** This edit put a line under review back to what Technical Support had, so it is Reserved again (AC19). */
+  readonly reviewCleared: boolean;
 }
 
 /**
@@ -113,6 +127,7 @@ export function recordEquipmentRequirement(
     ...details,
     quantityReserved: 0,
     state: "Requested",
+    reviewBaseline: null,
     removalRequested: false,
   };
 }
@@ -121,6 +136,10 @@ export function recordEquipmentRequirement(
  * AC7-9: a change to a reserved line is saved and puts it under review, and
  * what Technical Support reserved stays held -- even above a reduced quantity,
  * since releasing it is their call (SPM-108), not this edit's.
+ *
+ * AC19: the values the line had when it was Reserved are remembered, so an edit
+ * that returns to exactly them clears the review -- Technical Support have
+ * nothing to change. Any other edit keeps the original to compare against.
  */
 export function editEquipmentRequirement(
   event: CoordinatorEvent,
@@ -135,14 +154,29 @@ export function editEquipmentRequirement(
     details.quantityRequested !== line.quantityRequested ||
     details.technicalRequirements !== line.technicalRequirements;
   if (!changed) {
-    return { line, changed: false, underReview: false };
+    return { line, changed: false, underReview: false, reviewCleared: false };
+  }
+
+  if (line.state === "Under review" && line.reviewBaseline !== null && isBaseline(details, line.reviewBaseline)) {
+    return {
+      line: { ...line, ...details, state: "Reserved", reviewBaseline: null },
+      changed: true,
+      underReview: false,
+      reviewCleared: true,
+    };
   }
 
   const reserved = isReserved(line);
   return {
-    line: { ...line, ...details, state: reserved ? "Under review" : line.state },
+    line: {
+      ...line,
+      ...details,
+      state: reserved ? "Under review" : line.state,
+      reviewBaseline: reserved ? (line.reviewBaseline ?? baselineOf(line)) : null,
+    },
     changed: true,
     underReview: reserved,
+    reviewCleared: false,
   };
 }
 
@@ -159,7 +193,12 @@ export function removeEquipmentRequirement(
   }
   return {
     kind: "removalRequested",
-    line: { ...line, state: "Under review", removalRequested: true },
+    line: {
+      ...line,
+      state: "Under review",
+      reviewBaseline: line.reviewBaseline ?? baselineOf(line),
+      removalRequested: true,
+    },
   };
 }
 
@@ -177,6 +216,17 @@ export function undoEquipmentRemoval(
     throw new EquipmentRemovalNotRequestedError();
   }
   return { ...line, removalRequested: false };
+}
+
+function baselineOf(line: EquipmentRequirement): EquipmentReviewBaseline {
+  return { quantityRequested: line.quantityRequested, technicalRequirements: line.technicalRequirements };
+}
+
+function isBaseline(details: EquipmentRequirementDetails, baseline: EquipmentReviewBaseline): boolean {
+  return (
+    details.quantityRequested === baseline.quantityRequested &&
+    details.technicalRequirements === baseline.technicalRequirements
+  );
 }
 
 function assertEditable(event: CoordinatorEvent): void {

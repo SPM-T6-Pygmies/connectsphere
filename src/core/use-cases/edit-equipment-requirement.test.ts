@@ -116,3 +116,43 @@ describe("EditEquipmentRequirementUseCase (SPM-184)", () => {
     expect(equipment.stored("event-1")).toEqual(seededEquipment());
   });
 });
+
+describe("EditEquipmentRequirementUseCase reverting an edit (SPM-232)", () => {
+  const projector = (quantityRequested: number) => ({
+    ...base,
+    equipmentItemId: PROJECTOR,
+    quantityRequested,
+    technicalRequirements: "HDMI input",
+  });
+
+  it("AC19: puts a line back to Reserved, and says so, when it is edited back to what Technical Support had", async () => {
+    const { useCase, equipment } = edit();
+
+    const first = await useCase.execute(projector(1));
+    expect(first).toMatchObject({ underReview: true, reviewCleared: false });
+    expect(equipment.stored("event-1").lines[0]).toMatchObject({ state: "Under review", quantityRequested: 1 });
+
+    const back = await useCase.execute(projector(2));
+
+    expect(back).toMatchObject({ changed: true, underReview: false, reviewCleared: true, quantityBefore: 1, quantityAfter: 2 });
+    expect(equipment.stored("event-1").lines[0]).toMatchObject({
+      quantityRequested: 2,
+      quantityReserved: 2,
+      state: "Reserved",
+      reviewBaseline: null,
+    });
+  });
+
+  it("AC19: keeps the line under review when the second edit is not the original", async () => {
+    const { useCase, equipment } = edit();
+
+    await useCase.execute(projector(1));
+    const second = await useCase.execute(projector(3));
+
+    expect(second).toMatchObject({ underReview: true, reviewCleared: false });
+    expect(equipment.stored("event-1").lines[0]).toMatchObject({
+      state: "Under review",
+      reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
+    });
+  });
+});
