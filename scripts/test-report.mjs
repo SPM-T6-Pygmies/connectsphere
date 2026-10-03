@@ -13,6 +13,8 @@
  *   pnpm test:report --check    ...and fail if the committed registry is stale
  *   pnpm test:report --update   ...and rewrite the registry, keeping annotations
  *   pnpm test:report --record   ...and stamp Pass + append a run row (CI, main)
+ *   pnpm test:report --check-pr-body   validate a PR's "Manual test results" table
+ *                               (PR_BODY, PR_TITLE, PR_BRANCH in the environment)
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -355,6 +357,61 @@ function manualProblems(manual, runs) {
   return problems;
 }
 
+/**
+ * The manual results a PR reports, from a markdown table under a
+ * "## Manual test results" heading in its description:
+ *
+ *   | CaseID | Result | Actual result | Remarks | Evidence |
+ *
+ * The PR description is where the author records what they ran, because the PR
+ * is also where a reviewer reads it. Rows with no CaseID (the template's blank
+ * row, a dash) are placeholders and ignored.
+ */
+function parsePrManualResults(body) {
+  const lines = (body ?? "").replace(/<!--[\s\S]*?-->/g, "").split(/\r?\n/);
+  const start = lines.findIndex((l) => /^#{1,6}\s*manual test results\s*$/i.test(l.trim()));
+  if (start === -1) return [];
+  const rows = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^#{1,6}\s/.test(line)) break;
+    if (!line.trim().startsWith("|")) continue;
+    // Split on pipes that are not escaped, so a remark can still say "a \| b".
+    const cells = line.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, "|"));
+    if (/^-+:?$|^:-+:?$/.test(cells[0]) || /^caseid$/i.test(cells[0])) continue;
+    if (!cells[0] || /^[-—–]+$/.test(cells[0])) continue;
+    const [CaseID, Result = "", ActualResult = "", Remarks = "", Evidence = ""] = cells;
+    rows.push({ CaseID, Result, ActualResult, Remarks, Evidence });
+  }
+  return rows;
+}
+
+/**
+ * Whether the reported results may be merged and recorded. A Fail or Blocked is
+ * a finding to fix before merge, not a result to file away, so it stops the PR
+ * rather than landing in the ledger as if the feature had been signed off.
+ */
+function prProblems(results, manual) {
+  const known = new Map(manual.map((m) => [m.CaseID, m]));
+  const problems = [];
+  for (const r of results) {
+    if (!known.has(r.CaseID)) problems.push(`${r.CaseID} is not a case in manual-registry.csv`);
+    else if (known.get(r.CaseID).Status !== "Active") problems.push(`${r.CaseID} is retired`);
+    if (!MANUAL_RESULTS.includes(r.Result)) {
+      problems.push(`${r.CaseID}: Result "${r.Result}" must be one of ${MANUAL_RESULTS.join(", ")}`);
+    } else if (r.Result === "Fail" || r.Result === "Blocked") {
+      problems.push(`${r.CaseID} is ${r.Result}: fix it, or re-run it, before merging`);
+    }
+  }
+  return problems;
+}
+
+/** Active cases for the tickets a PR is about that its table does not mention. */
+function unreportedCases(results, manual, title, branch) {
+  const tickets = new Set(`${title ?? ""} ${branch ?? ""}`.match(/SPM-\d+/gi)?.map((t) => t.toUpperCase()));
+  const reported = new Set(results.map((r) => r.CaseID));
+  return manual.filter((m) => m.Status === "Active" && tickets.has(m.Ticket) && !reported.has(m.CaseID));
+}
+
 /* ---------------------------------------------------------------- the report */
 
 function summarise(cases, rows, domains, manual, latest) {
@@ -463,9 +520,29 @@ function recordRun(rows, groups, cases, durationMs) {
 /* ---------------------------------------------------------------- main */
 
 const mode = process.argv[2] ?? "";
-if (mode && !["--check", "--update", "--record"].includes(mode)) {
-  console.error(`Unknown option ${mode}. Expected --check, --update or --record.`);
+if (mode && !["--check", "--update", "--record", "--check-pr-body"].includes(mode)) {
+  console.error(`Unknown option ${mode}. Expected --check, --update, --record or --check-pr-body.`);
   process.exit(2);
+}
+
+const manualExisting = readTable(MANUAL, MANUAL_COLUMNS);
+const manualRuns = readTable(MANUAL_RUNS, MANUAL_RUN_COLUMNS);
+
+// Reads only the PR text and the manual registry, so it runs without the suite.
+if (mode === "--check-pr-body") {
+  const results = parsePrManualResults(process.env.PR_BODY);
+  const problems = prProblems(results, manualExisting);
+  for (const m of unreportedCases(results, manualExisting, process.env.PR_TITLE, process.env.PR_BRANCH)) {
+    console.log(`::warning::${m.CaseID} (${m.Ticket}) has manual steps but no row in "Manual test results": ${m.Scenario}`);
+  }
+  if (problems.length > 0) {
+    console.error(`\n✖ "Manual test results" in the PR description has problems:`);
+    for (const p of problems) console.error(`  - ${p}`);
+    console.error("");
+    process.exit(1);
+  }
+  console.log(`✔ ${results.length} manual result(s) reported.`);
+  process.exit(0);
 }
 
 const domains = loadDomains();
@@ -475,9 +552,7 @@ if (domains.length === 0) console.error(`Warning: no domain map at ${path.relati
 const { cases, durationMs } = runVitest();
 const existing = readTable(REGISTRY, COLUMNS);
 const rebuilt = buildRegistry(existing, cases, domains, tickets);
-const manualExisting = readTable(MANUAL, MANUAL_COLUMNS);
 const manualRebuilt = buildManual(manualExisting, tickets);
-const manualRuns = readTable(MANUAL_RUNS, MANUAL_RUN_COLUMNS);
 
 // The report reads the on-disk registry so that --check reports what is committed.
 const reportRows = mode === "--update" || existing.length === 0 ? rebuilt : existing;
