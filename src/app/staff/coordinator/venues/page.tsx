@@ -145,7 +145,7 @@ export default async function VenueSearchPage({
               <TableHeader>
                 <TableRow>
                   <TableHead>Location</TableHead>
-                  <TableHead>Layouts (capacity)</TableHead>
+                  <TableHead>Room layouts</TableHead>
                   <TableHead>Operating hours</TableHead>
                   <TableHead>Facilities</TableHead>
                   <TableHead>Accessibility</TableHead>
@@ -155,8 +155,19 @@ export default async function VenueSearchPage({
                 {outcome.venues.map((venue) => (
                   <TableRow key={venue.id}>
                     <TableCell className="font-medium">{venue.location}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ") || "—"}
+                    <TableCell>
+                      {venue.layouts.length === 0 ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : (
+                        <ul className="space-y-1">
+                          {venue.layouts.map((l) => (
+                            <li key={l.name} className="flex items-baseline gap-2 text-sm">
+                              <span className="font-medium">{l.name}</span>
+                              <span className="text-muted-foreground">seats {l.capacity}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{hours(venue)}</TableCell>
                     <TableCell className="text-muted-foreground">{venue.facilities ?? "—"}</TableCell>
