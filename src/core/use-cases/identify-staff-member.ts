@@ -2,6 +2,7 @@ import { clientOrganisationId } from "../domain/client-organisation";
 import {
   coordinatorContextFor,
   organiserContextFor,
+  technicalSupportContextFor,
   workspacesFor,
   type StaffMember,
   type StaffWorkspace,
@@ -21,6 +22,8 @@ export interface IdentifyStaffMemberResult {
   } | null;
   /** Who the Coordinator's screens act as -- null unless `coordinatorContextFor` allows it. */
   readonly coordinator: { readonly userAccountId: string } | null;
+  /** Who Technical Support's screens act as -- null unless `technicalSupportContextFor` allows it. */
+  readonly technicalSupport: { readonly userAccountId: string } | null;
   /** The staff workspaces the member may open -- see `workspacesFor`. */
   readonly workspaces: readonly StaffWorkspace[];
 }
@@ -53,11 +56,13 @@ export class IdentifyStaffMemberUseCase {
         user.clientOrganisationId === null ? null : clientOrganisationId(user.clientOrganisationId),
     };
     const organiser = organiserContextFor(member);
+    const technicalSupport = technicalSupportContextFor(member);
 
     return {
       name: user.name,
       organiser: organiser && { ...organiser, name: user.name },
       coordinator: coordinatorContextFor(member),
+      technicalSupport,
       workspaces: workspacesFor(member.roles),
     };
   }

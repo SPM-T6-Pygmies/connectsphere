@@ -57,6 +57,20 @@ export function organiserContextFor(member: StaffMember): OrganiserContext | nul
   };
 }
 
+/** Who a member of staff acts as on Technical Support's screens. */
+export interface TechnicalSupportContext {
+  readonly userAccountId: UserAccountId;
+}
+
+/** Who a member of staff acts as on Technical Support's screens: only Technical Support Staff (SPM-41 AC16). */
+export function technicalSupportContextFor(member: StaffMember): TechnicalSupportContext | null {
+  if (!member.roles.includes("Technical Support Staff")) {
+    return null;
+  }
+
+  return { userAccountId: member.userAccountId };
+}
+
 /** Who a member of staff acts as on the Coordinator's screens: only an Event Coordinator. */
 export function coordinatorContextFor(member: StaffMember): CoordinatorContext | null {
   if (!member.roles.includes("Event Coordinator")) {

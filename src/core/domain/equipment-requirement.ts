@@ -68,6 +68,21 @@ export function equipmentRequirementsEditable(status: CoordinatorEventStatus): b
   return status === "Planning" || status === "Blocked" || status === "Confirmed";
 }
 
+/** Why a flagged line is on Technical Support's "Needs re-check" list (AC15). */
+export type RecheckReason = "changed" | "removalRequested";
+
+/**
+ * AC15: whether Technical Support should re-check this line, and why -- null for
+ * a line nobody flagged. A line stays flagged after an undone removal (AC17),
+ * so it reads as changed.
+ */
+export function recheckReason(line: EquipmentRequirement): RecheckReason | null {
+  if (!line.recheckRequired) {
+    return null;
+  }
+  return line.removalRequested ? "removalRequested" : "changed";
+}
+
 /** Whether Technical Support have reserved any equipment against this line yet. */
 export function isReserved(line: EquipmentRequirement): boolean {
   return line.quantityReserved > 0;

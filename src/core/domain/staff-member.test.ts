@@ -5,6 +5,7 @@ import {
   coordinatorContextFor,
   landingWorkspaceFor,
   organiserContextFor,
+  technicalSupportContextFor,
   workspacesFor,
   type StaffMember,
 } from "./staff-member";
@@ -79,5 +80,34 @@ describe("coordinatorContextFor (SPM-122)", () => {
 
   it("does not act as a Coordinator for any other role", () => {
     expect(coordinatorContextFor(member(["Event Organiser"], ORG))).toBeNull();
+  });
+});
+
+describe("technicalSupportContextFor (SPM-187)", () => {
+  it("AC16: acts as Technical Support Staff for a member holding that role", () => {
+    expect(technicalSupportContextFor(member(["Technical Support Staff"]))).toEqual({
+      userAccountId: userAccountId("user-1"),
+    });
+  });
+
+  it("AC16: acts as Technical Support Staff for one who also holds another role", () => {
+    expect(technicalSupportContextFor(member(["Event Coordinator", "Technical Support Staff"]))).toEqual({
+      userAccountId: userAccountId("user-1"),
+    });
+  });
+
+  it.each(["Event Coordinator", "Event Operations Manager", "Venue Staff", "Attendee"])(
+    "AC16: does not act as Technical Support Staff for %s",
+    (role) => {
+      expect(technicalSupportContextFor(member([role]))).toBeNull();
+    },
+  );
+
+  it("AC16: does not act as Technical Support Staff for an Event Organiser", () => {
+    expect(technicalSupportContextFor(member(["Event Organiser"], ORG))).toBeNull();
+  });
+
+  it("AC16: does not act as Technical Support Staff for someone with no role", () => {
+    expect(technicalSupportContextFor(member([]))).toBeNull();
   });
 });

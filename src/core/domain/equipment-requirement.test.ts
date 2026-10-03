@@ -9,6 +9,7 @@ import { equipmentItemId } from "./equipment-item";
 import {
   editEquipmentRequirement,
   equipmentRequirementsEditable,
+  recheckReason,
   recordEquipmentRequirement,
   removeEquipmentRequirement,
   undoEquipmentRemoval,
@@ -400,5 +401,51 @@ describe("undoEquipmentRemoval (SPM-182)", () => {
     expect(() => undoEquipmentRemoval(event({ status }), pendingRemoval())).toThrow(
       EquipmentRequirementsLockedError,
     );
+  });
+});
+
+describe("recheckReason (SPM-187)", () => {
+  it("AC15: names a reserved line that was changed as changed", () => {
+    const edit = editEquipmentRequirement(event(), reserved(), {
+      quantityRequested: 3,
+      technicalRequirements: "HDMI input",
+    });
+
+    expect(recheckReason(edit.line)).toBe("changed");
+  });
+
+  it("AC15: names a reserved line whose removal was requested as removal requested", () => {
+    const removal = removeEquipmentRequirement(event(), reserved());
+
+    expect(removal.kind === "removalRequested" && recheckReason(removal.line)).toBe("removalRequested");
+  });
+
+  it("AC15: names a line whose removal was undone as changed, since it stays flagged", () => {
+    const removal = removeEquipmentRequirement(event(), reserved());
+    const undone = removal.kind === "removalRequested" ? undoEquipmentRemoval(event(), removal.line) : null;
+
+    expect(undone && recheckReason(undone)).toBe("changed");
+  });
+
+  it("AC15: leaves out a line nobody flagged", () => {
+    expect(recheckReason(line())).toBeNull();
+  });
+
+  it("AC15: leaves out an unreserved line that was changed, as nothing is held against it (AC7)", () => {
+    const edit = editEquipmentRequirement(event(), line(), {
+      quantityRequested: 3,
+      technicalRequirements: "HDMI input",
+    });
+
+    expect(recheckReason(edit.line)).toBeNull();
+  });
+
+  it("AC15: leaves out a reserved line saved without a change (AC9)", () => {
+    const edit = editEquipmentRequirement(event(), reserved(), {
+      quantityRequested: 2,
+      technicalRequirements: "HDMI input",
+    });
+
+    expect(recheckReason(edit.line)).toBeNull();
   });
 });
