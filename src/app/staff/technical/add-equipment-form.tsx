@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleAlert, CircleCheck } from "lucide-react";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,12 @@ function fieldError(state: EquipmentFormState, name: string): string | undefined
 }
 
 /** SPM-40 AC1: type, description, quantity and physical location. */
-export function AddEquipmentForm() {
+export function AddEquipmentForm({ onAdded }: { onAdded?: () => void }) {
   const [state, formAction, pending] = useActionState(createEquipmentItemAction, INITIAL);
+
+  useEffect(() => {
+    if (state.status === "success") onAdded?.();
+  }, [state, onAdded]);
 
   // A rejected form keeps what was typed; an accepted one starts blank again.
   const kept = state.status === "error" ? (state.values ?? {}) : {};
@@ -28,7 +32,7 @@ export function AddEquipmentForm() {
     <form
       key={formKey}
       action={formAction}
-      className="grid gap-3 sm:grid-cols-2"
+      className="grid gap-3"
       aria-label="Add equipment"
     >
       <div className="space-y-1.5">
@@ -87,7 +91,7 @@ export function AddEquipmentForm() {
         />
       </div>
 
-      <div className="space-y-3 sm:col-span-2">
+      <div className="space-y-3">
         {state.status === "error" ? (
           <Alert variant="destructive">
             <CircleAlert aria-hidden />

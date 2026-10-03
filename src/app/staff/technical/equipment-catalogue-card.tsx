@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { buildListEquipmentCatalogue } from "@/composition/container";
 
-import { AddEquipmentForm } from "./add-equipment-form";
+import { AddEquipmentSheet } from "./add-equipment-sheet";
 import { EquipmentRow } from "./equipment-row";
 
 /**
@@ -24,17 +24,20 @@ export async function EquipmentCatalogueCard() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Equipment catalogue</CardTitle>
-        <CardDescription>
-          Pooled counts, not individual units. Items can be collected the day
-          before and come back into the pool the day after return.
-        </CardDescription>
+      <CardHeader className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1.5">
+          <CardTitle>Equipment catalogue</CardTitle>
+          <CardDescription>
+            Pooled counts, not individual units. Items can be collected the day
+            before and come back into the pool the day after return.
+          </CardDescription>
+        </div>
+        <AddEquipmentSheet />
       </CardHeader>
       <CardContent className="space-y-6">
         {items.length === 0 ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-sm">
-            The catalogue is empty. Add the first item below.
+            The catalogue is empty. Use Add equipment to add the first item.
           </p>
         ) : (
           <ul
@@ -46,11 +49,6 @@ export async function EquipmentCatalogueCard() {
             ))}
           </ul>
         )}
-
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium">Add equipment</h3>
-          <AddEquipmentForm />
-        </div>
       </CardContent>
     </Card>
   );
