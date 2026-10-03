@@ -1,5 +1,5 @@
 import { CheckIcon, AlertTriangleIcon } from "lucide-react";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -55,21 +55,23 @@ export default async function CoordinatorEventPage({
 }: PageProps<"/staff/coordinator/events/[id]">) {
   const { id } = await params;
 
+  // An event that is not theirs, or does not exist, gets the same access-denied
+  // screen (SPM-16, #91), so a guess cannot confirm an event exists.
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const viewCoordinatorEvent = await buildViewCoordinatorEvent();
   const result = await viewCoordinatorEvent.execute({ id, ...coordinator });
   if (result === null) {
-    notFound();
+    forbidden();
   }
 
   const viewEventEquipment = await buildViewEventEquipment();
   const equipment = await viewEventEquipment.execute({ eventId: id, ...coordinator });
   if (equipment === null) {
-    notFound();
+    forbidden();
   }
 
   const { event, clientOrganisationName, owningOrganiserName, readiness, canConfirm, blockingArrangements } =

@@ -249,8 +249,10 @@ This is the end-to-end case across both roles.
    ```
 
 **Expected Result:**
-- Step 2: the "not found" page, exactly as for an event that does not exist. No
-  equipment lines, no stated needs and no forms are shown.
+- Step 2: the access-denied screen (*You don’t have access to this page.*, Network
+  tab **403**), exactly as for an event that does not exist: open
+  `/staff/coordinator/events/999999` and compare. No equipment lines, no stated
+  needs and no forms are shown.
 
 **Status:** [ ] Pass [ ] Fail
 
@@ -271,9 +273,6 @@ This is the end-to-end case across both roles.
   don’t have access to this page.* and *Please contact your respective Technical
   Support Staff.* The Network tab shows **403** for the page request (SPM-16).
 - Neither screen shows any equipment, event or line.
-
-(An event that is not the coordinator's own stays "not found", as TC-EQUIP-007
-checks: AC14 asks for that on the equipment page itself.)
 
 **Status:** [ ] Pass [ ] Fail
 
