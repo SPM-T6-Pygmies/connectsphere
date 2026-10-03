@@ -341,6 +341,51 @@
       "title": "Technical Support \"Needs re-check\" list",
       "parent": "SPM-41",
       "status": "Todo"
+    },
+    "SPM-44": {
+      "title": "Search and filter venues",
+      "parent": null,
+      "status": "done"
+    },
+    "SPM-16": {
+      "title": "Clear access-denied response",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-57": {
+      "title": "Notify a coordinator of their assignment to an event",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-173": {
+      "title": "Novu adapter: bridge route, coordinator-assigned workflow, NovuNotifier",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-174": {
+      "title": "Novu Inbox bell in the staff header",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-180": {
+      "title": "Notification preferences per type and channel",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-179": {
+      "title": "Triage notifications in the inbox: read/unread and archive",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-178": {
+      "title": "Keep each developer's local Novu inbox separate",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-177": {
+      "title": "Record each notification in the notification table",
+      "parent": "SPM-57",
+      "status": "Todo"
     }
   }
 }

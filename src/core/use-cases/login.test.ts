@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { InMemoryAuth } from "@/adapters/outbound/in-memory/in-memory-auth";
 import { InMemoryUserRepository } from "@/adapters/outbound/in-memory/in-memory-user-repository";
-import { InvalidCredentialsError } from "@/core/domain/errors";
+import { InvalidCredentialsError, NoStaffRoleError } from "@/core/domain/errors";
 import type { LoginCommand } from "@/core/use-cases/login";
 import type { UserWithRoles } from "@/core/ports/outbound/user-repository";
 
@@ -37,6 +37,19 @@ const OPS_USER: UserWithRoles = {
   clientOrganisationId: null,
 };
 
+// An account with no staff role -- an Attendee is the real-world example,
+// since the customer confirmed Attendees never get an account, but the rule
+// covers any role absent from the staff workspace table (SPM-192).
+const NO_STAFF_ROLE_ID = "auth-user-attendee";
+const NO_STAFF_ROLE_EMAIL = "attendee@test.com";
+const NO_STAFF_ROLE_PASSWORD = "TestPass123!";
+const NO_STAFF_ROLE_USER: UserWithRoles = {
+  userId: "user-3",
+  name: "Test Attendee",
+  roles: ["Attendee"],
+  clientOrganisationId: null,
+};
+
 const EXPIRES_AT = new Date("2026-12-31T23:59:59.000Z");
 
 /**
@@ -48,12 +61,14 @@ function buildUseCase() {
     credentials: [
       { email: COORDINATOR_EMAIL, password: COORDINATOR_PASSWORD, authUserId: COORDINATOR_ID, expiresAt: EXPIRES_AT },
       { email: OPS_EMAIL, password: OPS_PASSWORD, authUserId: OPS_ID, expiresAt: EXPIRES_AT },
+      { email: NO_STAFF_ROLE_EMAIL, password: NO_STAFF_ROLE_PASSWORD, authUserId: NO_STAFF_ROLE_ID, expiresAt: EXPIRES_AT },
     ],
   });
   const users = new InMemoryUserRepository(
     new Map([
       [COORDINATOR_ID, COORDINATOR_USER],
       [OPS_ID, OPS_USER],
+      [NO_STAFF_ROLE_ID, NO_STAFF_ROLE_USER],
     ]),
   );
   const useCase = new LoginUseCase({ auth, users });
@@ -130,6 +145,23 @@ describe("LoginUseCase (SPM-117)", () => {
 
     await expect(wrongPassword).rejects.toBeInstanceOf(InvalidCredentialsError);
     await expect(noAccount).rejects.toBeInstanceOf(InvalidCredentialsError);
+  });
+
+  it("rejects login for an account with no staff role, and signs it back out (SPM-192)", async () => {
+    // An Attendee is never issued an account in the real product, but any
+    // account with no staff role must be refused the same way -- not sent
+    // into /staff with nowhere to land.
+    const { useCase, auth } = buildUseCase();
+
+    await expect(
+      useCase.execute({
+        email: NO_STAFF_ROLE_EMAIL,
+        password: NO_STAFF_ROLE_PASSWORD,
+      } as LoginCommand)
+    ).rejects.toBeInstanceOf(NoStaffRoleError);
+
+    // The session `auth.login()` started must not survive the rejection.
+    await expect(auth.getSession()).resolves.toBeNull();
   });
 
   it("returns session expiration timestamp for cookie management", async () => {

@@ -2,8 +2,10 @@
 
 import { usePathname } from "next/navigation"
 
+import { NotificationList, NotificationMenu } from "@/components/notification-list"
 import { QueueList } from "@/components/queue-list"
 import { isRailDestination, resolveQueue } from "@/components/staff-nav"
+import { useStaffNotifications } from "@/components/staff-notifications"
 import { Badge } from "@/components/ui/badge"
 import type { ListPaneItem, SidebarSection, StaffRole } from "@/lib/wireframe"
 
@@ -28,6 +30,7 @@ export function MobileQueue({
   queueItems?: readonly ListPaneItem[]
 }) {
   const pathname = usePathname()
+  const { unread, view } = useStaffNotifications()
 
   // Detail routes are full-screen, and the requester's "action" entries (New
   // request, Organisation events) are not queues.
@@ -35,7 +38,7 @@ export function MobileQueue({
     return null
   }
 
-  const { section, heading, items, unread } = resolveQueue({
+  const { section, heading, items } = resolveQueue({
     role,
     pathname,
     activeSection,
@@ -46,17 +49,22 @@ export function MobileQueue({
     <section className="-mx-4 -mt-4 border-b md:hidden">
       <div className="flex w-full items-center justify-between gap-2 border-b p-4">
         <div className="text-foreground truncate text-base font-medium">
-          {heading}
+          {section === "notifications" && view === "archived" ? "Archived" : heading}
         </div>
-        {section === "notifications" && unread > 0 ? (
-          <Badge variant="warning" className="shrink-0">
-            {unread} unread
-          </Badge>
+        {section === "notifications" ? (
+          <div className="flex shrink-0 items-center gap-1">
+            {unread > 0 ? <Badge variant="warning">{unread} unread</Badge> : null}
+            <NotificationMenu />
+          </div>
         ) : (
           <span className="text-muted-foreground text-xs">{items.length}</span>
         )}
       </div>
-      <QueueList items={items} activePath={pathname} />
+      {section === "notifications" ? (
+        <NotificationList activePath={pathname} />
+      ) : (
+        <QueueList items={items} activePath={pathname} />
+      )}
     </section>
   )
 }

@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,12 +34,12 @@ export const metadata = { title: "Organisation events | ConnectSphere" };
  * a call through `src/composition` to the actual tested use case.
  *
  * The caller is the signed-in Organiser (`getCurrentOrganiser`, SPM-13);
- * anyone else gets a not-found, as on the other requester pages.
+ * anyone else is denied access, as on the other requester pages.
  */
 export default async function OrganisationEventsPage() {
   const organiser = await getCurrentOrganiser();
   if (organiser === null) {
-    notFound();
+    forbidden();
   }
 
   /**

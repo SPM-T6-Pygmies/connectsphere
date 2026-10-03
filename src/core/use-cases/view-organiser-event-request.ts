@@ -1,13 +1,21 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
+  canDiscussEventRequest,
   eventRequestId,
   eventRequestAccessFor,
   type OrganiserContext,
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
+import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
-import { toEventRequestView, type EventRequestView } from "./event-request-view";
+import {
+  toClarificationThreadView,
+  toEventRequestView,
+  type ClarificationMessageView,
+  type EventRequestView,
+} from "./event-request-view";
 
 export interface ViewOrganiserEventRequestCommand {
   readonly id: string;
@@ -17,10 +25,25 @@ export interface ViewOrganiserEventRequestCommand {
 
 export interface ViewOrganiserEventRequestResult {
   readonly eventRequest: EventRequestView;
+  /**
+   * The clarification exchange so far, oldest first (SPM-33 AC4) -- the same
+   * thread the Coordinator reads, since the record is retained once and read
+   * by both sides.
+   */
+  readonly clarificationThread: readonly ClarificationMessageView[];
+  /**
+   * Whether the thread is still open to new messages -- see
+   * `canDiscussEventRequest`. False once the request is decided.
+   */
+  readonly canDiscuss: boolean;
+  /** The assigned Event Coordinator's name, or null until Operations assigns one (SPM-97). */
+  readonly assignedCoordinatorName: string | null;
 }
 
 export interface ViewOrganiserEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
+  readonly clarificationThread: ClarificationThreadRepository;
+  readonly userAccounts: UserAccountRepository;
 }
 
 /**
@@ -53,6 +76,19 @@ export class ViewOrganiserEventRequestUseCase {
       return null;
     }
 
-    return { eventRequest: toEventRequestView(request) };
+    const messages = await this.deps.clarificationThread.messagesFor(request.id);
+    const coordinatorId = request.assignedCoordinatorUserAccountId;
+    // One batched lookup for the whole thread and the coordinator rather than one per person.
+    const names = await this.deps.userAccounts.findNamesByIds([
+      ...messages.map((message) => message.authorUserAccountId),
+      ...(coordinatorId === null ? [] : [coordinatorId]),
+    ]);
+
+    return {
+      eventRequest: toEventRequestView(request),
+      clarificationThread: toClarificationThreadView(messages, names),
+      canDiscuss: canDiscussEventRequest(request.status),
+      assignedCoordinatorName: coordinatorId === null ? null : (names.get(coordinatorId) ?? null),
+    };
   }
 }

@@ -3,9 +3,13 @@ import { describe, expect, it } from "vitest";
 import { clientOrganisationId } from "./client-organisation";
 import {
   coordinatorContextFor,
+  hasNoStaffWorkspace,
+  homeWorkspaceFor,
+  isStaffWithNoHome,
   landingWorkspaceFor,
   organiserContextFor,
   technicalSupportContextFor,
+  pageAreaOwner,
   workspacesFor,
   type StaffMember,
 } from "./staff-member";
@@ -109,5 +113,79 @@ describe("technicalSupportContextFor (SPM-187)", () => {
 
   it("AC16: does not act as Technical Support Staff for someone with no role", () => {
     expect(technicalSupportContextFor(member([]))).toBeNull();
+  });
+});
+
+describe("pageAreaOwner (SPM-16)", () => {
+  it.each([
+    ["requester", "Event Organiser"],
+    ["coordinator", "Event Coordinator"],
+    ["ops", "Event Operations Manager"],
+    ["venue", "Venue Staff"],
+    ["technical", "Technical Support Staff"],
+  ] as const)("names %s's owner as %s", (area, role) => {
+    expect(pageAreaOwner(area)).toBe(role);
+  });
+});
+
+describe("homeWorkspaceFor (SPM-16)", () => {
+  it.each([
+    ["Event Coordinator", "coordinator"],
+    ["Event Operations Manager", "ops"],
+    ["Venue Staff", "venue"],
+    ["Technical Support Staff", "technical"],
+  ])("sends %s back to %s", (role, workspace) => {
+    expect(homeWorkspaceFor(member([role]))).toBe(workspace);
+  });
+
+  it("sends an Event Organiser with a client organisation back to requester", () => {
+    expect(homeWorkspaceFor(member(["Event Organiser"], ORG))).toBe("requester");
+  });
+
+  it("has nowhere to send an Event Organiser with no client organisation", () => {
+    expect(homeWorkspaceFor(member(["Event Organiser"]))).toBeNull();
+  });
+
+  it("has nowhere to send someone with no staff role", () => {
+    expect(homeWorkspaceFor(member(["Attendee"]))).toBeNull();
+  });
+});
+
+describe("hasNoStaffWorkspace (SPM-192)", () => {
+  it("is true for someone with no staff workspace, such as an Attendee", () => {
+    expect(hasNoStaffWorkspace(workspacesFor(["Attendee"]))).toBe(true);
+  });
+
+  it("is false for a staff member who has at least one workspace", () => {
+    expect(hasNoStaffWorkspace(workspacesFor(["Event Coordinator"]))).toBe(false);
+  });
+
+  it("is false for an Event Organiser with no client organisation, who still has a workspace", () => {
+    // homeWorkspaceFor is null for these same roles -- this pins down that
+    // hasNoStaffWorkspace answers a different question and must stay false.
+    expect(hasNoStaffWorkspace(workspacesFor(["Event Organiser"]))).toBe(false);
+  });
+});
+
+describe("isStaffWithNoHome (SPM-188)", () => {
+  it("is true for an Event Organiser with no client organisation", () => {
+    const roles = ["Event Organiser"];
+    expect(isStaffWithNoHome(workspacesFor(roles), homeWorkspaceFor(member(roles)))).toBe(true);
+  });
+
+  it("is false for someone with no staff role at all -- that's hasNoStaffWorkspace's case", () => {
+    const roles = ["Attendee"];
+    expect(isStaffWithNoHome(workspacesFor(roles), homeWorkspaceFor(member(roles)))).toBe(false);
+  });
+
+  it("is false for a staff member who has a home to go to", () => {
+    const roles = ["Event Coordinator"];
+    expect(isStaffWithNoHome(workspacesFor(roles), homeWorkspaceFor(member(roles)))).toBe(false);
+  });
+
+  it("is false for an Event Organiser who does have a client organisation", () => {
+    expect(
+      isStaffWithNoHome(workspacesFor(["Event Organiser"]), homeWorkspaceFor(member(["Event Organiser"], ORG))),
+    ).toBe(false);
   });
 });

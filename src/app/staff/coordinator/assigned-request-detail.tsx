@@ -9,13 +9,19 @@ import type {
   CoordinatorRequestState,
   CoordinatorSection,
 } from "@/core/domain/event-request";
-import type { EventRequestView } from "@/core/use-cases/event-request-view";
+import type {
+  ClarificationMessageView,
+  EventRequestView,
+} from "@/core/use-cases/event-request-view";
 
+import { ClarificationThread } from "../clarification-thread";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { FieldList } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
+import { ClarificationComposer, ResolveClarificationForm } from "./clarification-forms";
 import { DecisionForm } from "./decision-form";
 import { RequestStateBadge } from "./request-state-badge";
+import { WithdrawalForm } from "./withdrawal-form";
 
 /** Where each of the Coordinator's sections sits in the rail. */
 const SECTION_HOMES: Readonly<Record<CoordinatorSection, { label: string; href: string }>> = {
@@ -23,6 +29,13 @@ const SECTION_HOMES: Readonly<Record<CoordinatorSection, { label: string; href: 
   events: { label: "My events", href: "/staff/coordinator/events" },
   archive: { label: "Archive", href: "/staff/coordinator/archive" },
 };
+
+/** How the outcome of a request that has left the queue reads. */
+const OUTCOMES = {
+  approved: "Approved -- planning can begin",
+  rejected: "Rejected",
+  withdrawn: "Withdrawn at the Organiser's request",
+} as const;
 
 /**
  * `h:mm am/pm` in Singapore time -- for an instant, not a calendar date.
@@ -44,9 +57,16 @@ function formatInstantTime(iso: string): string {
 /**
  * SPM-32: everything the Organiser submitted, read-only. SPM-34 adds the
  * decision alongside it: Approve/Reject while the request awaits this
- * Coordinator, and the outcome once it is decided. No clarification or edit
- * controls -- clarification is SPM-33's job, and a submitted request is
- * locked (#102).
+ * Coordinator, and the outcome once it is decided. SPM-33 adds the
+ * clarification exchange, and all of it lives in the thread: asking is
+ * "Comment & return" on the composer, and each question carries its own
+ * Resolve. A separate "ask a question" card beside the thread would be the
+ * same act twice on one screen. SPM-101 adds recording a withdrawal, while
+ * `canWithdraw` says one can be.
+ *
+ * Still no edit controls. A submitted request is locked (#102), and asking
+ * about one was never an edit -- which is exactly why the exchange is an
+ * append to a thread rather than a change to a field.
  */
 export function AssignedRequestDetail({
   eventRequest,
@@ -54,15 +74,27 @@ export function AssignedRequestDetail({
   clientOrganisationName,
   state,
   section,
+  clarificationThread,
+  coordinatorName,
+  canDiscuss,
+  canWithdraw,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
   requestingOrganiserName: string;
   clientOrganisationName: string;
+  /** The clarification exchange so far (SPM-33 AC4). */
+  clarificationThread: readonly ClarificationMessageView[];
+  /** Whoever is signed in, for the composer's avatar. */
+  coordinatorName: string;
+  /** Whether the thread still takes messages, from the use case. */
+  canDiscuss: boolean;
   /** The Coordinator's reading of the status, from the use case. */
   state: CoordinatorRequestState | null;
   /** The section the request now lives under, from the use case. */
   section: CoordinatorSection;
+  /** Whether a withdrawal can be recorded now, from the use case. */
+  canWithdraw: boolean;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -70,6 +102,11 @@ export function AssignedRequestDetail({
   // The rail entry the request now lives under, so the trail and the list pane
   // follow a decision instead of always pointing back to "My requests".
   const home = SECTION_HOMES[section];
+
+  // Undecided covers both "awaiting-decision" and "with-organiser": SPM-33
+  // decision 4 keeps a returned request decidable, and decision 5 keeps it
+  // returnable, so the same requests carry both sets of controls.
+  const undecided = state === "awaiting-decision" || state === "with-organiser";
 
   const preferredTime =
     details.preferredStartTime !== null && details.preferredEndTime !== null
@@ -122,23 +159,48 @@ export function AssignedRequestDetail({
               />
             </CardContent>
           </Card>
+
+          <ClarificationThread
+            messages={clarificationThread}
+            actingAsName={coordinatorName}
+            closed={!canDiscuss}
+            description={`Questions you have asked ${requestingOrganiserName} about this request, and their answers. Kept with the request.`}
+            emptyMessage="Nothing asked yet. Use Comment & return below to put a question to the organiser."
+            composer={
+              <ClarificationComposer eventRequestId={eventRequest.id} canReturn={undecided} />
+            }
+            replyComposer={(parentId) => (
+              <ClarificationComposer eventRequestId={eventRequest.id} parentId={parentId} />
+            )}
+            resolveControl={(message) =>
+              message.isClarificationRequest && message.resolvedAt === null ? (
+                <ResolveClarificationForm
+                  eventRequestId={eventRequest.id}
+                  clarificationMessageId={message.id}
+                />
+              ) : null
+            }
+          />
         </div>
 
         <div className="space-y-6">
-          {state === "awaiting-decision" ? (
+          {undecided ? (
             <Card>
               <CardHeader>
                 <CardTitle>Decision</CardTitle>
                 <CardDescription>
                   Approving lets planning begin but commits ConnectSphere to nothing
                   yet. Rejecting is final.
+                  {state === "with-organiser"
+                    ? " This one is with the organiser, and you can still decide it."
+                    : ""}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <DecisionForm eventRequestId={eventRequest.id} />
               </CardContent>
             </Card>
-          ) : state === "approved" || state === "rejected" ? (
+          ) : state === "approved" || state === "rejected" || state === "withdrawn" ? (
             <Card>
               <CardHeader>
                 <CardTitle>Decision</CardTitle>
@@ -147,16 +209,28 @@ export function AssignedRequestDetail({
                 <FieldList
                   columns={1}
                   fields={[
+                    { label: "Outcome", value: OUTCOMES[state] },
                     {
-                      label: "Outcome",
-                      value: state === "approved" ? "Approved -- planning can begin" : "Rejected",
-                    },
-                    {
-                      label: state === "approved" ? "Note" : "Reason",
+                      label: state === "rejected" ? "Reason" : "Note",
                       value: eventRequest.decisionRecord,
                     },
                   ]}
                 />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {canWithdraw ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Withdrawal</CardTitle>
+                <CardDescription>
+                  Only when the Organiser has asked you to withdraw this request.
+                  They cannot withdraw it themselves.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WithdrawalForm eventRequestId={eventRequest.id} />
               </CardContent>
             </Card>
           ) : null}

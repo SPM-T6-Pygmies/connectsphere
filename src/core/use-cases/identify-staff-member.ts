@@ -1,6 +1,7 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
   coordinatorContextFor,
+  homeWorkspaceFor,
   organiserContextFor,
   technicalSupportContextFor,
   workspacesFor,
@@ -14,6 +15,8 @@ import type { UserRepository } from "../ports/outbound/user-repository";
 export interface IdentifyStaffMemberResult {
   /** The member of staff's own name, whatever their role. */
   readonly name: string;
+  /** The member of staff's own user account, whatever their role -- who notifications go to. */
+  readonly userAccountId: string;
   /** Who the Organiser's screens act as -- null unless `organiserContextFor` allows it. */
   readonly organiser: {
     readonly userAccountId: string;
@@ -21,11 +24,13 @@ export interface IdentifyStaffMemberResult {
     readonly name: string;
   } | null;
   /** Who the Coordinator's screens act as -- null unless `coordinatorContextFor` allows it. */
-  readonly coordinator: { readonly userAccountId: string } | null;
+  readonly coordinator: { readonly userAccountId: string; readonly name: string } | null;
   /** Who Technical Support's screens act as -- null unless `technicalSupportContextFor` allows it. */
   readonly technicalSupport: { readonly userAccountId: string } | null;
   /** The staff workspaces the member may open -- see `workspacesFor`. */
   readonly workspaces: readonly StaffWorkspace[];
+  /** Where an access-denied screen sends them back to -- see `homeWorkspaceFor`. */
+  readonly homeWorkspace: StaffWorkspace | null;
 }
 
 export interface IdentifyStaffMemberDeps {
@@ -56,14 +61,17 @@ export class IdentifyStaffMemberUseCase {
         user.clientOrganisationId === null ? null : clientOrganisationId(user.clientOrganisationId),
     };
     const organiser = organiserContextFor(member);
+    const coordinator = coordinatorContextFor(member);
     const technicalSupport = technicalSupportContextFor(member);
 
     return {
       name: user.name,
+      userAccountId: member.userAccountId,
       organiser: organiser && { ...organiser, name: user.name },
-      coordinator: coordinatorContextFor(member),
+      coordinator: coordinator && { ...coordinator, name: user.name },
       technicalSupport,
       workspaces: workspacesFor(member.roles),
+      homeWorkspace: homeWorkspaceFor(member),
     };
   }
 }

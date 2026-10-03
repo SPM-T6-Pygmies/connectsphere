@@ -3,7 +3,7 @@
 --
 -- A coordinator's change to a reserved line, or request to remove one, sets
 -- equipment_reservation_line.recheck_required_at (coordinator_update_equipment_requirement,
--- 20260929000000). Nothing here clears it: that is Technical Support's, once
+-- 20260929000100). Nothing here clears it: that is Technical Support's, once
 -- they have re-checked (SPM-108).
 --
 --   technical_support_equipment_rechecks(p_user_account_id)

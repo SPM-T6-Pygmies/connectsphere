@@ -8,6 +8,10 @@
     "match": ["registration", "register-for-event", "list-events-open-for-registration"]
   },
   {
+    "domain": "Notifications",
+    "match": ["notification", "novu"]
+  },
+  {
     "domain": "Event Staffing",
     "match": ["coordinator", "change-event-organiser", "reassign-event-organiser", "assigned-events"]
   },
@@ -26,5 +30,9 @@
   {
     "domain": "Connections",
     "match": ["connection"]
+  },
+  {
+    "domain": "Venue Catalogue",
+    "match": ["venue"]
   }
 ]
