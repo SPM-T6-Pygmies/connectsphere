@@ -4,6 +4,7 @@ import type { TriggerEventResponseDto } from "@novu/api/models/components";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/clarification-requested";
 import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
+import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import type { Connection } from "@/core/domain/connection";
 import type {
@@ -59,9 +60,8 @@ export class NovuNotifier implements Notifier {
     return this.trigger(CLARIFICATION_REQUESTED_WORKFLOW_ID, notice);
   }
 
-  // No Novu workflow for review decisions yet (SPM-238).
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
-    return this.logging.eventRequestDecided(notice);
+    return this.trigger(EVENT_REQUEST_DECIDED_WORKFLOW_ID, notice);
   }
 
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {

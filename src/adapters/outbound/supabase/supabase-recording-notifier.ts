@@ -2,6 +2,7 @@ import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import {
   clarificationRequestedRow,
   coordinatorAssignedRow,
+  eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
   type NotificationRow,
 } from "@/adapters/outbound/supabase/notification-row";
@@ -48,9 +49,10 @@ export class SupabaseRecordingNotifier implements Notifier {
     );
   }
 
-  // Not recorded yet (SPM-238).
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
-    return this.inner.eventRequestDecided(notice);
+    return this.recordAndDeliver(eventRequestDecidedRow(notice), () =>
+      this.inner.eventRequestDecided(notice),
+    );
   }
 
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {

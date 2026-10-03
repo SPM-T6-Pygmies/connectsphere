@@ -2,6 +2,7 @@ import { serve } from "@novu/framework/next";
 
 import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clarification-requested";
 import { coordinatorAssigned } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
+import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 
 /**
@@ -20,7 +21,12 @@ let bridge: Bridge | undefined;
 
 function handlers(): Bridge {
   bridge ??= serve({
-    workflows: [coordinatorAssigned, organiserCoordinatorAssigned, clarificationRequested],
+    workflows: [
+      coordinatorAssigned,
+      organiserCoordinatorAssigned,
+      clarificationRequested,
+      eventRequestDecided,
+    ],
   });
   return bridge;
 }

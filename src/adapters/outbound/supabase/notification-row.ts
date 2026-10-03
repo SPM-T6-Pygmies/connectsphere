@@ -3,10 +3,12 @@ import {
   type NotificationMessage,
 } from "@/adapters/outbound/notification-content/coordinator-assigned";
 import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
+import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import type {
   ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
+  EventRequestDecidedNotice,
   OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
 
@@ -54,5 +56,14 @@ export function clarificationRequestedRow(notice: ClarificationRequestedNotice):
     "clarification-requested",
     notice,
     clarificationRequestedMessage(notice),
+  );
+}
+
+/** The `notification` row telling an Organiser their request was approved or rejected (SPM-60). */
+export function eventRequestDecidedRow(notice: EventRequestDecidedNotice): NotificationRow {
+  return eventRequestNotificationRow(
+    "event-request-decided",
+    notice,
+    eventRequestDecidedMessage(notice),
   );
 }

@@ -103,3 +103,14 @@ describe("notificationItem (SPM-59)", () => {
     expect(item.status).toBe("Clarification requested")
   })
 })
+
+describe("notificationItem (SPM-60)", () => {
+  it("names a decided request's notice a decision", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["event-request-decided"] }),
+    )
+
+    expect(item.status).toBe("Request decided")
+  })
+})

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   clarificationRequestedRow,
   coordinatorAssignedRow,
+  eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
 } from "./notification-row";
 
@@ -65,6 +66,27 @@ describe("clarificationRequestedRow (SPM-59)", () => {
       trigger_scenario: "clarification-requested",
       status: "Pending",
       related_event_request_id: "42",
+    });
+  });
+});
+
+describe("eventRequestDecidedRow (SPM-60)", () => {
+  it("records the decision notice as Pending against the organiser and the request", () => {
+    expect(
+      eventRequestDecidedRow({
+        recipientUserAccountId: "3",
+        eventRequestId: "42",
+        eventName: "Founders' Day",
+        decision: "rejected",
+        decisionRecord: "Clash.",
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "event-request-decided",
+      channel: "in_app",
+      status: "Pending",
+      related_event_request_id: "42",
+      message_content: "Founders' Day was rejected\nYour coordinator rejected Founders' Day. Reason: Clash.",
     });
   });
 });
