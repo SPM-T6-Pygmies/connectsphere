@@ -132,7 +132,7 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 **Expected Result:**
 - Step 1: it shows *Requested 5*, with **no** "Needs re-check" badge, and no warning
   was shown before saving (AC7).
-- Step 2: the Projector is **not** flagged: no "Needs re-check" badge (AC9). A
+- Step 2: the Projector is **not** put under review: no "Needs re-check" badge (AC9). A
   warning is shown, because the line is reserved (see TC-EQUIP-004).
 - Step 3: the line disappears from the event (AC10).
 - Signed in as `support@test.com`, `/staff/technical` still says *Nothing needs
@@ -247,7 +247,7 @@ This is the end-to-end case across both roles.
 
 ### TC-EQUIP-008: Only Technical Support Staff see the "Needs re-check" list (AC15, AC16)
 
-**Preconditions:** At least one line is flagged (after TC-EQUIP-004).
+**Preconditions:** At least one line is under review (after TC-EQUIP-004).
 
 **Steps:**
 1. Signed in as `support@test.com`, open `/staff/technical`.
