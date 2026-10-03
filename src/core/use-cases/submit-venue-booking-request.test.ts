@@ -30,6 +30,10 @@ const EVENT: SeedCoordinatorEvent = {
   preferredDate: "2026-10-05",
   status: "Planning",
   assignedCoordinatorUserAccountId: COORDINATOR,
+  description: null,
+  expectedAttendance: null,
+  clientOrganisationId: "org-1",
+  owningOrganiserUserAccountId: "organiser-1",
 };
 
 const HALL: Venue = {
