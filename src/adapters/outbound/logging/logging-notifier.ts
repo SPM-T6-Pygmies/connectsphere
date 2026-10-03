@@ -2,6 +2,7 @@ import type { Connection } from "@/core/domain/connection";
 import type {
   EventCoordinatorAssignedNotice,
   Notifier,
+  OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
 
 /**
@@ -21,6 +22,12 @@ export class LoggingNotifier implements Notifier {
   async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
     console.info(
       `[notifier] event request ${notice.eventRequestId} assigned to coordinator ${notice.recipientUserAccountId}`,
+    );
+  }
+
+  async organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} told event request ${notice.eventRequestId} has a coordinator`,
     );
   }
 }

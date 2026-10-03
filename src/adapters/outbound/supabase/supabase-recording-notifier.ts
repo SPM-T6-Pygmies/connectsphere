@@ -4,6 +4,7 @@ import type { Connection } from "@/core/domain/connection";
 import type {
   EventCoordinatorAssignedNotice,
   Notifier,
+  OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
 
 /**
@@ -26,6 +27,11 @@ export class SupabaseRecordingNotifier implements Notifier {
 
   connectionRequested(connection: Connection): Promise<void> {
     return this.inner.connectionRequested(connection);
+  }
+
+  // Not recorded yet (SPM-236).
+  organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
+    return this.inner.organiserCoordinatorAssigned(notice);
   }
 
   async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {

@@ -19,6 +19,20 @@ export interface EventCoordinatorAssignedNotice {
 }
 
 /**
+ * What an Event Organiser is told when a coordinator is assigned to their
+ * event request, or it is reassigned to another (SPM-58).
+ *
+ * `coordinatorName` is `null` only if the name could not be read back, for the
+ * same reason as `clientOrganisationName` above.
+ */
+export interface OrganiserCoordinatorAssignedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly coordinatorName: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -28,4 +42,5 @@ export interface EventCoordinatorAssignedNotice {
 export interface Notifier {
   connectionRequested(connection: Connection): Promise<void>;
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void>;
+  organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void>;
 }
