@@ -1,5 +1,9 @@
+import { Novu } from "@novu/api";
+
 import { InMemoryEquipmentCatalogue } from "@/adapters/outbound/in-memory/in-memory-equipment-catalogue";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
+import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
+import { subscriberHash } from "@/adapters/outbound/novu/subscriber-hash";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
@@ -18,6 +22,7 @@ import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supa
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
+import { SupabaseRecordingNotifier } from "@/adapters/outbound/supabase/supabase-recording-notifier";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
@@ -25,6 +30,7 @@ import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinat
 import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
+import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
@@ -66,6 +72,8 @@ import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
 import { SearchVenuesUseCase } from "@/core/use-cases/search-venues";
 import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
 import { ListVenuesUseCase, ViewVenueUseCase } from "@/core/use-cases/view-venues";
+
+import { novuSubscriberPrefix } from "./novu-subscriber";
 
 /**
  * The composition root: the one module allowed to know both sides.
@@ -184,7 +192,29 @@ export async function buildAssignEventCoordinator(): Promise<AssignEventCoordina
   return new AssignEventCoordinatorUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+    notifier: recordedNotifier(),
   });
+}
+
+/**
+ * Novu when it can actually run our workflows, the log otherwise -- so CI and
+ * local dev without Novu need nothing extra -- and either way recorded in the
+ * `notification` table (SPM-177).
+ *
+ * A deployment needs only the key: its workflows are synced to Novu. Locally
+ * they are not, so Novu can reach them only through a `novu dev` tunnel, and a
+ * trigger without `NOVU_BRIDGE_URL` just fails with `workflow_not_found`.
+ */
+function recordedNotifier(): Notifier {
+  const secretKey = process.env.NOVU_SECRET_KEY;
+  const bridgeUrl = process.env.NOVU_BRIDGE_URL || undefined;
+  const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
+  const delivering =
+    secretKey && novuCanRun
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
+      : new LoggingNotifier();
+  return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
@@ -390,24 +420,35 @@ export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
 
 /**
  * The signed-in member of staff as the staff chrome shows them: their name,
- * the workspaces they may open, and the one an access-denied screen sends
- * them back to. Null when nobody is signed in or the auth user has no
- * `user_account`.
+ * the workspaces they may open, the one an access-denied screen sends them
+ * back to, and who their notification inbox belongs to. Null when nobody is
+ * signed in or the auth user has no `user_account`.
+ *
+ * `subscriberHash` is null without `NOVU_SECRET_KEY`, and the chrome then
+ * shows no inbox. The key itself never leaves the server.
  */
 export async function getSignedInStaffMember(): Promise<{
   readonly name: string;
   readonly workspaces: readonly StaffWorkspace[];
   readonly homeWorkspace: StaffWorkspace | null;
+  readonly subscriberId: string;
+  readonly subscriberHash: string | null;
 } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   const member = await identifyStaffMember.execute();
-  return (
-    member && {
-      name: member.name,
-      workspaces: member.workspaces,
-      homeWorkspace: member.homeWorkspace,
-    }
-  );
+  if (member === null) {
+    return null;
+  }
+
+  const secretKey = process.env.NOVU_SECRET_KEY;
+  const subscriberId = `${novuSubscriberPrefix()}${member.userAccountId}`;
+  return {
+    name: member.name,
+    workspaces: member.workspaces,
+    homeWorkspace: member.homeWorkspace,
+    subscriberId,
+    subscriberHash: secretKey ? subscriberHash(subscriberId, secretKey) : null,
+  };
 }
 
 async function venueCatalogue(): Promise<SupabaseVenueCatalogue> {

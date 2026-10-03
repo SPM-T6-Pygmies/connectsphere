@@ -33,6 +33,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
   it("acts as an Event Organiser for their client organisation", async () => {
     await expect(identify(user(["Event Organiser"], "org-a"))).resolves.toEqual({
       name: "Sam",
+      userAccountId: "user-1",
       organiser: { userAccountId: "user-1", clientOrganisationId: "org-a", name: "Sam" },
       coordinator: null,
       workspaces: ["requester"],
@@ -49,6 +50,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
   it("acts as an Event Coordinator", async () => {
     await expect(identify(user(["Event Coordinator"]))).resolves.toEqual({
       name: "Sam",
+      userAccountId: "user-1",
       organiser: null,
       coordinator: { userAccountId: "user-1", name: "Sam" },
       workspaces: ["coordinator"],
@@ -59,6 +61,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
   it("acts as neither for a role with no Organiser or Coordinator screens", async () => {
     await expect(identify(user(["Event Operations Manager"]))).resolves.toEqual({
       name: "Sam",
+      userAccountId: "user-1",
       organiser: null,
       coordinator: null,
       workspaces: ["ops"],
@@ -90,5 +93,13 @@ describe("IdentifyStaffMemberUseCase home workspace (SPM-16)", () => {
     const result = await identify(user(["Event Organiser"]));
 
     expect(result?.homeWorkspace).toBeNull();
+  });
+});
+
+describe("IdentifyStaffMemberUseCase (SPM-174)", () => {
+  it("gives the member's own user account whatever their role, as the inbox subscriber", async () => {
+    const result = await identify(user(["Venue Staff"]));
+
+    expect(result?.userAccountId).toBe("user-1");
   });
 });

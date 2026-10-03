@@ -19,7 +19,6 @@ import {
   eventById,
   listPaneItems,
   reservationById,
-  unreadCount,
   type ListPaneItem,
   type SidebarSection,
   type StaffRole,
@@ -201,10 +200,12 @@ export function isRailDestination(role: StaffRole, pathname: string): boolean {
 
 /**
  * What the list surfaces show for this path: which section is active, its
- * heading, its rows and the unread count.
+ * heading and its rows.
  *
  * Real data arrives as `queueItems` from the server; venue and technical have
- * no use case wired yet, so they still fall back to the wireframe fixtures.
+ * no use case wired yet, so their queues still fall back to the wireframe
+ * fixtures. The inbox has no rows here: it renders its own list from Novu
+ * (`NotificationList`).
  */
 export function resolveQueue({
   role,
@@ -220,18 +221,14 @@ export function resolveQueue({
   section: SidebarSection
   heading: string
   items: readonly ListPaneItem[]
-  unread: number
 } {
   const section = activeSection ?? currentSection(role, pathname)
   const items =
-    section !== "notifications" && queueItems !== undefined
-      ? queueItems
-      : listPaneItems(role, section)
+    section === "notifications" ? [] : (queueItems ?? listPaneItems(role, section))
 
   return {
     section,
     heading: railItems(role).find((item) => item.section === section)?.title ?? "",
     items,
-    unread: unreadCount(role),
   }
 }

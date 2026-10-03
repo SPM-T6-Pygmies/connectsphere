@@ -1,5 +1,8 @@
 import type { Connection } from "@/core/domain/connection";
-import type { Notifier } from "@/core/ports/outbound/notifier";
+import type {
+  EventCoordinatorAssignedNotice,
+  Notifier,
+} from "@/core/ports/outbound/notifier";
 
 /**
  * Placeholder driven adapter until a real delivery channel exists.
@@ -12,6 +15,12 @@ export class LoggingNotifier implements Notifier {
   async connectionRequested(connection: Connection): Promise<void> {
     console.info(
       `[notifier] connection requested ${connection.requesterId} -> ${connection.addresseeId}`,
+    );
+  }
+
+  async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
+    console.info(
+      `[notifier] event request ${notice.eventRequestId} assigned to coordinator ${notice.recipientUserAccountId}`,
     );
   }
 }
