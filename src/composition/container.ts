@@ -22,6 +22,7 @@ import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
 import { SupabaseAuditLogger } from "@/adapters/outbound/supabase/supabase-audit-logger";
 import { SupabaseBookingRepository } from "@/adapters/outbound/supabase/supabase-booking-repository";
+import { SupabaseBookingReviewRepository } from "@/adapters/outbound/supabase/supabase-booking-review-repository";
 import { SupabaseRecordingNotifier } from "@/adapters/outbound/supabase/supabase-recording-notifier";
 import { systemClock } from "@/adapters/outbound/system/system-clock";
 import type { BookingRepository } from "@/core/ports/outbound/booking-repository";
@@ -37,7 +38,9 @@ import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
+import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
@@ -377,6 +380,36 @@ export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOp
 /** SPM-46 / SPM-104: the assigned coordinator submits a venue booking request. */
 export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
   return new SubmitVenueBookingRequestUseCase(await venueBookingAdapters());
+}
+
+/** SPM-22: the signed-in Venue Staff member, or null for anyone else (answered as not found, #91). */
+export async function getCurrentVenueStaff(): Promise<{
+  readonly userAccountId: string;
+  readonly name: string;
+} | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  const member = await identifyStaffMember.execute();
+  return member !== null && member.workspaces.includes("venue")
+    ? { userAccountId: member.userAccountId, name: member.name }
+    : null;
+}
+
+/** SPM-22: the booking requests Venue Staff work from, and one request beside its venue. */
+export async function buildReviewBookingRequests(): Promise<ReviewBookingRequestsUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ReviewBookingRequestsUseCase({
+    reviews: new SupabaseBookingReviewRepository(client),
+    venues: new SupabaseVenueCatalogue(client),
+  });
+}
+
+/** SPM-22: Venue Staff approve or reject a booking request. */
+export async function buildDecideBookingRequest(): Promise<DecideBookingRequestUseCase> {
+  const client = await createSupabaseServerClient();
+  return new DecideBookingRequestUseCase({
+    reviews: new SupabaseBookingReviewRepository(client),
+    bookings: new SupabaseBookingRepository(client),
+  });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */

@@ -3,7 +3,6 @@ import { forbidden } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,114 +10,173 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { bookingById, VENUES } from "@/lib/wireframe";
+import { buildReviewBookingRequests, getCurrentVenueStaff } from "@/composition/container";
+import { BookingNotFoundError } from "@/core/domain/errors";
+import type { BookingReviewDetail } from "@/core/use-cases/review-booking-requests";
 
-import { ActivityPanel } from "../activity-panel";
-import { EventContextPanel } from "../event-context";
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
-import { PageHeader, StaffShell } from "../staff-shell";
+import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
+import { DecisionForm } from "./[id]/decision-form";
 
-export function BookingDetail({
+/** `h:mm am/pm` in Singapore time -- the system runs on Singapore time only (#36). */
+function formatInstantTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    timeZone: "Asia/Singapore",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function formatInstantDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
+}
+
+function sectionOf(status: string): {
+  section: VenueSection;
+  queueLabel: string;
+  queueHref: string;
+} {
+  if (status === "Requested") {
+    return { section: "requests", queueLabel: "Requests", queueHref: "/staff/venue" };
+  }
+  if (status === "Tentative Hold" || status === "Confirmed") {
+    return { section: "decided", queueLabel: "Decided", queueHref: "/staff/venue/decided" };
+  }
+  return { section: "archive", queueLabel: "Archive", queueHref: "/staff/venue/archive" };
+}
+
+function FitAlert({ detail }: { detail: BookingReviewDetail }) {
+  const { booking, venue } = detail;
+  const needed = booking.event.expectedAttendance;
+  const layout = venue?.layouts.find((candidate) => candidate.name === booking.roomLayoutName);
+  const capacity = layout?.capacity ?? venue?.capacity ?? null;
+
+  if (needed === null || capacity === null) {
+    return null;
+  }
+
+  const fits = capacity >= needed;
+  return (
+    <Alert variant={fits ? "default" : "warning"}>
+      {fits ? <CheckIcon /> : <AlertTriangleIcon />}
+      <AlertTitle>
+        {fits
+          ? `Capacity is sufficient — ${needed} expected, ${layout ? "this layout" : "the room"} holds ${capacity}`
+          : `Over capacity — ${needed} expected, ${layout ? "this layout" : "the room"} holds ${capacity}`}
+      </AlertTitle>
+    </Alert>
+  );
+}
+
+/**
+ * SPM-22: one booking request beside the venue it is for, and the decision.
+ *
+ * Venue Staff only; anyone else, and any booking that does not exist, get the
+ * same refusal (#91). The same body renders under the booking's own route and
+ * under the inbox.
+ */
+export async function BookingDetail({
   id,
   origin = "queue",
 }: {
   id: string;
   origin?: DetailOrigin;
 }) {
-  const entry = bookingById(id);
-
-  if (!entry) {
+  const staff = await getCurrentVenueStaff();
+  if (staff === null) {
     forbidden();
   }
 
-  const { event, booking } = entry;
-  const venue = booking.venue;
-  const needed = event.request.expectedAttendance ?? 0;
-  const fits = (venue.capacity ?? 0) >= needed;
+  const reviewBookingRequests = await buildReviewBookingRequests();
+  let detail: BookingReviewDetail;
+  try {
+    detail = await reviewBookingRequests.open(staff.userAccountId, id);
+  } catch (error) {
+    if (error instanceof BookingNotFoundError) {
+      forbidden();
+    }
+    throw error;
+  }
+
+  const { booking, venue, alternatives } = detail;
+  const { event } = booking;
   const decided = booking.status !== "Requested";
-  const { queueLabel, queueHref } =
-    booking.status === "Requested"
-      ? { queueLabel: "Requests", queueHref: "/staff/venue" }
-      : booking.status === "Tentative Hold" || booking.status === "Confirmed"
-        ? { queueLabel: "Decided", queueHref: "/staff/venue/decided" }
-        : { queueLabel: "Archive", queueHref: "/staff/venue/archive" };
+  const { section, queueLabel, queueHref } = sectionOf(booking.status);
+  const eventTime =
+    event.startTime !== null && event.endTime !== null
+      ? `${formatInstantTime(event.startTime)} – ${formatInstantTime(event.endTime)}`
+      : null;
+  const slots = booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
 
   return (
     <StaffShell
       role="venue"
-      crumbs={detailCrumbs("venue", origin, queueLabel, venue.location, queueHref)}
+      venueSection={section}
+      crumbs={detailCrumbs("venue", origin, queueLabel, booking.venueLocation, queueHref)}
     >
       <PageHeader
-        title={venue.location}
-        description={`${booking.slotDate} · ${booking.slots.join(" + ")} · requested by ${booking.requestedBy.name} on ${booking.requestedAt}`}
+        title={booking.venueLocation}
+        description={`${slots} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}`}
         actions={<StatusBadge status={booking.status} />}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>Fit against this venue</CardTitle>
               <CardDescription>
-                What the coordinator asked for, checked against what this room
-                actually is.
+                What the coordinator asked for, checked against what this room actually is.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Alert variant={fits ? "default" : "warning"}>
-                {fits ? <CheckIcon /> : <AlertTriangleIcon />}
-                <AlertTitle>
-                  {fits
-                    ? `Capacity is sufficient — ${needed} expected, room holds ${venue.capacity}`
-                    : `Over capacity — ${needed} expected, room holds ${venue.capacity}`}
-                </AlertTitle>
-              </Alert>
+              <FitAlert detail={detail} />
 
-              <FieldList
-                fields={[
-                  { label: "Capacity", value: venue.capacity },
-                  { label: "Operating hours", value: venue.operatingHours },
-                  { label: "Facilities", value: venue.facilities },
-                  { label: "Accessibility", value: venue.accessibility },
-                  {
-                    label: "Setup time",
-                    value: `${venue.setupTimeMinutes} minutes`,
-                  },
-                  {
-                    label: "Turnaround time",
-                    value: `${venue.turnaroundTimeMinutes} minutes`,
-                  },
-                ]}
-              />
+              {venue === null ? (
+                <p className="text-muted-foreground text-sm">
+                  This venue is no longer in the catalogue.
+                </p>
+              ) : (
+                <>
+                  <FieldList
+                    fields={[
+                      { label: "Capacity", value: venue.capacity },
+                      {
+                        label: "Operating hours",
+                        value:
+                          venue.operatingHoursStart !== null && venue.operatingHoursEnd !== null
+                            ? `${venue.operatingHoursStart} - ${venue.operatingHoursEnd}`
+                            : null,
+                      },
+                      { label: "Facilities", value: venue.facilities },
+                      { label: "Accessibility", value: venue.accessibility },
+                    ]}
+                  />
 
-              <div>
-                <p className="text-muted-foreground mb-2 text-xs font-medium">
-                  Supported layouts
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {venue.supportedLayouts.map((layout) => (
-                    <Badge
-                      key={layout.name}
-                      variant={
-                        layout.name === event.request.roomLayoutPreferences
-                          ? "default"
-                          : "outline"
-                      }
-                    >
-                      {layout.name} · {layout.capacity}
-                    </Badge>
-                  ))}
-                </div>
-                <p className="text-muted-foreground mt-2 text-xs">
-                  The coordinator asked for{" "}
-                  {event.request.roomLayoutPreferences ?? "no particular layout"}
-                  . Capacity is per layout, not one number for the room.
-                </p>
-              </div>
+                  <div>
+                    <p className="text-muted-foreground mb-2 text-xs font-medium">
+                      Supported layouts
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {venue.layouts.map((layout) => (
+                        <Badge
+                          key={layout.name}
+                          variant={layout.name === booking.roomLayoutName ? "default" : "outline"}
+                        >
+                          {layout.name} · {layout.capacity}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="text-muted-foreground mt-2 text-xs">
+                      The coordinator asked for {booking.roomLayoutName ?? "no particular layout"}.
+                      Capacity is per layout, not one number for the room.
+                    </p>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -126,83 +184,66 @@ export function BookingDetail({
             <CardHeader>
               <CardTitle>Decision</CardTitle>
               <CardDescription>
-                Approving holds this venue for the slots above. Nothing else can
-                take them.
+                Approving confirms this booking and holds the venue for the slots above. Nothing
+                else can take them.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {decided ? (
-                <Alert
-                  variant={
-                    booking.status === "Rejected" ? "destructive" : "default"
-                  }
-                >
-                  {booking.status === "Rejected" ? (
-                    <AlertTriangleIcon />
-                  ) : (
-                    <CheckIcon />
-                  )}
+                <Alert variant={booking.status === "Rejected" ? "destructive" : "default"}>
+                  {booking.status === "Rejected" ? <AlertTriangleIcon /> : <CheckIcon />}
                   <AlertTitle>
                     Already decided — {booking.status}
-                    {booking.decidedBy ? ` by ${booking.decidedBy.name}` : ""}
+                    {booking.decidedByName ? ` by ${booking.decidedByName}` : ""}
                   </AlertTitle>
                   {booking.rejectionNote ? (
                     <AlertDescription>
                       <p>{booking.rejectionNote}</p>
+                      {booking.suggestedAlternativeLocation ? (
+                        <p>Suggested instead: {booking.suggestedAlternativeLocation}</p>
+                      ) : null}
                     </AlertDescription>
                   ) : null}
                 </Alert>
-              ) : null}
-
-              <div className="space-y-1.5">
-                <Label htmlFor="decisionNote">Note to the coordinator</Label>
-                <Textarea
-                  id="decisionNote"
-                  defaultValue={booking.rejectionNote ?? ""}
-                  placeholder="Required if you reject — say why, so the coordinator can act on it."
+              ) : (
+                <DecisionForm
+                  bookingId={booking.id}
+                  alternatives={alternatives.map((candidate) => ({
+                    id: candidate.id,
+                    location: candidate.location,
+                    capacity: candidate.capacity,
+                  }))}
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="alternativeVenue">
-                  Suggest an alternative (optional)
-                </Label>
-                <select
-                  id="alternativeVenue"
-                  defaultValue={booking.suggestedAlternativeVenue ?? ""}
-                  className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-8 w-full rounded-lg border px-2.5 text-sm shadow-xs outline-none focus-visible:ring-3"
-                >
-                  <option value="">No suggestion</option>
-                  {VENUES.filter((candidate) => candidate.id !== venue.id).map(
-                    (candidate) => (
-                      <option key={candidate.id} value={candidate.location}>
-                        {candidate.location} (holds {candidate.capacity})
-                      </option>
-                    ),
-                  )}
-                </select>
-                <p className="text-muted-foreground text-xs">
-                  A suggestion is informal. It does not create a booking — the
-                  coordinator raises the new request.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button disabled={decided}>Approve booking</Button>
-                <Button variant="outline" disabled={decided}>
-                  Hold tentatively
-                </Button>
-                <Button variant="destructive" disabled={decided}>
-                  Reject
-                </Button>
-              </div>
+              )}
             </CardContent>
           </Card>
-          <ActivityPanel eventId={event.id} role="venue" section="venue" />
         </div>
 
-        <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
-          <EventContextPanel event={event} />
+        <div className="min-w-0 space-y-6 lg:sticky lg:top-16 lg:self-start">
+          <Card>
+            <CardHeader>
+              <CardTitle>{event.name}</CardTitle>
+              <CardDescription>
+                {event.organisationName ?? "No organisation"} · {event.status}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FieldList
+                columns={1}
+                fields={[
+                  { label: "Category", value: event.category },
+                  { label: "Date", value: event.preferredDate },
+                  { label: "Time", value: eventTime },
+                  { label: "Expected attendance", value: event.expectedAttendance },
+                  { label: "Room layout", value: event.roomLayoutPreference },
+                  { label: "Accessibility needs", value: event.accessibilityRequirements },
+                  { label: "Venue requirements", value: event.venueRequirements },
+                  { label: "Equipment requirements", value: event.equipmentRequirements },
+                  { label: "Other arrangements", value: event.specialArrangements },
+                ]}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </StaffShell>

@@ -2,12 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   chooseRoomLayout,
+  decideBooking,
   requestVenueBooking,
+  type BookingForDecision,
+  type BookingId,
   type BookingStatus,
   type OccupiedSlot,
   type SlotOnDate,
 } from "./booking";
 import {
+  BookingNotDecidableError,
+  DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   InvalidBookingDateError,
   NoBookingSlotsError,
@@ -192,5 +197,99 @@ describe("chooseRoomLayout (SPM-104)", () => {
 
   it("records no layout when the venue has none on record", () => {
     expect(chooseRoomLayout(venue([]), null)).toBeNull();
+  });
+});
+
+describe("decideBooking (SPM-22)", () => {
+  const staff = userAccountId("staff-1");
+  const waiting: BookingForDecision = {
+    id: "booking-1" as BookingId,
+    venueId: venueId("v1"),
+    status: "Requested",
+    slots: [
+      { date: "2026-10-22", slot: "AM" },
+      { date: "2026-10-22", slot: "PM" },
+    ],
+  };
+
+  it("approving confirms the booking and records who decided", () => {
+    expect(decideBooking(waiting, { kind: "approve" }, staff, [])).toEqual({
+      id: waiting.id,
+      status: "Confirmed",
+      decidedBy: staff,
+      rejectionNote: null,
+      suggestedAlternative: null,
+    });
+  });
+
+  it("approving is blocked when another booking holds one of its slots", () => {
+    for (const status of ["Confirmed", "Tentative Hold"] as const) {
+      expect(() =>
+        decideBooking(waiting, { kind: "approve" }, staff, [occupied("2026-10-22", "PM", status)]),
+      ).toThrow(VenueSlotUnavailableError);
+    }
+  });
+
+  it("approving is not blocked by requests, rejections or releases on the same slot", () => {
+    const others = (["Requested", "Rejected", "Released", "Cancelled"] as const).map((status) =>
+      occupied("2026-10-22", "AM", status),
+    );
+
+    expect(decideBooking(waiting, { kind: "approve" }, staff, others).status).toBe("Confirmed");
+  });
+
+  it("approving is not blocked by a hold on a different slot or day", () => {
+    const elsewhere = [
+      occupied("2026-10-22", "Night", "Confirmed"),
+      occupied("2026-10-23", "AM", "Confirmed"),
+    ];
+
+    expect(decideBooking(waiting, { kind: "approve" }, staff, elsewhere).status).toBe("Confirmed");
+  });
+
+  it("rejecting keeps the trimmed reason and the suggested alternative", () => {
+    expect(
+      decideBooking(
+        waiting,
+        { kind: "reject", reason: "  Closed for maintenance  ", suggestedAlternative: venueId("v2") },
+        staff,
+        [],
+      ),
+    ).toEqual({
+      id: waiting.id,
+      status: "Rejected",
+      decidedBy: staff,
+      rejectionNote: "Closed for maintenance",
+      suggestedAlternative: venueId("v2"),
+    });
+  });
+
+  it("rejecting without a reason is refused", () => {
+    for (const reason of ["", "   "]) {
+      expect(() =>
+        decideBooking(waiting, { kind: "reject", reason, suggestedAlternative: null }, staff, []),
+      ).toThrow(DecisionReasonRequiredError);
+    }
+  });
+
+  it("rejecting is not held up by a clash, since it holds nothing", () => {
+    const taken = [occupied("2026-10-22", "AM", "Confirmed")];
+
+    expect(
+      decideBooking(waiting, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, taken)
+        .status,
+    ).toBe("Rejected");
+  });
+
+  it("refuses a booking that is no longer waiting, whichever way it is decided", () => {
+    for (const status of ["Tentative Hold", "Confirmed", "Rejected", "Released", "Cancelled"] as const) {
+      const decided = { ...waiting, status };
+      expect(() => decideBooking(decided, { kind: "approve" }, staff, [])).toThrow(
+        BookingNotDecidableError,
+      );
+      expect(() =>
+        decideBooking(decided, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, []),
+      ).toThrow(BookingNotDecidableError);
+    }
   });
 });

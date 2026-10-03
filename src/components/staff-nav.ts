@@ -199,9 +199,9 @@ export function isRailDestination(role: StaffRole, pathname: string): boolean {
  * What the list surfaces show for this path: which section is active, its
  * heading and its rows.
  *
- * Real data arrives as `queueItems` from the server; venue and technical have
- * no use case wired yet, so their queues still fall back to the wireframe
- * fixtures. The inbox has no rows here: it renders its own list from Novu
+ * Real data arrives as `queueItems` from the server; technical has no use
+ * case wired yet, so its queue still falls back to the wireframe fixtures.
+ * The inbox has no rows here: it renders its own list from Novu
  * (`NotificationList`).
  */
 export function resolveQueue({

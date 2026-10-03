@@ -1,5 +1,7 @@
 import type { Brand } from "./brand";
 import {
+  BookingNotDecidableError,
+  DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   InvalidBookingDateError,
   NoBookingSlotsError,
@@ -184,5 +186,79 @@ export function requestVenueBooking(input: {
     slots: [...input.slots].sort(compareSlots),
     requestedBy: input.requestedBy,
     status: "Requested",
+  };
+}
+
+/** A booking as Venue Staff decide it: what the decision rules need, nothing more. */
+export interface BookingForDecision {
+  readonly id: BookingId;
+  readonly venueId: VenueId;
+  readonly status: BookingStatus;
+  readonly slots: readonly SlotOnDate[];
+}
+
+export type BookingDecision =
+  | { readonly kind: "approve" }
+  | {
+      readonly kind: "reject";
+      readonly reason: string;
+      /** An informal suggestion, not a counter-offer (#45); it books nothing. */
+      readonly suggestedAlternative: VenueId | null;
+    };
+
+/** The outcome of a decision, ready for the store to record. */
+export interface DecidedBooking {
+  readonly id: BookingId;
+  readonly status: "Confirmed" | "Rejected";
+  readonly decidedBy: UserAccountId;
+  /** Null when approved. */
+  readonly rejectionNote: string | null;
+  readonly suggestedAlternative: VenueId | null;
+}
+
+/**
+ * SPM-22: Venue Staff approve or reject a booking request.
+ *
+ * Approving confirms the booking, which holds its slots from then on, so it
+ * meets the same hard block a request does (#35, #41): a slot another booking
+ * already holds refuses the approval, however many requests asked for it.
+ * `occupied` is what the venue carries on the booking's own days. Rejecting
+ * must say why -- the reason is what the coordinator acts on -- and holds
+ * nothing, so it needs no clash check.
+ */
+export function decideBooking(
+  booking: BookingForDecision,
+  decision: BookingDecision,
+  decidedBy: UserAccountId,
+  occupied: readonly OccupiedSlot[],
+): DecidedBooking {
+  if (booking.status !== "Requested") {
+    throw new BookingNotDecidableError();
+  }
+
+  if (decision.kind === "approve") {
+    const clashes = clashingSlots(booking.slots, occupied);
+    if (clashes.length > 0) {
+      throw new VenueSlotUnavailableError([...clashes].sort(compareSlots));
+    }
+    return {
+      id: booking.id,
+      status: "Confirmed",
+      decidedBy,
+      rejectionNote: null,
+      suggestedAlternative: null,
+    };
+  }
+
+  const reason = decision.reason.trim();
+  if (reason.length === 0) {
+    throw new DecisionReasonRequiredError();
+  }
+  return {
+    id: booking.id,
+    status: "Rejected",
+    decidedBy,
+    rejectionNote: reason,
+    suggestedAlternative: decision.suggestedAlternative,
   };
 }
