@@ -13,6 +13,7 @@ import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supaba
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
+import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/supabase-event-readiness-repository";
 import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/supabase-event-request-repository";
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
@@ -29,6 +30,7 @@ import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarif
 import type { CoordinatorEventRepository } from "@/core/ports/outbound/coordinator-event-repository";
 import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
 import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
+import type { EventReadinessRepository } from "@/core/ports/outbound/event-readiness-repository";
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
@@ -36,6 +38,7 @@ import type { UserAccountRepository } from "@/core/ports/outbound/user-account-r
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
@@ -54,6 +57,7 @@ import { ViewArchivedEventRequestsUseCase } from "@/core/use-cases/view-archived
 import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-event-request";
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
+import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
@@ -294,6 +298,7 @@ export async function getCurrentCoordinator(): Promise<{
 async function coordinatorAdapters(): Promise<{
   eventRequests: EventRequestRepository;
   events: CoordinatorEventRepository;
+  readiness: EventReadinessRepository;
   clientOrganisations: ClientOrganisationRepository;
   userAccounts: UserAccountRepository;
 }> {
@@ -301,6 +306,7 @@ async function coordinatorAdapters(): Promise<{
   return {
     eventRequests: new SupabaseEventRequestRepository(client),
     events: new SupabaseCoordinatorEventRepository(client),
+    readiness: new SupabaseEventReadinessRepository(client),
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
   };
@@ -354,6 +360,20 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCa
   const { events } = await coordinatorAdapters();
 
   return new ViewAssignedEventsUseCase({ events });
+}
+
+/** SPM-50: one event and its confirmation readiness, to the coordinator it is assigned to. */
+export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
+  const { events, readiness, clientOrganisations, userAccounts } = await coordinatorAdapters();
+
+  return new ViewCoordinatorEventUseCase({ events, readiness, clientOrganisations, userAccounts });
+}
+
+/** SPM-50: the assigned coordinator confirms an event once nothing essential is left incomplete. */
+export async function buildConfirmEvent(): Promise<ConfirmEventUseCase> {
+  const { events, readiness } = await coordinatorAdapters();
+
+  return new ConfirmEventUseCase({ events, readiness });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */
