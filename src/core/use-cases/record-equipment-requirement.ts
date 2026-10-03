@@ -60,7 +60,7 @@ export class RecordEquipmentRequirementUseCase {
       before: null,
       after: line,
       changed: true,
-      flagged: false,
+      underReview: false,
     });
   }
 }

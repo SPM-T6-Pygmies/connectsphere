@@ -25,20 +25,20 @@ describe("RemoveEquipmentRequirementUseCase (SPM-184)", () => {
 
     const change = await useCase.execute({ ...base, equipmentItemId: MICROPHONE });
 
-    expect(change).toMatchObject({ action: "deleted", quantityBefore: 4, quantityAfter: null, flagged: false });
+    expect(change).toMatchObject({ action: "deleted", quantityBefore: 4, quantityAfter: null, underReview: false });
     expect(equipment.stored("event-1").lines.map((line) => line.equipmentItemId)).toEqual([PROJECTOR]);
   });
 
-  it("keeps a reserved line, marks its removal requested and flags it", async () => {
+  it("keeps a reserved line, marks its removal requested and puts it under review", async () => {
     const { useCase, equipment } = remove();
 
     const change = await useCase.execute({ ...base, equipmentItemId: PROJECTOR });
 
-    expect(change).toMatchObject({ action: "removalRequested", quantityAfter: 2, flagged: true });
+    expect(change).toMatchObject({ action: "removalRequested", quantityAfter: 2, underReview: true });
     expect(equipment.stored("event-1").lines[0]).toMatchObject({
       quantityReserved: 2,
       removalRequested: true,
-      recheckRequired: true,
+      state: "Under review",
     });
   });
 

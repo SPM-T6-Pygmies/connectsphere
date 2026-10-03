@@ -1,10 +1,11 @@
 import { equipmentItemId } from "@/core/domain/equipment-item";
 import { NotTechnicalSupportStaffError, type DomainError } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
-import type { FlaggedEquipmentLine } from "@/core/ports/outbound/equipment-recheck-repository";
+import { lineState } from "./equipment-line-state";
+import type { UnderReviewEquipmentLine } from "@/core/ports/outbound/equipment-recheck-repository";
 
-/** A row of `technical_support_equipment_rechecks`: one flagged line, with its event and type. */
-export interface FlaggedEquipmentRow {
+/** A row of `technical_support_equipment_rechecks`: one line under review, with its event and type. */
+export interface UnderReviewEquipmentRow {
   event_id: number;
   event_name: string;
   preferred_date: string | null;
@@ -17,7 +18,7 @@ export interface FlaggedEquipmentRow {
   removal_requested: boolean;
 }
 
-export function toFlaggedEquipmentLine(row: FlaggedEquipmentRow): FlaggedEquipmentLine {
+export function toUnderReviewEquipmentLine(row: UnderReviewEquipmentRow): UnderReviewEquipmentLine {
   return {
     event: { id: eventId(String(row.event_id)), name: row.event_name, preferredDate: row.preferred_date },
     equipmentType: row.equipment_type,
@@ -26,7 +27,7 @@ export function toFlaggedEquipmentLine(row: FlaggedEquipmentRow): FlaggedEquipme
       quantityRequested: row.quantity_requested,
       technicalRequirements: row.technical_requirements,
       quantityReserved: row.quantity_reserved,
-      recheckRequired: row.recheck_required,
+      state: lineState(row.quantity_reserved, row.recheck_required),
       removalRequested: row.removal_requested,
     },
   };

@@ -20,7 +20,7 @@ export interface UndoEquipmentRemovalCommand {
 
 /**
  * SPM-41 AC17: the assigned Event Coordinator takes back a removal Technical
- * Support have not yet acted on. The line stays flagged for re-check.
+ * Support have not yet acted on. The line stays under review.
  */
 export class UndoEquipmentRemovalUseCase {
   constructor(private readonly deps: EquipmentRequirementDeps) {}
@@ -47,7 +47,7 @@ export class UndoEquipmentRemovalUseCase {
       before: line,
       after: restored,
       changed: true,
-      flagged: false,
+      underReview: false,
     });
   }
 }

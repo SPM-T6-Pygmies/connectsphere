@@ -12,6 +12,8 @@ import {
 import { userAccountId } from "@/core/domain/user-account";
 import type { EventEquipment } from "@/core/ports/outbound/equipment-requirement-repository";
 
+import { lineState } from "./equipment-line-state";
+
 /** A row of `coordinator_equipment_catalogue`. */
 export interface EquipmentCatalogueRow {
   equipment_item_id: number;
@@ -60,7 +62,7 @@ export function toEventEquipment(rows: readonly EventEquipmentRow[]): EventEquip
               quantityRequested: row.quantity_requested ?? 0,
               technicalRequirements: row.technical_requirements,
               quantityReserved: row.quantity_reserved ?? 0,
-              recheckRequired: row.recheck_required ?? false,
+              state: lineState(row.quantity_reserved ?? 0, row.recheck_required ?? false),
               removalRequested: row.removal_requested ?? false,
             },
           ],

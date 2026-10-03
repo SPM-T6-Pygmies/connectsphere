@@ -4,11 +4,11 @@ import { NotTechnicalSupportStaffError } from "@/core/domain/errors";
 
 import {
   toEquipmentRecheckError,
-  toFlaggedEquipmentLine,
-  type FlaggedEquipmentRow,
+  toUnderReviewEquipmentLine,
+  type UnderReviewEquipmentRow,
 } from "./equipment-recheck-mapper";
 
-const projector: FlaggedEquipmentRow = {
+const projector: UnderReviewEquipmentRow = {
   event_id: 7,
   event_name: "Founders' Gala Dinner",
   preferred_date: "2026-12-12",
@@ -22,8 +22,8 @@ const projector: FlaggedEquipmentRow = {
 };
 
 describe("equipment re-check mapper (SPM-187)", () => {
-  it("AC15: maps a flagged row to its event, type and line", () => {
-    expect(toFlaggedEquipmentLine(projector)).toEqual({
+  it("AC15: maps a row under review to its event, type and line", () => {
+    expect(toUnderReviewEquipmentLine(projector)).toEqual({
       event: { id: "7", name: "Founders' Gala Dinner", preferredDate: "2026-12-12" },
       equipmentType: "Projector",
       line: {
@@ -31,18 +31,18 @@ describe("equipment re-check mapper (SPM-187)", () => {
         quantityRequested: 3,
         technicalRequirements: "HDMI input",
         quantityReserved: 2,
-        recheckRequired: true,
+        state: "Under review",
         removalRequested: false,
       },
     });
   });
 
   it("AC15: maps a line whose removal was requested", () => {
-    expect(toFlaggedEquipmentLine({ ...projector, removal_requested: true }).line.removalRequested).toBe(true);
+    expect(toUnderReviewEquipmentLine({ ...projector, removal_requested: true }).line.removalRequested).toBe(true);
   });
 
   it("AC15: maps an event with no date and a line with no notes", () => {
-    const mapped = toFlaggedEquipmentLine({ ...projector, preferred_date: null, technical_requirements: null });
+    const mapped = toUnderReviewEquipmentLine({ ...projector, preferred_date: null, technical_requirements: null });
 
     expect(mapped.event.preferredDate).toBeNull();
     expect(mapped.line.technicalRequirements).toBeNull();

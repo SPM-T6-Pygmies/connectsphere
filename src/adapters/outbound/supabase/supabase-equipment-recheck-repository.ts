@@ -2,15 +2,15 @@ import { NotTechnicalSupportStaffError } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   EquipmentRecheckRepository,
-  FlaggedEquipmentLine,
+  UnderReviewEquipmentLine,
 } from "@/core/ports/outbound/equipment-recheck-repository";
 
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
 import {
   toEquipmentRecheckError,
-  toFlaggedEquipmentLine,
-  type FlaggedEquipmentRow,
+  toUnderReviewEquipmentLine,
+  type UnderReviewEquipmentRow,
 } from "./equipment-recheck-mapper";
 
 /**
@@ -22,7 +22,7 @@ import {
 export class SupabaseEquipmentRecheckRepository implements EquipmentRecheckRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
-  async flaggedLines(reader: UserAccountId): Promise<readonly FlaggedEquipmentLine[]> {
+  async linesUnderReview(reader: UserAccountId): Promise<readonly UnderReviewEquipmentLine[]> {
     const key = toKey(reader);
     if (key === null) {
       // An id this store could never have issued is not Technical Support Staff.
@@ -40,6 +40,6 @@ export class SupabaseEquipmentRecheckRepository implements EquipmentRecheckRepos
       );
     }
 
-    return ((data ?? []) as unknown as FlaggedEquipmentRow[]).map(toFlaggedEquipmentLine);
+    return ((data ?? []) as unknown as UnderReviewEquipmentRow[]).map(toUnderReviewEquipmentLine);
   }
 }

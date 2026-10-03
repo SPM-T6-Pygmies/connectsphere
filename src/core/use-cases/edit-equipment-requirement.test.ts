@@ -36,14 +36,14 @@ describe("EditEquipmentRequirementUseCase (SPM-184)", () => {
       technicalRequirements: null,
     });
 
-    expect(change).toMatchObject({ action: "edited", quantityBefore: 4, quantityAfter: 6, changed: true, flagged: false });
+    expect(change).toMatchObject({ action: "edited", quantityBefore: 4, quantityAfter: 6, changed: true, underReview: false });
     expect(equipment.stored("event-1").lines[1]).toMatchObject({
       quantityRequested: 6,
-      recheckRequired: false,
+      state: "Requested",
     });
   });
 
-  it("saves a change to a reserved line, flags it and keeps its equipment held", async () => {
+  it("saves a change to a reserved line, puts it under review and keeps its equipment held", async () => {
     const { useCase, equipment } = edit();
 
     const change = await useCase.execute({
@@ -60,16 +60,16 @@ describe("EditEquipmentRequirementUseCase (SPM-184)", () => {
       quantityBefore: 2,
       quantityAfter: 1,
       changed: true,
-      flagged: true,
+      underReview: true,
     });
     expect(equipment.stored("event-1").lines[0]).toMatchObject({
       quantityRequested: 1,
       quantityReserved: 2,
-      recheckRequired: true,
+      state: "Under review",
     });
   });
 
-  it("stores nothing and flags nothing for a save that changes nothing", async () => {
+  it("stores nothing and puts nothing under review for a save that changes nothing", async () => {
     const { useCase, equipment } = edit();
     const update = vi.spyOn(equipment, "update");
 
@@ -80,7 +80,7 @@ describe("EditEquipmentRequirementUseCase (SPM-184)", () => {
       technicalRequirements: "HDMI input",
     });
 
-    expect(change).toMatchObject({ changed: false, flagged: false });
+    expect(change).toMatchObject({ changed: false, underReview: false });
     expect(update).not.toHaveBeenCalled();
   });
 

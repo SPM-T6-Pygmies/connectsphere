@@ -18,8 +18,8 @@ export const TECHNICAL_REQUIREMENTS_MAX_LENGTH = 500;
  * about them.
  *
  * Mirrors `equipment_reservation_line`. The coordinator records the line,
- * Technical Support reserve against it, and a change after that flags the line
- * for re-check instead of going through a change request (#114).
+ * Technical Support reserve against it, and a change after that puts the line
+ * under review instead of going through a change request (#114).
  */
 export interface EquipmentRequirement {
   readonly equipmentItemId: EquipmentItemId;
@@ -27,8 +27,13 @@ export interface EquipmentRequirement {
   readonly technicalRequirements: string | null;
   /** How many Technical Support have reserved against this line -- 0 until they do. */
   readonly quantityReserved: number;
-  /** Technical Support must re-check suitability and availability (AC8, AC11). */
-  readonly recheckRequired: boolean;
+  /**
+   * Where the line stands with Technical Support: `Requested` until they
+   * reserve, `Reserved` after, and `Under review` once a coordinator's change
+   * (AC8) or removal request (AC11) means they must re-check it. `Requested`
+   * exactly when `quantityReserved` is 0.
+   */
+  readonly state: EquipmentLineState;
   /**
    * The coordinator removed a reserved line (AC11). It stays, with its
    * equipment held, until Technical Support release it (SPM-108) or the
@@ -36,6 +41,8 @@ export interface EquipmentRequirement {
    */
   readonly removalRequested: boolean;
 }
+
+export type EquipmentLineState = "Requested" | "Reserved" | "Under review";
 
 /** What the coordinator enters for a line. The type is chosen once, when the line is added. */
 export interface EquipmentRequirementDetails {
@@ -51,13 +58,13 @@ export interface EquipmentRequirementEdit {
   readonly line: EquipmentRequirement;
   /** False for a save that changed nothing (AC9) -- nothing to persist, nothing to tell anyone. */
   readonly changed: boolean;
-  /** This edit flagged the line for Technical Support to re-check (AC8). */
-  readonly flagged: boolean;
+  /** This edit left a reserved line under review for Technical Support to re-check (AC8). */
+  readonly underReview: boolean;
 }
 
 /**
- * An unreserved line simply goes (AC10). A reserved one stays, flagged, with
- * its equipment held until Technical Support release it (AC11).
+ * An unreserved line simply goes (AC10). A reserved one stays, under review,
+ * with its equipment held until Technical Support release it (AC11).
  */
 export type EquipmentRequirementRemoval =
   | { readonly kind: "deleted" }
@@ -68,16 +75,16 @@ export function equipmentRequirementsEditable(status: CoordinatorEventStatus): b
   return status === "Planning" || status === "Blocked" || status === "Confirmed";
 }
 
-/** Why a flagged line is on Technical Support's "Needs re-check" list (AC15). */
+/** Why a line under review is on Technical Support's "Needs re-check" list (AC15). */
 export type RecheckReason = "changed" | "removalRequested";
 
 /**
  * AC15: whether Technical Support should re-check this line, and why -- null for
- * a line nobody flagged. A line stays flagged after an undone removal (AC17),
- * so it reads as changed.
+ * a line that is not under review. A line stays under review after an undone
+ * removal (AC17), so it reads as changed.
  */
 export function recheckReason(line: EquipmentRequirement): RecheckReason | null {
-  if (!line.recheckRequired) {
+  if (line.state !== "Under review") {
     return null;
   }
   return line.removalRequested ? "removalRequested" : "changed";
@@ -85,7 +92,7 @@ export function recheckReason(line: EquipmentRequirement): RecheckReason | null 
 
 /** Whether Technical Support have reserved any equipment against this line yet. */
 export function isReserved(line: EquipmentRequirement): boolean {
-  return line.quantityReserved > 0;
+  return line.state !== "Requested";
 }
 
 /** AC1-5: the only way to add a line to an event. */
@@ -105,13 +112,13 @@ export function recordEquipmentRequirement(
     equipmentItemId: requirement.equipmentItemId,
     ...details,
     quantityReserved: 0,
-    recheckRequired: false,
+    state: "Requested",
     removalRequested: false,
   };
 }
 
 /**
- * AC7-9: a change to a reserved line is saved and flagged for re-check, and
+ * AC7-9: a change to a reserved line is saved and puts it under review, and
  * what Technical Support reserved stays held -- even above a reduced quantity,
  * since releasing it is their call (SPM-108), not this edit's.
  */
@@ -128,14 +135,14 @@ export function editEquipmentRequirement(
     details.quantityRequested !== line.quantityRequested ||
     details.technicalRequirements !== line.technicalRequirements;
   if (!changed) {
-    return { line, changed: false, flagged: false };
+    return { line, changed: false, underReview: false };
   }
 
-  const flagged = isReserved(line);
+  const reserved = isReserved(line);
   return {
-    line: { ...line, ...details, recheckRequired: line.recheckRequired || flagged },
+    line: { ...line, ...details, state: reserved ? "Under review" : line.state },
     changed: true,
-    flagged,
+    underReview: reserved,
   };
 }
 
@@ -152,14 +159,14 @@ export function removeEquipmentRequirement(
   }
   return {
     kind: "removalRequested",
-    line: { ...line, recheckRequired: true, removalRequested: true },
+    line: { ...line, state: "Under review", removalRequested: true },
   };
 }
 
 /**
  * AC17: the coordinator changed their mind before Technical Support released
- * the equipment, so the line is kept. It stays flagged -- Technical Support
- * may already have seen the removal and should re-check either way.
+ * the equipment, so the line is kept. It stays under review -- Technical
+ * Support may already have seen the removal and should re-check either way.
  */
 export function undoEquipmentRemoval(
   event: CoordinatorEvent,

@@ -20,7 +20,7 @@ const pendingRemoval = {
         equipmentItemId: PROJECTOR,
         quantityRequested: 2,
         quantityReserved: 2,
-        recheckRequired: true,
+        state: "Under review",
         removalRequested: true,
       }),
     ],
@@ -34,7 +34,7 @@ function undo(deps = buildEquipmentDeps([seedEvent()], pendingRemoval)) {
 const base = { eventId: "event-1", userAccountId: COORDINATOR, equipmentItemId: PROJECTOR };
 
 describe("UndoEquipmentRemovalUseCase (SPM-184)", () => {
-  it("keeps the line, still flagged for re-check", async () => {
+  it("keeps the line, still under review", async () => {
     const { useCase, equipment } = undo();
 
     const change = await useCase.execute(base);
@@ -43,7 +43,7 @@ describe("UndoEquipmentRemovalUseCase (SPM-184)", () => {
     expect(equipment.stored("event-1").lines[0]).toMatchObject({
       quantityReserved: 2,
       removalRequested: false,
-      recheckRequired: true,
+      state: "Under review",
     });
   });
 

@@ -16,8 +16,8 @@ import type {
 /**
  * What one change to an event's equipment requirements did (SPM-41) -- enough
  * for SPM-64 to tell Technical Support about it without asking again: which
- * event, which line, from what quantity to what, and whether the change flagged
- * the line for re-check.
+ * event, which line, from what quantity to what, and whether the change left
+ * the line under review.
  */
 export interface EquipmentRequirementChange {
   readonly action: "recorded" | "edited" | "deleted" | "removalRequested" | "removalUndone";
@@ -38,8 +38,8 @@ export interface EquipmentRequirementChange {
   readonly quantityAfter: number | null;
   /** False only for an edit that changed nothing (AC9): nothing was stored and nobody need be told. */
   readonly changed: boolean;
-  /** This change flagged the line for Technical Support to re-check (AC8, AC11). */
-  readonly flagged: boolean;
+  /** This change left the line under review for Technical Support to re-check (AC8, AC11). */
+  readonly underReview: boolean;
 }
 
 /**
@@ -90,9 +90,9 @@ export function describeChange(params: {
   readonly before: EquipmentRequirement | null;
   readonly after: EquipmentRequirement | null;
   readonly changed: boolean;
-  readonly flagged: boolean;
+  readonly underReview: boolean;
 }): EquipmentRequirementChange {
-  const { action, event, reservation, item, before, after, changed, flagged } = params;
+  const { action, event, reservation, item, before, after, changed, underReview } = params;
   return {
     action,
     event: { id: event.id, name: event.name, preferredDate: event.preferredDate },
@@ -103,6 +103,6 @@ export function describeChange(params: {
     quantityBefore: before?.quantityRequested ?? null,
     quantityAfter: after?.quantityRequested ?? null,
     changed,
-    flagged,
+    underReview,
   };
 }

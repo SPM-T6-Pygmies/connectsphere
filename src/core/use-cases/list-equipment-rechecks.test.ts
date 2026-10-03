@@ -4,7 +4,7 @@ import { InMemoryEquipmentRecheckRepository } from "@/adapters/outbound/in-memor
 import { equipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
 import { eventId } from "@/core/domain/event";
-import type { FlaggedEquipmentLine } from "@/core/ports/outbound/equipment-recheck-repository";
+import type { UnderReviewEquipmentLine } from "@/core/ports/outbound/equipment-recheck-repository";
 
 import { ListEquipmentRechecksUseCase } from "./list-equipment-rechecks";
 
@@ -16,13 +16,13 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     quantityRequested: 3,
     technicalRequirements: null,
     quantityReserved: 2,
-    recheckRequired: true,
+    state: "Under review",
     removalRequested: false,
     ...overrides,
   };
 }
 
-function flagged(overrides: Partial<FlaggedEquipmentLine> = {}): FlaggedEquipmentLine {
+function underReview(overrides: Partial<UnderReviewEquipmentLine> = {}): UnderReviewEquipmentLine {
   return {
     event: { id: eventId("event-1"), name: "Founders' Gala Dinner", preferredDate: "2026-12-12" },
     equipmentType: "Projector",
@@ -31,13 +31,13 @@ function flagged(overrides: Partial<FlaggedEquipmentLine> = {}): FlaggedEquipmen
   };
 }
 
-function list(seed: readonly FlaggedEquipmentLine[]) {
+function list(seed: readonly UnderReviewEquipmentLine[]) {
   return new ListEquipmentRechecksUseCase({ rechecks: new InMemoryEquipmentRecheckRepository(seed) }).execute(SUPPORT);
 }
 
 describe("ListEquipmentRechecksUseCase (SPM-187)", () => {
   it("AC15: shows the event, type, quantity requested against reserved, and that the line was changed", async () => {
-    const result = await list([flagged()]);
+    const result = await list([underReview()]);
 
     expect(result.rechecks).toEqual([
       {
@@ -54,25 +54,25 @@ describe("ListEquipmentRechecksUseCase (SPM-187)", () => {
   });
 
   it("AC15: shows a line whose removal was requested as removal requested", async () => {
-    const result = await list([flagged({ line: line({ removalRequested: true }) })]);
+    const result = await list([underReview({ line: line({ removalRequested: true }) })]);
 
     expect(result.rechecks.map((recheck) => recheck.reason)).toEqual(["removalRequested"]);
   });
 
-  it("AC15: leaves out a line nobody flagged", async () => {
-    const result = await list([flagged({ line: line({ recheckRequired: false }) })]);
+  it("AC15: leaves out a line that is not under review", async () => {
+    const result = await list([underReview({ line: line({ state: "Reserved" }) })]);
 
     expect(result.rechecks).toEqual([]);
   });
 
-  it("AC15: lists flagged lines from several events and skips the unflagged ones among them", async () => {
+  it("AC15: lists lines under review from several events and skips the ones that are not", async () => {
     const result = await list([
-      flagged(),
-      flagged({
+      underReview(),
+      underReview({
         event: { id: eventId("event-2"), name: "Annual Summit", preferredDate: null },
-        line: line({ recheckRequired: false }),
+        line: line({ state: "Reserved" }),
       }),
-      flagged({
+      underReview({
         event: { id: eventId("event-3"), name: "Product Launch", preferredDate: "2027-01-20" },
         equipmentType: "Wireless microphone",
         line: line({ equipmentItemId: equipmentItemId("item-microphone"), removalRequested: true }),
@@ -85,7 +85,7 @@ describe("ListEquipmentRechecksUseCase (SPM-187)", () => {
     ]);
   });
 
-  it("AC15: shows an empty list when nothing is flagged", async () => {
+  it("AC15: shows an empty list when nothing is under review", async () => {
     const result = await list([]);
 
     expect(result.rechecks).toEqual([]);

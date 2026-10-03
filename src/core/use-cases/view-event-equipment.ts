@@ -17,7 +17,7 @@ export interface EquipmentLineView {
   readonly quantityReserved: number;
   readonly technicalRequirements: string | null;
   readonly reserved: boolean;
-  readonly recheckRequired: boolean;
+  readonly underReview: boolean;
   readonly removalRequested: boolean;
 }
 
@@ -68,7 +68,7 @@ export class ViewEventEquipmentUseCase {
         quantityReserved: line.quantityReserved,
         technicalRequirements: line.technicalRequirements,
         reserved: isReserved(line),
-        recheckRequired: line.recheckRequired,
+        underReview: line.state === "Under review",
         removalRequested: line.removalRequested,
       })),
       catalogue,

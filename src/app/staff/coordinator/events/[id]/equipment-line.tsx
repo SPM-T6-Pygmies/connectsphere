@@ -26,7 +26,7 @@ export interface EquipmentLineData {
   readonly quantityReserved: number;
   readonly technicalRequirements: string | null;
   readonly reserved: boolean;
-  readonly recheckRequired: boolean;
+  readonly underReview: boolean;
   readonly removalRequested: boolean;
 }
 
@@ -60,7 +60,7 @@ export function EquipmentLine({
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{line.equipmentType}</span>
             {line.reserved ? <Badge variant="success">Reserved</Badge> : null}
-            {line.recheckRequired ? <Badge variant="warning">Needs re-check</Badge> : null}
+            {line.underReview ? <Badge variant="warning">Needs re-check</Badge> : null}
             {line.removalRequested ? <Badge variant="destructive">Removal requested</Badge> : null}
           </div>
           <p className="text-muted-foreground text-sm">
@@ -143,8 +143,8 @@ function EditForm({
 
       {line.reserved ? (
         <RecheckWarning>
-          Equipment is already reserved against it. Saving a change flags it for them, and the
-          reserved equipment stays held.
+          Equipment is already reserved against it. Saving a change puts it under review, and
+          the reserved equipment stays held.
         </RecheckWarning>
       ) : null}
 

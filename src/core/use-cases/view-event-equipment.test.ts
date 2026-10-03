@@ -32,7 +32,7 @@ describe("ViewEventEquipmentUseCase (SPM-184)", () => {
           quantityReserved: 2,
           technicalRequirements: "HDMI input",
           reserved: true,
-          recheckRequired: false,
+          underReview: false,
           removalRequested: false,
         },
         {
@@ -42,7 +42,7 @@ describe("ViewEventEquipmentUseCase (SPM-184)", () => {
           quantityReserved: 0,
           technicalRequirements: null,
           reserved: false,
-          recheckRequired: false,
+          underReview: false,
           removalRequested: false,
         },
       ],

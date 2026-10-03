@@ -51,7 +51,7 @@ describe("RecordEquipmentRequirementUseCase (SPM-184)", () => {
       quantityBefore: null,
       quantityAfter: 2,
       changed: true,
-      flagged: false,
+      underReview: false,
     });
     expect(equipment.stored("event-1").lines).toEqual([
       expect.objectContaining({ equipmentItemId: SPEAKER, technicalRequirements: "Stage left" }),

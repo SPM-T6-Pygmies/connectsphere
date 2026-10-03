@@ -54,7 +54,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           quantityRequested: 2,
           technicalRequirements: "HDMI input",
           quantityReserved: 2,
-          recheckRequired: true,
+          state: "Under review",
           removalRequested: false,
         },
         {
@@ -62,7 +62,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           quantityRequested: 4,
           technicalRequirements: null,
           quantityReserved: 0,
-          recheckRequired: false,
+          state: "Requested",
           removalRequested: false,
         },
       ],

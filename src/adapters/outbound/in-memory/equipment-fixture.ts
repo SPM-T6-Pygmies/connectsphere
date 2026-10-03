@@ -44,13 +44,15 @@ export function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCo
   };
 }
 
+/** A line with nothing reserved; give it `quantityReserved` and it is `Reserved`, or pass `state: "Under review"`. */
 export function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequirement {
+  const quantityReserved = overrides.quantityReserved ?? 0;
   return {
     equipmentItemId: MICROPHONE,
     quantityRequested: 4,
     technicalRequirements: null,
-    quantityReserved: 0,
-    recheckRequired: false,
+    quantityReserved,
+    state: quantityReserved > 0 ? "Reserved" : "Requested",
     removalRequested: false,
     ...overrides,
   };

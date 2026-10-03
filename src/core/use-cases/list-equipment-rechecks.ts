@@ -32,7 +32,7 @@ export interface ListEquipmentRechecksDeps {
 /**
  * SPM-41 AC15: the equipment lines Technical Support Staff must re-check
  * because a coordinator changed them after equipment was reserved, or asked
- * for their removal. The caller is the page's Technical Support context --
+ * for their removal, which put them under review. The caller is the page's Technical Support context --
  * `technicalSupportContextFor` gives none to anyone else (AC16). Decides
  * nothing beyond the reason, so it takes the thin read path (ARCHITECTURE.md §11).
  */
@@ -40,10 +40,10 @@ export class ListEquipmentRechecksUseCase {
   constructor(private readonly deps: ListEquipmentRechecksDeps) {}
 
   async execute(command: ListEquipmentRechecksCommand): Promise<ListEquipmentRechecksResult> {
-    const flagged = await this.deps.rechecks.flaggedLines(userAccountId(command.userAccountId));
+    const underReview = await this.deps.rechecks.linesUnderReview(userAccountId(command.userAccountId));
 
     return {
-      rechecks: flagged.flatMap(({ event, equipmentType, line }) => {
+      rechecks: underReview.flatMap(({ event, equipmentType, line }) => {
         const reason = recheckReason(line);
         return reason === null
           ? []

@@ -67,14 +67,14 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     quantityRequested: 2,
     technicalRequirements: "HDMI input",
     quantityReserved: 0,
-    recheckRequired: false,
+    state: "Requested",
     removalRequested: false,
     ...overrides,
   };
 }
 
 const reserved = (overrides: Partial<EquipmentRequirement> = {}) =>
-  line({ quantityReserved: 2, ...overrides });
+  line({ quantityReserved: 2, state: "Reserved", ...overrides });
 
 describe("equipmentItemId (SPM-182)", () => {
   it("rejects a blank equipment type", () => {
@@ -93,7 +93,7 @@ describe("equipmentRequirementsEditable (SPM-182)", () => {
 });
 
 describe("recordEquipmentRequirement (SPM-182)", () => {
-  it("records a new line with nothing reserved and nothing flagged", () => {
+  it("records a new line with nothing reserved and not under review", () => {
     expect(
       recordEquipmentRequirement(
         event(),
@@ -105,7 +105,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
       quantityRequested: 2,
       technicalRequirements: "HDMI input",
       quantityReserved: 0,
-      recheckRequired: false,
+      state: "Requested",
       removalRequested: false,
     });
   });
@@ -146,7 +146,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
     expect(() =>
       recordEquipmentRequirement(
         event(),
-        [reserved({ removalRequested: true, recheckRequired: true })],
+        [reserved({ removalRequested: true, state: "Under review" })],
         newRequirement(),
       ),
     ).toThrow(DuplicateEquipmentRequirementError);
@@ -213,7 +213,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
 });
 
 describe("editEquipmentRequirement (SPM-182)", () => {
-  it("saves a change to an unreserved line without flagging it", () => {
+  it("saves a change to an unreserved line without putting it under review", () => {
     expect(
       editEquipmentRequirement(event(), line(), {
         quantityRequested: 3,
@@ -222,31 +222,31 @@ describe("editEquipmentRequirement (SPM-182)", () => {
     ).toEqual({
       line: line({ quantityRequested: 3 }),
       changed: true,
-      flagged: false,
+      underReview: false,
     });
   });
 
-  it("saves a quantity change to a reserved line, flags it and keeps its equipment held", () => {
+  it("saves a quantity change to a reserved line, puts it under review and keeps its equipment held", () => {
     expect(
       editEquipmentRequirement(event(), reserved(), {
         quantityRequested: 4,
         technicalRequirements: "HDMI input",
       }),
     ).toEqual({
-      line: reserved({ quantityRequested: 4, recheckRequired: true }),
+      line: reserved({ quantityRequested: 4, state: "Under review" }),
       changed: true,
-      flagged: true,
+      underReview: true,
     });
   });
 
-  it("flags a reserved line whose technical requirements alone change", () => {
+  it("puts a reserved line under review when its technical requirements alone change", () => {
     const edit = editEquipmentRequirement(event(), reserved(), {
       quantityRequested: 2,
       technicalRequirements: "HDMI and USB-C input",
     });
-    expect(edit.flagged).toBe(true);
+    expect(edit.underReview).toBe(true);
     expect(edit.line.technicalRequirements).toBe("HDMI and USB-C input");
-    expect(edit.line.recheckRequired).toBe(true);
+    expect(edit.line.state).toBe("Under review");
   });
 
   it("keeps a reserved line's equipment held when the quantity drops below what was reserved", () => {
@@ -256,17 +256,17 @@ describe("editEquipmentRequirement (SPM-182)", () => {
     });
     expect(edit.line.quantityRequested).toBe(1);
     expect(edit.line.quantityReserved).toBe(2);
-    expect(edit.flagged).toBe(true);
+    expect(edit.underReview).toBe(true);
   });
 
-  it("leaves a reserved line unflagged when the save changes nothing", () => {
+  it("leaves a reserved line as it was when the save changes nothing", () => {
     const original = reserved();
     expect(
       editEquipmentRequirement(event(), original, {
         quantityRequested: 2,
         technicalRequirements: "HDMI input",
       }),
-    ).toEqual({ line: original, changed: false, flagged: false });
+    ).toEqual({ line: original, changed: false, underReview: false });
   });
 
   it("treats blank technical requirements as unchanged from none", () => {
@@ -278,13 +278,13 @@ describe("editEquipmentRequirement (SPM-182)", () => {
     ).toBe(false);
   });
 
-  it("does not clear an earlier re-check flag", () => {
-    const edit = editEquipmentRequirement(event(), line({ recheckRequired: true }), {
+  it("keeps a line under review when it is edited again", () => {
+    const edit = editEquipmentRequirement(event(), reserved({ state: "Under review" }), {
       quantityRequested: 3,
       technicalRequirements: "HDMI input",
     });
-    expect(edit.flagged).toBe(false);
-    expect(edit.line.recheckRequired).toBe(true);
+    expect(edit.underReview).toBe(true);
+    expect(edit.line.state).toBe("Under review");
   });
 
   it("rejects an edit to a quantity of 0", () => {
@@ -309,7 +309,7 @@ describe("editEquipmentRequirement (SPM-182)", () => {
     expect(() =>
       editEquipmentRequirement(
         event(),
-        reserved({ removalRequested: true, recheckRequired: true }),
+        reserved({ removalRequested: true, state: "Under review" }),
         { quantityRequested: 3, technicalRequirements: null },
       ),
     ).toThrow(EquipmentRemovalAlreadyRequestedError);
@@ -342,7 +342,7 @@ describe("removeEquipmentRequirement (SPM-182)", () => {
   it("keeps a reserved line, marks its removal requested and flags it", () => {
     expect(removeEquipmentRequirement(event(), reserved())).toEqual({
       kind: "removalRequested",
-      line: reserved({ removalRequested: true, recheckRequired: true }),
+      line: reserved({ removalRequested: true, state: "Under review" }),
     });
   });
 
@@ -350,7 +350,7 @@ describe("removeEquipmentRequirement (SPM-182)", () => {
     expect(() =>
       removeEquipmentRequirement(
         event(),
-        reserved({ removalRequested: true, recheckRequired: true }),
+        reserved({ removalRequested: true, state: "Under review" }),
       ),
     ).toThrow(EquipmentRemovalAlreadyRequestedError);
   });
@@ -367,11 +367,11 @@ describe("removeEquipmentRequirement (SPM-182)", () => {
 });
 
 describe("undoEquipmentRemoval (SPM-182)", () => {
-  const pendingRemoval = () => reserved({ removalRequested: true, recheckRequired: true });
+  const pendingRemoval = () => reserved({ removalRequested: true, state: "Under review" });
 
-  it("keeps the line, still flagged for re-check and with its equipment held", () => {
+  it("keeps the line, still under review and with its equipment held", () => {
     expect(undoEquipmentRemoval(event(), pendingRemoval())).toEqual(
-      reserved({ removalRequested: false, recheckRequired: true }),
+      reserved({ removalRequested: false, state: "Under review" }),
     );
   });
 
@@ -420,14 +420,14 @@ describe("recheckReason (SPM-187)", () => {
     expect(removal.kind === "removalRequested" && recheckReason(removal.line)).toBe("removalRequested");
   });
 
-  it("AC15: names a line whose removal was undone as changed, since it stays flagged", () => {
+  it("AC15: names a line whose removal was undone as changed, since it stays under review", () => {
     const removal = removeEquipmentRequirement(event(), reserved());
     const undone = removal.kind === "removalRequested" ? undoEquipmentRemoval(event(), removal.line) : null;
 
     expect(undone && recheckReason(undone)).toBe("changed");
   });
 
-  it("AC15: leaves out a line nobody flagged", () => {
+  it("AC15: leaves out a line that is not under review", () => {
     expect(recheckReason(line())).toBeNull();
   });
 

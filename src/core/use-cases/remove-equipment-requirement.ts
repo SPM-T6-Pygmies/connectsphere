@@ -20,7 +20,7 @@ export interface RemoveEquipmentRequirementCommand {
 
 /**
  * SPM-41 AC10-11: the assigned Event Coordinator removes a line. An unreserved
- * line is deleted; a reserved one stays, marked removal requested and flagged,
+ * line is deleted; a reserved one stays, marked removal requested and under review,
  * until Technical Support release its equipment (SPM-108).
  */
 export class RemoveEquipmentRequirementUseCase {
@@ -52,7 +52,7 @@ export class RemoveEquipmentRequirementUseCase {
       before: line,
       after: removal.kind === "deleted" ? null : removal.line,
       changed: true,
-      flagged: removal.kind === "removalRequested",
+      underReview: removal.kind === "removalRequested",
     });
   }
 }
