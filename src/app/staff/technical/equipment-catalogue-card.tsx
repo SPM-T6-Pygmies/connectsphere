@@ -9,7 +9,6 @@ import { buildListEquipmentCatalogue } from "@/composition/container";
 
 import { AddEquipmentForm } from "./add-equipment-form";
 import { EquipmentRow } from "./equipment-row";
-import { EQUIPMENT_ROW_COLUMNS } from "./equipment-row-layout";
 
 /**
  * The equipment ConnectSphere owns, and where Technical Support Staff keep it
@@ -38,22 +37,14 @@ export async function EquipmentCatalogueCard() {
             The catalogue is empty. Add the first item below.
           </p>
         ) : (
-          <div>
-            <div
-              aria-hidden
-              className={`text-muted-foreground hidden border-b pb-2 text-sm font-medium sm:grid sm:gap-3 ${EQUIPMENT_ROW_COLUMNS}`}
-            >
-              <span>Item</span>
-              <span>In pool</span>
-              <span>Location</span>
-              <span />
-            </div>
-            <ul aria-label="Equipment catalogue items" className="divide-y">
-              {items.map((item) => (
-                <EquipmentRow key={item.id} item={item} />
-              ))}
-            </ul>
-          </div>
+          <ul
+            aria-label="Equipment catalogue items"
+            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+          >
+            {items.map((item) => (
+              <EquipmentRow key={item.id} item={item} />
+            ))}
+          </ul>
         )}
 
         <div className="space-y-3">
