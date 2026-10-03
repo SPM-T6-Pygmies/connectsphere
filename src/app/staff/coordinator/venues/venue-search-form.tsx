@@ -6,10 +6,12 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BOOKING_SLOTS, SLOT_HOURS, SLOT_LABELS } from "@/core/domain/booking";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
+import { formatTimeOnly } from "../../time-picker";
 
 export interface VenueSearchValues {
   layout: string;
@@ -17,8 +19,8 @@ export interface VenueSearchValues {
   facilities: string;
   accessibility: string;
   date: string;
-  startTime: string;
-  endTime: string;
+  /** The slot codes ticked, e.g. `["AM", "Night"]`. */
+  slots: readonly string[];
 }
 
 /**
@@ -52,26 +54,27 @@ export function VenueSearchForm({
           <Input id="date" name="date" type="date" defaultValue={initial.date} aria-invalid={!!errors.date} />
         </Field>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="startTime" label="Start time" error={errors.startTime}>
-          <Input
-            id="startTime"
-            name="startTime"
-            type="time"
-            defaultValue={initial.startTime}
-            aria-invalid={!!errors.startTime}
-          />
-        </Field>
-        <Field id="endTime" label="End time" error={errors.endTime}>
-          <Input
-            id="endTime"
-            name="endTime"
-            type="time"
-            defaultValue={initial.endTime}
-            aria-invalid={!!errors.endTime}
-          />
-        </Field>
-      </div>
+      <fieldset className="space-y-1.5">
+        <legend className="text-sm leading-none font-medium">Time slots</legend>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 pt-1.5">
+          {BOOKING_SLOTS.map((slot) => (
+            <label key={slot} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="slots"
+                value={slot}
+                defaultChecked={initial.slots.includes(slot)}
+                aria-invalid={!!errors.slots}
+              />
+              {SLOT_LABELS[slot]}
+              <span className="text-muted-foreground">
+                {formatTimeOnly(SLOT_HOURS[slot].start)} – {formatTimeOnly(SLOT_HOURS[slot].end)}
+              </span>
+            </label>
+          ))}
+        </div>
+        {errors.slots ? <p className="text-destructive text-sm">{errors.slots}</p> : null}
+      </fieldset>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="layout" label="Room layout" error={errors.layout}>
           <OptionSelect

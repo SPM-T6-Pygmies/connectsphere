@@ -16,6 +16,24 @@ export type BookingSlot = "AM" | "PM" | "Night";
 /** In the order they fall in a day, which is also the order a request is shown in. */
 export const BOOKING_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
 
+/** How a slot is named to a person: AM is the morning, PM the afternoon. */
+export const SLOT_LABELS: Record<BookingSlot, string> = {
+  AM: "Morning",
+  PM: "Afternoon",
+  Night: "Night",
+};
+
+/**
+ * What each slot covers, as `HH:MM` at the venue. Night runs to midnight, which
+ * a venue's operating hours can only express as 23:59, so that is where it ends
+ * here.
+ */
+export const SLOT_HOURS: Record<BookingSlot, { readonly start: string; readonly end: string }> = {
+  AM: { start: "06:00", end: "12:00" },
+  PM: { start: "12:00", end: "18:00" },
+  Night: { start: "18:00", end: "23:59" },
+};
+
 /** `booking_status_chk`. */
 export type BookingStatus =
   | "Requested"

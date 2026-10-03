@@ -6,7 +6,7 @@ import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-
 
 import { InvalidVenueSearchError } from "../domain/errors";
 import { venueId, type Venue } from "../domain/venue";
-import type { BusyInterval, VenueSearchInput } from "../domain/venue-search";
+import type { BookedSlot, VenueSearchInput } from "../domain/venue-search";
 import { SearchVenuesUseCase } from "./search-venues";
 
 // 1 Nov 2026, 10:00 in Singapore.
@@ -34,16 +34,15 @@ function search(overrides: Partial<VenueSearchInput> = {}): VenueSearchInput {
     facilities: [],
     accessibility: [],
     date: null,
-    startTime: null,
-    endTime: null,
+    slots: [],
     ...overrides,
   };
 }
 
-function build(venues: Venue[], busy: BusyInterval[] = []) {
+function build(venues: Venue[], booked: BookedSlot[] = []) {
   return new SearchVenuesUseCase({
     venues: new InMemoryVenueCatalogue(venues),
-    availability: new InMemoryVenueAvailability(busy),
+    availability: new InMemoryVenueAvailability(booked),
     clock: new FixedClock(NOW),
     timeZone: "Asia/Singapore",
   });
@@ -52,19 +51,32 @@ function build(venues: Venue[], busy: BusyInterval[] = []) {
 const ids = (result: { venues: readonly Venue[] }) => result.venues.map((v) => v.id);
 
 describe("SearchVenuesUseCase (SPM-44)", () => {
-  it("excludes a venue booked during the searched window, keeps one that is free", async () => {
-    const busy = [
-      {
-        venueId: venueId("a"),
-        startsAt: new Date("2026-11-05T10:00:00+08:00"),
-        endsAt: new Date("2026-11-05T15:00:00+08:00"),
-      },
-    ];
-    const useCase = build([venue("a"), venue("b")], busy);
+  it("excludes a venue booked in a searched slot, keeps one that is free", async () => {
+    const booked: BookedSlot[] = [{ venueId: venueId("a"), date: "2026-11-05", slot: "PM" }];
+    const useCase = build([venue("a"), venue("b")], booked);
 
-    const result = await useCase.execute(
-      search({ date: "2026-11-05", startTime: "10:00", endTime: "15:00" }),
-    );
+    const result = await useCase.execute(search({ date: "2026-11-05", slots: ["PM"] }));
+
+    expect(ids(result)).toEqual(["b"]);
+  });
+
+  it("keeps a venue booked in a slot that was not searched, or on another day", async () => {
+    const booked: BookedSlot[] = [
+      { venueId: venueId("a"), date: "2026-11-05", slot: "AM" },
+      { venueId: venueId("b"), date: "2026-11-06", slot: "PM" },
+    ];
+    const useCase = build([venue("a"), venue("b")], booked);
+
+    const result = await useCase.execute(search({ date: "2026-11-05", slots: ["PM"] }));
+
+    expect(ids(result)).toEqual(["a", "b"]);
+  });
+
+  it("excludes a venue booked in any one of several searched slots", async () => {
+    const booked: BookedSlot[] = [{ venueId: venueId("a"), date: "2026-11-05", slot: "PM" }];
+    const useCase = build([venue("a"), venue("b")], booked);
+
+    const result = await useCase.execute(search({ date: "2026-11-05", slots: ["AM", "PM"] }));
 
     expect(ids(result)).toEqual(["b"]);
   });
@@ -82,8 +94,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
         attendance: 100,
         facilities: ["Wi-Fi"],
         date: "2026-11-05",
-        startTime: "10:00",
-        endTime: "15:00",
+        slots: ["PM"],
       }),
     );
 
@@ -108,7 +119,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
       venue("b", { facilities: "Projector" }),
       venue("c", { bookingHorizonDays: 1 }),
     ]).execute(
-      search({ facilities: ["Wi-Fi"], date: "2026-11-05", startTime: "10:00", endTime: "11:00" }),
+      search({ facilities: ["Wi-Fi"], date: "2026-11-05", slots: ["AM"] }),
     );
 
     expect(ids(result)).toEqual(["a"]);
@@ -120,9 +131,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
 
   it("refuses a search for a date already past in Singapore", async () => {
     await expect(
-      build([venue("a")]).execute(
-        search({ date: "2026-10-31", startTime: "10:00", endTime: "11:00" }),
-      ),
+      build([venue("a")]).execute(search({ date: "2026-10-31", slots: ["AM"] })),
     ).rejects.toBeInstanceOf(InvalidVenueSearchError);
   });
 });

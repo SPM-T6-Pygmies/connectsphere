@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildSearchVenues, getCurrentCoordinator } from "@/composition/container";
+import { BOOKING_SLOTS, SLOT_LABELS } from "@/core/domain/booking";
 import { InvalidVenueSearchError } from "@/core/domain/errors";
 import type { Venue } from "@/core/domain/venue";
 import type { ExclusionReason, VenueSearchOutcome } from "@/core/domain/venue-search";
@@ -30,6 +31,14 @@ function countVenues(count: number): string {
   return `${count} ${count === 1 ? "venue" : "venues"}`;
 }
 
+/** The searched slots by name, in the order they fall in a day: "Morning and Night". */
+function slotNames(values: VenueSearchValues): string {
+  const names = BOOKING_SLOTS.filter((slot) => values.slots.includes(slot)).map(
+    (slot) => SLOT_LABELS[slot],
+  );
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : (names[0] ?? "");
+}
+
 /** Why `count` venues were left out, in the Coordinator's terms. */
 function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): string {
   switch (reason) {
@@ -46,11 +55,11 @@ function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): s
     case "hoursUnknown":
       return "no operating hours or booking horizon recorded";
     case "outsideHours":
-      return `not open for all of ${formatTimeOnly(values.startTime)} – ${formatTimeOnly(values.endTime)}`;
+      return `not open during ${slotNames(values)}`;
     case "beyondHorizon":
       return `cannot be booked as far ahead as ${values.date}`;
     case "booked":
-      return "already booked during that time";
+      return `already booked for ${slotNames(values)}`;
   }
 }
 
@@ -76,7 +85,7 @@ function SearchSummary({
       )}
       {found === 0 && outcome.excluded.length > 0 ? (
         <p className="text-muted-foreground">
-          Try a different time, a smaller attendance or fewer facilities.
+          Try a different slot, a smaller attendance or fewer facilities.
         </p>
       ) : null}
     </div>
@@ -85,6 +94,10 @@ function SearchSummary({
 
 function text(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value) ?? "";
+}
+
+function list(value: string | string[] | undefined): string[] {
+  return Array.isArray(value) ? value : value === undefined ? [] : [value];
 }
 
 /**
@@ -106,8 +119,7 @@ export default async function VenueSearchPage({
     facilities: text(params.facilities),
     accessibility: text(params.accessibility),
     date: text(params.date),
-    startTime: text(params.startTime),
-    endTime: text(params.endTime),
+    slots: list(params.slots),
   };
 
   let outcome: VenueSearchOutcome = { venues: [], excluded: [] };
