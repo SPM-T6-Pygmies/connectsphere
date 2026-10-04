@@ -361,6 +361,66 @@
       "title": "Record each notification in the notification table",
       "parent": "SPM-57",
       "status": "Todo"
+    },
+    "SPM-58": {
+      "title": "Notify the organiser that their event has a coordinator",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-59": {
+      "title": "Notify the organiser of a clarification request",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-60": {
+      "title": "Notify the organiser of the review decision",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-233": {
+      "title": "Notify the organiser of their coordinator through the Notifier port",
+      "parent": "SPM-58",
+      "status": "In Progress"
+    },
+    "SPM-234": {
+      "title": "Notify the organiser of a clarification request through the Notifier port",
+      "parent": "SPM-59",
+      "status": "In Progress"
+    },
+    "SPM-235": {
+      "title": "Notify the organiser of the review decision through the Notifier port",
+      "parent": "SPM-60",
+      "status": "In Progress"
+    },
+    "SPM-236": {
+      "title": "Deliver and record the organiser's coordinator-assigned notification",
+      "parent": "SPM-58",
+      "status": "In Progress"
+    },
+    "SPM-237": {
+      "title": "Deliver and record the organiser's clarification-requested notification",
+      "parent": "SPM-59",
+      "status": "In Progress"
+    },
+    "SPM-238": {
+      "title": "Deliver and record the organiser's review-decision notification",
+      "parent": "SPM-60",
+      "status": "In Progress"
+    },
+    "SPM-239": {
+      "title": "Test registry and manual end-to-end case for SPM-58",
+      "parent": "SPM-58",
+      "status": "In Progress"
+    },
+    "SPM-240": {
+      "title": "Test registry and manual end-to-end case for SPM-59",
+      "parent": "SPM-59",
+      "status": "In Progress"
+    },
+    "SPM-241": {
+      "title": "Test registry and manual end-to-end case for SPM-60",
+      "parent": "SPM-60",
+      "status": "In Progress"
     }
   }
 }

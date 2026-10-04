@@ -1,6 +1,7 @@
 import type { Brand } from "./brand";
 import {
   BookingNotDecidableError,
+  BookingRoomLayoutNotChangeableError,
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   InvalidBookingDateError,
@@ -129,6 +130,58 @@ export function chooseRoomLayout(venue: Venue, requested: string | null): string
     throw new RoomLayoutRequiredError();
   }
   return venue.layouts[0]?.name ?? null;
+}
+
+/**
+ * SPM-104: whether the event's expected attendance fits the layout a booking
+ * assumes. Compared with that layout's own capacity -- never the venue-wide
+ * figure, which says nothing about how the room is set up (SPM-106).
+ *
+ * `withinCapacity` is null when there is nothing to compare: no attendance
+ * figure on the event yet, no layout on the booking, or a layout the venue no
+ * longer lists (SPM-105). An answer of "unknown" never blocks a page.
+ */
+export interface LayoutCapacityCheck {
+  readonly layout: string | null;
+  readonly capacity: number | null;
+  readonly expectedAttendance: number | null;
+  readonly withinCapacity: boolean | null;
+}
+
+export function checkLayoutCapacity(
+  venue: Venue,
+  layout: string | null,
+  expectedAttendance: number | null,
+): LayoutCapacityCheck {
+  const capacity =
+    venue.layouts.find((candidate) => candidate.name === layout)?.capacity ??
+    null;
+
+  return {
+    layout,
+    capacity,
+    expectedAttendance,
+    withinCapacity:
+      capacity === null || expectedAttendance === null
+        ? null
+        : expectedAttendance <= capacity,
+  };
+}
+
+/**
+ * SPM-104: the layout a pending booking is moved to. Only a request still
+ * waiting for Venue Staff can change; the new layout is held to the same rule
+ * as a first choice (`chooseRoomLayout`).
+ */
+export function chooseLayoutChange(
+  booking: { readonly status: BookingStatus },
+  venue: Venue,
+  requested: string | null,
+): string | null {
+  if (booking.status !== "Requested") {
+    throw new BookingRoomLayoutNotChangeableError(booking.status);
+  }
+  return chooseRoomLayout(venue, requested);
 }
 
 /** The requested slots that an existing hold or confirmed booking already has. */

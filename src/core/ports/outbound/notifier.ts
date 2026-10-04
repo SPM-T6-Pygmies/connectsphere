@@ -19,6 +19,48 @@ export interface EventCoordinatorAssignedNotice {
 }
 
 /**
+ * What an Event Organiser is told when a coordinator is assigned to their
+ * event request, or it is reassigned to another (SPM-58).
+ *
+ * `coordinatorName` is `null` only if the name could not be read back, for the
+ * same reason as `clientOrganisationName` above.
+ */
+export interface OrganiserCoordinatorAssignedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly coordinatorName: string | null;
+}
+
+/**
+ * What an Event Organiser is told when the assigned coordinator returns their
+ * request with a clarification question (SPM-59). `message` is the question as
+ * stored, so the notification states what was asked.
+ */
+export interface ClarificationRequestedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly message: string;
+}
+
+/**
+ * What an Event Organiser is told when the assigned coordinator approves or
+ * rejects their request (SPM-60). `decisionRecord` is the coordinator's reason
+ * for a rejection, or their optional note on an approval.
+ *
+ * A return is not a decision here: it is a clarification request, notified as
+ * `ClarificationRequestedNotice`.
+ */
+export interface EventRequestDecidedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly decision: "approved" | "rejected";
+  readonly decisionRecord: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -28,4 +70,7 @@ export interface EventCoordinatorAssignedNotice {
 export interface Notifier {
   connectionRequested(connection: Connection): Promise<void>;
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void>;
+  organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void>;
+  clarificationRequested(notice: ClarificationRequestedNotice): Promise<void>;
+  eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void>;
 }

@@ -57,7 +57,13 @@ function buildUseCase(
   const notifier = new RecordingNotifier();
   const useCase = new AssignEventCoordinatorUseCase({
     eventRequests,
-    userAccounts: new InMemoryUserAccountRepository({ eventCoordinators: coordinators }),
+    userAccounts: new InMemoryUserAccountRepository({
+      names: new Map([
+        [OLD_COORDINATOR, "Wei Ling Tan"],
+        [NEW_COORDINATOR, "Arjun Nair"],
+      ]),
+      eventCoordinators: coordinators,
+    }),
     clientOrganisations: new InMemoryClientOrganisationRepository(
       new Map([[clientOrganisationId("org-a"), "Acme Holdings"]]),
     ),
@@ -285,5 +291,77 @@ describe("AssignEventCoordinatorUseCase (SPM-57)", () => {
       }),
     ).rejects.toBeInstanceOf(EventRequestNotAssignableError);
     expect(notifier.coordinatorAssignments).toEqual([]);
+  });
+});
+
+describe("AssignEventCoordinatorUseCase (SPM-58)", () => {
+  it("AC1, AC2: notifies the responsible organiser, naming the assigned coordinator", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await useCase.execute({
+      eventRequestId: "request-1",
+      eventCoordinatorUserAccountId: NEW_COORDINATOR,
+    });
+
+    expect(notifier.organiserCoordinatorAssignments).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventRequestId: "request-1",
+        eventName: "Founders' Day",
+        coordinatorName: "Arjun Nair",
+      },
+    ]);
+  });
+
+  it("AC3: on reassignment notifies the organiser again, naming the new coordinator", async () => {
+    const { useCase, notifier } = buildUseCase([
+      request({ status: "Under Review", assignedCoordinatorUserAccountId: OLD_COORDINATOR }),
+    ]);
+
+    await useCase.execute({
+      eventRequestId: "request-1",
+      eventCoordinatorUserAccountId: NEW_COORDINATOR,
+    });
+
+    expect(notifier.organiserCoordinatorAssignments).toMatchObject([
+      { recipientUserAccountId: "organiser-1", coordinatorName: "Arjun Nair" },
+    ]);
+  });
+
+  it("does not notify the organiser when the current coordinator is assigned again", async () => {
+    const { useCase, notifier } = buildUseCase([
+      request({ status: "Under Review", assignedCoordinatorUserAccountId: NEW_COORDINATOR }),
+    ]);
+
+    await useCase.execute({
+      eventRequestId: "request-1",
+      eventCoordinatorUserAccountId: NEW_COORDINATOR,
+    });
+
+    expect(notifier.organiserCoordinatorAssignments).toEqual([]);
+  });
+
+  it("sends the organiser nothing for an unknown event request id", async () => {
+    const { useCase, notifier } = buildUseCase([]);
+
+    await expect(
+      useCase.execute({
+        eventRequestId: "missing",
+        eventCoordinatorUserAccountId: NEW_COORDINATOR,
+      }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+    expect(notifier.organiserCoordinatorAssignments).toEqual([]);
+  });
+
+  it("sends the organiser nothing for a user account that is not an Event Coordinator", async () => {
+    const { useCase, notifier } = buildUseCase([request()], []);
+
+    await expect(
+      useCase.execute({
+        eventRequestId: "request-1",
+        eventCoordinatorUserAccountId: "ordinary-user",
+      }),
+    ).rejects.toBeInstanceOf(EventCoordinatorNotFoundError);
+    expect(notifier.organiserCoordinatorAssignments).toEqual([]);
   });
 });

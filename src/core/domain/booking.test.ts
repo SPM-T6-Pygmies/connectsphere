@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  checkLayoutCapacity,
+  chooseLayoutChange,
   chooseRoomLayout,
   decideBooking,
   requestVenueBooking,
@@ -12,6 +14,7 @@ import {
 } from "./booking";
 import {
   BookingNotDecidableError,
+  BookingRoomLayoutNotChangeableError,
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   InvalidBookingDateError,
@@ -291,4 +294,114 @@ describe("decideBooking (SPM-22)", () => {
       ).toThrow(BookingNotDecidableError);
     }
   });
+});
+
+/** Layout figures deliberately unlike each other and the venue-wide figure (SPM-106 is open). */
+function sizedVenue(
+  layouts: readonly { name: string; capacity: number }[],
+): Venue {
+  return { ...venue(), capacity: 999, layouts };
+}
+
+describe("checkLayoutCapacity (SPM-104)", () => {
+  const hall = sizedVenue([
+    { name: "Theatre", capacity: 200 },
+    { name: "Boardroom", capacity: 20 },
+  ]);
+
+  it("compares attendance with the chosen layout's capacity, not the venue-wide figure", () => {
+    expect(checkLayoutCapacity(hall, "Boardroom", 100)).toEqual({
+      layout: "Boardroom",
+      capacity: 20,
+      expectedAttendance: 100,
+      withinCapacity: false,
+    });
+  });
+
+  it("reads the other layout's figure when the other layout is chosen", () => {
+    const result = checkLayoutCapacity(hall, "Theatre", 100);
+
+    expect(result.capacity).toBe(200);
+    expect(result.withinCapacity).toBe(true);
+  });
+
+  it("is within capacity one below and exactly at the layout's figure", () => {
+    expect(checkLayoutCapacity(hall, "Boardroom", 19).withinCapacity).toBe(
+      true,
+    );
+    expect(checkLayoutCapacity(hall, "Boardroom", 20).withinCapacity).toBe(
+      true,
+    );
+  });
+
+  it("is not within capacity one above the layout's figure", () => {
+    expect(checkLayoutCapacity(hall, "Boardroom", 21).withinCapacity).toBe(
+      false,
+    );
+  });
+
+  it("gives no verdict when the event has no expected attendance yet", () => {
+    expect(checkLayoutCapacity(hall, "Theatre", null)).toEqual({
+      layout: "Theatre",
+      capacity: 200,
+      expectedAttendance: null,
+      withinCapacity: null,
+    });
+  });
+
+  it("gives no verdict when the booking has no layout, rather than using the venue-wide figure", () => {
+    expect(checkLayoutCapacity(hall, null, 50)).toEqual({
+      layout: null,
+      capacity: null,
+      expectedAttendance: 50,
+      withinCapacity: null,
+    });
+  });
+
+  it("gives no verdict when the venue no longer lists the layout, instead of failing the page", () => {
+    const result = checkLayoutCapacity(hall, "Banquet", 50);
+
+    expect(result.capacity).toBeNull();
+    expect(result.withinCapacity).toBeNull();
+  });
+});
+
+describe("chooseLayoutChange (SPM-104)", () => {
+  const hall = sizedVenue([
+    { name: "Theatre", capacity: 200 },
+    { name: "Boardroom", capacity: 20 },
+  ]);
+
+  it("accepts a layout the venue supports while the request is still pending", () => {
+    expect(chooseLayoutChange({ status: "Requested" }, hall, "Boardroom")).toBe(
+      "Boardroom",
+    );
+  });
+
+  it("refuses a layout the venue does not support", () => {
+    expect(() =>
+      chooseLayoutChange({ status: "Requested" }, hall, "Banquet"),
+    ).toThrow(UnsupportedRoomLayoutError);
+  });
+
+  it("refuses no layout when the venue offers a choice", () => {
+    expect(() =>
+      chooseLayoutChange({ status: "Requested" }, hall, null),
+    ).toThrow(RoomLayoutRequiredError);
+  });
+
+  it.each<BookingStatus>([
+    "Tentative Hold",
+    "Confirmed",
+    "Rejected",
+    "Released",
+    "Cancelled",
+  ])(
+    "refuses a change once the booking is %s -- Venue Staff already answered it",
+    (status) => {
+      expect(() => chooseLayoutChange({ status }, hall, "Boardroom")).toThrow(
+        BookingRoomLayoutNotChangeableError,
+      );
+    },
+  );
 });

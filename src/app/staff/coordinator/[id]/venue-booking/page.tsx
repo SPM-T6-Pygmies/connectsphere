@@ -16,17 +16,40 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
-import type { EventBookingSummary } from "@/core/use-cases/view-venue-booking-options";
+import { checkLayoutCapacity } from "@/core/domain/booking";
+import type {
+  CoordinatorEventDetails,
+  EventBookingSummary,
+  Venue,
+} from "@/core/use-cases/view-venue-booking-options";
 
 import { EmptyState, FieldList } from "../../../field-list";
 import { formatSlotsOnDates } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
+import { describeCapacity } from "../../../booking-capacity-message";
+import { ChangeLayoutForm } from "./change-layout-form";
 
 export const metadata = { title: "Request a venue | ConnectSphere" };
 
-function BookingsTable({ bookings }: { bookings: readonly EventBookingSummary[] }) {
+const TONE_CLASS = {
+  ok: "text-muted-foreground",
+  over: "text-destructive font-medium",
+  unknown: "text-muted-foreground",
+} as const;
+
+function BookingsTable({
+  bookings,
+  venues,
+  event,
+  eventRequestId,
+}: {
+  bookings: readonly EventBookingSummary[];
+  venues: readonly Venue[];
+  event: CoordinatorEventDetails;
+  eventRequestId: string;
+}) {
   if (bookings.length === 0) {
     return (
       <EmptyState
@@ -43,24 +66,53 @@ function BookingsTable({ bookings }: { bookings: readonly EventBookingSummary[] 
           <TableHead>Venue</TableHead>
           <TableHead>Slots</TableHead>
           <TableHead>Layout</TableHead>
+          <TableHead>Capacity</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {bookings.map((booking) => (
-          <TableRow key={booking.id}>
-            <TableCell className="font-medium">{booking.venueLocation}</TableCell>
-            <TableCell className="text-muted-foreground text-xs whitespace-normal">
-              {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
-            </TableCell>
-            <TableCell className="text-muted-foreground">
-              {booking.roomLayoutName ?? "—"}
-            </TableCell>
-            <TableCell>
-              <StatusBadge status={booking.status} />
-            </TableCell>
-          </TableRow>
-        ))}
+        {bookings.map((booking) => {
+          const venue = venues.find((candidate) => candidate.id === booking.venueId);
+          const capacity =
+            venue === undefined
+              ? null
+              : describeCapacity(
+                  checkLayoutCapacity(venue, booking.roomLayoutName, event.expectedAttendance),
+                );
+
+          return (
+            <TableRow key={booking.id}>
+              <TableCell className="font-medium">{booking.venueLocation}</TableCell>
+              <TableCell className="text-muted-foreground text-xs whitespace-normal">
+                {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
+              </TableCell>
+              <TableCell className="text-muted-foreground whitespace-normal">
+                <div className="space-y-2">
+                  <span>{booking.roomLayoutName ?? "—"}</span>
+                  {booking.status === "Requested" && venue !== undefined ? (
+                    <ChangeLayoutForm
+                      // Remount when the saved layout changes, so the picker follows it.
+                      key={booking.roomLayoutName ?? ""}
+                      eventId={event.id}
+                      eventRequestId={eventRequestId}
+                      bookingId={booking.id}
+                      venue={venue}
+                      currentLayout={booking.roomLayoutName}
+                    />
+                  ) : null}
+                </div>
+              </TableCell>
+              <TableCell
+                className={`text-xs whitespace-normal ${TONE_CLASS[capacity?.tone ?? "unknown"]}`}
+              >
+                {capacity?.text ?? "—"}
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={booking.status} />
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );
@@ -124,6 +176,7 @@ export default async function VenueBookingPage({
                 eventId={event.id}
                 eventRequestId={id}
                 defaultDate={event.preferredDate}
+                expectedAttendance={event.expectedAttendance}
                 venues={venues}
               />
             </CardContent>
@@ -134,7 +187,12 @@ export default async function VenueBookingPage({
               <CardTitle>Booking requests for this event</CardTitle>
             </CardHeader>
             <CardContent>
-              <BookingsTable bookings={bookings} />
+              <BookingsTable
+                bookings={bookings}
+                venues={venues}
+                event={event}
+                eventRequestId={id}
+              />
             </CardContent>
           </Card>
         </div>

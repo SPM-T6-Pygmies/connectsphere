@@ -57,6 +57,7 @@ export class AssignEventCoordinatorUseCase {
 
     // Only the coordinator now holding the request is told (SPM-57 AC4); the
     // one it was taken from never is, and assigning the same one again is not news.
+    // The Organiser is told who they now have, on every change (SPM-58 AC3).
     if (request.assignedCoordinatorUserAccountId !== coordinatorId) {
       const names = await this.deps.clientOrganisations.findNamesByIds([
         assigned.clientOrganisationId,
@@ -68,6 +69,14 @@ export class AssignEventCoordinatorUseCase {
         clientOrganisationName: names.get(assigned.clientOrganisationId) ?? null,
         preferredDate: assigned.details.preferredDate,
         preferredSlots: assigned.details.preferredSlots,
+      });
+
+      const coordinatorNames = await this.deps.userAccounts.findNamesByIds([coordinatorId]);
+      await this.deps.notifier.organiserCoordinatorAssigned({
+        recipientUserAccountId: assigned.responsibleOrganiserId,
+        eventRequestId: assigned.id,
+        eventName: assigned.details.eventName,
+        coordinatorName: coordinatorNames.get(coordinatorId) ?? null,
       });
     }
 
