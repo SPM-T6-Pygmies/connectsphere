@@ -42,6 +42,7 @@ import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
@@ -256,7 +257,10 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  * dependency here -- see `EventRequestRepository.returnEventRequest`.
  */
 export async function buildRequestClarification(): Promise<RequestClarificationUseCase> {
-  return new RequestClarificationUseCase({ eventRequests: await eventRequestAdapters() });
+  return new RequestClarificationUseCase({
+    eventRequests: await eventRequestAdapters(),
+    notifier: recordedNotifier(),
+  });
 }
 
 /** SPM-33 AC6: the Coordinator marks one question answered, resuming the request if it was the last. */
@@ -350,7 +354,7 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
 export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCase> {
   const { eventRequests } = await coordinatorAdapters();
 
-  return new DecideEventRequestUseCase({ eventRequests });
+  return new DecideEventRequestUseCase({ eventRequests, notifier: recordedNotifier() });
 }
 
 /** SPM-101: the assigned coordinator records a withdrawal the Organiser asked for. */
@@ -391,6 +395,11 @@ export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOp
 /** SPM-46 / SPM-104: the assigned coordinator submits a venue booking request. */
 export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
   return new SubmitVenueBookingRequestUseCase(await venueBookingAdapters());
+}
+
+/** SPM-104: the assigned coordinator moves a pending booking request to another layout. */
+export async function buildChangeBookingRoomLayout(): Promise<ChangeBookingRoomLayoutUseCase> {
+  return new ChangeBookingRoomLayoutUseCase(await venueBookingAdapters());
 }
 
 /** SPM-22: the signed-in Venue Staff member, or null for anyone else (answered as not found, #91). */
