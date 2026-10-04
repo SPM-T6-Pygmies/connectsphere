@@ -5,10 +5,11 @@ Manual browser tests for the Event Coordinator recording the withdrawal of an
 event request that the Organiser asked for outside the system
 ([#103](https://github.com/SinYang13/IS212-2026/discussions/103)).
 
-These cases are registered as `MT-0011`–`MT-0013` in
-[`../tests/test-registry.csv`](../tests/test-registry.csv). When you run them,
-tick the boxes below **and** set `Status` and `LastPassedDate` on the matching
-rows. CI cannot verify a manual case for you.
+These cases are registered as `TC-WITHDRAW-001`–`TC-WITHDRAW-003` in
+[`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
+them, tick the boxes below **and** report each in the PR description's
+`## Manual test results` table — CI records it in
+[`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
 ---
 

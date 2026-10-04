@@ -69,8 +69,15 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
+    # One recorder at a time, in merge order: two merges close together would
+    # otherwise both rewrite the same ledger lines.
+    concurrency:
+      group: record-registry
+      cancel-in-progress: false
+
     permissions:
       contents: write
+      pull-requests: read
 
     steps:
       - name: Check the recorder app is configured
@@ -117,8 +124,30 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The app token only has Contents access, so the PR lookup uses the
+      # workflow's own token. The commit-to-PR lookup works for squash merges,
+      # which leave no "Merge pull request" line to parse.
+      - name: Find the merged pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" > "$RUNNER_TEMP/pulls.json"
+          echo "number=$(jq -r '.[0].number // empty' "$RUNNER_TEMP/pulls.json")" >> "$GITHUB_OUTPUT"
+          echo "author=$(jq -r '.[0].user.login // empty' "$RUNNER_TEMP/pulls.json")" >> "$GITHUB_OUTPUT"
+          jq -r '.[0].body // ""' "$RUNNER_TEMP/pulls.json" > "$RUNNER_TEMP/pr-body.md"
+
       - name: Record the run
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: pnpm test:report --record
+
+      - name: Record the manual results
+        if: ${{ steps.pr.outputs.number != '' }}
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+        run: PR_BODY="$(cat "$RUNNER_TEMP/pr-body.md")" pnpm test:report --record-manual
 
       - name: Commit the record
         run: |
@@ -133,5 +162,11 @@ jobs:
           git add docs/tests
           # [skip ci] keeps this push from retriggering the workflow.
           git commit -m "Record passing tests for ${GITHUB_SHA:0:7} [skip ci]"
-          git pull --rebase --autostash
-          git push
+          # The ledgers are append-only and merge=union (.gitattributes), so a
+          # record that landed while this one ran rebases cleanly. Retry in case
+          # main moved again between the pull and the push.
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash && git push && exit 0
+            echo "Push attempt $attempt failed; retrying."
+          done
+          exit 1

@@ -1,0 +1,31 @@
+name: PR manual results
+
+on:
+  pull_request:
+    branches:
+      - main
+    # "edited" matters: the results live in the description, so fixing a rejected
+    # table never re-runs the check without it.
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  manual-results:
+    name: Manual test results
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Needs only node, no install: the check reads the PR text and the CSV.
+      - name: Check the manual test results
+        env:
+          # Via the environment, never interpolated into the script: the title,
+          # body and branch are attacker-controlled.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BRANCH: ${{ github.head_ref }}
+        run: node scripts/test-report.mjs --check-pr-body
