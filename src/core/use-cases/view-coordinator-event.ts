@@ -1,9 +1,11 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
 import {
+  assessReadiness,
   blockingArrangements,
-  canConfirm,
+  confirmationState,
   type ArrangementType,
+  type ConfirmationState,
   type EventReadiness,
 } from "../domain/event-readiness";
 import { userAccountId } from "../domain/user-account";
@@ -22,8 +24,8 @@ export interface ViewCoordinatorEventResult {
   readonly clientOrganisationName: string;
   readonly owningOrganiserName: string;
   readonly readiness: EventReadiness;
-  readonly canConfirm: boolean;
-  /** What blocks confirmation right now -- empty when `canConfirm` is true. */
+  readonly confirmation: ConfirmationState;
+  /** What blocks confirmation right now -- empty unless `confirmation` is `blocked-by-arrangements`. */
   readonly blockingArrangements: readonly ArrangementType[];
 }
 
@@ -54,23 +56,28 @@ export class ViewCoordinatorEventUseCase {
     const id = eventId(command.id);
     const caller = userAccountId(command.userAccountId);
 
-    const event = await this.deps.events.findById(id);
-    if (event === null || event.assignedCoordinatorUserAccountId !== caller) {
+    const event = await this.deps.events.findAssignedById(caller, id);
+    if (event === null) {
       return null;
     }
 
-    const [readiness, organisationNames, organiserNames] = await Promise.all([
-      this.deps.readiness.readinessFor(id),
+    const [facts, organisationNames, organiserNames] = await Promise.all([
+      this.deps.readiness.factsFor(caller, id),
       this.deps.clientOrganisations.findNamesByIds([event.clientOrganisationId]),
       this.deps.userAccounts.findNamesByIds([event.owningOrganiserUserAccountId]),
     ]);
+
+    if (facts === null) {
+      return null;
+    }
+    const readiness = assessReadiness(facts);
 
     return {
       event,
       clientOrganisationName: organisationNames.get(event.clientOrganisationId) ?? "",
       owningOrganiserName: organiserNames.get(event.owningOrganiserUserAccountId) ?? "",
       readiness,
-      canConfirm: canConfirm(event, readiness),
+      confirmation: confirmationState(event, readiness),
       blockingArrangements: blockingArrangements(readiness),
     };
   }

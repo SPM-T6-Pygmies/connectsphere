@@ -4,18 +4,26 @@ import {
   EventNotFoundError,
   EventNotReadyForConfirmationError,
 } from "@/core/domain/errors";
-import type { ArrangementType } from "@/core/domain/event-readiness";
+import {
+  assessReadiness,
+  blockingArrangements,
+  type ArrangementType,
+} from "@/core/domain/event-readiness";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   AssignedEventSummary,
+  CoordinatorEventDetails,
   CoordinatorEventRepository,
 } from "@/core/ports/outbound/coordinator-event-repository";
 
 import type { SupabaseServerClient } from "./client";
+import { SupabaseEventReadinessRepository } from "./supabase-event-readiness-repository";
 import {
   toAssignedEventSummary,
   toCoordinatorEvent,
+  toCoordinatorEventDetails,
   toKey,
+  type CoordinatorEventDetailsRow,
   type CoordinatorEventRecordRow,
   type CoordinatorEventRow,
 } from "./coordinator-event-mapper";
@@ -61,14 +69,64 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
     return rows.map((row) => toAssignedEventSummary(row, organisationNames));
   }
 
-  /** Through `coordinator_event`, not the table -- same reason as `listByAssignedCoordinator` above. */
-  async findById(id: CoordinatorEvent["id"]): Promise<CoordinatorEvent | null> {
-    const key = toKey(id);
+  async findAssigned(
+    coordinatorId: UserAccountId,
+    eventId: string,
+  ): Promise<CoordinatorEventDetails | null> {
+    const row = (await this.assignedRows(coordinatorId)).find(
+      (candidate) => String(candidate.event_id) === eventId,
+    );
+    return row === undefined ? null : toCoordinatorEventDetails(row);
+  }
+
+  async findAssignedByRequest(
+    coordinatorId: UserAccountId,
+    eventRequestId: string,
+  ): Promise<CoordinatorEventDetails | null> {
+    const row = (await this.assignedRows(coordinatorId)).find(
+      (candidate) =>
+        candidate.event_request_id !== null && String(candidate.event_request_id) === eventRequestId,
+    );
+    return row === undefined ? null : toCoordinatorEventDetails(row);
+  }
+
+  /**
+   * Every event assigned to the coordinator, through the same function "My
+   * events" reads -- a coordinator has few enough events that filtering here
+   * costs less than a second function to keep in step with the first.
+   */
+  private async assignedRows(
+    coordinatorId: UserAccountId,
+  ): Promise<readonly CoordinatorEventDetailsRow[]> {
+    const key = toKey(coordinatorId);
     if (key === null) {
+      return [];
+    }
+
+    const { data, error } = await this.client.rpc("coordinator_events", {
+      p_coordinator_user_account_id: key,
+    });
+    if (error) {
+      throw new Error(`Failed to read assigned events: ${error.message}`, { cause: error });
+    }
+    return (data ?? []) as unknown as CoordinatorEventDetailsRow[];
+  }
+
+  /** Through `coordinator_event`, not the table -- same reason as `listByAssignedCoordinator` above. */
+  async findAssignedById(
+    coordinatorId: UserAccountId,
+    id: CoordinatorEvent["id"],
+  ): Promise<CoordinatorEvent | null> {
+    const key = toKey(id);
+    const coordinatorKey = toKey(coordinatorId);
+    if (key === null || coordinatorKey === null) {
       return null;
     }
 
-    const { data, error } = await this.client.rpc("coordinator_event", { p_event_id: key });
+    const { data, error } = await this.client.rpc("coordinator_event", {
+      p_event_id: key,
+      p_coordinator_user_account_id: coordinatorKey,
+    });
 
     if (error) {
       throw new Error(`Failed to look up event: ${error.message}`, { cause: error });
@@ -104,25 +162,24 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventNotFoundError(event.id);
       }
       if (error.code === NOT_CONFIRMABLE) {
-        throw new EventNotConfirmableError(event.status);
+        // The status read before the call was Planning, or the domain would
+        // have refused; DETAIL is what it is now, after the race was lost.
+        throw new EventNotConfirmableError(error.details || event.status);
       }
       if (error.code === NOT_READY) {
-        throw new EventNotReadyForConfirmationError(await this.blockingArrangements(eventKey));
+        throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event, confirmedBy));
       }
       throw new Error(`Failed to confirm event: ${error.message}`, { cause: error });
     }
   }
 
   /** Names what a losing race to `coordinator_confirm_event` was blocked by -- the SQLSTATE alone cannot carry the list. */
-  private async blockingArrangements(eventKey: number): Promise<readonly ArrangementType[]> {
-    const { data, error } = await this.client.rpc("event_readiness", { p_event_id: eventKey });
-
-    if (error) {
-      throw new Error(`Failed to look up event readiness: ${error.message}`, { cause: error });
-    }
-
-    const rows = (data ?? []) as unknown as { arrangement_type: ArrangementType; is_complete: boolean }[];
-    return rows.filter((row) => !row.is_complete).map((row) => row.arrangement_type);
+  private async blockingArrangements(
+    event: CoordinatorEvent,
+    confirmedBy: UserAccountId,
+  ): Promise<readonly ArrangementType[]> {
+    const facts = await new SupabaseEventReadinessRepository(this.client).factsFor(confirmedBy, event.id);
+    return facts === null ? [] : blockingArrangements(assessReadiness(facts));
   }
 
   /**

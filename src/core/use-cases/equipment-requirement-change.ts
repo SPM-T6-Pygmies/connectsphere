@@ -54,8 +54,8 @@ export async function assignedEvent(
   id: CoordinatorEvent["id"],
   caller: UserAccountId,
 ): Promise<CoordinatorEvent> {
-  const event = await events.findById(id);
-  if (event === null || event.assignedCoordinatorUserAccountId !== caller) {
+  const event = await events.findAssignedById(caller, id);
+  if (event === null) {
     throw new EventNotFoundError(id);
   }
   return event;

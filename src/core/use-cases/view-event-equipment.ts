@@ -49,8 +49,8 @@ export class ViewEventEquipmentUseCase {
     const { events, equipment } = this.deps;
     const id = eventId(command.eventId);
 
-    const event = await events.findById(id);
-    if (event === null || event.assignedCoordinatorUserAccountId !== userAccountId(command.userAccountId)) {
+    const event = await events.findAssignedById(userAccountId(command.userAccountId), id);
+    if (event === null) {
       return null;
     }
 

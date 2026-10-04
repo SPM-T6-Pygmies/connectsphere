@@ -22,7 +22,7 @@ import {
   EquipmentRemovalNotRequestedError,
   EquipmentRequirementsLockedError,
   InvalidEquipmentItemIdError,
-  InvalidEquipmentQuantityError,
+  InvalidEquipmentRequirementQuantityError,
   TechnicalRequirementsTooLongError,
 } from "./errors";
 import { eventId } from "./event";
@@ -164,7 +164,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
   it("rejects a quantity of 0", () => {
     expect(() =>
       recordEquipmentRequirement(event(), [], newRequirement({ quantityRequested: 0 })),
-    ).toThrow(InvalidEquipmentQuantityError);
+    ).toThrow(InvalidEquipmentRequirementQuantityError);
   });
 
   it("accepts a quantity of 1", () => {
@@ -184,7 +184,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
   it("rejects a quantity that is not a whole number", () => {
     expect(() =>
       recordEquipmentRequirement(event(), [], newRequirement({ quantityRequested: 1.5 })),
-    ).toThrow(InvalidEquipmentQuantityError);
+    ).toThrow(InvalidEquipmentRequirementQuantityError);
   });
 
   it("accepts technical requirements of exactly 500 characters", () => {
@@ -308,7 +308,7 @@ describe("editEquipmentRequirement (SPM-182)", () => {
         quantityRequested: 0,
         technicalRequirements: null,
       }),
-    ).toThrow(InvalidEquipmentQuantityError);
+    ).toThrow(InvalidEquipmentRequirementQuantityError);
   });
 
   it("rejects an edit to technical requirements of 501 characters", () => {

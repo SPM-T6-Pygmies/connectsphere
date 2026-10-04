@@ -9,10 +9,7 @@ import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventId } from "@/core/domain/event";
-import type {
-  ArrangementReadiness,
-  EventReadiness,
-} from "@/core/domain/event-readiness";
+import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
@@ -45,19 +42,36 @@ function seedEvent(
   };
 }
 
-function seedReadiness(
-  essentialArrangements: readonly ArrangementReadiness[],
-): EventReadiness {
-  return { eventId: eventId("event-1"), essentialArrangements };
+/** Facts for event-1, every arrangement incomplete unless overridden. */
+function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
+  return {
+    eventId: eventId("event-1"),
+    essentialTypes: [],
+    confirmedVenueLocation: null,
+    programmeAgenda: null,
+    registrationEnabled: false,
+    registrationOpenDate: null,
+    registrationCloseDate: null,
+    ...overrides,
+  };
 }
 
 function buildUseCase(
   events: readonly SeedCoordinatorEvent[],
-  readiness: readonly EventReadiness[] = [],
+  readiness: readonly ReadinessFacts[] = [],
 ) {
   return new ViewCoordinatorEventUseCase({
     events: new InMemoryCoordinatorEventRepository(events),
-    readiness: new InMemoryEventReadinessRepository(readiness),
+    readiness: new InMemoryEventReadinessRepository(
+      readiness,
+      new Map(
+        events.flatMap((event) =>
+          event.assignedCoordinatorUserAccountId === null
+            ? []
+            : [[event.id, event.assignedCoordinatorUserAccountId] as const],
+        ),
+      ),
+    ),
     clientOrganisations: new InMemoryClientOrganisationRepository(ORG_NAMES),
     userAccounts: new InMemoryUserAccountRepository({ names: ORGANISER_NAMES }),
   });
@@ -79,7 +93,7 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
   it("reports confirmable when every essential arrangement is complete", async () => {
     const useCase = buildUseCase(
       [seedEvent()],
-      [seedReadiness([{ type: "venue", complete: true, detail: "" }])],
+      [seedFacts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall" })],
     );
 
     const result = await useCase.execute({
@@ -87,7 +101,7 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
       userAccountId: COORDINATOR,
     });
 
-    expect(result?.canConfirm).toBe(true);
+    expect(result?.confirmation).toBe("ready");
     expect(result?.blockingArrangements).toEqual([]);
   });
 
@@ -95,10 +109,10 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
     const useCase = buildUseCase(
       [seedEvent()],
       [
-        seedReadiness([
-          { type: "venue", complete: false, detail: "" },
-          { type: "programme", complete: true, detail: "" },
-        ]),
+        seedFacts({
+          essentialTypes: ["venue", "programme"],
+          programmeAgenda: "Talks, then lunch",
+        }),
       ],
     );
 
@@ -107,20 +121,28 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
       userAccountId: COORDINATOR,
     });
 
-    expect(result?.canConfirm).toBe(false);
+    expect(result?.confirmation).toBe("blocked-by-arrangements");
     expect(result?.blockingArrangements).toEqual(["venue"]);
   });
 
-  it("reports not confirmable once the event is past Planning, even with nothing blocking", async () => {
-    const useCase = buildUseCase([seedEvent({ status: "Confirmed" })]);
+  it.each([
+    ["Confirmed", "already-confirmed"],
+    ["Completed", "already-confirmed"],
+    ["Blocked", "not-in-planning"],
+    ["Cancelled", "not-in-planning"],
+  ] as const)(
+    "reports a %s event as %s, not ready, even with nothing blocking",
+    async (status, confirmation) => {
+      const useCase = buildUseCase([seedEvent({ status })]);
 
-    const result = await useCase.execute({
-      id: "event-1",
-      userAccountId: COORDINATOR,
-    });
+      const result = await useCase.execute({
+        id: "event-1",
+        userAccountId: COORDINATOR,
+      });
 
-    expect(result?.canConfirm).toBe(false);
-  });
+      expect(result?.confirmation).toBe(confirmation);
+    },
+  );
 
   it.each([
     [

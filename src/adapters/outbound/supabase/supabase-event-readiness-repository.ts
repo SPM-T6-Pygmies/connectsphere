@@ -1,46 +1,60 @@
 import type { EventId } from "@/core/domain/event";
-import type { ArrangementType, EventReadiness } from "@/core/domain/event-readiness";
+import type { ArrangementType, ReadinessFacts } from "@/core/domain/event-readiness";
+import type { UserAccountId } from "@/core/domain/user-account";
 import type { EventReadinessRepository } from "@/core/ports/outbound/event-readiness-repository";
 
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
 
-interface EventReadinessRow {
-  arrangement_type: ArrangementType;
-  is_complete: boolean;
-  detail: string;
+/** The one row `event_readiness` returns. */
+export interface EventReadinessRow {
+  essential_types: ArrangementType[] | null;
+  confirmed_venue_location: string | null;
+  programme_agenda: string | null;
+  registration_enabled: boolean | null;
+  /** Postgres `date`: `YYYY-MM-DD`. */
+  registration_open_date: string | null;
+  registration_close_date: string | null;
+}
+
+export function toReadinessFacts(eventId: EventId, row: EventReadinessRow): ReadinessFacts {
+  return {
+    eventId,
+    essentialTypes: row.essential_types ?? [],
+    confirmedVenueLocation: row.confirmed_venue_location,
+    programmeAgenda: row.programme_agenda,
+    registrationEnabled: row.registration_enabled ?? false,
+    registrationOpenDate: row.registration_open_date,
+    registrationCloseDate: row.registration_close_date,
+  };
 }
 
 /**
- * Reached through `event_readiness`, not the table -- `event_essential_arrangement`
- * has RLS enabled with no policies (schema.sql), so a `security definer`
- * function is the only way in. Only computes venue/programme/registration
- * (decision 2, SPM-50 plan): equipment/technical_support/other never appear
- * in the returned rows, so they can never block or pass confirmation here.
+ * Reached through `event_readiness`, not the tables --
+ * `event_essential_arrangement` has RLS enabled with no policies
+ * (schema.sql), so a `security definer` function is the only way in. It
+ * returns facts only; `assessReadiness` decides what they mean.
  */
 export class SupabaseEventReadinessRepository implements EventReadinessRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
-  async readinessFor(eventId: EventId): Promise<EventReadiness> {
+  async factsFor(coordinatorId: UserAccountId, eventId: EventId): Promise<ReadinessFacts | null> {
     const key = toKey(eventId);
-    if (key === null) {
-      return { eventId, essentialArrangements: [] };
+    const coordinatorKey = toKey(coordinatorId);
+    if (key === null || coordinatorKey === null) {
+      return null;
     }
 
-    const { data, error } = await this.client.rpc("event_readiness", { p_event_id: key });
+    const { data, error } = await this.client.rpc("event_readiness", {
+      p_event_id: key,
+      p_coordinator_user_account_id: coordinatorKey,
+    });
 
     if (error) {
       throw new Error(`Failed to look up event readiness: ${error.message}`, { cause: error });
     }
 
-    const rows = (data ?? []) as unknown as EventReadinessRow[];
-    return {
-      eventId,
-      essentialArrangements: rows.map((row) => ({
-        type: row.arrangement_type,
-        complete: row.is_complete,
-        detail: row.detail,
-      })),
-    };
+    const [row] = (data ?? []) as unknown as EventReadinessRow[];
+    return row === undefined ? null : toReadinessFacts(eventId, row);
   }
 }

@@ -5,7 +5,7 @@ import {
   EquipmentRemovalAlreadyRequestedError,
   EquipmentRemovalNotRequestedError,
   EquipmentRequirementsLockedError,
-  InvalidEquipmentQuantityError,
+  InvalidEquipmentRequirementQuantityError,
   TechnicalRequirementsTooLongError,
 } from "./errors";
 
@@ -251,7 +251,7 @@ function assertNotRemovalRequested(line: EquipmentRequirement): void {
 /** AC3 and AC5. Blank technical requirements are no technical requirements. */
 function validDetails(details: EquipmentRequirementDetails): EquipmentRequirementDetails {
   if (!Number.isInteger(details.quantityRequested) || details.quantityRequested < 1) {
-    throw new InvalidEquipmentQuantityError(details.quantityRequested);
+    throw new InvalidEquipmentRequirementQuantityError(details.quantityRequested);
   }
 
   const notes = details.technicalRequirements?.trim() ?? "";

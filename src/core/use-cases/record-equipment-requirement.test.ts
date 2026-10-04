@@ -15,7 +15,7 @@ import {
   EquipmentItemNotInCatalogueError,
   EquipmentRequirementsLockedError,
   EventNotFoundError,
-  InvalidEquipmentQuantityError,
+  InvalidEquipmentRequirementQuantityError,
 } from "@/core/domain/errors";
 
 import { RecordEquipmentRequirementUseCase } from "./record-equipment-requirement";
@@ -90,7 +90,7 @@ describe("RecordEquipmentRequirementUseCase (SPM-184)", () => {
     const { useCase } = record();
 
     await expect(useCase.execute({ ...speaker, quantityRequested: 0 })).rejects.toThrow(
-      InvalidEquipmentQuantityError,
+      InvalidEquipmentRequirementQuantityError,
     );
   });
 

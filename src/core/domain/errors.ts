@@ -324,6 +324,123 @@ export class DraftNotEditableError extends DomainError {
 }
 
 /**
+ * SPM-46: the event a booking is for either does not exist or is not the
+ * caller's to plan -- one answer for both, as for requests (#91).
+ */
+export class CoordinatorEventNotFoundError extends DomainError {
+  readonly code = "coordinator_event_not_found";
+
+  constructor(readonly id: string) {
+    super(`Event ${id} was not found.`);
+  }
+}
+
+export class NoBookingSlotsError extends DomainError {
+  readonly code = "no_booking_slots";
+
+  constructor() {
+    super("Choose at least one slot to book.");
+  }
+}
+
+export class InvalidBookingDateError extends DomainError {
+  readonly code = "invalid_booking_date";
+
+  constructor(readonly date: string) {
+    super(`"${date}" is not a valid date.`);
+  }
+}
+
+export class DuplicateBookingSlotError extends DomainError {
+  readonly code = "duplicate_booking_slot";
+
+  constructor(
+    readonly date: string,
+    readonly slot: string,
+  ) {
+    super(`${date} ${slot} is requested more than once.`);
+  }
+}
+
+/** SPM-104: a venue with more than one layout needs the request to say which it assumes (#112). */
+export class RoomLayoutRequiredError extends DomainError {
+  readonly code = "room_layout_required";
+
+  constructor() {
+    super("This venue supports more than one layout. Choose the one the event assumes.");
+  }
+}
+
+export class UnsupportedRoomLayoutError extends DomainError {
+  readonly code = "unsupported_room_layout";
+
+  constructor(readonly roomLayout: string) {
+    super("That layout is not one this venue supports.");
+  }
+}
+
+/**
+ * SPM-104: the layout is the coordinator's to change only while the request
+ * is still pending. Once Venue Staff have answered it, the answer was given
+ * for the layout then on record.
+ */
+export class BookingRoomLayoutNotChangeableError extends DomainError {
+  readonly code = "booking_room_layout_not_changeable";
+
+  constructor(readonly status: string) {
+    super("The layout can only be changed while the request is waiting for Venue Staff.");
+  }
+}
+
+/** SPM-46: a hold or confirmed booking already has one of the slots -- a hard block (#35, #41). */
+export class VenueSlotUnavailableError extends DomainError {
+  readonly code = "venue_slot_unavailable";
+
+  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
+    super(
+      `The venue is already booked for ${slots
+        .map(({ date, slot }) => `${date} ${slot}`)
+        .join(", ")}. Choose other slots or another venue.`,
+    );
+  }
+}
+
+/** SPM-22: no such booking, or one Venue Staff may not see. */
+export class BookingNotFoundError extends DomainError {
+  readonly code = "booking_not_found";
+
+  constructor(readonly bookingId: string) {
+    super("That booking request does not exist.");
+  }
+}
+
+/**
+ * SPM-22: only a request still waiting for Venue Staff can be decided. Takes no
+ * status for the reason `EventRequestNotDecidableError` takes none: the
+ * Supabase adapter raises it too, after losing a race to another decision.
+ */
+export class BookingNotDecidableError extends DomainError {
+  readonly code = "booking_not_decidable";
+
+  constructor() {
+    super("This booking request has already been decided.");
+  }
+}
+
+/**
+ * SPM-50: only an event in `Planning` can be confirmed -- `Blocked`,
+ * `Confirmed`, `Completed` and `Cancelled` all refuse, each for its own
+ * reason the ticket and schema leave undefined beyond "not Planning".
+ */
+export class EventNotConfirmableError extends DomainError {
+  readonly code = "event_not_confirmable";
+
+  constructor(readonly status: string) {
+    super(`An event with status ${status} cannot be confirmed.`);
+  }
+}
+
+/**
  * SPM-33 AC2: a clarification can only be requested on a request that is still
  * pre-decision -- `Submitted`, `Under Review`, or already `Returned` (decision
  * 5: a request can be returned more than once, with or without a Resolve in
@@ -338,6 +455,23 @@ export class EventRequestNotReturnableError extends DomainError {
 
   constructor() {
     super("This event request can no longer be returned for clarification.");
+  }
+}
+
+/**
+ * SPM-50 AC1: confirmation is blocked while an essential arrangement is
+ * incomplete, and the incomplete ones are named -- carries the list rather
+ * than a rendered sentence, the same choice `IncompleteEventRequestError`
+ * already makes for the same reason.
+ */
+export class EventNotReadyForConfirmationError extends DomainError {
+  readonly code = "event_not_ready_for_confirmation";
+
+  constructor(readonly blockingArrangements: readonly string[]) {
+    super(
+      `This event cannot be confirmed: ${blockingArrangements.join(", ")} ` +
+        `${blockingArrangements.length === 1 ? "is" : "are"} not complete.`,
+    );
   }
 }
 
@@ -423,6 +557,49 @@ export class ClarificationThreadClosedError extends DomainError {
   }
 }
 
+export class InvalidEquipmentItemIdError extends DomainError {
+  readonly code = "invalid_equipment_item_id";
+
+  constructor(raw: string) {
+    super(`"${raw}" is not a usable equipment item id.`);
+  }
+}
+
+export class EquipmentItemNotFoundError extends DomainError {
+  readonly code = "equipment_item_not_found";
+
+  constructor(id: string) {
+    super(`No equipment item exists with id ${id}.`);
+  }
+}
+
+/** SPM-40 AC1: a catalogue record must say what the equipment is. */
+export class EquipmentTypeRequiredError extends DomainError {
+  readonly code = "equipment_type_required";
+
+  constructor() {
+    super("Enter the equipment type.");
+  }
+}
+
+/** SPM-40 AC1: a catalogue record must say where the equipment is kept. */
+export class EquipmentLocationRequiredError extends DomainError {
+  readonly code = "equipment_location_required";
+
+  constructor() {
+    super("Enter where the equipment is kept.");
+  }
+}
+
+/** SPM-40: the quantity available is a count -- whole, and never below zero. */
+export class InvalidEquipmentQuantityError extends DomainError {
+  readonly code = "invalid_equipment_quantity";
+
+  constructor() {
+    super("Quantity must be a whole number, zero or more.");
+  }
+}
+
 export class InvalidVenueIdError extends DomainError {
   readonly code = "invalid_venue_id";
 
@@ -504,47 +681,9 @@ export class VenueMaintenanceNotPermittedError extends DomainError {
   }
 }
 
-/**
- * SPM-50: only an event in `Planning` can be confirmed -- `Blocked`,
- * `Confirmed`, `Completed` and `Cancelled` all refuse, each for its own
- * reason the ticket and schema leave undefined beyond "not Planning".
- */
-export class EventNotConfirmableError extends DomainError {
-  readonly code = "event_not_confirmable";
-
-  constructor(readonly status: string) {
-    super(`An event with status ${status} cannot be confirmed.`);
-  }
-}
-
-/**
- * SPM-50 AC1: confirmation is blocked while an essential arrangement is
- * incomplete, and the incomplete ones are named -- carries the list rather
- * than a rendered sentence, the same choice `IncompleteEventRequestError`
- * already makes for the same reason.
- */
-export class EventNotReadyForConfirmationError extends DomainError {
-  readonly code = "event_not_ready_for_confirmation";
-
-  constructor(readonly blockingArrangements: readonly string[]) {
-    super(
-      `This event cannot be confirmed: ${blockingArrangements.join(", ")} ` +
-        `${blockingArrangements.length === 1 ? "is" : "are"} not complete.`,
-    );
-  }
-}
-
-export class InvalidEquipmentItemIdError extends DomainError {
-  readonly code = "invalid_equipment_item_id";
-
-  constructor(raw: string) {
-    super(`"${raw}" is not a usable equipment item id.`);
-  }
-}
-
 /** SPM-41 AC3: a requirement is for at least one whole item. */
-export class InvalidEquipmentQuantityError extends DomainError {
-  readonly code = "invalid_equipment_quantity";
+export class InvalidEquipmentRequirementQuantityError extends DomainError {
+  readonly code = "invalid_equipment_requirement_quantity";
 
   constructor(readonly quantity: number) {
     super(`Quantity must be a whole number of at least 1, not ${quantity}.`);

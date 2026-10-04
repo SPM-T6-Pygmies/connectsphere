@@ -18,6 +18,20 @@ with your `<username>-` prefix, never a teammate's or Production's.
 One-off SQL for putting test data into a Supabase database. None of it runs
 automatically — not on `supabase db reset`, not in CI.
 
+## seed-venues
+
+Four venues and four room layouts for the coordinator's venue booking request
+page (SPM-46), until the venue catalogue (SPM-42) lets Venue Staff add their
+own. The venues cover every layout case the form tells apart: several layouts,
+one layout, and none on record. Safe to re-run.
+
+```bash
+supabase db query --file scripts/seed-venues/seed.sql --local
+```
+
+To reach the page, sign in as Test Coordinator, approve one of the seeded
+requests (that opens its event), then choose **Request a venue**.
+
 ## seed-coordinator-view
 
 Eight event requests owned by the real test accounts, covering every status the

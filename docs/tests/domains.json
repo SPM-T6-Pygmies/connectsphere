@@ -24,12 +24,16 @@
     "match": ["event-request", "submit-event-request", "save-event-request-draft", "discard"]
   },
   {
-    "domain": "Equipment",
-    "match": ["equipment"]
+    "domain": "Venue Booking",
+    "match": ["booking"]
   },
   {
     "domain": "Connections",
     "match": ["connection"]
+  },
+  {
+    "domain": "Equipment",
+    "match": ["equipment"]
   },
   {
     "domain": "Venue Catalogue",

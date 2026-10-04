@@ -3,7 +3,6 @@ import { forbidden } from "next/navigation";
 import { buildListEquipmentRechecks, getCurrentTechnicalSupport } from "@/composition/container";
 
 import { StaffShell } from "../staff-shell";
-import { EquipmentCatalogueCard } from "./equipment-catalogue-card";
 import { EquipmentRechecksCard } from "./equipment-rechecks-card";
 
 export const metadata = { title: "Needs review | ConnectSphere" };
@@ -22,7 +21,6 @@ export default async function TechnicalPage() {
   return (
     <StaffShell role="technical" crumbs={[{ label: "Needs review" }]}>
       <EquipmentRechecksCard rechecks={rechecks} />
-      <EquipmentCatalogueCard />
     </StaffShell>
   );
 }
