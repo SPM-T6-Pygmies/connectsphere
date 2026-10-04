@@ -1,9 +1,18 @@
 import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
-import { coordinatorAssignedRow } from "@/adapters/outbound/supabase/notification-row";
+import {
+  clarificationRequestedRow,
+  coordinatorAssignedRow,
+  eventRequestDecidedRow,
+  organiserCoordinatorAssignedRow,
+  type NotificationRow,
+} from "@/adapters/outbound/supabase/notification-row";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
+  EventRequestDecidedNotice,
   Notifier,
+  OrganiserCoordinatorAssignedNotice,
 } from "@/core/ports/outbound/notifier";
 
 /**
@@ -28,10 +37,38 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.inner.connectionRequested(connection);
   }
 
-  async eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
-    const notificationId = await this.record(coordinatorAssignedRow(notice));
+  organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
+    return this.recordAndDeliver(organiserCoordinatorAssignedRow(notice), () =>
+      this.inner.organiserCoordinatorAssigned(notice),
+    );
+  }
+
+  clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
+    return this.recordAndDeliver(clarificationRequestedRow(notice), () =>
+      this.inner.clarificationRequested(notice),
+    );
+  }
+
+  eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
+    return this.recordAndDeliver(eventRequestDecidedRow(notice), () =>
+      this.inner.eventRequestDecided(notice),
+    );
+  }
+
+  eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
+    return this.recordAndDeliver(coordinatorAssignedRow(notice), () =>
+      this.inner.eventCoordinatorAssigned(notice),
+    );
+  }
+
+  /** Record the row Pending, deliver, then mark it Sent or Failed. */
+  private async recordAndDeliver(
+    row: NotificationRow,
+    deliver: () => Promise<void>,
+  ): Promise<void> {
+    const notificationId = await this.record(row);
     try {
-      await this.inner.eventCoordinatorAssigned(notice);
+      await deliver();
     } catch (error) {
       console.error("[SupabaseRecordingNotifier] Delivery failed:", error);
       await this.mark(notificationId, { status: "Failed" });
@@ -40,7 +77,7 @@ export class SupabaseRecordingNotifier implements Notifier {
     await this.mark(notificationId, { status: "Sent", sent_at: new Date().toISOString() });
   }
 
-  private async record(row: ReturnType<typeof coordinatorAssignedRow>): Promise<number | null> {
+  private async record(row: NotificationRow): Promise<number | null> {
     const { data, error } = await this.supabase
       .from("notification")
       .insert(row)
