@@ -25,6 +25,14 @@ export const SLOT_HOURS: Readonly<Record<BookingSlot, { start: string; end: stri
   Night: { start: "18:00", end: "22:00" },
 };
 
+/**
+ * The instant `slot` starts on its date. Singapore observes no daylight
+ * saving, so its +08:00 offset is exact (#36).
+ */
+export function slotStartsAt({ date, slot }: SlotOnDate): Date {
+  return new Date(`${date}T${SLOT_HOURS[slot].start}:00+08:00`);
+}
+
 export function isBookingSlot(raw: string): raw is BookingSlot {
   return (BOOKING_SLOTS as readonly string[]).includes(raw);
 }

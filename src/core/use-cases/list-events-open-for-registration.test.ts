@@ -16,8 +16,10 @@ function event(id: string, overrides: Partial<Event> = {}): Event {
     name: `Event ${id}`,
     description: "A confirmed event with registration open.",
     status: "confirmed",
-    startsAt: new Date("2026-10-01T01:00:00.000Z"),
-    endsAt: new Date("2026-10-01T09:00:00.000Z"),
+    slots: [
+      { date: "2026-10-01", slot: "AM" },
+      { date: "2026-10-01", slot: "PM" },
+    ],
     venueName: "Hall A, 81 Victoria Street",
     capacity: 100,
     registrationEnabled: true,
@@ -94,15 +96,21 @@ describe("ListEventsOpenForRegistrationUseCase (SPM-79)", () => {
 
   it("returns the soonest event first", async () => {
     const later = event("later", {
-      startsAt: new Date("2026-11-01T01:00:00.000Z"),
+      slots: [{ date: "2026-11-01", slot: "AM" }],
     });
     const sooner = event("sooner", {
-      startsAt: new Date("2026-10-05T01:00:00.000Z"),
+      slots: [{ date: "2026-10-05", slot: "AM" }],
     });
     await expect(listedIds([later, sooner])).resolves.toEqual([
       "sooner",
       "later",
     ]);
+  });
+
+  it("orders events on the same day by the slot each starts in", async () => {
+    const evening = event("evening", { slots: [{ date: "2026-10-05", slot: "Night" }] });
+    const afternoon = event("afternoon", { slots: [{ date: "2026-10-05", slot: "PM" }] });
+    await expect(listedIds([evening, afternoon])).resolves.toEqual(["afternoon", "evening"]);
   });
 
   it("returns an empty list when nothing is open", async () => {
@@ -117,8 +125,11 @@ describe("ListEventsOpenForRegistrationUseCase (SPM-79)", () => {
         id: "summit",
         name: "Event summit",
         description: "A confirmed event with registration open.",
-        startsAt: "2026-10-01T01:00:00.000Z",
-        endsAt: "2026-10-01T09:00:00.000Z",
+        startsAt: "2026-09-30T23:00:00.000Z",
+        slots: [
+          { date: "2026-10-01", slot: "AM" },
+          { date: "2026-10-01", slot: "PM" },
+        ],
         venueName: "Hall A, 81 Victoria Street",
         registrationClosesAt: "2026-09-30T00:00:00.000Z",
       },

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AvailableEvent } from "@/core/use-cases/available-event";
 
-import { fullDate, timeRange } from "../format-event-time";
+import { fullDate, slotTimes } from "../format-event-time";
 import { registerForEventAction, type RegistrationState } from "./actions";
 
 const INITIAL: RegistrationState = { status: "idle" };
@@ -103,7 +103,7 @@ function Confirmation({
           <div className="flex items-center gap-2">
             <dt className="sr-only">Time</dt>
             <Clock aria-hidden className="size-4 shrink-0" />
-            <dd>{timeRange(event.startsAt, event.endsAt)}</dd>
+            <dd>{slotTimes(event.slots)}</dd>
           </div>
           <div className="flex items-center gap-2">
             <dt className="sr-only">Venue</dt>

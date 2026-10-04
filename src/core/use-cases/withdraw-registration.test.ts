@@ -27,8 +27,10 @@ function event(id: string, overrides: Partial<Event> = {}): Event {
     name: `Event ${id}`,
     description: null,
     status: "confirmed",
-    startsAt: new Date("2026-10-01T01:00:00.000Z"),
-    endsAt: new Date("2026-10-01T09:00:00.000Z"),
+    slots: [
+      { date: "2026-10-01", slot: "AM" },
+      { date: "2026-10-01", slot: "PM" },
+    ],
     venueName: "Hall A, 60 Stamford Road",
     capacity: null,
     registrationEnabled: true,
@@ -150,8 +152,10 @@ describe("WithdrawRegistrationUseCase (SPM-28)", () => {
 
     it("allows withdrawal after the event has started but before it is completed", async () => {
       const started = event(SUMMIT, {
-        startsAt: new Date("2026-09-06T01:00:00.000Z"),
-        endsAt: new Date("2026-09-06T09:00:00.000Z"),
+        slots: [
+          { date: "2026-09-06", slot: "AM" },
+          { date: "2026-09-06", slot: "PM" },
+        ],
       });
       const { useCase, registrations } = buildUseCase({ events: [started] });
 
@@ -256,8 +260,11 @@ describe("WithdrawRegistrationUseCase (SPM-28)", () => {
       expect(result.event).toMatchObject({
         id: SUMMIT,
         name: "Event 1",
-        startsAt: "2026-10-01T01:00:00.000Z",
-        endsAt: "2026-10-01T09:00:00.000Z",
+        startsAt: "2026-09-30T23:00:00.000Z",
+        slots: [
+          { date: "2026-10-01", slot: "AM" },
+          { date: "2026-10-01", slot: "PM" },
+        ],
         venueName: "Hall A, 60 Stamford Road",
       });
     });

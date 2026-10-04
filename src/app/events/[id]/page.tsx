@@ -6,7 +6,7 @@ import { buildViewEventForRegistration } from "@/composition/container";
 import { EventNotFoundError, EventNotOpenForRegistrationError } from "@/core/domain/errors";
 import type { AvailableEvent } from "@/core/use-cases/available-event";
 
-import { fullDate, timeRange } from "../format-event-time";
+import { fullDate, slotTimes } from "../format-event-time";
 import { RegistrationForm } from "./registration-form";
 
 /**
@@ -63,7 +63,7 @@ export default async function EventPage({ params }: PageProps<"/events/[id]">) {
         <div className="flex items-center gap-2">
           <dt className="sr-only">Time</dt>
           <Clock aria-hidden className="size-4 shrink-0" />
-          <dd>{timeRange(event.startsAt, event.endsAt)}</dd>
+          <dd>{slotTimes(event.slots)}</dd>
         </div>
         {event.venueName ? (
           <div className="flex items-center gap-2">

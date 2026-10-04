@@ -26,8 +26,10 @@ function event(id: string, overrides: Partial<Event> = {}): Event {
     name: "Pygmies Product Summit",
     description: "A day of talks.",
     status: "confirmed",
-    startsAt: new Date("2026-10-01T01:00:00.000Z"),
-    endsAt: new Date("2026-10-01T09:00:00.000Z"),
+    slots: [
+      { date: "2026-10-01", slot: "AM" },
+      { date: "2026-10-01", slot: "PM" },
+    ],
     venueName: "Hall A, 81 Victoria Street",
     capacity: 2,
     registrationEnabled: true,
@@ -75,8 +77,11 @@ describe("RegisterForEventUseCase (SPM-24)", () => {
     expect(result.registeredAt).toBe("2026-09-07T02:00:00.000Z");
     expect(result.event).toMatchObject({
       name: "Pygmies Product Summit",
-      startsAt: "2026-10-01T01:00:00.000Z",
-      endsAt: "2026-10-01T09:00:00.000Z",
+      startsAt: "2026-09-30T23:00:00.000Z",
+      slots: [
+        { date: "2026-10-01", slot: "AM" },
+        { date: "2026-10-01", slot: "PM" },
+      ],
       venueName: "Hall A, 81 Victoria Street",
     });
   });
