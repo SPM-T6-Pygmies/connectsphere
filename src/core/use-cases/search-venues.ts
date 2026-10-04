@@ -24,7 +24,7 @@ export type SearchVenuesResult = VenueSearchOutcome;
 
 /**
  * SPM-44: an Event Coordinator narrows the catalogue by attributes and by when
- * the event runs. Bookings are only fetched when a date and times are given.
+ * the event runs. Bookings are only fetched when a date and slots are given.
  *
  * Throws `InvalidVenueSearchError` for criteria that cannot be searched on.
  */

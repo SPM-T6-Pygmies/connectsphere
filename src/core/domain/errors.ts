@@ -622,8 +622,8 @@ export type VenueField =
   | "layouts";
 
 /**
- * SPM-44: venue search criteria that cannot be searched on -- an end time
- * before the start, a date without times, a facility that is not an option.
+ * SPM-44: venue search criteria that cannot be searched on -- a date without
+ * a slot, a date already past, a facility that is not an option.
  * Written for the Coordinator, so it can be shown as it is.
  */
 export class InvalidVenueSearchError extends DomainError {
@@ -643,8 +643,7 @@ export type VenueSearchField =
   | "facilities"
   | "accessibility"
   | "date"
-  | "startTime"
-  | "endTime";
+  | "slots";
 
 export class VenueNotFoundError extends DomainError {
   readonly code = "venue_not_found";

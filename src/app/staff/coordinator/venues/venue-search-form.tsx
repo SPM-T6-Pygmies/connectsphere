@@ -6,10 +6,12 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BOOKING_SLOTS } from "@/core/domain/booking";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
+import { slotLabel } from "../../slot-label";
 
 export interface VenueSearchValues {
   layout: string;
@@ -17,8 +19,8 @@ export interface VenueSearchValues {
   facilities: string;
   accessibility: string;
   date: string;
-  startTime: string;
-  endTime: string;
+  /** Comma-separated, as `OptionCheckboxes` posts it. */
+  slots: string;
 }
 
 /**
@@ -33,6 +35,7 @@ export function VenueSearchForm({
   errors: Partial<Record<keyof VenueSearchValues, string>>;
 }) {
   const [layout, setLayout] = useState(initial.layout);
+  const [slots, setSlots] = useState(initial.slots);
   const [facilities, setFacilities] = useState(initial.facilities);
   const [accessibility, setAccessibility] = useState(initial.accessibility);
   const form = useRef<HTMLFormElement>(null);
@@ -41,6 +44,7 @@ export function VenueSearchForm({
   function clear() {
     form.current?.reset();
     setLayout("");
+    setSlots("");
     setFacilities("");
     setAccessibility("");
   }
@@ -52,26 +56,15 @@ export function VenueSearchForm({
           <Input id="date" name="date" type="date" defaultValue={initial.date} aria-invalid={!!errors.date} />
         </Field>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field id="startTime" label="Start time" error={errors.startTime}>
-          <Input
-            id="startTime"
-            name="startTime"
-            type="time"
-            defaultValue={initial.startTime}
-            aria-invalid={!!errors.startTime}
-          />
-        </Field>
-        <Field id="endTime" label="End time" error={errors.endTime}>
-          <Input
-            id="endTime"
-            name="endTime"
-            type="time"
-            defaultValue={initial.endTime}
-            aria-invalid={!!errors.endTime}
-          />
-        </Field>
-      </div>
+      <Field id="slots" label="Slots" error={errors.slots}>
+        <OptionCheckboxes
+          name="slots"
+          options={BOOKING_SLOTS}
+          value={slots}
+          onChange={setSlots}
+          label={slotLabel}
+        />
+      </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="layout" label="Room layout" error={errors.layout}>
           <OptionSelect

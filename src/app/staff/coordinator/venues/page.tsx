@@ -15,7 +15,6 @@ import type { ExclusionReason, VenueSearchOutcome } from "@/core/domain/venue-se
 
 import { formatSlots } from "../../slot-label";
 import { PageHeader, StaffShell } from "../../staff-shell";
-import { formatTimeOnly } from "../../time-picker";
 import { VenueSearchForm, type VenueSearchValues } from "./venue-search-form";
 
 export const metadata = { title: "Find a venue | ConnectSphere" };
@@ -37,14 +36,14 @@ function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): s
       return `missing a selected facility (${values.facilities})`;
     case "accessibility":
       return `missing a selected accessibility feature (${values.accessibility})`;
-    case "hoursUnknown":
-      return "no operating hours or booking horizon recorded";
-    case "outsideHours":
-      return `not open for all of ${formatTimeOnly(values.startTime)} – ${formatTimeOnly(values.endTime)}`;
+    case "slotsUnknown":
+      return "no slots or booking horizon recorded";
+    case "slotNotOffered":
+      return `does not offer every slot chosen (${values.slots})`;
     case "beyondHorizon":
       return `cannot be booked as far ahead as ${values.date}`;
     case "booked":
-      return "already booked during that time";
+      return "already booked in a slot chosen";
   }
 }
 
@@ -70,7 +69,7 @@ function SearchSummary({
       )}
       {found === 0 && outcome.excluded.length > 0 ? (
         <p className="text-muted-foreground">
-          Try a different time, a smaller attendance or fewer facilities.
+          Try a different date or slot, a smaller attendance or fewer facilities.
         </p>
       ) : null}
     </div>
@@ -100,8 +99,7 @@ export default async function VenueSearchPage({
     facilities: text(params.facilities),
     accessibility: text(params.accessibility),
     date: text(params.date),
-    startTime: text(params.startTime),
-    endTime: text(params.endTime),
+    slots: text(params.slots),
   };
 
   let outcome: VenueSearchOutcome = { venues: [], excluded: [] };
@@ -127,7 +125,7 @@ export default async function VenueSearchPage({
     <StaffShell role="coordinator" crumbs={[{ label: "Find a venue" }]}>
       <PageHeader
         title="Find a venue"
-        description="Narrow the catalogue to venues that could host the event. Times are Singapore time. Check suitability before booking."
+        description="Narrow the catalogue to venues that could host the event. Slots are Singapore time. Check suitability before booking."
       />
       <div className="space-y-6">
         {/* Keyed on the search so Clear (same route, new query) remounts it with fresh state. */}

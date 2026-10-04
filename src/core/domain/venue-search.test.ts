@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { BookingSlot } from "./booking";
 import { InvalidVenueSearchError, type VenueSearchField } from "./errors";
 import { venueId, type Venue } from "./venue";
 import {
@@ -52,8 +53,7 @@ function input(overrides: Partial<VenueSearchInput> = {}): VenueSearchInput {
     facilities: [],
     accessibility: [],
     date: null,
-    startTime: null,
-    endTime: null,
+    slots: [],
     ...overrides,
   };
 }
@@ -67,8 +67,8 @@ function booked(start: string, end: string, id = "1"): BusyInterval {
   };
 }
 
-function openFor(start: string, end: string, busy: BusyInterval[] = [], date = "2026-11-02") {
-  return isOpenFor(venue(), { date, start, end }, busy, TODAY, SG);
+function openFor(slots: BookingSlot[], busy: BusyInterval[] = [], date = "2026-11-02") {
+  return isOpenFor(venue(), { date, slots }, busy, TODAY, SG);
 }
 
 function flaggedField(search: VenueSearchInput): VenueSearchField | null {
@@ -139,56 +139,60 @@ describe("matchesAttributes (SPM-44)", () => {
 });
 
 describe("isOpenFor (SPM-44)", () => {
-  it("is open for a window exactly spanning the slots offered", () => {
-    expect(openFor("07:00", "18:00")).toBe(true);
+  // The venue offers AM (07:00-12:00) and PM (12:00-18:00), not Night.
+  it("is open in every slot the venue offers", () => {
+    expect(openFor(["AM", "PM"])).toBe(true);
   });
 
-  it("is not open for a window starting before the first slot", () => {
-    expect(openFor("06:59", "12:00")).toBe(false);
+  it("is not open in a slot the venue does not offer", () => {
+    expect(openFor(["Night"])).toBe(false);
   });
 
-  it("is not open for a window running into a slot not offered", () => {
-    expect(openFor("12:00", "18:01")).toBe(false);
+  it("is not open when only some of the slots searched are offered", () => {
+    expect(openFor(["PM", "Night"])).toBe(false);
   });
 
-  it("is not open when a live booking overlaps the window", () => {
-    expect(openFor("10:00", "13:00", [booked("12:00", "15:00")])).toBe(false);
+  it("is not open when a live booking holds the slot searched", () => {
+    expect(openFor(["PM"], [booked("12:00", "18:00")])).toBe(false);
   });
 
-  it("is not open when a booking lies wholly inside the window", () => {
-    expect(openFor("10:00", "16:00", [booked("12:00", "15:00")])).toBe(false);
+  it("is not open when a live booking holds any one of the slots searched", () => {
+    expect(openFor(["AM", "PM"], [booked("12:00", "18:00")])).toBe(false);
   });
 
-  it("is not open when a booking covers the whole window", () => {
-    expect(openFor("13:00", "14:00", [booked("12:00", "15:00")])).toBe(false);
+  it("is open when the booking is in the next slot, touching only its edge", () => {
+    expect(openFor(["AM"], [booked("12:00", "18:00")])).toBe(true);
   });
 
-  it("is open when a booking only touches the window's edge", () => {
-    expect(openFor("10:00", "12:00", [booked("12:00", "15:00")])).toBe(true);
-    expect(openFor("15:00", "16:00", [booked("12:00", "15:00")])).toBe(true);
+  it("is open when the booking is on another day", () => {
+    expect(openFor(["PM"], [booked("12:00", "18:00")], "2026-11-03")).toBe(true);
   });
 
   it("ignores another venue's bookings", () => {
-    expect(openFor("10:00", "13:00", [booked("12:00", "15:00", "2")])).toBe(true);
+    expect(openFor(["PM"], [booked("12:00", "18:00", "2")])).toBe(true);
   });
 
   it("is open on the last day of the booking horizon, not the day after", () => {
     // TODAY + 30 days.
-    expect(openFor("10:00", "11:00", [], "2026-12-01")).toBe(true);
-    expect(openFor("10:00", "11:00", [], "2026-12-02")).toBe(false);
+    expect(openFor(["AM"], [], "2026-12-01")).toBe(true);
+    expect(openFor(["AM"], [], "2026-12-02")).toBe(false);
   });
 
   it("is not open when the venue has no slots or horizon recorded", () => {
-    const window = { date: "2026-11-02", start: "10:00", end: "11:00" };
+    const window = { date: "2026-11-02", slots: ["AM"] as const };
 
     expect(isOpenFor(venue({ slots: [] }), window, [], TODAY, SG)).toBe(false);
     expect(isOpenFor(venue({ bookingHorizonDays: null }), window, [], TODAY, SG)).toBe(false);
   });
 
-  it("reads the window in the venue's timezone", () => {
-    expect(windowInstants({ date: "2026-11-02", start: "10:00", end: "13:00" }, SG)).toEqual({
-      from: new Date("2026-11-02T02:00:00Z"),
-      to: new Date("2026-11-02T05:00:00Z"),
+  it("spans the window from the first slot's start to the last one's end, in Singapore time", () => {
+    expect(windowInstants({ date: "2026-11-02", slots: ["AM", "PM"] }, SG)).toEqual({
+      from: new Date("2026-11-01T23:00:00Z"),
+      to: new Date("2026-11-02T10:00:00Z"),
+    });
+    expect(windowInstants({ date: "2026-11-02", slots: ["Night"] }, SG)).toEqual({
+      from: new Date("2026-11-02T10:00:00Z"),
+      to: new Date("2026-11-02T14:00:00Z"),
     });
   });
 
@@ -217,14 +221,13 @@ describe("venue search (SPM-44)", () => {
         layout: "Theatre",
         attendance: 100,
         date: "2026-11-02",
-        startTime: "10:00",
-        endTime: "13:00",
+        slots: ["PM"],
       }),
       TODAY,
     );
 
     expect(
-      searchVenues([free, taken, tooSmall], search, [booked("12:00", "15:00", "2")], TODAY, SG),
+      searchVenues([free, taken, tooSmall], search, [booked("12:00", "18:00", "2")], TODAY, SG),
     ).toEqual({
       venues: [free],
       excluded: [
@@ -254,21 +257,21 @@ describe("venue search (SPM-44)", () => {
     ["capacity", criteria({ layout: "Boardroom", attendance: 100 })],
     ["facilities", criteria({ facilities: ["Wi-Fi"] })],
     ["accessibility", criteria({ accessibility: ["Hearing loop"] })],
-    ["outsideHours", criteria({ window: { date: "2026-11-02", start: "17:00", end: "19:00" } })],
-    ["beyondHorizon", criteria({ window: { date: "2026-12-02", start: "10:00", end: "11:00" } })],
-    ["booked", criteria({ window: { date: "2026-11-02", start: "12:00", end: "13:00" } })],
+    ["slotNotOffered", criteria({ window: { date: "2026-11-02", slots: ["Night"] } })],
+    ["beyondHorizon", criteria({ window: { date: "2026-12-02", slots: ["AM"] } })],
+    ["booked", criteria({ window: { date: "2026-11-02", slots: ["PM"] } })],
   ] as const)("names %s as the reason a venue was left out", (reason, search) => {
-    const { excluded } = searchVenues([venue()], search, [booked("12:00", "15:00")], TODAY, SG);
+    const { excluded } = searchVenues([venue()], search, [booked("12:00", "18:00")], TODAY, SG);
 
     expect(excluded).toEqual([{ reason, count: 1 }]);
   });
 
   it("names missing slots as the reason when a window is searched", () => {
-    const search = criteria({ window: { date: "2026-11-02", start: "10:00", end: "11:00" } });
+    const search = criteria({ window: { date: "2026-11-02", slots: ["AM"] } });
 
     expect(
       searchVenues([venue({ slots: [] })], search, [], TODAY, SG).excluded,
-    ).toEqual([{ reason: "hoursUnknown", count: 1 }]);
+    ).toEqual([{ reason: "slotsUnknown", count: 1 }]);
   });
 
   it("counts a venue once, under the first filter it fails", () => {
@@ -280,29 +283,31 @@ describe("venue search (SPM-44)", () => {
   });
 
   it("treats blank text as no filter", () => {
-    expect(defineVenueSearch(input({ layout: "  ", date: "", startTime: "" }), TODAY)).toEqual(
+    expect(defineVenueSearch(input({ layout: "  ", date: "", slots: [" "] }), TODAY)).toEqual(
       criteria(),
     );
   });
 
-  it("refuses a date without times, and times without a date", () => {
-    expect(flaggedField(input({ date: "2026-11-02" }))).toBe("startTime");
-    expect(flaggedField(input({ date: "2026-11-02", startTime: "10:00" }))).toBe("endTime");
-    expect(flaggedField(input({ startTime: "10:00", endTime: "11:00" }))).toBe("date");
+  it("refuses a date without a slot, and slots without a date", () => {
+    expect(flaggedField(input({ date: "2026-11-02" }))).toBe("slots");
+    expect(flaggedField(input({ slots: ["AM"] }))).toBe("date");
   });
 
-  it("refuses an end time that is not after the start", () => {
-    const window = { date: "2026-11-02", startTime: "10:00" };
+  it("keeps the slots searched in the order the day runs", () => {
+    const search = defineVenueSearch(input({ date: "2026-11-02", slots: ["Night", "AM"] }), TODAY);
 
-    expect(flaggedField(input({ ...window, endTime: "10:00" }))).toBe("endTime");
-    expect(flaggedField(input({ ...window, endTime: "09:59" }))).toBe("endTime");
+    expect(search.window).toEqual({ date: "2026-11-02", slots: ["AM", "Night"] });
+  });
+
+  it("refuses a slot that is not AM, PM or Night", () => {
+    expect(flaggedField(input({ date: "2026-11-02", slots: ["Evening"] }))).toBe("slots");
   });
 
   it("accepts today, refuses yesterday", () => {
-    const times = { startTime: "10:00", endTime: "11:00" };
+    const slots = ["AM"];
 
-    expect(defineVenueSearch(input({ ...times, date: TODAY }), TODAY).window?.date).toBe(TODAY);
-    expect(flaggedField(input({ ...times, date: "2026-10-31" }))).toBe("date");
+    expect(defineVenueSearch(input({ slots, date: TODAY }), TODAY).window?.date).toBe(TODAY);
+    expect(flaggedField(input({ slots, date: "2026-10-31" }))).toBe("date");
   });
 
   it("refuses values that are not options", () => {

@@ -33,8 +33,7 @@ function search(overrides: Partial<VenueSearchInput> = {}): VenueSearchInput {
     facilities: [],
     accessibility: [],
     date: null,
-    startTime: null,
-    endTime: null,
+    slots: [],
     ...overrides,
   };
 }
@@ -51,18 +50,18 @@ function build(venues: Venue[], busy: BusyInterval[] = []) {
 const ids = (result: { venues: readonly Venue[] }) => result.venues.map((v) => v.id);
 
 describe("SearchVenuesUseCase (SPM-44)", () => {
-  it("excludes a venue booked during the searched window, keeps one that is free", async () => {
+  it("excludes a venue booked in the searched slot, keeps one that is free", async () => {
     const busy = [
       {
         venueId: venueId("a"),
-        startsAt: new Date("2026-11-05T10:00:00+08:00"),
-        endsAt: new Date("2026-11-05T15:00:00+08:00"),
+        startsAt: new Date("2026-11-05T12:00:00+08:00"),
+        endsAt: new Date("2026-11-05T18:00:00+08:00"),
       },
     ];
     const useCase = build([venue("a"), venue("b")], busy);
 
     const result = await useCase.execute(
-      search({ date: "2026-11-05", startTime: "10:00", endTime: "15:00" }),
+      search({ date: "2026-11-05", slots: ["PM"] }),
     );
 
     expect(ids(result)).toEqual(["b"]);
@@ -81,8 +80,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
         attendance: 100,
         facilities: ["Wi-Fi"],
         date: "2026-11-05",
-        startTime: "10:00",
-        endTime: "15:00",
+        slots: ["PM"],
       }),
     );
 
@@ -107,7 +105,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
       venue("b", { facilities: "Projector" }),
       venue("c", { bookingHorizonDays: 1 }),
     ]).execute(
-      search({ facilities: ["Wi-Fi"], date: "2026-11-05", startTime: "10:00", endTime: "11:00" }),
+      search({ facilities: ["Wi-Fi"], date: "2026-11-05", slots: ["PM"] }),
     );
 
     expect(ids(result)).toEqual(["a"]);
@@ -120,7 +118,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
   it("refuses a search for a date already past in Singapore", async () => {
     await expect(
       build([venue("a")]).execute(
-        search({ date: "2026-10-31", startTime: "10:00", endTime: "11:00" }),
+        search({ date: "2026-10-31", slots: ["PM"] }),
       ),
     ).rejects.toBeInstanceOf(InvalidVenueSearchError);
   });
