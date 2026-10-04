@@ -38,8 +38,8 @@ export interface VenueDetails {
   /** The day slots the venue can be booked in, in `BOOKING_SLOTS` order. */
   readonly slots: readonly BookingSlot[];
   /**
-   * The venue-level headline capacity, kept exactly as supplied. It is neither
-   * derived from the layouts nor checked against them: which one wins is SPM-106.
+   * The venue-level headline capacity, kept exactly as supplied. It is not
+   * derived from the layouts, but no layout may seat more than it (SPM-106).
    */
   readonly capacity: number | null;
   /** How many days ahead the venue can be booked. */
@@ -72,7 +72,8 @@ export function canMaintainVenues(roles: readonly string[]): boolean {
  * Every attribute is mandatory, and at least one layout must be listed. A
  * layout's capacity must be supplied and positive: there is no default and no
  * fallback to the venue's own figure -- "the system would have to compute it"
- * is exactly what SPM-42 AC2 rules out.
+ * is exactly what SPM-42 AC2 rules out. Nor may a layout seat more than the
+ * venue itself (SPM-106).
  */
 export function defineVenue(input: VenueDetails): VenueDetails {
   const location = requiredText(input.location, "Enter the location.", "location");
@@ -120,6 +121,7 @@ export function defineVenue(input: VenueDetails): VenueDetails {
   if (input.layouts.length === 0) {
     throw new InvalidVenueError("Add at least one supported room layout.", "layouts");
   }
+  const venueCapacity = input.capacity;
   const seen = new Set<string>();
   const layouts = input.layouts.map((layout) => {
     const name = layout.name.trim();
@@ -135,6 +137,12 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     if (!Number.isInteger(layout.capacity) || layout.capacity <= 0) {
       throw new InvalidVenueError(
         `Enter a capacity above 0 for the ${name} layout -- it is not worked out for you.`,
+        "layouts",
+      );
+    }
+    if (exceedsVenueCapacity(layout.capacity, venueCapacity)) {
+      throw new InvalidVenueError(
+        `The ${name} layout cannot seat more than the venue's capacity of ${venueCapacity}.`,
         "layouts",
       );
     }
@@ -155,6 +163,11 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     bookingHorizonDays: input.bookingHorizonDays,
     layouts,
   };
+}
+
+/** A layout may seat as many as the venue, but not more (SPM-106). */
+export function exceedsVenueCapacity(layoutCapacity: number, venueCapacity: number): boolean {
+  return layoutCapacity > venueCapacity;
 }
 
 function requiredText(value: string | null, message: string, field: VenueField): string {

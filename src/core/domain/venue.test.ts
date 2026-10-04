@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import type { BookingSlot } from "./booking";
 import { InvalidVenueError, type VenueField } from "./errors";
-import { canMaintainVenues, defineVenue, STANDARD_LAYOUTS, type VenueDetails } from "./venue";
+import {
+  canMaintainVenues,
+  defineVenue,
+  exceedsVenueCapacity,
+  STANDARD_LAYOUTS,
+  type VenueDetails,
+} from "./venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "./venue-options";
 
 function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
@@ -105,10 +111,6 @@ describe("defineVenue (SPM-42)", () => {
   });
 
   describe("venue-level capacity and booking horizon", () => {
-    it("keeps a venue capacity as supplied, even below a layout's capacity", () => {
-      expect(defineVenue(details({ capacity: 10 })).capacity).toBe(10);
-    });
-
     it.each([0, -1, 2.5])("refuses a venue capacity of %s", (capacity) => {
       expect(flaggedField(details({ capacity }))).toBe("capacity");
     });
@@ -218,5 +220,43 @@ describe("canMaintainVenues (SPM-148)", () => {
 
   it("refuses someone with no role", () => {
     expect(canMaintainVenues([])).toBe(false);
+  });
+});
+
+describe("no layout seats more than the venue (SPM-106)", () => {
+  const withTheatre = (capacity: number) =>
+    details({ capacity: 200, layouts: [{ name: "Theatre", capacity }] });
+
+  it.each([199, 200])("accepts a %s-seat layout in a 200-seat venue", (capacity) => {
+    expect(defineVenue(withTheatre(capacity)).layouts).toEqual([{ name: "Theatre", capacity }]);
+  });
+
+  it("refuses a 201-seat layout in a 200-seat venue, flagging layouts", () => {
+    expect(flaggedField(withTheatre(201))).toBe("layouts");
+    expect(() => defineVenue(withTheatre(201))).toThrow(
+      "The Theatre layout cannot seat more than the venue's capacity of 200.",
+    );
+  });
+
+  it("refuses when any one layout is too big, not only the first", () => {
+    const input = details({
+      capacity: 100,
+      layouts: [
+        { name: "Boardroom", capacity: 20 },
+        { name: "Banquet", capacity: 150 },
+      ],
+    });
+
+    expect(flaggedField(input)).toBe("layouts");
+  });
+});
+
+describe("exceedsVenueCapacity (SPM-106)", () => {
+  it.each([
+    [199, false],
+    [200, false],
+    [201, true],
+  ])("a %s-seat layout in a 200-seat venue exceeds it: %s", (layout, expected) => {
+    expect(exceedsVenueCapacity(layout, 200)).toBe(expected);
   });
 });
