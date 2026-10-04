@@ -1,3 +1,4 @@
+import { BOOKING_SLOTS, SLOT_HOURS } from "./booking";
 import { InvalidVenueSearchError } from "./errors";
 import { STANDARD_LAYOUTS, type Venue, type VenueId } from "./venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS, parseOptionList } from "./venue-options";
@@ -150,7 +151,7 @@ export interface VenueSearchOutcome {
  * The venues that meet every criterion given, and why the rest did not.
  *
  * `busy` must cover the searched window; `timeZone` (IANA) is where the
- * venues' wall-clock times -- operating hours and the window -- are read.
+ * venues' wall-clock times -- slot hours and the window -- are read.
  */
 export function searchVenues(
   venues: readonly Venue[],
@@ -221,9 +222,9 @@ export function isOpenFor(
 }
 
 /**
- * Whether the venue could be booked for the whole window: inside its operating
- * hours, within its booking horizon, and not overlapping a live booking. A
- * venue missing the hours or horizon cannot be shown to be open, so it is not.
+ * Whether the venue could be booked for the whole window: inside slots it
+ * offers, within its booking horizon, and not overlapping a live booking. A
+ * venue missing its slots or horizon cannot be shown to be open, so it is not.
  */
 function unavailability(
   venue: Venue,
@@ -232,11 +233,18 @@ function unavailability(
   today: string,
   timeZone: string,
 ): ExclusionReason | null {
-  const { operatingHoursStart: opens, operatingHoursEnd: closes, bookingHorizonDays } = venue;
-  if (opens === null || closes === null || bookingHorizonDays === null) {
+  const { slots, bookingHorizonDays } = venue;
+  if (slots.length === 0 || bookingHorizonDays === null) {
     return "hoursUnknown";
   }
-  if (window.start < opens || window.end > closes) {
+  const touched = BOOKING_SLOTS.filter(
+    (slot) => SLOT_HOURS[slot].start < window.end && SLOT_HOURS[slot].end > window.start,
+  );
+  if (
+    window.start < SLOT_HOURS.AM.start ||
+    window.end > SLOT_HOURS.Night.end ||
+    !touched.every((slot) => slots.includes(slot))
+  ) {
     return "outsideHours";
   }
   if (daysBetween(today, window.date) > bookingHorizonDays) {

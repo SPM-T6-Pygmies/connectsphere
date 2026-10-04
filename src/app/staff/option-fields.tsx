@@ -5,17 +5,20 @@ import { formatOptionList, parseOptionList } from "@/core/domain/venue-options";
 /**
  * A pick-any-of list that posts as one comma-separated field, the form the
  * core's `parseOptionList` reads. `value` and `onChange` carry that same string.
+ * `label` shows an option as something other than its value.
  */
-export function OptionCheckboxes({
+export function OptionCheckboxes<T extends string>({
   name,
   options,
   value,
   onChange,
+  label = (option) => option,
 }: {
   name: string;
-  options: readonly string[];
+  options: readonly T[];
   value: string;
   onChange: (value: string) => void;
+  label?: (option: T) => string;
 }) {
   const selected = parseOptionList(value);
 
@@ -39,7 +42,7 @@ export function OptionCheckboxes({
             checked={selected.includes(option)}
             onChange={(event) => toggle(option, event.target.checked)}
           />
-          {option}
+          {label(option)}
         </label>
       ))}
     </div>

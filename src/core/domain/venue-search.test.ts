@@ -23,8 +23,7 @@ function venue(overrides: Partial<Venue> = {}): Venue {
     location: "Marina Bay Hall",
     facilities: "Projector, PA system",
     accessibility: "Step-free access, Lift access",
-    operatingHoursStart: "09:00",
-    operatingHoursEnd: "17:00",
+    slots: ["AM", "PM"],
     capacity: 300,
     bookingHorizonDays: 30,
     layouts: [
@@ -140,16 +139,16 @@ describe("matchesAttributes (SPM-44)", () => {
 });
 
 describe("isOpenFor (SPM-44)", () => {
-  it("is open for a window exactly matching the operating hours", () => {
-    expect(openFor("09:00", "17:00")).toBe(true);
+  it("is open for a window exactly spanning the slots offered", () => {
+    expect(openFor("07:00", "18:00")).toBe(true);
   });
 
-  it("is not open for a window starting before opening", () => {
-    expect(openFor("08:59", "12:00")).toBe(false);
+  it("is not open for a window starting before the first slot", () => {
+    expect(openFor("06:59", "12:00")).toBe(false);
   });
 
-  it("is not open for a window ending after closing", () => {
-    expect(openFor("12:00", "17:01")).toBe(false);
+  it("is not open for a window running into a slot not offered", () => {
+    expect(openFor("12:00", "18:01")).toBe(false);
   });
 
   it("is not open when a live booking overlaps the window", () => {
@@ -179,10 +178,10 @@ describe("isOpenFor (SPM-44)", () => {
     expect(openFor("10:00", "11:00", [], "2026-12-02")).toBe(false);
   });
 
-  it("is not open when the venue has no operating hours or horizon recorded", () => {
+  it("is not open when the venue has no slots or horizon recorded", () => {
     const window = { date: "2026-11-02", start: "10:00", end: "11:00" };
 
-    expect(isOpenFor(venue({ operatingHoursStart: null }), window, [], TODAY, SG)).toBe(false);
+    expect(isOpenFor(venue({ slots: [] }), window, [], TODAY, SG)).toBe(false);
     expect(isOpenFor(venue({ bookingHorizonDays: null }), window, [], TODAY, SG)).toBe(false);
   });
 
@@ -255,7 +254,7 @@ describe("venue search (SPM-44)", () => {
     ["capacity", criteria({ layout: "Boardroom", attendance: 100 })],
     ["facilities", criteria({ facilities: ["Wi-Fi"] })],
     ["accessibility", criteria({ accessibility: ["Hearing loop"] })],
-    ["outsideHours", criteria({ window: { date: "2026-11-02", start: "08:00", end: "10:00" } })],
+    ["outsideHours", criteria({ window: { date: "2026-11-02", start: "17:00", end: "19:00" } })],
     ["beyondHorizon", criteria({ window: { date: "2026-12-02", start: "10:00", end: "11:00" } })],
     ["booked", criteria({ window: { date: "2026-11-02", start: "12:00", end: "13:00" } })],
   ] as const)("names %s as the reason a venue was left out", (reason, search) => {
@@ -264,11 +263,11 @@ describe("venue search (SPM-44)", () => {
     expect(excluded).toEqual([{ reason, count: 1 }]);
   });
 
-  it("names missing hours as the reason when a window is searched", () => {
+  it("names missing slots as the reason when a window is searched", () => {
     const search = criteria({ window: { date: "2026-11-02", start: "10:00", end: "11:00" } });
 
     expect(
-      searchVenues([venue({ operatingHoursEnd: null })], search, [], TODAY, SG).excluded,
+      searchVenues([venue({ slots: [] })], search, [], TODAY, SG).excluded,
     ).toEqual([{ reason: "hoursUnknown", count: 1 }]);
   });
 

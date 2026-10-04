@@ -11,19 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildListVenues } from "@/composition/container";
-import type { Venue } from "@/core/domain/venue";
 
 import { EmptyState } from "../../field-list";
+import { formatSlots } from "../../slot-label";
 import { PageHeader, StaffShell } from "../../staff-shell";
-import { formatTimeOnly } from "../../time-picker";
 
 export const metadata = { title: "Venues | ConnectSphere" };
-
-function hours(venue: Venue): string {
-  return venue.operatingHoursStart === null || venue.operatingHoursEnd === null
-    ? "—"
-    : `${formatTimeOnly(venue.operatingHoursStart)} – ${formatTimeOnly(venue.operatingHoursEnd)}`;
-}
 
 export default async function VenueCataloguePage() {
   const listVenues = await buildListVenues();
@@ -52,7 +45,7 @@ export default async function VenueCataloguePage() {
                 <TableHead>Location</TableHead>
                 <TableHead>Capacity</TableHead>
                 <TableHead>Layouts (capacity)</TableHead>
-                <TableHead>Operating hours</TableHead>
+                <TableHead>Slots</TableHead>
                 <TableHead>Facilities</TableHead>
               </TableRow>
             </TableHeader>
@@ -73,7 +66,7 @@ export default async function VenueCataloguePage() {
                       ? "—"
                       : venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ")}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{hours(venue)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatSlots(venue.slots)}</TableCell>
                   <TableCell className="text-muted-foreground">{venue.facilities ?? "—"}</TableCell>
                 </TableRow>
               ))}

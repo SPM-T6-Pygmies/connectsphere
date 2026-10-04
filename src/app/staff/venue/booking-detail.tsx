@@ -145,11 +145,8 @@ export async function BookingDetail({
                     fields={[
                       { label: "Capacity", value: venue.capacity },
                       {
-                        label: "Operating hours",
-                        value:
-                          venue.operatingHoursStart !== null && venue.operatingHoursEnd !== null
-                            ? `${venue.operatingHoursStart} - ${venue.operatingHoursEnd}`
-                            : null,
+                        label: "Slots",
+                        value: venue.slots.length > 0 ? venue.slots.join(", ") : null,
                       },
                       { label: "Facilities", value: venue.facilities },
                       { label: "Accessibility", value: venue.accessibility },

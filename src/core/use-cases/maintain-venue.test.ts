@@ -30,8 +30,7 @@ function newVenue(overrides: Partial<CreateVenueCommand> = {}): CreateVenueComma
     location: "Marina Bay Hall",
     facilities: "Projector",
     accessibility: "Step-free access",
-    operatingHoursStart: "08:00",
-    operatingHoursEnd: "22:00",
+    slots: ["AM", "PM", "Night"],
     capacity: 300,
     bookingHorizonDays: 180,
     layouts: [

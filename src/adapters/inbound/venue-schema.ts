@@ -1,22 +1,18 @@
 import { z } from "zod";
 
+import { BOOKING_SLOTS } from "@/core/domain/booking";
+import { parseOptionList } from "@/core/domain/venue-options";
+
 /**
  * The venue form's shape (SPM-146, SPM-147) -- and only its shape.
  *
  * Every field is mandatory, so a blank is refused here with a message for that
  * field. Whether a capacity is above 0, closing is after opening or a layout is
  * listed twice is `defineVenue`'s call, not this boundary's: this answers "is
- * each field the right kind of thing?". Times arrive as the time picker's
- * 24-hour `HH:MM`.
+ * each field the right kind of thing?". Slots arrive as one comma-separated
+ * field, as the option checkboxes post them.
  */
 const requiredText = (message: string) => z.string().trim().min(1, message);
-
-const clockTime = (label: string) =>
-  z
-    .string()
-    .trim()
-    .min(1, `Enter the ${label} time.`)
-    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, `Enter the ${label} time.`);
 
 const wholeNumber = (blank: string, invalid: string) =>
   z
@@ -35,8 +31,9 @@ export const createVenueSchema = z.object({
   location: requiredText("Enter the location."),
   facilities: requiredText("Enter the facilities."),
   accessibility: requiredText("Enter the accessibility details."),
-  operatingHoursStart: clockTime("opening"),
-  operatingHoursEnd: clockTime("closing"),
+  slots: z
+    .array(z.enum(BOOKING_SLOTS, "Choose AM, PM or Night."))
+    .min(1, "Select at least one slot the venue can be booked in."),
   capacity: wholeNumber("Enter the venue capacity.", "Enter the venue capacity as a whole number."),
   bookingHorizonDays: wholeNumber(
     "Enter the booking horizon in days.",
@@ -71,8 +68,7 @@ export function venueFormValues(formData: FormData) {
     location: String(formData.get("location") ?? ""),
     facilities: String(formData.get("facilities") ?? ""),
     accessibility: String(formData.get("accessibility") ?? ""),
-    operatingHoursStart: String(formData.get("operatingHoursStart") ?? ""),
-    operatingHoursEnd: String(formData.get("operatingHoursEnd") ?? ""),
+    slots: parseOptionList(String(formData.get("slots") ?? "")),
     capacity: String(formData.get("capacity") ?? ""),
     bookingHorizonDays: String(formData.get("bookingHorizonDays") ?? ""),
     layouts: names.map((name, index) => ({

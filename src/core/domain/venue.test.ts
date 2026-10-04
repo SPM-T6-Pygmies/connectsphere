@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { BookingSlot } from "./booking";
 import { InvalidVenueError, type VenueField } from "./errors";
 import { canMaintainVenues, defineVenue, STANDARD_LAYOUTS, type VenueDetails } from "./venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "./venue-options";
@@ -9,8 +10,7 @@ function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
     location: "Level 3, Marina Bay Hall",
     facilities: "Projector, PA system",
     accessibility: "Step-free access",
-    operatingHoursStart: "08:00",
-    operatingHoursEnd: "22:00",
+    slots: ["AM", "PM", "Night"],
     capacity: 300,
     bookingHorizonDays: 180,
     layouts: [
@@ -56,8 +56,7 @@ describe("defineVenue (SPM-42)", () => {
       ["facilities", { facilities: null }, "facilities"],
       ["blank facilities", { facilities: "  " }, "facilities"],
       ["accessibility", { accessibility: "" }, "accessibility"],
-      ["opening time", { operatingHoursStart: null }, "operatingHoursStart"],
-      ["closing time", { operatingHoursEnd: null }, "operatingHoursEnd"],
+      ["slot", { slots: [] }, "slots"],
       ["venue capacity", { capacity: null }, "capacity"],
       ["booking horizon", { bookingHorizonDays: null }, "bookingHorizonDays"],
       ["layouts", { layouts: [] }, "layouts"],
@@ -120,27 +119,21 @@ describe("defineVenue (SPM-42)", () => {
     });
   });
 
-  describe("operating hours", () => {
-    it("refuses closing at the moment it opens, flagging the closing time", () => {
-      expect(
-        flaggedField(details({ operatingHoursStart: "09:00", operatingHoursEnd: "09:00" })),
-      ).toBe("operatingHoursEnd");
+  describe("slots the venue offers", () => {
+    it("accepts a single slot", () => {
+      expect(defineVenue(details({ slots: ["Night"] })).slots).toEqual(["Night"]);
     });
 
-    it("refuses closing earlier than it opens, flagging the closing time", () => {
-      expect(
-        flaggedField(details({ operatingHoursStart: "17:00", operatingHoursEnd: "08:30" })),
-      ).toBe("operatingHoursEnd");
+    it("keeps slots in the order the day runs, whatever order they were picked in", () => {
+      expect(defineVenue(details({ slots: ["Night", "AM"] })).slots).toEqual(["AM", "Night"]);
     });
 
-    it("accepts closing one minute after opening", () => {
-      expect(() =>
-        defineVenue(details({ operatingHoursStart: "09:00", operatingHoursEnd: "09:01" })),
-      ).not.toThrow();
+    it("keeps a slot picked twice once", () => {
+      expect(defineVenue(details({ slots: ["PM", "PM"] })).slots).toEqual(["PM"]);
     });
 
-    it("refuses a time that is not HH:MM", () => {
-      expect(flaggedField(details({ operatingHoursStart: "8am" }))).toBe("operatingHoursStart");
+    it("refuses a slot that is not AM, PM or Night, flagging slots", () => {
+      expect(flaggedField(details({ slots: ["Evening" as BookingSlot] }))).toBe("slots");
     });
   });
 });

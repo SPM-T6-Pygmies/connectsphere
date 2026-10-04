@@ -15,11 +15,16 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BOOKING_SLOTS } from "@/core/domain/booking";
 import { STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
-import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "@/core/domain/venue-options";
+import {
+  ACCESSIBILITY_OPTIONS,
+  FACILITY_OPTIONS,
+  formatOptionList,
+} from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
-import { TimePicker } from "../../time-picker";
+import { slotLabel } from "../../slot-label";
 import type { VenueFormState } from "./actions";
 
 const INITIAL: VenueFormState = { status: "idle" };
@@ -35,7 +40,7 @@ function isFilled(value: string): boolean {
  *
  * Every field is mandatory, so the submit button stays disabled until each one
  * is filled -- the same gate the event request form uses. Whether the values
- * make sense (closing after opening, a capacity above 0, a layout listed twice)
+ * make sense (a capacity above 0, a layout listed twice)
  * is `defineVenue`'s call and comes back as a field error.
  */
 export function VenueForm({
@@ -51,8 +56,7 @@ export function VenueForm({
   const [capacity, setCapacity] = useState(venue?.capacity?.toString() ?? "");
   const [facilities, setFacilities] = useState(venue?.facilities ?? "");
   const [accessibility, setAccessibility] = useState(venue?.accessibility ?? "");
-  const [opens, setOpens] = useState(venue?.operatingHoursStart ?? "");
-  const [closes, setCloses] = useState(venue?.operatingHoursEnd ?? "");
+  const [slots, setSlots] = useState(formatOptionList(venue?.slots ?? []));
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
   const [nextKey, setNextKey] = useState(() => (venue?.layouts.length ?? 0) + 1);
   const [layouts, setLayouts] = useState<LayoutRow[]>(() =>
@@ -75,7 +79,7 @@ export function VenueForm({
   const errors = state.status === "error" ? state.fieldErrors : undefined;
 
   const readyToSubmit =
-    [location, capacity, facilities, accessibility, opens, closes, horizon].every(isFilled) &&
+    [location, capacity, facilities, accessibility, slots, horizon].every(isFilled) &&
     layouts.length > 0 &&
     layouts.every((layout) => isFilled(layout.name) && isFilled(layout.capacity));
 
@@ -186,32 +190,20 @@ export function VenueForm({
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field
-            id="operatingHoursStart"
-            label="Opening time"
+            id="slots"
+            label="Slots"
             required
-            error={errors?.operatingHoursStart}
+            hint="The parts of the day the venue can be booked in."
+            error={errors?.slots}
+            className="sm:col-span-2"
           >
-            <TimePicker
-              id="operatingHoursStart"
-              value={opens}
-              onChange={setOpens}
-              aria-invalid={errors?.operatingHoursStart !== undefined}
+            <OptionCheckboxes
+              name="slots"
+              options={BOOKING_SLOTS}
+              value={slots}
+              onChange={setSlots}
+              label={slotLabel}
             />
-            <input type="hidden" name="operatingHoursStart" value={opens} />
-          </Field>
-          <Field
-            id="operatingHoursEnd"
-            label="Closing time"
-            required
-            error={errors?.operatingHoursEnd}
-          >
-            <TimePicker
-              id="operatingHoursEnd"
-              value={closes}
-              onChange={setCloses}
-              aria-invalid={errors?.operatingHoursEnd !== undefined}
-            />
-            <input type="hidden" name="operatingHoursEnd" value={closes} />
           </Field>
           <Field
             id="bookingHorizonDays"

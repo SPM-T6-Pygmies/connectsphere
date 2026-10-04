@@ -42,8 +42,7 @@ const HALL: Venue = {
   capacity: 300,
   facilities: null,
   accessibility: null,
-  operatingHoursStart: null,
-  operatingHoursEnd: null,
+  slots: [],
   bookingHorizonDays: null,
   layouts: [
     { name: "Theatre", capacity: 300 },
@@ -57,8 +56,7 @@ const STUDIO: Venue = {
   capacity: 40,
   facilities: null,
   accessibility: null,
-  operatingHoursStart: null,
-  operatingHoursEnd: null,
+  slots: [],
   bookingHorizonDays: null,
   layouts: [{ name: "Classroom", capacity: 40 }],
 };

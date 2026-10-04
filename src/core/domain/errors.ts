@@ -597,7 +597,7 @@ export class InvalidVenueIdError extends DomainError {
 
 /**
  * SPM-42: a venue record the catalogue would not accept -- a missing location,
- * a layout with no capacity, hours that run backwards. The reason is written
+ * a layout with no capacity, no slot to book it in. The reason is written
  * for the person filling in the form, so it can be shown as it is.
  */
 export class InvalidVenueError extends DomainError {
@@ -616,8 +616,7 @@ export type VenueField =
   | "location"
   | "facilities"
   | "accessibility"
-  | "operatingHoursStart"
-  | "operatingHoursEnd"
+  | "slots"
   | "capacity"
   | "bookingHorizonDays"
   | "layouts";
