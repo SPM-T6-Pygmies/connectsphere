@@ -15,6 +15,10 @@ them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table. CI records them in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
+**Last run:** 2026-10-04, local (`pnpm dev:local`, Novu Development), by Isaiah
+Chia. TC-ORGNOTIFY-001–004 were run. TC-ORGNOTIFY-005 and 006 (SPM-60) have not
+been run yet. A box left unticked below means that check was not observed in the run.
+
 ---
 
 ## Test Environment Setup
@@ -47,11 +51,13 @@ them, tick the boxes below **and** report each in the PR description's
 2. As `organiser@test.com`, open **Notifications**.
 
 **Expected Result**
-- [ ] One new unread notification, badged **Coordinator assigned**, reading
+- [x] One new unread notification, badged **Coordinator assigned**, reading
       "Test Coordinator is coordinating <event>" and "Test Coordinator is now
       your point of contact at ConnectSphere for <event>."
 - [ ] `notification` has a row with `trigger_scenario = 'organiser-coordinator-assigned'`,
       the organiser as recipient, and `status = 'Sent'`.
+
+![Organiser's inbox with one unread Coordinator assigned notification](../screenshots/2026-10-04-spm-58-01-organiser-told-their-coordinator.png)
 
 ### TC-ORGNOTIFY-002 Opening the notification opens the request and reads it
 
@@ -59,9 +65,11 @@ them, tick the boxes below **and** report each in the PR description's
 1. Click the notification from TC-ORGNOTIFY-001.
 
 **Expected Result**
-- [ ] The organiser's request detail (`/staff/requester/<id>`) opens.
-- [ ] Back in **Notifications**, the notification is read and the unread dot on
+- [x] The organiser's request detail (`/staff/requester/<id>`) opens.
+- [x] Back in **Notifications**, the notification is read and the unread dot on
       the rail is gone.
+
+![The request opened from the notification, showing Test Coordinator assigned](../screenshots/2026-10-04-spm-58-02-notification-opens-the-request.png)
 
 ### TC-ORGNOTIFY-003 Reassignment notifies again, naming the new coordinator
 
@@ -71,8 +79,10 @@ them, tick the boxes below **and** report each in the PR description's
 3. As `ops@test.com`, assign Test Coordinator 2 again (no change).
 
 **Expected Result**
-- [ ] After step 2 there is a second, unread notification naming Test Coordinator 2.
+- [x] After step 2 there is a second, unread notification naming Test Coordinator 2.
 - [ ] Step 3 adds no notification.
+
+![A second, unread notification naming Test Coordinator 2; the first is read](../screenshots/2026-10-04-spm-58-03-reassignment-notifies-again.png)
 
 ## SPM-59: clarification requested
 
@@ -84,10 +94,13 @@ them, tick the boxes below **and** report each in the PR description's
 2. As `organiser@test.com`, open **Notifications** and click the new notification.
 
 **Expected Result**
-- [ ] The notification is badged **Clarification requested**, reads
+- [x] The notification is badged **Clarification requested**, reads
       "<event> needs clarification", and quotes the question.
-- [ ] Clicking it opens the request, showing the question and a reply box.
+- [x] Clicking it opens the request, showing the question and a reply box.
 - [ ] The notification is now read.
+
+![Clarification requested notification quoting the question](../screenshots/2026-10-04-spm-59-01-clarification-notification.png)
+![The returned request opened from the notification, with the question and a reply box](../screenshots/2026-10-04-spm-59-02-notification-opens-the-question.png)
 
 ## SPM-60: review decision
 
