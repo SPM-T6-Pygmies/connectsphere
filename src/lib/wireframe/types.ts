@@ -214,8 +214,8 @@ export interface EventRecord {
   readonly request: EventRequestRecord;
   readonly name: string;
   readonly status: EventStatus;
-  readonly startTime: string | null;
-  readonly endTime: string | null;
+  /** The slots the event runs in, in date then day order; empty until scheduled. */
+  readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: BookingSlot }>;
   readonly eventCapacity: number | null;
   readonly programmeAgenda: string | null;
   readonly operationalNotes: string | null;
