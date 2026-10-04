@@ -16,8 +16,9 @@ them, tick the boxes below **and** report each in the PR description's
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
 **Last run:** 2026-10-04, local (`pnpm dev:local`, Novu Development), by Isaiah
-Chia. TC-ORGNOTIFY-001–004 were run. TC-ORGNOTIFY-005 and 006 (SPM-60) have not
-been run yet. A box left unticked below means that check was not observed in the run.
+Chia. All six cases were run. A box left unticked below means that check was
+not observed in the run. The SPM-60 screenshots are attached to PR #96 rather
+than committed here.
 
 ---
 
@@ -97,7 +98,7 @@ been run yet. A box left unticked below means that check was not observed in the
 - [x] The notification is badged **Clarification requested**, reads
       "<event> needs clarification", and quotes the question.
 - [x] Clicking it opens the request, showing the question and a reply box.
-- [ ] The notification is now read.
+- [x] The notification is now read.
 
 ![Clarification requested notification quoting the question](../screenshots/2026-10-04-spm-59-01-clarification-notification.png)
 ![The returned request opened from the notification, with the question and a reply box](../screenshots/2026-10-04-spm-59-02-notification-opens-the-question.png)
@@ -111,7 +112,7 @@ been run yet. A box left unticked below means that check was not observed in the
 2. As `organiser@test.com`, open **Notifications** and click the new notification.
 
 **Expected Result**
-- [ ] The notification is badged **Request decided**, reads "<event> was
+- [x] The notification is badged **Request decided**, reads "<event> was
       approved", and says planning can begin but ConnectSphere is not yet
       committed to any arrangement.
 - [ ] Clicking it opens the request, and the notification is now read.
@@ -125,6 +126,6 @@ been run yet. A box left unticked below means that check was not observed in the
 3. As `organiser@test.com`, open **Notifications** and click the new notification.
 
 **Expected Result**
-- [ ] The notification reads "<event> was rejected" and gives the reason.
-- [ ] It does not suggest resubmitting.
+- [x] The notification reads "<event> was rejected" and gives the reason.
+- [x] It does not suggest resubmitting.
 - [ ] Clicking it opens the request, and the notification is now read.
