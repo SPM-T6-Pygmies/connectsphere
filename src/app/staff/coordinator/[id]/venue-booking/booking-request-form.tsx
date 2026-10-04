@@ -7,10 +7,11 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOOKING_SLOTS, type BookingSlot } from "@/core/domain/booking";
+import { BOOKING_SLOTS, checkLayoutCapacity, type BookingSlot } from "@/core/domain/booking";
 import type { Venue } from "@/core/use-cases/view-venue-booking-options";
 
 import { submitVenueBookingRequestAction, type SubmitVenueBookingRequestState } from "./actions";
+import { describeCapacity } from "../../../booking-capacity-message";
 
 const INITIAL: SubmitVenueBookingRequestState = { status: "idle" };
 
@@ -48,11 +49,14 @@ export function BookingRequestForm({
   eventId,
   eventRequestId,
   defaultDate,
+  expectedAttendance,
   venues,
 }: {
   eventId: string;
   eventRequestId: string;
   defaultDate: string | null;
+  /** The event's expected attendance, for the capacity hint under the layout. */
+  expectedAttendance: number | null;
   venues: readonly Venue[];
 }) {
   const [state, formAction, pending] = useActionState(submitVenueBookingRequestAction, INITIAL);
@@ -79,6 +83,11 @@ export function BookingRequestForm({
 
   const venue = venues.find((candidate) => candidate.id === venueId);
   const needsLayoutChoice = (venue?.layouts.length ?? 0) > 1;
+  // Only once a layout is chosen: until then there is no figure to compare.
+  const capacityHint =
+    venue !== undefined && layout !== ""
+      ? describeCapacity(checkLayoutCapacity(venue, layout, expectedAttendance))
+      : null;
   const chosenSlots = rows.flatMap((row) =>
     row.date === "" ? [] : row.slots.map((slot) => `${row.date}|${slot}`),
   );
@@ -195,6 +204,18 @@ export function BookingRequestForm({
                 ))}
               </div>
             )}
+            {capacityHint ? (
+              <p
+                role="status"
+                className={
+                  capacityHint.tone === "over"
+                    ? "text-destructive text-xs font-medium"
+                    : "text-muted-foreground text-xs"
+                }
+              >
+                {capacityHint.text}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
