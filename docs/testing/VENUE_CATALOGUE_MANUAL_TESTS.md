@@ -1,14 +1,14 @@
-# Venue Catalogue Manual Tests (SPM-42, SPM-44)
+# Venue Catalogue Manual Tests (SPM-42)
 
 ## Overview
-Manual browser tests for Venue Staff maintaining the venue catalogue (SPM-42)
-and for the Event Coordinator searching it (SPM-44), on slot-based timing: a
-venue offers some of the three day slots (AM 07:00–12:00, PM 12:00–18:00,
-Night 18:00–22:00, Singapore time) instead of opening and closing hours, and a
-search asks for a date plus slots instead of a start and end time.
+Manual browser tests for Venue Staff maintaining the venue catalogue (SPM-42),
+on slot-based timing: a venue offers some of the three day slots (AM
+07:00–12:00, PM 12:00–18:00, Night 18:00–22:00, Singapore time) instead of
+opening and closing hours.
 
-SPM-42 AC1 and SPM-44 AC2 still say "operating hours" and "start and end
-time". Slots replace both, so these cases check the slot form of each rule.
+SPM-42 AC1 still says "operating hours". Slots replace them, so these cases
+check the slot form of the rule. The search cases for SPM-44 are in
+[`VENUE_SEARCH_MANUAL_TESTS.md`](VENUE_SEARCH_MANUAL_TESTS.md).
 
 These cases are registered in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
@@ -23,12 +23,10 @@ them, tick the boxes below **and** report each in the PR description's
 | TC-VCAT-003 | SPM-42 | AC2 — layouts, each with its own capacity |
 | TC-VCAT-004 | SPM-42 | AC3 — update a venue, including a layout's capacity |
 | TC-VCAT-005 | SPM-42 | AC4 — any Venue Staff can maintain any venue |
-| TC-VSEARCH-001–003 | SPM-44 | AC1 — layout capacity, facilities, accessibility |
-| TC-VSEARCH-004, 006, 007, 012 | SPM-44 | AC2 — date and slots |
-| TC-VSEARCH-009–011 | SPM-44 | AC1 and AC2 together |
 
-TC-VSEARCH-005 (outside operating hours) and TC-VSEARCH-008 (backwards time
-window) are retired: they tested inputs that no longer exist.
+TC-VENUE-001–007 are retired: TC-VCAT-001–005 cover the same venue form with
+slots. TC-REQ-001–006 are retired: the event request form is covered by
+TC-EVREQ in [`EVENT_REQUEST_MANUAL_TESTS.md`](EVENT_REQUEST_MANUAL_TESTS.md).
 
 ---
 
@@ -37,13 +35,10 @@ window) are retired: they tested inputs that no longer exist.
 ### Prerequisites
 - Local Supabase stack: `supabase db reset` (applies every migration, including
   the `20261006*` slot migrations, and seeds the test accounts)
-- For the SPM-44 cases only:
-  `supabase db query --file scripts/seed-venue-search-uat/seed.sql --local`
 - Running: `pnpm dev:local`
 
 ### Test Accounts (password `TestPass123!`)
 - `venue@test.com`, `venue2@test.com` (Venue Staff)
-- `coordinator@test.com` (Event Coordinator)
 
 ---
 
@@ -133,128 +128,3 @@ catalogue (`/staff/venue/catalogue`).
 - [ ] Step 2 saves with "Venue saved."; no venue or location is refused to
       them (#66).
 - [ ] Step 3 shows the horizon of 60 that `venue2@test.com` saved.
-
----
-
-## SPM-44 — Search and filter venues
-
-**Shared Pre-Conditions:** UAT data seeded (see Prerequisites); log in as
-`coordinator@test.com` and open **Find a venue** (`/staff/coordinator/venues`).
-**D** is 14 days from today, Singapore time, as the seed sets it.
-
-Seeded venues (from `scripts/seed-venue-search-uat/seed.sql`):
-
-| Venue | Slots | Layouts | Facilities / Accessibility | Bookings |
-| --- | --- | --- | --- | --- |
-| UAT-44 Harbour Room | AM, PM, Night | Theatre 200, Boardroom 20 | Projector, Wi-Fi / Step-free access, Hearing loop | Confirmed on D PM |
-| UAT-44 Garden Hall | AM, PM | Banquet 150, Classroom 80 | PA system, Catering area / Lift access | Rejected on D AM |
-
-Both have a 60-day booking horizon; Harbour Room's venue capacity is 250,
-Garden Hall's 500.
-
-### TC-VSEARCH-001 Capacity is checked on the searched layout
-
-**Steps**
-1. Choose **Room layout** Boardroom, **Attendance** `100`. Click **Search**.
-2. Change **Room layout** to Theatre, keep **Attendance** `100`. Click **Search**.
-
-**Expected Result**
-- [ ] Step 1: Harbour Room is not listed; the summary says 1 venue not shown
-      because its Boardroom layout seats fewer than 100.
-- [ ] Step 2: Harbour Room is listed.
-
-### TC-VSEARCH-002 No fallback to the venue-wide capacity
-
-**Steps**
-1. Leave **Room layout** as Any layout. Enter **Attendance** `300`. Click **Search**.
-
-**Expected Result**
-- [ ] No venues found. Garden Hall is not listed although its venue capacity is
-      500; the summary says no layout seats 300.
-
-### TC-VSEARCH-003 Every selected facility and accessibility feature is required
-
-**Steps**
-1. Tick **Projector** and **Hearing loop**. Click **Search**.
-2. Open the page again. Tick **Projector** and **Lift access**. Click **Search**.
-
-**Expected Result**
-- [ ] Step 1: only Harbour Room is listed.
-- [ ] Step 2: no venues found, since no venue has both; the summary names the
-      missing facility and accessibility feature.
-
-### TC-VSEARCH-004 A venue booked in a chosen slot is excluded
-
-**Steps**
-1. Enter **Date** D, tick **PM**. Click **Search**.
-2. Open the page again. Enter **Date** D, tick **AM**. Click **Search**.
-
-**Expected Result**
-- [ ] Step 1: Harbour Room is not listed; the summary says it is already booked
-      in a slot chosen.
-- [ ] Step 2: Harbour Room is listed; the slot before a booked one is free.
-
-### TC-VSEARCH-006 A rejected booking does not block the venue
-
-**Steps**
-1. Enter **Date** D, tick **AM**. Click **Search**.
-
-**Expected Result**
-- [ ] Garden Hall is listed. Only Tentative Hold and Confirmed bookings make a
-      venue busy.
-
-### TC-VSEARCH-007 A date beyond the booking horizon is excluded
-
-**Steps**
-1. Enter a **Date** 61 days from today, tick **AM**. Click **Search**.
-
-**Expected Result**
-- [ ] No venues found; the summary says they cannot be booked as far ahead as
-      the searched date.
-
-### TC-VSEARCH-012 A venue that does not offer a chosen slot is excluded
-
-**Steps**
-1. Enter **Date** D, tick **Night**. Click **Search**.
-2. Open the page again. Enter **Date** D, tick **AM** and **Night**. Click **Search**.
-
-**Expected Result**
-- [ ] Step 1: Harbour Room is listed. Garden Hall is not; the summary says it
-      does not offer every slot chosen (Night).
-- [ ] Step 2: the same. A venue must offer *every* chosen slot, so Garden Hall's
-      AM does not let it in.
-
-### TC-VSEARCH-009 Attribute and date filters combine into a candidate list
-
-**Steps**
-1. Choose **Room layout** Theatre, **Attendance** `150`; tick **Projector** and
-   **Step-free access**; **Date** D, tick **Night**. Click **Search**.
-
-**Expected Result**
-- [ ] Only Harbour Room is listed, with its attributes and no pass/fail or
-      suitability column (#83).
-
-### TC-VSEARCH-010 Blank filters and an empty result
-
-**Steps**
-1. Open **Find a venue** without filling anything.
-2. Choose **Room layout** Exhibition. Click **Search**.
-
-**Expected Result**
-- [ ] Step 1: every venue in the catalogue is listed, with "N venues found".
-- [ ] Step 2: no venues found, with the reason (no Exhibition layout) and a tip
-      to widen the search.
-
-### TC-VSEARCH-011 Clear empties every filter
-
-**Steps**
-1. Choose Theatre, tick **Wi-Fi** and **Hearing loop**, **Date** D, tick **AM**.
-   Click **Search**.
-2. Click **Clear**.
-3. Choose Banquet, tick **Projector** and **Lift access** without searching.
-4. Click **Clear**.
-
-**Expected Result**
-- [ ] After steps 2 and 4: date, layout and attendance are blank, no checkbox
-      (slot, facility or accessibility) is ticked, and the whole catalogue is
-      listed.

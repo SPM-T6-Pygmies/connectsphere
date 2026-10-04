@@ -1,5 +1,5 @@
 -- Seeds the venues and bookings the SPM-44 manual UAT cases (TC-VSEARCH-*,
--- docs/tests/test-registry.csv) search against.
+-- docs/testing/VENUE_SEARCH_MANUAL_TESTS.md) search against.
 --
 -- Run against a local stack:
 --   supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
