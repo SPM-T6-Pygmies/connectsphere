@@ -5,6 +5,8 @@ import {
   type BookingStatus,
   type OccupiedSlot,
 } from "@/core/domain/booking";
+import type { UserAccountId } from "@/core/domain/user-account";
+import { venueId } from "@/core/domain/venue";
 import type { EventBookingSummary } from "@/core/ports/outbound/booking-repository";
 
 import { toKey } from "./coordinator-event-mapper";
@@ -19,6 +21,7 @@ export interface BookedSlotRow {
 /** A row of `coordinator_event_bookings()`. */
 export interface EventBookingRow {
   booking_id: number;
+  venue_id: number;
   venue_location: string;
   room_layout_name: string | null;
   status: string;
@@ -65,6 +68,7 @@ export function toOccupiedSlot(row: BookedSlotRow): OccupiedSlot {
 export function toEventBookingSummary(row: EventBookingRow): EventBookingSummary {
   return {
     id: String(row.booking_id),
+    venueId: venueId(String(row.venue_id)),
     venueLocation: row.venue_location,
     roomLayoutName: row.room_layout_name,
     status: toStatus(row.status),
@@ -98,5 +102,32 @@ export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs 
     p_venue_id: venue,
     p_room_layout: request.roomLayout,
     p_slots: request.slots.map(({ date, slot }) => ({ date, slot })),
+  };
+}
+
+export interface ChangeRoomLayoutArgs {
+  p_coordinator_user_account_id: number;
+  p_booking_id: number;
+  /** The layout's name; the function resolves it to the venue's own layout. */
+  p_room_layout: string | null;
+}
+
+/** Null when an id is not one this store could have issued. */
+export function toChangeRoomLayoutArgs(
+  coordinatorId: UserAccountId,
+  bookingId: string,
+  roomLayout: string | null,
+): ChangeRoomLayoutArgs | null {
+  const coordinator = toKey(coordinatorId);
+  const booking = toKey(bookingId);
+
+  if (coordinator === null || booking === null) {
+    return null;
+  }
+
+  return {
+    p_coordinator_user_account_id: coordinator,
+    p_booking_id: booking,
+    p_room_layout: roomLayout,
   };
 }
