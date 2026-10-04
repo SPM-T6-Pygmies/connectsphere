@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import {
   ClarificationMessageRequiredError,
   EventRequestNotFoundError,
@@ -31,8 +32,9 @@ function buildUseCase(seed: readonly EventRequest[]) {
   // is the event-request store's, not a second dependency of the use case.
   const clarificationThread = new InMemoryClarificationThreadRepository();
   const eventRequests = new InMemoryEventRequestRepository(seed, clarificationThread);
-  const useCase = new RequestClarificationUseCase({ eventRequests });
-  return { useCase, eventRequests, clarificationThread };
+  const notifier = new RecordingNotifier();
+  const useCase = new RequestClarificationUseCase({ eventRequests, notifier });
+  return { useCase, eventRequests, clarificationThread, notifier };
 }
 
 describe("RequestClarificationUseCase (SPM-33)", () => {
@@ -155,5 +157,80 @@ describe("RequestClarificationUseCase (SPM-33)", () => {
     ).rejects.toBeInstanceOf(EventRequestNotReturnableError);
     expect(eventRequests.all()).toEqual([existing]);
     expect(clarificationThread.all()).toEqual([]);
+  });
+});
+
+describe("RequestClarificationUseCase (SPM-59)", () => {
+  it("AC1, AC2: notifies the responsible organiser of what was asked", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      message: "  How many need step-free access?  ",
+    });
+
+    expect(notifier.clarificationRequests).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventRequestId: "request-1",
+        eventName: "Founders' Day",
+        message: "How many need step-free access?",
+      },
+    ]);
+  });
+
+  it("notifies again for a second question on an already-Returned request", async () => {
+    const { useCase, notifier } = buildUseCase([request({ status: "Returned" })]);
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      message: "And the catering headcount?",
+    });
+
+    expect(notifier.clarificationRequests).toMatchObject([
+      { message: "And the catering headcount?" },
+    ]);
+  });
+
+  it("sends nothing when the message is blank", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await expect(
+      useCase.execute({ id: "request-1", userAccountId: COORDINATOR, message: "   " }),
+    ).rejects.toBeInstanceOf(ClarificationMessageRequiredError);
+    expect(notifier.clarificationRequests).toEqual([]);
+  });
+
+  it("sends nothing for another coordinator's request", async () => {
+    const { useCase, notifier } = buildUseCase([
+      request({ assignedCoordinatorUserAccountId: OTHER_COORDINATOR }),
+    ]);
+
+    await expect(
+      useCase.execute({ id: "request-1", userAccountId: COORDINATOR, message: "Why?" }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+    expect(notifier.clarificationRequests).toEqual([]);
+  });
+
+  it("sends nothing for an unknown event request id", async () => {
+    const { useCase, notifier } = buildUseCase([]);
+
+    await expect(
+      useCase.execute({ id: "missing", userAccountId: COORDINATOR, message: "Why?" }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+    expect(notifier.clarificationRequests).toEqual([]);
+  });
+
+  it("sends nothing when the request can no longer be returned", async () => {
+    const { useCase, notifier } = buildUseCase([
+      request({ status: "Approved", decisionRecord: "Enough to plan." }),
+    ]);
+
+    await expect(
+      useCase.execute({ id: "request-1", userAccountId: COORDINATOR, message: "One more thing." }),
+    ).rejects.toBeInstanceOf(EventRequestNotReturnableError);
+    expect(notifier.clarificationRequests).toEqual([]);
   });
 });

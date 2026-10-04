@@ -7,6 +7,7 @@ import {
 } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type { Notifier } from "../ports/outbound/notifier";
 
 export interface RequestClarificationCommand {
   readonly id: string;
@@ -23,6 +24,7 @@ export interface RequestClarificationResult {
 
 export interface RequestClarificationDeps {
   readonly eventRequests: EventRequestRepository;
+  readonly notifier: Notifier;
 }
 
 /**
@@ -40,7 +42,8 @@ export interface RequestClarificationDeps {
  * there is no half-done return where the request is `Returned` but the
  * question it was returned with was lost.
  *
- * Notifying the Organiser is SPM-59's, not this use case's.
+ * Once the return is stored, the responsible Organiser is told what was asked
+ * (SPM-59). A refused return throws before this, so it notifies no one.
  */
 export class RequestClarificationUseCase {
   constructor(private readonly deps: RequestClarificationDeps) {}
@@ -61,6 +64,13 @@ export class RequestClarificationUseCase {
     const returned = returnEventRequest(request, command.message);
 
     await eventRequests.returnEventRequest(returned, returnedBy, command.message);
+
+    await this.deps.notifier.clarificationRequested({
+      recipientUserAccountId: returned.responsibleOrganiserId,
+      eventRequestId: returned.id,
+      eventName: returned.details.eventName,
+      message: command.message.trim(),
+    });
 
     return { eventRequestId: returned.id, status: returned.status };
   }
