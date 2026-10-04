@@ -77,3 +77,40 @@ describe("notificationItem (SPM-179)", () => {
     expect(notificationItem("coordinator", notification({ isArchived: true })).archived).toBe(true)
   })
 })
+
+describe("notificationItem (SPM-58)", () => {
+  it("opens the organiser's request from their inbox and names it a coordinator assignment", () => {
+    const item = notificationItem(
+      "requester",
+      notification({
+        redirect: { url: "/staff/requester/10" },
+        tags: ["organiser-coordinator-assigned"],
+      }),
+    )
+
+    expect(item.href).toBe("/staff/requester/notifications/10")
+    expect(item.status).toBe("Coordinator assigned")
+  })
+})
+
+describe("notificationItem (SPM-59)", () => {
+  it("names a returned request's notice a clarification request", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["clarification-requested"] }),
+    )
+
+    expect(item.status).toBe("Clarification requested")
+  })
+})
+
+describe("notificationItem (SPM-60)", () => {
+  it("names a decided request's notice a decision", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["event-request-decided"] }),
+    )
+
+    expect(item.status).toBe("Request decided")
+  })
+})
