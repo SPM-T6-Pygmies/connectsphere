@@ -70,4 +70,5 @@ layouts).
 
 - [ ] Sign in as anyone who is not this event's coordinator and open
       `/staff/coordinator/<request id>/venue-booking` directly. It shows
-      *not found*.
+      the access-denied screen naming the Event Coordinator, with a 403
+      (SPM-16), and none of the event's details.
