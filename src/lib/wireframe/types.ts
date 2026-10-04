@@ -106,7 +106,8 @@ export interface EventRequestRecord {
   readonly purpose: string | null;
   readonly categoryType: string | null;
   readonly preferredDate: string | null;
-  readonly preferredTime: string | null;
+  /** The slots wanted on `preferredDate`; empty when none chosen yet. */
+  readonly preferredSlots: readonly BookingSlot[];
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly accessibilityNeeds: string | null;
@@ -130,7 +131,8 @@ export interface VenueRecord {
   readonly capacity: number | null;
   readonly facilities: string | null;
   readonly accessibility: string | null;
-  readonly operatingHours: string | null;
+  /** The slots the venue can be booked in. */
+  readonly slots: readonly BookingSlot[];
   readonly setupTimeMinutes: number | null;
   readonly turnaroundTimeMinutes: number | null;
   readonly supportedLayouts: ReadonlyArray<{

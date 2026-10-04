@@ -65,7 +65,7 @@ export function OverviewTab({ event, activity }: TabProps) {
               fields={[
                 { label: "Category", value: request.categoryType },
                 { label: "Preferred date", value: request.preferredDate },
-                { label: "Preferred time", value: request.preferredTime },
+                { label: "Preferred slots", value: request.preferredSlots.join(", ") || null },
                 {
                   label: "Expected attendance",
                   value: request.expectedAttendance,
@@ -157,7 +157,7 @@ export function VenueTab({ event, activity }: TabProps) {
           <FieldList
             fields={[
               { label: "Date", value: event.request.preferredDate },
-              { label: "Time", value: event.request.preferredTime },
+              { label: "Slots", value: event.request.preferredSlots.join(", ") || null },
               { label: "Expected attendance", value: needed || null },
               { label: "Layout", value: event.request.roomLayoutPreferences },
               {

@@ -44,7 +44,7 @@ export function EventContextPanel({ event }: { event: EventRecord }) {
           fields={[
             { label: "Category", value: request.categoryType },
             { label: "Date", value: request.preferredDate },
-            { label: "Time", value: request.preferredTime },
+            { label: "Slots", value: request.preferredSlots.join(", ") || null },
             { label: "Expected attendance", value: request.expectedAttendance },
             { label: "Room layout", value: request.roomLayoutPreferences },
             { label: "Accessibility needs", value: request.accessibilityNeeds },

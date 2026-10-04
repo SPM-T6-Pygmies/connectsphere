@@ -106,7 +106,7 @@ export function RequestDetail({
                 fields={[
                   { label: "Category", value: request.categoryType },
                   { label: "Preferred date", value: request.preferredDate },
-                  { label: "Preferred time", value: request.preferredTime },
+                  { label: "Preferred slots", value: request.preferredSlots.join(", ") || null },
                   {
                     label: "Expected attendance",
                     value: request.expectedAttendance,
