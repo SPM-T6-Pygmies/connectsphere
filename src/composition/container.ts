@@ -257,7 +257,10 @@ export async function buildViewOrganisationEventRequests(): Promise<ViewOrganisa
  * dependency here -- see `EventRequestRepository.returnEventRequest`.
  */
 export async function buildRequestClarification(): Promise<RequestClarificationUseCase> {
-  return new RequestClarificationUseCase({ eventRequests: await eventRequestAdapters() });
+  return new RequestClarificationUseCase({
+    eventRequests: await eventRequestAdapters(),
+    notifier: recordedNotifier(),
+  });
 }
 
 /** SPM-33 AC6: the Coordinator marks one question answered, resuming the request if it was the last. */
@@ -351,7 +354,7 @@ export async function buildViewAssignedEventRequest(): Promise<ViewAssignedEvent
 export async function buildDecideEventRequest(): Promise<DecideEventRequestUseCase> {
   const { eventRequests } = await coordinatorAdapters();
 
-  return new DecideEventRequestUseCase({ eventRequests });
+  return new DecideEventRequestUseCase({ eventRequests, notifier: recordedNotifier() });
 }
 
 /** SPM-101: the assigned coordinator records a withdrawal the Organiser asked for. */
