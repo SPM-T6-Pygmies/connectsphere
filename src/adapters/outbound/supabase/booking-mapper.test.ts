@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  toChangeRoomLayoutArgs,
   toEventBookingSummary,
   toOccupiedSlot,
   toSubmitBookingArgs,
@@ -50,6 +51,7 @@ describe("booking mapper (SPM-46)", () => {
     expect(
       toEventBookingSummary({
         booking_id: 12,
+        venue_id: 3,
         venue_location: "Studio",
         room_layout_name: null,
         status: "Requested",
@@ -58,6 +60,7 @@ describe("booking mapper (SPM-46)", () => {
       }),
     ).toEqual({
       id: "12",
+      venueId: venueId("3"),
       venueLocation: "Studio",
       roomLayoutName: null,
       status: "Requested",
@@ -96,6 +99,33 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
   it("gives up on an id this store could not have issued", () => {
     expect(
       toSubmitBookingArgs({ ...request, venueId: venueId("hall") }),
+    ).toBeNull();
+  });
+});
+
+describe("booking mapper -- change layout arguments (SPM-104)", () => {
+  it("sends the new layout by name, for the database to resolve", () => {
+    expect(
+      toChangeRoomLayoutArgs(userAccountId("2"), "12", "Boardroom"),
+    ).toEqual({
+      p_coordinator_user_account_id: 2,
+      p_booking_id: 12,
+      p_room_layout: "Boardroom",
+    });
+  });
+
+  it("sends no layout when there is none to set", () => {
+    expect(
+      toChangeRoomLayoutArgs(userAccountId("2"), "12", null)?.p_room_layout,
+    ).toBeNull();
+  });
+
+  it("gives up on an id this store could not have issued", () => {
+    expect(
+      toChangeRoomLayoutArgs(userAccountId("coordinator"), "12", "Boardroom"),
+    ).toBeNull();
+    expect(
+      toChangeRoomLayoutArgs(userAccountId("2"), "booking", "Boardroom"),
     ).toBeNull();
   });
 });

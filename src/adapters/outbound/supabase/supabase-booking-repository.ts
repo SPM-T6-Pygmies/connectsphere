@@ -5,6 +5,8 @@ import {
   type OccupiedSlot,
 } from "@/core/domain/booking";
 import {
+  BookingNotFoundError,
+  BookingRoomLayoutNotChangeableError,
   CoordinatorEventNotFoundError,
   InvalidBookingDateError,
   InvalidBookingTimeError,
@@ -23,6 +25,7 @@ import type {
 } from "@/core/ports/outbound/booking-repository";
 
 import {
+  toChangeRoomLayoutArgs,
   toEventBookingSummary,
   toOccupiedSlot,
   toSubmitBookingArgs,
@@ -42,6 +45,10 @@ const SLOT_TAKEN = "CS025";
 const TIME_INVALID = "CS026";
 const OUTSIDE_HOURS = "CS027";
 const SLOTS_OVERLAP = "CS028";
+
+// SQLSTATEs raised by coordinator_change_booking_room_layout (CS022 and CS023 are shared).
+const BOOKING_NOT_FOUND = "CS026";
+const BOOKING_NOT_PENDING = "CS027";
 
 /**
  * Reached through `security definer` functions, not the tables: `booking`
@@ -164,6 +171,48 @@ export class SupabaseBookingRepository implements BookingRepository {
     }
 
     return String(data) as BookingId;
+  }
+
+  /**
+   * The function re-checks that the booking is on one of the coordinator's
+   * events, that it is still pending and that the venue supports the layout,
+   * and writes the audit record in the same transaction.
+   */
+  async changeRoomLayout(
+    coordinatorId: UserAccountId,
+    bookingId: string,
+    roomLayout: string | null,
+  ): Promise<void> {
+    const args = toChangeRoomLayoutArgs(coordinatorId, bookingId, roomLayout);
+    if (args === null) {
+      // No row this store issued has an id like that.
+      throw new BookingNotFoundError(bookingId);
+    }
+
+    const { error } = await this.client.rpc(
+      "coordinator_change_booking_room_layout",
+      args,
+    );
+    if (error) {
+      switch (error.code) {
+        case BOOKING_NOT_FOUND:
+          throw new BookingNotFoundError(bookingId);
+        case BOOKING_NOT_PENDING:
+          // The use case read the status a moment ago; it moved since.
+          throw new BookingRoomLayoutNotChangeableError("decided");
+        case LAYOUT_REQUIRED:
+          throw new RoomLayoutRequiredError();
+        case LAYOUT_UNSUPPORTED:
+          throw new UnsupportedRoomLayoutError(roomLayout ?? "");
+        default:
+          throw new Error(
+            `Failed to change the booking's layout: ${error.message}`,
+            {
+              cause: error,
+            },
+          );
+      }
+    }
   }
 
   /** Which of the request's slots were taken, for a message that names them. */

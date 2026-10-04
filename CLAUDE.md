@@ -170,9 +170,12 @@ The rules in short:
   the most recent run in `test-runs.csv`", not "passes now". Which build that
   was lives in the ledger, once per run — not copied onto every row. Only green
   merges to `main` are recorded; failing runs never are.
-- **Manual and UAT cases belong in the registry too**, as `manual` rows pointing
-  at their steps in `docs/testing/`. CI cannot verify one for you — whoever runs
-  it sets `Status` and `LastPassedDate` by hand.
+- **Manual and UAT cases have their own registry**, `docs/tests/manual-registry.csv`,
+  one row per case keyed by its `TC-` id and pointing at its steps in
+  `docs/testing/`. CI cannot verify one for you: report what you ran in the PR
+  description's `## Manual test results` table, and CI appends it to
+  `docs/tests/manual-runs.csv` on merge with the PR number. Never edit that
+  ledger by hand; re-run a case only in a PR that changes its feature.
 - **Derive cases from the ACs, before the code.** `Given → Pre-conditions`,
   `When → Test Steps / Data`, `Then → Expected Result`. Cover the happy path,
   the business-rule negatives, and the boundaries — just below, exactly at, and
