@@ -1,13 +1,14 @@
 import type { BookingId, BookingRequest, OccupiedSlot } from "@/core/domain/booking";
+import { BookingNotFoundError, BookingRoomLayoutNotChangeableError } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
-import type { VenueId } from "@/core/domain/venue";
+import { venueId, type VenueId } from "@/core/domain/venue";
 import type {
   BookingRepository,
   EventBookingSummary,
 } from "@/core/ports/outbound/booking-repository";
 
 /** A booking as stored: the event's list view plus what scoping and clashes need. */
-export interface StoredBooking extends EventBookingSummary {
+export interface StoredBooking extends Omit<EventBookingSummary, "venueId"> {
   readonly eventId: string;
   readonly venueId: string;
   readonly requestedBy: string;
@@ -42,8 +43,9 @@ export class InMemoryBookingRepository implements BookingRepository {
   ): Promise<readonly EventBookingSummary[]> {
     return this.rows
       .filter((booking) => booking.eventId === eventId)
-      .map(({ id, venueLocation, roomLayoutName, status, slots, requestedAt }) => ({
+      .map(({ id, venueId: venue, venueLocation, roomLayoutName, status, slots, requestedAt }) => ({
         id,
+        venueId: venueId(venue),
         venueLocation,
         roomLayoutName,
         status,
@@ -66,6 +68,22 @@ export class InMemoryBookingRepository implements BookingRepository {
       requestedAt: "2026-09-28T00:00:00.000Z",
     });
     return id as BookingId;
+  }
+
+  async changeRoomLayout(
+    _coordinatorId: UserAccountId,
+    bookingId: string,
+    roomLayout: string | null,
+  ): Promise<void> {
+    const index = this.rows.findIndex((booking) => booking.id === bookingId);
+    if (index === -1) {
+      throw new BookingNotFoundError(bookingId);
+    }
+    const booking = this.rows[index];
+    if (booking.status !== "Requested") {
+      throw new BookingRoomLayoutNotChangeableError(booking.status);
+    }
+    this.rows[index] = { ...booking, roomLayoutName: roomLayout };
   }
 
   /** Test helper: everything stored, submitted rows included. */

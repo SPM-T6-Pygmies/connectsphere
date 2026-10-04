@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import {
   DecisionReasonRequiredError,
   EventRequestNotDecidableError,
@@ -26,8 +27,9 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
 
 function buildUseCase(seed: readonly EventRequest[]) {
   const eventRequests = new InMemoryEventRequestRepository(seed);
-  const useCase = new DecideEventRequestUseCase({ eventRequests });
-  return { useCase, eventRequests };
+  const notifier = new RecordingNotifier();
+  const useCase = new DecideEventRequestUseCase({ eventRequests, notifier });
+  return { useCase, eventRequests, notifier };
 }
 
 describe("DecideEventRequestUseCase (SPM-139)", () => {
@@ -188,5 +190,89 @@ describe("DecideEventRequestUseCase on a returned request (SPM-33)", () => {
       }),
     ).rejects.toBeInstanceOf(EventRequestNotFoundError);
     expect(eventRequests.all()).toEqual([existing]);
+  });
+});
+
+describe("DecideEventRequestUseCase (SPM-60)", () => {
+  it("AC1: notifies the responsible organiser that the request was approved", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      decision: "approve",
+      decisionRecord: "",
+    });
+
+    expect(notifier.decisions).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventRequestId: "request-1",
+        eventName: "Founders' Day",
+        decision: "approved",
+        decisionRecord: null,
+      },
+    ]);
+  });
+
+  it("AC1, AC3: notifies the organiser of a rejection with the coordinator's reason", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: COORDINATOR,
+      decision: "reject",
+      decisionRecord: "  The date clashes with a venue closure.  ",
+    });
+
+    expect(notifier.decisions).toMatchObject([
+      { decision: "rejected", decisionRecord: "The date clashes with a venue closure." },
+    ]);
+  });
+
+  it("sends nothing when a rejection has no reason", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: COORDINATOR,
+        decision: "reject",
+        decisionRecord: "   ",
+      }),
+    ).rejects.toBeInstanceOf(DecisionReasonRequiredError);
+    expect(notifier.decisions).toEqual([]);
+  });
+
+  it("sends nothing for another coordinator's request", async () => {
+    const { useCase, notifier } = buildUseCase([
+      request({ assignedCoordinatorUserAccountId: OTHER_COORDINATOR }),
+    ]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: COORDINATOR,
+        decision: "approve",
+        decisionRecord: "",
+      }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+    expect(notifier.decisions).toEqual([]);
+  });
+
+  it("sends nothing for a request that is already decided", async () => {
+    const { useCase, notifier } = buildUseCase([
+      request({ status: "Rejected", decisionRecord: "Earlier decision." }),
+    ]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: COORDINATOR,
+        decision: "approve",
+        decisionRecord: "",
+      }),
+    ).rejects.toBeInstanceOf(EventRequestNotDecidableError);
+    expect(notifier.decisions).toEqual([]);
   });
 });
