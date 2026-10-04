@@ -269,24 +269,6 @@ export class PreferredDateNotInFutureError extends DomainError {
   }
 }
 
-/**
- * SPM-31: replacing free-text `preferred_time` with two instants only works if
- * they actually describe a span.
- */
-export class PreferredEndTimeNotAfterStartError extends DomainError {
-  readonly code = "preferred_end_time_not_after_start";
-
-  constructor(
-    readonly preferredStartTime: string,
-    readonly preferredEndTime: string,
-  ) {
-    super(
-      `Preferred end time (${preferredEndTime}) must be after preferred start time ` +
-        `(${preferredStartTime}).`,
-    );
-  }
-}
-
 export class InvalidCredentialsError extends DomainError {
   readonly code = "invalid_credentials";
 

@@ -21,10 +21,6 @@ import { StatusBadge } from "../status-badge";
 import { ClarificationComposer } from "./[id]/clarification-composer";
 
 /** `h:mm am/pm`, in the viewer's own timezone -- for an instant, not a calendar date. */
-function formatInstantTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-}
-
 /**
  * How far along the request has travelled.
  *
@@ -91,10 +87,8 @@ export function SubmittedRequestDetail({
 }) {
   const { details } = eventRequest;
 
-  const preferredTime =
-    details.preferredStartTime !== null && details.preferredEndTime !== null
-      ? `${formatInstantTime(details.preferredStartTime)} – ${formatInstantTime(details.preferredEndTime)}`
-      : null;
+  const preferredSlots =
+    details.preferredSlots.length > 0 ? details.preferredSlots.join(", ") : null;
 
   return (
     <StaffShell
@@ -121,7 +115,7 @@ export function SubmittedRequestDetail({
               <FieldList
                 fields={[
                   { label: "Preferred date", value: details.preferredDate },
-                  { label: "Preferred time", value: preferredTime },
+                  { label: "Preferred slots", value: preferredSlots },
                   { label: "Expected attendance", value: details.expectedAttendance },
                   { label: "Room layout", value: details.roomLayoutPreferences },
                   { label: "Description", value: details.description },

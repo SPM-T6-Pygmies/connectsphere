@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import {
+  eventRequestDetails,
+  eventRequestFixture,
+} from "@/adapters/outbound/in-memory/event-request-fixture";
 import { eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
@@ -9,6 +12,8 @@ import {
   toDecideArgs,
   toDomain,
   toMyEventRequestSummary,
+  toSaveArgs,
+  toSubmitArgs,
   toWithdrawArgs,
   type EventRequestRow,
 } from "./event-request-mapper";
@@ -21,8 +26,7 @@ describe("event request mapper", () => {
       description: "Client briefing",
       purpose: "Share the annual plan",
       preferred_date: "2026-12-10",
-      preferred_start_time: "2026-12-10T01:00:00.000Z",
-      preferred_end_time: "2026-12-10T09:00:00.000Z",
+      preferred_slots: ["AM", "PM"],
       expected_attendance: 240,
       venue_requirements: "Main hall",
       room_layout_preferences: "Theatre",
@@ -54,8 +58,7 @@ describe("event request mapper", () => {
         description: "Client briefing",
         purpose: "Share the annual plan",
         preferredDate: "2026-12-10",
-        preferredStartTime: "2026-12-10T01:00:00.000Z",
-        preferredEndTime: "2026-12-10T09:00:00.000Z",
+        preferredSlots: ["AM", "PM"],
         expectedAttendance: 240,
         venueRequirements: "Main hall",
         roomLayoutPreferences: "Theatre",
@@ -75,8 +78,7 @@ describe("event request mapper", () => {
       description: null,
       purpose: null,
       preferred_date: null,
-      preferred_start_time: null,
-      preferred_end_time: null,
+      preferred_slots: [],
       expected_attendance: null,
       venue_requirements: null,
       room_layout_preferences: null,
@@ -144,8 +146,7 @@ describe("event request mapper", () => {
         description: "Client briefing",
         purpose: null,
         preferred_date: "2026-12-10",
-        preferred_start_time: null,
-        preferred_end_time: null,
+        preferred_slots: [],
         expected_attendance: null,
         venue_requirements: null,
         room_layout_preferences: null,
@@ -213,5 +214,51 @@ describe("toWithdrawArgs (SPM-168)", () => {
     expect(
       toWithdrawArgs(eventRequestFixture({ ...withdrawn, id: eventRequestId("12") }), userAccountId("coordinator-1")),
     ).toBeNull();
+  });
+});
+
+describe("event request preferred slots", () => {
+  const row: EventRequestRow = {
+    event_request_id: 5,
+    event_name: "Founders' Day",
+    description: null,
+    purpose: null,
+    preferred_date: "2026-11-04",
+    expected_attendance: 80,
+    venue_requirements: null,
+    room_layout_preferences: null,
+    accessibility_needs: null,
+    equipment_requirements: null,
+    registration_requirements: null,
+    general_programme: null,
+    other_special_arrangements: null,
+    status: "Draft",
+    decision_record: null,
+    requesting_user_account_id: 2,
+    assigned_coordinator_user_account_id: null,
+    client_organisation_id: 1,
+    created_at: "2026-09-01T00:00:00.000Z",
+    updated_at: "2026-09-01T00:00:00.000Z",
+  };
+
+  it("reads a row whose query did not select preferred_slots as having none", () => {
+    expect(toDomain(row).details.preferredSlots).toEqual([]);
+  });
+
+  it("refuses a slot code the slot table should never hold", () => {
+    expect(() => toDomain({ ...row, preferred_slots: ["Evening"] })).toThrow(/Unknown slot/);
+  });
+
+  it("sends the slots, and no start or end time, when submitting and saving", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("5"),
+      details: eventRequestDetails({ preferredSlots: ["PM", "Night"] }),
+    });
+
+    for (const args of [toSubmitArgs(request), toSaveArgs(request)]) {
+      expect(args).toMatchObject({ p_preferred_date: "2026-11-04", p_preferred_slots: ["PM", "Night"] });
+      expect(args).not.toHaveProperty("p_preferred_start_time");
+      expect(args).not.toHaveProperty("p_preferred_end_time");
+    }
   });
 });

@@ -1,3 +1,4 @@
+import type { BookingSlot } from "../domain/booking";
 import type { EventRequest, EventRequestStatus } from "../domain/event-request";
 
 /** Every persisted event-request attribute needed by the Operations screens. */
@@ -7,8 +8,7 @@ export interface OperationsEventRequest {
   readonly description: string | null;
   readonly purpose: string | null;
   readonly preferredDate: string | null;
-  readonly preferredStartTime: string | null;
-  readonly preferredEndTime: string | null;
+  readonly preferredSlots: readonly BookingSlot[];
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly accessibilityNeeds: string | null;
@@ -34,8 +34,7 @@ export function toOperationsEventRequest(request: EventRequest): OperationsEvent
     description: request.details.description,
     purpose: request.details.purpose,
     preferredDate: request.details.preferredDate,
-    preferredStartTime: request.details.preferredStartTime,
-    preferredEndTime: request.details.preferredEndTime,
+    preferredSlots: request.details.preferredSlots,
     expectedAttendance: request.details.expectedAttendance,
     venueRequirements: request.details.venueRequirements,
     accessibilityNeeds: request.details.accessibilityNeeds,

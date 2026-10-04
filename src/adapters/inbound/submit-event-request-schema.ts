@@ -3,7 +3,7 @@ import { z } from "zod";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 
-import { optionalOptions } from "./option-list-schema";
+import { optionalOptions, slotList } from "./option-list-schema";
 
 /**
  * The event request form's shape -- and only its shape.
@@ -53,21 +53,6 @@ const optionalDate = optionalText.refine(
 );
 
 /**
- * What the form actually posts for a preferred time: a full ISO 8601 instant
- * (`Date#toISOString()`, composed client-side from the preferred date plus a
- * `<input type="time">` in the Organiser's own timezone -- see
- * `new-request-form.tsx`), and what a `timestamptz` column accepts. The
- * plain `YYYY-MM-DDTHH:mm` shape is still accepted too, since it is no less
- * valid a `timestamptz` literal, just less precise about its offset.
- */
-const optionalDateTime = optionalText.refine(
-  (value) =>
-    value === null ||
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})?$/.test(value),
-  { message: "Enter a valid date and time." },
-);
-
-/**
  * IANA zone, e.g. `"Asia/Singapore"` -- validated by asking the runtime's own
  * timezone database rather than a regex, since that is the actual authority
  * on what counts as a recognised zone.
@@ -100,8 +85,7 @@ export const submitEventRequestSchema = z.object({
   description: optionalText,
   purpose: optionalText,
   preferredDate: optionalDate,
-  preferredStartTime: optionalDateTime,
-  preferredEndTime: optionalDateTime,
+  preferredSlots: slotList(),
   expectedAttendance: optionalAttendance,
   venueRequirements: optionalText,
   roomLayoutPreferences: optionalOptions(STANDARD_LAYOUTS, 1),

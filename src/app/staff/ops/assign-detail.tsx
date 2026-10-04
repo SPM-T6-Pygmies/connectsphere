@@ -21,30 +21,6 @@ import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 import { AssignEventCoordinatorForm } from "./assign-event-coordinator-form";
 
-function formatInstantTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
-function preferredTimeOf(request: OperationsEventRequest): string | null {
-  if (request.preferredStartTime === null && request.preferredEndTime === null) {
-    return null;
-  }
-
-  if (request.preferredStartTime === null) {
-    return `Until ${formatInstantTime(request.preferredEndTime!)}`;
-  }
-
-  if (request.preferredEndTime === null) {
-    return `From ${formatInstantTime(request.preferredStartTime)}`;
-  }
-
-  return `${formatInstantTime(request.preferredStartTime)} – ${formatInstantTime(request.preferredEndTime)}`;
-}
-
 /** Loads the real Operations request and coordinator list for every route that opens this detail. */
 export async function LoadedAssignDetail({
   id,
@@ -139,7 +115,10 @@ export function AssignDetail({
               <FieldList
                 fields={[
                   { label: "Preferred date", value: eventRequest.preferredDate },
-                  { label: "Preferred time", value: preferredTimeOf(eventRequest) },
+                  {
+                    label: "Preferred slots",
+                    value: eventRequest.preferredSlots.join(", ") || null,
+                  },
                   {
                     label: "Expected attendance",
                     value: eventRequest.expectedAttendance,

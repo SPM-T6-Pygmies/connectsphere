@@ -23,6 +23,7 @@ import type {
 
 import type { SupabaseServerClient } from "./client";
 import {
+  PREFERRED_SLOTS_SELECT,
   toAssignEventCoordinatorArgs,
   toDecideArgs,
   toDeleteArgs,
@@ -70,7 +71,9 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
   async listAll(): Promise<readonly EventRequest[]> {
-    const { data, error } = await this.client.rpc("operations_event_requests");
+    const { data, error } = await this.client
+      .rpc("operations_event_requests")
+      .select(PREFERRED_SLOTS_SELECT);
 
     if (error) {
       throw new Error(`Failed to list all event requests: ${error.message}`, { cause: error });
@@ -88,9 +91,9 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
       return [];
     }
 
-    const { data, error } = await this.client.rpc("organiser_event_requests", {
-      p_client_organisation_id: key,
-    });
+    const { data, error } = await this.client
+      .rpc("organiser_event_requests", { p_client_organisation_id: key })
+      .select(PREFERRED_SLOTS_SELECT);
 
     if (error) {
       throw new Error(`Failed to list event requests: ${error.message}`, { cause: error });
@@ -134,9 +137,9 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
       return [];
     }
 
-    const { data, error } = await this.client.rpc("coordinator_event_requests", {
-      p_coordinator_user_account_id: key,
-    });
+    const { data, error } = await this.client
+      .rpc("coordinator_event_requests", { p_coordinator_user_account_id: key })
+      .select(PREFERRED_SLOTS_SELECT);
 
     if (error) {
       throw new Error(`Failed to list assigned event requests: ${error.message}`, { cause: error });
@@ -152,9 +155,10 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
       return null;
     }
 
-    const { data, error } = await this.client.rpc("organiser_event_request", {
-      p_event_request_id: key,
-    });
+    const { data, error } = await this.client
+      .rpc("organiser_event_request", { p_event_request_id: key })
+      .select(PREFERRED_SLOTS_SELECT)
+      .single();
 
     if (error) {
       throw new Error(`Failed to look up event request: ${error.message}`, { cause: error });
@@ -177,10 +181,10 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
    * actually holds rather than the one we hoped it would.
    */
   async create(request: NewEventRequest): Promise<EventRequest> {
-    const { data, error } = await this.client.rpc(
-      "organiser_submit_event_request",
-      toSubmitArgs(request),
-    );
+    const { data, error } = await this.client
+      .rpc("organiser_submit_event_request", toSubmitArgs(request))
+      .select(PREFERRED_SLOTS_SELECT)
+      .single();
 
     if (error) {
       throw new Error(`Failed to submit event request: ${error.message}`, { cause: error });

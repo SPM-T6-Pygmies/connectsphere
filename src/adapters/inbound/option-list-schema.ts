@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { BOOKING_SLOTS } from "@/core/domain/booking";
 import { parseOptionList, unknownOptions } from "@/core/domain/venue-options";
 
 /**
@@ -19,4 +20,12 @@ export function optionalOptions(allowed: readonly string[], max = allowed.length
     .refine((value) => parseOptionList(value).length <= max, {
       message: max === 1 ? "Choose one." : `Choose at most ${max}.`,
     });
+}
+
+/** Day slots as one comma-separated field, as `OptionCheckboxes` posts them. Blank is none. */
+export function slotList() {
+  return z
+    .string()
+    .transform(parseOptionList)
+    .pipe(z.array(z.enum(BOOKING_SLOTS, "Choose AM, PM or Night.")));
 }

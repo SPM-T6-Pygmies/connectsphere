@@ -13,12 +13,14 @@ export function OptionCheckboxes<T extends string>({
   value,
   onChange,
   label = (option) => option,
+  disabled,
 }: {
   name: string;
   options: readonly T[];
   value: string;
   onChange: (value: string) => void;
   label?: (option: T) => string;
+  disabled?: boolean;
 }) {
   const selected = parseOptionList(value);
 
@@ -40,6 +42,7 @@ export function OptionCheckboxes<T extends string>({
             type="checkbox"
             className="size-4"
             checked={selected.includes(option)}
+            disabled={disabled}
             onChange={(event) => toggle(option, event.target.checked)}
           />
           {label(option)}

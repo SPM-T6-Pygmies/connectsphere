@@ -198,8 +198,7 @@ describe("AssignEventCoordinatorUseCase (SPM-57)", () => {
         eventName: "Founders' Day",
         clientOrganisationName: "Acme Holdings",
         preferredDate: "2026-11-04",
-        preferredStartTime: "2026-11-04T09:00",
-        preferredEndTime: "2026-11-04T17:00",
+        preferredSlots: ["AM", "PM"],
       },
     ]);
   });
@@ -209,8 +208,7 @@ describe("AssignEventCoordinatorUseCase (SPM-57)", () => {
       request({
         details: eventRequestDetails({
           preferredDate: null,
-          preferredStartTime: null,
-          preferredEndTime: null,
+          preferredSlots: [],
         }),
       }),
     ]);
@@ -221,7 +219,7 @@ describe("AssignEventCoordinatorUseCase (SPM-57)", () => {
     });
 
     expect(notifier.coordinatorAssignments).toMatchObject([
-      { preferredDate: null, preferredStartTime: null, preferredEndTime: null },
+      { preferredDate: null, preferredSlots: [] },
     ]);
   });
 

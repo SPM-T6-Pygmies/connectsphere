@@ -1,3 +1,4 @@
+import { BOOKING_SLOTS, type BookingSlot } from "./booking";
 import type { Brand } from "./brand";
 import type { ClientOrganisationId } from "./client-organisation";
 import {
@@ -11,7 +12,6 @@ import {
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
   PreferredDateNotInFutureError,
-  PreferredEndTimeNotAfterStartError,
 } from "./errors";
 import type { UserAccountId } from "./user-account";
 
@@ -36,12 +36,9 @@ export type EventRequestStatus =
  *
  * `preferredDate` is a string, not an instant, on purpose: the organiser is
  * stating a calendar preference, and a bare calendar date has no timezone to
- * hold an opinion about. `preferredStartTime`/`preferredEndTime` are also
- * strings crossing this boundary (never `Date` -- see
- * `SubmitEventRequestCommand`), even though the underlying columns are
- * `timestamptz`: parsing them into instants is deferred to the two places
- * that actually need to compare them, in `submitEventRequest` below, rather
- * than baked into the shape everywhere else in the domain reads it.
+ * hold an opinion about. `preferredSlots` are the day slots wanted on that
+ * date (AM, PM, Night, Singapore time), stored one row each in
+ * `event_request_slot` -- so a slot cannot be recorded without the date.
  *
  * `categoryType` is deliberately absent: the brief lists it under Event, not
  * Event Request, and `event_request` has no column for it. Adding it is a
@@ -53,13 +50,8 @@ export interface EventRequestDetails {
   readonly purpose: string | null;
   /** ISO calendar date, `YYYY-MM-DD`. */
   readonly preferredDate: string | null;
-  /** ISO 8601 datetime string (the column is `timestamptz`). */
-  readonly preferredStartTime: string | null;
-  /**
-   * ISO 8601 datetime string (the column is `timestamptz`). Must be after
-   * `preferredStartTime` -- see `submitEventRequest`.
-   */
-  readonly preferredEndTime: string | null;
+  /** The slots wanted on `preferredDate`, in `BOOKING_SLOTS` order. Empty when none chosen yet. */
+  readonly preferredSlots: readonly BookingSlot[];
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreferences: string | null;
@@ -129,8 +121,7 @@ export function eventRequestId(raw: string): EventRequestId {
 export const MANDATORY_SUBMISSION_FIELDS = [
   "eventName",
   "preferredDate",
-  "preferredStartTime",
-  "preferredEndTime",
+  "preferredSlots",
   "expectedAttendance",
 ] as const satisfies ReadonlyArray<keyof EventRequestDetails>;
 
@@ -139,6 +130,9 @@ export type MandatoryEventRequestField = (typeof MANDATORY_SUBMISSION_FIELDS)[nu
 function isBlank(value: EventRequestDetails[keyof EventRequestDetails]): boolean {
   if (value === null) {
     return true;
+  }
+  if (Array.isArray(value)) {
+    return value.length === 0;
   }
   return typeof value === "string" && value.trim().length === 0;
 }
@@ -158,8 +152,18 @@ function isNotInTheFuture(preferredDate: string, now: Date, organiserTimeZone: s
   return preferredDate <= today;
 }
 
-function isNotAfter(start: string, end: string): boolean {
-  return new Date(end).getTime() <= new Date(start).getTime();
+/**
+ * The details with their slots in day order, each once -- and refused if they
+ * name slots with no date to hold them on, which the store cannot record.
+ */
+function withSlotsOnDate(details: EventRequestDetails): EventRequestDetails {
+  if (details.preferredSlots.length > 0 && isBlank(details.preferredDate)) {
+    throw new IncompleteEventRequestError(["preferredDate"]);
+  }
+  return {
+    ...details,
+    preferredSlots: BOOKING_SLOTS.filter((slot) => details.preferredSlots.includes(slot)),
+  };
 }
 
 /**
@@ -201,32 +205,24 @@ export function submitEventRequest(params: {
     throw new IncompleteEventRequestError(missing);
   }
 
-  const { preferredDate, preferredStartTime, preferredEndTime } = rest.details;
+  const { preferredDate } = rest.details;
 
   if (preferredDate !== null && isNotInTheFuture(preferredDate, rest.submittedAt, organiserTimeZone)) {
     throw new PreferredDateNotInFutureError(preferredDate);
   }
 
-  if (
-    preferredStartTime !== null &&
-    preferredEndTime !== null &&
-    isNotAfter(preferredStartTime, preferredEndTime)
-  ) {
-    throw new PreferredEndTimeNotAfterStartError(preferredStartTime, preferredEndTime);
-  }
-
-  return { ...rest, status: "Submitted" };
+  return { ...rest, details: withSlotsOnDate(rest.details), status: "Submitted" };
 }
 
 /**
  * The only way to build a new Draft, or restate an existing one after edits.
  *
  * SPM-38: unlike `submitEventRequest`, mandatory-field completeness and the
- * preferred-date/time rules do not apply here -- that is the point of a
- * draft, which exists so an Organiser can save incomplete progress and come
- * back to it. The one rule that still holds is the store's own (`event_name
- * not null` on `event_request`): a request needs a name to be addressable in
- * "My requests" at all.
+ * preferred-date rule do not apply here -- that is the point of a draft,
+ * which exists so an Organiser can save incomplete progress and come back to
+ * it. The rules that still hold are the store's own: a request needs a name
+ * (`event_name not null`) to be addressable in "My requests" at all, and a
+ * slot needs the date it falls on (`event_request_slot.slot_date not null`).
  */
 export function saveEventRequestDraft(params: {
   details: EventRequestDetails;
@@ -238,7 +234,7 @@ export function saveEventRequestDraft(params: {
   }
 
   return {
-    details: params.details,
+    details: withSlotsOnDate(params.details),
     clientOrganisationId: params.clientOrganisationId,
     responsibleOrganiserId: params.responsibleOrganiserId,
     status: "Draft",
