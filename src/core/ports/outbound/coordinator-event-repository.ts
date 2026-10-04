@@ -1,3 +1,4 @@
+import type { SlotOnDate } from "../../domain/booking";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "../../domain/coordinator-event";
 import type { UserAccountId } from "../../domain/user-account";
 
@@ -27,9 +28,8 @@ export interface CoordinatorEventDetails {
   readonly status: CoordinatorEventStatus;
   /** ISO calendar date, `YYYY-MM-DD`. */
   readonly preferredDate: string | null;
-  /** ISO instants. */
-  readonly startTime: string | null;
-  readonly endTime: string | null;
+  /** The event's slots, in date then day order. Empty until it has any. */
+  readonly slots: readonly SlotOnDate[];
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreference: string | null;

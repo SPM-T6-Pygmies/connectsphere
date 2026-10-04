@@ -12,9 +12,8 @@ export interface BookedEvent {
   readonly organisationName: string | null;
   readonly category: string | null;
   readonly preferredDate: string | null;
-  /** ISO instants, or null when the event has no times yet. */
-  readonly startTime: string | null;
-  readonly endTime: string | null;
+  /** The event's own slots, in date then day order. Empty until it has any. */
+  readonly slots: readonly SlotOnDate[];
   readonly expectedAttendance: number | null;
   readonly roomLayoutPreference: string | null;
   readonly accessibilityRequirements: string | null;

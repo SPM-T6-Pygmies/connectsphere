@@ -19,6 +19,7 @@ import type {
 import type { SupabaseServerClient } from "./client";
 import { SupabaseEventReadinessRepository } from "./supabase-event-readiness-repository";
 import {
+  EVENT_SLOTS_SELECT,
   toAssignedEventSummary,
   toCoordinatorEvent,
   toCoordinatorEventDetails,
@@ -103,9 +104,9 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
       return [];
     }
 
-    const { data, error } = await this.client.rpc("coordinator_events", {
-      p_coordinator_user_account_id: key,
-    });
+    const { data, error } = await this.client
+      .rpc("coordinator_events", { p_coordinator_user_account_id: key })
+      .select(EVENT_SLOTS_SELECT);
     if (error) {
       throw new Error(`Failed to read assigned events: ${error.message}`, { cause: error });
     }

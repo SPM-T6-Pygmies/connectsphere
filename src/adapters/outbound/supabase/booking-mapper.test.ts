@@ -85,8 +85,7 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
         preferred_date: "2026-11-20",
         assigned_coordinator_user_account_id: 2,
         client_organisation_id: 1,
-        start_time: "2026-11-20T01:00:00+00:00",
-        end_time: "2026-11-20T04:00:00+00:00",
+        event_slots: [{ date: "2026-11-20", slot: "AM" }],
         expected_attendance: 120,
         venue_requirements: "Stage",
         room_layout_preference: "Theatre",
@@ -98,12 +97,29 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       name: "Roadmap Conference",
       status: "Planning",
       preferredDate: "2026-11-20",
-      startTime: "2026-11-20T01:00:00+00:00",
-      endTime: "2026-11-20T04:00:00+00:00",
+      slots: [{ date: "2026-11-20", slot: "AM" }],
       expectedAttendance: 120,
       venueRequirements: "Stage",
       roomLayoutPreference: "Theatre",
       accessibilityRequirements: "Step-free",
     });
+  });
+
+  it("reads an event whose query did not select its slots as having none", () => {
+    const details = toCoordinatorEventDetails({
+      event_id: 5,
+      event_request_id: null,
+      name: "Roadmap Conference",
+      status: "Planning",
+      preferred_date: null,
+      assigned_coordinator_user_account_id: 2,
+      client_organisation_id: 1,
+      expected_attendance: null,
+      venue_requirements: null,
+      room_layout_preference: null,
+      accessibility_requirements: null,
+    });
+
+    expect(details.slots).toEqual([]);
   });
 });
