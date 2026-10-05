@@ -860,3 +860,20 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
     super("That block has already been lifted.");
   }
 }
+
+/**
+ * SPM-21 AC12: a Venue Staff block covers a slot the request asks for. Unlike a
+ * clash with another booking, there is no other venue slot to choose around it
+ * and no override.
+ */
+export class VenueSlotBlockedError extends DomainError {
+  readonly code = "venue_slot_blocked";
+
+  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
+    super(
+      `The venue is unavailable for ${slots
+        .map(({ date, slot }) => `${date} ${slot}`)
+        .join(", ")}. Choose other slots or another venue.`,
+    );
+  }
+}

@@ -1,7 +1,12 @@
 import type { BookingId, BookingRequest, OccupiedSlot } from "@/core/domain/booking";
-import { BookingNotFoundError, BookingRoomLayoutNotChangeableError } from "@/core/domain/errors";
+import {
+  BookingNotFoundError,
+  BookingRoomLayoutNotChangeableError,
+  VenueSlotBlockedError,
+} from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
 import { venueId, type VenueId } from "@/core/domain/venue";
+import type { BlockedSlot } from "@/core/domain/venue-unavailability";
 import type {
   BookingRepository,
   EventBookingSummary,
@@ -14,6 +19,11 @@ export interface StoredBooking extends Omit<EventBookingSummary, "venueId"> {
   readonly requestedBy: string;
 }
 
+/** Where the store learns which slots Venue Staff have blocked (SPM-21). */
+export interface BlockedSlotSource {
+  blockedSlots(): readonly BlockedSlot[];
+}
+
 export class InMemoryBookingRepository implements BookingRepository {
   private readonly rows: StoredBooking[];
   private nextId: number;
@@ -21,6 +31,7 @@ export class InMemoryBookingRepository implements BookingRepository {
   constructor(
     seed: readonly StoredBooking[] = [],
     private readonly venueLocations: ReadonlyMap<string, string> = new Map(),
+    private readonly blocks: BlockedSlotSource = { blockedSlots: () => [] },
   ) {
     this.rows = [...seed];
     this.nextId = seed.length + 1;
@@ -54,7 +65,21 @@ export class InMemoryBookingRepository implements BookingRepository {
       }));
   }
 
+  /**
+   * Refuses a slot an In force block covers, as the `booking_slot` trigger does
+   * (SPM-21 AC12), whatever the use case checked first.
+   */
   async submit(request: BookingRequest): Promise<BookingId> {
+    const blocked = this.blocks
+      .blockedSlots()
+      .filter((slot) => slot.venueId === request.venueId);
+    const refused = request.slots.filter(({ date, slot }) =>
+      blocked.some((b) => b.date === date && b.slot === slot),
+    );
+    if (refused.length > 0) {
+      throw new VenueSlotBlockedError(refused);
+    }
+
     const id = `booking-${this.nextId++}`;
     this.rows.push({
       id,

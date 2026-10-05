@@ -5,10 +5,12 @@ import {
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
-import type {
-  UnavailabilityLift,
-  VenueUnavailabilityBlock,
-  VenueUnavailabilityEntry,
+import {
+  slotsStillBlocked,
+  type BlockedSlot,
+  type UnavailabilityLift,
+  type VenueUnavailabilityBlock,
+  type VenueUnavailabilityEntry,
 } from "@/core/domain/venue-unavailability";
 import type { Clock } from "@/core/ports/outbound/clock";
 import type {
@@ -102,6 +104,11 @@ export class InMemoryVenueUnavailabilityRepository implements VenueUnavailabilit
             slot: slot as BookingSlot,
           })),
       );
+  }
+
+  /** The slots an In force block holds: what the booking store refuses (SPM-21 AC12). */
+  blockedSlots(): readonly BlockedSlot[] {
+    return slotsStillBlocked(this.rows);
   }
 
   /** Test helper: the bookings as seeded, to show a block left them alone. */

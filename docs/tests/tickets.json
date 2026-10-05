@@ -675,7 +675,7 @@
     "SPM-270": {
       "title": "Refuse booking requests over a block (database trigger)",
       "parent": "SPM-21",
-      "status": "Todo"
+      "status": "In Progress"
     },
     "SPM-271": {
       "title": "Manual tests, registry and seed evidence",

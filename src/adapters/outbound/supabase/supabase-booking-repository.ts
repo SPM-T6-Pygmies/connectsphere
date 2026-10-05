@@ -13,6 +13,7 @@ import {
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueNotFoundError,
+  VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
@@ -26,6 +27,7 @@ import {
   toChangeRoomLayoutArgs,
   toEventBookingSummary,
   toOccupiedSlot,
+  toSlot,
   toSubmitBookingArgs,
   type BookedSlotRow,
   type EventBookingRow,
@@ -40,6 +42,8 @@ const LAYOUT_REQUIRED = "CS022";
 const LAYOUT_UNSUPPORTED = "CS023";
 const SLOTS_INVALID = "CS024";
 const SLOT_TAKEN = "CS025";
+// Raised by the booking_slot trigger when a Venue Staff block covers a requested slot (SPM-21).
+const SLOT_BLOCKED = "CS028";
 
 // SQLSTATEs raised by coordinator_change_booking_room_layout (CS022 and CS023 are shared).
 const BOOKING_NOT_FOUND = "CS026";
@@ -123,6 +127,8 @@ export class SupabaseBookingRepository implements BookingRepository {
             : new InvalidBookingDateError(request.slots.map(({ date }) => date).join(", "));
         case SLOT_TAKEN:
           throw new VenueSlotUnavailableError(await this.takenOf(request));
+        case SLOT_BLOCKED:
+          throw new VenueSlotBlockedError(await this.blockedOf(request, error.message));
         default:
           throw new Error(`Failed to submit the booking request: ${error.message}`, {
             cause: error,
@@ -182,5 +188,37 @@ export class SupabaseBookingRepository implements BookingRepository {
       [...new Set(request.slots.map(({ date }) => date))],
     );
     return clashingSlots(request.slots, occupied);
+  }
+
+  /**
+   * Which of the request's slots are blocked, for a message that names them.
+   * The trigger stops at the first one; the read says them all. If a lift
+   * landed in between and nothing is blocked any more, the trigger's own
+   * message still names the slot it refused.
+   */
+  private async blockedOf(request: BookingRequest, triggerMessage: string) {
+    const key = toKey(request.venueId);
+    const dates = request.slots.map(({ date }) => date).sort();
+    if (key !== null && dates.length > 0) {
+      const { data } = await this.client.rpc("venue_blocked_slots", {
+        p_venue_id: key,
+        p_from: dates[0],
+        p_to: dates[dates.length - 1],
+      });
+      const blocked = new Set(
+        ((data ?? []) as unknown as Array<{ date: string; slot: string }>).map(
+          ({ date, slot }) => `${date.slice(0, 10)}|${slot}`,
+        ),
+      );
+      const named = request.slots.filter(({ date, slot }) => blocked.has(`${date}|${slot}`));
+      if (named.length > 0) {
+        return named;
+      }
+    }
+
+    const fromMessage = /(\d{4}-\d{2}-\d{2}) (AM|PM|Night)/.exec(triggerMessage);
+    return fromMessage === null
+      ? []
+      : [{ date: fromMessage[1], slot: toSlot(fromMessage[2]) }];
   }
 }
