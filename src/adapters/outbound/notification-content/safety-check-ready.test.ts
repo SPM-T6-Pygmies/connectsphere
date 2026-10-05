@@ -10,21 +10,35 @@ function notice(overrides: Partial<SafetyCheckReadyNotice> = {}): SafetyCheckRea
     eventId: "7",
     eventName: "Harbour Lights Gala",
     preferredDate: "2026-11-20",
+    venues: ["Grand Ballroom"],
+    equipmentLines: 1,
     ...overrides,
   };
 }
 
 describe("safetyCheckReadyMessage (SPM-262)", () => {
-  it("AC5: names the event and its date", () => {
+  it("AC5: names the event, its confirmed venue, its equipment and its date", () => {
     expect(safetyCheckReadyMessage(notice())).toEqual({
       subject: "Harbour Lights Gala is ready for a safety check",
-      body: "Its venue bookings are confirmed and its equipment is reserved. Event date: Fri, 20 Nov 2026.",
+      body: "Confirmed at Grand Ballroom. All equipment reserved. Event date: Fri, 20 Nov 2026.",
     });
+  });
+
+  it("AC5: names every confirmed venue", () => {
+    expect(safetyCheckReadyMessage(notice({ venues: ["Grand Ballroom", "Sky Terrace"] })).body).toBe(
+      "Confirmed at Grand Ballroom and Sky Terrace. All equipment reserved. Event date: Fri, 20 Nov 2026.",
+    );
+  });
+
+  it("AC5: says no equipment is needed when the event has none", () => {
+    expect(safetyCheckReadyMessage(notice({ equipmentLines: 0 })).body).toBe(
+      "Confirmed at Grand Ballroom. No equipment needed. Event date: Fri, 20 Nov 2026.",
+    );
   });
 
   it("AC5: says so when the event has no date yet", () => {
     expect(safetyCheckReadyMessage(notice({ preferredDate: null })).body).toBe(
-      "Its venue bookings are confirmed and its equipment is reserved. No event date set yet.",
+      "Confirmed at Grand Ballroom. All equipment reserved. No event date set yet.",
     );
   });
 });

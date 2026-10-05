@@ -9,6 +9,8 @@ describe("safetyCheckReadyInApp (SPM-262)", () => {
       eventId: "7",
       eventName: "Harbour Lights Gala",
       preferredDate: null,
+      venues: ["Sky Terrace"],
+      equipmentLines: 0,
     });
 
     expect(inApp.redirect).toEqual({ url: "/staff/safety", target: "_self" });

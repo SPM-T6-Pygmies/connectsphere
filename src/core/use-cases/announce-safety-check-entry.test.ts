@@ -29,7 +29,7 @@ function announcer(before: SafetyCheckCandidate) {
 }
 
 describe("SafetyCheckEntryAnnouncer (SPM-262)", () => {
-  it("AC1, AC4, AC5: tells every Safety Officer, by name and date, when a change puts the event on the list", async () => {
+  it("AC1, AC4, AC5: tells every Safety Officer, with its venues, equipment and date, when a change puts the event on the list", async () => {
     const { watch, notifier, announcer: a } = announcer(gala(true));
 
     const result = await a.around({ bookingId: BOOKING }, async () => {
@@ -39,8 +39,22 @@ describe("SafetyCheckEntryAnnouncer (SPM-262)", () => {
 
     expect(result).toBe("decided");
     expect(notifier.safetyChecksReady).toEqual([
-      { recipientUserAccountId: "safety-1", eventId: "event-1", eventName: "Harbour Lights Gala", preferredDate: "2026-11-20" },
-      { recipientUserAccountId: "safety-2", eventId: "event-1", eventName: "Harbour Lights Gala", preferredDate: "2026-11-20" },
+      {
+        recipientUserAccountId: "safety-1",
+        eventId: "event-1",
+        eventName: "Harbour Lights Gala",
+        preferredDate: "2026-11-20",
+        venues: ["Grand Ballroom", "Sky Terrace"],
+        equipmentLines: 0,
+      },
+      {
+        recipientUserAccountId: "safety-2",
+        eventId: "event-1",
+        eventName: "Harbour Lights Gala",
+        preferredDate: "2026-11-20",
+        venues: ["Grand Ballroom", "Sky Terrace"],
+        equipmentLines: 0,
+      },
     ]);
   });
 

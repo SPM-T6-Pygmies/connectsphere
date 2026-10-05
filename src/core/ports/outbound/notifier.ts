@@ -70,6 +70,10 @@ export interface SafetyCheckReadyNotice {
   readonly eventName: string;
   /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
   readonly preferredDate: string | null;
+  /** The venue of each Confirmed booking, alphabetically -- what the check is of. */
+  readonly venues: readonly string[];
+  /** How many equipment lines the event has, all reserved in full by now. */
+  readonly equipmentLines: number;
 }
 
 /**

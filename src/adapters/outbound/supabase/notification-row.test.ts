@@ -99,6 +99,8 @@ describe("safetyCheckReadyRow (SPM-262)", () => {
         eventId: "7",
         eventName: "Harbour Lights Gala",
         preferredDate: "2026-11-20",
+        venues: ["Grand Ballroom"],
+        equipmentLines: 1,
       }),
     ).toEqual({
       recipient_user_account_id: "11",
@@ -107,7 +109,7 @@ describe("safetyCheckReadyRow (SPM-262)", () => {
       status: "Pending",
       related_event_id: "7",
       message_content:
-        "Harbour Lights Gala is ready for a safety check\nIts venue bookings are confirmed and its equipment is reserved. Event date: Fri, 20 Nov 2026.",
+        "Harbour Lights Gala is ready for a safety check\nConfirmed at Grand Ballroom. All equipment reserved. Event date: Fri, 20 Nov 2026.",
     });
   });
 });

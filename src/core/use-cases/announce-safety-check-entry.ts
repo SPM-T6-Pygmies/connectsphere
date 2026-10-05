@@ -1,6 +1,6 @@
 import type { BookingId } from "../domain/booking";
 import type { EventId } from "../domain/event";
-import { entersSafetyCheck, type SafetyCheckCandidate } from "../domain/safety-check";
+import { confirmedVenues, entersSafetyCheck, type SafetyCheckCandidate } from "../domain/safety-check";
 import type { Notifier } from "../ports/outbound/notifier";
 import type { SafetyCheckWatch } from "../ports/outbound/safety-check-watch";
 
@@ -43,7 +43,8 @@ export class SafetyCheckEntryAnnouncer {
       : this.deps.watch.candidateForBooking(subject.bookingId);
   }
 
-  private async announce({ event }: SafetyCheckCandidate): Promise<void> {
+  private async announce(candidate: SafetyCheckCandidate): Promise<void> {
+    const { event } = candidate;
     const officers = await this.deps.watch.safetyOfficers();
     for (const officer of officers) {
       await this.deps.notifier.safetyCheckReady({
@@ -51,6 +52,8 @@ export class SafetyCheckEntryAnnouncer {
         eventId: event.id,
         eventName: event.name,
         preferredDate: event.preferredDate,
+        venues: confirmedVenues(candidate),
+        equipmentLines: candidate.equipmentLines.length,
       });
     }
   }
