@@ -6,6 +6,7 @@ import { eventId } from "./event";
 import {
   awaitsSafetyCheck,
   confirmedVenues,
+  entersSafetyCheck,
   type SafetyCheckBooking,
   type SafetyCheckCandidate,
   type SafetyCheckEquipmentLine,
@@ -119,5 +120,29 @@ describe("confirmedVenues (SPM-259)", () => {
         }),
       ),
     ).toEqual(["Grand Ballroom", "Sky Terrace"]);
+  });
+});
+
+describe("entersSafetyCheck (SPM-262)", () => {
+  const notReady = candidate({ bookings: [booking(), booking({ status: "Requested" })] });
+
+  it("AC1, AC2: an event that did not await a check and now does has entered the list", () => {
+    expect(entersSafetyCheck(notReady, candidate())).toBe(true);
+  });
+
+  it("AC3: an event that still does not await a check has not entered", () => {
+    expect(entersSafetyCheck(notReady, notReady)).toBe(false);
+  });
+
+  it("AC3: an event already on the list has not entered again", () => {
+    expect(entersSafetyCheck(candidate(), candidate())).toBe(false);
+  });
+
+  it("AC3: an event that leaves the list has not entered", () => {
+    expect(entersSafetyCheck(candidate(), notReady)).toBe(false);
+  });
+
+  it("AC3: no event after the change has not entered", () => {
+    expect(entersSafetyCheck(notReady, null)).toBe(false);
   });
 });
