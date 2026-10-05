@@ -9,6 +9,7 @@ export type NotificationTrigger =
   | "Coordinator assigned"
   | "Clarification requested"
   | "Request decided"
+  | "Ready for safety check"
   | "Booking requested"
   | "Booking decided"
   | "Equipment recorded"

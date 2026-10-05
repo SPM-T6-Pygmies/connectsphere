@@ -5,6 +5,7 @@ import {
   coordinatorAssignedRow,
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
+  safetyCheckReadyRow,
 } from "./notification-row";
 
 describe("coordinatorAssignedRow (SPM-177)", () => {
@@ -86,6 +87,27 @@ describe("eventRequestDecidedRow (SPM-60)", () => {
       status: "Pending",
       related_event_request_id: "42",
       message_content: "Founders' Day was rejected\nYour coordinator rejected Founders' Day. Reason: Clash.",
+    });
+  });
+});
+
+describe("safetyCheckReadyRow (SPM-262)", () => {
+  it("AC4: records the notice as Pending against its Safety Officer and the event", () => {
+    expect(
+      safetyCheckReadyRow({
+        recipientUserAccountId: "11",
+        eventId: "7",
+        eventName: "Harbour Lights Gala",
+        preferredDate: "2026-11-20",
+      }),
+    ).toEqual({
+      recipient_user_account_id: "11",
+      trigger_scenario: "safety-check-ready",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      message_content:
+        "Harbour Lights Gala is ready for a safety check\nIts venue bookings are confirmed and its equipment is reserved. Event date: Fri, 20 Nov 2026.",
     });
   });
 });

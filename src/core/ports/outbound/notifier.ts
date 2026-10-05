@@ -61,6 +61,18 @@ export interface EventRequestDecidedNotice {
 }
 
 /**
+ * What a Safety Officer is told when an event joins their Awaiting check list
+ * (SPM-262). Every Safety Officer gets their own copy.
+ */
+export interface SafetyCheckReadyNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly eventName: string;
+  /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
+  readonly preferredDate: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -73,4 +85,5 @@ export interface Notifier {
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void>;
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void>;
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void>;
+  safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void>;
 }

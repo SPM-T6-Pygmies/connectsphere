@@ -6,6 +6,7 @@ import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/wo
 import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
+import { SAFETY_CHECK_READY_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
@@ -13,6 +14,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  SafetyCheckReadyNotice,
 } from "@/core/ports/outbound/notifier";
 
 /**
@@ -66,6 +68,10 @@ export class NovuNotifier implements Notifier {
 
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
     return this.trigger(COORDINATOR_ASSIGNED_WORKFLOW_ID, notice);
+  }
+
+  safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void> {
+    return this.trigger(SAFETY_CHECK_READY_WORKFLOW_ID, notice);
   }
 
   private async trigger(
