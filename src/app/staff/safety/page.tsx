@@ -1,25 +1,27 @@
-import { ShieldCheckIcon } from "lucide-react";
+import { forbidden } from "next/navigation";
 
-import { QueueEmptyState } from "../queue-empty-state";
+import { buildListEventsAwaitingSafetyCheck, getCurrentSafetyOfficer } from "@/composition/container";
+
 import { StaffShell } from "../staff-shell";
+import { EventsAwaitingCheckCard } from "./events-awaiting-check-card";
 
 export const metadata = { title: "Awaiting check | ConnectSphere" };
 
-/**
- * The Safety Officer's workspace (SPM-258). `StaffShell` refuses anyone who
- * is not a Safety Officer with the shared access-denied screen (SPM-16).
- *
- * The list of events awaiting a check is SPM-259's; until it lands there is
- * nothing to open here.
- */
-export default function SafetyPage() {
+/** The Safety Officer's workspace (SPM-258): the events awaiting a safety check (SPM-259). */
+export default async function SafetyPage() {
+  // Anyone who is not a Safety Officer is refused the list with the shared
+  // access-denied screen (SPM-259 AC7, SPM-16).
+  const safetyOfficer = await getCurrentSafetyOfficer();
+  if (safetyOfficer === null) {
+    forbidden();
+  }
+
+  const listEventsAwaitingSafetyCheck = await buildListEventsAwaitingSafetyCheck();
+  const { events } = await listEventsAwaitingSafetyCheck.execute(safetyOfficer);
+
   return (
     <StaffShell role="safety" crumbs={[{ label: "Awaiting check" }]}>
-      <QueueEmptyState
-        icon={ShieldCheckIcon}
-        title="No events awaiting a safety check"
-        description="Events appear here once their venue and equipment are confirmed."
-      />
+      <EventsAwaitingCheckCard events={events} />
     </StaffShell>
   );
 }

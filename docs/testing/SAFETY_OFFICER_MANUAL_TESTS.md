@@ -10,8 +10,9 @@ role's apart in both directions.
 What SPM-258 does **not** cover, so is not tested here:
 
 - **Recording a safety check outcome**, and refusing it to anyone else — SPM-260.
-- **Which events are listed** in the workspace — SPM-259. Until then the list is
-  empty: "No events awaiting a safety check".
+- **Which events are listed** in the workspace — SPM-259
+  ([`SAFETY_CHECK_LIST_MANUAL_TESTS.md`](SAFETY_CHECK_LIST_MANUAL_TESTS.md)). On
+  a freshly reset database the list is empty: "No events awaiting a safety check".
 
 The rules are unit-tested (`Safety Officer role (SPM-258)`,
 `Safety Officer navigation (SPM-258)`, `LoginUseCase for a Safety Officer
@@ -37,7 +38,7 @@ them, tick the boxes below **and** report each in the PR description's
   supabase start
   supabase db reset
   ```
-  No sample requests are needed — the safety workspace lists nothing yet.
+  No sample events are needed — on a fresh database the safety workspace lists nothing.
 - `pnpm dev:local` (or `pnpm dev` with `.env.local` pointing at the local stack)
 - Browser DevTools open on the **Network** tab, to read the HTTP status of the
   document request. For TC-SAFETY-006 use a private window, or

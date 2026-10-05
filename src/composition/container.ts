@@ -13,6 +13,7 @@ import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supaba
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEquipmentRecheckRepository } from "@/adapters/outbound/supabase/supabase-equipment-recheck-repository";
+import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/supabase-event-readiness-repository";
@@ -71,6 +72,7 @@ import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
 import { ListEquipmentRechecksUseCase } from "@/core/use-cases/list-equipment-rechecks";
+import { ListEventsAwaitingSafetyCheckUseCase } from "@/core/use-cases/list-events-awaiting-safety-check";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
@@ -334,6 +336,23 @@ export async function buildListEquipmentRechecks(): Promise<ListEquipmentRecheck
   const client = await createSupabaseServerClient();
 
   return new ListEquipmentRechecksUseCase({ rechecks: new SupabaseEquipmentRecheckRepository(client) });
+}
+
+/**
+ * Who the Safety Officer's screens are acting as: the signed-in Safety Officer
+ * (SPM-259 AC7). `null` for anyone else, so callers refuse the page. Same
+ * shape as `getCurrentTechnicalSupport`.
+ */
+export async function getCurrentSafetyOfficer(): Promise<{ readonly userAccountId: string } | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.safetyOfficer ?? null;
+}
+
+/** SPM-259: the events awaiting a safety check. */
+export async function buildListEventsAwaitingSafetyCheck(): Promise<ListEventsAwaitingSafetyCheckUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ListEventsAwaitingSafetyCheckUseCase({ candidates: new SupabaseSafetyCheckCandidateRepository(client) });
 }
 
 async function coordinatorAdapters(): Promise<{
