@@ -1,3 +1,4 @@
+import type { BookingSlot } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
 
 /**
@@ -14,8 +15,7 @@ export interface EventCoordinatorAssignedNotice {
   readonly eventName: string;
   readonly clientOrganisationName: string | null;
   readonly preferredDate: string | null;
-  readonly preferredStartTime: string | null;
-  readonly preferredEndTime: string | null;
+  readonly preferredSlots: readonly BookingSlot[];
 }
 
 /**

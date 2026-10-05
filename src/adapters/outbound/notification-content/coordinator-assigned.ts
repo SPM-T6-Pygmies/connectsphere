@@ -13,20 +13,6 @@ export interface NotificationMessage {
   readonly body: string;
 }
 
-// Singapore time, as everywhere else the system renders an instant (#36).
-const dayFormat = new Intl.DateTimeFormat("en-SG", {
-  timeZone: "Asia/Singapore",
-  weekday: "short",
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-});
-const timeFormat = new Intl.DateTimeFormat("en-SG", {
-  timeZone: "Asia/Singapore",
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true,
-});
 // `preferredDate` is a calendar date, not an instant: read it in UTC so no
 // zone shifts it onto a neighbouring day.
 const calendarDayFormat = new Intl.DateTimeFormat("en-SG", {
@@ -38,20 +24,12 @@ const calendarDayFormat = new Intl.DateTimeFormat("en-SG", {
 });
 
 function requestedWhen(notice: EventCoordinatorAssignedNotice): string | null {
-  const { preferredDate, preferredStartTime, preferredEndTime } = notice;
-  if (preferredStartTime !== null && preferredEndTime !== null) {
-    const start = new Date(preferredStartTime);
-    const end = new Date(preferredEndTime);
-    const startDay = dayFormat.format(start);
-    const endDay = dayFormat.format(end);
-    return startDay === endDay
-      ? `${startDay}, ${timeFormat.format(start)} – ${timeFormat.format(end)}`
-      : `${startDay}, ${timeFormat.format(start)} – ${endDay}, ${timeFormat.format(end)}`;
+  const { preferredDate, preferredSlots } = notice;
+  if (preferredDate === null) {
+    return null;
   }
-  if (preferredDate !== null) {
-    return calendarDayFormat.format(new Date(`${preferredDate}T00:00:00Z`));
-  }
-  return null;
+  const day = calendarDayFormat.format(new Date(`${preferredDate}T00:00:00Z`));
+  return preferredSlots.length === 0 ? day : `${day}, ${preferredSlots.join(", ")}`;
 }
 
 export function coordinatorAssignedMessage(

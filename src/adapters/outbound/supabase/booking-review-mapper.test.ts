@@ -28,8 +28,7 @@ const row: BookingReviewRow = {
     organisation_name: "Org",
     category: null,
     preferred_date: "2026-10-22",
-    start_time: null,
-    end_time: null,
+    slots: [],
     expected_attendance: 100,
     room_layout_preference: "Theatre",
     accessibility_requirements: null,
@@ -49,6 +48,25 @@ describe("booking review mapper (SPM-22)", () => {
       slots: [{ date: "2026-10-22", slot: "AM" }],
       event: { name: "Summit", organisationName: "Org", expectedAttendance: 100 },
     });
+  });
+
+  it("reads the event's own slots apart from the slots the booking holds", () => {
+    const review = toBookingForReview({
+      ...row,
+      event: {
+        ...row.event,
+        slots: [
+          { date: "2026-10-22", slot: "AM" },
+          { date: "2026-10-23", slot: "Night" },
+        ],
+      },
+    });
+
+    expect(review.slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
+    expect(review.event.slots).toEqual([
+      { date: "2026-10-22", slot: "AM" },
+      { date: "2026-10-23", slot: "Night" },
+    ]);
   });
 
   it("refuses a status or slot the schema does not allow", () => {

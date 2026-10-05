@@ -1,3 +1,4 @@
+import { slotStartsAt, type SlotOnDate } from "./booking";
 import type { Brand } from "./brand";
 import { InvalidEventIdError } from "./errors";
 
@@ -30,8 +31,8 @@ export interface Event {
   readonly name: string;
   readonly description: string | null;
   readonly status: EventStatus;
-  readonly startsAt: Date;
-  readonly endsAt: Date;
+  /** When it runs: at least one slot, in date then day order. */
+  readonly slots: readonly SlotOnDate[];
   /** The location of the event's confirmed booking, if it has one. */
   readonly venueName: string | null;
   /** `null` means no ceiling has been set, which the business reads as unlimited. */
@@ -109,5 +110,5 @@ export function allowsWithdrawal(event: Event): boolean {
 
 /** Soonest first. Sorting is a pure function, not a reason to add a port. */
 export function compareByStart(a: Event, b: Event): number {
-  return a.startsAt.getTime() - b.startsAt.getTime();
+  return slotStartsAt(a.slots[0]).getTime() - slotStartsAt(b.slots[0]).getTime();
 }

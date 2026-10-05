@@ -69,8 +69,7 @@ create table event_request (
   description               text,
   purpose                   text,
   preferred_date            date,
-  preferred_start_time      timestamptz,
-  preferred_end_time        timestamptz,
+    -- the slots wanted on it are event_request_slot rows (10b)
   expected_attendance       integer check (expected_attendance is null or expected_attendance >= 0),
   venue_requirements        text,
   accessibility_needs       text,
@@ -92,15 +91,9 @@ create table event_request (
   created_at                timestamptz not null default now(),
   updated_at                timestamptz not null default now(),
   constraint event_request_status_chk
-    check (status in ('Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Returned', 'Withdrawn')),
+    check (status in ('Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Returned', 'Withdrawn'))
     -- 'Withdrawn' added 2026-09-09 (D3, #103): grounded, Coordinator-actioned,
     -- must stay distinguishable from every other request state.
-  constraint event_request_preferred_time_order_chk
-    check (
-      preferred_start_time is null
-      or preferred_end_time is null
-      or preferred_end_time > preferred_start_time
-    )
 );
 
 -- ---------------------------------------------------------------------------
@@ -115,8 +108,7 @@ create table event (
   purpose                  text,
   category_type            text,
   preferred_date           date,
-  start_time               timestamptz,
-  end_time                 timestamptz,
+    -- when it runs is event_slot rows (10b)
   expected_attendance      integer check (expected_attendance is null or expected_attendance >= 0),
   event_capacity           integer check (event_capacity is null or event_capacity >= 0),
   programme_agenda         text,
@@ -141,8 +133,6 @@ create table event (
   updated_at               timestamptz not null default now(),
   constraint event_status_chk
     check (status in ('Planning', 'Blocked', 'Confirmed', 'Completed', 'Cancelled')),
-  constraint event_time_order_chk
-    check (start_time is null or end_time is null or end_time > start_time),
   constraint event_registration_window_chk
     check (registration_open_date is null or registration_close_date is null
            or registration_close_date >= registration_open_date),
@@ -230,20 +220,17 @@ create table supporting_document (
 -- ---------------------------------------------------------------------------
 -- 8. Session  (wiki: session, #74)
 --    First-class child of Event, with its own venue, equipment and timing.
+--    Timing is slots only (session_slot, 10b), like the event's.
 -- ---------------------------------------------------------------------------
 create table session (
   session_id       bigint generated always as identity primary key,
   event_id         bigint not null references event (event_id) on delete cascade,
   sequence_no      integer not null,
   name             text,
-  start_time       timestamptz,
-  end_time         timestamptz,
   attendance_limit integer check (attendance_limit is null or attendance_limit >= 0),
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now(),
-  unique (event_id, sequence_no),
-  constraint session_time_order_chk
-    check (start_time is null or end_time is null or end_time > start_time)
+  unique (event_id, sequence_no)
 );
 
 -- ---------------------------------------------------------------------------
@@ -255,8 +242,7 @@ create table venue (
   capacity               integer check (capacity is null or capacity >= 0),
   facilities             text,
   accessibility          text,
-  operating_hours_start  time,
-  operating_hours_end    time,
+    -- the slots it can be booked in are venue_slot rows (10b)
   setup_time_minutes     integer check (setup_time_minutes is null or setup_time_minutes >= 0),
   turnaround_time_minutes integer check (turnaround_time_minutes is null or turnaround_time_minutes >= 0),
   booking_horizon_days   integer check (booking_horizon_days is null or booking_horizon_days >= 0),
@@ -318,24 +304,65 @@ create table booking_slot (
   booking_id      bigint not null references booking (booking_id) on delete cascade,
   slot_date       date not null,
   slot            text not null,
+  venue_id        bigint not null references venue (venue_id) on delete cascade,
+  status          text not null,
+    -- added 2026-10-06 (slot-based timing): copies of booking.venue_id and
+    -- booking.status, filled on insert and kept in step on update by triggers
+    -- on booking_slot and booking, so the index below can see them.
   unique (booking_id, slot_date, slot),
   constraint booking_slot_value_chk check (slot in ('AM', 'PM', 'Night'))
 );
 
 -- Double-booking is a HARD block, not an overridable warning (#35): one venue
 -- + date + slot may carry at most one live (Tentative Hold / Confirmed) booking.
--- This cannot be expressed as a plain unique index, because the venue and the
--- status live on `booking` while the slot lives on `booking_slot`, and an index
--- expression may not sub-query another table. Two ways to close it — pick one
--- before going live, and prefer (a) so the database, not the application, holds
--- the block:
---   (a) denormalise venue_id and status onto booking_slot (kept in step by a
---       trigger on booking), then:
---         create unique index booking_slot_no_double_booking_uidx
---           on booking_slot (venue_id, slot_date, slot)
---           where status in ('Tentative Hold', 'Confirmed');
---   (b) a before insert/update trigger on booking_slot that joins to booking
---       and raises on a clash.
+-- The venue and status are denormalised onto booking_slot above because an
+-- index expression may not sub-query `booking`.
+create unique index booking_slot_no_double_booking_uidx
+  on booking_slot (venue_id, slot_date, slot)
+  where status in ('Tentative Hold', 'Confirmed');
+
+-- ---------------------------------------------------------------------------
+-- 10b. Day slots  (slot-based timing, 2026-10-06)
+--      Venues, events, sessions and event requests are scheduled in three
+--      fixed slots a day, in Singapore time. `slot` is the reference table;
+--      each junction holds one row per slot taken.
+-- ---------------------------------------------------------------------------
+create table slot (
+  slot_code  text primary key,
+  start_time time not null,
+  end_time   time not null,
+  constraint slot_code_chk check (slot_code in ('AM', 'PM', 'Night')),
+  constraint slot_time_order_chk check (end_time > start_time)
+);
+-- Seeded: AM 07:00-12:00, PM 12:00-18:00, Night 18:00-22:00.
+
+create table venue_slot (
+  venue_id  bigint not null references venue (venue_id) on delete cascade,
+  slot_code text   not null references slot (slot_code) on delete restrict,
+  primary key (venue_id, slot_code)
+);
+
+create table event_request_slot (
+  event_request_id bigint not null references event_request (event_request_id) on delete cascade,
+  slot_date        date   not null,
+    -- the request's preferred_date; organiser_save/submit keep the two equal
+  slot_code        text   not null references slot (slot_code) on delete restrict,
+  primary key (event_request_id, slot_date, slot_code)
+);
+
+create table event_slot (
+  event_id  bigint not null references event (event_id) on delete cascade,
+  slot_date date   not null,
+  slot_code text   not null references slot (slot_code) on delete restrict,
+  primary key (event_id, slot_date, slot_code)
+);
+
+create table session_slot (
+  session_id bigint not null references session (session_id) on delete cascade,
+  slot_date  date   not null,
+  slot_code  text   not null references slot (slot_code) on delete restrict,
+  primary key (session_id, slot_date, slot_code)
+);
 
 -- ---------------------------------------------------------------------------
 -- 11. Equipment item  (wiki: equipment-item, #2, #5, #13)

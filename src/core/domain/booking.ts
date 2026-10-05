@@ -19,6 +19,25 @@ export type BookingSlot = "AM" | "PM" | "Night";
 /** In the order they fall in a day, which is also the order a request is shown in. */
 export const BOOKING_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
 
+/** Each slot's span as `HH:MM` wall-clock time in Singapore, as the `slot` table seeds it. */
+export const SLOT_HOURS: Readonly<Record<BookingSlot, { start: string; end: string }>> = {
+  AM: { start: "07:00", end: "12:00" },
+  PM: { start: "12:00", end: "18:00" },
+  Night: { start: "18:00", end: "22:00" },
+};
+
+/**
+ * The instant `slot` starts on its date. Singapore observes no daylight
+ * saving, so its +08:00 offset is exact (#36).
+ */
+export function slotStartsAt({ date, slot }: SlotOnDate): Date {
+  return new Date(`${date}T${SLOT_HOURS[slot].start}:00+08:00`);
+}
+
+export function isBookingSlot(raw: string): raw is BookingSlot {
+  return (BOOKING_SLOTS as readonly string[]).includes(raw);
+}
+
 /** `booking_status_chk`. */
 export type BookingStatus =
   | "Requested"

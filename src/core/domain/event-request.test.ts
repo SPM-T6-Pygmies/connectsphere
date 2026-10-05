@@ -15,7 +15,6 @@ import {
   EventRequestNotWithdrawableError,
   IncompleteEventRequestError,
   PreferredDateNotInFutureError,
-  PreferredEndTimeNotAfterStartError,
 } from "./errors";
 import {
   approveEventRequest,
@@ -176,17 +175,20 @@ describe("missingMandatoryFields (SPM-88)", () => {
   it.each([
     ["eventName", { eventName: "" }],
     ["preferredDate", { preferredDate: null }],
-    ["preferredStartTime", { preferredStartTime: null }],
-    ["preferredEndTime", { preferredEndTime: null }],
+    ["preferredSlots", { preferredSlots: [] }],
     ["expectedAttendance", { expectedAttendance: null }],
   ] as const)("reports %s when it is absent", (field, override) => {
     expect(missingMandatoryFields(eventRequestDetails(override))).toEqual([field]);
   });
 
   it("treats whitespace as absent, so a space bar does not pass the gate", () => {
-    expect(missingMandatoryFields(eventRequestDetails({ preferredStartTime: "   " }))).toEqual([
-      "preferredStartTime",
+    expect(missingMandatoryFields(eventRequestDetails({ eventName: "   " }))).toEqual([
+      "eventName",
     ]);
+  });
+
+  it("counts a single preferred slot as given", () => {
+    expect(missingMandatoryFields(eventRequestDetails({ preferredSlots: ["Night"] }))).toEqual([]);
   });
 
   it("reports every missing field at once rather than the first", () => {
@@ -240,16 +242,16 @@ describe("submitEventRequest (SPM-31)", () => {
 
   it("refuses an incomplete request and names every missing field (AC3)", () => {
     expect(() =>
-      submit(eventRequestDetails({ eventName: "", preferredStartTime: null })),
+      submit(eventRequestDetails({ eventName: "", preferredSlots: [] })),
     ).toThrow(IncompleteEventRequestError);
 
     try {
-      submit(eventRequestDetails({ eventName: "", preferredStartTime: null }));
+      submit(eventRequestDetails({ eventName: "", preferredSlots: [] }));
       expect.unreachable("submitEventRequest should have refused");
     } catch (error) {
       expect((error as IncompleteEventRequestError).missing).toEqual([
         "eventName",
-        "preferredStartTime",
+        "preferredSlots",
       ]);
     }
   });
@@ -290,18 +292,10 @@ describe("submitEventRequest (SPM-31)", () => {
     ).not.toThrow();
   });
 
-  it("refuses a preferred end time that is not after the preferred start time", () => {
-    expect(() =>
-      submit(
-        eventRequestDetails({ preferredStartTime: "2026-11-04T09:00", preferredEndTime: "2026-11-04T09:00" }),
-      ),
-    ).toThrow(PreferredEndTimeNotAfterStartError);
+  it("records the preferred slots in the order the day runs, each once", () => {
+    const request = submit(eventRequestDetails({ preferredSlots: ["Night", "AM", "Night"] }));
 
-    expect(() =>
-      submit(
-        eventRequestDetails({ preferredStartTime: "2026-11-04T09:00", preferredEndTime: "2026-11-04T08:00" }),
-      ),
-    ).toThrow(PreferredEndTimeNotAfterStartError);
+    expect(request.details.preferredSlots).toEqual(["AM", "Night"]);
   });
 
   it("is submitted read-only: the Organiser keeps view access and loses edit (AC4)", () => {
@@ -343,24 +337,34 @@ describe("saveEventRequestDraft (SPM-93)", () => {
       draft(
         eventRequestDetails({
           preferredDate: null,
-          preferredStartTime: null,
-          preferredEndTime: null,
+          preferredSlots: [],
           expectedAttendance: null,
         }),
       ),
     ).not.toThrow();
   });
 
-  it("does not enforce the preferred-date-in-future or end-after-start rules", () => {
+  it("does not enforce the preferred-date-in-future rule", () => {
+    expect(() => draft(eventRequestDetails({ preferredDate: "2020-01-01" }))).not.toThrow();
+  });
+
+  it("refuses slots with no date to hold them, naming the date as missing", () => {
     expect(() =>
-      draft(
-        eventRequestDetails({
-          preferredDate: "2020-01-01",
-          preferredStartTime: "2020-01-01T17:00",
-          preferredEndTime: "2020-01-01T09:00",
-        }),
-      ),
-    ).not.toThrow();
+      draft(eventRequestDetails({ preferredDate: null, preferredSlots: ["AM"] })),
+    ).toThrow(IncompleteEventRequestError);
+
+    try {
+      draft(eventRequestDetails({ preferredDate: null, preferredSlots: ["AM"] }));
+      expect.unreachable("saveEventRequestDraft should have refused");
+    } catch (error) {
+      expect((error as IncompleteEventRequestError).missing).toEqual(["preferredDate"]);
+    }
+  });
+
+  it("keeps a draft's slots in the order the day runs", () => {
+    expect(draft(eventRequestDetails({ preferredSlots: ["PM", "AM"] })).details.preferredSlots).toEqual(
+      ["AM", "PM"],
+    );
   });
 
   it("still refuses a request with no name, matching the store's own constraint", () => {

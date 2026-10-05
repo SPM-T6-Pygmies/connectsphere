@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import type { BookingSlot } from "./booking";
 import { InvalidVenueError, type VenueField } from "./errors";
-import { canMaintainVenues, defineVenue, STANDARD_LAYOUTS, type VenueDetails } from "./venue";
+import {
+  canMaintainVenues,
+  defineVenue,
+  exceedsVenueCapacity,
+  STANDARD_LAYOUTS,
+  type VenueDetails,
+} from "./venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "./venue-options";
 
 function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
@@ -9,8 +16,7 @@ function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
     location: "Level 3, Marina Bay Hall",
     facilities: "Projector, PA system",
     accessibility: "Step-free access",
-    operatingHoursStart: "08:00",
-    operatingHoursEnd: "22:00",
+    slots: ["AM", "PM", "Night"],
     capacity: 300,
     bookingHorizonDays: 180,
     layouts: [
@@ -56,8 +62,7 @@ describe("defineVenue (SPM-42)", () => {
       ["facilities", { facilities: null }, "facilities"],
       ["blank facilities", { facilities: "  " }, "facilities"],
       ["accessibility", { accessibility: "" }, "accessibility"],
-      ["opening time", { operatingHoursStart: null }, "operatingHoursStart"],
-      ["closing time", { operatingHoursEnd: null }, "operatingHoursEnd"],
+      ["slot", { slots: [] }, "slots"],
       ["venue capacity", { capacity: null }, "capacity"],
       ["booking horizon", { bookingHorizonDays: null }, "bookingHorizonDays"],
       ["layouts", { layouts: [] }, "layouts"],
@@ -106,10 +111,6 @@ describe("defineVenue (SPM-42)", () => {
   });
 
   describe("venue-level capacity and booking horizon", () => {
-    it("keeps a venue capacity as supplied, even below a layout's capacity", () => {
-      expect(defineVenue(details({ capacity: 10 })).capacity).toBe(10);
-    });
-
     it.each([0, -1, 2.5])("refuses a venue capacity of %s", (capacity) => {
       expect(flaggedField(details({ capacity }))).toBe("capacity");
     });
@@ -120,27 +121,21 @@ describe("defineVenue (SPM-42)", () => {
     });
   });
 
-  describe("operating hours", () => {
-    it("refuses closing at the moment it opens, flagging the closing time", () => {
-      expect(
-        flaggedField(details({ operatingHoursStart: "09:00", operatingHoursEnd: "09:00" })),
-      ).toBe("operatingHoursEnd");
+  describe("slots the venue offers", () => {
+    it("accepts a single slot", () => {
+      expect(defineVenue(details({ slots: ["Night"] })).slots).toEqual(["Night"]);
     });
 
-    it("refuses closing earlier than it opens, flagging the closing time", () => {
-      expect(
-        flaggedField(details({ operatingHoursStart: "17:00", operatingHoursEnd: "08:30" })),
-      ).toBe("operatingHoursEnd");
+    it("keeps slots in the order the day runs, whatever order they were picked in", () => {
+      expect(defineVenue(details({ slots: ["Night", "AM"] })).slots).toEqual(["AM", "Night"]);
     });
 
-    it("accepts closing one minute after opening", () => {
-      expect(() =>
-        defineVenue(details({ operatingHoursStart: "09:00", operatingHoursEnd: "09:01" })),
-      ).not.toThrow();
+    it("keeps a slot picked twice once", () => {
+      expect(defineVenue(details({ slots: ["PM", "PM"] })).slots).toEqual(["PM"]);
     });
 
-    it("refuses a time that is not HH:MM", () => {
-      expect(flaggedField(details({ operatingHoursStart: "8am" }))).toBe("operatingHoursStart");
+    it("refuses a slot that is not AM, PM or Night, flagging slots", () => {
+      expect(flaggedField(details({ slots: ["Evening" as BookingSlot] }))).toBe("slots");
     });
   });
 });
@@ -225,5 +220,43 @@ describe("canMaintainVenues (SPM-148)", () => {
 
   it("refuses someone with no role", () => {
     expect(canMaintainVenues([])).toBe(false);
+  });
+});
+
+describe("no layout seats more than the venue (SPM-106)", () => {
+  const withTheatre = (capacity: number) =>
+    details({ capacity: 200, layouts: [{ name: "Theatre", capacity }] });
+
+  it.each([199, 200])("accepts a %s-seat layout in a 200-seat venue", (capacity) => {
+    expect(defineVenue(withTheatre(capacity)).layouts).toEqual([{ name: "Theatre", capacity }]);
+  });
+
+  it("refuses a 201-seat layout in a 200-seat venue, flagging layouts", () => {
+    expect(flaggedField(withTheatre(201))).toBe("layouts");
+    expect(() => defineVenue(withTheatre(201))).toThrow(
+      "The Theatre layout cannot seat more than the venue's capacity of 200.",
+    );
+  });
+
+  it("refuses when any one layout is too big, not only the first", () => {
+    const input = details({
+      capacity: 100,
+      layouts: [
+        { name: "Boardroom", capacity: 20 },
+        { name: "Banquet", capacity: 150 },
+      ],
+    });
+
+    expect(flaggedField(input)).toBe("layouts");
+  });
+});
+
+describe("exceedsVenueCapacity (SPM-106)", () => {
+  it.each([
+    [199, false],
+    [200, false],
+    [201, true],
+  ])("a %s-seat layout in a 200-seat venue exceeds it: %s", (layout, expected) => {
+    expect(exceedsVenueCapacity(layout, 200)).toBe(expected);
   });
 });

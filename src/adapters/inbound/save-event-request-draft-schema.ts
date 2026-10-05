@@ -3,7 +3,7 @@ import { z } from "zod";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 
-import { optionalOptions } from "./option-list-schema";
+import { optionalOptions, slotList } from "./option-list-schema";
 
 /**
  * The "save a draft" form's shape (SPM-38/SPM-94) -- and only its shape.
@@ -39,13 +39,6 @@ const optionalDate = optionalText.refine(
   { message: "Enter the date as YYYY-MM-DD." },
 );
 
-const optionalDateTime = optionalText.refine(
-  (value) =>
-    value === null ||
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})?$/.test(value),
-  { message: "Enter a valid date and time." },
-);
-
 /** Blank for a new draft, an id when updating a saved one in place. */
 const optionalEventRequestId = optionalText;
 
@@ -57,8 +50,7 @@ export const saveEventRequestDraftSchema = z.object({
   description: optionalText,
   purpose: optionalText,
   preferredDate: optionalDate,
-  preferredStartTime: optionalDateTime,
-  preferredEndTime: optionalDateTime,
+  preferredSlots: slotList(),
   expectedAttendance: optionalAttendance,
   venueRequirements: optionalText,
   roomLayoutPreferences: optionalOptions(STANDARD_LAYOUTS, 1),

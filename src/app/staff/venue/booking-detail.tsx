@@ -16,19 +16,10 @@ import type { BookingReviewDetail } from "@/core/use-cases/review-booking-reques
 
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
+import { formatSlotsOnDates } from "../slot-label";
 import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 import { DecisionForm } from "./[id]/decision-form";
-
-/** `h:mm am/pm` in Singapore time -- the system runs on Singapore time only (#36). */
-function formatInstantTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    timeZone: "Asia/Singapore",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
 
 function formatInstantDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
@@ -105,10 +96,7 @@ export async function BookingDetail({
   const { event } = booking;
   const decided = booking.status !== "Requested";
   const { section, queueLabel, queueHref } = sectionOf(booking.status);
-  const eventTime =
-    event.startTime !== null && event.endTime !== null
-      ? `${formatInstantTime(event.startTime)} – ${formatInstantTime(event.endTime)}`
-      : null;
+  const eventSlots = formatSlotsOnDates(event.slots);
   const slots = booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
 
   return (
@@ -145,11 +133,8 @@ export async function BookingDetail({
                     fields={[
                       { label: "Capacity", value: venue.capacity },
                       {
-                        label: "Operating hours",
-                        value:
-                          venue.operatingHoursStart !== null && venue.operatingHoursEnd !== null
-                            ? `${venue.operatingHoursStart} - ${venue.operatingHoursEnd}`
-                            : null,
+                        label: "Slots",
+                        value: venue.slots.length > 0 ? venue.slots.join(", ") : null,
                       },
                       { label: "Facilities", value: venue.facilities },
                       { label: "Accessibility", value: venue.accessibility },
@@ -233,7 +218,7 @@ export async function BookingDetail({
                 fields={[
                   { label: "Category", value: event.category },
                   { label: "Date", value: event.preferredDate },
-                  { label: "Time", value: eventTime },
+                  { label: "Event slots", value: eventSlots },
                   { label: "Expected attendance", value: event.expectedAttendance },
                   { label: "Room layout", value: event.roomLayoutPreference },
                   { label: "Accessibility needs", value: event.accessibilityRequirements },

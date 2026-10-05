@@ -1,4 +1,7 @@
+import type { SlotOnDate } from "@/core/domain/booking";
 import { eventId, type Event, type EventId, type EventStatus } from "@/core/domain/event";
+
+import { toDate, toSlot } from "./booking-mapper";
 
 /**
  * The database's shape, named honestly and kept in the adapter.
@@ -17,8 +20,6 @@ export interface EventRow {
   name: string;
   description: string | null;
   status: string;
-  start_time: string;
-  end_time: string;
   event_capacity: number | null;
   registration_enabled_flag: boolean;
   registration_open_date: string | null;
@@ -35,7 +36,7 @@ export interface EventRow {
  * 401 rather than a leak, which is the point of the column-level grants.
  */
 export const EVENT_COLUMNS =
-  "event_id, name, description, status, start_time, end_time, event_capacity, " +
+  "event_id, name, description, status, event_capacity, " +
   "registration_enabled_flag, registration_open_date, registration_close_date, " +
   "booking(status, venue!booking_venue_id_fkey(location))";
 
@@ -96,14 +97,35 @@ function venueOf(row: EventRow): string | null {
   return confirmed?.venue?.location ?? null;
 }
 
-export function toDomain(row: EventRow): Event {
+/** One slot in the JSON `confirmed_event_slots()` returns. */
+export interface EventSlotRow {
+  event_id: number;
+  date: string;
+  slot: string;
+}
+
+/**
+ * Each event's slots, keyed by event id, in the order the function returns
+ * them (date, then day order).
+ */
+export function slotsByEvent(rows: readonly EventSlotRow[]): Map<number, SlotOnDate[]> {
+  const byEvent = new Map<number, SlotOnDate[]>();
+  for (const row of rows) {
+    const slots = byEvent.get(row.event_id) ?? [];
+    slots.push({ date: toDate(row.date), slot: toSlot(row.slot) });
+    byEvent.set(row.event_id, slots);
+  }
+  return byEvent;
+}
+
+/** `slots` must be non-empty: an event with none cannot be a domain `Event`. */
+export function toDomain(row: EventRow, slots: readonly SlotOnDate[]): Event {
   return {
     id: eventId(String(row.event_id)),
     name: row.name,
     description: row.description,
     status: toStatus(row.status),
-    startsAt: new Date(row.start_time),
-    endsAt: new Date(row.end_time),
+    slots,
     venueName: venueOf(row),
     capacity: row.event_capacity,
     registrationEnabled: row.registration_enabled_flag,

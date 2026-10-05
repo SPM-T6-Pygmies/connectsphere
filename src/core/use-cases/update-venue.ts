@@ -1,3 +1,4 @@
+import type { BookingSlot } from "../domain/booking";
 import { VenueMaintenanceNotPermittedError } from "../domain/errors";
 import { canMaintainVenues, defineVenue, venueId, type Venue } from "../domain/venue";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
@@ -9,8 +10,7 @@ export interface UpdateVenueCommand {
   readonly location: string;
   readonly facilities: string | null;
   readonly accessibility: string | null;
-  readonly operatingHoursStart: string | null;
-  readonly operatingHoursEnd: string | null;
+  readonly slots: readonly BookingSlot[];
   readonly capacity: number | null;
   readonly bookingHorizonDays: number | null;
   /** The venue's supported layouts after the update: one not listed here is removed. */
@@ -44,8 +44,7 @@ export class UpdateVenueUseCase {
         location: command.location,
         facilities: command.facilities,
         accessibility: command.accessibility,
-        operatingHoursStart: command.operatingHoursStart,
-        operatingHoursEnd: command.operatingHoursEnd,
+        slots: command.slots,
         capacity: command.capacity,
         bookingHorizonDays: command.bookingHorizonDays,
         layouts: command.layouts,

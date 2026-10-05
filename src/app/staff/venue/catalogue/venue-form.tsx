@@ -15,11 +15,16 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
-import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "@/core/domain/venue-options";
+import { BOOKING_SLOTS } from "@/core/domain/booking";
+import { exceedsVenueCapacity, STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
+import {
+  ACCESSIBILITY_OPTIONS,
+  FACILITY_OPTIONS,
+  formatOptionList,
+} from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
-import { TimePicker } from "../../time-picker";
+import { slotLabel } from "../../slot-label";
 import type { VenueFormState } from "./actions";
 
 const INITIAL: VenueFormState = { status: "idle" };
@@ -30,13 +35,22 @@ function isFilled(value: string): boolean {
   return value.trim().length > 0;
 }
 
+/** Flags a layout that seats more than the venue as it is typed; the server checks it again. */
+function layoutCapacityError(layoutCapacity: string, venueCapacity: string): string | undefined {
+  if (!isFilled(layoutCapacity) || !isFilled(venueCapacity)) return undefined;
+  return exceedsVenueCapacity(Number(layoutCapacity), Number(venueCapacity))
+    ? `Cannot be more than the venue's capacity of ${venueCapacity}.`
+    : undefined;
+}
+
 /**
  * The venue form for create (SPM-146) and update (SPM-147).
  *
  * Every field is mandatory, so the submit button stays disabled until each one
  * is filled -- the same gate the event request form uses. Whether the values
- * make sense (closing after opening, a capacity above 0, a layout listed twice)
- * is `defineVenue`'s call and comes back as a field error.
+ * make sense (a capacity above 0, a layout listed twice)
+ * is `defineVenue`'s call and comes back as a field error. The one exception
+ * is a layout seating more than the venue, flagged as it is typed.
  */
 export function VenueForm({
   action,
@@ -51,8 +65,7 @@ export function VenueForm({
   const [capacity, setCapacity] = useState(venue?.capacity?.toString() ?? "");
   const [facilities, setFacilities] = useState(venue?.facilities ?? "");
   const [accessibility, setAccessibility] = useState(venue?.accessibility ?? "");
-  const [opens, setOpens] = useState(venue?.operatingHoursStart ?? "");
-  const [closes, setCloses] = useState(venue?.operatingHoursEnd ?? "");
+  const [slots, setSlots] = useState(formatOptionList(venue?.slots ?? []));
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
   const [nextKey, setNextKey] = useState(() => (venue?.layouts.length ?? 0) + 1);
   const [layouts, setLayouts] = useState<LayoutRow[]>(() =>
@@ -73,11 +86,20 @@ export function VenueForm({
   }, [state]);
 
   const errors = state.status === "error" ? state.fieldErrors : undefined;
+  const layoutCapacityErrors = layouts.map(
+    (row, index) =>
+      errors?.[`layouts.${index}.capacity`] ?? layoutCapacityError(row.capacity, capacity),
+  );
 
   const readyToSubmit =
-    [location, capacity, facilities, accessibility, opens, closes, horizon].every(isFilled) &&
+    [location, capacity, facilities, accessibility, slots, horizon].every(isFilled) &&
     layouts.length > 0 &&
-    layouts.every((layout) => isFilled(layout.name) && isFilled(layout.capacity));
+    layouts.every(
+      (layout) =>
+        isFilled(layout.name) &&
+        isFilled(layout.capacity) &&
+        layoutCapacityError(layout.capacity, capacity) === undefined,
+    );
 
   function updateLayout(key: number, patch: Partial<LayoutRow>) {
     setLayouts((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
@@ -186,32 +208,20 @@ export function VenueForm({
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field
-            id="operatingHoursStart"
-            label="Opening time"
+            id="slots"
+            label="Slots"
             required
-            error={errors?.operatingHoursStart}
+            hint="The parts of the day the venue can be booked in."
+            error={errors?.slots}
+            className="sm:col-span-2"
           >
-            <TimePicker
-              id="operatingHoursStart"
-              value={opens}
-              onChange={setOpens}
-              aria-invalid={errors?.operatingHoursStart !== undefined}
+            <OptionCheckboxes
+              name="slots"
+              options={BOOKING_SLOTS}
+              value={slots}
+              onChange={setSlots}
+              label={slotLabel}
             />
-            <input type="hidden" name="operatingHoursStart" value={opens} />
-          </Field>
-          <Field
-            id="operatingHoursEnd"
-            label="Closing time"
-            required
-            error={errors?.operatingHoursEnd}
-          >
-            <TimePicker
-              id="operatingHoursEnd"
-              value={closes}
-              onChange={setCloses}
-              aria-invalid={errors?.operatingHoursEnd !== undefined}
-            />
-            <input type="hidden" name="operatingHoursEnd" value={closes} />
           </Field>
           <Field
             id="bookingHorizonDays"
@@ -268,7 +278,7 @@ export function VenueForm({
                 id={`layoutCapacity-${row.key}`}
                 label="Capacity"
                 required
-                error={errors?.[`layouts.${index}.capacity`]}
+                error={layoutCapacityErrors[index]}
               >
                 <Input
                   id={`layoutCapacity-${row.key}`}
@@ -278,7 +288,7 @@ export function VenueForm({
                   step={1}
                   placeholder="120"
                   required
-                  aria-invalid={errors?.[`layouts.${index}.capacity`] !== undefined}
+                  aria-invalid={layoutCapacityErrors[index] !== undefined}
                   value={row.capacity}
                   onChange={(event) => updateLayout(row.key, { capacity: event.target.value })}
                 />

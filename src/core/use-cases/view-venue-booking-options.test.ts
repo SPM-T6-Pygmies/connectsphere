@@ -13,8 +13,7 @@ const HALL: Venue = {
   capacity: 300,
   facilities: "Stage",
   accessibility: "Step-free",
-  operatingHoursStart: null,
-  operatingHoursEnd: null,
+  slots: [],
   bookingHorizonDays: null,
   layouts: [{ name: "Theatre", capacity: 300 }],
 };
@@ -30,8 +29,7 @@ function buildUseCase() {
         preferredDate: "2026-10-05",
         status: "Planning",
         assignedCoordinatorUserAccountId: "coordinator-1",
-        startTime: "2026-10-05T01:00:00.000Z",
-        endTime: "2026-10-05T04:00:00.000Z",
+        slots: [{ date: "2026-10-05", slot: "AM" }],
         expectedAttendance: 120,
         venueRequirements: "Stage and projector",
         description: null,
@@ -77,8 +75,7 @@ describe("ViewVenueBookingOptionsUseCase (SPM-46)", () => {
     expect(result?.event).toMatchObject({
       id: "event-1",
       preferredDate: "2026-10-05",
-      startTime: "2026-10-05T01:00:00.000Z",
-      endTime: "2026-10-05T04:00:00.000Z",
+      slots: [{ date: "2026-10-05", slot: "AM" }],
       expectedAttendance: 120,
       venueRequirements: "Stage and projector",
     });

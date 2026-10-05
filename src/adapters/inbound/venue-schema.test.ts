@@ -11,8 +11,7 @@ const valid = {
   location: " Marina Bay Hall ",
   facilities: "Projector",
   accessibility: "Step-free",
-  operatingHoursStart: "08:30",
-  operatingHoursEnd: "17:00",
+  slots: ["AM", "PM"],
   capacity: "300",
   bookingHorizonDays: "180",
   layouts: [
@@ -28,13 +27,12 @@ function errorsFor(input: unknown) {
 }
 
 describe("createVenueSchema (SPM-146)", () => {
-  it("parses a filled-in form: trimmed text, times as given, numeric capacities", () => {
+  it("parses a filled-in form: trimmed text, slots as given, numeric capacities", () => {
     expect(createVenueSchema.parse(valid)).toEqual({
       location: "Marina Bay Hall",
       facilities: "Projector",
       accessibility: "Step-free",
-      operatingHoursStart: "08:30",
-      operatingHoursEnd: "17:00",
+      slots: ["AM", "PM"],
       capacity: 300,
       bookingHorizonDays: 180,
       layouts: [
@@ -50,8 +48,7 @@ describe("createVenueSchema (SPM-146)", () => {
         location: "",
         facilities: "",
         accessibility: "",
-        operatingHoursStart: "",
-        operatingHoursEnd: "",
+        slots: [],
         capacity: "",
         bookingHorizonDays: "",
         layouts: [],
@@ -64,8 +61,7 @@ describe("createVenueSchema (SPM-146)", () => {
         "facilities",
         "layouts",
         "location",
-        "operatingHoursEnd",
-        "operatingHoursStart",
+        "slots",
       ]);
     });
 
@@ -91,9 +87,9 @@ describe("createVenueSchema (SPM-146)", () => {
     });
   });
 
-  it("refuses a time that is not a clock time, flagging that field", () => {
-    expect(errorsFor({ ...valid, operatingHoursEnd: "5pm" })).toEqual({
-      operatingHoursEnd: "Enter the closing time.",
+  it("refuses a slot that is not AM, PM or Night, flagging slots", () => {
+    expect(errorsFor({ ...valid, slots: ["AM", "Evening"] })).toEqual({
+      "slots.1": "Choose AM, PM or Night.",
     });
   });
 
@@ -129,5 +125,12 @@ describe("venueFormValues (SPM-146)", () => {
       { name: "Theatre", capacity: "200" },
       { name: "Banquet", capacity: "120" },
     ]);
+  });
+
+  it("reads the comma-separated slots field as a list", () => {
+    const formData = new FormData();
+    formData.set("slots", "AM, Night");
+
+    expect(venueFormValues(formData).slots).toEqual(["AM", "Night"]);
   });
 });

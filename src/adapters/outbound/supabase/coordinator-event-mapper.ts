@@ -1,4 +1,6 @@
 import { clientOrganisationId } from "@/core/domain/client-organisation";
+
+import { toDate, toSlot } from "./booking-mapper";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import { userAccountId } from "@/core/domain/user-account";
@@ -24,13 +26,19 @@ export interface CoordinatorEventRow {
 
 /** The same row with the columns a venue booking request carries (SPM-46). */
 export interface CoordinatorEventDetailsRow extends CoordinatorEventRow {
-  start_time: string | null;
-  end_time: string | null;
+  /**
+   * The `event_slots(event)` computed field, selected with `EVENT_SLOTS_SELECT`.
+   * Absent when the query did not ask for it.
+   */
+  event_slots?: ReadonlyArray<{ date: string; slot: string }> | null;
   expected_attendance: number | null;
   venue_requirements: string | null;
   room_layout_preference: string | null;
   accessibility_requirements: string | null;
 }
+
+/** Selects every column plus the `event_slots` computed field. */
+export const EVENT_SLOTS_SELECT = "*, event_slots";
 
 /** The domain's ids are opaque strings; this store numbers its rows. */
 export function toKey(id: string): number | null {
@@ -83,8 +91,10 @@ export function toCoordinatorEventDetails(row: CoordinatorEventDetailsRow): Coor
     name: row.name,
     status: toStatus(row.status),
     preferredDate: row.preferred_date,
-    startTime: row.start_time,
-    endTime: row.end_time,
+    slots: (row.event_slots ?? []).map((slot) => ({
+      date: toDate(slot.date),
+      slot: toSlot(slot.slot),
+    })),
     expectedAttendance: row.expected_attendance,
     venueRequirements: row.venue_requirements,
     roomLayoutPreference: row.room_layout_preference,

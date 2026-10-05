@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { BOOKING_SLOTS } from "@/core/domain/booking";
 import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
@@ -26,7 +27,7 @@ import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-req
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
 import { PageHeader } from "../../page-header";
-import { TimePicker } from "../../time-picker";
+import { slotLabel } from "../../slot-label";
 import {
   discardEventRequestDraftAction,
   saveEventRequestDraftAction,
@@ -59,45 +60,10 @@ function isFilled(value: string): boolean {
 }
 
 /**
- * A real instant, built from the Organiser's own local date+time parts.
- *
- * The multi-arg `Date` constructor interprets `(y, m, d, h, min)` as local
- * time in whatever timezone the code runs in -- this file is a client
- * component, so that's the Organiser's own browser. `toISOString()` then
- * hands the server an unambiguous UTC instant, so the `timestamptz` column
- * ends up holding the moment the Organiser actually meant, not that clock
- * reading reinterpreted in the server's own timezone.
- */
-function toInstant(dateStr: string, timeStr: string): string {
-  if (!dateStr || !timeStr) {
-    return "";
-  }
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const [hours, minutes] = timeStr.split(":").map(Number);
-  return new Date(year, month - 1, day, hours, minutes).toISOString();
-}
-
-/**
- * The inverse of `toInstant`: the local `HH:mm` a saved instant reads as in
- * the Organiser's own browser, so resuming a draft (SPM-38) shows the time
- * they actually picked rather than reinterpreting it in the server's zone.
- */
-function toTimeOnly(iso: string | undefined): string {
-  if (!iso) {
-    return "";
-  }
-  const date = new Date(iso);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
-}
-
-/**
  * "YYYY-MM-DD" -> a local `Date` at midnight, for the Calendar picker.
  *
  * Not `new Date(value)`: that parses a bare date as UTC midnight, which
- * reads as the previous day west of UTC -- the same local-parts
- * construction `toInstant` already relies on.
+ * reads as the previous day west of UTC.
  */
 function parseCalendarDate(value: string): Date | undefined {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -162,14 +128,6 @@ export function NewRequestForm({
       router.push("/staff/requester");
     }
   }, [discardState, router]);
-  // Time-of-day only: the Organiser picks one preferred date and two times
-  // against it, not two independent instants. Composed into full
-  // preferredStartTime/preferredEndTime instants below, which is what
-  // actually gets submitted (see the hidden inputs) -- these two never are.
-  const [startTimeOnly, setStartTimeOnly] = useState(() =>
-    toTimeOnly(initialValues?.preferredStartTime),
-  );
-  const [endTimeOnly, setEndTimeOnly] = useState(() => toTimeOnly(initialValues?.preferredEndTime));
   // Read once, from the browser's own Intl data -- the server has no other
   // way to know which "today" the future-date rule should mean.
   const [organiserTimeZone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -184,10 +142,7 @@ export function NewRequestForm({
 
   const errors = state.status === "error" ? state.fieldErrors : undefined;
 
-  const preferredStartTime = toInstant(values.preferredDate, startTimeOnly);
-  const preferredEndTime = toInstant(values.preferredDate, endTimeOnly);
-  const effectiveValues: FormValues = { ...values, preferredStartTime, preferredEndTime };
-  const readyToSubmit = MANDATORY_SUBMISSION_FIELDS.every((field) => isFilled(effectiveValues[field]));
+  const readyToSubmit = MANDATORY_SUBMISSION_FIELDS.every((field) => isFilled(values[field]));
 
   function set(field: FormField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -278,7 +233,7 @@ export function NewRequestForm({
             <CardHeader>
               <CardTitle>When and how many</CardTitle>
               <CardDescription>
-                Tell us your preferred date and time window
+                Tell us your preferred date and the slots you need on it (Singapore time).
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -286,40 +241,30 @@ export function NewRequestForm({
                 <DatePicker
                   id="preferredDate"
                   value={values.preferredDate}
-                  onChange={(date) => set("preferredDate", date)}
+                  onChange={(date) => {
+                    set("preferredDate", date);
+                    // A slot is stored against the date, so it cannot outlive it.
+                    if (date === "") set("preferredSlots", "");
+                  }}
                   aria-invalid={errors?.preferredDate !== undefined}
                 />
                 <input type="hidden" name="preferredDate" value={values.preferredDate} />
               </Field>
               <Field
-                id="preferredStartTime"
-                label="Preferred start time"
+                id="preferredSlots"
+                label="Preferred slots"
                 required
-                hint="Combined with the preferred date above."
-                errors={errors?.preferredStartTime}
+                hint={values.preferredDate === "" ? "Choose the date first." : undefined}
+                errors={errors?.preferredSlots}
               >
-                <TimePicker
-                  id="preferredStartTime"
-                  value={startTimeOnly}
-                  onChange={setStartTimeOnly}
-                  aria-invalid={errors?.preferredStartTime !== undefined}
+                <OptionCheckboxes
+                  name="preferredSlots"
+                  options={BOOKING_SLOTS}
+                  value={values.preferredSlots}
+                  onChange={(slots) => set("preferredSlots", slots)}
+                  label={slotLabel}
+                  disabled={values.preferredDate === ""}
                 />
-                <input type="hidden" name="preferredStartTime" value={preferredStartTime} />
-              </Field>
-              <Field
-                id="preferredEndTime"
-                label="Preferred end time"
-                required
-                hint="Combined with the preferred date above."
-                errors={errors?.preferredEndTime}
-              >
-                <TimePicker
-                  id="preferredEndTime"
-                  value={endTimeOnly}
-                  onChange={setEndTimeOnly}
-                  aria-invalid={errors?.preferredEndTime !== undefined}
-                />
-                <input type="hidden" name="preferredEndTime" value={preferredEndTime} />
               </Field>
               <Field
                 id="expectedAttendance"
@@ -620,7 +565,7 @@ function Acknowledgement({ result }: { result: SubmitEventRequestResult }) {
               value={`${formatInstantDate(result.submittedAt)}, ${formatInstantTime(result.submittedAt)}`}
             />
             <Recorded
-              label="Preferred date & time"
+              label="Preferred date & slots"
               value={preferredWhen(result.summary)}
               className="sm:col-span-2"
             />
@@ -672,11 +617,11 @@ function formatInstantTime(iso: string): string {
     .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
-/** One line: the calendar date the Organiser asked for, and the time span against it. */
+/** One line: the calendar date the Organiser asked for, and the slots on it. */
 function preferredWhen(summary: SubmitEventRequestResult["summary"]): string | null {
-  if (!summary.preferredDate || !summary.preferredStartTime || !summary.preferredEndTime) {
+  if (!summary.preferredDate || summary.preferredSlots.length === 0) {
     return null;
   }
 
-  return `${formatCalendarDate(summary.preferredDate)}, ${formatInstantTime(summary.preferredStartTime)} – ${formatInstantTime(summary.preferredEndTime)}`;
+  return `${formatCalendarDate(summary.preferredDate)}, ${summary.preferredSlots.join(", ")}`;
 }

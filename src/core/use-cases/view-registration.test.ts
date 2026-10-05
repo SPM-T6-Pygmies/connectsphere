@@ -18,8 +18,10 @@ function event(id: string, overrides: Partial<Event> = {}): Event {
     name: `Event ${id}`,
     description: null,
     status: "confirmed",
-    startsAt: new Date("2026-10-01T01:00:00.000Z"),
-    endsAt: new Date("2026-10-01T09:00:00.000Z"),
+    slots: [
+      { date: "2026-10-01", slot: "AM" },
+      { date: "2026-10-01", slot: "PM" },
+    ],
     venueName: "Hall A, 60 Stamford Road",
     capacity: null,
     registrationEnabled: true,

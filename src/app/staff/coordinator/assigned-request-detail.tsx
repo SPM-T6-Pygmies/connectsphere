@@ -48,15 +48,6 @@ const OUTCOMES = {
  * to the Coordinator. The system is Singapore-time only (#36), so there is
  * one right answer rather than a per-viewer one.
  */
-function formatInstantTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    timeZone: "Asia/Singapore",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
 /**
  * SPM-32: everything the Organiser submitted, read-only. SPM-34 adds the
  * decision alongside it: Approve/Reject while the request awaits this
@@ -111,10 +102,8 @@ export function AssignedRequestDetail({
   // returnable, so the same requests carry both sets of controls.
   const undecided = state === "awaiting-decision" || state === "with-organiser";
 
-  const preferredTime =
-    details.preferredStartTime !== null && details.preferredEndTime !== null
-      ? `${formatInstantTime(details.preferredStartTime)} – ${formatInstantTime(details.preferredEndTime)}`
-      : null;
+  const preferredSlots =
+    details.preferredSlots.length > 0 ? details.preferredSlots.join(", ") : null;
 
   return (
     <StaffShell
@@ -144,7 +133,7 @@ export function AssignedRequestDetail({
               <FieldList
                 fields={[
                   { label: "Preferred date", value: details.preferredDate },
-                  { label: "Preferred time", value: preferredTime },
+                  { label: "Preferred slots", value: preferredSlots },
                   { label: "Expected attendance", value: details.expectedAttendance },
                   { label: "Room layout", value: details.roomLayoutPreferences },
                   { label: "Description", value: details.description },

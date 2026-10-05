@@ -1,3 +1,5 @@
+import { SLOT_HOURS, type SlotOnDate } from "@/core/domain/booking";
+
 /**
  * Every date an Attendee reads, rendered in Singapore time.
  *
@@ -43,8 +45,26 @@ export function timeOfDay(iso: string): string {
   return timeFormat.format(new Date(iso));
 }
 
-export function timeRange(startIso: string, endIso: string): string {
-  return `${timeOfDay(startIso)} – ${timeOfDay(endIso)}`;
+/**
+ * When the event runs, slot by slot with each slot's hours, e.g.
+ * "AM (7:00 am – 12:00 pm), Night (6:00 pm – 10:00 pm)". Not one range from
+ * first start to last end: that would claim the slots in between. An event on
+ * more than one day names the day before each slot.
+ */
+export function slotTimes(slots: readonly SlotOnDate[]): string {
+  const multiDay = slots.some((slot) => slot.date !== slots[0].date);
+  return slots
+    .map(({ date, slot }) => {
+      const { start, end } = SLOT_HOURS[slot];
+      const hours = `${slot} (${timeOfDay(singaporeInstant(date, start))} – ${timeOfDay(singaporeInstant(date, end))})`;
+      return multiDay ? `${dayAndMonth(singaporeInstant(date, start))} ${hours}` : hours;
+    })
+    .join(", ");
+}
+
+/** `HH:MM` on a calendar date in Singapore, as an ISO instant. */
+function singaporeInstant(date: string, time: string): string {
+  return `${date}T${time}:00+08:00`;
 }
 
 /**

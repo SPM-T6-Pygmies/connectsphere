@@ -6,7 +6,7 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import type { AttendeeRegistration } from "@/core/use-cases/attendee-registration";
 
-import { fullDate, timeRange } from "../../events/format-event-time";
+import { fullDate, slotTimes } from "../../events/format-event-time";
 import { withdrawRegistrationAction, type WithdrawalState } from "./actions";
 
 const INITIAL: WithdrawalState = { status: "idle" };
@@ -47,7 +47,7 @@ export function WithdrawPanel({ registration }: { registration: AttendeeRegistra
           <div className="flex items-center gap-2">
             <dt className="sr-only">Time</dt>
             <Clock aria-hidden className="size-4 shrink-0" />
-            <dd>{timeRange(current.event.startsAt, current.event.endsAt)}</dd>
+            <dd>{slotTimes(current.event.slots)}</dd>
           </div>
           <div className="flex items-center gap-2">
             <dt className="sr-only">Venue</dt>

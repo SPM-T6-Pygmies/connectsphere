@@ -12,8 +12,7 @@ const FORM = {
   description: "",
   purpose: "",
   preferredDate: "2026-11-04",
-  preferredStartTime: "2026-11-04T09:00",
-  preferredEndTime: "2026-11-04T17:00",
+  preferredSlots: "AM, PM",
   expectedAttendance: "120",
   venueRequirements: "",
   roomLayoutPreferences: "",
@@ -32,8 +31,7 @@ describe("submitEventRequestSchema (SPM-88)", () => {
     expect(parsed.data).toMatchObject({
       eventName: "Founders' Day",
       preferredDate: "2026-11-04",
-      preferredStartTime: "2026-11-04T09:00",
-      preferredEndTime: "2026-11-04T17:00",
+      preferredSlots: ["AM", "PM"],
       expectedAttendance: 120,
     });
   });
@@ -62,8 +60,7 @@ describe("submitEventRequestSchema (SPM-88)", () => {
       ...FORM,
       eventName: "",
       preferredDate: "",
-      preferredStartTime: "",
-      preferredEndTime: "",
+      preferredSlots: "",
       expectedAttendance: "",
     });
 
@@ -71,8 +68,7 @@ describe("submitEventRequestSchema (SPM-88)", () => {
     expect(parsed.data).toMatchObject({
       eventName: "",
       preferredDate: null,
-      preferredStartTime: null,
-      preferredEndTime: null,
+      preferredSlots: [],
       expectedAttendance: null,
     });
   });
@@ -98,34 +94,16 @@ describe("submitEventRequestSchema (SPM-88)", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("rejects a preferred time that is not a datetime-local value", () => {
-    const parsed = submitEventRequestSchema.safeParse({
-      ...FORM,
-      preferredStartTime: "2026-11-04 09:00",
-    });
+  it("reads the slots the checkboxes post as one comma-separated value", () => {
+    expect(submitEventRequestSchema.parse({ ...FORM, preferredSlots: "Night" }).preferredSlots).toEqual(
+      ["Night"],
+    );
+  });
+
+  it("rejects a slot that is not AM, PM or Night", () => {
+    const parsed = submitEventRequestSchema.safeParse({ ...FORM, preferredSlots: "AM, Evening" });
 
     expect(parsed.success).toBe(false);
-  });
-
-  it("accepts a preferred time with or without seconds", () => {
-    expect(
-      submitEventRequestSchema.safeParse({ ...FORM, preferredStartTime: "2026-11-04T09:00" })
-        .success,
-    ).toBe(true);
-    expect(
-      submitEventRequestSchema.safeParse({ ...FORM, preferredStartTime: "2026-11-04T09:00:00" })
-        .success,
-    ).toBe(true);
-  });
-
-  it("accepts the full ISO instant the form actually composes and posts", () => {
-    const parsed = submitEventRequestSchema.safeParse({
-      ...FORM,
-      preferredStartTime: "2026-11-04T01:00:00.000Z",
-      preferredEndTime: "2026-11-04T09:00:00.000+08:00",
-    });
-
-    expect(parsed.success).toBe(true);
   });
 
   it("rejects a submission with no organiser or organisation attached", () => {

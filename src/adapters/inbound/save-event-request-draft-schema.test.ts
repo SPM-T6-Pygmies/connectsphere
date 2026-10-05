@@ -11,8 +11,7 @@ const FORM = {
   description: "",
   purpose: "",
   preferredDate: "",
-  preferredStartTime: "",
-  preferredEndTime: "",
+  preferredSlots: "",
   expectedAttendance: "",
   venueRequirements: "",
   roomLayoutPreferences: "",
@@ -31,7 +30,7 @@ describe("saveEventRequestDraftSchema (SPM-93)", () => {
     expect(parsed.data).toMatchObject({
       eventName: "Founders' Day",
       preferredDate: null,
-      preferredStartTime: null,
+      preferredSlots: [],
       expectedAttendance: null,
     });
   });

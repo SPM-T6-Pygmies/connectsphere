@@ -38,7 +38,7 @@ describe("SaveEventRequestDraftUseCase (SPM-93)", () => {
     const { useCase, eventRequests } = buildUseCase();
 
     const result = await useCase.execute(
-      command({ preferredDate: null, preferredStartTime: null, expectedAttendance: null }),
+      command({ preferredDate: null, preferredSlots: [], expectedAttendance: null }),
     );
 
     const [stored] = eventRequests.all();

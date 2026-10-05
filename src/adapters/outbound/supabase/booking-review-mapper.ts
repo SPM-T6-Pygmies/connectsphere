@@ -24,8 +24,7 @@ export interface BookingReviewRow {
     organisation_name: string | null;
     category: string | null;
     preferred_date: string | null;
-    start_time: string | null;
-    end_time: string | null;
+    slots: ReadonlyArray<{ date: string; slot: string }>;
     expected_attendance: number | null;
     room_layout_preference: string | null;
     accessibility_requirements: string | null;
@@ -54,8 +53,7 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
       organisationName: row.event.organisation_name,
       category: row.event.category,
       preferredDate: row.event.preferred_date === null ? null : toDate(row.event.preferred_date),
-      startTime: row.event.start_time,
-      endTime: row.event.end_time,
+      slots: row.event.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
       expectedAttendance: row.event.expected_attendance,
       roomLayoutPreference: row.event.room_layout_preference,
       accessibilityRequirements: row.event.accessibility_requirements,

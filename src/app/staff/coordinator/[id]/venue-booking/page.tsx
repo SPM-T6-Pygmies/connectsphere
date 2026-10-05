@@ -24,6 +24,7 @@ import type {
 } from "@/core/use-cases/view-venue-booking-options";
 
 import { EmptyState, FieldList } from "../../../field-list";
+import { formatSlotsOnDates } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
@@ -31,22 +32,6 @@ import { describeCapacity } from "../../../booking-capacity-message";
 import { ChangeLayoutForm } from "./change-layout-form";
 
 export const metadata = { title: "Request a venue | ConnectSphere" };
-
-/** `h:mm am/pm` in Singapore time -- the system runs on Singapore time only (#36). */
-function formatInstantTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    timeZone: "Asia/Singapore",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
-
-function eventTime(event: CoordinatorEventDetails): string | null {
-  return event.startTime !== null && event.endTime !== null
-    ? `${formatInstantTime(event.startTime)} – ${formatInstantTime(event.endTime)}`
-    : null;
-}
 
 const TONE_CLASS = {
   ok: "text-muted-foreground",
@@ -226,7 +211,7 @@ export default async function VenueBookingPage({
                 columns={1}
                 fields={[
                   { label: "Preferred date", value: event.preferredDate },
-                  { label: "Time", value: eventTime(event) },
+                  { label: "Slots", value: formatSlotsOnDates(event.slots) },
                   { label: "Expected attendance", value: event.expectedAttendance },
                   { label: "Layout preference", value: event.roomLayoutPreference },
                   { label: "Venue requirements", value: event.venueRequirements },

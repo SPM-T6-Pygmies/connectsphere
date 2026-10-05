@@ -11,7 +11,7 @@ import { userAccountId } from "@/core/domain/user-account";
  * Builders for the tests, next to the in-memory adapters they are used with.
  *
  * `EventRequestDetails` has thirteen members, twelve of them nullable, so a
- * test that wants "a request missing its preferred time" would otherwise open
+ * test that wants "a request missing its preferred slots" would otherwise open
  * with a wall of `null`s that says nothing about what is being tested. These
  * default everything to absent and let each test state only the field it cares
  * about.
@@ -24,8 +24,7 @@ export function eventRequestDetails(
     description: null,
     purpose: null,
     preferredDate: "2026-11-04",
-    preferredStartTime: "2026-11-04T09:00",
-    preferredEndTime: "2026-11-04T17:00",
+    preferredSlots: ["AM", "PM"],
     expectedAttendance: 120,
     venueRequirements: null,
     roomLayoutPreferences: null,

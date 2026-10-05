@@ -181,8 +181,9 @@ export type SaveDraftState =
  *
  * Same shape as `submitEventRequestAction` -- read the `FormData`, check it,
  * call the use case, translate the outcome -- but a draft never refuses on
- * shape (every field is optional) and the only domain refusal it can hit is
- * a blank event name, so there is no per-field error rendering to do here.
+ * shape (every field is optional) and the only domain refusals it can hit are
+ * a blank event name or slots with no date, so there is no per-field error
+ * rendering to do here.
  */
 export async function saveEventRequestDraftAction(
   _previous: SaveDraftState,
@@ -211,7 +212,12 @@ export async function saveEventRequestDraftAction(
     return { status: "saved", result };
   } catch (error) {
     if (error instanceof IncompleteEventRequestError) {
-      return { status: "error", message: "Give the event a name before saving a draft." };
+      return {
+        status: "error",
+        message: error.missing.includes("eventName")
+          ? "Give the event a name before saving a draft."
+          : "Choose the preferred date for the slots before saving a draft.",
+      };
     }
 
     if (error instanceof DomainError) {

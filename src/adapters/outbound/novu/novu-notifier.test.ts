@@ -30,8 +30,7 @@ describe("NovuNotifier (SPM-178)", () => {
     eventName: "Quarterly Partner Forum",
     clientOrganisationName: null,
     preferredDate: null,
-    preferredStartTime: null,
-    preferredEndTime: null,
+    preferredSlots: [],
   };
 
   function novuThatAccepts() {

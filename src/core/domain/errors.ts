@@ -269,24 +269,6 @@ export class PreferredDateNotInFutureError extends DomainError {
   }
 }
 
-/**
- * SPM-31: replacing free-text `preferred_time` with two instants only works if
- * they actually describe a span.
- */
-export class PreferredEndTimeNotAfterStartError extends DomainError {
-  readonly code = "preferred_end_time_not_after_start";
-
-  constructor(
-    readonly preferredStartTime: string,
-    readonly preferredEndTime: string,
-  ) {
-    super(
-      `Preferred end time (${preferredEndTime}) must be after preferred start time ` +
-        `(${preferredStartTime}).`,
-    );
-  }
-}
-
 export class InvalidCredentialsError extends DomainError {
   readonly code = "invalid_credentials";
 
@@ -610,7 +592,7 @@ export class InvalidVenueIdError extends DomainError {
 
 /**
  * SPM-42: a venue record the catalogue would not accept -- a missing location,
- * a layout with no capacity, hours that run backwards. The reason is written
+ * a layout with no capacity, no slot to book it in. The reason is written
  * for the person filling in the form, so it can be shown as it is.
  */
 export class InvalidVenueError extends DomainError {
@@ -629,15 +611,14 @@ export type VenueField =
   | "location"
   | "facilities"
   | "accessibility"
-  | "operatingHoursStart"
-  | "operatingHoursEnd"
+  | "slots"
   | "capacity"
   | "bookingHorizonDays"
   | "layouts";
 
 /**
- * SPM-44: venue search criteria that cannot be searched on -- an end time
- * before the start, a date without times, a facility that is not an option.
+ * SPM-44: venue search criteria that cannot be searched on -- a date without
+ * a slot, a date already past, a facility that is not an option.
  * Written for the Coordinator, so it can be shown as it is.
  */
 export class InvalidVenueSearchError extends DomainError {
@@ -657,8 +638,7 @@ export type VenueSearchField =
   | "facilities"
   | "accessibility"
   | "date"
-  | "startTime"
-  | "endTime";
+  | "slots";
 
 export class VenueNotFoundError extends DomainError {
   readonly code = "venue_not_found";

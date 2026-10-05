@@ -1,168 +1,130 @@
 # Venue Catalogue Manual Tests (SPM-42)
 
 ## Overview
+Manual browser tests for Venue Staff maintaining the venue catalogue (SPM-42),
+on slot-based timing: a venue offers some of the three day slots (AM
+07:00–12:00, PM 12:00–18:00, Night 18:00–22:00, Singapore time) instead of
+opening and closing hours.
 
-Browser checks that venue facilities, accessibility features and room layouts
-are picked from fixed lists — on the Venue Staff catalogue form (TC-VENUE) and
-on the Organiser's event request form (TC-REQ), which offers the same lists.
+SPM-42 AC1 still says "operating hours". Slots replace them, so these cases
+check the slot form of the rule. The search cases for SPM-44 are in
+[`VENUE_SEARCH_MANUAL_TESTS.md`](VENUE_SEARCH_MANUAL_TESTS.md).
 
-These cases are registered as `TC-VENUE-001`–`TC-VENUE-007` and `TC-REQ-001`–`TC-REQ-006` in
+These cases are registered in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
-them, report each in the PR description's `## Manual test results` table — CI
-records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
+them, tick the boxes below **and** report each in the PR description's
+`## Manual test results` table — CI records it in
+[`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
+
+| Case | Ticket | AC |
+| --- | --- | --- |
+| TC-VCAT-001 | SPM-42 | AC1 — fixed lists and slots on the venue form |
+| TC-VCAT-002 | SPM-42 | AC1 — create a venue |
+| TC-VCAT-003 | SPM-42 | AC2 — layouts, each with its own capacity |
+| TC-VCAT-004 | SPM-42 | AC3 — update a venue, including a layout's capacity |
+| TC-VCAT-005 | SPM-42 | AC4 — any Venue Staff can maintain any venue |
+
+TC-VENUE-001–007 are retired: TC-VCAT-001–005 cover the same venue form with
+slots. TC-REQ-001–006 are retired: the event request form is covered by
+TC-EVREQ in [`EVENT_REQUEST_MANUAL_TESTS.md`](EVENT_REQUEST_MANUAL_TESTS.md).
 
 ---
 
 ## Test Environment Setup
 
-- Local Supabase (`supabase start`, `supabase db reset`) and `pnpm dev`
-- Password for every account: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md))
+### Prerequisites
+- Local Supabase stack: `supabase db reset` (applies every migration, including
+  the `20261006*` slot migrations, and seeds the test accounts)
+- Running: `pnpm dev:local`
 
-| Cases | Signed in as |
-| --- | --- |
-| TC-VENUE | `venue@test.com` (Venue Staff) |
-| TC-REQ | `organiser@test.com` (Event Organiser) |
-
-TC-VENUE-007 needs a venue saved before the lists existed, i.e. one whose
-facilities are old free text. A freshly seeded database has none, so the case
-cannot be set up locally yet — its 2026-09-29 run was not re-run for this reason.
+### Test Accounts (password `TestPass123!`)
+- `venue@test.com`, `venue2@test.com` (Venue Staff)
 
 ---
 
-## Venue form (Venue Staff)
-
-### TC-VENUE-001: Facilities and accessibility are checkboxes with the fixed options (AC1)
-
-**Steps:**
-
-1. Sign in as Venue Staff and open **Add venue**.
-2. Look at **Facilities** and **Accessibility**.
-
-**Expected result:** Each shows exactly the five listed options as checkboxes, none ticked, no free-text box
-
----
-
-### TC-VENUE-002: Create a venue with several selections (AC1)
-
-**Steps:**
-
-1. Fill every field. Tick Projector and Wi-Fi under Facilities; Hearing loop and Lift access under Accessibility.
-2. Add one layout, Theatre, capacity 200. Click **Add venue**.
-
-**Expected result:** Venue is created; its page shows every ticked facility and accessibility feature
-
----
-
-### TC-VENUE-003: Submit is blocked until something is ticked (AC1)
-
-**Steps:**
-
-1. Fill every field, but tick no facility.
-
-**Expected result:** Add venue stays disabled until at least one facility and one accessibility feature are ticked
-
----
-
-### TC-VENUE-004: Layout is a dropdown of the five layouts (AC1)
-
-**Steps:**
-
-1. In **Room layouts**, open the Layout dropdown.
-
-**Expected result:** Dropdown offers only the five layouts; no custom name can be typed
-
----
-
-### TC-VENUE-005: The same layout twice is refused (AC1)
-
-**Steps:**
-
-1. Add two layout rows, both Theatre, capacities 100 and 120. Submit.
-
-**Expected result:** Save refused with a duplicate-layout message; nothing created
-
----
-
-### TC-VENUE-006: Edit keeps and changes selections (AC3)
-
-**Steps:**
-
-1. Open an existing venue created from the lists.
-2. Untick Projector, tick PA system, change one layout capacity. Save.
-
-**Expected result:** Saved; reopening shows the changed ticks and the new layout capacity
-
----
-
-### TC-VENUE-007: A venue saved before the lists existed (AC3)
-
-**Steps:**
-
-1. Open a venue whose facilities are old free text (e.g. "Step-free entrance").
-
-**Expected result:** Old free text ticks nothing; save is blocked until a value is picked from the list
-
----
-
-## Event request form (Event Organiser)
-
-### TC-REQ-001: Accessibility needs match the venue's list
-
-**Steps:**
-
-1. Sign in as an Event Organiser and open **Create New Event Request**.
-
-**Expected result:** Same five accessibility checkboxes as the venue form
-
----
-
-### TC-REQ-002: Room layout is a single-choice dropdown
-
-**Steps:**
-
-1. Open the **Room layout preference** dropdown.
-
-**Expected result:** No preference plus the five layouts; only one can be chosen
-
----
-
-### TC-REQ-003: Submit with selections; they show on the request
-
-**Steps:**
-
-1. Fill the mandatory fields. Tick Step-free access and Hearing loop; choose Theatre. Submit.
-2. Open the request from **My requests**.
-
-**Expected result:** Request shows the ticked accessibility needs and the chosen layout
-
----
-
-### TC-REQ-004: Both are optional
-
-**Steps:**
-
-1. Fill only the mandatory fields; leave accessibility unticked and layout on "No preference". Submit.
-
-**Expected result:** Request submits with accessibility unticked and no layout
-
----
-
-### TC-REQ-005: Draft keeps the selections
-
-**Steps:**
-
-1. Tick Lift access, choose Banquet, click **Save draft**, then resume it from **My requests**.
-
-**Expected result:** Resumed draft shows the same ticks and layout
-
----
-
-### TC-REQ-006: Venue requirements and Equipment requirements stay free text
-
-**Steps:**
-
-1. Look at both fields.
-
-**Expected result:** Both remain free-text boxes
-
----
+## SPM-42 — Maintain the venue catalogue
+
+**Shared Pre-Conditions:** log in as `venue@test.com` and open the venue
+catalogue (`/staff/venue/catalogue`).
+
+### TC-VCAT-001 The venue form offers fixed lists and slots
+
+**Steps**
+1. Click **Add venue**.
+2. Look at **Facilities**, **Accessibility**, **Slots** and the **Layout**
+   dropdown under **Room layouts**.
+3. Fill **Location**, **Capacity** and **Booking horizon (days)**, tick one
+   facility and one accessibility feature, and add one layout with a capacity,
+   but tick no slot.
+
+**Expected Result**
+- [ ] **Facilities** offers exactly Projector, PA system, Wi-Fi, Breakout rooms
+      and Catering area as checkboxes, none ticked, with no free-text box.
+- [ ] **Accessibility** offers exactly Step-free access, Hearing loop,
+      Accessible toilets, Lift access and Wheelchair seating, the same way.
+- [ ] **Slots** offers `AM (7:00 AM – 12:00 PM)`, `PM (12:00 PM – 6:00 PM)` and
+      `Night (6:00 PM – 10:00 PM)`. There are no opening or closing time fields.
+- [ ] After step 3, **Add venue** is still disabled; ticking one slot enables it.
+
+### TC-VCAT-002 Create a venue
+
+**Steps**
+1. Click **Add venue**. Enter **Location** `UAT-42 Lecture Hall`, **Capacity**
+   `250`, **Booking horizon (days)** `90`.
+2. Tick **Projector** and **Wi-Fi**; **Hearing loop** and **Lift access**; slots
+   **AM** and **PM**.
+3. Set the layout to **Theatre**, capacity `200`. Click **Add venue**.
+
+**Expected Result**
+- [ ] The catalogue lists `UAT-42 Lecture Hall` with capacity 250, **Layouts
+      (capacity)** showing Theatre 200, **Slots** `AM, PM`, and facilities
+      Projector and Wi-Fi.
+- [ ] Opening it shows every value entered, including both accessibility
+      features and the two ticked slots.
+
+### TC-VCAT-003 Layouts each carry their own capacity
+
+**Steps**
+1. Open `UAT-42 Lecture Hall` from TC-VCAT-002.
+2. Open the **Layout** dropdown.
+3. Click **Add layout**, choose **Classroom**, capacity `120`. Click **Save venue**.
+4. Click **Add layout** again, choose **Theatre**, capacity `180`. Click **Save venue**.
+
+**Expected Result**
+- [ ] Step 2: the dropdown offers only Classroom, Theatre, Boardroom, Banquet and
+      Exhibition, and no custom name can be typed.
+- [ ] After step 3, "Venue saved." appears, and the catalogue shows Theatre 200
+      and Classroom 120 as separate capacities. The venue's own capacity is
+      still 250 and was not recalculated.
+- [ ] After step 4, the save is refused with "The Theatre layout is listed more
+      than once." and the venue still has one Theatre at 200.
+
+### TC-VCAT-004 Update a venue, including a layout's capacity
+
+**Steps**
+1. Open `UAT-42 Lecture Hall`.
+2. Untick **Projector**, tick **PA system**, untick **AM**, tick **Night**, and
+   change **Classroom** to `100`. Click **Save venue**.
+3. Reload the page.
+4. Untick every slot.
+
+**Expected Result**
+- [ ] "Venue saved." appears.
+- [ ] After the reload: PA system and Wi-Fi ticked, Projector not; slots **PM**
+      and **Night**; Classroom 100. The catalogue row shows **Slots** `PM, Night`.
+- [ ] Step 4: **Save venue** is disabled while no slot is ticked.
+
+### TC-VCAT-005 Any Venue Staff can maintain any venue
+
+**Steps**
+1. Log out, then log in as `venue2@test.com` and open the venue catalogue.
+2. Open `UAT-42 Lecture Hall`, which `venue@test.com` created. Change
+   **Booking horizon (days)** to `60` and click **Save venue**.
+3. Log back in as `venue@test.com` and open the same venue.
+
+**Expected Result**
+- [ ] `venue2@test.com` sees every venue in the catalogue, not only ones they
+      created.
+- [ ] Step 2 saves with "Venue saved."; no venue or location is refused to
+      them (#66).
+- [ ] Step 3 shows the horizon of 60 that `venue2@test.com` saved.
