@@ -135,7 +135,7 @@ them, tick the boxes below **and** report each in the PR description's
 
 **Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (3/3 checks). The first recording was a Fail: the case expected an httpOnly cookie, but Supabase SSR cookies are readable by the browser client by design. The case was corrected, not the app.
 
-**Screenshots:** [step3-after-refresh-signed-in](../screenshots/2026-09-13_TC-LOGIN-004_step3-after-refresh-signed-in.png)
+**Screenshots:** [step3-devtools-cookie](../screenshots/2026-09-13_TC-LOGIN-004_step3-devtools-cookie.png)
 
 ---
 
