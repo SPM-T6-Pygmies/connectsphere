@@ -833,3 +833,30 @@ export class UnavailabilityNoteTooLongError extends DomainError {
     super(`The note must be at most ${maxLength} characters.`);
   }
 }
+
+/** SPM-21 AC9: only Venue Staff record or lift a block. */
+export class VenueUnavailabilityNotPermittedError extends DomainError {
+  readonly code = "venue_unavailability_not_permitted";
+
+  constructor() {
+    super("Only Venue Staff can mark a venue unavailable or lift a block.");
+  }
+}
+
+/** SPM-21 AC15: a block to lift that does not exist. */
+export class VenueUnavailabilityNotFoundError extends DomainError {
+  readonly code = "venue_unavailability_not_found";
+
+  constructor() {
+    super("That block does not exist.");
+  }
+}
+
+/** SPM-21 AC17: a lifted block cannot be lifted again. */
+export class UnavailabilityAlreadyLiftedError extends DomainError {
+  readonly code = "unavailability_already_lifted";
+
+  constructor() {
+    super("That block has already been lifted.");
+  }
+}

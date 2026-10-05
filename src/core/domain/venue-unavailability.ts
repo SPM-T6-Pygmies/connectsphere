@@ -3,11 +3,13 @@ import {
   InvalidBookingDateError,
   InvalidUnavailabilityReasonError,
   NoUnavailabilitySlotsError,
+  UnavailabilityAlreadyLiftedError,
   UnavailabilityEndsBeforeStartError,
   UnavailabilityInThePastError,
   UnavailabilityNoteNotAllowedError,
   UnavailabilityNoteTooLongError,
 } from "./errors";
+import type { UserAccountId } from "./user-account";
 import type { VenueId } from "./venue";
 
 /** `venue_unavailability_reason_chk`: the customer's five reasons (Week 7 C2). */
@@ -136,4 +138,67 @@ export function defineVenueUnavailability(params: {
       slots.map((slot) => ({ date, slot })),
     ),
   };
+}
+
+/** The zone a venue's own "today" is read in, as bookings' dates are (#36). */
+export const VENUE_TIME_ZONE = "Asia/Singapore";
+
+export type UnavailabilityStatus = "In force" | "Lifted";
+
+/**
+ * A block as the list shows it: what was recorded, and while it is In force or
+ * after it was lifted, who did it and when. A block is never deleted (AC16).
+ */
+export interface VenueUnavailabilityEntry extends VenueUnavailabilityBlock {
+  readonly id: string;
+  readonly venueLocation: string;
+  readonly status: UnavailabilityStatus;
+  readonly recordedByName: string;
+  /** ISO instant. */
+  readonly recordedAt: string;
+  readonly liftedByName: string | null;
+  /** ISO instant. */
+  readonly liftedAt: string | null;
+}
+
+/** A decided lift, for a store to record. */
+export interface UnavailabilityLift {
+  readonly id: string;
+  readonly liftedBy: UserAccountId;
+  readonly liftedAt: Date;
+}
+
+/** SPM-21 AC15, AC17: only a block still In force can be lifted. */
+export function liftVenueUnavailability(
+  entry: VenueUnavailabilityEntry,
+  liftedBy: UserAccountId,
+  now: Date,
+): UnavailabilityLift {
+  if (entry.status === "Lifted") {
+    throw new UnavailabilityAlreadyLiftedError();
+  }
+  return { id: entry.id, liftedBy, liftedAt: now };
+}
+
+/** A slot of a venue that some In force block holds. */
+export interface BlockedSlot extends SlotOnDate {
+  readonly venueId: VenueId;
+}
+
+/**
+ * The slots some block still holds, each once per venue. A slot two In force
+ * blocks cover stays blocked when one is lifted (AC15, AC19); a lifted block
+ * holds nothing.
+ */
+export function slotsStillBlocked(entries: readonly VenueUnavailabilityEntry[]): readonly BlockedSlot[] {
+  const seen = new Map<string, BlockedSlot>();
+  for (const entry of entries) {
+    if (entry.status !== "In force") {
+      continue;
+    }
+    for (const { date, slot } of entry.slots) {
+      seen.set(`${entry.venueId}|${date}|${slot}`, { venueId: entry.venueId, date, slot });
+    }
+  }
+  return [...seen.values()];
 }

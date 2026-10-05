@@ -660,7 +660,7 @@
     "SPM-267": {
       "title": "Record, lift and list use cases, port and in-memory adapter",
       "parent": "SPM-21",
-      "status": "Todo"
+      "status": "In Progress"
     },
     "SPM-268": {
       "title": "Supabase functions, repository adapter and busy-time read",
