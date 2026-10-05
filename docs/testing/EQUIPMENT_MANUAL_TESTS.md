@@ -106,7 +106,7 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (8/8 checks)
 
-**Screenshots:** [step1-organiser-needs-and-lines](../screenshots/SPM-41_TC-EQUIP-001_step1-organiser-needs-and-lines.jpg) · [step3-livestream-line-added](../screenshots/SPM-41_TC-EQUIP-001_step3-livestream-line-added.jpg)
+**Screenshots:** [step1-organiser-needs-and-lines](../screenshots/2026-10-03_TC-EQUIP-001_step1-organiser-needs-and-lines.jpg) · [step3-livestream-line-added](../screenshots/2026-10-03_TC-EQUIP-001_step3-livestream-line-added.jpg)
 
 ---
 
@@ -134,7 +134,7 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (11/11 checks)
 
-**Screenshots:** [refused-1-ac2](../screenshots/SPM-41_TC-EQUIP-002_refused-1-ac2.jpg) · [refused-4-ac3](../screenshots/SPM-41_TC-EQUIP-002_refused-4-ac3.jpg) · [refused-6-ac5](../screenshots/SPM-41_TC-EQUIP-002_refused-6-ac5.jpg) · [accepted-pa-speaker-and-laptop](../screenshots/SPM-41_TC-EQUIP-002_accepted-pa-speaker-and-laptop.jpg)
+**Screenshots:** [refused-1-ac2](../screenshots/2026-10-03_TC-EQUIP-002_refused-1-ac2.jpg) · [refused-4-ac3](../screenshots/2026-10-03_TC-EQUIP-002_refused-4-ac3.jpg) · [refused-6-ac5](../screenshots/2026-10-03_TC-EQUIP-002_refused-6-ac5.jpg) · [accepted-pa-speaker-and-laptop](../screenshots/2026-10-03_TC-EQUIP-002_accepted-pa-speaker-and-laptop.jpg)
 
 ---
 
@@ -159,7 +159,7 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (6/6 checks)
 
-**Screenshots:** [step1-microphone-5-no-badge](../screenshots/SPM-41_TC-EQUIP-003_step1-microphone-5-no-badge.jpg) · [step2-projector-saved-unchanged](../screenshots/SPM-41_TC-EQUIP-003_step2-projector-saved-unchanged.jpg) · [step3-microphone-removed](../screenshots/SPM-41_TC-EQUIP-003_step3-microphone-removed.jpg) · [step4-technical-support-list-empty](../screenshots/SPM-41_TC-EQUIP-003_step4-technical-support-list-empty.jpg)
+**Screenshots:** [step1-microphone-5-no-badge](../screenshots/2026-10-03_TC-EQUIP-003_step1-microphone-5-no-badge.jpg) · [step2-projector-saved-unchanged](../screenshots/2026-10-03_TC-EQUIP-003_step2-projector-saved-unchanged.jpg) · [step3-microphone-removed](../screenshots/2026-10-03_TC-EQUIP-003_step3-microphone-removed.jpg) · [step4-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-003_step4-technical-support-list-empty.jpg)
 
 ---
 
@@ -188,7 +188,7 @@ This is the end-to-end case across both roles.
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (6/6 checks)
 
-**Screenshots:** [step2-edit-warning](../screenshots/SPM-41_TC-EQUIP-004_step2-edit-warning.jpg) · [step3-projector-needs-recheck](../screenshots/SPM-41_TC-EQUIP-004_step3-projector-needs-recheck.jpg) · [step4-technical-support-list-changed](../screenshots/SPM-41_TC-EQUIP-004_step4-technical-support-list-changed.jpg)
+**Screenshots:** [step2-edit-warning](../screenshots/2026-10-03_TC-EQUIP-004_step2-edit-warning.jpg) · [step3-projector-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-004_step3-projector-needs-recheck.jpg) · [step4-technical-support-list-changed](../screenshots/2026-10-03_TC-EQUIP-004_step4-technical-support-list-changed.jpg)
 
 ---
 
@@ -222,7 +222,7 @@ This is the end-to-end case across both roles.
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (9/9 checks)
 
-**Screenshots:** [step2-remove-warning](../screenshots/SPM-41_TC-EQUIP-005_step2-remove-warning.jpg) · [step3-removal-requested](../screenshots/SPM-41_TC-EQUIP-005_step3-removal-requested.jpg) · [step4-technical-support-removal-requested](../screenshots/SPM-41_TC-EQUIP-005_step4-technical-support-removal-requested.jpg) · [step5-removal-undone](../screenshots/SPM-41_TC-EQUIP-005_step5-removal-undone.jpg) · [step6-technical-support-changed-again](../screenshots/SPM-41_TC-EQUIP-005_step6-technical-support-changed-again.jpg)
+**Screenshots:** [step2-remove-warning](../screenshots/2026-10-03_TC-EQUIP-005_step2-remove-warning.jpg) · [step3-removal-requested](../screenshots/2026-10-03_TC-EQUIP-005_step3-removal-requested.jpg) · [step4-technical-support-removal-requested](../screenshots/2026-10-03_TC-EQUIP-005_step4-technical-support-removal-requested.jpg) · [step5-removal-undone](../screenshots/2026-10-03_TC-EQUIP-005_step5-removal-undone.jpg) · [step6-technical-support-changed-again](../screenshots/2026-10-03_TC-EQUIP-005_step6-technical-support-changed-again.jpg)
 
 ---
 
@@ -249,7 +249,7 @@ This is the end-to-end case across both roles.
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (6/6 checks)
 
-**Screenshots:** [read-only-completed](../screenshots/SPM-41_TC-EQUIP-006_read-only-completed.jpg) · [read-only-cancelled](../screenshots/SPM-41_TC-EQUIP-006_read-only-cancelled.jpg)
+**Screenshots:** [read-only-completed](../screenshots/2026-10-03_TC-EQUIP-006_read-only-completed.jpg) · [read-only-cancelled](../screenshots/2026-10-03_TC-EQUIP-006_read-only-cancelled.jpg)
 
 ---
 
@@ -278,7 +278,7 @@ This is the end-to-end case across both roles.
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (3/3 checks)
 
-**Screenshots:** [step2-unassigned-event](../screenshots/SPM-41_TC-EQUIP-007_step2-unassigned-event.jpg) · [compare-missing-event](../screenshots/SPM-41_TC-EQUIP-007_compare-missing-event.jpg)
+**Screenshots:** [step2-unassigned-event](../screenshots/2026-10-03_TC-EQUIP-007_step2-unassigned-event.jpg) · [compare-missing-event](../screenshots/2026-10-03_TC-EQUIP-007_compare-missing-event.jpg)
 
 ---
 
@@ -300,7 +300,7 @@ This is the end-to-end case across both roles.
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (8/8 checks)
 
-**Screenshots:** [step1-technical-support-sees-list](../screenshots/SPM-41_TC-EQUIP-008_step1-technical-support-sees-list.jpg) · [step2-coordinator-access-denied](../screenshots/SPM-41_TC-EQUIP-008_step2-coordinator-access-denied.jpg) · [step3-venue-staff-access-denied](../screenshots/SPM-41_TC-EQUIP-008_step3-venue-staff-access-denied.jpg)
+**Screenshots:** [step1-technical-support-sees-list](../screenshots/2026-10-03_TC-EQUIP-008_step1-technical-support-sees-list.jpg) · [step2-coordinator-access-denied](../screenshots/2026-10-03_TC-EQUIP-008_step2-coordinator-access-denied.jpg) · [step3-venue-staff-access-denied](../screenshots/2026-10-03_TC-EQUIP-008_step3-venue-staff-access-denied.jpg)
 
 ---
 
@@ -386,7 +386,7 @@ review; changing it back to exactly that means there is nothing for them to re-c
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (9/9 checks)
 
-**Screenshots:** [step1-edited-to-1-still-needs-recheck](../screenshots/SPM-41_TC-EQUIP-010_step1-edited-to-1-still-needs-recheck.jpg) · [step2-technical-support-list-requested-1](../screenshots/SPM-41_TC-EQUIP-010_step2-technical-support-list-requested-1.jpg) · [step3-edited-to-3-still-needs-recheck](../screenshots/SPM-41_TC-EQUIP-010_step3-edited-to-3-still-needs-recheck.jpg) · [step4-edited-back-to-2-recheck-cleared](../screenshots/SPM-41_TC-EQUIP-010_step4-edited-back-to-2-recheck-cleared.jpg) · [step5-technical-support-list-empty](../screenshots/SPM-41_TC-EQUIP-010_step5-technical-support-list-empty.jpg)
+**Screenshots:** [step1-edited-to-1-still-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-010_step1-edited-to-1-still-needs-recheck.jpg) · [step2-technical-support-list-requested-1](../screenshots/2026-10-03_TC-EQUIP-010_step2-technical-support-list-requested-1.jpg) · [step3-edited-to-3-still-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-010_step3-edited-to-3-still-needs-recheck.jpg) · [step4-edited-back-to-2-recheck-cleared](../screenshots/2026-10-03_TC-EQUIP-010_step4-edited-back-to-2-recheck-cleared.jpg) · [step5-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-010_step5-technical-support-list-empty.jpg)
 
 ---
 
@@ -423,4 +423,4 @@ Signed in as `coordinator@test.com`.
 
 **Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (10/10 checks)
 
-**Screenshots:** [step1-removal-requested](../screenshots/SPM-41_TC-EQUIP-011_step1-removal-requested.jpg) · [step2-technical-support-removal-requested](../screenshots/SPM-41_TC-EQUIP-011_step2-technical-support-removal-requested.jpg) · [step3-removal-undone-flag-cleared](../screenshots/SPM-41_TC-EQUIP-011_step3-removal-undone-flag-cleared.jpg) · [step4-technical-support-list-empty](../screenshots/SPM-41_TC-EQUIP-011_step4-technical-support-list-empty.jpg)
+**Screenshots:** [step1-removal-requested](../screenshots/2026-10-03_TC-EQUIP-011_step1-removal-requested.jpg) · [step2-technical-support-removal-requested](../screenshots/2026-10-03_TC-EQUIP-011_step2-technical-support-removal-requested.jpg) · [step3-removal-undone-flag-cleared](../screenshots/2026-10-03_TC-EQUIP-011_step3-removal-undone-flag-cleared.jpg) · [step4-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-011_step4-technical-support-list-empty.jpg)
