@@ -38,5 +38,9 @@
   {
     "domain": "Venue Catalogue",
     "match": ["venue"]
+  },
+  {
+    "domain": "Safety Check",
+    "match": ["safety-check"]
   }
 ]

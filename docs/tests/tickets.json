@@ -651,6 +651,11 @@
       "title": "Safety Officer role",
       "parent": null,
       "status": "In Progress"
+    },
+    "SPM-259": {
+      "title": "See events awaiting a safety check",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }
