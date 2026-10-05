@@ -646,6 +646,11 @@
       "title": "Test registry and manual end-to-end case for SPM-60",
       "parent": "SPM-60",
       "status": "In Progress"
+    },
+    "SPM-258": {
+      "title": "Safety Officer role",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }
