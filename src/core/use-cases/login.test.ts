@@ -181,3 +181,23 @@ describe("LoginUseCase (SPM-117)", () => {
     expect(new Date(result.expiresAt)).toEqual(EXPIRES_AT);
   });
 });
+
+describe("LoginUseCase for a Safety Officer (SPM-258)", () => {
+  it("signs a Safety Officer in and sends them to the safety workspace", async () => {
+    const authUserId = "auth-user-safety";
+    const useCase = new LoginUseCase({
+      auth: new InMemoryAuth({
+        credentials: [{ email: "safety@test.com", password: "TestPass123!", authUserId, expiresAt: EXPIRES_AT }],
+      }),
+      users: new InMemoryUserRepository(
+        new Map([
+          [authUserId, { userId: "user-4", name: "Test Safety Officer", roles: ["Safety Officer"], clientOrganisationId: null }],
+        ]),
+      ),
+    });
+
+    const result = await useCase.execute({ email: "safety@test.com", password: "TestPass123!" });
+
+    expect(result.landingWorkspace).toBe("safety");
+  });
+});
