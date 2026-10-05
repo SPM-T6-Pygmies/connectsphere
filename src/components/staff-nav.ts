@@ -11,6 +11,7 @@ import {
   PackageIcon,
   ProjectorIcon,
   SendIcon,
+  ShieldCheckIcon,
   UserCheckIcon,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -70,6 +71,9 @@ export const RAIL: Record<StaffRole, RailItem[]> = {
     { section: "archive", title: "Archive", url: "/staff/technical/archive", icon: ArchiveIcon },
     // Not a queue of reservations: standing stock, so an "action" entry.
     { section: "action", title: "Equipment", url: "/staff/technical/equipment", icon: PackageIcon },
+  ],
+  safety: [
+    { section: "awaitingCheck", title: "Awaiting check", url: "/staff/safety", icon: ShieldCheckIcon },
   ],
 }
 
@@ -177,6 +181,8 @@ export function currentSection(role: StaffRole, pathname: string): SidebarSectio
     }
     return "archive" // Rejected | Released | Cancelled
   }
+
+  if (role === "safety") return "awaitingCheck"
 
   // technical
   if (pathname === "/staff/technical") return "needsReview"

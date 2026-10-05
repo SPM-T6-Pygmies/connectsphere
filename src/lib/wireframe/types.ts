@@ -84,13 +84,14 @@ export type ArrangementType =
   | "registration"
   | "other";
 
-/** The five staff personas the wireframes can act as. */
+/** The six staff personas the wireframes can act as. */
 export type StaffRole =
   | "requester"
   | "ops"
   | "coordinator"
   | "venue"
-  | "technical";
+  | "technical"
+  | "safety";
 
 export interface Person {
   readonly id: string;

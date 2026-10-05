@@ -2,7 +2,7 @@ import type { ClientOrganisationId } from "./client-organisation";
 import type { CoordinatorContext, OrganiserContext } from "./event-request";
 import type { UserAccountId } from "./user-account";
 
-export type StaffWorkspace = "requester" | "coordinator" | "ops" | "venue" | "technical";
+export type StaffWorkspace = "requester" | "coordinator" | "ops" | "venue" | "technical" | "safety";
 
 /** Where each staff role works, keyed by the role's name as the `role` table spells it. */
 const WORKSPACE_BY_ROLE: ReadonlyMap<string, StaffWorkspace> = new Map([
@@ -11,6 +11,7 @@ const WORKSPACE_BY_ROLE: ReadonlyMap<string, StaffWorkspace> = new Map([
   ["Event Operations Manager", "ops"],
   ["Venue Staff", "venue"],
   ["Technical Support Staff", "technical"],
+  ["Safety Officer", "safety"],
 ]);
 
 /**
