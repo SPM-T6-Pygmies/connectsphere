@@ -216,7 +216,7 @@ AC5.
 
 ## Run record — 2026-10-05
 
-Run by Claude Code for arinmakk on branch `feature/spm-258-safety-officer-role`,
+Run by Claude Code for arinmakk on branch `feat/spm-258-safety-officer-role`,
 against `pnpm dev` (Next.js 16.3.4, dev mode) on a fresh local Supabase
 (`supabase db reset`), in headless Chromium driven by Playwright — desktop at
 1440 × 900, phone at 390 × 844. The round "N" in the bottom-left corner of the
