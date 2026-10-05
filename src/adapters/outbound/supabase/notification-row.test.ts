@@ -92,7 +92,7 @@ describe("eventRequestDecidedRow (SPM-60)", () => {
 });
 
 describe("safetyCheckReadyRow (SPM-262)", () => {
-  it("AC4: records the notice as Pending against its Safety Officer and the event", () => {
+  it("records the notice as Pending against its Safety Officer and the event", () => {
     expect(
       safetyCheckReadyRow({
         recipientUserAccountId: "11",
