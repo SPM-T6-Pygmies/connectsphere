@@ -37,6 +37,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       organiser: { userAccountId: "user-1", clientOrganisationId: "org-a", name: "Sam" },
       coordinator: null,
       technicalSupport: null,
+      safetyOfficer: null,
       workspaces: ["requester"],
       homeWorkspace: "requester",
     });
@@ -55,6 +56,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       organiser: null,
       coordinator: { userAccountId: "user-1", name: "Sam" },
       technicalSupport: null,
+      safetyOfficer: null,
       workspaces: ["coordinator"],
       homeWorkspace: "coordinator",
     });
@@ -67,6 +69,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       organiser: null,
       coordinator: null,
       technicalSupport: null,
+      safetyOfficer: null,
       workspaces: ["ops"],
       homeWorkspace: "ops",
     });
@@ -96,6 +99,20 @@ describe("IdentifyStaffMemberUseCase technical support (SPM-187)", () => {
     const result = await identify(user(["Event Coordinator"]));
 
     expect(result?.technicalSupport).toBeNull();
+  });
+});
+
+describe("IdentifyStaffMemberUseCase safety officer (SPM-259)", () => {
+  it("AC7: gives a Safety Officer their Safety Officer context", async () => {
+    const result = await identify(user(["Safety Officer"]));
+
+    expect(result?.safetyOfficer).toEqual({ userAccountId: "user-1" });
+  });
+
+  it("AC7: gives Technical Support Staff no Safety Officer context", async () => {
+    const result = await identify(user(["Technical Support Staff"]));
+
+    expect(result?.safetyOfficer).toBeNull();
   });
 });
 

@@ -113,6 +113,20 @@ export function technicalSupportContextFor(member: StaffMember): TechnicalSuppor
   return { userAccountId: member.userAccountId };
 }
 
+/** Who a member of staff acts as on the Safety Officer's screens. */
+export interface SafetyOfficerContext {
+  readonly userAccountId: UserAccountId;
+}
+
+/** Who a member of staff acts as on the Safety Officer's screens: only a Safety Officer (SPM-259 AC7). */
+export function safetyOfficerContextFor(member: StaffMember): SafetyOfficerContext | null {
+  if (!member.roles.includes("Safety Officer")) {
+    return null;
+  }
+
+  return { userAccountId: member.userAccountId };
+}
+
 /**
  * Where a member of staff denied a page is sent back to: their landing
  * workspace, provided they can actually open it (SPM-16 AC5). An Organiser
