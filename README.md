@@ -83,11 +83,11 @@ pnpm dev
 
 Staff members are redirected to their role-specific landing view:
 
-- Organiser → `/staff/organiser/landing-view`
-- Coordinator → `/staff/coordinator/landing-view`
-- Operations Manager → `/staff/ops/landing-view`
-- Venue Staff → `/staff/venue/landing-view`
-- Technical Support Staff → `/staff/technical/landing-view`
+- Organiser → `/staff/requester`
+- Coordinator → `/staff/coordinator`
+- Operations Manager → `/staff/ops`
+- Venue Staff → `/staff/venue`
+- Technical Support Staff → `/staff/technical`
 - Safety Officer → `/staff/safety`
 
 ### Detailed Setup Guide
