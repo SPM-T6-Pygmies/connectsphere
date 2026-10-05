@@ -665,7 +665,7 @@
     "SPM-268": {
       "title": "Supabase functions, repository adapter and busy-time read",
       "parent": "SPM-21",
-      "status": "Todo"
+      "status": "In Progress"
     },
     "SPM-269": {
       "title": "Venue Staff unavailability page",

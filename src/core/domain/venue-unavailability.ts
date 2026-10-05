@@ -1,4 +1,4 @@
-import { BOOKING_SLOTS, isCalendarDate, type BookingSlot, type SlotOnDate } from "./booking";
+import { BOOKING_SLOTS, isCalendarDate, SLOT_HOURS, slotStartsAt, type BookingSlot, type SlotOnDate } from "./booking";
 import {
   InvalidBookingDateError,
   InvalidUnavailabilityReasonError,
@@ -11,6 +11,7 @@ import {
 } from "./errors";
 import type { UserAccountId } from "./user-account";
 import type { VenueId } from "./venue";
+import type { BusyInterval } from "./venue-search";
 
 /** `venue_unavailability_reason_chk`: the customer's five reasons (Week 7 C2). */
 export const UNAVAILABILITY_REASONS = [
@@ -201,4 +202,17 @@ export function slotsStillBlocked(entries: readonly VenueUnavailabilityEntry[]):
     }
   }
   return [...seen.values()];
+}
+
+/**
+ * What venue search and the busy-time read treat as taken because of blocks: each
+ * slot an In force block holds, as that slot's hours on its date. `venue_busy_intervals`
+ * adds the same intervals in SQL (SPM-268, AC14).
+ */
+export function blockedBusyIntervals(entries: readonly VenueUnavailabilityEntry[]): readonly BusyInterval[] {
+  return slotsStillBlocked(entries).map(({ venueId, date, slot }) => ({
+    venueId,
+    startsAt: slotStartsAt({ date, slot }),
+    endsAt: new Date(`${date}T${SLOT_HOURS[slot].end}:00+08:00`),
+  }));
 }

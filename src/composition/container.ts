@@ -21,6 +21,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
 import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
+import { SupabaseVenueUnavailabilityRepository } from "@/adapters/outbound/supabase/supabase-venue-unavailability-repository";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
 import { SupabaseUserRepository } from "@/adapters/outbound/supabase/supabase-user-repository";
@@ -91,6 +92,9 @@ import { ViewVenueBookingOptionsUseCase } from "@/core/use-cases/view-venue-book
 import { WithdrawEventRequestUseCase } from "@/core/use-cases/withdraw-event-request";
 import { WithdrawRegistrationUseCase } from "@/core/use-cases/withdraw-registration";
 import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
+import { LiftVenueUnavailabilityUseCase } from "@/core/use-cases/lift-venue-unavailability";
+import { ListVenueUnavailabilityUseCase } from "@/core/use-cases/list-venue-unavailability";
+import { RecordVenueUnavailabilityUseCase } from "@/core/use-cases/record-venue-unavailability";
 import { SearchVenuesUseCase } from "@/core/use-cases/search-venues";
 import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
 import { ListVenuesUseCase, ViewVenueUseCase } from "@/core/use-cases/view-venues";
@@ -648,6 +652,33 @@ export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
  */
 export async function getVenueMaintenanceRoles(): Promise<readonly string[]> {
   return (await getStaffWorkspaces()).includes("venue") ? ["Venue Staff"] : [];
+}
+
+/** SPM-21: Venue Staff block a venue for a period, with a reason. */
+export async function buildRecordVenueUnavailability(): Promise<RecordVenueUnavailabilityUseCase> {
+  const client = await createSupabaseServerClient();
+  return new RecordVenueUnavailabilityUseCase({
+    unavailability: new SupabaseVenueUnavailabilityRepository(client),
+    venues: new SupabaseVenueCatalogue(client),
+    clock: systemClock,
+  });
+}
+
+/** SPM-21: Venue Staff lift a block early. */
+export async function buildLiftVenueUnavailability(): Promise<LiftVenueUnavailabilityUseCase> {
+  const client = await createSupabaseServerClient();
+  return new LiftVenueUnavailabilityUseCase({
+    unavailability: new SupabaseVenueUnavailabilityRepository(client),
+    clock: systemClock,
+  });
+}
+
+/** SPM-21: every block on every venue, In force and Lifted. */
+export async function buildListVenueUnavailability(): Promise<ListVenueUnavailabilityUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ListVenueUnavailabilityUseCase({
+    unavailability: new SupabaseVenueUnavailabilityRepository(client),
+  });
 }
 
 /**
