@@ -776,3 +776,60 @@ export class EquipmentRequirementConflictError extends DomainError {
     super("Technical Support Staff have just reserved equipment against this line. Reload and try again.");
   }
 }
+
+/** SPM-21 AC3: a block covers at least one slot. */
+export class NoUnavailabilitySlotsError extends DomainError {
+  readonly code = "no_unavailability_slots";
+
+  constructor() {
+    super("Choose at least one slot to block.");
+  }
+}
+
+/** SPM-21 AC4: a block's start date is on or before its end date. */
+export class UnavailabilityEndsBeforeStartError extends DomainError {
+  readonly code = "unavailability_ends_before_start";
+
+  constructor(
+    readonly startDate: string,
+    readonly endDate: string,
+  ) {
+    super(`The end date ${endDate} is before the start date ${startDate}.`);
+  }
+}
+
+/** SPM-21 AC5: a block that has already ended is refused; one ending today is not. */
+export class UnavailabilityInThePastError extends DomainError {
+  readonly code = "unavailability_in_the_past";
+
+  constructor(readonly endDate: string) {
+    super(`A block cannot end in the past (${endDate}).`);
+  }
+}
+
+/** SPM-21 AC6: the reason is one of the customer's five (Week 7 C2). */
+export class InvalidUnavailabilityReasonError extends DomainError {
+  readonly code = "invalid_unavailability_reason";
+
+  constructor(readonly reason: string) {
+    super("Choose a reason: Maintenance, Equipment failure, Renovation, Safety or Other.");
+  }
+}
+
+/** SPM-21 AC7: free text explains "Other" only. */
+export class UnavailabilityNoteNotAllowedError extends DomainError {
+  readonly code = "unavailability_note_not_allowed";
+
+  constructor(readonly reason: string) {
+    super(`A note is only allowed when the reason is Other, not ${reason}.`);
+  }
+}
+
+/** SPM-21 AC8: a note is bounded, as technical requirements are (SPM-41 AC5). */
+export class UnavailabilityNoteTooLongError extends DomainError {
+  readonly code = "unavailability_note_too_long";
+
+  constructor(readonly maxLength: number) {
+    super(`The note must be at most ${maxLength} characters.`);
+  }
+}

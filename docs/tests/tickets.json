@@ -646,6 +646,41 @@
       "title": "Test registry and manual end-to-end case for SPM-60",
       "parent": "SPM-60",
       "status": "In Progress"
+    },
+    "SPM-265": {
+      "title": "Venue block rules in the domain",
+      "parent": "SPM-21",
+      "status": "In Progress"
+    },
+    "SPM-266": {
+      "title": "Block tables, grants and seed",
+      "parent": "SPM-21",
+      "status": "In Progress"
+    },
+    "SPM-267": {
+      "title": "Record, lift and list use cases, port and in-memory adapter",
+      "parent": "SPM-21",
+      "status": "Todo"
+    },
+    "SPM-268": {
+      "title": "Supabase functions, repository adapter and busy-time read",
+      "parent": "SPM-21",
+      "status": "Todo"
+    },
+    "SPM-269": {
+      "title": "Venue Staff unavailability page",
+      "parent": "SPM-21",
+      "status": "Todo"
+    },
+    "SPM-270": {
+      "title": "Refuse booking requests over a block (database trigger)",
+      "parent": "SPM-21",
+      "status": "Todo"
+    },
+    "SPM-271": {
+      "title": "Manual tests, registry and seed evidence",
+      "parent": "SPM-21",
+      "status": "Todo"
     }
   }
 }
