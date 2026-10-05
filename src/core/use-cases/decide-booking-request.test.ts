@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { InMemoryBookingRepository } from "@/adapters/outbound/in-memory/in-memory-booking-repository";
 import { InMemoryBookingReviewRepository } from "@/adapters/outbound/in-memory/in-memory-booking-review-repository";
+import { InMemorySafetyCheckWatch } from "@/adapters/outbound/in-memory/in-memory-safety-check-watch";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 
 import type { BookingId, BookingStatus } from "../domain/booking";
 import {
@@ -10,8 +12,11 @@ import {
   DecisionReasonRequiredError,
   VenueSlotUnavailableError,
 } from "../domain/errors";
+import { eventId } from "../domain/event";
+import type { SafetyCheckCandidate } from "../domain/safety-check";
 import { venueId } from "../domain/venue";
 import type { BookingForReview } from "../ports/outbound/booking-review-repository";
+import { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "./decide-booking-request";
 
 const STAFF = "staff-1";
@@ -51,7 +56,7 @@ function booking(
   };
 }
 
-function build(rows: BookingForReview[]) {
+function build(rows: BookingForReview[], safetyWatch = new InMemorySafetyCheckWatch()) {
   const reviews = new InMemoryBookingReviewRepository(rows, [STAFF]);
   const bookings = new InMemoryBookingRepository(
     rows.map((row) => ({
@@ -66,7 +71,14 @@ function build(rows: BookingForReview[]) {
       requestedAt: row.requestedAt,
     })),
   );
-  return { reviews, useCase: new DecideBookingRequestUseCase({ reviews, bookings }) };
+  const notifier = new RecordingNotifier();
+  const safetyCheck = new SafetyCheckEntryAnnouncer({ watch: safetyWatch, notifier });
+  return {
+    reviews,
+    safetyWatch,
+    notifier,
+    useCase: new DecideBookingRequestUseCase({ reviews, bookings, safetyCheck }),
+  };
 }
 
 describe("DecideBookingRequestUseCase (SPM-22)", () => {
@@ -147,5 +159,66 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
     await expect(
       useCase.execute({ bookingId: "nope", userAccountId: STAFF, decision: "approve" }),
     ).rejects.toBeInstanceOf(BookingNotFoundError);
+  });
+});
+
+describe("DecideBookingRequestUseCase telling Safety Officers (SPM-262)", () => {
+  const EVENT = eventId("e1");
+
+  function event(pending: "Requested" | "Confirmed" | "Rejected"): SafetyCheckCandidate {
+    return {
+      event: { id: EVENT, name: "Summit", status: "Planning", preferredDate: "2026-10-22", expectedAttendance: 80 },
+      bookings: [
+        { status: "Confirmed", venueName: "Venue v2" },
+        { status: pending, venueName: "Venue v1" },
+      ],
+      equipmentLines: [],
+    };
+  }
+
+  /** b1 is pending beside a Confirmed booking; the watch sees it as the decision leaves it. */
+  function decided(watched = event("Requested")) {
+    const safetyWatch = new InMemorySafetyCheckWatch([watched], ["safety-1", "safety-2"], { b1: "e1" });
+    const built = build([booking("b1", "Requested")], safetyWatch);
+    const decide = built.reviews.decide.bind(built.reviews);
+    built.reviews.decide = async (d) => {
+      await decide(d);
+      safetyWatch.set(event(d.status));
+    };
+    return built;
+  }
+
+  it("AC1, AC4: approving the last pending booking tells every Safety Officer", async () => {
+    const { useCase, notifier } = decided();
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+
+    expect(notifier.safetyChecksReady.map((notice) => [notice.recipientUserAccountId, notice.eventName])).toEqual([
+      ["safety-1", "Summit"],
+      ["safety-2", "Summit"],
+    ]);
+  });
+
+  it("AC1: rejecting the last pending booking, beside a Confirmed one, tells every Safety Officer", async () => {
+    const { useCase, notifier } = decided();
+
+    await useCase.execute({
+      bookingId: "b1",
+      userAccountId: STAFF,
+      decision: "reject",
+      reason: "Closed for repairs.",
+      suggestedAlternative: null,
+    });
+
+    expect(notifier.safetyChecksReady).toHaveLength(2);
+  });
+
+  it("AC3: a refused decision tells no one", async () => {
+    const { useCase, notifier } = decided();
+
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "reject", reason: " ", suggestedAlternative: null }),
+    ).rejects.toThrow(DecisionReasonRequiredError);
+    expect(notifier.safetyChecksReady).toEqual([]);
   });
 });

@@ -8,6 +8,7 @@ import {
   PROJECTOR,
   SPEAKER,
   seededEquipment,
+  watchEquipmentForSafety,
 } from "@/adapters/outbound/in-memory/equipment-fixture";
 import { EquipmentRequirementNotFoundError, EventNotFoundError } from "@/core/domain/errors";
 
@@ -57,5 +58,27 @@ describe("RemoveEquipmentRequirementUseCase (SPM-184)", () => {
       useCase.execute({ ...base, userAccountId: OTHER_COORDINATOR, equipmentItemId: MICROPHONE }),
     ).rejects.toThrow(EventNotFoundError);
     expect(equipment.stored("event-1")).toEqual(seededEquipment());
+  });
+});
+
+describe("RemoveEquipmentRequirementUseCase telling Safety Officers (SPM-262)", () => {
+  it("AC2, AC4: deleting the last unreserved line tells every Safety Officer", async () => {
+    const deps = buildEquipmentDeps();
+    watchEquipmentForSafety(deps);
+    const { useCase, notifier } = remove(deps);
+
+    await useCase.execute({ ...base, equipmentItemId: MICROPHONE });
+
+    expect(notifier.safetyChecksReady.map((notice) => notice.recipientUserAccountId)).toEqual(["safety-1", "safety-2"]);
+  });
+
+  it("AC3: asking to remove a reserved line, leaving an unreserved one, tells no one", async () => {
+    const deps = buildEquipmentDeps();
+    watchEquipmentForSafety(deps);
+    const { useCase, notifier } = remove(deps);
+
+    await useCase.execute({ ...base, equipmentItemId: PROJECTOR });
+
+    expect(notifier.safetyChecksReady).toEqual([]);
   });
 });
