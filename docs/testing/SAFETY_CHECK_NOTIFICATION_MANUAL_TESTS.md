@@ -166,7 +166,7 @@ AC1, AC3, AC4, AC5, AC6.
 **Expected Result:**
 - Step 2: the booking is Confirmed; the query returns **no** rows — the other booking still waits.
 - Step 3: two rows for Spring Lantern Walk, one each for the two Safety Officers (accounts 11 and 12), both `Sent`; no row for any other account.
-- Steps 4–5: each inbox has "Spring Lantern Walk is ready for a safety check", badged **Ready for safety check**, reading "Its venue bookings are confirmed and its equipment is reserved. Event date: Sat, 5 Dec 2026."
+- Steps 4–5: each inbox has "Spring Lantern Walk is ready for a safety check", badged **Ready for safety check**, reading "Confirmed at Grand Ballroom and Sky Terrace. No equipment needed. Event date: Sat, 5 Dec 2026."
 
 **Evidence:**
 - [`TC-SAFETYNOTE-001_step2-first-booking-approved.png`](../screenshots/2026-10-06_TC-SAFETYNOTE-001_step2-first-booking-approved.png)
@@ -192,7 +192,7 @@ AC1, AC5.
 
 **Expected Result:**
 - Step 2: two `Sent` rows for Rooftop Jazz Night, accounts 11 and 12.
-- Step 3: "Rooftop Jazz Night is ready for a safety check", reading "… No event date set yet."
+- Step 3: "Rooftop Jazz Night is ready for a safety check", reading "Confirmed at Sky Terrace. No equipment needed. No event date set yet." The rejected Grand Ballroom is not named: it is no longer part of what is checked.
 
 **Evidence:** [`TC-SAFETYNOTE-002_step3-no-date-notice.png`](../screenshots/2026-10-06_TC-SAFETYNOTE-002_step3-no-date-notice.png)
 
@@ -213,7 +213,7 @@ AC2.
 
 **Expected Result:**
 - Step 2: the line is gone; two `Sent` rows for Charity Book Fair, accounts 11 and 12.
-- Step 3: "Charity Book Fair is ready for a safety check … Event date: Sat, 12 Dec 2026."
+- Step 3: "Charity Book Fair is ready for a safety check", reading "Confirmed at Grand Ballroom. No equipment needed. Event date: Sat, 12 Dec 2026." — its only line was removed, so it now needs none. "All equipment reserved." is unit-tested only: nothing in the app can reserve equipment yet.
 
 **Evidence:**
 - [`TC-SAFETYNOTE-003_step2-line-removed.png`](../screenshots/2026-10-06_TC-SAFETYNOTE-003_step2-line-removed.png)
@@ -254,11 +254,14 @@ against `pnpm dev:local` (Next.js 16.3.4, dev mode, Novu Development through a
 `novu dev` tunnel) on a freshly reset local Supabase, in headless Chromium
 driven by Playwright at 1440 × 900. No page errors were raised. Every delivery
 was seen as a `POST /api/novu?action=execute&workflowId=safety-check-ready` in
-the server log, not just as a row.
+the server log, not just as a row. Re-run the same day after the notice was
+changed to name its venues and equipment; the screenshots are from that run.
+The inbox's "N unread notifications" panel can lag the list by a moment, so
+some screenshots read "0 unread" beside unread rows; the dots are the state.
 
 | Case | Result | Observed |
 | --- | --- | --- |
-| TC-SAFETYNOTE-001 | Pass | First approval: no rows. Second: rows for 11 and 12, both `Sent`; 0 rows for any other role. Both inboxes show the notice, badged, "Event date: Sat, 5 Dec 2026." |
-| TC-SAFETYNOTE-002 | Pass | Rejection: rows for 11 and 12, `Sent`; notice reads "No event date set yet." |
-| TC-SAFETYNOTE-003 | Pass | Line removed; rows for 11 and 12, `Sent`; notice "Event date: Sat, 12 Dec 2026." |
+| TC-SAFETYNOTE-001 | Pass | First approval: no rows. Second: rows for 11 and 12, both `Sent`; 0 rows for any other role. Both inboxes show the notice, badged, "Confirmed at Grand Ballroom and Sky Terrace. No equipment needed. Event date: Sat, 5 Dec 2026." |
+| TC-SAFETYNOTE-002 | Pass | Rejection: rows for 11 and 12, `Sent`; notice reads "Confirmed at Sky Terrace. No equipment needed. No event date set yet." |
+| TC-SAFETYNOTE-003 | Pass | Line removed; rows for 11 and 12, `Sent`; notice "Confirmed at Grand Ballroom. No equipment needed. Event date: Sat, 12 Dec 2026." |
 | TC-SAFETYNOTE-004 | Pass | Charity Book Fair marked read and still read after signing in again; Rooftop Jazz Night still unread; opening Spring Lantern Walk went to `/staff/safety`, which lists it |
