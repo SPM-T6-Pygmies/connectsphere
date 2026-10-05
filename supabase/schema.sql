@@ -717,6 +717,7 @@ insert into role (role_name) values
   ('Event Operations Manager'),
   ('Venue Staff'),
   ('Technical Support Staff'),
+  ('Safety Officer'),
   ('Attendee')
 on conflict (role_name) do nothing;
 

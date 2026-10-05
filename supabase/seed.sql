@@ -42,7 +42,9 @@ begin
         ('00000000-0000-4000-8000-000000000005'::uuid, 'venue@test.com',        'TestPass123!', 'Test Venue Staff',     'Venue Staff',              null),
         ('00000000-0000-4000-8000-000000000009'::uuid, 'venue2@test.com',       'TestPass123!', 'Test Venue Staff 2',   'Venue Staff',              null),
         ('00000000-0000-4000-8000-000000000006'::uuid, 'support@test.com',      'TestPass123!', 'Test Support Staff',   'Technical Support Staff',  null),
-        ('00000000-0000-4000-8000-000000000010'::uuid, 'support2@test.com',     'TestPass123!', 'Test Support Staff 2', 'Technical Support Staff',  null)
+        ('00000000-0000-4000-8000-000000000010'::uuid, 'support2@test.com',     'TestPass123!', 'Test Support Staff 2', 'Technical Support Staff',  null),
+        ('00000000-0000-4000-8000-000000000011'::uuid, 'safety@test.com',       'TestPass123!', 'Test Safety Officer',  'Safety Officer',           null),
+        ('00000000-0000-4000-8000-000000000012'::uuid, 'safety2@test.com',      'TestPass123!', 'Test Safety Officer 2', 'Safety Officer',          null)
       ) as t (auth_user_id, email, password, name, role_name, organisation)
   loop
     -- Fail loudly rather than leaving half-seeded rows behind: a role name that
