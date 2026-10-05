@@ -172,6 +172,8 @@ AC1, AC3, AC4, AC5.
 - [`TC-SAFETYNOTE-001_step2-first-booking-approved.png`](../screenshots/2026-10-06_TC-SAFETYNOTE-001_step2-first-booking-approved.png)
 - [`TC-SAFETYNOTE-001_step4-safety-inbox.png`](../screenshots/2026-10-06_TC-SAFETYNOTE-001_step4-safety-inbox.png)
 - [`TC-SAFETYNOTE-001_step5-second-safety-officer-inbox.png`](../screenshots/2026-10-06_TC-SAFETYNOTE-001_step5-second-safety-officer-inbox.png)
+  — retaken after TC-SAFETYNOTE-004 with the account menu open, so it names Test
+  Safety Officer 2; its read states are TC-SAFETYNOTE-004's.
 
 **Status:** [x] Pass [ ] Fail
 
