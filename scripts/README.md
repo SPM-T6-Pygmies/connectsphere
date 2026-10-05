@@ -120,6 +120,7 @@ the seed does not go stale.
 | `seed.sql`     | Inserts the three blocks. Safe to re-run.                                                      |
 | `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.                              |
 | `refusals.sql` | Tries the inputs the database must refuse (a bad reason, a note under Safety, a 501-character note). Prints an error saying `ok` when every refusal held, and writes nothing. |
+| `checks.sql`   | Checks the functions, audit rows, busy-time read and the booking refusal (TC-VBLOCK-008). Needs `seed-venue-search-uat` as well. Prints an error saying `ok: all 19 checks held` or `FAILED: …`, and writes nothing. |
 | `teardown.sql` | Deletes the three blocks and the audit rows they wrote.                                        |
 
 Run seed-venues first — this script stops with an error naming what is missing

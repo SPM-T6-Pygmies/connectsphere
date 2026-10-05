@@ -680,7 +680,7 @@
     "SPM-271": {
       "title": "Manual tests, registry and seed evidence",
       "parent": "SPM-21",
-      "status": "Todo"
+      "status": "In Progress"
     }
   }
 }
