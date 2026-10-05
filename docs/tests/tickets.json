@@ -670,7 +670,7 @@
     "SPM-269": {
       "title": "Venue Staff unavailability page",
       "parent": "SPM-21",
-      "status": "Todo"
+      "status": "In Progress"
     },
     "SPM-270": {
       "title": "Refuse booking requests over a block (database trigger)",
