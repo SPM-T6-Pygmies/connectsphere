@@ -232,7 +232,7 @@ them, tick the boxes below **and** report each in the PR description's
 
 **Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
 
-**Screenshots:** [step4-staff-requester-shows-login](../screenshots/2026-09-13_TC-LOGOUT-003_step4-staff-requester-shows-login.png)
+**Screenshots:** [step3-devtools-cookie-cleared](../screenshots/2026-09-13_TC-LOGOUT-003_step3-devtools-cookie-cleared.png)
 
 ---
 
@@ -264,7 +264,7 @@ SELECT * FROM audit_record WHERE action = 'logout' ORDER BY audit_record_id DESC
 
 **Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
 
-**Screenshots:** [step3-signed-out-login-page](../screenshots/2026-09-13_TC-LOGOUT-004_step3-signed-out-login-page.png)
+**Screenshots:** [step3-audit-record-logout](../screenshots/2026-09-13_TC-LOGOUT-004_step3-audit-record-logout.png)
 
 ---
 
