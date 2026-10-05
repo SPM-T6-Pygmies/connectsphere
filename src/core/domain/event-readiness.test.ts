@@ -33,6 +33,7 @@ function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
     status: "Planning",
     preferredDate: null,
     expectedAttendance: null,
+    statedEquipmentNeeds: null,
     clientOrganisationId: clientOrganisationId("org-1"),
     owningOrganiserUserAccountId: userAccountId("organiser-1"),
     assignedCoordinatorUserAccountId: COORDINATOR,

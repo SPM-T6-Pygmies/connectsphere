@@ -1,5 +1,5 @@
 import { CheckIcon, AlertTriangleIcon } from "lucide-react";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -18,13 +18,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewCoordinatorEvent, getCurrentCoordinator } from "@/composition/container";
+import {
+  buildViewCoordinatorEvent,
+  buildViewEventEquipment,
+  getCurrentCoordinator,
+} from "@/composition/container";
 import type { ArrangementType } from "@/core/domain/event-readiness";
 
 import { detailCrumbs } from "../../../detail-origin";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { ConfirmForm } from "./confirm-form";
+import { EquipmentSection } from "./equipment-section";
 
 export const metadata = { title: "Event | ConnectSphere" };
 
@@ -50,15 +55,23 @@ export default async function CoordinatorEventPage({
 }: PageProps<"/staff/coordinator/events/[id]">) {
   const { id } = await params;
 
+  // An event that is not theirs, or does not exist, gets the same access-denied
+  // screen (SPM-16, #91), so a guess cannot confirm an event exists.
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const viewCoordinatorEvent = await buildViewCoordinatorEvent();
   const result = await viewCoordinatorEvent.execute({ id, ...coordinator });
   if (result === null) {
-    notFound();
+    forbidden();
+  }
+
+  const viewEventEquipment = await buildViewEventEquipment();
+  const equipment = await viewEventEquipment.execute({ eventId: id, ...coordinator });
+  if (equipment === null) {
+    forbidden();
   }
 
   const { event, clientOrganisationName, owningOrganiserName, readiness, confirmation, blockingArrangements } =
@@ -143,6 +156,8 @@ export default async function CoordinatorEventPage({
               )}
             </CardContent>
           </Card>
+
+          <EquipmentSection equipment={equipment} />
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">

@@ -35,6 +35,7 @@ function seedEvent(
     assignedCoordinatorUserAccountId: COORDINATOR,
     description: "A showcase of this year's founding milestones.",
     expectedAttendance: 120,
+    statedEquipmentNeeds: null,
     clientOrganisationId: ORG_A,
     owningOrganiserUserAccountId: REQUESTER,
     ...overrides,

@@ -660,3 +660,119 @@ export class VenueMaintenanceNotPermittedError extends DomainError {
     super("Only Venue Staff can create or update venues.");
   }
 }
+
+/** SPM-41 AC3: a requirement is for at least one whole item. */
+export class InvalidEquipmentRequirementQuantityError extends DomainError {
+  readonly code = "invalid_equipment_requirement_quantity";
+
+  constructor(readonly quantity: number) {
+    super(`Quantity must be a whole number of at least 1, not ${quantity}.`);
+  }
+}
+
+/** SPM-41 AC5: technical requirements are optional, but bounded. */
+export class TechnicalRequirementsTooLongError extends DomainError {
+  readonly code = "technical_requirements_too_long";
+
+  constructor(readonly maxLength: number) {
+    super(`Technical requirements must be at most ${maxLength} characters.`);
+  }
+}
+
+/**
+ * SPM-41 AC2: one line per equipment type, so a second line for the same type
+ * is refused and the coordinator is pointed at the existing one.
+ *
+ * Takes no argument for the same reason `RegistrationAlreadyWithdrawnError`
+ * takes none: the Supabase adapter raises this one too, when a concurrent add
+ * of the same type landed first, and there it holds nothing to put in the
+ * message.
+ */
+export class DuplicateEquipmentRequirementError extends DomainError {
+  readonly code = "duplicate_equipment_requirement";
+
+  constructor() {
+    super("This event already has a line for that equipment type. Edit the existing line instead.");
+  }
+}
+
+/** SPM-41 AC13: a Completed or Cancelled event's equipment requirements are read-only. */
+export class EquipmentRequirementsLockedError extends DomainError {
+  readonly code = "equipment_requirements_locked";
+
+  constructor(readonly status: string) {
+    super(`Equipment requirements on a ${status} event are read-only.`);
+  }
+}
+
+/**
+ * SPM-41 AC11: once removal of a reserved line is requested, the line waits
+ * for Technical Support to release it (SPM-108). Until then the coordinator
+ * can only undo the removal (AC17) -- not edit the line or remove it again.
+ */
+export class EquipmentRemovalAlreadyRequestedError extends DomainError {
+  readonly code = "equipment_removal_already_requested";
+
+  constructor() {
+    super("Removal of this line has already been requested. Undo the removal to change it.");
+  }
+}
+
+/**
+ * SPM-41 AC17: only a line whose removal is pending can have that removal
+ * undone. A second undo is a refusal rather than a no-op, the same choice
+ * `RegistrationAlreadyWithdrawnError` makes for a second withdrawal.
+ */
+export class EquipmentRemovalNotRequestedError extends DomainError {
+  readonly code = "equipment_removal_not_requested";
+
+  constructor() {
+    super("This line has no pending removal to undo.");
+  }
+}
+
+/** SPM-41 AC4: an equipment requirement's type must be picked from the catalogue. */
+export class EquipmentItemNotInCatalogueError extends DomainError {
+  readonly code = "equipment_item_not_in_catalogue";
+
+  constructor(readonly equipmentItemId: string) {
+    super(`Equipment item ${equipmentItemId} is not in the catalogue.`);
+  }
+}
+
+/**
+ * SPM-41: an edit, removal or undo named a type the event has no line for --
+ * the line was removed in the meantime, or never existed.
+ */
+export class EquipmentRequirementNotFoundError extends DomainError {
+  readonly code = "equipment_requirement_not_found";
+
+  constructor(readonly equipmentItemId: string) {
+    super(`This event has no equipment line for item ${equipmentItemId}.`);
+  }
+}
+
+/**
+ * SPM-41: Technical Support reserved against a line after the coordinator's
+ * change was decided, so the change was not stored -- deciding it again
+ * against the new reservation may flag it where it would not have been.
+ *
+ * Takes no argument: only the Supabase adapter raises this, when it loses the
+ * race, and there it holds nothing to put in the message.
+ */
+/** SPM-41 AC16: only Technical Support Staff may read the equipment re-check list. */
+export class NotTechnicalSupportStaffError extends DomainError {
+  readonly code = "not_technical_support_staff";
+
+  constructor() {
+    super("Only Technical Support Staff can see the equipment re-check list.");
+  }
+}
+
+export class EquipmentRequirementConflictError extends DomainError {
+  readonly code = "equipment_requirement_conflict";
+
+  constructor() {
+    super("Technical Support Staff have just reserved equipment against this line. Reload and try again.");
+  }
+}

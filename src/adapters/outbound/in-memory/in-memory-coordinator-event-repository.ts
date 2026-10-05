@@ -19,6 +19,8 @@ export interface SeedCoordinatorEvent
   readonly assignedCoordinatorUserAccountId: string | null;
   readonly description: string | null;
   readonly expectedAttendance: number | null;
+  /** The Organiser's stated equipment needs (SPM-41 AC6); optional so a seed that does not care can omit it. */
+  readonly statedEquipmentNeeds?: string | null;
   readonly clientOrganisationId: string;
   readonly owningOrganiserUserAccountId: string;
 }
@@ -118,6 +120,7 @@ function toCoordinatorEvent(row: SeedCoordinatorEvent): CoordinatorEvent {
     status: row.status,
     preferredDate: row.preferredDate,
     expectedAttendance: row.expectedAttendance,
+    statedEquipmentNeeds: row.statedEquipmentNeeds ?? null,
     clientOrganisationId: clientOrganisationId(row.clientOrganisationId),
     owningOrganiserUserAccountId: userAccountId(row.owningOrganiserUserAccountId),
     assignedCoordinatorUserAccountId:

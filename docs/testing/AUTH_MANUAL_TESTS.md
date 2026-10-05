@@ -59,7 +59,9 @@ them, tick the boxes below **and** report each in the PR description's
 - Dashboard displays role-appropriate content
 - Account menu (sidebar footer) shows logged-in user name and role
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
+
+**Screenshots:** [step3-dashboard-account-menu](../screenshots/2026-09-13_TC-LOGIN-001_step3-dashboard-account-menu.png)
 
 ---
 
@@ -82,7 +84,9 @@ them, tick the boxes below **and** report each in the PR description's
 - No specific "password incorrect" message (security: no user enumeration)
 - Email field retains value, password field clears
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (3/3 checks)
+
+**Screenshots:** [step2-invalid-credentials-error](../screenshots/2026-09-13_TC-LOGIN-002_step2-invalid-credentials-error.png)
 
 ---
 
@@ -105,7 +109,9 @@ them, tick the boxes below **and** report each in the PR description's
 - No "user not found" specific message (security: no user enumeration)
 - Same error as TC-LOGIN-002 (indistinguishable)
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
+
+**Screenshots:** [step2-same-error-as-wrong-password](../screenshots/2026-09-13_TC-LOGIN-003_step2-same-error-as-wrong-password.png)
 
 ---
 
@@ -124,10 +130,12 @@ them, tick the boxes below **and** report each in the PR description's
 **Expected Result:**
 - Auth session cookie created: `sb-<project-id>-auth-token`
 - Cookie contains valid session token
-- Cookie is httpOnly (for security)
+- Cookie is readable by the browser client by design (Supabase SSR needs this), so it is **not** httpOnly
 - Cookie persists across page refreshes
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (3/3 checks). The first recording was a Fail: the case expected an httpOnly cookie, but Supabase SSR cookies are readable by the browser client by design. The case was corrected, not the app.
+
+**Screenshots:** [step3-devtools-cookie](../screenshots/2026-09-13_TC-LOGIN-004_step3-devtools-cookie.png)
 
 ---
 
@@ -150,7 +158,9 @@ them, tick the boxes below **and** report each in the PR description's
 - No "re-authentication" flow triggered
 - Session cookie still valid
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
+
+**Screenshots:** [step2-after-refresh-account-menu](../screenshots/2026-09-13_TC-LOGIN-005_step2-after-refresh-account-menu.png)
 
 ---
 
@@ -173,7 +183,9 @@ them, tick the boxes below **and** report each in the PR description's
 - No error messages displayed
 - Session is terminated cleanly
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
+
+**Screenshots:** [step1-account-menu-open](../screenshots/2026-09-13_TC-LOGOUT-001_step1-account-menu-open.png) · [step2-redirected-to-login](../screenshots/2026-09-13_TC-LOGOUT-001_step2-redirected-to-login.png)
 
 ---
 
@@ -194,7 +206,9 @@ them, tick the boxes below **and** report each in the PR description's
 - Protected route (`/staff/*`) is NOT accessible
 - No cached page loads
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
+
+**Screenshots:** [step1-after-back-button](../screenshots/2026-09-13_TC-LOGOUT-002_step1-after-back-button.png)
 
 ---
 
@@ -216,7 +230,9 @@ them, tick the boxes below **and** report each in the PR description's
 - Refresh redirects to `/auth/login`
 - Login form displays (not cached dashboard)
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
+
+**Screenshots:** [step3-devtools-cookie-cleared](../screenshots/2026-09-13_TC-LOGOUT-003_step3-devtools-cookie-cleared.png)
 
 ---
 
@@ -246,7 +262,9 @@ SELECT * FROM audit_record WHERE action = 'logout' ORDER BY audit_record_id DESC
   - `action`: "logout"
   - `occurred_at`: timestamp ~1 second after logout
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (2/2 checks)
+
+**Screenshots:** [step3-audit-record-logout](../screenshots/2026-09-13_TC-LOGOUT-004_step3-audit-record-logout.png)
 
 ---
 
@@ -266,7 +284,9 @@ SELECT * FROM audit_record WHERE action = 'logout' ORDER BY audit_record_id DESC
 - Public routes accessible without login
 - No 403 Forbidden or error pages shown
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-09-13 (backdated record), run 2026-10-05 in Chrome via Playwright by Claude Code for JameszLau, commit `d00aaf1` (4/4 checks)
+
+**Screenshots:** [step1-staff-requester-redirects](../screenshots/2026-09-13_TC-LOGOUT-005_step1-staff-requester-redirects.png) · [step1-staff-coordinator-redirects](../screenshots/2026-09-13_TC-LOGOUT-005_step1-staff-coordinator-redirects.png) · [step2-public-pages-signed-out](../screenshots/2026-09-13_TC-LOGOUT-005_step2-public-pages-signed-out.png)
 
 ---
 

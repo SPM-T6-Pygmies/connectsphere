@@ -85,3 +85,6 @@ export function updateEquipmentStock(
     location: requiredText(change.location, () => new EquipmentLocationRequiredError()),
   };
 }
+
+/** One entry in the equipment catalogue, as a coordinator picks it for an event's requirement (SPM-41 AC1, AC4). */
+export type EquipmentCatalogueItem = Pick<EquipmentItem, "id" | "type">;

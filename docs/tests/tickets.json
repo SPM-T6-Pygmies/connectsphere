@@ -57,6 +57,11 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-41": {
+      "title": "Specify equipment requirements for an event",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-50": {
       "title": "Confirm an event",
       "parent": null,
@@ -316,6 +321,36 @@
       "title": "Logout audit write likely fails after audit_record grants were revoked",
       "parent": null,
       "status": "Done"
+    },
+    "SPM-182": {
+      "title": "Equipment requirement rules in the domain",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-184": {
+      "title": "Record / edit / remove / list use cases, port and in-memory adapter",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-185": {
+      "title": "Supabase functions and repository adapter",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-186": {
+      "title": "Coordinator equipment section on the event page",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-187": {
+      "title": "Technical Support \"Needs re-check\" list",
+      "parent": "SPM-41",
+      "status": "Todo"
+    },
+    "SPM-232": {
+      "title": "Clear the re-check when a coordinator edits a line back to what was reserved",
+      "parent": "SPM-41",
+      "status": "In Progress"
     },
     "SPM-44": {
       "title": "Search and filter venues",

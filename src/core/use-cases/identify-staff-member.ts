@@ -3,6 +3,7 @@ import {
   coordinatorContextFor,
   homeWorkspaceFor,
   organiserContextFor,
+  technicalSupportContextFor,
   workspacesFor,
   type StaffMember,
   type StaffWorkspace,
@@ -24,6 +25,8 @@ export interface IdentifyStaffMemberResult {
   } | null;
   /** Who the Coordinator's screens act as -- null unless `coordinatorContextFor` allows it. */
   readonly coordinator: { readonly userAccountId: string; readonly name: string } | null;
+  /** Who Technical Support's screens act as -- null unless `technicalSupportContextFor` allows it. */
+  readonly technicalSupport: { readonly userAccountId: string } | null;
   /** The staff workspaces the member may open -- see `workspacesFor`. */
   readonly workspaces: readonly StaffWorkspace[];
   /** Where an access-denied screen sends them back to -- see `homeWorkspaceFor`. */
@@ -59,12 +62,14 @@ export class IdentifyStaffMemberUseCase {
     };
     const organiser = organiserContextFor(member);
     const coordinator = coordinatorContextFor(member);
+    const technicalSupport = technicalSupportContextFor(member);
 
     return {
       name: user.name,
       userAccountId: member.userAccountId,
       organiser: organiser && { ...organiser, name: user.name },
       coordinator: coordinator && { ...coordinator, name: user.name },
+      technicalSupport,
       workspaces: workspacesFor(member.roles),
       homeWorkspace: homeWorkspaceFor(member),
     };
