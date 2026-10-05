@@ -37,6 +37,7 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   coordinator: "Event Coordinator",
   venue: "Venue Staff",
   technical: "Technical Support Staff",
+  safety: "Safety Officer",
 };
 
 export const STAFF_ROLES: readonly StaffRole[] = [
@@ -45,6 +46,7 @@ export const STAFF_ROLES: readonly StaffRole[] = [
   "coordinator",
   "venue",
   "technical",
+  "safety",
 ];
 
 /**
@@ -305,7 +307,8 @@ export type SidebarSection =
   | "requested"
   | "decided"
   | "needsReview"
-  | "reviewed";
+  | "reviewed"
+  | "awaitingCheck";
 
 /**
  * One row of the sidebar's list pane.
@@ -434,6 +437,10 @@ function queueItemsFor(role: StaffRole, section: SidebarSection): ListPaneItem[]
         };
       });
     }
+
+    // No fixtures: the safety-check list is SPM-259's, read from real data.
+    case "safety":
+      return [];
   }
 }
 

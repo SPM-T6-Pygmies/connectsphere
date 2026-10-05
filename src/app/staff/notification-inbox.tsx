@@ -4,7 +4,7 @@ import { NotificationPlaceholder } from "./notification-placeholder";
 import { StaffShell } from "./staff-shell";
 
 /**
- * The inbox, shared by all five roles.
+ * The inbox, shared by every staff role.
  *
  * A notification points at a record rather than restating it, so every row
  * links to the screen that owns what changed. The rows live in the list pane,

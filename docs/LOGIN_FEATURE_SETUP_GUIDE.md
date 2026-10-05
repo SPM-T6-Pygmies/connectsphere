@@ -282,13 +282,9 @@ locally is gone. Local data is disposable — see
 1. Open Supabase Studio: http://127.0.0.1:54323
 2. Login (any email/password to create local account)
 3. Go to **Authentication** tab → **Users**
-4. Should see 6 test users:
-   - organiser@test.com
-   - organiser2@test.com
-   - coordinator@test.com
-   - ops@test.com
-   - venue@test.com
-   - support@test.com
+4. Should see every test user listed in
+   [supabase/SEED.md](../supabase/SEED.md#test-credentials) — at least one per
+   staff role
 
 **If command fails:**
 
@@ -588,7 +584,7 @@ supabase start
 
 3. **Verify they are linked to an account:** a user that exists in Auth but has
    no `user_account` row cannot resolve a role. Run the query in
-   [supabase/SEED.md](../supabase/SEED.md) — all six rows should read
+   [supabase/SEED.md](../supabase/SEED.md) — every row should read
    `linked = t`.
 
 ---
@@ -706,19 +702,22 @@ The login feature follows the project's hexagonal architecture:
 - **Service Role Key for server operations:** Server Action uses Service Role Key (full permissions) to bypass RLS on user_account table lookups
 - **Publishable Key for browser:** Browser receives only Publishable Key (limited read-only), stored in .env.local
 - **Session cookies via Supabase middleware:** updateSession() refreshes the session cookies and reports the session claims; middleware.ts redirects unauthenticated users from /staff/* to /auth/login
-- **Role-based redirects:** LoginUseCase returns user's primary role; loginAction maps to /staff/[role]/landing-view
+- **Role-based redirects:** LoginUseCase returns the workspace of the user's primary role; loginAction redirects to /staff/[workspace]
 
 ### Test Data
 
-Five staff roles with test credentials (all use password `TestPass123!`):
+One test login per staff role (all use password `TestPass123!`; the full list,
+including the second account per role, is in
+[supabase/SEED.md](../supabase/SEED.md#test-credentials)):
 
 | Role | Email | Redirect |
 |------|-------|----------|
-| Event Organiser | organiser@test.com | /staff/organiser/landing-view |
-| Event Coordinator | coordinator@test.com | /staff/coordinator/landing-view |
-| Event Operations Manager | ops@test.com | /staff/ops/landing-view |
-| Venue Staff | venue@test.com | /staff/venue/landing-view |
-| Technical Support Staff | support@test.com | /staff/technical/landing-view |
+| Event Organiser | organiser@test.com | /staff/requester |
+| Event Coordinator | coordinator@test.com | /staff/coordinator |
+| Event Operations Manager | ops@test.com | /staff/ops |
+| Venue Staff | venue@test.com | /staff/venue |
+| Technical Support Staff | support@test.com | /staff/technical |
+| Safety Officer | safety@test.com | /staff/safety |
 
 ### Testing Without Supabase
 

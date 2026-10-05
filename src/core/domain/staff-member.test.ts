@@ -189,3 +189,28 @@ describe("isStaffWithNoHome (SPM-188)", () => {
     ).toBe(false);
   });
 });
+
+describe("Safety Officer role (SPM-258)", () => {
+  it("lands a Safety Officer on the safety workspace", () => {
+    expect(landingWorkspaceFor(["Safety Officer"])).toBe("safety");
+  });
+
+  it("opens the safety workspace alongside another role's", () => {
+    expect(workspacesFor(["Venue Staff", "Safety Officer"])).toEqual(["venue", "safety"]);
+  });
+
+  it.each(["Event Coordinator", "Event Operations Manager", "Venue Staff", "Technical Support Staff", "Attendee"])(
+    "does not open the safety workspace for %s",
+    (role) => {
+      expect(workspacesFor([role])).not.toContain("safety");
+    },
+  );
+
+  it("names the Safety Officer as who to contact about the safety area", () => {
+    expect(pageAreaOwner("safety")).toBe("Safety Officer");
+  });
+
+  it("sends a Safety Officer denied a page back to the safety workspace", () => {
+    expect(homeWorkspaceFor(member(["Safety Officer"]))).toBe("safety");
+  });
+});

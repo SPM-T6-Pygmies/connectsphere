@@ -72,6 +72,7 @@ pnpm dev
 | Event Operations Manager                    | `ops@test.com`         | `TestPass123!` |
 | Venue Staff                                 | `venue@test.com`       | `TestPass123!` |
 | Technical Support Staff                     | `support@test.com`     | `TestPass123!` |
+| Safety Officer                              | `safety@test.com`      | `TestPass123!` |
 
 ### Access Control
 
@@ -82,11 +83,12 @@ pnpm dev
 
 Staff members are redirected to their role-specific landing view:
 
-- Organiser → `/staff/organiser/landing-view`
-- Coordinator → `/staff/coordinator/landing-view`
-- Operations Manager → `/staff/ops/landing-view`
-- Venue Staff → `/staff/venue/landing-view`
-- Technical Support Staff → `/staff/technical/landing-view`
+- Organiser → `/staff/requester`
+- Coordinator → `/staff/coordinator`
+- Operations Manager → `/staff/ops`
+- Venue Staff → `/staff/venue`
+- Technical Support Staff → `/staff/technical`
+- Safety Officer → `/staff/safety`
 
 ### Detailed Setup Guide
 
