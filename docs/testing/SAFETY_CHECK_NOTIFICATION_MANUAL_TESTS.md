@@ -152,7 +152,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ### TC-SAFETYNOTE-001: Approving the last waiting booking tells every Safety Officer, and nobody else
 
-AC1, AC3, AC4, AC5.
+AC1, AC3, AC4, AC5, AC6.
 
 **Preconditions:** Fixture loaded, notifications cleared.
 
