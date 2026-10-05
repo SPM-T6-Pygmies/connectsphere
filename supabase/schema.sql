@@ -365,6 +365,42 @@ create table session_slot (
 );
 
 -- ---------------------------------------------------------------------------
+-- 10c. Venue unavailability  (SPM-21, Week 7 C2, 2026-10-07)
+--      Venue Staff block a venue for a reason. A block is one row; the dates
+--      and slots it covers are venue_unavailability_slot rows, one per date
+--      and slot, the way booking_slot stores a booking. In force while
+--      lifted_at is empty. Blocks may overlap.
+-- ---------------------------------------------------------------------------
+create table venue_unavailability (
+  venue_unavailability_id     bigint generated always as identity primary key,
+  venue_id                    bigint not null references venue (venue_id) on delete cascade,
+  reason_category             text   not null,
+  reason_note                 text,
+    -- only under Other, at most 500 characters
+  recorded_by_user_account_id bigint not null references user_account (user_account_id) on delete restrict,
+  recorded_at                 timestamptz not null default now(),
+  lifted_by_user_account_id   bigint references user_account (user_account_id) on delete restrict,
+  lifted_at                   timestamptz,
+  constraint venue_unavailability_reason_chk
+    check (reason_category in ('Maintenance', 'Equipment failure', 'Renovation', 'Safety', 'Other')),
+  constraint venue_unavailability_note_chk
+    check (reason_note is null
+           or (reason_category = 'Other' and char_length(reason_note) <= 500)),
+  constraint venue_unavailability_lift_chk
+    check ((lifted_at is null) = (lifted_by_user_account_id is null))
+);
+
+create table venue_unavailability_slot (
+  venue_unavailability_id bigint not null
+    references venue_unavailability (venue_unavailability_id) on delete cascade,
+  slot_date               date   not null,
+  slot                    text   not null references slot (slot_code) on delete restrict,
+  venue_id                bigint not null references venue (venue_id) on delete cascade,
+    -- a copy of the block's venue, filled on insert by trigger
+  primary key (venue_unavailability_id, slot_date, slot)
+);
+
+-- ---------------------------------------------------------------------------
 -- 11. Equipment item  (wiki: equipment-item, #2, #5, #13)
 --     Pooled counter, not one row per physical unit (#13, still open).
 -- ---------------------------------------------------------------------------
@@ -646,6 +682,8 @@ create index booking_alt_venue_idx              on booking (suggested_alternativ
 create index booking_status_idx                 on booking (status);
 create index booking_slot_booking_idx           on booking_slot (booking_id);
 create index booking_slot_date_idx              on booking_slot (slot_date, slot);
+create index venue_unavailability_venue_idx     on venue_unavailability (venue_id);
+create index venue_unavailability_slot_lookup_idx on venue_unavailability_slot (venue_id, slot_date, slot);
 create index equipment_reservation_event_idx    on equipment_reservation (event_id);
 create index equipment_reservation_session_idx  on equipment_reservation (session_id);
 create index equipment_reservation_reviewer_idx on equipment_reservation (reviewed_by_user_account_id);
@@ -697,7 +735,8 @@ begin
     'event_request', 'event', 'event_essential_arrangement', 'event_comment',
     'event_request_comment',
     'supporting_document', 'session', 'venue', 'room_layout',
-    'venue_supported_layout', 'booking', 'booking_slot', 'equipment_item',
+    'venue_supported_layout', 'booking', 'booking_slot',
+    'venue_unavailability', 'venue_unavailability_slot', 'equipment_item',
     'equipment_reservation', 'equipment_reservation_line', 'support_request',
     'support_request_assignment', 'registration', 'waiting_list_entry',
     'change_request', 'change_request_item', 'notification', 'audit_record'
