@@ -62,7 +62,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ### TC-SAFETY-001: A seeded Safety Officer signs in to their own workspace
 
-AC2, AC3.
+AC2, AC3, AC4.
 
 **Preconditions:** Signed out.
 
@@ -173,7 +173,7 @@ AC6.
 
 ### TC-SAFETY-005: The safety workspace and its denial screen work on a phone
 
-AC7.
+AC4, AC7.
 
 **Preconditions:** Signed in as `safety@test.com`; DevTools device toolbar at
 390 × 844 (iPhone 12/13/14).
