@@ -1,7 +1,7 @@
 [
   {
     "domain": "Authentication",
-    "match": ["login", "logout", "auth", "identify-staff-member", "staff-member", "user-account-mapper"]
+    "match": ["login", "logout", "auth", "identify-staff-member", "staff-member", "staff-nav", "user-account-mapper"]
   },
   {
     "domain": "Event Registration",
