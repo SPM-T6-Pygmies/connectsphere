@@ -102,7 +102,8 @@ export default async function VenueUnavailabilityPage({
                   <TableCell className="font-medium">{entry.venueLocation}</TableCell>
                   <TableCell>{dates(entry)}</TableCell>
                   <TableCell>{slotsOf(entry)}</TableCell>
-                  <TableCell>
+                  {/* A note can be 500 characters with no spaces: let it wrap rather than push Status and Lift off screen. */}
+                  <TableCell className="max-w-64 whitespace-normal [overflow-wrap:anywhere]">
                     {entry.reason}
                     {entry.note === null ? null : (
                       <span className="text-muted-foreground block text-xs">{entry.note}</span>
