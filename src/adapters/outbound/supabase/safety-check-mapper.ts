@@ -12,6 +12,7 @@ import { toSafetyCheckCandidate, type SafetyCheckCandidateRow } from "./safety-c
 /** What `safety_officer_safety_check_review` returns for an event that exists. */
 export interface SafetyCheckReviewRow extends SafetyCheckCandidateRow {
   accessibility_requirements: string | null;
+  coordinator_user_account_id: number | null;
   venues: {
     venue_location: string;
     room_layout_name: string | null;
@@ -31,6 +32,8 @@ export function toSafetyCheckReview(row: SafetyCheckReviewRow): SafetyCheckRevie
   return {
     candidate: toSafetyCheckCandidate(row),
     accessibilityRequirements: row.accessibility_requirements,
+    coordinatorUserAccountId:
+      row.coordinator_user_account_id === null ? null : String(row.coordinator_user_account_id),
     venues: row.venues.map((venue) => ({
       venueName: venue.venue_location,
       layoutName: venue.room_layout_name,

@@ -34,6 +34,8 @@ export interface SafetyCheckReview {
   /** What `awaitsSafetyCheck` and `recordSafetyCheck` judge. */
   readonly candidate: SafetyCheckCandidate;
   readonly accessibilityRequirements: string | null;
+  /** The event's assigned Event Coordinator, told the outcome (SPM-263). Null if it has none. */
+  readonly coordinatorUserAccountId: string | null;
   /** Each Confirmed booking, by venue name. */
   readonly venues: readonly SafetyCheckVenue[];
   readonly equipment: readonly SafetyCheckEquipment[];

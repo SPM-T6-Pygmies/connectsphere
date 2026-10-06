@@ -5,6 +5,7 @@ import { FixedClock } from "./fixed-clock";
 import { InMemorySafetyCheckRepository } from "./in-memory-safety-check-repository";
 
 export const SAFETY_OFFICER = "safety-1";
+export const COORDINATOR = "coordinator-1";
 export const NOW = new Date("2026-10-06T09:30:00.000Z");
 
 /** SPM-260: an event awaiting its safety check, as the Safety Officer reviews it. */
@@ -23,6 +24,7 @@ export function safetyCheckReview(overrides: Partial<SafetyCheckReview> = {}): S
       checked: false,
     },
     accessibilityRequirements: "Step-free route to the stage",
+    coordinatorUserAccountId: COORDINATOR,
     venues: [
       { venueName: "Grand Ballroom", layoutName: "Banquet", layoutCapacity: 180, accessibility: "Lift to level 2" },
     ],

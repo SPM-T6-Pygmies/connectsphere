@@ -18,6 +18,7 @@ const gala: SafetyCheckReviewRow = {
   equipment_lines: [{ line_state: "Reserved", quantity_requested: 2, quantity_reserved: 2 }],
   checked: true,
   accessibility_requirements: "Step-free route to the stage",
+  coordinator_user_account_id: 2,
   venues: [
     {
       venue_location: "Grand Ballroom",
@@ -53,6 +54,7 @@ describe("safety check mapper (SPM-260)", () => {
         checked: true,
       },
       accessibilityRequirements: "Step-free route to the stage",
+      coordinatorUserAccountId: "2",
       venues: [
         { venueName: "Grand Ballroom", layoutName: "Banquet", layoutCapacity: 180, accessibility: "Lift to level 2" },
       ],
@@ -77,6 +79,10 @@ describe("safety check mapper (SPM-260)", () => {
     expect(mapped.venues).toEqual([
       { venueName: "Old Hall", layoutName: null, layoutCapacity: null, accessibility: null },
     ]);
+  });
+
+  it("SPM-263 AC6: maps an event with no assigned coordinator to null", () => {
+    expect(toSafetyCheckReview({ ...gala, coordinator_user_account_id: null }).coordinatorUserAccountId).toBeNull();
   });
 
   it.each([
