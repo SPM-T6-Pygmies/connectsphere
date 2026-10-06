@@ -21,6 +21,7 @@ import {
 import {
   buildViewCoordinatorEvent,
   buildViewEventEquipment,
+  buildViewEventSafetyChecks,
   getCurrentCoordinator,
 } from "@/composition/container";
 import type { ArrangementType } from "@/core/domain/event-readiness";
@@ -30,6 +31,7 @@ import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { ConfirmForm } from "./confirm-form";
 import { EquipmentSection } from "./equipment-section";
+import { SafetyCheckCard } from "./safety-check-card";
 
 export const metadata = { title: "Event | ConnectSphere" };
 
@@ -71,6 +73,12 @@ export default async function CoordinatorEventPage({
   const viewEventEquipment = await buildViewEventEquipment();
   const equipment = await viewEventEquipment.execute({ eventId: id, ...coordinator });
   if (equipment === null) {
+    forbidden();
+  }
+
+  const viewEventSafetyChecks = await buildViewEventSafetyChecks();
+  const safetyChecks = await viewEventSafetyChecks.execute({ eventId: id, ...coordinator });
+  if (safetyChecks === null) {
     forbidden();
   }
 
@@ -210,6 +218,8 @@ export default async function CoordinatorEventPage({
               ) : null}
             </CardContent>
           </Card>
+
+          <SafetyCheckCard eventId={event.id} view={safetyChecks} />
         </div>
       </div>
     </StaffShell>
