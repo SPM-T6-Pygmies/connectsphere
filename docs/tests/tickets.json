@@ -697,6 +697,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-261": {
+      "title": "Return an event after a safety outcome",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-262": {
       "title": "Notify the Safety Officer of an event ready for check",
       "parent": "SPM-47",

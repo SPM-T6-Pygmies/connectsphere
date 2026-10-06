@@ -6,6 +6,7 @@ import { EventNotAwaitingSafetyCheckError, SafetyCheckCommentsRequiredError } fr
 import { eventId } from "./event";
 import {
   awaitsSafetyCheck,
+  canResubmitForSafetyCheck,
   confirmedVenues,
   entersSafetyCheck,
   recordSafetyCheck,
@@ -212,4 +213,33 @@ describe("recordSafetyCheck (SPM-260)", () => {
       EventNotAwaitingSafetyCheckError,
     );
   });
+});
+
+describe("canResubmitForSafetyCheck (SPM-261)", () => {
+  const rejected = { outcome: "Rejected" as const, resubmittedAt: null };
+
+  it("AC3: offers a Planning event whose latest check is a rejection not yet resubmitted", () => {
+    expect(canResubmitForSafetyCheck("Planning", rejected)).toBe(true);
+  });
+
+  it("AC3: does not offer an event whose latest check is an approval", () => {
+    expect(canResubmitForSafetyCheck("Planning", { outcome: "Approved", resubmittedAt: null })).toBe(false);
+  });
+
+  it("AC3: does not offer an event already resubmitted", () => {
+    expect(canResubmitForSafetyCheck("Planning", { ...rejected, resubmittedAt: "2026-10-06T10:00:00.000Z" })).toBe(
+      false,
+    );
+  });
+
+  it("AC3: does not offer an event with no check yet", () => {
+    expect(canResubmitForSafetyCheck("Planning", null)).toBe(false);
+  });
+
+  it.each<CoordinatorEventStatus>(["Blocked", "Confirmed", "Completed", "Cancelled"])(
+    "AC3: does not offer a %s event, even after a rejection",
+    (status) => {
+      expect(canResubmitForSafetyCheck(status, rejected)).toBe(false);
+    },
+  );
 });
