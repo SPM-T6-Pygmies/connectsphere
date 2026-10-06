@@ -472,12 +472,14 @@ export function reassignResponsibleOrganiser(
 /**
  * Whether an Event Coordinator can be assigned to a request in this status.
  *
- * Not a Draft, which the Organiser has not submitted, and not a request
- * decided without becoming an event (Rejected, Withdrawn), which has no review
- * left to run. Every other request can take a coordinator, or a new one.
+ * Not a Draft, which the Organiser has not submitted, and not a decided
+ * request. Rejected and Withdrawn ones have no review left to run; an
+ * Approved one carries on as an event, whose own coordinator is the one that
+ * changes from then on (SPM-257) -- the request's stays as the record of who
+ * reviewed it. Every other request can take a coordinator, or a new one.
  */
 export function canAssignEventCoordinator(status: EventRequestStatus): boolean {
-  return status !== "Draft" && status !== "Withdrawn" && status !== "Rejected";
+  return status === "Submitted" || status === "Under Review" || status === "Returned";
 }
 
 /**

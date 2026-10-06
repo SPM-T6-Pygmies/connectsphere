@@ -136,7 +136,9 @@ export function AssignEventCoordinatorForm({
 
       <p className="text-muted-foreground text-xs">
         {!assignmentAllowed
-          ? `${eventRequestStatus} requests cannot be assigned.`
+          ? eventRequestStatus === "Approved"
+            ? "Approved requests carry on as an event. Reassign its coordinator from the Coordinators view."
+            : `${eventRequestStatus} requests cannot be assigned.`
           : eventCoordinators.length === 0
             ? "Add an Event Coordinator before assigning this request."
             : isReassignment && selectedCoordinatorId === storedCoordinatorId

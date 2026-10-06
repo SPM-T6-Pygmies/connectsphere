@@ -113,7 +113,7 @@ describe("AssignEventCoordinatorUseCase (SPM-130)", () => {
     expect(saved?.status).toBe("Under Review");
   });
 
-  it.each(["Under Review", "Approved", "Returned"] as const)(
+  it.each(["Under Review", "Returned"] as const)(
     "preserves the %s status when assigning a coordinator",
     async (status) => {
       const { useCase, eventRequests } = buildUseCase([request({ status })]);
@@ -362,6 +362,23 @@ describe("AssignEventCoordinatorUseCase (SPM-58)", () => {
         eventCoordinatorUserAccountId: "ordinary-user",
       }),
     ).rejects.toBeInstanceOf(EventCoordinatorNotFoundError);
+    expect(notifier.organiserCoordinatorAssignments).toEqual([]);
+  });
+});
+
+describe("AssignEventCoordinatorUseCase (SPM-257)", () => {
+  it("refuses to reassign an Approved request -- its event is reassigned instead", async () => {
+    const existing = request({ status: "Approved", assignedCoordinatorUserAccountId: OLD_COORDINATOR });
+    const { useCase, eventRequests, notifier } = buildUseCase([existing]);
+
+    await expect(
+      useCase.execute({
+        eventRequestId: "request-1",
+        eventCoordinatorUserAccountId: NEW_COORDINATOR,
+      }),
+    ).rejects.toEqual(new EventRequestNotAssignableError("Approved"));
+    await expect(eventRequests.findById(eventRequestId("request-1"))).resolves.toBe(existing);
+    expect(notifier.coordinatorAssignments).toEqual([]);
     expect(notifier.organiserCoordinatorAssignments).toEqual([]);
   });
 });
