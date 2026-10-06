@@ -1,4 +1,5 @@
 import type { BookingSlot } from "../domain/booking";
+import type { ClientOrganisationId } from "../domain/client-organisation";
 import type { EventRequest, EventRequestStatus } from "../domain/event-request";
 
 /** Every persisted event-request attribute needed by the Operations screens. */
@@ -22,12 +23,17 @@ export interface OperationsEventRequest {
   readonly requestingUserAccountId: string;
   readonly assignedCoordinatorUserAccountId: string | null;
   readonly clientOrganisationId: string;
+  /** Empty when the organisation's name cannot be resolved. */
+  readonly clientOrganisationName: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
 
 /** Maps the domain entity to the shared Event Operations read model. */
-export function toOperationsEventRequest(request: EventRequest): OperationsEventRequest {
+export function toOperationsEventRequest(
+  request: EventRequest,
+  organisationNames: ReadonlyMap<ClientOrganisationId, string>,
+): OperationsEventRequest {
   return {
     id: request.id,
     eventName: request.details.eventName,
@@ -48,6 +54,7 @@ export function toOperationsEventRequest(request: EventRequest): OperationsEvent
     requestingUserAccountId: request.responsibleOrganiserId,
     assignedCoordinatorUserAccountId: request.assignedCoordinatorUserAccountId,
     clientOrganisationId: request.clientOrganisationId,
+    clientOrganisationName: organisationNames.get(request.clientOrganisationId) ?? "",
     createdAt: request.createdAt.toISOString(),
     updatedAt: request.updatedAt.toISOString(),
   };

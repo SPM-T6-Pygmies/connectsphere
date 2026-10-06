@@ -203,14 +203,18 @@ export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEve
 }
 
 export async function buildViewAllEventRequests(): Promise<ViewAllEventRequestsUseCase> {
+  const client = await createSupabaseServerClient();
   return new ViewAllEventRequestsUseCase({
-    eventRequests: await eventRequestAdapters(),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
   });
 }
 
 export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequestUseCase> {
+  const client = await createSupabaseServerClient();
   return new ViewOperationsEventRequestUseCase({
-    eventRequests: await eventRequestAdapters(),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
   });
 }
 
