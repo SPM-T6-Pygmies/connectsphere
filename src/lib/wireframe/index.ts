@@ -308,7 +308,8 @@ export type SidebarSection =
   | "decided"
   | "needsReview"
   | "reviewed"
-  | "awaitingCheck";
+  | "awaitingCheck"
+  | "coordinators";
 
 /**
  * One row of the sidebar's list pane.

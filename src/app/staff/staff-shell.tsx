@@ -207,6 +207,10 @@ async function getRespectiveQueueItems(
   }
 
   if (role === "lead") {
+    // The Coordinators view is its own overview; it has no queue to list.
+    if (crumbs[0]?.label === "Coordinators") {
+      return []
+    }
     const assigned = crumbs.some((crumb) => crumb.label === "Assigned")
     return getQueueItemsForLead(assigned)
   }
