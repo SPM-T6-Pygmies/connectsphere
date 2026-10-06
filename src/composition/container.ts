@@ -13,6 +13,7 @@ import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supaba
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEquipmentRecheckRepository } from "@/adapters/outbound/supabase/supabase-equipment-recheck-repository";
+import { SupabaseLeadEventRepository } from "@/adapters/outbound/supabase/supabase-lead-event-repository";
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
@@ -84,6 +85,7 @@ import { ViewEventEquipmentUseCase } from "@/core/use-cases/view-event-equipment
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
+import { ViewCoordinatorWorkloadsUseCase } from "@/core/use-cases/view-coordinator-workloads";
 import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
 import { CreateEquipmentItemUseCase } from "@/core/use-cases/create-equipment-item";
@@ -221,6 +223,17 @@ export async function buildViewOperationsEventRequest(): Promise<ViewOperationsE
 export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinatorsUseCase> {
   return new ViewAllEventCoordinatorsUseCase({
     userAccounts: new SupabaseUserAccountRepository(await createSupabaseServerClient()),
+  });
+}
+
+/** SPM-256: every coordinator with their requests and active events. */
+export async function buildViewCoordinatorWorkloads(): Promise<ViewCoordinatorWorkloadsUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewCoordinatorWorkloadsUseCase({
+    userAccounts: new SupabaseUserAccountRepository(client),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    leadEvents: new SupabaseLeadEventRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
   });
 }
 
