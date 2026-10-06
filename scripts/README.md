@@ -105,3 +105,32 @@ supabase db query --file scripts/seed-equipment/verify.sql --local
 
 The same gotchas apply as above, and the catalogue and line lists are
 duplicated across all three files.
+
+## seed-venue-unavailability
+
+Three venue unavailability blocks, for the Venue Staff unavailability page, the
+coordinator's venue search and the booking refusal (SPM-21). Main Hall has a
+Renovation block (five days of AM) and a Maintenance block (the middle day, all
+three slots), so one slot is covered by two blocks. Studio has a Safety block
+that is already lifted. Dates are relative to today, starting 14 days out, so
+the seed does not go stale.
+
+| File           | What it does                                                                                   |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| `seed.sql`     | Inserts the three blocks. Safe to re-run.                                                      |
+| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.                              |
+| `refusals.sql` | Tries the inputs the database must refuse (a bad reason, a note under Safety, a 501-character note). Prints an error saying `ok` when every refusal held, and writes nothing. |
+| `checks.sql`   | Checks the functions, audit rows, busy-time read and the booking refusal (TC-VBLOCK-008). Needs `seed-venue-search-uat` as well. Prints an error saying `ok: all 19 checks held` or `FAILED: …`, and writes nothing. |
+| `teardown.sql` | Deletes the three blocks and the audit rows they wrote.                                        |
+
+Run seed-venues first — this script stops with an error naming what is missing
+if you have not:
+
+```bash
+supabase db query --file scripts/seed-venues/seed.sql --local
+supabase db query --file scripts/seed-venue-unavailability/seed.sql --local
+supabase db query --file scripts/seed-venue-unavailability/verify.sql --local
+```
+
+The same gotchas apply as above, and the block list is duplicated across the
+seed, verify and teardown files.

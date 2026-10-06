@@ -72,33 +72,27 @@ begin
   -- Not assigned to a coordinator: the everyday pre-review lifecycle, and the
   -- Submitted request Operations assigns from (SPM-130).
   insert into public.event_request (
-    event_name, preferred_date, preferred_start_time, preferred_end_time,
-    expected_attendance, status, requesting_user_account_id, client_organisation_id
+    event_name, preferred_date, expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
-  select 'Founders'' Day Celebration', date '2026-11-04', timestamptz '2026-11-04 09:00+08',
-    timestamptz '2026-11-04 17:00+08', 150, 'Draft', v_organiser, v_organisation
+  select 'Founders'' Day Celebration', date '2026-11-04', 150, 'Draft', v_organiser, v_organisation
   where not exists (
     select 1 from public.event_request
     where event_name = 'Founders'' Day Celebration' and requesting_user_account_id = v_organiser
   );
 
   insert into public.event_request (
-    event_name, preferred_date, preferred_start_time, preferred_end_time,
-    expected_attendance, status, requesting_user_account_id, client_organisation_id
+    event_name, preferred_date, expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
-  select 'Quarterly Partner Forum', date '2026-11-18', timestamptz '2026-11-18 09:00+08',
-    timestamptz '2026-11-18 12:00+08', 80, 'Submitted', v_organiser_2, v_organisation
+  select 'Quarterly Partner Forum', date '2026-11-18', 80, 'Submitted', v_organiser_2, v_organisation
   where not exists (
     select 1 from public.event_request
     where event_name = 'Quarterly Partner Forum' and requesting_user_account_id = v_organiser_2
   );
 
   insert into public.event_request (
-    event_name, preferred_date, preferred_start_time, preferred_end_time,
-    expected_attendance, status, requesting_user_account_id, client_organisation_id
+    event_name, preferred_date, expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
-  select 'Annual General Meeting', date '2026-12-02', timestamptz '2026-12-02 09:00+08',
-    timestamptz '2026-12-02 11:00+08', 200, 'Draft', v_organiser_2, v_organisation
+  select 'Annual General Meeting', date '2026-12-02', 200, 'Draft', v_organiser_2, v_organisation
   where not exists (
     select 1 from public.event_request
     where event_name = 'Annual General Meeting' and requesting_user_account_id = v_organiser_2
@@ -106,14 +100,12 @@ begin
 
   -- Assigned to Test Coordinator (SPM-121/SPM-32), from both organisers.
   insert into public.event_request (
-    event_name, description, purpose, preferred_date, preferred_start_time,
-    preferred_end_time, expected_attendance, venue_requirements,
+    event_name, description, purpose, preferred_date, expected_attendance, venue_requirements,
     accessibility_needs, equipment_requirements, status,
     requesting_user_account_id, assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Venue Safety Review', 'A walkthrough of fire exits, capacity limits and accessible routes.',
-    'Annual compliance check ahead of the winter events season.', date '2026-10-14',
-    timestamptz '2026-10-14 09:00+08', timestamptz '2026-10-14 11:00+08', 12,
+    'Annual compliance check ahead of the winter events season.', date '2026-10-14', 12,
     'Access to every fire exit and the main hall.', 'Step-free access required for two attendees.',
     null, 'Under Review', v_organiser, v_coordinator, v_organisation
   where not exists (
@@ -126,13 +118,11 @@ begin
   -- it assigns -- but a request assigned by any other route can land here,
   -- and the queue must not drop it.
   insert into public.event_request (
-    event_name, description, purpose, preferred_date, preferred_start_time,
-    preferred_end_time, expected_attendance, venue_requirements, status,
+    event_name, description, purpose, preferred_date, expected_attendance, venue_requirements, status,
     requesting_user_account_id, assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Winter Volunteer Briefing', 'A briefing for volunteers working the winter events season.',
-    'Bring new volunteers up to speed before the season opens.', date '2026-12-09',
-    timestamptz '2026-12-09 14:00+08', timestamptz '2026-12-09 16:00+08', 45,
+    'Bring new volunteers up to speed before the season opens.', date '2026-12-09', 45,
     'A room that seats 45 with a projector.', 'Submitted', v_organiser, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request
@@ -140,14 +130,12 @@ begin
   );
 
   insert into public.event_request (
-    event_name, description, purpose, preferred_date, preferred_start_time,
-    preferred_end_time, expected_attendance, equipment_requirements,
+    event_name, description, purpose, preferred_date, expected_attendance, equipment_requirements,
     registration_requirements, status, requesting_user_account_id,
     assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Operations Roadmap Conference', 'A day of talks and workshops for the operations team.',
-    'Kick off next year''s operations roadmap.', date '2026-11-25', timestamptz '2026-11-25 09:00+08',
-    timestamptz '2026-11-25 18:00+08', 300, 'Projector, stage microphones, livestream setup.',
+    'Kick off next year''s operations roadmap.', date '2026-11-25', 300, 'Projector, stage microphones, livestream setup.',
     'Attendees must register in advance; no walk-ins.', 'Under Review', v_organiser_2, v_coordinator,
     v_organisation
   where not exists (
@@ -156,13 +144,11 @@ begin
   );
 
   insert into public.event_request (
-    event_name, description, purpose, preferred_date, preferred_start_time,
-    preferred_end_time, expected_attendance, venue_requirements, status,
+    event_name, description, purpose, preferred_date, expected_attendance, venue_requirements, status,
     requesting_user_account_id, assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Vendor Appreciation Day', 'An informal thank-you event for this year''s vendors.',
-    'Strengthen vendor relationships ahead of contract renewals.', date '2026-11-06',
-    timestamptz '2026-11-06 17:00+08', timestamptz '2026-11-06 20:00+08', 60,
+    'Strengthen vendor relationships ahead of contract renewals.', date '2026-11-06', 60,
     'Outdoor courtyard with a covered fallback.', 'Returned', v_organiser, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request
@@ -172,13 +158,11 @@ begin
   -- Approved: frozen and still reachable by direct id (SPM-32), but excluded
   -- from the queue (SPM-121) -- it has become an Event, a separate view.
   insert into public.event_request (
-    event_name, description, purpose, preferred_date, preferred_start_time,
-    preferred_end_time, expected_attendance, status,
+    event_name, description, purpose, preferred_date, expected_attendance, status,
     requesting_user_account_id, assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Founders'' Gala Dinner', 'A formal dinner marking the company''s founding.',
-    'Celebrate the year''s milestones with clients and staff.', date '2026-12-12',
-    timestamptz '2026-12-12 19:00+08', timestamptz '2026-12-12 23:00+08', 220,
+    'Celebrate the year''s milestones with clients and staff.', date '2026-12-12', 220,
     'Approved', v_organiser_2, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request
