@@ -9,7 +9,7 @@
 --
 -- Every function checks the caller holds the Venue Staff role, so an account
 -- without it reads nothing and changes nothing (#91). Audit rows are written
--- by the triggers from 20261007000000, not here: writing them here too would
+-- by the triggers from 20261007000100, not here: writing them here too would
 -- give two rows per action.
 --
 -- Custom SQLSTATEs, translated back into DomainErrors by
