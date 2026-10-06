@@ -42,7 +42,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | Account | Role |
 | --- | --- |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
-| `ops@test.com` | Event Operations Manager |
+| `ops@test.com` | Event Coordinator Lead |
 
 ### Seeded requests assigned to Test Coordinator
 

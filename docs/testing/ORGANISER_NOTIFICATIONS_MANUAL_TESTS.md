@@ -32,7 +32,7 @@ than committed here.
 
 ### Test Accounts (password `TestPass123!`)
 - `organiser@test.com` (Event Organiser)
-- `ops@test.com` (Event Operations Manager)
+- `ops@test.com` (Event Coordinator Lead)
 - `coordinator@test.com` (Event Coordinator, "Test Coordinator")
 - `coordinator2@test.com` (Event Coordinator, "Test Coordinator 2"), for TC-ORGNOTIFY-003
 

@@ -28,7 +28,7 @@ belongs to SPM-41's equipment requirement cases.
 
 ### Test Accounts (password `TestPass123!`)
 - `support@test.com` (Technical Support Staff)
-- `ops@test.com` (Event Operations Manager)
+- `ops@test.com` (Event Coordinator Lead)
 
 ---
 

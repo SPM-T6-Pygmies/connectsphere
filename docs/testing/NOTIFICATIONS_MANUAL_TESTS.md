@@ -47,7 +47,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 | Account | Role | Inbox |
 | --- | --- | --- |
-| `ops@test.com` | Event Operations Manager | assigns coordinators at `/staff/ops/<id>` |
+| `ops@test.com` | Event Coordinator Lead | assigns coordinators at `/staff/lead/<id>` |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) | `/staff/coordinator/notifications` |
 | `coordinator2@test.com` | Event Coordinator (Test Coordinator 2) | `/staff/coordinator/notifications` |
 
@@ -57,7 +57,7 @@ Several cases need a "Coordinator assigned" notification in
 `coordinator@test.com`'s inbox. Quarterly Partner Forum is seeded Submitted and
 unassigned for this:
 
-1. Sign in as `ops@test.com`, open `/staff/ops` and select **Quarterly Partner Forum**.
+1. Sign in as `ops@test.com`, open `/staff/lead` and select **Quarterly Partner Forum**.
 2. Under **Assign a coordinator**, choose Test Coordinator and click **Assign coordinator**.
 3. Sign out.
 

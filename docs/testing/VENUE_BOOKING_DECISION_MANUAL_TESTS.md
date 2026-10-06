@@ -49,7 +49,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | --- | --- |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
 | `venue@test.com` | Venue Staff (Test Venue Staff) |
-| `ops@test.com` | Event Operations Manager |
+| `ops@test.com` | Event Coordinator Lead |
 
 ### Booking requests to decide
 

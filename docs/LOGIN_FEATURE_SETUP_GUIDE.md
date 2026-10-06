@@ -347,7 +347,7 @@ But `pnpm dev:local` is recommended (uses Infisical, works from any machine).
 
 **Expected:**
 - ✅ No error
-- ✅ Redirects to role-specific page (/staff/coordinator/, /staff/ops/, etc.)
+- ✅ Redirects to role-specific page (/staff/coordinator/, /staff/lead/, etc.)
 - ✅ DevTools → Application → Cookies → see `sb-<id>-auth-token`
 
 ### Test 2: Invalid Password
@@ -714,7 +714,7 @@ including the second account per role, is in
 |------|-------|----------|
 | Event Organiser | organiser@test.com | /staff/requester |
 | Event Coordinator | coordinator@test.com | /staff/coordinator |
-| Event Operations Manager | ops@test.com | /staff/ops |
+| Event Coordinator Lead | ops@test.com | /staff/lead |
 | Venue Staff | venue@test.com | /staff/venue |
 | Technical Support Staff | support@test.com | /staff/technical |
 | Safety Officer | safety@test.com | /staff/safety |

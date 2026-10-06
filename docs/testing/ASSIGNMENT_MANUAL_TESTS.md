@@ -2,10 +2,10 @@
 
 ## Overview
 
-Browser checks for the Event Operations Manager's request lists
-(`/staff/ops` for **Unassigned**, `/staff/ops/assigned` for **Assigned**) and
+Browser checks for the Event Coordinator Lead's request lists
+(`/staff/lead` for **Unassigned**, `/staff/lead/assigned` for **Assigned**) and
 assigning or reassigning an Event Coordinator from a request's detail page
-(`/staff/ops/<id>`).
+(`/staff/lead/<id>`).
 
 The rules behind them are unit-tested: which requests Operations sees and in
 which list (`operationsQueueFor` -- never a Draft), which statuses can take a
@@ -45,7 +45,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | Account | Role |
 | --- | --- |
 | `organiser@test.com` | Event Organiser (Test Organiser) |
-| `ops@test.com` | Event Operations Manager |
+| `ops@test.com` | Event Coordinator Lead |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
 | `coordinator2@test.com` | Event Coordinator (Test Coordinator 2) |
 
@@ -71,8 +71,8 @@ Run the cases in order: each starts from the state the previous one left.
 `ops@test.com`.
 
 **Steps:**
-1. Open `/staff/ops` (Unassigned) and read the list.
-2. Open `/staff/ops/assigned` (Assigned) and read the list.
+1. Open `/staff/lead` (Unassigned) and read the list.
+2. Open `/staff/lead/assigned` (Assigned) and read the list.
 
 **Expected Result:**
 - Unassigned lists **QA Assign Workshop** and **Quarterly Partner Forum**,
@@ -92,7 +92,7 @@ Run the cases in order: each starts from the state the previous one left.
 **Preconditions:** As TC-ASSIGN-001.
 
 **Steps:**
-1. On `/staff/ops`, click **QA Assign Workshop**.
+1. On `/staff/lead`, click **QA Assign Workshop**.
 2. Read the **Assign a coordinator** card.
 
 **Expected Result:**
@@ -110,7 +110,7 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Steps:**
 1. Select **Test Coordinator 2** and click **Assign coordinator**.
-2. Reload the page, then open `/staff/ops` and `/staff/ops/assigned`.
+2. Reload the page, then open `/staff/lead` and `/staff/lead/assigned`.
 
 **Expected Result:**
 - "QA Assign Workshop has been assigned" is shown
@@ -147,7 +147,7 @@ Run the cases in order: each starts from the state the previous one left.
 **Preconditions:** As left by TC-ASSIGN-004; signed in as `ops@test.com`.
 
 **Steps:**
-1. Open `/staff/ops/<qa>`. Select **Test Coordinator** and click **Reassign**.
+1. Open `/staff/lead/<qa>`. Select **Test Coordinator** and click **Reassign**.
 2. Reload. Then sign in as each coordinator in turn and open
    `/staff/coordinator`.
 
@@ -168,7 +168,7 @@ Run the cases in order: each starts from the state the previous one left.
 **Preconditions:** As left by TC-ASSIGN-005; signed in as `ops@test.com`.
 
 **Steps:**
-1. Open `/staff/ops/<qa>`. Leave **Test Coordinator** (marked "Current")
+1. Open `/staff/lead/<qa>`. Leave **Test Coordinator** (marked "Current")
    selected.
 2. Select **Test Coordinator 2**, then select **Test Coordinator** again.
 
@@ -190,7 +190,7 @@ Run the cases in order: each starts from the state the previous one left.
 signed in as `ops@test.com`.
 
 **Steps:**
-1. Open `/staff/ops/assigned` and click that request.
+1. Open `/staff/lead/assigned` and click that request.
 2. Read the **Reassign coordinator** card.
 
 **Expected Result:**
@@ -217,7 +217,7 @@ update event_request
 ```
 
 **Steps:**
-1. Open `/staff/ops`.
+1. Open `/staff/lead`.
 
 **Expected Result:**
 - The Unassigned list shows no requests
