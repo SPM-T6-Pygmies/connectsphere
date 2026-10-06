@@ -39,7 +39,11 @@ describe("ViewOperationsEventRequestUseCase (SPM-29)", () => {
   it("reports that a Rejected request cannot take a coordinator", async () => {
     const useCase = new ViewOperationsEventRequestUseCase({
       eventRequests: new InMemoryEventRequestRepository([
-        eventRequestFixture({ id: eventRequestId("42"), status: "Rejected" }),
+        eventRequestFixture({
+          id: eventRequestId("42"),
+          status: "Rejected",
+          assignedCoordinatorUserAccountId: userAccountId("7"),
+        }),
       ]),
     });
 
