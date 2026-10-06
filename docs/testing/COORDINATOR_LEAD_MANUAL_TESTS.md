@@ -41,7 +41,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 | Account | Name | Role | Own workspace |
 | --- | --- | --- | --- |
-| `ops@test.com` | Test Ops Manager | Event Coordinator Lead | `/staff/lead` |
+| `lead@test.com` | Test Coordinator Lead | Event Coordinator Lead | `/staff/lead` |
 
 ---
 
@@ -51,7 +51,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 SPM-255 AC1, AC2, AC3.
 
-**Preconditions:** Signed in as `ops@test.com`.
+**Preconditions:** Signed in as `lead@test.com`.
 
 **Steps:**
 1. Open `/staff/lead` and read the Unassigned list.
