@@ -58,7 +58,9 @@ export function CoordinatorWorkloadCard({ coordinator }: { coordinator: Coordina
               {events.map((event) => (
                 <TableRow key={`event-${event.id}`}>
                   <TableCell className="font-medium">
-                    {event.name}
+                    <Link href={`/staff/lead/events/${event.id}`} className="hover:underline">
+                      {event.name}
+                    </Link>
                     <span className="text-muted-foreground"> · event</span>
                   </TableCell>
                   <TableCell>{event.clientOrganisationName}</TableCell>

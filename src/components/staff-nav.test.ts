@@ -44,3 +44,9 @@ describe("Event Coordinator Lead navigation (SPM-256)", () => {
     expect(currentSection("lead", "/staff/lead/coordinators")).toBe("coordinators")
   })
 })
+
+describe("Event Coordinator Lead navigation (SPM-257)", () => {
+  it("keeps an event opened from the Coordinators view under that section", () => {
+    expect(currentSection("lead", "/staff/lead/events/9")).toBe("coordinators")
+  })
+})

@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 
 import { assignEventCoordinatorSchema } from "@/adapters/inbound/assign-event-coordinator-schema";
-import { buildAssignEventCoordinator, getStaffWorkspaces } from "@/composition/container";
+import { reassignEventCoordinatorSchema } from "@/adapters/inbound/reassign-event-coordinator-schema";
+import {
+  buildAssignEventCoordinator,
+  buildReassignEventCoordinator,
+  getCurrentCoordinatorLead,
+  getStaffWorkspaces,
+} from "@/composition/container";
 import type { AssignmentOperation } from "@/core/use-cases/assign-event-coordinator";
 
 export type AssignEventCoordinatorState =
@@ -49,6 +55,49 @@ export async function assignEventCoordinatorAction(
       operation: result.operation,
       assignedCoordinatorUserAccountId: result.assignedCoordinatorUserAccountId,
     };
+  } catch {
+    return { status: "error" };
+  }
+}
+
+export type ReassignEventCoordinatorState =
+  | { status: "idle" }
+  | { status: "success"; assignedCoordinatorUserAccountId: string }
+  | { status: "error" };
+
+/** SPM-257: the Lead hands an active event to another coordinator. */
+export async function reassignEventCoordinatorAction(
+  _previous: ReassignEventCoordinatorState,
+  formData: FormData,
+): Promise<ReassignEventCoordinatorState> {
+  const parsed = reassignEventCoordinatorSchema.safeParse({
+    eventId: String(formData.get("eventId") ?? ""),
+    eventCoordinatorUserAccountId: String(formData.get("eventCoordinatorUserAccountId") ?? ""),
+  });
+
+  if (!parsed.success) {
+    return { status: "error" };
+  }
+
+  try {
+    // A Server Action is reachable without its page, so it finds the Lead
+    // itself -- who is also recorded as having made the change (AC4).
+    const lead = await getCurrentCoordinatorLead();
+    if (lead === null) {
+      return { status: "error" };
+    }
+
+    const reassignEventCoordinator = await buildReassignEventCoordinator();
+    const result = await reassignEventCoordinator.execute({
+      ...parsed.data,
+      leadUserAccountId: lead.userAccountId,
+    });
+
+    // The event moves between coordinators' cards and My events lists.
+    revalidatePath("/staff/lead", "layout");
+    revalidatePath("/staff/coordinator", "layout");
+
+    return { status: "success", assignedCoordinatorUserAccountId: result.assignedCoordinatorUserAccountId };
   } catch {
     return { status: "error" };
   }
