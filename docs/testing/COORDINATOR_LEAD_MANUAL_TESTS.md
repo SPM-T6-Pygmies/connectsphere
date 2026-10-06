@@ -134,7 +134,7 @@ SPM-256.
 SPM-257 AC1, AC2, AC3, AC4; SPM-256 AC3.
 
 **Preconditions:** As TC-LEAD-002, both events Planning and on Test
-Coordinator. Signed in as `ops@test.com`.
+Coordinator. Signed in as `lead@test.com`.
 
 **Steps:**
 1. On **Coordinators**, click the event **Venue Safety Review**.
@@ -163,7 +163,7 @@ Coordinator. Signed in as `ops@test.com`.
 
 SPM-257 AC1.
 
-**Preconditions:** Signed in as `ops@test.com`; by SQL, one event set to
+**Preconditions:** Signed in as `lead@test.com`; by SQL, one event set to
 `Completed` (set it back to `Planning` afterwards).
 
 **Steps:**
@@ -181,7 +181,7 @@ SPM-257 AC1.
 
 SPM-257 (replaces SPM-143's rule).
 
-**Preconditions:** Signed in as `ops@test.com`; request 4 Approved (TC-LEAD-002).
+**Preconditions:** Signed in as `lead@test.com`; request 4 Approved (TC-LEAD-002).
 
 **Steps:**
 1. Open `/staff/lead/4`.
