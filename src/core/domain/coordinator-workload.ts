@@ -1,5 +1,6 @@
 import type { CoordinatorEvent, CoordinatorEventStatus } from "./coordinator-event";
-import { coordinatorQueueStateFor, type EventRequest } from "./event-request";
+import { EventNotReassignableError } from "./errors";
+import { coordinatorQueueStateFor, type EventRequest, type EventRequestId } from "./event-request";
 import type { UserAccountId } from "./user-account";
 
 /** An approved event still being worked on: from Planning through Confirmed (SPM-256 AC2). */
@@ -52,4 +53,25 @@ export function coordinatorWorkloads<
         event.assignedCoordinatorUserAccountId === coordinatorId && isActiveEvent(event.status),
     ),
   }));
+}
+
+/** An event as the Lead opens it to reassign: with the request it came from, for the notices. */
+export interface LeadEvent extends CoordinatorEvent {
+  readonly eventRequestId: EventRequestId;
+}
+
+/**
+ * Hands an active event to another coordinator (SPM-257 AC1). Takes effect at
+ * once -- there is no acceptance step (#94, #95) -- and leaves the status as
+ * it is. A Completed or Cancelled event is no longer being worked on, so its
+ * coordinator is fixed.
+ */
+export function reassignEventCoordinator<
+  E extends Pick<CoordinatorEvent, "status" | "assignedCoordinatorUserAccountId">,
+>(event: E, coordinatorId: UserAccountId): E {
+  if (!isActiveEvent(event.status)) {
+    throw new EventNotReassignableError(event.status);
+  }
+
+  return { ...event, assignedCoordinatorUserAccountId: coordinatorId };
 }

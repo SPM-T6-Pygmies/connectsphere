@@ -804,6 +804,14 @@ export class NotCoordinatorLeadError extends DomainError {
   }
 }
 
+export class EventNotReassignableError extends DomainError {
+  readonly code = "event_not_reassignable";
+
+  constructor(readonly status: string) {
+    super(`A ${status} event's coordinator cannot change.`);
+  }
+}
+
 export class EquipmentRequirementConflictError extends DomainError {
   readonly code = "equipment_requirement_conflict";
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import type { CoordinatorEventStatus } from "./coordinator-event";
-import { coordinatorWorkloads, isActiveEvent } from "./coordinator-workload";
+import { coordinatorWorkloads, isActiveEvent, reassignEventCoordinator } from "./coordinator-workload";
+import { EventNotReassignableError } from "./errors";
 import type { EventRequestStatus } from "./event-request";
 import { userAccountId, type UserAccountId } from "./user-account";
 
@@ -106,4 +107,22 @@ describe("coordinatorWorkloads (SPM-256)", () => {
     expect(alice.events).toEqual([]);
     expect(bob.events.map((e) => e.id)).toEqual(["e1"]);
   });
+});
+
+describe("reassignEventCoordinator (SPM-257)", () => {
+  it.each(["Planning", "Blocked", "Confirmed"] as const)(
+    "AC1: moves a %s event to the new coordinator, keeping its status",
+    (status) => {
+      expect(reassignEventCoordinator(event("e1", status, ALICE), BOB)).toEqual(event("e1", status, BOB));
+    },
+  );
+
+  it.each(["Completed", "Cancelled"] as const)(
+    "AC1: refuses to reassign a %s event -- it is no longer being worked on",
+    (status) => {
+      expect(() => reassignEventCoordinator(event("e1", status, ALICE), BOB)).toThrow(
+        new EventNotReassignableError(status),
+      );
+    },
+  );
 });
