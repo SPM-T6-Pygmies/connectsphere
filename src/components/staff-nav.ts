@@ -1,5 +1,6 @@
 import {
   ArchiveIcon,
+  BanIcon,
   BellIcon,
   Building2Icon,
   CalendarCheckIcon,
@@ -102,6 +103,12 @@ export function railItems(role: StaffRole): RailItem[] {
       title: "Venues",
       url: "/staff/venue/catalogue",
       icon: Building2Icon,
+    })
+    items.push({
+      section: "action",
+      title: "Unavailability",
+      url: "/staff/venue/unavailability",
+      icon: BanIcon,
     })
   }
 

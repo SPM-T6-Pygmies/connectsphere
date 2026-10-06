@@ -785,3 +785,104 @@ export class EquipmentRequirementConflictError extends DomainError {
     super("Technical Support Staff have just reserved equipment against this line. Reload and try again.");
   }
 }
+
+/** SPM-21 AC3: a block covers at least one slot. */
+export class NoUnavailabilitySlotsError extends DomainError {
+  readonly code = "no_unavailability_slots";
+
+  constructor() {
+    super("Choose at least one slot to block.");
+  }
+}
+
+/** SPM-21 AC4: a block's start date is on or before its end date. */
+export class UnavailabilityEndsBeforeStartError extends DomainError {
+  readonly code = "unavailability_ends_before_start";
+
+  constructor(
+    readonly startDate: string,
+    readonly endDate: string,
+  ) {
+    super(`The end date ${endDate} is before the start date ${startDate}.`);
+  }
+}
+
+/** SPM-21 AC5: a block that has already ended is refused; one ending today is not. */
+export class UnavailabilityInThePastError extends DomainError {
+  readonly code = "unavailability_in_the_past";
+
+  constructor(readonly endDate: string) {
+    super(`A block cannot end in the past (${endDate}).`);
+  }
+}
+
+/** SPM-21 AC6: the reason is one of the customer's five (Week 7 C2). */
+export class InvalidUnavailabilityReasonError extends DomainError {
+  readonly code = "invalid_unavailability_reason";
+
+  constructor(readonly reason: string) {
+    super("Choose a reason: Maintenance, Equipment failure, Renovation, Safety or Other.");
+  }
+}
+
+/** SPM-21 AC7: free text explains "Other" only. */
+export class UnavailabilityNoteNotAllowedError extends DomainError {
+  readonly code = "unavailability_note_not_allowed";
+
+  constructor(readonly reason: string) {
+    super(`A note is only allowed when the reason is Other, not ${reason}.`);
+  }
+}
+
+/** SPM-21 AC8: a note is bounded, as technical requirements are (SPM-41 AC5). */
+export class UnavailabilityNoteTooLongError extends DomainError {
+  readonly code = "unavailability_note_too_long";
+
+  constructor(readonly maxLength: number) {
+    super(`The note must be at most ${maxLength} characters.`);
+  }
+}
+
+/** SPM-21 AC9: only Venue Staff record or lift a block. */
+export class VenueUnavailabilityNotPermittedError extends DomainError {
+  readonly code = "venue_unavailability_not_permitted";
+
+  constructor() {
+    super("Only Venue Staff can mark a venue unavailable or lift a block.");
+  }
+}
+
+/** SPM-21 AC15: a block to lift that does not exist. */
+export class VenueUnavailabilityNotFoundError extends DomainError {
+  readonly code = "venue_unavailability_not_found";
+
+  constructor() {
+    super("That block does not exist.");
+  }
+}
+
+/** SPM-21 AC17: a lifted block cannot be lifted again. */
+export class UnavailabilityAlreadyLiftedError extends DomainError {
+  readonly code = "unavailability_already_lifted";
+
+  constructor() {
+    super("That block has already been lifted.");
+  }
+}
+
+/**
+ * SPM-21 AC12: a Venue Staff block covers a slot the request asks for. Unlike a
+ * clash with another booking, there is no other venue slot to choose around it
+ * and no override.
+ */
+export class VenueSlotBlockedError extends DomainError {
+  readonly code = "venue_slot_blocked";
+
+  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
+    super(
+      `The venue is unavailable for ${slots
+        .map(({ date, slot }) => `${date} ${slot}`)
+        .join(", ")}. Choose other slots or another venue.`,
+    );
+  }
+}

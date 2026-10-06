@@ -92,7 +92,7 @@ export function holdsSlot(status: BookingStatus): boolean {
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** A real calendar day, not just the right shape: 2026-02-30 is refused. */
-function isCalendarDate(raw: string): boolean {
+export function isCalendarDate(raw: string): boolean {
   if (!ISO_DATE.test(raw)) {
     return false;
   }

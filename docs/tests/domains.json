@@ -36,6 +36,10 @@
     "match": ["equipment"]
   },
   {
+    "domain": "Venue Unavailability",
+    "match": ["venue-unavailability"]
+  },
+  {
     "domain": "Venue Catalogue",
     "match": ["venue"]
   },
