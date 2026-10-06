@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import {
+  COORDINATOR,
   SAFETY_OFFICER,
   safetyCheckReview,
   safetyCheckStore,
@@ -20,7 +22,8 @@ const EVENT = eventId("event-1");
 
 function build(seed = [safetyCheckReview()]) {
   const safetyChecks = safetyCheckStore(seed);
-  return { safetyChecks, record: new RecordSafetyCheckUseCase({ safetyChecks }) };
+  const notifier = new RecordingNotifier();
+  return { safetyChecks, notifier, record: new RecordSafetyCheckUseCase({ safetyChecks, notifier }) };
 }
 
 async function stored(safetyChecks: ReturnType<typeof safetyCheckStore>) {
@@ -127,5 +130,80 @@ describe("RecordSafetyCheckUseCase (SPM-260)", () => {
     await expect(
       record.execute({ userAccountId: SAFETY_OFFICER, eventId: "event-9", outcome: "Approved", comments: "" }),
     ).rejects.toBeInstanceOf(EventNotFoundError);
+  });
+});
+
+describe("RecordSafetyCheckUseCase telling the coordinator (SPM-263)", () => {
+  it("AC1, AC2: tells only the event's coordinator of a rejection, with the comments as stored", async () => {
+    const { notifier, record } = build();
+
+    await record.execute({
+      userAccountId: SAFETY_OFFICER,
+      eventId: "event-1",
+      outcome: "Rejected",
+      comments: "  Banquet layout holds 180; 220 expected.  ",
+    });
+
+    expect(notifier.safetyChecksRecorded).toEqual([
+      {
+        recipientUserAccountId: COORDINATOR,
+        eventId: "event-1",
+        eventName: "Founders' Gala Dinner",
+        outcome: "Rejected",
+        comments: "Banquet layout holds 180; 220 expected.",
+      },
+    ]);
+  });
+
+  it("AC1, AC3: tells the coordinator of an approval with no comments", async () => {
+    const { notifier, record } = build();
+
+    await record.execute({ userAccountId: SAFETY_OFFICER, eventId: "event-1", outcome: "Approved", comments: "" });
+
+    expect(notifier.safetyChecksRecorded).toEqual([
+      expect.objectContaining({ recipientUserAccountId: COORDINATOR, outcome: "Approved", comments: null }),
+    ]);
+  });
+
+  it("AC6: stores the outcome before telling anyone", async () => {
+    const { safetyChecks, notifier, record } = build();
+    let storedWhenNotified: number | undefined;
+    notifier.safetyCheckRecorded = async () => {
+      storedWhenNotified = (await stored(safetyChecks))?.checks.length;
+    };
+
+    await record.execute({ userAccountId: SAFETY_OFFICER, eventId: "event-1", outcome: "Approved", comments: "" });
+
+    expect(storedWhenNotified).toBe(1);
+  });
+
+  it("AC6: records the outcome and tells nobody when the event has no coordinator", async () => {
+    const { safetyChecks, notifier, record } = build([safetyCheckReview({ coordinatorUserAccountId: null })]);
+
+    await record.execute({ userAccountId: SAFETY_OFFICER, eventId: "event-1", outcome: "Approved", comments: "" });
+
+    expect((await stored(safetyChecks))?.checks).toHaveLength(1);
+    expect(notifier.safetyChecksRecorded).toEqual([]);
+  });
+
+  it("AC6: tells nobody when the outcome is refused", async () => {
+    const { notifier, record } = build();
+
+    await expect(
+      record.execute({ userAccountId: SAFETY_OFFICER, eventId: "event-1", outcome: "Rejected", comments: " " }),
+    ).rejects.toBeInstanceOf(SafetyCheckCommentsRequiredError);
+
+    expect(notifier.safetyChecksRecorded).toEqual([]);
+  });
+
+  it("AC6: tells the coordinator only of the outcome that was stored when two Officers record at once", async () => {
+    const { notifier, record } = build();
+
+    await Promise.allSettled([
+      record.execute({ userAccountId: SAFETY_OFFICER, eventId: "event-1", outcome: "Approved", comments: "" }),
+      record.execute({ userAccountId: "safety-2", eventId: "event-1", outcome: "Rejected", comments: "Too crowded." }),
+    ]);
+
+    expect(notifier.safetyChecksRecorded.map((notice) => notice.outcome)).toEqual(["Approved"]);
   });
 });

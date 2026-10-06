@@ -371,11 +371,14 @@ export async function buildViewSafetyCheck(): Promise<ViewSafetyCheckUseCase> {
   return new ViewSafetyCheckUseCase({ safetyChecks: new SupabaseSafetyCheckRepository(client) });
 }
 
-/** SPM-260: a Safety Officer records Approved or Rejected on an event. */
+/** SPM-260: a Safety Officer records Approved or Rejected on an event, and SPM-263 tells its coordinator. */
 export async function buildRecordSafetyCheck(): Promise<RecordSafetyCheckUseCase> {
   const client = await createSupabaseServerClient();
 
-  return new RecordSafetyCheckUseCase({ safetyChecks: new SupabaseSafetyCheckRepository(client) });
+  return new RecordSafetyCheckUseCase({
+    safetyChecks: new SupabaseSafetyCheckRepository(client),
+    notifier: recordedNotifier(),
+  });
 }
 
 async function coordinatorAdapters(): Promise<{

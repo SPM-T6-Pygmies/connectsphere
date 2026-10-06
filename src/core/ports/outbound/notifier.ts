@@ -1,5 +1,6 @@
 import type { BookingSlot } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
+import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
 /**
  * What an Event Coordinator is told when an event request is assigned to them
@@ -77,6 +78,19 @@ export interface SafetyCheckReadyNotice {
 }
 
 /**
+ * What an event's assigned Event Coordinator is told when a Safety Officer
+ * records its safety check (SPM-263). `comments` are the Officer's, trimmed:
+ * what must change for a rejection, an optional note for an approval.
+ */
+export interface SafetyCheckRecordedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly eventName: string;
+  readonly outcome: SafetyCheckOutcome;
+  readonly comments: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -90,4 +104,5 @@ export interface Notifier {
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void>;
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void>;
   safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void>;
+  safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void>;
 }
