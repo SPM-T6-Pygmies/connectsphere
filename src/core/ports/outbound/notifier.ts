@@ -12,6 +12,11 @@ import type { Connection } from "../../domain/connection";
 export interface EventCoordinatorAssignedNotice {
   readonly recipientUserAccountId: string;
   readonly eventRequestId: string;
+  /**
+   * Set when an approved event is reassigned (SPM-257): the coordinator gets
+   * the event, not the request, which stays with whoever reviewed it.
+   */
+  readonly eventId?: string;
   readonly eventName: string;
   readonly clientOrganisationName: string | null;
   readonly preferredDate: string | null;
