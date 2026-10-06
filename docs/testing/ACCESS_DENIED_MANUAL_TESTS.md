@@ -39,7 +39,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | --- | --- | --- |
 | `organiser@test.com` | Event Organiser | `/staff/requester` |
 | `coordinator@test.com` | Event Coordinator | `/staff/coordinator` |
-| `ops@test.com` | Event Coordinator Lead | `/staff/lead` |
+| `lead@test.com` | Event Coordinator Lead | `/staff/lead` |
 | `venue@test.com` | Venue Staff | `/staff/venue` |
 | `support@test.com` | Technical Support Staff | `/staff/technical` |
 
@@ -72,7 +72,7 @@ use `999999` (check it does not exist).
 | Signed in as | Open | Message must end with |
 | --- | --- | --- |
 | `venue@test.com` | `/staff/lead` | Please contact your respective Event Coordinator Lead. |
-| `ops@test.com` | `/staff/requester` | Please contact your respective Event Organiser. |
+| `lead@test.com` | `/staff/requester` | Please contact your respective Event Organiser. |
 | `organiser@test.com` | `/staff/coordinator` | Please contact your respective Event Coordinator. |
 | `coordinator@test.com` | `/staff/venue` | Please contact your respective Venue Staff. |
 | `venue@test.com` | `/staff/technical` | Please contact your respective Technical Support Staff. |
@@ -110,7 +110,7 @@ use `999999` (check it does not exist).
 1. Open `/staff/coordinator/<not-mine>`. Note the status and the text on the page.
 2. Open `/staff/coordinator/999999`. Note the same.
 3. On both, view the page source (Ctrl/Cmd+U) and search for `<not-mine-name>`.
-4. Repeat 1–3 signed in as `ops@test.com` with `/staff/lead/<draft>` vs
+4. Repeat 1–3 signed in as `lead@test.com` with `/staff/lead/<draft>` vs
    `/staff/lead/999999`. Operations never sees drafts, so a draft is the record
    that exists but isn't theirs:
    ```sql

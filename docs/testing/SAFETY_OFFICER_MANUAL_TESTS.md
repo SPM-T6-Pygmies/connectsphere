@@ -53,7 +53,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | `safety@test.com` | Test Safety Officer | Safety Officer | `/staff/safety` |
 | `organiser@test.com` | Test Organiser | Event Organiser | `/staff/requester` |
 | `coordinator@test.com` | Test Coordinator | Event Coordinator | `/staff/coordinator` |
-| `ops@test.com` | Test Ops Manager | Event Coordinator Lead | `/staff/lead` |
+| `lead@test.com` | Test Coordinator Lead | Event Coordinator Lead | `/staff/lead` |
 | `venue@test.com` | Test Venue Staff | Venue Staff | `/staff/venue` |
 | `support@test.com` | Test Support Staff | Technical Support Staff | `/staff/technical` |
 
@@ -123,7 +123,7 @@ AC5.
 | --- | --- |
 | `organiser@test.com` | `/staff/requester` |
 | `coordinator@test.com` | `/staff/coordinator` |
-| `ops@test.com` | `/staff/lead` |
+| `lead@test.com` | `/staff/lead` |
 | `venue@test.com` | `/staff/venue` |
 | `support@test.com` | `/staff/technical` |
 

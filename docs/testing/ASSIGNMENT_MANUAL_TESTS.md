@@ -45,7 +45,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | Account | Role |
 | --- | --- |
 | `organiser@test.com` | Event Organiser (Test Organiser) |
-| `ops@test.com` | Event Coordinator Lead |
+| `lead@test.com` | Event Coordinator Lead |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
 | `coordinator2@test.com` | Event Coordinator (Test Coordinator 2) |
 
@@ -68,7 +68,7 @@ Run the cases in order: each starts from the state the previous one left.
 ### TC-ASSIGN-001: Operations sees every submitted request, split by whether it has a coordinator (SPM-29 AC1)
 
 **Preconditions:** Seeded as above, QA Assign Workshop submitted; signed in as
-`ops@test.com`.
+`lead@test.com`.
 
 **Steps:**
 1. Open `/staff/lead` (Unassigned) and read the list.
@@ -144,7 +144,7 @@ Run the cases in order: each starts from the state the previous one left.
 
 ### TC-ASSIGN-005: Reassigning moves the request to the new coordinator and keeps its status (SPM-130 AC3)
 
-**Preconditions:** As left by TC-ASSIGN-004; signed in as `ops@test.com`.
+**Preconditions:** As left by TC-ASSIGN-004; signed in as `lead@test.com`.
 
 **Steps:**
 1. Open `/staff/lead/<qa>`. Select **Test Coordinator** and click **Reassign**.
@@ -165,7 +165,7 @@ Run the cases in order: each starts from the state the previous one left.
 
 ### TC-ASSIGN-006: Reassigning to the current coordinator is not offered (SPM-130 AC3, boundary)
 
-**Preconditions:** As left by TC-ASSIGN-005; signed in as `ops@test.com`.
+**Preconditions:** As left by TC-ASSIGN-005; signed in as `lead@test.com`.
 
 **Steps:**
 1. Open `/staff/lead/<qa>`. Leave **Test Coordinator** (marked "Current")
@@ -187,7 +187,7 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Preconditions:** A request assigned to Test Coordinator has been rejected
 (e.g. Venue Safety Review after `TC-DECIDE-003`) or withdrawn (`TC-WITHDRAW-001`);
-signed in as `ops@test.com`.
+signed in as `lead@test.com`.
 
 **Steps:**
 1. Open `/staff/lead/assigned` and click that request.
@@ -204,7 +204,7 @@ signed in as `ops@test.com`.
 
 ### TC-ASSIGN-008: With nothing awaiting assignment, Unassigned is empty (SPM-29 AC2, boundary)
 
-**Preconditions:** Signed in as `ops@test.com`. Every non-Draft request has a
+**Preconditions:** Signed in as `lead@test.com`. Every non-Draft request has a
 coordinator: assign any request still under Unassigned (on a fresh seed plus
 TC-ASSIGN-003, only Quarterly Partner Forum) to Test Coordinator 2 through the
 app. Afterwards put Quarterly Partner Forum back the way the seed left it, so

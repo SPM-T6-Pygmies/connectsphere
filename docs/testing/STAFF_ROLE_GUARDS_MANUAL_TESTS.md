@@ -46,7 +46,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 | Account | Name | Role | Own workspace |
 | --- | --- | --- | --- |
-| `ops@test.com` | Test Ops Manager | Event Coordinator Lead | `/staff/lead` |
+| `lead@test.com` | Test Coordinator Lead | Event Coordinator Lead | `/staff/lead` |
 | `venue@test.com` | Test Venue Staff | Venue Staff | `/staff/venue` |
 
 ---
@@ -65,7 +65,7 @@ Origin: Backfilled 2026-10-04 from PR #48 (smoke on `pnpm dev:local`: as
 
 | Signed in as | Open |
 | --- | --- |
-| `ops@test.com` | `/staff/lead`, `/staff/lead/assigned`, `/staff/lead/notifications` |
+| `lead@test.com` | `/staff/lead`, `/staff/lead/assigned`, `/staff/lead/notifications` |
 | `venue@test.com` | `/staff/venue`, `/staff/venue/decided`, `/staff/venue/archive`, `/staff/venue/notifications` |
 
 **Expected Result:**

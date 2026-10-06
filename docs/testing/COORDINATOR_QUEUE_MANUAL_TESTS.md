@@ -42,7 +42,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | Account | Role |
 | --- | --- |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
-| `ops@test.com` | Event Coordinator Lead |
+| `lead@test.com` | Event Coordinator Lead |
 
 ### Seeded requests assigned to Test Coordinator
 
@@ -177,7 +177,7 @@ Origin: Backfilled 2026-10-04 from PR #35 (`ops@test.com`: `/staff/coordinator`,
 Since SPM-16 these show the access-denied screen with a 403; the intent, that
 none of the coordinator's content is shown, is unchanged.
 
-**Preconditions:** Seeded as above; signed in as `ops@test.com`. Find an
+**Preconditions:** Seeded as above; signed in as `lead@test.com`. Find an
 assigned request's ID:
 
 ```sql

@@ -22,12 +22,12 @@ them, tick the boxes below **and** report each in the PR description's
 
 ### Test Accounts (password `TestPass123!`)
 - `organiser@test.com` (Event Organiser)
-- `ops@test.com` (Event Coordinator Lead)
+- `lead@test.com` (Event Coordinator Lead)
 - `coordinator@test.com` (Event Coordinator)
 
 ### Shared Pre-Conditions
 1. As `organiser@test.com`, submit a complete event request.
-2. As `ops@test.com`, assign it to Test Coordinator. It is now `Under Review`.
+2. As `lead@test.com`, assign it to Test Coordinator. It is now `Under Review`.
 
 ---
 
@@ -63,7 +63,7 @@ them, tick the boxes below **and** report each in the PR description's
 
 **Steps**
 1. Log in as `organiser@test.com` and open "My requests", then the withdrawn request.
-2. Log in as `ops@test.com` and open the event request lists.
+2. Log in as `lead@test.com` and open the event request lists.
 
 **Expected Result**
 - [ ] The Organiser sees a grey **Withdrawn** badge, which looks different from

@@ -69,7 +69,7 @@ pnpm dev
 | Event Organiser                             | `organiser@test.com`   | `TestPass123!` |
 | Event Organiser (second, same organisation) | `organiser2@test.com`  | `TestPass123!` |
 | Event Coordinator                           | `coordinator@test.com` | `TestPass123!` |
-| Event Coordinator Lead                      | `ops@test.com`         | `TestPass123!` |
+| Event Coordinator Lead                      | `lead@test.com`        | `TestPass123!` |
 | Venue Staff                                 | `venue@test.com`       | `TestPass123!` |
 | Technical Support Staff                     | `support@test.com`     | `TestPass123!` |
 | Safety Officer                              | `safety@test.com`      | `TestPass123!` |

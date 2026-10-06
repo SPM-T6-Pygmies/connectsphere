@@ -32,7 +32,7 @@ than committed here.
 
 ### Test Accounts (password `TestPass123!`)
 - `organiser@test.com` (Event Organiser)
-- `ops@test.com` (Event Coordinator Lead)
+- `lead@test.com` (Event Coordinator Lead)
 - `coordinator@test.com` (Event Coordinator, "Test Coordinator")
 - `coordinator2@test.com` (Event Coordinator, "Test Coordinator 2"), for TC-ORGNOTIFY-003
 
@@ -48,7 +48,7 @@ than committed here.
 ### TC-ORGNOTIFY-001 Organiser is told who their coordinator is
 
 **Steps**
-1. As `ops@test.com`, assign the request to Test Coordinator.
+1. As `lead@test.com`, assign the request to Test Coordinator.
 2. As `organiser@test.com`, open **Notifications**.
 
 **Expected Result**
@@ -75,9 +75,9 @@ than committed here.
 ### TC-ORGNOTIFY-003 Reassignment notifies again, naming the new coordinator
 
 **Steps**
-1. As `ops@test.com`, reassign the same request to Test Coordinator 2.
+1. As `lead@test.com`, reassign the same request to Test Coordinator 2.
 2. As `organiser@test.com`, open **Notifications**.
-3. As `ops@test.com`, assign Test Coordinator 2 again (no change).
+3. As `lead@test.com`, assign Test Coordinator 2 again (no change).
 
 **Expected Result**
 - [x] After step 2 there is a second, unread notification naming Test Coordinator 2.

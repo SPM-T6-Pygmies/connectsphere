@@ -341,7 +341,7 @@ But `pnpm dev:local` is recommended (uses Infisical, works from any machine).
 ### Test 1: Valid Login
 
 1. Open http://localhost:3000/auth/login
-2. Email: `coordinator@test.com` (or any of: ops@test.com, venue@test.com, support@test.com)
+2. Email: `coordinator@test.com` (or any of: lead@test.com, venue@test.com, support@test.com)
 3. Password: `TestPass123!`
 4. Click "Sign in"
 
@@ -714,7 +714,7 @@ including the second account per role, is in
 |------|-------|----------|
 | Event Organiser | organiser@test.com | /staff/requester |
 | Event Coordinator | coordinator@test.com | /staff/coordinator |
-| Event Coordinator Lead | ops@test.com | /staff/lead |
+| Event Coordinator Lead | lead@test.com | /staff/lead |
 | Venue Staff | venue@test.com | /staff/venue |
 | Technical Support Staff | support@test.com | /staff/technical |
 | Safety Officer | safety@test.com | /staff/safety |
