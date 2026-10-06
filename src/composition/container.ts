@@ -14,6 +14,7 @@ import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supab
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEquipmentRecheckRepository } from "@/adapters/outbound/supabase/supabase-equipment-recheck-repository";
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
+import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/supabase-event-readiness-repository";
@@ -49,6 +50,7 @@ import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-even
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
+import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
 import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
@@ -477,12 +479,25 @@ export async function buildReviewBookingRequests(): Promise<ReviewBookingRequest
   });
 }
 
+/**
+ * SPM-262: tells every Safety Officer when a change puts an event on their
+ * list. Reads with the admin client: the change is Venue Staff's or a
+ * coordinator's, and neither may read the safety list themselves.
+ */
+function safetyCheckAnnouncer(): SafetyCheckEntryAnnouncer {
+  return new SafetyCheckEntryAnnouncer({
+    watch: new SupabaseSafetyCheckWatch(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-22: Venue Staff approve or reject a booking request. */
 export async function buildDecideBookingRequest(): Promise<DecideBookingRequestUseCase> {
   const client = await createSupabaseServerClient();
   return new DecideBookingRequestUseCase({
     reviews: new SupabaseBookingReviewRepository(client),
     bookings: new SupabaseBookingRepository(client),
+    safetyCheck: safetyCheckAnnouncer(),
   });
 }
 
@@ -518,21 +533,21 @@ export async function buildRecordEquipmentRequirement(): Promise<RecordEquipment
 export async function buildEditEquipmentRequirement(): Promise<EditEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new EditEquipmentRequirementUseCase({ events, equipment });
+  return new EditEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
 }
 
 /** SPM-41 AC10-11: the assigned coordinator removes a line. */
 export async function buildRemoveEquipmentRequirement(): Promise<RemoveEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new RemoveEquipmentRequirementUseCase({ events, equipment });
+  return new RemoveEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
 }
 
 /** SPM-41 AC17: the assigned coordinator takes back a removal Technical Support have not yet acted on. */
 export async function buildUndoEquipmentRemoval(): Promise<UndoEquipmentRemovalUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new UndoEquipmentRemovalUseCase({ events, equipment });
+  return new UndoEquipmentRemovalUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */

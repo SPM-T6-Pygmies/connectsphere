@@ -4,6 +4,7 @@ import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clari
 import { coordinatorAssigned } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
+import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 
 /**
  * The Novu bridge: Novu Cloud calls back here to discover and run our code-first
@@ -26,6 +27,7 @@ function handlers(): Bridge {
       organiserCoordinatorAssigned,
       clarificationRequested,
       eventRequestDecided,
+      safetyCheckReady,
     ],
   });
   return bridge;

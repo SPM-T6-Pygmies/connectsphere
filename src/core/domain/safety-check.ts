@@ -63,3 +63,15 @@ export function confirmedVenues(candidate: SafetyCheckCandidate): string[] {
     .map((booking) => booking.venueName);
   return [...new Set(names)].sort((a, b) => a.localeCompare(b));
 }
+
+/**
+ * SPM-262: whether a change put the event on the Safety Officer's list -- it
+ * did not await a check before and does now. Null is an event the store could
+ * not find, which awaits nothing.
+ */
+export function entersSafetyCheck(
+  before: SafetyCheckCandidate | null,
+  after: SafetyCheckCandidate | null,
+): boolean {
+  return !(before !== null && awaitsSafetyCheck(before)) && after !== null && awaitsSafetyCheck(after);
+}

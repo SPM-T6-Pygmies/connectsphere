@@ -15,7 +15,7 @@ export interface NotificationMessage {
 
 // `preferredDate` is a calendar date, not an instant: read it in UTC so no
 // zone shifts it onto a neighbouring day.
-const calendarDayFormat = new Intl.DateTimeFormat("en-SG", {
+export const calendarDayFormat = new Intl.DateTimeFormat("en-SG", {
   timeZone: "UTC",
   weekday: "short",
   day: "numeric",

@@ -7,6 +7,7 @@ import {
   OTHER_COORDINATOR,
   PROJECTOR,
   seedEvent,
+  watchEquipmentForSafety,
 } from "@/adapters/outbound/in-memory/equipment-fixture";
 import { EventNotFoundError } from "@/core/domain/errors";
 
@@ -90,5 +91,17 @@ describe("UndoEquipmentRemovalUseCase (SPM-184)", () => {
       EventNotFoundError,
     );
     expect(equipment.stored("event-1")).toEqual(pendingRemoval["event-1"]);
+  });
+});
+
+describe("UndoEquipmentRemovalUseCase telling Safety Officers (SPM-262)", () => {
+  it("AC2: undoing a removal that returns the line to Reserved tells every Safety Officer", async () => {
+    const deps = buildEquipmentDeps([seedEvent()], pendingRemoval);
+    watchEquipmentForSafety(deps);
+    const { useCase, notifier } = undo(deps);
+
+    await useCase.execute(base);
+
+    expect(notifier.safetyChecksReady.map((notice) => notice.recipientUserAccountId)).toEqual(["safety-1", "safety-2"]);
   });
 });

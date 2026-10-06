@@ -5,21 +5,31 @@ import {
 import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
+import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
 import type {
   ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   OrganiserCoordinatorAssignedNotice,
+  SafetyCheckReadyNotice,
 } from "@/core/ports/outbound/notifier";
 
-/** A `notification` row as recorded before delivery: in-app, Pending, about one event request. */
-export type NotificationRow = ReturnType<typeof eventRequestNotificationRow>;
+/** A `notification` row as recorded before delivery: in-app, Pending, about one event request or one event. */
+export interface NotificationRow {
+  readonly recipient_user_account_id: string;
+  readonly trigger_scenario: string;
+  readonly channel: string;
+  readonly status: string;
+  readonly related_event_request_id?: string;
+  readonly related_event_id?: string;
+  readonly message_content: string;
+}
 
 function eventRequestNotificationRow(
   triggerScenario: string,
   notice: { readonly recipientUserAccountId: string; readonly eventRequestId: string },
   { subject, body }: NotificationMessage,
-) {
+): NotificationRow {
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: triggerScenario,
@@ -66,4 +76,17 @@ export function eventRequestDecidedRow(notice: EventRequestDecidedNotice): Notif
     notice,
     eventRequestDecidedMessage(notice),
   );
+}
+
+/** The `notification` row telling a Safety Officer an event is ready for its check (SPM-262). */
+export function safetyCheckReadyRow(notice: SafetyCheckReadyNotice): NotificationRow {
+  const { subject, body } = safetyCheckReadyMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "safety-check-ready",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
 }

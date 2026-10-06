@@ -4,6 +4,7 @@ import { userAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
 import type { BookingReviewRepository } from "../ports/outbound/booking-review-repository";
+import type { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
 
 export type DecideBookingRequestCommand = {
   readonly bookingId: string;
@@ -28,6 +29,7 @@ export interface DecideBookingRequestResult {
 export interface DecideBookingRequestDeps {
   readonly reviews: BookingReviewRepository;
   readonly bookings: BookingRepository;
+  readonly safetyCheck: Pick<SafetyCheckEntryAnnouncer, "around">;
 }
 
 /**
@@ -42,6 +44,14 @@ export class DecideBookingRequestUseCase {
   constructor(private readonly deps: DecideBookingRequestDeps) {}
 
   async execute(command: DecideBookingRequestCommand): Promise<DecideBookingRequestResult> {
+    // SPM-262 AC1: approving or rejecting a booking can leave the event's
+    // venue bookings all Confirmed.
+    return this.deps.safetyCheck.around({ bookingId: command.bookingId as BookingId }, () =>
+      this.decide(command),
+    );
+  }
+
+  private async decide(command: DecideBookingRequestCommand): Promise<DecideBookingRequestResult> {
     const { reviews, bookings } = this.deps;
     const staff = userAccountId(command.userAccountId);
 

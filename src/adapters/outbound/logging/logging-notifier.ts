@@ -5,6 +5,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  SafetyCheckReadyNotice,
 } from "@/core/ports/outbound/notifier";
 
 /**
@@ -42,6 +43,12 @@ export class LoggingNotifier implements Notifier {
   async eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} told event request ${notice.eventRequestId} was ${notice.decision}`,
+    );
+  }
+
+  async safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void> {
+    console.info(
+      `[notifier] safety officer ${notice.recipientUserAccountId} told event ${notice.eventId} is ready for a safety check`,
     );
   }
 }

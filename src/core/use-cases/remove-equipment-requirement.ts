@@ -9,7 +9,7 @@ import {
   existingLine,
   type EquipmentRequirementChange,
 } from "./equipment-requirement-change";
-import type { EquipmentRequirementDeps } from "./record-equipment-requirement";
+import type { EquipmentRequirementChangeDeps } from "./record-equipment-requirement";
 
 export interface RemoveEquipmentRequirementCommand {
   readonly eventId: string;
@@ -24,10 +24,15 @@ export interface RemoveEquipmentRequirementCommand {
  * until Technical Support release its equipment (SPM-108).
  */
 export class RemoveEquipmentRequirementUseCase {
-  constructor(private readonly deps: EquipmentRequirementDeps) {}
+  constructor(private readonly deps: EquipmentRequirementChangeDeps) {}
 
   /** Throws `EventNotFoundError` both for no such event and for one not assigned to this caller (#91). */
   async execute(command: RemoveEquipmentRequirementCommand): Promise<EquipmentRequirementChange> {
+    // SPM-262 AC2: this change can complete the event's equipment.
+    return this.deps.safetyCheck.around({ eventId: eventId(command.eventId) }, () => this.change(command));
+  }
+
+  private async change(command: RemoveEquipmentRequirementCommand): Promise<EquipmentRequirementChange> {
     const { events, equipment } = this.deps;
     const id = eventId(command.eventId);
     const caller = userAccountId(command.userAccountId);

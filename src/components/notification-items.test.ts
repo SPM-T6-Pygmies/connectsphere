@@ -114,3 +114,15 @@ describe("notificationItem (SPM-60)", () => {
     expect(item.status).toBe("Request decided")
   })
 })
+
+describe("notificationItem (SPM-262)", () => {
+  it("AC6: names a ready-for-check notice and opens the Awaiting check list as it is", () => {
+    const item = notificationItem(
+      "safety",
+      notification({ redirect: { url: "/staff/safety" }, tags: ["safety-check-ready"] }),
+    )
+
+    expect(item.status).toBe("Ready for safety check")
+    expect(item.href).toBe("/staff/safety")
+  })
+})

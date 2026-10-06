@@ -10,6 +10,7 @@ import {
   describeChange,
   type EquipmentRequirementChange,
 } from "./equipment-requirement-change";
+import type { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
 
 export interface RecordEquipmentRequirementCommand {
   readonly eventId: string;
@@ -23,6 +24,15 @@ export interface RecordEquipmentRequirementCommand {
 export interface EquipmentRequirementDeps {
   readonly events: CoordinatorEventRepository;
   readonly equipment: EquipmentRequirementRepository;
+}
+
+/**
+ * For the changes that can complete an event's equipment -- deleting an
+ * unreserved line, or a line under review returning to Reserved -- and so put
+ * it on the Safety Officer's list (SPM-262 AC2).
+ */
+export interface EquipmentRequirementChangeDeps extends EquipmentRequirementDeps {
+  readonly safetyCheck: Pick<SafetyCheckEntryAnnouncer, "around">;
 }
 
 /**

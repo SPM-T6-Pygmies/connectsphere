@@ -4,6 +4,7 @@ import {
   coordinatorAssignedRow,
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
+  safetyCheckReadyRow,
   type NotificationRow,
 } from "@/adapters/outbound/supabase/notification-row";
 import type { Connection } from "@/core/domain/connection";
@@ -13,6 +14,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  SafetyCheckReadyNotice,
 } from "@/core/ports/outbound/notifier";
 
 /**
@@ -59,6 +61,10 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.recordAndDeliver(coordinatorAssignedRow(notice), () =>
       this.inner.eventCoordinatorAssigned(notice),
     );
+  }
+
+  safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void> {
+    return this.recordAndDeliver(safetyCheckReadyRow(notice), () => this.inner.safetyCheckReady(notice));
   }
 
   /** Record the row Pending, deliver, then mark it Sent or Failed. */

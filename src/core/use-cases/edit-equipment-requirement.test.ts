@@ -10,6 +10,7 @@ import {
   SPEAKER,
   seedEvent,
   seededEquipment,
+  watchEquipmentForSafety,
 } from "@/adapters/outbound/in-memory/equipment-fixture";
 import {
   EquipmentRequirementNotFoundError,
@@ -154,5 +155,40 @@ describe("EditEquipmentRequirementUseCase reverting an edit (SPM-232)", () => {
       state: "Under review",
       reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
     });
+  });
+});
+
+describe("EditEquipmentRequirementUseCase telling Safety Officers (SPM-262)", () => {
+  /** Only the projector, reserved in full: the event is on the list until an edit puts it under review. */
+  function projectorOnly() {
+    const deps = buildEquipmentDeps([seedEvent()], {
+      "event-1": { ...seededEquipment(), lines: [seededEquipment().lines[0]!] },
+    });
+    watchEquipmentForSafety(deps);
+    return edit(deps);
+  }
+
+  const projector = (quantityRequested: number) => ({
+    ...base,
+    equipmentItemId: PROJECTOR,
+    quantityRequested,
+    technicalRequirements: "HDMI input",
+  });
+
+  it("AC2: editing a line under review back to what was reserved tells every Safety Officer", async () => {
+    const { useCase, notifier } = projectorOnly();
+    await useCase.execute(projector(3));
+
+    await useCase.execute(projector(2));
+
+    expect(notifier.safetyChecksReady.map((notice) => notice.recipientUserAccountId)).toEqual(["safety-1", "safety-2"]);
+  });
+
+  it("AC3: an edit that puts the line under review tells no one", async () => {
+    const { useCase, notifier } = projectorOnly();
+
+    await useCase.execute(projector(3));
+
+    expect(notifier.safetyChecksReady).toEqual([]);
   });
 });
