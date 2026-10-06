@@ -127,6 +127,20 @@ export function safetyOfficerContextFor(member: StaffMember): SafetyOfficerConte
   return { userAccountId: member.userAccountId };
 }
 
+/** Who a member of staff acts as on the Event Coordinator Lead's screens. */
+export interface CoordinatorLeadContext {
+  readonly userAccountId: UserAccountId;
+}
+
+/** Who a member of staff acts as on the Event Coordinator Lead's screens: only a Lead (SPM-256). */
+export function coordinatorLeadContextFor(member: StaffMember): CoordinatorLeadContext | null {
+  if (!member.roles.includes("Event Coordinator Lead")) {
+    return null;
+  }
+
+  return { userAccountId: member.userAccountId };
+}
+
 /**
  * Where a member of staff denied a page is sent back to: their landing
  * workspace, provided they can actually open it (SPM-16 AC5). An Organiser

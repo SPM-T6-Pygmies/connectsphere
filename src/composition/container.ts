@@ -361,6 +361,16 @@ export async function getCurrentSafetyOfficer(): Promise<{ readonly userAccountI
   return (await identifyStaffMember.execute())?.safetyOfficer ?? null;
 }
 
+/**
+ * Who the Event Coordinator Lead's screens are acting as: the signed-in Lead
+ * (SPM-256). `null` for anyone else, so callers refuse the page. Same shape
+ * as `getCurrentSafetyOfficer`.
+ */
+export async function getCurrentCoordinatorLead(): Promise<{ readonly userAccountId: string } | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.coordinatorLead ?? null;
+}
+
 /** SPM-259: the events awaiting a safety check. */
 export async function buildListEventsAwaitingSafetyCheck(): Promise<ListEventsAwaitingSafetyCheckUseCase> {
   const client = await createSupabaseServerClient();
