@@ -51,9 +51,9 @@ export const RAIL: Record<StaffRole, RailItem[]> = {
     { section: "drafts", title: "Drafts", url: "/staff/requester", icon: InboxIcon },
     { section: "submitted", title: "Submitted", url: "/staff/requester/submitted", icon: SendIcon },
   ],
-  ops: [
-    { section: "unassigned", title: "Unassigned", url: "/staff/ops", icon: InboxIcon },
-    { section: "assigned", title: "Assigned", url: "/staff/ops/assigned", icon: UserCheckIcon },
+  lead: [
+    { section: "unassigned", title: "Unassigned", url: "/staff/lead", icon: InboxIcon },
+    { section: "assigned", title: "Assigned", url: "/staff/lead/assigned", icon: UserCheckIcon },
   ],
   coordinator: [
     { section: "requests", title: "My requests", url: "/staff/coordinator", icon: InboxIcon },
@@ -136,7 +136,7 @@ export function railItems(role: StaffRole): RailItem[] {
  * Which section of the rail a path belongs to.
  *
  * Each role's static nested routes are checked before ever treating the last
- * path segment as a fixture id, so a section index page (e.g. "/staff/ops/
+ * path segment as a fixture id, so a section index page (e.g. "/staff/lead/
  * assigned") is never mistaken for a detail route -- only what's left over
  * after those checks is looked up as a record, and branched on its status.
  */
@@ -151,9 +151,9 @@ export function currentSection(role: StaffRole, pathname: string): SidebarSectio
     return "submitted" // only remaining shape is /staff/requester/[id], never a draft
   }
 
-  if (role === "ops") {
-    if (pathname === "/staff/ops") return "unassigned"
-    if (pathname.startsWith("/staff/ops/assigned")) return "assigned"
+  if (role === "lead") {
+    if (pathname === "/staff/lead") return "unassigned"
+    if (pathname.startsWith("/staff/lead/assigned")) return "assigned"
     const event = eventById(pathname.split("/")[3] ?? "")
     return event?.request.assignedCoordinator !== null ? "assigned" : "unassigned"
   }

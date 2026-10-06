@@ -70,8 +70,8 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       coordinator: null,
       technicalSupport: null,
       safetyOfficer: null,
-      workspaces: ["ops"],
-      homeWorkspace: "ops",
+      workspaces: ["lead"],
+      homeWorkspace: "lead",
     });
   });
 

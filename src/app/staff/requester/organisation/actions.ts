@@ -27,7 +27,7 @@ export async function reassignEventOrganiserAction(formData: FormData): Promise<
     return;
   }
 
-  if (!(await getStaffWorkspaces()).includes("ops")) {
+  if (!(await getStaffWorkspaces()).includes("lead")) {
     return;
   }
 

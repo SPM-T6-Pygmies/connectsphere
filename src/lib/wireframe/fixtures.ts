@@ -38,8 +38,8 @@ export const PEOPLE = {
     department: null,
     clientOrganisation: "Sunrise Events Co",
   },
-  opsManagerDaniel: {
-    id: "ops-daniel",
+  coordinatorLeadDaniel: {
+    id: "lead-daniel",
     name: "Daniel Okonkwo",
     department: "Event Operations",
     clientOrganisation: null,
@@ -73,7 +73,7 @@ export const PEOPLE = {
 /** Who the demo role switcher is acting as, per role. */
 export const ACTING_AS: Record<string, Person> = {
   requester: PEOPLE.organiserPriya,
-  ops: PEOPLE.opsManagerDaniel,
+  lead: PEOPLE.coordinatorLeadDaniel,
   coordinator: PEOPLE.coordinatorAmara,
   venue: PEOPLE.venueMei,
   technical: PEOPLE.technicalRavi,
@@ -412,7 +412,7 @@ export const EVENTS: readonly EventRecord[] = [
     }),
   }),
 
-  // 3. Submitted, no coordinator yet -- this is the ops manager's queue. Step 3.
+  // 3. Submitted, no coordinator yet -- this is the Coordinator Lead's queue. Step 3.
   event({
     id: "e-03",
     name: "Annual Client Forum",

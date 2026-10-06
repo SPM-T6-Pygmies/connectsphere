@@ -72,7 +72,7 @@ async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
   }))
 }
 
-async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
+async function getQueueItemsForLead(assigned: boolean): Promise<ListPaneItem[]> {
   const [viewAllEventRequests, viewAllEventCoordinators] = await Promise.all([
     buildViewAllEventRequests(),
     buildViewAllEventCoordinators(),
@@ -89,7 +89,7 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
     .filter((request) => request.queue === (assigned ? "assigned" : "unassigned"))
     .map((request) => ({
       id: request.id,
-      href: `/staff/ops/${request.id}`,
+      href: `/staff/lead/${request.id}`,
       title: request.eventName,
       meta: request.preferredDate ?? "No date",
       teaser:
@@ -200,9 +200,9 @@ async function getRespectiveQueueItems(
     return getQueueItemsForRequester()
   }
 
-  if (role === "ops") {
+  if (role === "lead") {
     const assigned = crumbs.some((crumb) => crumb.label === "Assigned")
-    return getQueueItemsForOps(assigned)
+    return getQueueItemsForLead(assigned)
   }
 
   if (role === "coordinator") {

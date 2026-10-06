@@ -31,7 +31,7 @@ export const ACTIVITY: readonly ActivityEntry[] = [
     eventId: "e-04",
     section: "overview",
     kind: "activity",
-    actor: PEOPLE.opsManagerDaniel,
+    actor: PEOPLE.coordinatorLeadDaniel,
     at: "2026-09-02 11:05",
     action: "assigned a coordinator",
     field: "Coordinator",

@@ -26,7 +26,7 @@ describe("landingWorkspaceFor (SPM-122)", () => {
   it.each([
     ["Event Organiser", "requester"],
     ["Event Coordinator", "coordinator"],
-    ["Event Coordinator Lead", "ops"],
+    ["Event Coordinator Lead", "lead"],
     ["Venue Staff", "venue"],
     ["Technical Support Staff", "technical"],
   ])("sends %s to %s", (role, workspace) => {
@@ -50,7 +50,7 @@ describe("workspacesFor (SPM-122)", () => {
   it("opens the workspace of every staff role a member of staff holds", () => {
     expect(workspacesFor(["Event Coordinator", "Event Coordinator Lead"])).toEqual([
       "coordinator",
-      "ops",
+      "lead",
     ]);
   });
 
@@ -121,7 +121,7 @@ describe("pageAreaOwner (SPM-16)", () => {
   it.each([
     ["requester", "Event Organiser"],
     ["coordinator", "Event Coordinator"],
-    ["ops", "Event Coordinator Lead"],
+    ["lead", "Event Coordinator Lead"],
     ["venue", "Venue Staff"],
     ["technical", "Technical Support Staff"],
   ] as const)("names %s's owner as %s", (area, role) => {
@@ -132,7 +132,7 @@ describe("pageAreaOwner (SPM-16)", () => {
 describe("homeWorkspaceFor (SPM-16)", () => {
   it.each([
     ["Event Coordinator", "coordinator"],
-    ["Event Coordinator Lead", "ops"],
+    ["Event Coordinator Lead", "lead"],
     ["Venue Staff", "venue"],
     ["Technical Support Staff", "technical"],
   ])("sends %s back to %s", (role, workspace) => {

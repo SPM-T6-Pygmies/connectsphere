@@ -87,7 +87,7 @@ export type ArrangementType =
 /** The six staff personas the wireframes can act as. */
 export type StaffRole =
   | "requester"
-  | "ops"
+  | "lead"
   | "coordinator"
   | "venue"
   | "technical"
