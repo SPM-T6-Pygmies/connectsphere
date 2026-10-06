@@ -8,6 +8,7 @@ import {
   isStaffWithNoHome,
   landingWorkspaceFor,
   organiserContextFor,
+  safetyOfficerContextFor,
   technicalSupportContextFor,
   pageAreaOwner,
   workspacesFor,
@@ -213,4 +214,19 @@ describe("Safety Officer role (SPM-258)", () => {
   it("sends a Safety Officer denied a page back to the safety workspace", () => {
     expect(homeWorkspaceFor(member(["Safety Officer"]))).toBe("safety");
   });
+});
+
+describe("safetyOfficerContextFor (SPM-259)", () => {
+  it("AC7: acts as a Safety Officer for a member holding that role, alongside another", () => {
+    expect(safetyOfficerContextFor(member(["Event Coordinator", "Safety Officer"]))).toEqual({
+      userAccountId: userAccountId("user-1"),
+    });
+  });
+
+  it.each(["Event Coordinator", "Event Operations Manager", "Venue Staff", "Technical Support Staff"])(
+    "AC7: does not act as a Safety Officer for %s",
+    (role) => {
+      expect(safetyOfficerContextFor(member([role]))).toBeNull();
+    },
+  );
 });

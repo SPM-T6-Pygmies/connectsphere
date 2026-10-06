@@ -769,6 +769,15 @@ export class NotTechnicalSupportStaffError extends DomainError {
   }
 }
 
+/** SPM-259 AC7: only a Safety Officer may read the list of events awaiting a safety check. */
+export class NotSafetyOfficerError extends DomainError {
+  readonly code = "not_safety_officer";
+
+  constructor() {
+    super("Only a Safety Officer can see the events awaiting a safety check.");
+  }
+}
+
 export class EquipmentRequirementConflictError extends DomainError {
   readonly code = "equipment_requirement_conflict";
 
