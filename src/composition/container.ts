@@ -14,6 +14,7 @@ import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supab
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEquipmentRecheckRepository } from "@/adapters/outbound/supabase/supabase-equipment-recheck-repository";
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
+import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
@@ -99,6 +100,8 @@ import { CreateVenueUseCase } from "@/core/use-cases/create-venue";
 import { LiftVenueUnavailabilityUseCase } from "@/core/use-cases/lift-venue-unavailability";
 import { ListVenueUnavailabilityUseCase } from "@/core/use-cases/list-venue-unavailability";
 import { RecordVenueUnavailabilityUseCase } from "@/core/use-cases/record-venue-unavailability";
+import { RecordSafetyCheckUseCase } from "@/core/use-cases/record-safety-check";
+import { ViewSafetyCheckUseCase } from "@/core/use-cases/view-safety-check";
 import { SearchVenuesUseCase } from "@/core/use-cases/search-venues";
 import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
 import { ListVenuesUseCase, ViewVenueUseCase } from "@/core/use-cases/view-venues";
@@ -359,6 +362,20 @@ export async function buildListEventsAwaitingSafetyCheck(): Promise<ListEventsAw
   const client = await createSupabaseServerClient();
 
   return new ListEventsAwaitingSafetyCheckUseCase({ candidates: new SupabaseSafetyCheckCandidateRepository(client) });
+}
+
+/** SPM-260: one event as the Safety Officer reviews it, with its recorded checks. */
+export async function buildViewSafetyCheck(): Promise<ViewSafetyCheckUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ViewSafetyCheckUseCase({ safetyChecks: new SupabaseSafetyCheckRepository(client) });
+}
+
+/** SPM-260: a Safety Officer records Approved or Rejected on an event. */
+export async function buildRecordSafetyCheck(): Promise<RecordSafetyCheckUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new RecordSafetyCheckUseCase({ safetyChecks: new SupabaseSafetyCheckRepository(client) });
 }
 
 async function coordinatorAdapters(): Promise<{
