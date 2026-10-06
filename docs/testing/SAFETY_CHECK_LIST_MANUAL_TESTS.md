@@ -10,7 +10,7 @@ with each event's date, expected attendance and venues.
 What SPM-259 does **not** cover, so is not tested here:
 
 - **Opening an event and recording an outcome**, and the event then leaving the
-  list — SPM-260.
+  list — SPM-260 ([`SAFETY_CHECK_MANUAL_TESTS.md`](SAFETY_CHECK_MANUAL_TESTS.md)).
 - **An event re-entering the list** after it is sent back for a fresh check —
   SPM-261.
 - **The role, workspace and access-denied screen** themselves — SPM-258

@@ -16,6 +16,7 @@ const gala: SafetyCheckCandidateRow = {
   expected_attendance: 120,
   bookings: [{ status: "Confirmed", venue_location: "Grand Ballroom" }],
   equipment_lines: [{ line_state: "Reserved", quantity_requested: 3, quantity_reserved: 3 }],
+  checked: false,
 };
 
 describe("safety check candidate mapper (SPM-259)", () => {
@@ -30,7 +31,12 @@ describe("safety check candidate mapper (SPM-259)", () => {
       },
       bookings: [{ status: "Confirmed", venueName: "Grand Ballroom" }],
       equipmentLines: [{ state: "Reserved", quantityRequested: 3, quantityReserved: 3 }],
+      checked: false,
     });
+  });
+
+  it("SPM-260 AC6: maps whether a safety check has been recorded on the event", () => {
+    expect(toSafetyCheckCandidate({ ...gala, checked: true }).checked).toBe(true);
   });
 
   it("AC2, AC5: maps an event with no date, no attendance figure and no equipment lines", () => {

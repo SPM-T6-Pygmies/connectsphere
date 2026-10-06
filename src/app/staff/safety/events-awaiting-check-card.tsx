@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -11,7 +13,7 @@ import type { EventAwaitingSafetyCheck } from "@/core/use-cases/list-events-awai
 
 /**
  * SPM-259: the events whose venue and equipment are confirmed, waiting for a
- * safety check. Read-only: opening one and recording the outcome is SPM-260.
+ * safety check. Each opens its review page, where the outcome is recorded (SPM-260).
  */
 export function EventsAwaitingCheckCard({ events }: { events: readonly EventAwaitingSafetyCheck[] }) {
   return (
@@ -38,7 +40,11 @@ export function EventsAwaitingCheckCard({ events }: { events: readonly EventAwai
             <TableBody>
               {events.map((event) => (
                 <TableRow key={event.eventId}>
-                  <TableCell className="font-medium">{event.eventName}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link href={`/staff/safety/${event.eventId}`} className="underline-offset-4 hover:underline">
+                      {event.eventName}
+                    </Link>
+                  </TableCell>
                   <TableCell>{event.preferredDate ?? "No date yet"}</TableCell>
                   <TableCell>{event.expectedAttendance ?? "Not given"}</TableCell>
                   <TableCell>{event.venues.join(", ")}</TableCell>

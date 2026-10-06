@@ -19,6 +19,7 @@ function gala(pending: boolean): SafetyCheckCandidate {
       { status: pending ? "Requested" : "Confirmed", venueName: "Sky Terrace" },
     ],
     equipmentLines: [],
+    checked: false,
   };
 }
 

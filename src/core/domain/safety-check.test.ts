@@ -2,15 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import type { BookingStatus } from "./booking";
 import type { CoordinatorEventStatus } from "./coordinator-event";
+import { EventNotAwaitingSafetyCheckError, SafetyCheckCommentsRequiredError } from "./errors";
 import { eventId } from "./event";
 import {
   awaitsSafetyCheck,
   confirmedVenues,
   entersSafetyCheck,
+  recordSafetyCheck,
   type SafetyCheckBooking,
   type SafetyCheckCandidate,
   type SafetyCheckEquipmentLine,
 } from "./safety-check";
+import { userAccountId } from "./user-account";
 
 function booking(overrides: Partial<SafetyCheckBooking> = {}): SafetyCheckBooking {
   return { status: "Confirmed", venueName: "Grand Ballroom", ...overrides };
@@ -31,6 +34,7 @@ function candidate(overrides: Partial<SafetyCheckCandidate> = {}): SafetyCheckCa
     },
     bookings: [booking()],
     equipmentLines: [line()],
+    checked: false,
     ...overrides,
   };
 }
@@ -144,5 +148,68 @@ describe("entersSafetyCheck (SPM-262)", () => {
 
   it("AC3: no event after the change has not entered", () => {
     expect(entersSafetyCheck(notReady, null)).toBe(false);
+  });
+});
+
+describe("awaitsSafetyCheck once checked (SPM-260)", () => {
+  it("AC6: leaves out an event that already has an outcome, even with its arrangements confirmed", () => {
+    expect(awaitsSafetyCheck(candidate({ checked: true }))).toBe(false);
+  });
+});
+
+describe("recordSafetyCheck (SPM-260)", () => {
+  const OFFICER = userAccountId("safety-1");
+
+  it("AC2, AC4: approves with no comments", () => {
+    expect(recordSafetyCheck(candidate(), "Approved", "", OFFICER)).toEqual({
+      eventId: "event-1",
+      outcome: "Approved",
+      comments: null,
+      checkedBy: "safety-1",
+    });
+  });
+
+  it("AC4: keeps an approval's comments, trimmed", () => {
+    expect(recordSafetyCheck(candidate(), "Approved", "  Keep the fire exit clear.  ", OFFICER).comments).toBe(
+      "Keep the fire exit clear.",
+    );
+  });
+
+  it("AC2, AC3: rejects with the comments saying what must change, trimmed", () => {
+    expect(
+      recordSafetyCheck(candidate(), "Rejected", "  Grand Ballroom: 220 expected, banquet layout holds 180.\n", OFFICER),
+    ).toEqual({
+      eventId: "event-1",
+      outcome: "Rejected",
+      comments: "Grand Ballroom: 220 expected, banquet layout holds 180.",
+      checkedBy: "safety-1",
+    });
+  });
+
+  it.each(["", "   ", "\n\t "])("AC3: refuses a rejection whose comments are %j", (comments) => {
+    expect(() => recordSafetyCheck(candidate(), "Rejected", comments, OFFICER)).toThrow(
+      SafetyCheckCommentsRequiredError,
+    );
+  });
+
+  it("AC3: accepts a rejection with a single character of comment", () => {
+    expect(recordSafetyCheck(candidate(), "Rejected", "x", OFFICER).comments).toBe("x");
+  });
+
+  it("AC6: refuses an outcome on an event that has already been checked", () => {
+    expect(() => recordSafetyCheck(candidate({ checked: true }), "Approved", "", OFFICER)).toThrow(
+      EventNotAwaitingSafetyCheckError,
+    );
+  });
+
+  it("AC6: refuses an outcome on an event whose arrangements are not all confirmed", () => {
+    const notReady = candidate({ bookings: [booking(), booking({ status: "Tentative Hold" })] });
+    expect(() => recordSafetyCheck(notReady, "Approved", "", OFFICER)).toThrow(EventNotAwaitingSafetyCheckError);
+  });
+
+  it("AC6: says the event is not awaiting a check before asking for comments", () => {
+    expect(() => recordSafetyCheck(candidate({ checked: true }), "Rejected", "", OFFICER)).toThrow(
+      EventNotAwaitingSafetyCheckError,
+    );
   });
 });

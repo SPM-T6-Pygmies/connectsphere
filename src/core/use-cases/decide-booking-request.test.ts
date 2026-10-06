@@ -173,6 +173,7 @@ describe("DecideBookingRequestUseCase telling Safety Officers (SPM-262)", () => 
         { status: pending, venueName: "Venue v1" },
       ],
       equipmentLines: [],
+      checked: false,
     };
   }
 
