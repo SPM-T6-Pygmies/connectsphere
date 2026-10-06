@@ -32,7 +32,7 @@ export async function assignEventCoordinatorAction(
 
   try {
     // A Server Action is reachable without its page, so the page's role check
-    // does not cover it: only an Event Operations Manager may assign.
+    // does not cover it: only an Event Coordinator Lead may assign.
     if (!(await getStaffWorkspaces()).includes("ops")) {
       return { status: "error" };
     }

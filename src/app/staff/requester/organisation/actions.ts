@@ -11,11 +11,11 @@ import { buildChangeEventOrganiser, getStaffWorkspaces } from "@/composition/con
  * the richer form-state pattern in `requester/new/actions.ts` would be
  * ceremony this action does not need.
  *
- * #101 names the Event Operations Manager as the only role with
+ * #101 names the Event Coordinator Lead as the only role with
  * assign/reassign authority -- not the Event Organiser. A Server Action is
  * reachable without its page, so a page-level role check would not cover it
  * (see `assignEventCoordinatorAction`'s identical guard): only an Event
- * Operations Manager may reassign.
+ * Coordinator Lead may reassign.
  */
 export async function reassignEventOrganiserAction(formData: FormData): Promise<void> {
   const parsed = reassignEventOrganiserSchema.safeParse({

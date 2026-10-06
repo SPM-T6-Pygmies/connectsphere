@@ -24,7 +24,7 @@ export interface ViewOperationsEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
 }
 
-/** Retrieves one event request for the Event Operations Manager. */
+/** Retrieves one event request for the Event Coordinator Lead. */
 export class ViewOperationsEventRequestUseCase {
   constructor(private readonly deps: ViewOperationsEventRequestDeps) {}
 

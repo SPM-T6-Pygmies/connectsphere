@@ -33,7 +33,7 @@ export * from "./types";
 
 export const ROLE_LABELS: Record<StaffRole, string> = {
   requester: "Event Organiser",
-  ops: "Event Operations Manager",
+  ops: "Event Coordinator Lead",
   coordinator: "Event Coordinator",
   venue: "Venue Staff",
   technical: "Technical Support Staff",
