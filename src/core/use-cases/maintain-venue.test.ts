@@ -210,7 +210,7 @@ describe("Access control for venue maintenance (SPM-148)", () => {
   it.each([
     "Event Organiser",
     "Event Coordinator",
-    "Event Operations Manager",
+    "Event Coordinator Lead",
     "Technical Support Staff",
     "Attendee",
   ])("refuses %s, and stores nothing", async (role) => {

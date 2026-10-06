@@ -33,7 +33,7 @@ const OPS_PASSWORD = "TestPass123!";
 const OPS_USER: UserWithRoles = {
   userId: "user-2",
   name: "Test Ops Manager",
-  roles: ["Event Operations Manager"],
+  roles: ["Event Coordinator Lead"],
   clientOrganisationId: null,
 };
 

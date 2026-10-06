@@ -8,7 +8,7 @@ export type StaffWorkspace = "requester" | "coordinator" | "ops" | "venue" | "te
 const WORKSPACE_BY_ROLE: ReadonlyMap<string, StaffWorkspace> = new Map([
   ["Event Organiser", "requester"],
   ["Event Coordinator", "coordinator"],
-  ["Event Operations Manager", "ops"],
+  ["Event Coordinator Lead", "ops"],
   ["Venue Staff", "venue"],
   ["Technical Support Staff", "technical"],
   ["Safety Officer", "safety"],

@@ -63,7 +63,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
   });
 
   it("acts as neither for a role with no Organiser or Coordinator screens", async () => {
-    await expect(identify(user(["Event Operations Manager"]))).resolves.toEqual({
+    await expect(identify(user(["Event Coordinator Lead"]))).resolves.toEqual({
       name: "Sam",
       userAccountId: "user-1",
       organiser: null,
