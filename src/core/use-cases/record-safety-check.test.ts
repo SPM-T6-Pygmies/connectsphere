@@ -44,6 +44,7 @@ describe("RecordSafetyCheckUseCase (SPM-260)", () => {
         comments: null,
         checkedByName: "Test Safety Officer",
         checkedAt: "2026-10-06T09:30:00.000Z",
+        resubmittedAt: null,
       },
     ]);
   });
@@ -83,6 +84,7 @@ describe("RecordSafetyCheckUseCase (SPM-260)", () => {
       comments: "Add a second fire marshal.",
       checkedByName: "Test Safety Officer 2",
       checkedAt: "2026-10-01T10:00:00.000Z",
+      resubmittedAt: "2026-10-02T10:00:00.000Z",
     };
     const { safetyChecks, record } = build([safetyCheckReview({ checks: [earlier] })]);
 
