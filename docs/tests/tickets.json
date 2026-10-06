@@ -680,6 +680,8 @@
     "SPM-271": {
       "title": "Manual tests, registry and seed evidence",
       "parent": "SPM-21",
+      "status": "In Progress"
+    },
     "SPM-258": {
       "title": "Safety Officer role",
       "parent": null,
