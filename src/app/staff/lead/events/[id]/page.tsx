@@ -45,6 +45,7 @@ export default async function LeadEventPage({ params }: PageProps<"/staff/lead/e
     <StaffShell
       role="lead"
       activeSection="coordinators"
+      defaultOpen={false}
       crumbs={detailCrumbs("lead", "queue", "Coordinators", event.name, "/staff/lead/coordinators")}
     >
       <PageHeader
