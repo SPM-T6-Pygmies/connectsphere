@@ -6,7 +6,7 @@ import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in
 import { InMemoryLeadEventRepository } from "@/adapters/outbound/in-memory/in-memory-lead-event-repository";
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
-import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
+import type { LeadEvent } from "@/core/domain/coordinator-workload";
 import { NotCoordinatorLeadError } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
 import { eventRequestId } from "@/core/domain/event-request";
@@ -32,9 +32,10 @@ function coordinator(id: string, name: string): EventCoordinatorDetails {
   };
 }
 
-function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
+function event(overrides: Partial<LeadEvent> = {}): LeadEvent {
   return {
     id: eventId("event-1"),
+    eventRequestId: eventRequestId("request-9"),
     name: "Founders' Gala Dinner",
     description: null,
     status: "Planning",
@@ -48,7 +49,7 @@ function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
   };
 }
 
-function useCase(events: readonly CoordinatorEvent[], leads = [LEAD]) {
+function useCase(events: readonly LeadEvent[], leads = [LEAD]) {
   return new ViewCoordinatorWorkloadsUseCase({
     userAccounts: new InMemoryUserAccountRepository({
       eventCoordinators: [coordinator("alice", "Alice Tan"), coordinator("bob", "Bob Lim")],
