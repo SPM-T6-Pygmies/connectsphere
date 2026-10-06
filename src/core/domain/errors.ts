@@ -778,6 +778,24 @@ export class NotSafetyOfficerError extends DomainError {
   }
 }
 
+/** SPM-260 AC6: an outcome is recorded only on an event awaiting a safety check. */
+export class EventNotAwaitingSafetyCheckError extends DomainError {
+  readonly code = "event_not_awaiting_safety_check";
+
+  constructor() {
+    super("This event is not awaiting a safety check.");
+  }
+}
+
+/** SPM-260 AC3: a rejection says what must change. */
+export class SafetyCheckCommentsRequiredError extends DomainError {
+  readonly code = "safety_check_comments_required";
+
+  constructor() {
+    super("Say what must change before rejecting.");
+  }
+}
+
 export class EquipmentRequirementConflictError extends DomainError {
   readonly code = "equipment_requirement_conflict";
 

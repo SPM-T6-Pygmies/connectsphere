@@ -14,6 +14,7 @@ export interface SafetyCheckCandidateRow {
   expected_attendance: number | null;
   bookings: { status: BookingStatus; venue_location: string }[];
   equipment_lines: { line_state: EquipmentLineState; quantity_requested: number; quantity_reserved: number }[];
+  checked: boolean;
 }
 
 export function toSafetyCheckCandidate(row: SafetyCheckCandidateRow): SafetyCheckCandidate {
@@ -32,6 +33,7 @@ export function toSafetyCheckCandidate(row: SafetyCheckCandidateRow): SafetyChec
       quantityRequested: line.quantity_requested,
       quantityReserved: line.quantity_reserved,
     })),
+    checked: row.checked,
   };
 }
 

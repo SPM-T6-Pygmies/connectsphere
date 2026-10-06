@@ -692,6 +692,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-260": {
+      "title": "Conduct an operational safety check",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-262": {
       "title": "Notify the Safety Officer of an event ready for check",
       "parent": "SPM-47",

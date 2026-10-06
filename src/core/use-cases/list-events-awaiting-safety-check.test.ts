@@ -23,6 +23,7 @@ function candidate(overrides: Partial<SafetyCheckCandidate["event"]> = {}, ready
       { status: ready ? "Confirmed" : "Requested", venueName: "Grand Ballroom" },
     ],
     equipmentLines: [{ state: "Reserved", quantityRequested: 2, quantityReserved: 2 }],
+    checked: false,
   };
 }
 

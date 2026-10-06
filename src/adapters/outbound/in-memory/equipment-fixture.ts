@@ -121,6 +121,7 @@ export function watchEquipmentForSafety(deps: ReturnType<typeof buildEquipmentDe
       },
       bookings: [{ status: "Confirmed", venueName: "Grand Ballroom" }],
       equipmentLines: equipment.stored("event-1").lines,
+      checked: false,
     });
 
   refresh();
