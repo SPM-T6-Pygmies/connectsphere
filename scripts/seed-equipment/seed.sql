@@ -60,7 +60,7 @@ begin
   select event_id into v_event from public.event where event_request_id = v_request.event_request_id;
   if v_event is null then
     insert into public.event (
-      event_request_id, name, description, purpose, preferred_date, start_time, end_time,
+      event_request_id, name, description, purpose, preferred_date,
       expected_attendance, venue_requirements, room_layout_preference,
       accessibility_requirements, equipment_requirements, programme_agenda,
       special_arrangements, status, assigned_coordinator_user_account_id,
@@ -68,8 +68,7 @@ begin
     )
     values (
       v_request.event_request_id, v_request.event_name, v_request.description,
-      v_request.purpose, v_request.preferred_date, v_request.preferred_start_time,
-      v_request.preferred_end_time, v_request.expected_attendance,
+      v_request.purpose, v_request.preferred_date, v_request.expected_attendance,
       v_request.venue_requirements, v_request.room_layout_preferences,
       v_request.accessibility_needs, v_request.equipment_requirements,
       v_request.general_programme, v_request.other_special_arrangements, 'Planning',
