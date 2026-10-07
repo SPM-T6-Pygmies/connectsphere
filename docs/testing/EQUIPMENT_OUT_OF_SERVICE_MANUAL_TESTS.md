@@ -85,7 +85,7 @@ tick the boxes below **and** report each in the PR description's
   and *In service: 8 of 10*.
 - Step 3: "Saved."; *In service: 10 of 10*. Every unit is back in service.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -103,7 +103,7 @@ tick the boxes below **and** report each in the PR description's
 - Step 3: "Saved."; *In service: 0 of 3*.
 - Step 4: "Saved."; after the reload *In service: 3 of 3*. None of the refused values was saved.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -122,7 +122,7 @@ tick the boxes below **and** report each in the PR description's
 - Step 3: "Saved."; *In service: 0 of 3*. Owned may drop to exactly the out-of-service count.
 - Step 4: "Saved."; *In service: 4 of 4*.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -139,7 +139,7 @@ tick the boxes below **and** report each in the PR description's
 - Step 3: **2** — the 2 units out of service are left out.
 - Step 4: **4** again.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -157,4 +157,4 @@ tick the boxes below **and** report each in the PR description's
 - Step 3: the Smoke machine card is still there, with **Owned** `2` and *In service: 2 of 2*.
   Restarting the app does not empty the catalogue.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick

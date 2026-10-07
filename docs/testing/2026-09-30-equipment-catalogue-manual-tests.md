@@ -93,7 +93,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The **Equipment catalogue** card says "The catalogue is empty. Use Add equipment to add the first item."
 - No equipment is listed: nothing is imported from an existing equipment database.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -112,7 +112,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - A new item starts with **Out of service** `0` and *In service: 6 of 6* (or *24 of 24*).
 - The "catalogue is empty" message is gone.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -127,7 +127,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
   and Quantity ("Quantity must be a whole number, zero or more."), plus "Check the highlighted fields."
 - The panel stays open with what was typed (`-1`, `keep me`) kept. No card is added.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -143,7 +143,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The Wireless microphone card is unchanged (`24`, `Store A`).
 - The screen reports counts per type and nothing finer (no per-unit records).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -156,7 +156,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - "Quantity must be a whole number, zero or more." appears on that card.
 - After the reload Wireless microphone is still `24`.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -168,7 +168,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 **Expected Result**
 - None of them shows the equipment catalogue; it is reached from **Equipment** in the sidebar.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -185,7 +185,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The Add equipment panel opens beside a sliver of the page, and every field fits on screen.
 - The page does not scroll sideways.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -201,4 +201,4 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The Network tab shows **403** for the page request (SPM-16).
 - No catalogue content is shown.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
