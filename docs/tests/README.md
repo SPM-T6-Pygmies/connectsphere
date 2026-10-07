@@ -108,6 +108,8 @@ case, not part of which case it is.
 [`tickets.json`](tickets.json) maps each ticket to its title and parent, so the
 registry can fill `TicketTitle` and `UserStory` without reaching Linear. It is a
 snapshot of Sprint 1 (Linear cycle 2) — extend it as later sprints land.
+`--update` keeps its issues in ticket-number order, so add an entry anywhere and
+let it sort.
 
 `UserStory` is the column that answers the Week 13 question. Pick a feature,
 say `SPM-28`, filter on it, and every case that is evidence for it is there

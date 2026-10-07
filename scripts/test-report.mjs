@@ -334,6 +334,18 @@ function buildManual(existing, tickets) {
     .sort((a, b) => a.CaseID.localeCompare(b.CaseID, "en", { numeric: true }));
 }
 
+/**
+ * tickets.json as --update writes it: issues in ticket-number order, so two
+ * branches adding their tickets do not both append after the same last entry.
+ * Writing it back also drops a duplicated key, which JSON.parse would otherwise
+ * resolve silently to whichever copy comes last.
+ */
+function ticketsText(file) {
+  const num = (key) => Number(key.replace(/\D/g, ""));
+  const issues = Object.fromEntries(Object.entries(file.issues).sort(([a], [b]) => num(a) - num(b)));
+  return JSON.stringify({ ...file, issues }, null, 2) + "\n";
+}
+
 /** Latest result per case: the ledger is append-only, so the last row wins. */
 function latestManualResults(runs) {
   return new Map(runs.map((r) => [r.CaseID, r]));
@@ -587,7 +599,8 @@ if (mode === "--record-manual") {
 }
 
 const domains = loadDomains();
-const tickets = existsSync(TICKETS) ? JSON.parse(readFileSync(TICKETS, "utf8")).issues : {};
+const ticketsFile = existsSync(TICKETS) ? JSON.parse(readFileSync(TICKETS, "utf8")) : null;
+const tickets = ticketsFile?.issues ?? {};
 if (domains.length === 0) console.error(`Warning: no domain map at ${path.relative(ROOT, DOMAINS)} — every case will be Unmapped.\n`);
 
 const { cases, durationMs } = runVitest();
@@ -612,6 +625,7 @@ if (mode === "--update") {
   console.log(`Wrote ${rebuilt.length} rows to ${path.relative(ROOT, REGISTRY)}`);
   writeFileSync(MANUAL, writeTable(manualRebuilt, MANUAL_COLUMNS));
   console.log(`Wrote ${manualRebuilt.length} rows to ${path.relative(ROOT, MANUAL)}`);
+  if (ticketsFile) writeFileSync(TICKETS, ticketsText(ticketsFile));
 }
 
 if (mode === "--check") {
@@ -633,6 +647,7 @@ if (mode === "--check") {
   const stale = [
     [REGISTRY, writeTable(rebuilt, COLUMNS)],
     [MANUAL, writeTable(manualRebuilt, MANUAL_COLUMNS)],
+    ...(ticketsFile ? [[TICKETS, ticketsText(ticketsFile)]] : []),
   ].filter(([file, want]) => (existsSync(file) ? readFileSync(file, "utf8") : "") !== want);
   if (stale.length > 0) {
     for (const [file] of stale) console.error(`\n✖ ${path.relative(ROOT, file)} does not match the test suite.`);
