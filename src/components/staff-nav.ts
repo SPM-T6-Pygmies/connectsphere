@@ -13,6 +13,7 @@ import {
   SendIcon,
   ShieldCheckIcon,
   UserCheckIcon,
+  UsersIcon,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -54,6 +55,7 @@ export const RAIL: Record<StaffRole, RailItem[]> = {
   lead: [
     { section: "unassigned", title: "Unassigned", url: "/staff/lead", icon: InboxIcon },
     { section: "assigned", title: "Assigned", url: "/staff/lead/assigned", icon: UserCheckIcon },
+    { section: "coordinators", title: "Coordinators", url: "/staff/lead/coordinators", icon: UsersIcon },
   ],
   coordinator: [
     { section: "requests", title: "My requests", url: "/staff/coordinator", icon: InboxIcon },
@@ -154,6 +156,7 @@ export function currentSection(role: StaffRole, pathname: string): SidebarSectio
   if (role === "lead") {
     if (pathname === "/staff/lead") return "unassigned"
     if (pathname.startsWith("/staff/lead/assigned")) return "assigned"
+    if (pathname.startsWith("/staff/lead/coordinators")) return "coordinators"
     const event = eventById(pathname.split("/")[3] ?? "")
     return event?.request.assignedCoordinator !== null ? "assigned" : "unassigned"
   }

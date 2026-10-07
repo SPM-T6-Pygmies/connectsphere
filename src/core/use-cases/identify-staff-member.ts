@@ -1,6 +1,7 @@
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
   coordinatorContextFor,
+  coordinatorLeadContextFor,
   homeWorkspaceFor,
   organiserContextFor,
   safetyOfficerContextFor,
@@ -30,6 +31,8 @@ export interface IdentifyStaffMemberResult {
   readonly technicalSupport: { readonly userAccountId: string } | null;
   /** Who the Safety Officer's screens act as -- null unless `safetyOfficerContextFor` allows it. */
   readonly safetyOfficer: { readonly userAccountId: string } | null;
+  /** Who the Event Coordinator Lead's screens act as -- null unless `coordinatorLeadContextFor` allows it. */
+  readonly coordinatorLead: { readonly userAccountId: string } | null;
   /** The staff workspaces the member may open -- see `workspacesFor`. */
   readonly workspaces: readonly StaffWorkspace[];
   /** Where an access-denied screen sends them back to -- see `homeWorkspaceFor`. */
@@ -74,6 +77,7 @@ export class IdentifyStaffMemberUseCase {
       coordinator: coordinator && { ...coordinator, name: user.name },
       technicalSupport,
       safetyOfficer: safetyOfficerContextFor(member),
+      coordinatorLead: coordinatorLeadContextFor(member),
       workspaces: workspacesFor(member.roles),
       homeWorkspace: homeWorkspaceFor(member),
     };

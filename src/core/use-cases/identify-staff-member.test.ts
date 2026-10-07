@@ -38,6 +38,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       coordinator: null,
       technicalSupport: null,
       safetyOfficer: null,
+      coordinatorLead: null,
       workspaces: ["requester"],
       homeWorkspace: "requester",
     });
@@ -57,6 +58,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       coordinator: { userAccountId: "user-1", name: "Sam" },
       technicalSupport: null,
       safetyOfficer: null,
+      coordinatorLead: null,
       workspaces: ["coordinator"],
       homeWorkspace: "coordinator",
     });
@@ -70,6 +72,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       coordinator: null,
       technicalSupport: null,
       safetyOfficer: null,
+      coordinatorLead: { userAccountId: "user-1" },
       workspaces: ["lead"],
       homeWorkspace: "lead",
     });

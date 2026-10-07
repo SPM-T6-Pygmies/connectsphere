@@ -8,6 +8,7 @@ import {
   isStaffWithNoHome,
   landingWorkspaceFor,
   organiserContextFor,
+  coordinatorLeadContextFor,
   safetyOfficerContextFor,
   technicalSupportContextFor,
   pageAreaOwner,
@@ -227,6 +228,21 @@ describe("safetyOfficerContextFor (SPM-259)", () => {
     "AC7: does not act as a Safety Officer for %s",
     (role) => {
       expect(safetyOfficerContextFor(member([role]))).toBeNull();
+    },
+  );
+});
+
+describe("coordinatorLeadContextFor (SPM-256)", () => {
+  it("acts as the Lead for a member holding the Event Coordinator Lead role", () => {
+    expect(coordinatorLeadContextFor(member(["Event Coordinator Lead"]))).toEqual({
+      userAccountId: userAccountId("user-1"),
+    });
+  });
+
+  it.each(["Event Coordinator", "Event Organiser", "Safety Officer"])(
+    "does not act as the Lead for %s",
+    (role) => {
+      expect(coordinatorLeadContextFor(member([role]))).toBeNull();
     },
   );
 });

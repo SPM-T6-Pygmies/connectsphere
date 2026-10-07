@@ -796,6 +796,14 @@ export class SafetyCheckCommentsRequiredError extends DomainError {
   }
 }
 
+export class NotCoordinatorLeadError extends DomainError {
+  readonly code = "not_coordinator_lead";
+
+  constructor() {
+    super("Only an Event Coordinator Lead can oversee every coordinator's work.");
+  }
+}
+
 export class EquipmentRequirementConflictError extends DomainError {
   readonly code = "equipment_requirement_conflict";
 
