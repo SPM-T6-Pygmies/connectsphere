@@ -7,9 +7,9 @@ import {
 import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
 
 /**
- * A real implementation of the port over a `Map`, not a mock: it is the test
- * double for use-case tests, and for now also what the running app uses until
- * the Supabase adapter for `equipment_item` exists (see `src/composition`).
+ * A real implementation of the port over a `Map`, not a mock: the test double
+ * for the catalogue use-case tests. The running app uses
+ * `SupabaseEquipmentCatalogue` (SPM-17 AC5).
  */
 export class InMemoryEquipmentCatalogue implements EquipmentCatalogue {
   private readonly rows = new Map<EquipmentItemId, EquipmentItem>();

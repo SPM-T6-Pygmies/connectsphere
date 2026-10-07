@@ -1,6 +1,5 @@
 import { Novu } from "@novu/api";
 
-import { InMemoryEquipmentCatalogue } from "@/adapters/outbound/in-memory/in-memory-equipment-catalogue";
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
 import { subscriberHash } from "@/adapters/outbound/novu/subscriber-hash";
@@ -12,6 +11,7 @@ import { SupabaseClarificationThreadRepository } from "@/adapters/outbound/supab
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
+import { SupabaseEquipmentCatalogue } from "@/adapters/outbound/supabase/supabase-equipment-catalogue";
 import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supabase/supabase-technical-equipment-repository";
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
@@ -60,6 +60,7 @@ import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/pos
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
 import { ResolveClarificationThreadUseCase } from "@/core/use-cases/resolve-clarification-thread";
 import type { StaffWorkspace } from "@/core/domain/staff-member";
+import { userAccountId } from "@/core/domain/user-account";
 import { IdentifyStaffMemberUseCase } from "@/core/use-cases/identify-staff-member";
 import { LoginUseCase } from "@/core/use-cases/login";
 import { LogoutUseCase } from "@/core/use-cases/logout";
@@ -743,31 +744,26 @@ export async function buildListVenueUnavailability(): Promise<ListVenueUnavailab
 }
 
 /**
- * SPM-40: the equipment catalogue.
- *
- * TEMPORARY STUB. There is no Supabase adapter for the `equipment_item` table
- * yet, so the catalogue is an in-memory one that lives as long as the server
- * process: records are lost on restart and are not shared between instances.
- * Replacing it is this one function plus a `SupabaseEquipmentCatalogue` (and the
- * RLS/RPC migration it needs) -- no use case, action or screen changes.
- *
- * Held on `globalThis` so a dev-server module reload does not empty it.
+ * SPM-40, SPM-17 AC5: the equipment catalogue, on the same `equipment_item`
+ * rows coordinators pick from, acting as the signed-in Technical Support Staff
+ * member. Anyone else gets an adapter whose every call is refused.
  */
-const equipmentStub = globalThis as typeof globalThis & { __equipmentCatalogue?: EquipmentCatalogue };
-
-function buildEquipmentCatalogue(): EquipmentCatalogue {
-  equipmentStub.__equipmentCatalogue ??= new InMemoryEquipmentCatalogue();
-  return equipmentStub.__equipmentCatalogue;
+async function buildEquipmentCatalogue(): Promise<EquipmentCatalogue> {
+  const [client, technicalSupport] = await Promise.all([createSupabaseServerClient(), getCurrentTechnicalSupport()]);
+  return new SupabaseEquipmentCatalogue(
+    client,
+    technicalSupport === null ? null : userAccountId(technicalSupport.userAccountId),
+  );
 }
 
 export async function buildListEquipmentCatalogue(): Promise<ListEquipmentCatalogueUseCase> {
-  return new ListEquipmentCatalogueUseCase({ equipment: buildEquipmentCatalogue() });
+  return new ListEquipmentCatalogueUseCase({ equipment: await buildEquipmentCatalogue() });
 }
 
 export async function buildCreateEquipmentItem(): Promise<CreateEquipmentItemUseCase> {
-  return new CreateEquipmentItemUseCase({ equipment: buildEquipmentCatalogue() });
+  return new CreateEquipmentItemUseCase({ equipment: await buildEquipmentCatalogue() });
 }
 
 export async function buildUpdateEquipmentStock(): Promise<UpdateEquipmentStockUseCase> {
-  return new UpdateEquipmentStockUseCase({ equipment: buildEquipmentCatalogue() });
+  return new UpdateEquipmentStockUseCase({ equipment: await buildEquipmentCatalogue() });
 }
