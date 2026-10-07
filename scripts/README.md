@@ -106,6 +106,35 @@ supabase db query --file scripts/seed-equipment/verify.sql --local
 The same gotchas apply as above, and the catalogue and line lists are
 duplicated across all three files.
 
+## seed-equipment-review
+
+Technical Support's three equipment lists (SPM-273): nine events across both
+test coordinators, with lines that are new, changed after they were reserved,
+or have their removal requested (Needs review), events whose lines are all
+reserved (Reviewed), and Completed or Cancelled ones (Archive). Its own four
+catalogue types, so seed-equipment's counts are untouched.
+
+Tech Summit Keynote (15 Nov) shows AC4's count: 10 Laser projectors owned,
+less 3, 2 and 1 held by events on 14, 15 and 16 Nov, leaves 4. The 5 held on
+17 Nov and the 4 a Cancelled event holds on 15 Nov do not count. Partner
+Roadshow has no date, so its line shows no number.
+
+| File           | What it does                                                         |
+| -------------- | -------------------------------------------------------------------- |
+| `seed.sql`     | Inserts the catalogue, the events and their lines. Safe to re-run.   |
+| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
+| `teardown.sql` | Deletes the events (their lines go with them) and the unused catalogue. |
+
+Needs only the test accounts from `supabase db reset`:
+
+```bash
+supabase db query --file scripts/seed-equipment-review/seed.sql --local
+supabase db query --file scripts/seed-equipment-review/verify.sql --local
+```
+
+Then sign in as `support@test.com`. The event and line lists are duplicated
+across all three files.
+
 ## seed-venue-unavailability
 
 Three venue unavailability blocks, for the Venue Staff unavailability page, the
