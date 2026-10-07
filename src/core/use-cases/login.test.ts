@@ -17,7 +17,7 @@ import { LoginUseCase } from "./login";
 
 // Test data: staff members with roles for login scenarios
 const COORDINATOR_ID = "auth-user-coordinator";
-const OPS_ID = "auth-user-ops";
+const LEAD_ID = "auth-user-lead";
 
 const COORDINATOR_EMAIL = "coordinator@test.com";
 const COORDINATOR_PASSWORD = "TestPass123!";
@@ -28,12 +28,12 @@ const COORDINATOR_USER: UserWithRoles = {
   clientOrganisationId: null,
 };
 
-const OPS_EMAIL = "ops@test.com";
-const OPS_PASSWORD = "TestPass123!";
-const OPS_USER: UserWithRoles = {
+const LEAD_EMAIL = "lead@test.com";
+const LEAD_PASSWORD = "TestPass123!";
+const LEAD_USER: UserWithRoles = {
   userId: "user-2",
-  name: "Test Ops Manager",
-  roles: ["Event Operations Manager"],
+  name: "Test Coordinator Lead",
+  roles: ["Event Coordinator Lead"],
   clientOrganisationId: null,
 };
 
@@ -60,14 +60,14 @@ function buildUseCase() {
   const auth = new InMemoryAuth({
     credentials: [
       { email: COORDINATOR_EMAIL, password: COORDINATOR_PASSWORD, authUserId: COORDINATOR_ID, expiresAt: EXPIRES_AT },
-      { email: OPS_EMAIL, password: OPS_PASSWORD, authUserId: OPS_ID, expiresAt: EXPIRES_AT },
+      { email: LEAD_EMAIL, password: LEAD_PASSWORD, authUserId: LEAD_ID, expiresAt: EXPIRES_AT },
       { email: NO_STAFF_ROLE_EMAIL, password: NO_STAFF_ROLE_PASSWORD, authUserId: NO_STAFF_ROLE_ID, expiresAt: EXPIRES_AT },
     ],
   });
   const users = new InMemoryUserRepository(
     new Map([
       [COORDINATOR_ID, COORDINATOR_USER],
-      [OPS_ID, OPS_USER],
+      [LEAD_ID, LEAD_USER],
       [NO_STAFF_ROLE_ID, NO_STAFF_ROLE_USER],
     ]),
   );

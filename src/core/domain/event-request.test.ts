@@ -442,8 +442,24 @@ describe("operationsQueueFor (SPM-29)", () => {
   );
 });
 
+describe("operationsQueueFor (SPM-255)", () => {
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
+    "AC1: files a %s request with no coordinator under unassigned",
+    (status) => {
+      expect(operationsQueueFor(request({ status }))).toBe("unassigned");
+    },
+  );
+
+  it.each(["Withdrawn", "Rejected"] as const)(
+    "AC4: keeps a %s request with no coordinator out of unassigned -- nobody can be assigned to it",
+    (status) => {
+      expect(operationsQueueFor(request({ status }))).toBeNull();
+    },
+  );
+});
+
 describe("canAssignEventCoordinator (SPM-130)", () => {
-  it.each(["Submitted", "Under Review", "Returned", "Approved"] as const)(
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
     "lets a %s request take a coordinator",
     (status) => {
       expect(canAssignEventCoordinator(status)).toBe(true);
@@ -456,6 +472,12 @@ describe("canAssignEventCoordinator (SPM-130)", () => {
       expect(canAssignEventCoordinator(status)).toBe(false);
     },
   );
+});
+
+describe("canAssignEventCoordinator (SPM-257)", () => {
+  it("refuses a coordinator for an Approved request -- its event is reassigned instead", () => {
+    expect(canAssignEventCoordinator("Approved")).toBe(false);
+  });
 });
 
 describe("coordinatorSectionFor (SPM-127)", () => {

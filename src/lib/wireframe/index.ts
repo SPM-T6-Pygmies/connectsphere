@@ -33,7 +33,7 @@ export * from "./types";
 
 export const ROLE_LABELS: Record<StaffRole, string> = {
   requester: "Event Organiser",
-  ops: "Event Operations Manager",
+  lead: "Event Coordinator Lead",
   coordinator: "Event Coordinator",
   venue: "Venue Staff",
   technical: "Technical Support Staff",
@@ -42,7 +42,7 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
 
 export const STAFF_ROLES: readonly StaffRole[] = [
   "requester",
-  "ops",
+  "lead",
   "coordinator",
   "venue",
   "technical",
@@ -308,7 +308,8 @@ export type SidebarSection =
   | "decided"
   | "needsReview"
   | "reviewed"
-  | "awaitingCheck";
+  | "awaitingCheck"
+  | "coordinators";
 
 /**
  * One row of the sidebar's list pane.
@@ -345,11 +346,11 @@ function queueItemsFor(role: StaffRole, section: SidebarSection): ListPaneItem[]
       }));
     }
 
-    case "ops": {
+    case "lead": {
       const events = section === "assigned" ? assignedRequests() : awaitingAssignment();
       return events.map((event) => ({
         id: event.id,
-        href: `/staff/ops/${event.id}`,
+        href: `/staff/lead/${event.id}`,
         title: event.request.eventName,
         meta: event.request.submittedAt ?? "—",
         teaser:

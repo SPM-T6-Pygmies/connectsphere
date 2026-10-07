@@ -1,4 +1,5 @@
 import { operationsQueueFor, type OperationsQueue } from "../domain/event-request";
+import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import { toOperationsEventRequest, type OperationsEventRequest } from "./operations-event-request";
 
@@ -13,10 +14,11 @@ export interface ViewAllEventRequestsResult {
 
 export interface ViewAllEventRequestsDeps {
   readonly eventRequests: EventRequestRepository;
+  readonly clientOrganisations: ClientOrganisationRepository;
 }
 
 /**
- * The Event Operations Manager's source list: every request across every
+ * The Event Coordinator Lead's source list: every request across every
  * client organisation, except Drafts, each with the queue it belongs in.
  *
  * Which requests Operations sees, and which queue each sits in, is
@@ -27,13 +29,20 @@ export class ViewAllEventRequestsUseCase {
   constructor(private readonly deps: ViewAllEventRequestsDeps) {}
 
   async execute(): Promise<ViewAllEventRequestsResult> {
-    const requests = await this.deps.eventRequests.listAll();
+    const requests = (await this.deps.eventRequests.listAll()).flatMap((request) => {
+      const queue = operationsQueueFor(request);
+      return queue === null ? [] : [{ request, queue }];
+    });
+
+    const organisationNames = await this.deps.clientOrganisations.findNamesByIds(
+      requests.map(({ request }) => request.clientOrganisationId),
+    );
 
     return {
-      eventRequests: requests.flatMap((request) => {
-        const queue = operationsQueueFor(request);
-        return queue === null ? [] : [{ ...toOperationsEventRequest(request), queue }];
-      }),
+      eventRequests: requests.map(({ request, queue }) => ({
+        ...toOperationsEventRequest(request, organisationNames),
+        queue,
+      })),
     };
   }
 }
