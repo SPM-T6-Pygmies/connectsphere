@@ -22,8 +22,8 @@ What SPM-273 does **not** cover, so is not tested here:
 - **Being notified** of a new or changed line: SPM-64.
 - **Units out of service** reducing the count: SPM-17.
 - **The coordinator's side** of changing and removing lines: SPM-41
-  ([`EQUIPMENT_MANUAL_TESTS.md`](EQUIPMENT_MANUAL_TESTS.md)), whose TC-EQUIP-003, 004,
-  005, 008, 010 and 011 now read this list.
+  ([`EQUIPMENT_MANUAL_TESTS.md`](EQUIPMENT_MANUAL_TESTS.md)), whose TC-EQUIP-012 to 017
+  read this list (they replace the retired TC-EQUIP-003, 004, 005, 008, 010 and 011).
 
 The rules are unit-tested (`attentionReason`, `reservedAs`, `isActiveEvent`,
 `equipmentQueueOf`, `holdsOverlap`, `unitsAvailable`, `ListEquipmentQueueUseCase` and
