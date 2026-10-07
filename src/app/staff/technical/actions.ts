@@ -74,13 +74,13 @@ export async function createEquipmentItemAction(
   }
 }
 
-/** SPM-40 AC2: correct the quantity and location of an existing line. */
+/** SPM-40 AC2, SPM-17 AC1: correct an existing line's quantity, location and units out of service. */
 export async function updateEquipmentStockAction(
   _previous: EquipmentFormState,
   formData: FormData,
 ): Promise<EquipmentFormState> {
   const parsed = updateEquipmentStockSchema.safeParse(
-    submittedValues(formData, ["equipmentItemId", "quantity", "location"]),
+    submittedValues(formData, ["equipmentItemId", "quantity", "location", "outOfService"]),
   );
 
   if (!parsed.success) {

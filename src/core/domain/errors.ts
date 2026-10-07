@@ -582,6 +582,15 @@ export class InvalidEquipmentQuantityError extends DomainError {
   }
 }
 
+/** SPM-17 AC2: out of service is a whole number from 0 up to the number owned. */
+export class InvalidOutOfServiceCountError extends DomainError {
+  readonly code = "invalid_out_of_service_count";
+
+  constructor(readonly owned: number) {
+    super(`Out of service must be a whole number from 0 up to the number owned (${owned}).`);
+  }
+}
+
 export class InvalidVenueIdError extends DomainError {
   readonly code = "invalid_venue_id";
 

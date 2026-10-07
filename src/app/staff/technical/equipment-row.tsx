@@ -12,13 +12,15 @@ import { updateEquipmentStockAction, type EquipmentFormState } from "./actions";
 const INITIAL: EquipmentFormState = { status: "idle" };
 
 /**
- * One catalogue item as a card, with its quantity and location editable in
- * place (SPM-40 AC2).
+ * One catalogue item as a card, with how many are owned, where they are kept
+ * and how many are out of service editable in place (SPM-40 AC2, SPM-17 AC1),
+ * and how many are in service (SPM-17 AC3).
  */
 export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
   const [state, formAction, pending] = useActionState(updateEquipmentStockAction, INITIAL);
   const [quantity, setQuantity] = useState(String(item.quantity));
   const [location, setLocation] = useState(item.location);
+  const [outOfService, setOutOfService] = useState(String(item.outOfService));
 
   return (
     <li>
@@ -35,11 +37,11 @@ export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
             </div>
 
             <label className="text-muted-foreground grid gap-1 text-xs">
-              Quantity
+              Owned
               <Input
                 name="quantity"
                 inputMode="numeric"
-                aria-label={`Quantity of ${item.type}`}
+                aria-label={`Owned ${item.type}`}
                 className="text-foreground"
                 value={quantity}
                 onChange={(event) => setQuantity(event.target.value)}
@@ -58,6 +60,23 @@ export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
                 disabled={pending}
               />
             </label>
+
+            <label className="text-muted-foreground grid gap-1 text-xs">
+              Out of service
+              <Input
+                name="outOfService"
+                inputMode="numeric"
+                aria-label={`${item.type} out of service`}
+                className="text-foreground"
+                value={outOfService}
+                onChange={(event) => setOutOfService(event.target.value)}
+                disabled={pending}
+              />
+            </label>
+
+            <p className="text-muted-foreground text-xs">
+              In service: <span className="text-foreground font-medium">{item.inService}</span> of {item.quantity}
+            </p>
 
             <div className="flex flex-wrap items-center gap-2">
               <Button type="submit" size="sm" variant="outline" disabled={pending}>

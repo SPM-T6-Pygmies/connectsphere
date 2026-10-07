@@ -4,6 +4,7 @@ import {
   EquipmentTypeRequiredError,
   InvalidEquipmentItemIdError,
   InvalidEquipmentQuantityError,
+  InvalidOutOfServiceCountError,
 } from "./errors";
 
 export type EquipmentItemId = Brand<string, "EquipmentItemId">;
@@ -28,8 +29,11 @@ export interface EquipmentItem {
   readonly id: EquipmentItemId;
   readonly type: string;
   readonly description: string | null;
+  /** How many units ConnectSphere owns, in service or not. */
   readonly quantity: number;
   readonly location: string;
+  /** How many of those units are damaged, under repair or otherwise unusable (SPM-17). Never more than owned. */
+  readonly outOfService: number;
 }
 
 /** A catalogue record the core has built but the store has not yet given an id. */
@@ -68,22 +72,43 @@ export function newEquipmentItem(details: EquipmentItemDetails): NewEquipmentIte
     description: description.length === 0 ? null : description,
     quantity: validQuantity(details.quantity),
     location: requiredText(details.location, () => new EquipmentLocationRequiredError()),
+    // SPM-17: a new line starts with every unit in service.
+    outOfService: 0,
   };
 }
 
 /**
- * SPM-40 AC2: what may change on an existing record -- its quantity and
- * location. The type is what identifies the line, so it stays put.
+ * SPM-17 AC2: a whole number from 0 up to the number owned. Lowering what is
+ * owned below what is out of service is refused the same way.
+ */
+function validOutOfService(outOfService: number, owned: number): number {
+  if (!Number.isInteger(outOfService) || outOfService < 0 || outOfService > owned) {
+    throw new InvalidOutOfServiceCountError(owned);
+  }
+  return outOfService;
+}
+
+/**
+ * SPM-40 AC2, SPM-17 AC1: what may change on an existing record -- how many
+ * are owned, where they are kept and how many are out of service. The type is
+ * what identifies the line, so it stays put.
  */
 export function updateEquipmentStock(
   item: EquipmentItem,
-  change: { readonly quantity: number; readonly location: string },
+  change: { readonly quantity: number; readonly location: string; readonly outOfService: number },
 ): EquipmentItem {
+  const quantity = validQuantity(change.quantity);
   return {
     ...item,
-    quantity: validQuantity(change.quantity),
+    quantity,
     location: requiredText(change.location, () => new EquipmentLocationRequiredError()),
+    outOfService: validOutOfService(change.outOfService, quantity),
   };
+}
+
+/** SPM-17 AC3: the units that can be used -- owned, less out of service. */
+export function unitsInService(item: Pick<EquipmentItem, "quantity" | "outOfService">): number {
+  return item.quantity - item.outOfService;
 }
 
 /** One entry in the equipment catalogue, as a coordinator picks it for an event's requirement (SPM-41 AC1, AC4). */
