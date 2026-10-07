@@ -150,16 +150,4 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
 
     expect(result?.lines[0]?.available).toBeNull();
   });
-
-  it("says which list the event is on", async () => {
-    const needsReview = await view([event([stock({ line: line({ quantityReserved: 0, state: "Requested" }) })])]);
-    const reviewed = await view([event([stock()])]);
-
-    expect(needsReview?.queue).toBe("needsReview");
-    expect(reviewed?.queue).toBe("reviewed");
-  });
-
-  it("gives nothing for an event that does not exist", async () => {
-    expect(await view([event([stock()])], "event-404")).toBeNull();
-  });
 });

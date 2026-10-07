@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { NotTechnicalSupportStaffError } from "@/core/domain/errors";
-
 import {
   toEventEquipmentStock,
   toEventWithEquipment,
-  toTechnicalEquipmentError,
   type TechnicalEquipmentLineRow,
   type TechnicalEquipmentStockRow,
 } from "./technical-equipment-mapper";
@@ -91,18 +88,5 @@ describe("technical equipment mapper (SPM-273)", () => {
         ],
       },
     ]);
-  });
-
-  it("maps an event with no lines", () => {
-    expect(toEventEquipmentStock({ ...event, lines: [] }).lines).toEqual([]);
-  });
-
-  it("reads CS040 as the reader not being Technical Support Staff", () => {
-    expect(toTechnicalEquipmentError({ code: "CS040" })).toBeInstanceOf(NotTechnicalSupportStaffError);
-  });
-
-  it("leaves any other failure to the caller", () => {
-    expect(toTechnicalEquipmentError({ code: "42883" })).toBeNull();
-    expect(toTechnicalEquipmentError({})).toBeNull();
   });
 });

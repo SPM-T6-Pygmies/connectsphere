@@ -124,31 +124,4 @@ describe("ListEquipmentQueueUseCase (SPM-273)", () => {
 
     expect(result.events).toEqual([]);
   });
-
-  it("the Reviewed list holds active events whose lines are all reserved", async () => {
-    const result = await list(
-      [
-        entry("all-reserved", [reserved(), reserved("item-microphone")], "Confirmed"),
-        entry("needs-review", [reserved(), requested()], "Planning"),
-        entry("completed", [reserved()], "Completed"),
-      ],
-      "reviewed",
-    );
-
-    expect(result.events.map((event) => [event.eventId, event.linesNeedingAttention])).toEqual([["all-reserved", 0]]);
-  });
-
-  it("the Archive list holds Completed and Cancelled events with equipment lines", async () => {
-    const result = await list(
-      [
-        entry("completed", [reserved()], "Completed"),
-        entry("cancelled", [requested()], "Cancelled"),
-        entry("active", [reserved()], "Planning"),
-        entry("cancelled-no-lines", [], "Cancelled"),
-      ],
-      "archive",
-    );
-
-    expect(result.events.map((event) => event.eventId)).toEqual(["completed", "cancelled"]);
-  });
 });

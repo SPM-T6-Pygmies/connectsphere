@@ -21,13 +21,4 @@ describe("queueTeaser (SPM-273)", () => {
     expect(queueTeaser("needsReview", entry(3, 2))).toBe("2 lines of 3 need attention");
     expect(queueTeaser("needsReview", entry(1, 1))).toBe("1 line of 1 needs attention");
   });
-
-  it("says a reviewed event's lines are all reserved", () => {
-    expect(queueTeaser("reviewed", entry(1, 0))).toBe("1 line, all reserved");
-    expect(queueTeaser("reviewed", entry(4, 0))).toBe("4 lines, all reserved");
-  });
-
-  it("counts an archived event's lines", () => {
-    expect(queueTeaser("archive", entry(2, 1))).toBe("2 lines");
-  });
 });

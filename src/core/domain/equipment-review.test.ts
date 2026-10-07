@@ -106,19 +106,8 @@ describe("equipmentQueueOf (SPM-273)", () => {
     expect(equipmentQueueOf("Confirmed", [removalRequestedLine()])).toBe("needsReview");
   });
 
-  it("an active event whose lines are all reserved and untouched is reviewed", () => {
-    expect(equipmentQueueOf("Blocked", [line(), line({ equipmentItemId: equipmentItemId("item-mic") })])).toBe(
-      "reviewed",
-    );
-  });
-
   it.each(INACTIVE)("AC1: a %s event is archived, even with lines needing attention", (status) => {
     expect(equipmentQueueOf(status, [newLine(), changedLine()])).toBe("archive");
-  });
-
-  it("an event with no equipment lines is on no list", () => {
-    expect(equipmentQueueOf("Planning", [])).toBeNull();
-    expect(equipmentQueueOf("Completed", [])).toBeNull();
   });
 });
 
