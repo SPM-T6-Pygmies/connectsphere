@@ -54,3 +54,47 @@ export function equipmentQueueOf(
   }
   return lines.some((line) => attentionReason(line) !== null) ? "needsReview" : "reviewed";
 }
+
+/** Units of one equipment type another event has reserved, and when that event runs. */
+export interface EquipmentHold {
+  readonly eventStatus: CoordinatorEventStatus;
+  /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
+  readonly eventDate: string | null;
+  readonly quantityReserved: number;
+}
+
+function dayNumber(isoDate: string): number {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return Date.UTC(year, month - 1, day) / 86_400_000;
+}
+
+/**
+ * Equipment for an event on day D is collected on D-1 and is available again
+ * from Return Day + 1, the return day being the event's date (#5, #113). So
+ * two events hold the same units over days they share exactly when they are at
+ * most one day apart.
+ */
+export function holdsOverlap(eventDate: string, otherEventDate: string): boolean {
+  return Math.abs(dayNumber(eventDate) - dayNumber(otherEventDate)) <= 1;
+}
+
+/**
+ * AC4: how many units of a type are free for an event -- the number owned,
+ * less what other active events hold over overlapping days. Null when the
+ * event has no date yet, since there is nothing to compare against.
+ */
+export function unitsAvailable(
+  owned: number,
+  eventDate: string | null,
+  otherHolds: readonly EquipmentHold[],
+): number | null {
+  if (eventDate === null) {
+    return null;
+  }
+  const held = otherHolds
+    .filter(
+      (hold) => isActiveEvent(hold.eventStatus) && hold.eventDate !== null && holdsOverlap(eventDate, hold.eventDate),
+    )
+    .reduce((total, hold) => total + hold.quantityReserved, 0);
+  return owned - held;
+}
