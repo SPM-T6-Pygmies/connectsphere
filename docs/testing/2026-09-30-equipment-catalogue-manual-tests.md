@@ -28,7 +28,7 @@ belongs to SPM-41's equipment requirement cases.
 
 ### Test Accounts (password `TestPass123!`)
 - `support@test.com` (Technical Support Staff)
-- `ops@test.com` (Event Operations Manager)
+- `lead@test.com` (Event Coordinator Lead)
 
 ---
 
@@ -165,7 +165,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 ## TC-EQCAT-008 Other roles cannot open the Equipment page
 
 **Steps**
-1. Log in as `ops@test.com` and open `/staff/technical/equipment` directly.
+1. Log in as `lead@test.com` and open `/staff/technical/equipment` directly.
 
 **Expected Result**
 - The page responds 404 and no catalogue content is shown. The blank page is the app's

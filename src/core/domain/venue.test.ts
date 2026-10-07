@@ -211,7 +211,7 @@ describe("canMaintainVenues (SPM-148)", () => {
   it.each([
     "Event Organiser",
     "Event Coordinator",
-    "Event Operations Manager",
+    "Event Coordinator Lead",
     "Technical Support Staff",
     "Attendee",
   ])("refuses %s", (role) => {

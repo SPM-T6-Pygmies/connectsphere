@@ -32,7 +32,7 @@ export async function LoadedAssignDetail({
   // Checked here rather than left to `StaffShell`: the shell only runs once
   // this has rendered, and by then the request and every coordinator would
   // already have been read for someone who may not open Operations.
-  if (!(await getStaffWorkspaces()).includes("ops")) {
+  if (!(await getStaffWorkspaces()).includes("lead")) {
     forbidden();
   }
 
@@ -83,21 +83,21 @@ export function AssignDetail({
 
   return (
     <StaffShell
-      role="ops"
+      role="lead"
       activeSection={
         origin === "queue" ? (isAssigned ? "assigned" : "unassigned") : undefined
       }
       crumbs={detailCrumbs(
-        "ops",
+        "lead",
         origin,
         isAssigned ? "Assigned" : "Unassigned",
         eventRequest.eventName,
-        isAssigned ? "/staff/ops/assigned" : "/staff/ops",
+        isAssigned ? "/staff/lead/assigned" : "/staff/lead",
       )}
     >
       <PageHeader
         title={eventRequest.eventName}
-        description={`Client organisation ${eventRequest.clientOrganisationId} · requested by account ${eventRequest.requestingUserAccountId}`}
+        description={`${eventRequest.clientOrganisationName || `Client organisation ${eventRequest.clientOrganisationId}`} · requested by account ${eventRequest.requestingUserAccountId}`}
         actions={<StatusBadge status={eventRequest.status} />}
       />
 

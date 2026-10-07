@@ -2,6 +2,7 @@ import type { EventCoordinatorAssignedNotice } from "@/core/ports/outbound/notif
 
 /**
  * The words a coordinator reads when a request is assigned to them (SPM-57),
+ * or an approved event is reassigned to them (SPM-257),
  * shared by every channel that says it -- the Novu in-app step and the copy
  * kept in the `notification` table -- so the two never disagree.
  *
@@ -43,7 +44,7 @@ export function coordinatorAssignedMessage(
 
   return {
     subject: `${notice.eventName} has been assigned to you`,
-    body: `${event} is now yours to review. ${
+    body: `${event} is now yours to ${notice.eventId === undefined ? "review" : "plan"}. ${
       when === null ? "No date has been requested yet." : `Requested for ${when}.`
     }`,
   };

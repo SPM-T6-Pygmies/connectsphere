@@ -44,7 +44,12 @@ as, so the rebuilt database is usable straight away — see
 ## Making a schema change
 
 1. `supabase migration new <short_description>` — creates a timestamped,
-   empty file in `supabase/migrations/`.
+   empty file in `supabase/migrations/`. Keep the timestamp it gives you
+   rather than rounding it to a tidy `…000000`: two branches that both pick
+   "the next day" collide on the same version, which CI rejects. If `main`
+   gains a newer migration before yours merges, CI also fails your PR
+   (`supabase db push` would refuse it) — rename your files to a fresh
+   timestamp, keeping their order.
 2. Hand-write the SQL. Look at the existing migrations for the house style:
    a comment block up top explaining *why*, `add column if not exists` /
    `create ... if not exists` where you can so the migration tolerates being

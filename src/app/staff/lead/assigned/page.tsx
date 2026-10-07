@@ -9,7 +9,7 @@ export default function AssignedRequestsPage() {
   const assigned = assignedRequests();
 
   return (
-    <StaffShell role="ops" crumbs={[{ label: "Assigned" }]}>
+    <StaffShell role="lead" crumbs={[{ label: "Assigned" }]}>
       <QueueEmptyState
         title={assigned.length === 0 ? "Nothing assigned yet" : "Select a request"}
         description={

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { eventRequestDetails, eventRequestFixture } from "@/adapters/outbound/in-memory/event-request-fixture";
+import { InMemoryClientOrganisationRepository } from "@/adapters/outbound/in-memory/in-memory-client-organisation-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventRequestId } from "@/core/domain/event-request";
@@ -32,6 +33,7 @@ describe("ViewAllEventRequestsUseCase (SPM-29)", () => {
       updatedAt: new Date("2026-09-02T09:00:00.000Z"),
     });
     const useCase = new ViewAllEventRequestsUseCase({
+      clientOrganisations: new InMemoryClientOrganisationRepository(),
       eventRequests: new InMemoryEventRequestRepository([unassignedRequest, assignedRequest]),
     });
 
@@ -65,6 +67,7 @@ describe("ViewAllEventRequestsUseCase (SPM-29)", () => {
       requestingUserAccountId: "organiser-2",
       assignedCoordinatorUserAccountId: "coordinator-1",
       clientOrganisationId: "org-b",
+      clientOrganisationName: "",
       createdAt: "2026-09-02T08:00:00.000Z",
       updatedAt: "2026-09-02T09:00:00.000Z",
       queue: "assigned",
@@ -73,6 +76,7 @@ describe("ViewAllEventRequestsUseCase (SPM-29)", () => {
 
   it("never returns a Draft -- it is the Organiser's alone, not Operations'", async () => {
     const useCase = new ViewAllEventRequestsUseCase({
+      clientOrganisations: new InMemoryClientOrganisationRepository(),
       eventRequests: new InMemoryEventRequestRepository([
         eventRequestFixture({ details: eventRequestDetails({ eventName: "Draft request" }) }),
       ]),
@@ -83,7 +87,41 @@ describe("ViewAllEventRequestsUseCase (SPM-29)", () => {
 
   it("AC2: returns an empty list when no event requests exist", async () => {
     const useCase = new ViewAllEventRequestsUseCase({
+      clientOrganisations: new InMemoryClientOrganisationRepository(),
       eventRequests: new InMemoryEventRequestRepository(),
+    });
+
+    await expect(useCase.execute()).resolves.toEqual({ eventRequests: [] });
+  });
+});
+
+describe("ViewAllEventRequestsUseCase (SPM-255)", () => {
+  it("AC2: names each request's client organisation", async () => {
+    const useCase = new ViewAllEventRequestsUseCase({
+      clientOrganisations: new InMemoryClientOrganisationRepository(
+        new Map([[clientOrganisationId("org-a"), "Sunrise Events Co"]]),
+      ),
+      eventRequests: new InMemoryEventRequestRepository([
+        eventRequestFixture({ id: eventRequestId("request-1"), status: "Submitted" }),
+      ]),
+    });
+
+    const { eventRequests } = await useCase.execute();
+
+    expect(eventRequests[0]).toMatchObject({
+      clientOrganisationName: "Sunrise Events Co",
+      preferredDate: "2026-11-04",
+      preferredSlots: ["AM", "PM"],
+      queue: "unassigned",
+    });
+  });
+
+  it("AC4: leaves out a Withdrawn request that never had a coordinator", async () => {
+    const useCase = new ViewAllEventRequestsUseCase({
+      clientOrganisations: new InMemoryClientOrganisationRepository(),
+      eventRequests: new InMemoryEventRequestRepository([
+        eventRequestFixture({ status: "Withdrawn" }),
+      ]),
     });
 
     await expect(useCase.execute()).resolves.toEqual({ eventRequests: [] });

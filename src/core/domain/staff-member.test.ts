@@ -8,6 +8,7 @@ import {
   isStaffWithNoHome,
   landingWorkspaceFor,
   organiserContextFor,
+  coordinatorLeadContextFor,
   safetyOfficerContextFor,
   technicalSupportContextFor,
   pageAreaOwner,
@@ -26,7 +27,7 @@ describe("landingWorkspaceFor (SPM-122)", () => {
   it.each([
     ["Event Organiser", "requester"],
     ["Event Coordinator", "coordinator"],
-    ["Event Operations Manager", "ops"],
+    ["Event Coordinator Lead", "lead"],
     ["Venue Staff", "venue"],
     ["Technical Support Staff", "technical"],
   ])("sends %s to %s", (role, workspace) => {
@@ -48,9 +49,9 @@ describe("landingWorkspaceFor (SPM-122)", () => {
 
 describe("workspacesFor (SPM-122)", () => {
   it("opens the workspace of every staff role a member of staff holds", () => {
-    expect(workspacesFor(["Event Coordinator", "Event Operations Manager"])).toEqual([
+    expect(workspacesFor(["Event Coordinator", "Event Coordinator Lead"])).toEqual([
       "coordinator",
-      "ops",
+      "lead",
     ]);
   });
 
@@ -101,7 +102,7 @@ describe("technicalSupportContextFor (SPM-187)", () => {
     });
   });
 
-  it.each(["Event Coordinator", "Event Operations Manager", "Venue Staff", "Attendee"])(
+  it.each(["Event Coordinator", "Event Coordinator Lead", "Venue Staff", "Attendee"])(
     "AC16: does not act as Technical Support Staff for %s",
     (role) => {
       expect(technicalSupportContextFor(member([role]))).toBeNull();
@@ -121,7 +122,7 @@ describe("pageAreaOwner (SPM-16)", () => {
   it.each([
     ["requester", "Event Organiser"],
     ["coordinator", "Event Coordinator"],
-    ["ops", "Event Operations Manager"],
+    ["lead", "Event Coordinator Lead"],
     ["venue", "Venue Staff"],
     ["technical", "Technical Support Staff"],
   ] as const)("names %s's owner as %s", (area, role) => {
@@ -132,7 +133,7 @@ describe("pageAreaOwner (SPM-16)", () => {
 describe("homeWorkspaceFor (SPM-16)", () => {
   it.each([
     ["Event Coordinator", "coordinator"],
-    ["Event Operations Manager", "ops"],
+    ["Event Coordinator Lead", "lead"],
     ["Venue Staff", "venue"],
     ["Technical Support Staff", "technical"],
   ])("sends %s back to %s", (role, workspace) => {
@@ -200,7 +201,7 @@ describe("Safety Officer role (SPM-258)", () => {
     expect(workspacesFor(["Venue Staff", "Safety Officer"])).toEqual(["venue", "safety"]);
   });
 
-  it.each(["Event Coordinator", "Event Operations Manager", "Venue Staff", "Technical Support Staff", "Attendee"])(
+  it.each(["Event Coordinator", "Event Coordinator Lead", "Venue Staff", "Technical Support Staff", "Attendee"])(
     "does not open the safety workspace for %s",
     (role) => {
       expect(workspacesFor([role])).not.toContain("safety");
@@ -223,10 +224,25 @@ describe("safetyOfficerContextFor (SPM-259)", () => {
     });
   });
 
-  it.each(["Event Coordinator", "Event Operations Manager", "Venue Staff", "Technical Support Staff"])(
+  it.each(["Event Coordinator", "Event Coordinator Lead", "Venue Staff", "Technical Support Staff"])(
     "AC7: does not act as a Safety Officer for %s",
     (role) => {
       expect(safetyOfficerContextFor(member([role]))).toBeNull();
+    },
+  );
+});
+
+describe("coordinatorLeadContextFor (SPM-256)", () => {
+  it("acts as the Lead for a member holding the Event Coordinator Lead role", () => {
+    expect(coordinatorLeadContextFor(member(["Event Coordinator Lead"]))).toEqual({
+      userAccountId: userAccountId("user-1"),
+    });
+  });
+
+  it.each(["Event Coordinator", "Event Organiser", "Safety Officer"])(
+    "does not act as the Lead for %s",
+    (role) => {
+      expect(coordinatorLeadContextFor(member([role]))).toBeNull();
     },
   );
 });

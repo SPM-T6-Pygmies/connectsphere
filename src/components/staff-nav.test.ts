@@ -29,3 +29,24 @@ describe("Safety Officer navigation (SPM-258)", () => {
     })
   })
 })
+
+describe("Event Coordinator Lead navigation (SPM-256)", () => {
+  it("gives the Lead a Coordinators view beside their two request queues", () => {
+    expect(railItems("lead").map(({ title, url }) => ({ title, url }))).toEqual([
+      { title: "Unassigned", url: "/staff/lead" },
+      { title: "Assigned", url: "/staff/lead/assigned" },
+      { title: "Coordinators", url: "/staff/lead/coordinators" },
+      { title: "Notifications", url: "/staff/lead/notifications" },
+    ])
+  })
+
+  it("marks /staff/lead/coordinators as the coordinators section", () => {
+    expect(currentSection("lead", "/staff/lead/coordinators")).toBe("coordinators")
+  })
+})
+
+describe("Event Coordinator Lead navigation (SPM-257)", () => {
+  it("keeps an event opened from the Coordinators view under that section", () => {
+    expect(currentSection("lead", "/staff/lead/events/9")).toBe("coordinators")
+  })
+})

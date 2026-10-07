@@ -32,7 +32,7 @@
 -- There is only one real coordinator, so no request is assigned to a
 -- different one. Quarterly Partner Forum -- Submitted and unassigned -- is the
 -- request Test Coordinator must get a not-found for by direct id (#91), and
--- the one Test Ops Manager has to assign.
+-- the one Test Coordinator Lead has to assign.
 
 do $$
 declare
