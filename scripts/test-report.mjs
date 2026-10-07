@@ -318,13 +318,20 @@ const duplicateIds = (rows) => {
 /**
  * The manual specification, with the title and parent user story refilled from
  * the ticket map so they cannot drift from the ticket. Everything else is hand
- * written and is never reordered or rewritten.
+ * written and is never rewritten.
+ *
+ * Rows are kept in CaseID order rather than the order they were added. Two
+ * branches each appending their cases to the end of the file touch the same
+ * last line and conflict on every rebase; sorted, each feature's TC-<AREA>
+ * block lands in its own place in the file and they merge cleanly.
  */
 function buildManual(existing, tickets) {
-  return existing.map((r) => {
-    const issue = tickets[r.Ticket];
-    return issue ? { ...r, TicketTitle: issue.title, UserStory: issue.parent ?? r.Ticket } : r;
-  });
+  return existing
+    .map((r) => {
+      const issue = tickets[r.Ticket];
+      return issue ? { ...r, TicketTitle: issue.title, UserStory: issue.parent ?? r.Ticket } : r;
+    })
+    .sort((a, b) => a.CaseID.localeCompare(b.CaseID, "en", { numeric: true }));
 }
 
 /** Latest result per case: the ledger is append-only, so the last row wins. */
