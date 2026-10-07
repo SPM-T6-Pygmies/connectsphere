@@ -30,7 +30,7 @@ export function toEquipmentItem(row: EquipmentCatalogueItemRow): EquipmentItem {
 
 /**
  * The domain error a catalogue function's SQLSTATE stands for -- see
- * 20261012000000_equipment_out_of_service.sql -- or null for anything else,
+ * 20261013163432_equipment_out_of_service.sql -- or null for anything else,
  * which the caller reports as the unexpected failure it is. Only an update
  * names an item, so only an update can be refused for one (CS041, CS042).
  */
