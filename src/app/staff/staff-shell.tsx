@@ -26,14 +26,17 @@ import {
   buildViewAllEventRequests,
   buildViewArchivedEventRequests,
   buildViewAssignedEventRequests,
+  buildListEquipmentQueue,
   buildReviewBookingRequests,
   buildViewAssignedEvents,
   buildViewMyEventRequests,
   getCurrentCoordinator,
   getCurrentOrganiser,
+  getCurrentTechnicalSupport,
   getCurrentVenueStaff,
   getSignedInStaffMember,
 } from "@/composition/container"
+import type { EquipmentQueue } from "@/core/domain/equipment-review"
 import {
   ROLE_LABELS,
   type ListPaneItem,
@@ -42,6 +45,7 @@ import {
 } from "@/lib/wireframe"
 
 import { requestStateLabel } from "./coordinator/request-state-badge"
+import { queueTeaser } from "./technical/queue-teaser"
 
 export { PageHeader } from "./page-header"
 
@@ -190,11 +194,35 @@ async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneIte
   }))
 }
 
+/**
+ * Technical Support's pane for one of their three lists, from the same use
+ * case the pages read -- the same events as the page beside it (SPM-273 AC6).
+ */
+async function getQueueItemsForTechnical(queue: EquipmentQueue): Promise<ListPaneItem[]> {
+  const technicalSupport = await getCurrentTechnicalSupport()
+  if (technicalSupport === null) {
+    return []
+  }
+
+  const listEquipmentQueue = await buildListEquipmentQueue()
+  const { events } = await listEquipmentQueue.execute({ ...technicalSupport, queue })
+
+  return events.map((event) => ({
+    id: event.eventId,
+    href: `/staff/technical/${event.eventId}`,
+    title: event.eventName,
+    meta: event.preferredDate ?? "No date",
+    teaser: queueTeaser(queue, event),
+    status: event.status,
+  }))
+}
+
 async function getRespectiveQueueItems(
   role: StaffRole,
   crumbs: readonly Crumb[],
   coordinatorSection: CoordinatorSection,
   venueSection: VenueSection | undefined,
+  technicalQueue: EquipmentQueue,
 ): Promise<ListPaneItem[] | undefined> {
   if (role === "requester") {
     return getQueueItemsForRequester()
@@ -217,6 +245,10 @@ async function getRespectiveQueueItems(
   // inbox screens pass no section and keep the fallback.
   if (role === "venue" && venueSection !== undefined) {
     return getQueueItemsForVenue(venueSection)
+  }
+
+  if (role === "technical") {
+    return getQueueItemsForTechnical(technicalQueue)
   }
 
   return undefined
@@ -248,6 +280,7 @@ export async function StaffShell({
   children,
   coordinatorSection = "requests",
   venueSection,
+  technicalQueue = "needsReview",
 }: {
   role: StaffRole
   crumbs: readonly Crumb[]
@@ -265,6 +298,8 @@ export async function StaffShell({
   children: ReactNode
   coordinatorSection?: CoordinatorSection
   venueSection?: VenueSection
+  /** Which of Technical Support's lists fills the pane. */
+  technicalQueue?: EquipmentQueue
 }) {
   // Every staff screen renders inside this shell, so this is where a signed-in
   // user who does not hold the screen's role is denied access -- before any
@@ -274,7 +309,13 @@ export async function StaffShell({
     forbidden()
   }
 
-  const queueItems = await getRespectiveQueueItems(role, crumbs, coordinatorSection, venueSection)
+  const queueItems = await getRespectiveQueueItems(
+    role,
+    crumbs,
+    coordinatorSection,
+    venueSection,
+    technicalQueue,
+  )
 
   // Detail screens route through `detailCrumbs`, which always gives two crumbs
   // with an href on the first; index screens give one with none. So the crumbs

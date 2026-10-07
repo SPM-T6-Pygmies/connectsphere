@@ -9,7 +9,7 @@ export default function ArchivedReservationsPage() {
   const archived = archivedReservations();
 
   return (
-    <StaffShell role="technical" crumbs={[{ label: "Archive" }]}>
+    <StaffShell role="technical" crumbs={[{ label: "Archive" }]} technicalQueue="archive">
       <QueueEmptyState
         title={archived.length === 0 ? "Nothing archived" : "Select a reservation"}
         description={

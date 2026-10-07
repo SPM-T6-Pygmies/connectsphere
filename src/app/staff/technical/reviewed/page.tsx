@@ -9,7 +9,7 @@ export default function ReviewedReservationsPage() {
   const reviewed = reviewedReservations();
 
   return (
-    <StaffShell role="technical" crumbs={[{ label: "Reviewed" }]}>
+    <StaffShell role="technical" crumbs={[{ label: "Reviewed" }]} technicalQueue="reviewed">
       <QueueEmptyState
         title={reviewed.length === 0 ? "Nothing reviewed yet" : "Select a reservation"}
         description={
