@@ -27,8 +27,8 @@ That is the whole setup — you can log in immediately.
 | Event Organiser (second, same organisation) | `organiser2@test.com` | `TestPass123!` |
 | Event Coordinator | `coordinator@test.com` | `TestPass123!` |
 | Event Coordinator (second) | `coordinator2@test.com` | `TestPass123!` |
-| Event Operations Manager | `ops@test.com` | `TestPass123!` |
-| Event Operations Manager (second) | `ops2@test.com` | `TestPass123!` |
+| Event Coordinator Lead | `lead@test.com` | `TestPass123!` |
+| Event Coordinator Lead (second) | `lead2@test.com` | `TestPass123!` |
 | Venue Staff | `venue@test.com` | `TestPass123!` |
 | Venue Staff (second) | `venue2@test.com` | `TestPass123!` |
 | Technical Support Staff | `support@test.com` | `TestPass123!` |

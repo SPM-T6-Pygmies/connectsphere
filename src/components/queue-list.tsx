@@ -8,7 +8,7 @@ import type { ListPaneItem } from "@/lib/wireframe"
  *
  * One markup, two surfaces: the desktop list pane renders it inside the
  * sidebar, and below md it is the page body itself -- which is the only way
- * ops, venue and technical can reach their queue on a phone, their index
+ * lead, venue and technical can reach their queue on a phone, their index
  * routes having nothing but a `QueueEmptyState` of their own.
  *
  * Takes the active path as a prop rather than calling `usePathname()`, so it

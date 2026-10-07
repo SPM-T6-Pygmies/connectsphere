@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { StaffRole } from "@/lib/wireframe";
 
 import { CoordinatorDetail } from "./coordinator/coordinator-detail";
-import { LoadedAssignDetail } from "./ops/assign-detail";
+import { LoadedAssignDetail } from "./lead/assign-detail";
 import { EventEquipmentDetail } from "./technical/event-equipment-detail";
 import { BookingDetail } from "./venue/booking-detail";
 
@@ -32,7 +32,7 @@ export function NotificationDetail({
   switch (role) {
     case "coordinator":
       return <CoordinatorDetail id={recordId} origin="inbox" />;
-    case "ops":
+    case "lead":
       return <LoadedAssignDetail id={recordId} origin="inbox" />;
     case "venue":
       return <BookingDetail id={recordId} origin="inbox" />;

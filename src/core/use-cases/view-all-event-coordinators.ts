@@ -14,7 +14,7 @@ export interface ViewAllEventCoordinatorsDeps {
 }
 
 /**
- * The Event Operations Manager's complete coordinator list.
+ * The Event Coordinator Lead's complete coordinator list.
  *
  * A thin read slice (ARCHITECTURE.md section 11): nothing in the domain decides
  * anything about it, so the repository answers with the view itself.

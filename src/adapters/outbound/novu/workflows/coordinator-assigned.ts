@@ -7,13 +7,19 @@ export const COORDINATOR_ASSIGNED_WORKFLOW_ID = "coordinator-assigned";
 
 /**
  * The Inbox entry a coordinator sees (SPM-57): the shared wording, plus a click
- * that opens the request in their own workspace (AC5). `_self` because the
- * request lives in this app, not somewhere to open alongside it.
+ * that opens the request in their own workspace (AC5) -- or, for a reassigned
+ * event, the event in My events (SPM-257), since the request stays with
+ * whoever reviewed it. `_self` because both live in this app, not somewhere to
+ * open alongside it.
  */
 export function coordinatorAssignedInApp(notice: EventCoordinatorAssignedNotice) {
+  const url =
+    notice.eventId === undefined
+      ? `/staff/coordinator/${notice.eventRequestId}`
+      : `/staff/coordinator/events/${notice.eventId}`;
   return {
     ...coordinatorAssignedMessage(notice),
-    redirect: { url: `/staff/coordinator/${notice.eventRequestId}`, target: "_self" as const },
+    redirect: { url, target: "_self" as const },
   };
 }
 
@@ -38,6 +44,7 @@ export const coordinatorAssigned = workflow(
       properties: {
         recipientUserAccountId: { type: "string" },
         eventRequestId: { type: "string" },
+        eventId: { type: "string" },
         eventName: { type: "string" },
         clientOrganisationName: { type: ["string", "null"] },
         preferredDate: { type: ["string", "null"] },

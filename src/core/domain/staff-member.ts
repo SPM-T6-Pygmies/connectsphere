@@ -2,13 +2,13 @@ import type { ClientOrganisationId } from "./client-organisation";
 import type { CoordinatorContext, OrganiserContext } from "./event-request";
 import type { UserAccountId } from "./user-account";
 
-export type StaffWorkspace = "requester" | "coordinator" | "ops" | "venue" | "technical" | "safety";
+export type StaffWorkspace = "requester" | "coordinator" | "lead" | "venue" | "technical" | "safety";
 
 /** Where each staff role works, keyed by the role's name as the `role` table spells it. */
 const WORKSPACE_BY_ROLE: ReadonlyMap<string, StaffWorkspace> = new Map([
   ["Event Organiser", "requester"],
   ["Event Coordinator", "coordinator"],
-  ["Event Operations Manager", "ops"],
+  ["Event Coordinator Lead", "lead"],
   ["Venue Staff", "venue"],
   ["Technical Support Staff", "technical"],
   ["Safety Officer", "safety"],
@@ -121,6 +121,20 @@ export interface SafetyOfficerContext {
 /** Who a member of staff acts as on the Safety Officer's screens: only a Safety Officer (SPM-259 AC7). */
 export function safetyOfficerContextFor(member: StaffMember): SafetyOfficerContext | null {
   if (!member.roles.includes("Safety Officer")) {
+    return null;
+  }
+
+  return { userAccountId: member.userAccountId };
+}
+
+/** Who a member of staff acts as on the Event Coordinator Lead's screens. */
+export interface CoordinatorLeadContext {
+  readonly userAccountId: UserAccountId;
+}
+
+/** Who a member of staff acts as on the Event Coordinator Lead's screens: only a Lead (SPM-256). */
+export function coordinatorLeadContextFor(member: StaffMember): CoordinatorLeadContext | null {
+  if (!member.roles.includes("Event Coordinator Lead")) {
     return null;
   }
 

@@ -805,6 +805,22 @@ export class SafetyCheckCommentsRequiredError extends DomainError {
   }
 }
 
+export class NotCoordinatorLeadError extends DomainError {
+  readonly code = "not_coordinator_lead";
+
+  constructor() {
+    super("Only an Event Coordinator Lead can oversee every coordinator's work.");
+  }
+}
+
+export class EventNotReassignableError extends DomainError {
+  readonly code = "event_not_reassignable";
+
+  constructor(readonly status: string) {
+    super(`A ${status} event's coordinator cannot change.`);
+  }
+}
+
 export class EquipmentRequirementConflictError extends DomainError {
   readonly code = "equipment_requirement_conflict";
 

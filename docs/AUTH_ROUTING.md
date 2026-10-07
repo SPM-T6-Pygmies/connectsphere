@@ -51,14 +51,14 @@ const { data, error } = await supabase.auth.signInWithPassword({
 ```typescript
 // LoginUseCase queries the database
 const user = await userRepository.findByAuthUserId(userId);
-// Returns: { userId, name, roles: ["Event Coordinator", "Event Operations Manager"] }
+// Returns: { userId, name, roles: ["Event Coordinator", "Event Coordinator Lead"] }
 ```
 
 ### Step 3: Roles Stored in Auth Metadata
 ```typescript
 // Server Action updates auth user with role data
 await supabase.auth.updateUser({
-  data: { roles: ["Event Coordinator", "Event Operations Manager"] }
+  data: { roles: ["Event Coordinator", "Event Coordinator Lead"] }
 });
 ```
 

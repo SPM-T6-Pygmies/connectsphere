@@ -38,6 +38,7 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       coordinator: null,
       technicalSupport: null,
       safetyOfficer: null,
+      coordinatorLead: null,
       workspaces: ["requester"],
       homeWorkspace: "requester",
     });
@@ -57,21 +58,23 @@ describe("IdentifyStaffMemberUseCase (SPM-122)", () => {
       coordinator: { userAccountId: "user-1", name: "Sam" },
       technicalSupport: null,
       safetyOfficer: null,
+      coordinatorLead: null,
       workspaces: ["coordinator"],
       homeWorkspace: "coordinator",
     });
   });
 
   it("acts as neither for a role with no Organiser or Coordinator screens", async () => {
-    await expect(identify(user(["Event Operations Manager"]))).resolves.toEqual({
+    await expect(identify(user(["Event Coordinator Lead"]))).resolves.toEqual({
       name: "Sam",
       userAccountId: "user-1",
       organiser: null,
       coordinator: null,
       technicalSupport: null,
       safetyOfficer: null,
-      workspaces: ["ops"],
-      homeWorkspace: "ops",
+      coordinatorLead: { userAccountId: "user-1" },
+      workspaces: ["lead"],
+      homeWorkspace: "lead",
     });
   });
 

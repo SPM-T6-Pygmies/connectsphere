@@ -52,7 +52,7 @@ Units out of service, added by SPM-17, are tested in
 
 ### Test Accounts (password `TestPass123!`)
 - `support@test.com` (Technical Support Staff)
-- `ops@test.com` (Event Operations Manager)
+- `lead@test.com` (Event Coordinator Lead)
 
 ---
 
@@ -192,7 +192,7 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 ## TC-EQCAT-016 Other roles cannot open the Equipment page
 
 **Steps**
-1. Log in as `ops@test.com` and open `/staff/technical/equipment` directly, with the
+1. Log in as `lead@test.com` and open `/staff/technical/equipment` directly, with the
    browser's Network tab open.
 
 **Expected Result**

@@ -34,3 +34,23 @@ describe("coordinatorAssigned (SPM-180)", () => {
     expect(definition.name).toBe("Coordinator assigned");
   });
 });
+
+describe("coordinatorAssignedInApp (SPM-257)", () => {
+  it("AC3: opens a reassigned event in the coordinator's My events, and says it is theirs to plan", () => {
+    const inApp = coordinatorAssignedInApp({
+      recipientUserAccountId: "7",
+      eventRequestId: "42",
+      eventId: "9",
+      eventName: "Founders' Day",
+      clientOrganisationName: "Acme Holdings",
+      preferredDate: "2026-11-04",
+      preferredSlots: [],
+    });
+
+    expect(inApp).toEqual({
+      subject: "Founders' Day has been assigned to you",
+      body: "Founders' Day for Acme Holdings is now yours to plan. Requested for Wed, 4 Nov 2026.",
+      redirect: { url: "/staff/coordinator/events/9", target: "_self" },
+    });
+  });
+});

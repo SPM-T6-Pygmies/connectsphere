@@ -76,7 +76,7 @@ async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
   }))
 }
 
-async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
+async function getQueueItemsForLead(assigned: boolean): Promise<ListPaneItem[]> {
   const [viewAllEventRequests, viewAllEventCoordinators] = await Promise.all([
     buildViewAllEventRequests(),
     buildViewAllEventCoordinators(),
@@ -93,14 +93,20 @@ async function getQueueItemsForOps(assigned: boolean): Promise<ListPaneItem[]> {
     .filter((request) => request.queue === (assigned ? "assigned" : "unassigned"))
     .map((request) => ({
       id: request.id,
-      href: `/staff/ops/${request.id}`,
+      href: `/staff/lead/${request.id}`,
       title: request.eventName,
-      meta: request.preferredDate ?? "No date",
-      teaser:
+      meta: [request.preferredDate ?? "No date", request.preferredSlots.join(", ")]
+        .filter(Boolean)
+        .join(" · "),
+      teaser: [
+        request.clientOrganisationName,
         request.assignedCoordinatorUserAccountId === null
           ? "No coordinator assigned yet."
           : coordinatorNames.get(request.assignedCoordinatorUserAccountId) ??
             "Coordinator assigned",
+      ]
+        .filter(Boolean)
+        .join(" · "),
       status: request.status,
     }))
 }
@@ -228,9 +234,13 @@ async function getRespectiveQueueItems(
     return getQueueItemsForRequester()
   }
 
-  if (role === "ops") {
+  if (role === "lead") {
+    // The Coordinators view and the events opened from it have no queue to list.
+    if (crumbs[0]?.label === "Coordinators") {
+      return []
+    }
     const assigned = crumbs.some((crumb) => crumb.label === "Assigned")
-    return getQueueItemsForOps(assigned)
+    return getQueueItemsForLead(assigned)
   }
 
   if (role === "coordinator") {

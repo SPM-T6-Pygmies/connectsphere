@@ -12,6 +12,7 @@ import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supaba
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEquipmentCatalogue } from "@/adapters/outbound/supabase/supabase-equipment-catalogue";
+import { SupabaseLeadEventRepository } from "@/adapters/outbound/supabase/supabase-lead-event-repository";
 import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supabase/supabase-technical-equipment-repository";
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
@@ -86,6 +87,9 @@ import { ViewEventEquipmentForTechnicalSupportUseCase } from "@/core/use-cases/v
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
+import { ViewCoordinatorWorkloadsUseCase } from "@/core/use-cases/view-coordinator-workloads";
+import { ReassignEventCoordinatorUseCase } from "@/core/use-cases/reassign-event-coordinator";
+import { ViewLeadEventUseCase } from "@/core/use-cases/view-lead-event";
 import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
 import { CreateEquipmentItemUseCase } from "@/core/use-cases/create-equipment-item";
@@ -205,20 +209,55 @@ export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEve
 }
 
 export async function buildViewAllEventRequests(): Promise<ViewAllEventRequestsUseCase> {
+  const client = await createSupabaseServerClient();
   return new ViewAllEventRequestsUseCase({
-    eventRequests: await eventRequestAdapters(),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
   });
 }
 
 export async function buildViewOperationsEventRequest(): Promise<ViewOperationsEventRequestUseCase> {
+  const client = await createSupabaseServerClient();
   return new ViewOperationsEventRequestUseCase({
-    eventRequests: await eventRequestAdapters(),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
   });
 }
 
 export async function buildViewAllEventCoordinators(): Promise<ViewAllEventCoordinatorsUseCase> {
   return new ViewAllEventCoordinatorsUseCase({
     userAccounts: new SupabaseUserAccountRepository(await createSupabaseServerClient()),
+  });
+}
+
+/** SPM-256: every coordinator with their requests and active events. */
+export async function buildViewCoordinatorWorkloads(): Promise<ViewCoordinatorWorkloadsUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewCoordinatorWorkloadsUseCase({
+    userAccounts: new SupabaseUserAccountRepository(client),
+    eventRequests: new SupabaseEventRequestRepository(client),
+    leadEvents: new SupabaseLeadEventRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+  });
+}
+
+/** SPM-257: one event as the Lead opens it to reassign. */
+export async function buildViewLeadEvent(): Promise<ViewLeadEventUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewLeadEventUseCase({
+    leadEvents: new SupabaseLeadEventRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+  });
+}
+
+/** SPM-257: the Lead hands an active event to another coordinator. */
+export async function buildReassignEventCoordinator(): Promise<ReassignEventCoordinatorUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ReassignEventCoordinatorUseCase({
+    leadEvents: new SupabaseLeadEventRepository(client),
+    userAccounts: new SupabaseUserAccountRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+    notifier: recordedNotifier(),
   });
 }
 
@@ -366,6 +405,16 @@ export async function buildViewEventEquipmentForTechnicalSupport(): Promise<View
 export async function getCurrentSafetyOfficer(): Promise<{ readonly userAccountId: string } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.safetyOfficer ?? null;
+}
+
+/**
+ * Who the Event Coordinator Lead's screens are acting as: the signed-in Lead
+ * (SPM-256). `null` for anyone else, so callers refuse the page. Same shape
+ * as `getCurrentSafetyOfficer`.
+ */
+export async function getCurrentCoordinatorLead(): Promise<{ readonly userAccountId: string } | null> {
+  const identifyStaffMember = await buildIdentifyStaffMember();
+  return (await identifyStaffMember.execute())?.coordinatorLead ?? null;
 }
 
 /** SPM-259: the events awaiting a safety check. */

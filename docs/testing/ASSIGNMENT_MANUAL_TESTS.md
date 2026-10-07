@@ -2,10 +2,10 @@
 
 ## Overview
 
-Browser checks for the Event Operations Manager's request lists
-(`/staff/ops` for **Unassigned**, `/staff/ops/assigned` for **Assigned**) and
+Browser checks for the Event Coordinator Lead's request lists
+(`/staff/lead` for **Unassigned**, `/staff/lead/assigned` for **Assigned**) and
 assigning or reassigning an Event Coordinator from a request's detail page
-(`/staff/ops/<id>`).
+(`/staff/lead/<id>`).
 
 The rules behind them are unit-tested: which requests Operations sees and in
 which list (`operationsQueueFor` -- never a Draft), which statuses can take a
@@ -45,7 +45,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | Account | Role |
 | --- | --- |
 | `organiser@test.com` | Event Organiser (Test Organiser) |
-| `ops@test.com` | Event Operations Manager |
+| `lead@test.com` | Event Coordinator Lead |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
 | `coordinator2@test.com` | Event Coordinator (Test Coordinator 2) |
 
@@ -68,11 +68,11 @@ Run the cases in order: each starts from the state the previous one left.
 ### TC-ASSIGN-001: Operations sees every submitted request, split by whether it has a coordinator (SPM-29 AC1)
 
 **Preconditions:** Seeded as above, QA Assign Workshop submitted; signed in as
-`ops@test.com`.
+`lead@test.com`.
 
 **Steps:**
-1. Open `/staff/ops` (Unassigned) and read the list.
-2. Open `/staff/ops/assigned` (Assigned) and read the list.
+1. Open `/staff/lead` (Unassigned) and read the list.
+2. Open `/staff/lead/assigned` (Assigned) and read the list.
 
 **Expected Result:**
 - Unassigned lists **QA Assign Workshop** and **Quarterly Partner Forum**,
@@ -92,7 +92,7 @@ Run the cases in order: each starts from the state the previous one left.
 **Preconditions:** As TC-ASSIGN-001.
 
 **Steps:**
-1. On `/staff/ops`, click **QA Assign Workshop**.
+1. On `/staff/lead`, click **QA Assign Workshop**.
 2. Read the **Assign a coordinator** card.
 
 **Expected Result:**
@@ -110,7 +110,7 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Steps:**
 1. Select **Test Coordinator 2** and click **Assign coordinator**.
-2. Reload the page, then open `/staff/ops` and `/staff/ops/assigned`.
+2. Reload the page, then open `/staff/lead` and `/staff/lead/assigned`.
 
 **Expected Result:**
 - "QA Assign Workshop has been assigned" is shown
@@ -144,10 +144,10 @@ Run the cases in order: each starts from the state the previous one left.
 
 ### TC-ASSIGN-005: Reassigning moves the request to the new coordinator and keeps its status (SPM-130 AC3)
 
-**Preconditions:** As left by TC-ASSIGN-004; signed in as `ops@test.com`.
+**Preconditions:** As left by TC-ASSIGN-004; signed in as `lead@test.com`.
 
 **Steps:**
-1. Open `/staff/ops/<qa>`. Select **Test Coordinator** and click **Reassign**.
+1. Open `/staff/lead/<qa>`. Select **Test Coordinator** and click **Reassign**.
 2. Reload. Then sign in as each coordinator in turn and open
    `/staff/coordinator`.
 
@@ -165,10 +165,10 @@ Run the cases in order: each starts from the state the previous one left.
 
 ### TC-ASSIGN-006: Reassigning to the current coordinator is not offered (SPM-130 AC3, boundary)
 
-**Preconditions:** As left by TC-ASSIGN-005; signed in as `ops@test.com`.
+**Preconditions:** As left by TC-ASSIGN-005; signed in as `lead@test.com`.
 
 **Steps:**
-1. Open `/staff/ops/<qa>`. Leave **Test Coordinator** (marked "Current")
+1. Open `/staff/lead/<qa>`. Leave **Test Coordinator** (marked "Current")
    selected.
 2. Select **Test Coordinator 2**, then select **Test Coordinator** again.
 
@@ -187,10 +187,10 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Preconditions:** A request assigned to Test Coordinator has been rejected
 (e.g. Venue Safety Review after `TC-DECIDE-003`) or withdrawn (`TC-WITHDRAW-001`);
-signed in as `ops@test.com`.
+signed in as `lead@test.com`.
 
 **Steps:**
-1. Open `/staff/ops/assigned` and click that request.
+1. Open `/staff/lead/assigned` and click that request.
 2. Read the **Reassign coordinator** card.
 
 **Expected Result:**
@@ -204,7 +204,7 @@ signed in as `ops@test.com`.
 
 ### TC-ASSIGN-008: With nothing awaiting assignment, Unassigned is empty (SPM-29 AC2, boundary)
 
-**Preconditions:** Signed in as `ops@test.com`. Every non-Draft request has a
+**Preconditions:** Signed in as `lead@test.com`. Every non-Draft request has a
 coordinator: assign any request still under Unassigned (on a fresh seed plus
 TC-ASSIGN-003, only Quarterly Partner Forum) to Test Coordinator 2 through the
 app. Afterwards put Quarterly Partner Forum back the way the seed left it, so
@@ -217,7 +217,7 @@ update event_request
 ```
 
 **Steps:**
-1. Open `/staff/ops`.
+1. Open `/staff/lead`.
 
 **Expected Result:**
 - The Unassigned list shows no requests
