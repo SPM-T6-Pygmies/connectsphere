@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,74 +25,75 @@ export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
 
   return (
     <li>
-      <Card className="h-full gap-0 py-4">
-        <CardContent className="px-4">
-          <form action={formAction} className="grid gap-3">
+      <Card className="h-full gap-0 py-3">
+        <CardContent className="px-3">
+          <form action={formAction} className="grid gap-2">
             <input type="hidden" name="equipmentItemId" value={item.id} />
 
-            <div className="min-w-0">
-              <h4 className="font-medium">{item.type}</h4>
-              {item.description ? (
-                <p className="text-muted-foreground text-xs">{item.description}</p>
-              ) : null}
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h4 className="truncate text-sm font-medium">{item.type}</h4>
+                {item.description ? (
+                  <p className="text-muted-foreground line-clamp-1 text-xs">{item.description}</p>
+                ) : null}
+              </div>
+              <Badge variant={item.outOfService > 0 ? "warning" : "secondary"} className="shrink-0">
+                In service: {item.inService} of {item.quantity}
+              </Badge>
             </div>
 
-            <label className="text-muted-foreground grid gap-1 text-xs">
-              Owned
-              <Input
-                name="quantity"
-                inputMode="numeric"
-                aria-label={`Owned ${item.type}`}
-                className="text-foreground"
-                value={quantity}
-                onChange={(event) => setQuantity(event.target.value)}
-                disabled={pending}
-              />
-            </label>
+            <div className="grid grid-cols-[4.5rem_6rem_minmax(0,1fr)] gap-2">
+              <label className="text-muted-foreground grid gap-1 text-xs">
+                Owned
+                <Input
+                  name="quantity"
+                  inputMode="numeric"
+                  aria-label={`Owned ${item.type}`}
+                  className="text-foreground h-8"
+                  value={quantity}
+                  onChange={(event) => setQuantity(event.target.value)}
+                  disabled={pending}
+                />
+              </label>
+              <label className="text-muted-foreground grid gap-1 text-xs">
+                Out of service
+                <Input
+                  name="outOfService"
+                  inputMode="numeric"
+                  aria-label={`${item.type} out of service`}
+                  className="text-foreground h-8"
+                  value={outOfService}
+                  onChange={(event) => setOutOfService(event.target.value)}
+                  disabled={pending}
+                />
+              </label>
+              <label className="text-muted-foreground grid gap-1 text-xs">
+                Location
+                <Input
+                  name="location"
+                  aria-label={`Location of ${item.type}`}
+                  className="text-foreground h-8"
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                  disabled={pending}
+                />
+              </label>
+            </div>
 
-            <label className="text-muted-foreground grid gap-1 text-xs">
-              Location
-              <Input
-                name="location"
-                aria-label={`Location of ${item.type}`}
-                className="text-foreground"
-                value={location}
-                onChange={(event) => setLocation(event.target.value)}
-                disabled={pending}
-              />
-            </label>
-
-            <label className="text-muted-foreground grid gap-1 text-xs">
-              Out of service
-              <Input
-                name="outOfService"
-                inputMode="numeric"
-                aria-label={`${item.type} out of service`}
-                className="text-foreground"
-                value={outOfService}
-                onChange={(event) => setOutOfService(event.target.value)}
-                disabled={pending}
-              />
-            </label>
-
-            <p className="text-muted-foreground text-xs">
-              In service: <span className="text-foreground font-medium">{item.inService}</span> of {item.quantity}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="submit" size="sm" variant="outline" disabled={pending}>
-                {pending ? "Saving…" : "Update"}
-              </Button>
+            <div className="flex items-center justify-end gap-2">
               {state.status === "error" ? (
-                <p role="alert" className="text-destructive text-xs">
+                <p role="alert" className="text-destructive mr-auto text-xs">
                   {state.message}
                 </p>
               ) : null}
               {state.status === "success" ? (
-                <p role="status" className="text-muted-foreground text-xs">
+                <p role="status" className="text-muted-foreground mr-auto text-xs">
                   {state.message}
                 </p>
               ) : null}
+              <Button type="submit" size="sm" variant="outline" className="h-7" disabled={pending}>
+                {pending ? "Saving…" : "Update"}
+              </Button>
             </div>
           </form>
         </CardContent>
