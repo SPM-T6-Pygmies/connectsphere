@@ -6,7 +6,7 @@ import { equipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
 import type { EquipmentQueue } from "@/core/domain/equipment-review";
 import { eventId } from "@/core/domain/event";
-import type { EventWithEquipment } from "@/core/ports/outbound/technical-equipment-repository";
+import type { EventEquipmentStock } from "@/core/ports/outbound/technical-equipment-repository";
 
 import { ListEquipmentQueueUseCase } from "./list-equipment-queue";
 
@@ -51,11 +51,14 @@ function entry(
   lines: readonly EquipmentRequirement[],
   status: CoordinatorEventStatus = "Planning",
   preferredDate: string | null = "2026-12-12",
-): EventWithEquipment {
-  return { event: { id: eventId(id), name: `Event ${id}`, status, preferredDate }, lines };
+): EventEquipmentStock {
+  return {
+    event: { id: eventId(id), name: `Event ${id}`, status, preferredDate },
+    lines: lines.map((line) => ({ line, equipmentType: String(line.equipmentItemId), owned: 10, otherHolds: [] })),
+  };
 }
 
-function list(seed: readonly EventWithEquipment[], queue: EquipmentQueue = "needsReview") {
+function list(seed: readonly EventEquipmentStock[], queue: EquipmentQueue = "needsReview") {
   return new ListEquipmentQueueUseCase({ equipment: new InMemoryTechnicalEquipmentRepository(seed) }).execute({
     userAccountId: SUPPORT,
     queue,
