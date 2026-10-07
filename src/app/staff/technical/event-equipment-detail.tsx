@@ -99,8 +99,8 @@ export async function EventEquipmentDetail({ id, origin = "queue" }: { id: strin
         <CardHeader>
           <CardTitle>Equipment lines</CardTitle>
           <CardDescription>
-            Available counts the units owned, less what other events hold from the day before to the day of their
-            event.
+            Available counts the units owned, less those out of service and what other events hold from the day
+            before to the day of their event.
           </CardDescription>
         </CardHeader>
         <CardContent>
