@@ -45,7 +45,7 @@ export default async function OrganisationEventsPage() {
   /**
    * Organisers in the same client organisation -- used only to resolve
    * "Submitted by" names below. Not for reassignment: #101 names the Event
-   * Operations Manager as the only role with assign/reassign authority, not
+   * Coordinator Lead as the only role with assign/reassign authority, not
    * the Event Organiser, so this page offers no way to trigger it.
    */
   const listOrganisationOrganisers = await buildListOrganisationOrganisers();

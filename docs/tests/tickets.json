@@ -706,6 +706,21 @@
       "title": "Notify the coordinator of the safety outcome",
       "parent": "SPM-47",
       "status": "In Progress"
+    },
+    "SPM-255": {
+      "title": "Review an unassigned request",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-256": {
+      "title": "Oversee coordinator assignments",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-257": {
+      "title": "Reassign an active event's coordinator",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }

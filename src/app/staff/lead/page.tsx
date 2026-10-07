@@ -9,7 +9,7 @@ export default function OpsPage() {
   const unassigned = awaitingAssignment();
 
   return (
-    <StaffShell role="ops" crumbs={[{ label: "Unassigned" }]}>
+    <StaffShell role="lead" crumbs={[{ label: "Unassigned" }]}>
       <QueueEmptyState
         title={unassigned.length === 0 ? "Nothing awaiting assignment" : "Select a request"}
         description={

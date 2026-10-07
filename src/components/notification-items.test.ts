@@ -33,9 +33,9 @@ describe("notificationItem (SPM-174)", () => {
   })
 
   it("leaves a redirect into another role's workspace as it is", () => {
-    const item = notificationItem("coordinator", notification({ redirect: { url: "/staff/ops/10" } }))
+    const item = notificationItem("coordinator", notification({ redirect: { url: "/staff/lead/10" } }))
 
-    expect(item.href).toBe("/staff/ops/10")
+    expect(item.href).toBe("/staff/lead/10")
   })
 
   it("stays on the inbox when a notification points nowhere", () => {

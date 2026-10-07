@@ -73,7 +73,7 @@ export default async function CoordinatorPage() {
     <StaffShell role="coordinator" crumbs={[{ label: "My requests" }]}>
       <PageHeader
         title="Requests assigned to me"
-        description="Event requests an Operations Manager has assigned to you for review."
+        description="Event requests a Coordinator Lead has assigned to you for review."
       />
       {/* Below md the queue renders as the page body; see MobileQueue. */}
       <div className="hidden md:block">
