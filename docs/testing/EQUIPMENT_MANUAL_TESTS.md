@@ -9,8 +9,11 @@ the pages show the right thing, that the warning appears before a reserved line 
 saved, and that a change made by the coordinator reaches Technical Support.
 
 A reserved line the coordinator changes, or asks to remove, goes from **Reserved**
-to **Under review**: the screens show this as the **Needs re-check** badge, and it
-is what puts the line on Technical Support's list. TC-EQUIP-009 checks the state
+to **Under review**: the coordinator's screens show this as the **Needs re-check** badge, and
+it is what puts the event on Technical Support's **Needs review** list, with the line marked
+**Changed** or **Removal requested** on the event's page there. Since SPM-273 a line nothing is
+reserved against puts the event on that list too, marked **New**
+([`EQUIPMENT_REVIEW_MANUAL_TESTS.md`](EQUIPMENT_REVIEW_MANUAL_TESTS.md)). TC-EQUIP-009 checks the state
 itself in the database. TC-EQUIP-010 checks that editing a line back to what Technical Support
 reserved against clears the re-check, and TC-EQUIP-011 that withdrawing a removal request does the same. The access-denied screen in TC-EQUIP-008 comes from SPM-16
 ([`ACCESS_DENIED_MANUAL_TESTS.md`](ACCESS_DENIED_MANUAL_TESTS.md)).
@@ -21,7 +24,9 @@ The cases are specified in [`../tests/manual-registry.csv`](../tests/manual-regi
 `manual-runs.csv` when the PR merges, so do not edit that file. The ticked boxes and screenshots
 below are the working record for this run.
 
-**Last run:** all eleven cases passed on 3/10/2026 at commit `7e4ed7d`, the merge of `main` into this branch (see
+**Last run:** all eleven cases passed on 3/10/2026 at commit `7e4ed7d`. SPM-273 since replaced
+Technical Support's list, so TC-EQUIP-003, 004, 005, 008, 010 and 011 are reworded for it and
+await a re-run; their screenshots are from that earlier run, the merge of `main` into this branch (see
 each case's Status and Screenshots). A browser script drove the cases and checked each expected result,
 including the database checks (85 checks in all); the screenshots are in [`../screenshots/`](../screenshots/).
 
@@ -59,7 +64,7 @@ Password for both: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.
 | Account | Role | Used for |
 | --- | --- | --- |
 | `coordinator@test.com` | Event Coordinator | Recording, editing and removing lines |
-| `support@test.com` | Technical Support Staff | The "Needs re-check" list |
+| `support@test.com` | Technical Support Staff | The Needs review list and the event's equipment page (SPM-273) |
 | `venue@test.com` | Venue Staff | Being refused the list (TC-EQUIP-008) |
 
 ### The seeded event
@@ -154,10 +159,11 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 - Step 2: the Projector is **not** put under review: no "Needs re-check" badge (AC9). A
   warning is shown, because the line is reserved (see TC-EQUIP-004).
 - Step 3: the line disappears from the event (AC10).
-- Signed in as `support@test.com`, `/staff/technical` still says *Nothing needs
-  re-checking.* after these three steps.
+- Signed in as `support@test.com`, `/staff/technical` says *Nothing needs your attention.*
+  after these three steps: the only line left, the Projector, is reserved and unchanged.
+  (Before step 3 the event was listed, its unreserved microphone being **New**.)
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (6/6 checks)
+**Status:** [ ] Pass [ ] Fail — expected result reworded for SPM-273's Needs review page; not re-run yet (previous pass: 3/10/2026, commit `7e4ed7d`, 6/6 checks)
 
 **Screenshots:** [step1-microphone-5-no-badge](../screenshots/2026-10-03_TC-EQUIP-003_step1-microphone-5-no-badge.jpg) · [step2-projector-saved-unchanged](../screenshots/2026-10-03_TC-EQUIP-003_step2-projector-saved-unchanged.jpg) · [step3-microphone-removed](../screenshots/2026-10-03_TC-EQUIP-003_step3-microphone-removed.jpg) · [step4-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-003_step4-technical-support-list-empty.jpg)
 
@@ -173,20 +179,21 @@ This is the end-to-end case across both roles.
 1. On **Projector** (Requested 2, Reserved 2), press **Edit**.
 2. Read the panel before changing anything.
 3. Change the quantity to `3` and press **Save changes**.
-4. Sign out, sign in as `support@test.com`, open `/staff/technical`.
+4. Sign out, sign in as `support@test.com`, open `/staff/technical`, then open
+   *Founders' Gala Dinner*.
 
 **Expected Result:**
 - Step 2: a warning reads *Technical Support Staff will be asked to re-check this
   line* and says the reserved equipment stays held (AC12).
 - Step 3: the line shows *Requested 3 · Reserved 2*, with the **Reserved** and
   **Needs re-check** badges. The reserved quantity did not change (AC8).
-- Step 4: **Needs re-check** lists *Founders' Gala Dinner* (with its date),
-  *Projector*, Requested **3**, Reserved **2**, marked **Changed** (AC15).
-- No other line is on the list.
+- Step 4: **Needs review** lists *Founders' Gala Dinner* (with its date) as *1 line of 1
+  needs attention*. Its page shows *Projector*, Requested **3** (*was 2*), Reserved **2**,
+  marked **Changed** (AC15).
 - In the database, the Projector's `line_state` is now `Under review` and its
   `quantity_reserved` is still `2` (query in TC-EQUIP-009).
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (6/6 checks)
+**Status:** [ ] Pass [ ] Fail — expected result reworded for SPM-273's Needs review page; not re-run yet (previous pass: 3/10/2026, commit `7e4ed7d`, 6/6 checks)
 
 **Screenshots:** [step2-edit-warning](../screenshots/2026-10-03_TC-EQUIP-004_step2-edit-warning.jpg) · [step3-projector-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-004_step3-projector-needs-recheck.jpg) · [step4-technical-support-list-changed](../screenshots/2026-10-03_TC-EQUIP-004_step4-technical-support-list-changed.jpg)
 
@@ -200,9 +207,9 @@ This is the end-to-end case across both roles.
 1. On **Projector**, press **Remove**.
 2. Read the panel, then press **Request removal**.
 3. Look at the Projector line. Try to find an **Edit** or **Remove** button on it.
-4. Sign in as `support@test.com` and open `/staff/technical`.
+4. Sign in as `support@test.com`, open `/staff/technical` and open *Founders' Gala Dinner*.
 5. Sign in as `coordinator@test.com` again. On Projector, press **Undo removal**.
-6. Sign in as `support@test.com` and open `/staff/technical`.
+6. Sign in as `support@test.com`, open `/staff/technical` and open *Founders' Gala Dinner*.
 
 **Expected Result:**
 - Step 2: the panel warns that Technical Support will re-check the line, that it is
@@ -210,17 +217,17 @@ This is the end-to-end case across both roles.
 - Step 3: the line stays, with **Reserved**, **Needs re-check** and **Removal
   requested** badges and *Reserved 2*. Only **Undo removal** is offered: no Edit or
   Remove (AC11, AC17).
-- Step 4: the list shows Projector marked **Removal requested** (AC15).
+- Step 4: the event is listed, and its page shows Projector marked **Removal requested** (AC15).
 - Step 5: the line is kept, **Removal requested** is gone, **Needs re-check** and
   *Reserved 2* remain, and Edit and Remove are offered again (AC17). It stays flagged because
   the quantity was also changed to 3 in TC-EQUIP-004, so it still differs from what Technical
   Support reserved against. TC-EQUIP-011 covers a line with no other change.
-- Step 6: the list shows Projector again, marked **Changed**, not Removal requested
-  (AC15, AC17).
+- Step 6: the event is still listed, and its page shows Projector marked **Changed**, not
+  Removal requested (AC15, AC17).
 - In the database, after step 2 and again after step 5, the Projector's `line_state`
   is `Under review`: undoing the removal does not put it back to `Reserved`.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (9/9 checks)
+**Status:** [ ] Pass [ ] Fail — expected result reworded for SPM-273's Needs review page; not re-run yet (previous pass: 3/10/2026, commit `7e4ed7d`, 9/9 checks)
 
 **Screenshots:** [step2-remove-warning](../screenshots/2026-10-03_TC-EQUIP-005_step2-remove-warning.jpg) · [step3-removal-requested](../screenshots/2026-10-03_TC-EQUIP-005_step3-removal-requested.jpg) · [step4-technical-support-removal-requested](../screenshots/2026-10-03_TC-EQUIP-005_step4-technical-support-removal-requested.jpg) · [step5-removal-undone](../screenshots/2026-10-03_TC-EQUIP-005_step5-removal-undone.jpg) · [step6-technical-support-changed-again](../screenshots/2026-10-03_TC-EQUIP-005_step6-technical-support-changed-again.jpg)
 
@@ -282,7 +289,7 @@ This is the end-to-end case across both roles.
 
 ---
 
-### TC-EQUIP-008: Only Technical Support Staff see the "Needs re-check" list (AC15, AC16)
+### TC-EQUIP-008: Only Technical Support Staff see the Needs review list (AC15, AC16)
 
 **Preconditions:** At least one line is under review (after TC-EQUIP-004).
 
@@ -292,13 +299,13 @@ This is the end-to-end case across both roles.
 3. Signed in as `venue@test.com`, open `/staff/technical`.
 
 **Expected Result:**
-- Step 1: **Needs re-check** is shown, read-only (no buttons on its rows).
+- Step 1: **Needs review** is shown, read-only (no buttons on its rows).
 - Steps 2 and 3: no list. Each shows the access-denied screen: the heading *You
   don’t have access to this page.* and *Please contact your respective Technical
   Support Staff.* The Network tab shows **403** for the page request (SPM-16).
 - Neither screen shows any equipment, event or line.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (8/8 checks)
+**Status:** [ ] Pass [ ] Fail — expected result reworded for SPM-273's Needs review page; not re-run yet (previous pass: 3/10/2026, commit `7e4ed7d`, 8/8 checks)
 
 **Screenshots:** [step1-technical-support-sees-list](../screenshots/2026-10-03_TC-EQUIP-008_step1-technical-support-sees-list.jpg) · [step2-coordinator-access-denied](../screenshots/2026-10-03_TC-EQUIP-008_step2-coordinator-access-denied.jpg) · [step3-venue-staff-access-denied](../screenshots/2026-10-03_TC-EQUIP-008_step3-venue-staff-access-denied.jpg)
 
@@ -360,7 +367,7 @@ review; changing it back to exactly that means there is nothing for them to re-c
 
 **Steps:**
 1. On **Projector**, press **Edit**, change the quantity to `1`, press **Save changes**.
-2. Sign in as `support@test.com` and open `/staff/technical`.
+2. Sign in as `support@test.com`, open `/staff/technical` and open *Founders' Gala Dinner*.
 3. As the coordinator, edit the Projector to `3`.
 4. As the coordinator, edit the Projector to `2` (what Technical Support reserved against).
 5. As `support@test.com`, open `/staff/technical` again.
@@ -375,16 +382,17 @@ review; changing it back to exactly that means there is nothing for them to re-c
 
 **Expected Result:**
 - Step 1: the line shows *Requested 1 · Reserved 2*, still with **Needs re-check**.
-- Step 2: the list shows Projector, Requested **1**, Reserved **2**, marked **Changed**.
+- Step 2: the event is listed, and its page shows Projector, Requested **1** (*was 2*),
+  Reserved **2**, marked **Changed**.
 - Step 3: *Requested 3 · Reserved 2*, still **Needs re-check**: 3 is not what was reserved
   against, so it keeps being compared with 2 (AC19).
 - Step 4: the line shows *Requested 2 · Reserved 2* with the **Reserved** badge only, and no
   **Needs re-check** (AC19). It is back to normal: Edit and Remove are offered.
-- Step 5: the list says *Nothing needs re-checking.* (AC15, AC19).
+- Step 5: the list says *Nothing needs your attention.* (AC15, AC19).
 - Step 6: `line_state` is `Reserved`, `quantity_requested` and `quantity_reserved` are both `2`,
   and `reviewed_quantity_requested` is empty.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (9/9 checks)
+**Status:** [ ] Pass [ ] Fail — expected result reworded for SPM-273's Needs review page; not re-run yet (previous pass: 3/10/2026, commit `7e4ed7d`, 9/9 checks)
 
 **Screenshots:** [step1-edited-to-1-still-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-010_step1-edited-to-1-still-needs-recheck.jpg) · [step2-technical-support-list-requested-1](../screenshots/2026-10-03_TC-EQUIP-010_step2-technical-support-list-requested-1.jpg) · [step3-edited-to-3-still-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-010_step3-edited-to-3-still-needs-recheck.jpg) · [step4-edited-back-to-2-recheck-cleared](../screenshots/2026-10-03_TC-EQUIP-010_step4-edited-back-to-2-recheck-cleared.jpg) · [step5-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-010_step5-technical-support-list-empty.jpg)
 
@@ -398,7 +406,7 @@ Signed in as `coordinator@test.com`.
 
 **Steps:**
 1. On **Projector**, press **Remove**, read the panel, then press **Request removal**.
-2. Sign in as `support@test.com` and open `/staff/technical`.
+2. Sign in as `support@test.com`, open `/staff/technical` and open *Founders' Gala Dinner*.
 3. As the coordinator, press **Undo removal** on the Projector.
 4. As `support@test.com`, open `/staff/technical` again.
 5. Check the database:
@@ -414,13 +422,14 @@ Signed in as `coordinator@test.com`.
 - Step 1: the panel says the request can be undone until Technical Support release the
   equipment. The line then shows **Reserved**, **Needs re-check** and **Removal requested**,
   with only **Undo removal** offered.
-- Step 2: the list shows Projector, Requested **2**, Reserved **2**, marked **Removal requested**.
+- Step 2: the event is listed, and its page shows Projector, Requested **2**, Reserved **2**,
+  marked **Removal requested**.
 - Step 3: the line shows *Requested 2 · Reserved 2* with the **Reserved** badge only: **Removal
   requested** and **Needs re-check** are both gone, and Edit and Remove are offered again (AC17).
-- Step 4: the list says *Nothing needs re-checking.* The request is no longer valid (AC15).
+- Step 4: the list says *Nothing needs your attention.* The request is no longer valid (AC15).
 - Step 5: `line_state` is `Reserved`, `reviewed_quantity_requested` is empty, and
   `removal_requested` is `false`.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (10/10 checks)
+**Status:** [ ] Pass [ ] Fail — expected result reworded for SPM-273's Needs review page; not re-run yet (previous pass: 3/10/2026, commit `7e4ed7d`, 10/10 checks)
 
 **Screenshots:** [step1-removal-requested](../screenshots/2026-10-03_TC-EQUIP-011_step1-removal-requested.jpg) · [step2-technical-support-removal-requested](../screenshots/2026-10-03_TC-EQUIP-011_step2-technical-support-removal-requested.jpg) · [step3-removal-undone-flag-cleared](../screenshots/2026-10-03_TC-EQUIP-011_step3-removal-undone-flag-cleared.jpg) · [step4-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-011_step4-technical-support-list-empty.jpg)
