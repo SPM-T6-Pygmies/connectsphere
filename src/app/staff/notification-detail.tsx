@@ -4,7 +4,7 @@ import type { StaffRole } from "@/lib/wireframe";
 
 import { CoordinatorDetail } from "./coordinator/coordinator-detail";
 import { LoadedAssignDetail } from "./ops/assign-detail";
-import { ReservationDetail } from "./technical/reservation-detail";
+import { EventEquipmentDetail } from "./technical/event-equipment-detail";
 import { BookingDetail } from "./venue/booking-detail";
 
 /**
@@ -37,7 +37,7 @@ export function NotificationDetail({
     case "venue":
       return <BookingDetail id={recordId} origin="inbox" />;
     case "technical":
-      return <ReservationDetail id={recordId} origin="inbox" />;
+      return <EventEquipmentDetail id={recordId} origin="inbox" />;
     case "requester":
       // The Organiser's request page has no inbox trail yet; open it as is.
       redirect(`/staff/requester/${recordId}`);
