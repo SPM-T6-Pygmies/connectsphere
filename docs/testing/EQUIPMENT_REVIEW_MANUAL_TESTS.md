@@ -98,7 +98,7 @@ events belong to both test coordinators.
 - *Autumn Workshop* is **not** listed, although it has a line with nothing reserved:
   it is Cancelled (AC1). No Reviewed or Completed event is listed.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -121,7 +121,7 @@ events belong to both test coordinators.
 - No Reserve, Mark unavailable, return date, technical-support or activity controls
   appear: the page is read-only.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -143,7 +143,7 @@ events belong to both test coordinators.
   - *Stage monitor* **4**: no other event holds one.
 - Step 2: the line says *Event has no date yet* instead of a number.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -161,7 +161,7 @@ or after `teardown.sql`).
 - Step 2: *Nothing reviewed yet.* and *Nothing archived.*, with no table.
 - The sidebar list is empty on each.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 ---
 
@@ -186,4 +186,4 @@ or after `teardown.sql`).
 - No screen shows a placeholder event, reservation or equipment item (such as the
   earlier wireframe's reservation ids or *Reserve* button).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick

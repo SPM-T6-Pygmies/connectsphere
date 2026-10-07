@@ -177,7 +177,7 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
   after these three steps: the only line left, the Projector, is reserved and unchanged.
   (Before step 3 the event was listed, its unreserved microphone being **New**.)
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 
 ---
@@ -206,7 +206,7 @@ This is the end-to-end case across both roles.
 - In the database, the Projector's `line_state` is now `Under review` and its
   `quantity_reserved` is still `2` (query in TC-EQUIP-009).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 
 ---
@@ -239,7 +239,7 @@ This is the end-to-end case across both roles.
 - In the database, after step 2 and again after step 5, the Projector's `line_state`
   is `Under review`: undoing the removal does not put it back to `Reserved`.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 
 ---
@@ -316,7 +316,7 @@ This is the end-to-end case across both roles.
   Support Staff.* The Network tab shows **403** for the page request (SPM-16).
 - Neither screen shows any equipment, event or line.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 
 ---
@@ -402,7 +402,7 @@ review; changing it back to exactly that means there is nothing for them to re-c
 - Step 6: `line_state` is `Reserved`, `quantity_requested` and `quantity_reserved` are both `2`,
   and `reviewed_quantity_requested` is empty.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
 
 ---
@@ -439,5 +439,5 @@ Signed in as `coordinator@test.com`.
 - Step 5: `line_state` is `Reserved`, `reviewed_quantity_requested` is empty, and
   `removal_requested` is `false`.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
 
