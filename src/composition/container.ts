@@ -13,6 +13,7 @@ import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supaba
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
 import { SupabaseEquipmentRecheckRepository } from "@/adapters/outbound/supabase/supabase-equipment-recheck-repository";
+import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supabase/supabase-technical-equipment-repository";
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
@@ -76,11 +77,13 @@ import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
 import { ListEquipmentRechecksUseCase } from "@/core/use-cases/list-equipment-rechecks";
+import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue";
 import { ListEventsAwaitingSafetyCheckUseCase } from "@/core/use-cases/list-events-awaiting-safety-check";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
 import { ViewEventEquipmentUseCase } from "@/core/use-cases/view-event-equipment";
+import { ViewEventEquipmentForTechnicalSupportUseCase } from "@/core/use-cases/view-event-equipment-for-technical-support";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
 import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
@@ -345,6 +348,22 @@ export async function buildListEquipmentRechecks(): Promise<ListEquipmentRecheck
   const client = await createSupabaseServerClient();
 
   return new ListEquipmentRechecksUseCase({ rechecks: new SupabaseEquipmentRecheckRepository(client) });
+}
+
+/** SPM-273: the events on one of Technical Support's lists -- Needs review, Reviewed or Archive. */
+export async function buildListEquipmentQueue(): Promise<ListEquipmentQueueUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ListEquipmentQueueUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+}
+
+/** SPM-273 AC3-4: one event's equipment lines, as Technical Support see them. */
+export async function buildViewEventEquipmentForTechnicalSupport(): Promise<ViewEventEquipmentForTechnicalSupportUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ViewEventEquipmentForTechnicalSupportUseCase({
+    equipment: new SupabaseTechnicalEquipmentRepository(client),
+  });
 }
 
 /**
