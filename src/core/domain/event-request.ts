@@ -416,7 +416,9 @@ export type OperationsQueue = "unassigned" | "assigned";
  * something Operations can act on (`assignEventCoordinator` refuses it) -- so
  * it is in neither queue. Every other request is sorted by whether it has an
  * Event Coordinator yet, whatever its status: a decided request keeps its
- * coordinator and stays under "assigned".
+ * coordinator and stays under "assigned". "unassigned" holds only requests a
+ * coordinator can still be assigned to, so a Withdrawn or Rejected request
+ * that never had one appears in neither (SPM-255).
  *
  * Like `coordinatorQueueStateFor`, one call answers membership and placement
  * together, so a screen cannot filter on one rule and file on another.
@@ -427,7 +429,10 @@ export function operationsQueueFor(
   if (request.status === "Draft") {
     return null;
   }
-  return request.assignedCoordinatorUserAccountId === null ? "unassigned" : "assigned";
+  if (request.assignedCoordinatorUserAccountId !== null) {
+    return "assigned";
+  }
+  return canAssignEventCoordinator(request.status) ? "unassigned" : null;
 }
 
 /** The three places an Event Coordinator's work lives. */

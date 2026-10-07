@@ -97,7 +97,7 @@ export function AssignDetail({
     >
       <PageHeader
         title={eventRequest.eventName}
-        description={`Client organisation ${eventRequest.clientOrganisationId} · requested by account ${eventRequest.requestingUserAccountId}`}
+        description={`${eventRequest.clientOrganisationName || `Client organisation ${eventRequest.clientOrganisationId}`} · requested by account ${eventRequest.requestingUserAccountId}`}
         actions={<StatusBadge status={eventRequest.status} />}
       />
 
