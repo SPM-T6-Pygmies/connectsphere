@@ -701,6 +701,11 @@
       "title": "Notify the Safety Officer of an event ready for check",
       "parent": "SPM-47",
       "status": "In Progress"
+    },
+    "SPM-273": {
+      "title": "See equipment needing attention",
+      "parent": null,
+      "status": "Todo"
     }
   }
 }
