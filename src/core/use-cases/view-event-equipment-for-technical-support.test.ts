@@ -27,7 +27,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
 }
 
 function stock(overrides: Partial<EquipmentLineStock> = {}): EquipmentLineStock {
-  return { line: line(), equipmentType: "Projector", owned: 10, otherHolds: [], ...overrides };
+  return { line: line(), equipmentType: "Projector", owned: 10, outOfService: 0, otherHolds: [], ...overrides };
 }
 
 function event(lines: readonly EquipmentLineStock[], preferredDate: string | null = "2026-11-15"): EventEquipmentStock {
@@ -149,5 +149,21 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
     const result = await view([event([stock()], null)]);
 
     expect(result?.lines[0]?.available).toBeNull();
+  });
+});
+
+describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-17)", () => {
+  it("AC4: does not count units out of service as available", async () => {
+    const result = await view([
+      event([
+        stock({
+          owned: 10,
+          outOfService: 2,
+          otherHolds: [{ eventStatus: "Planning", eventDate: "2026-11-14", quantityReserved: 3 }],
+        }),
+      ]),
+    ]);
+
+    expect(result?.lines[0]?.available).toBe(5);
   });
 });

@@ -74,7 +74,7 @@ export class ViewEventEquipmentForTechnicalSupportUseCase {
     return {
       event: { id: event.id, name: event.name, status: event.status, preferredDate: event.preferredDate },
       queue: equipmentQueueOf(event.status, lines.map(({ line }) => line)),
-      lines: lines.map(({ line, equipmentType, owned, otherHolds }) => ({
+      lines: lines.map(({ line, equipmentType, owned, outOfService, otherHolds }) => ({
         equipmentItemId: line.equipmentItemId,
         equipmentType,
         quantityRequested: line.quantityRequested,
@@ -82,7 +82,7 @@ export class ViewEventEquipmentForTechnicalSupportUseCase {
         technicalRequirements: line.technicalRequirements,
         attention: attentionReason(line),
         reservedAs: reservedAs(line),
-        available: unitsAvailable(owned, event.preferredDate, otherHolds),
+        available: unitsAvailable(owned, outOfService, event.preferredDate, otherHolds),
       })),
     };
   }

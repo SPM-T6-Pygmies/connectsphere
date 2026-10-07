@@ -27,6 +27,7 @@ export interface TechnicalEquipmentLineRow {
 export interface TechnicalEquipmentStockRow extends TechnicalEquipmentLineRow {
   equipment_type: string;
   owned: number;
+  out_of_service: number;
   other_holds: { event_status: CoordinatorEventStatus; preferred_date: string | null; quantity_reserved: number }[];
 }
 
@@ -79,6 +80,7 @@ export function toEventEquipmentStock(row: TechnicalEventEquipmentRow): EventEqu
       line: toLine(line),
       equipmentType: line.equipment_type,
       owned: line.owned,
+      outOfService: line.out_of_service,
       otherHolds: line.other_holds.map((hold) => ({
         eventStatus: hold.event_status,
         eventDate: hold.preferred_date,

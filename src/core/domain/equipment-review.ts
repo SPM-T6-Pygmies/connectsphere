@@ -80,11 +80,13 @@ export function holdsOverlap(eventDate: string, otherEventDate: string): boolean
 
 /**
  * AC4: how many units of a type are free for an event -- the number owned,
- * less what other active events hold over overlapping days. Null when the
- * event has no date yet, since there is nothing to compare against.
+ * less those out of service (SPM-17 AC4), less what other active events hold
+ * over overlapping days. Null when the event has no date yet, since there is
+ * nothing to compare against.
  */
 export function unitsAvailable(
   owned: number,
+  outOfService: number,
   eventDate: string | null,
   otherHolds: readonly EquipmentHold[],
 ): number | null {
@@ -96,5 +98,5 @@ export function unitsAvailable(
       (hold) => isActiveEvent(hold.eventStatus) && hold.eventDate !== null && holdsOverlap(eventDate, hold.eventDate),
     )
     .reduce((total, hold) => total + hold.quantityReserved, 0);
-  return owned - held;
+  return owned - outOfService - held;
 }

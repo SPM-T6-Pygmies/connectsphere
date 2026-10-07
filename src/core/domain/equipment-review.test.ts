@@ -143,26 +143,42 @@ describe("unitsAvailable (SPM-273)", () => {
       hold({ eventDate: "2026-11-17", quantityReserved: 5 }),
     ];
 
-    expect(unitsAvailable(10, "2026-11-15", holds)).toBe(4);
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(4);
   });
 
   it("AC4: everything owned is available when no other event holds any", () => {
-    expect(unitsAvailable(10, "2026-11-15", [])).toBe(10);
+    expect(unitsAvailable(10, 0, "2026-11-15", [])).toBe(10);
   });
 
   it.each(ACTIVE)("AC4: a %s event's hold counts", (status) => {
-    expect(unitsAvailable(10, "2026-11-15", [hold({ eventStatus: status, quantityReserved: 4 })])).toBe(6);
+    expect(unitsAvailable(10, 0, "2026-11-15", [hold({ eventStatus: status, quantityReserved: 4 })])).toBe(6);
   });
 
   it.each(INACTIVE)("AC4: a %s event's hold does not count", (status) => {
-    expect(unitsAvailable(10, "2026-11-15", [hold({ eventStatus: status, quantityReserved: 4 })])).toBe(10);
+    expect(unitsAvailable(10, 0, "2026-11-15", [hold({ eventStatus: status, quantityReserved: 4 })])).toBe(10);
   });
 
   it("AC4: an undated event's hold does not count", () => {
-    expect(unitsAvailable(10, "2026-11-15", [hold({ eventDate: null, quantityReserved: 4 })])).toBe(10);
+    expect(unitsAvailable(10, 0, "2026-11-15", [hold({ eventDate: null, quantityReserved: 4 })])).toBe(10);
   });
 
   it("AC4: gives no number for an event with no date yet", () => {
-    expect(unitsAvailable(10, null, [hold()])).toBeNull();
+    expect(unitsAvailable(10, 0, null, [hold()])).toBeNull();
+  });
+});
+
+describe("unitsAvailable (SPM-17)", () => {
+  const hold: EquipmentHold = { eventStatus: "Planning", eventDate: "2026-11-15", quantityReserved: 3 };
+
+  it("AC4: takes the units out of service off the units owned", () => {
+    expect(unitsAvailable(10, 2, "2026-11-15", [hold])).toBe(5);
+  });
+
+  it("AC4: with no units out of service, every unit owned counts", () => {
+    expect(unitsAvailable(10, 0, "2026-11-15", [hold])).toBe(7);
+  });
+
+  it("AC4: with every unit out of service, none is available", () => {
+    expect(unitsAvailable(10, 10, "2026-11-15", [])).toBe(0);
   });
 });

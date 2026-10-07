@@ -24,6 +24,8 @@ export interface EquipmentLineStock {
   readonly equipmentType: string;
   /** How many units of the type ConnectSphere owns. */
   readonly owned: number;
+  /** How many of those are out of service (SPM-17). */
+  readonly outOfService: number;
   /** What every other event has reserved of the type. Which of them overlap is `unitsAvailable`'s call. */
   readonly otherHolds: readonly EquipmentHold[];
 }

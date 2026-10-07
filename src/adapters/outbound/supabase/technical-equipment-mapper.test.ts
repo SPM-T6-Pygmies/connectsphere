@@ -68,6 +68,7 @@ describe("technical equipment mapper (SPM-273)", () => {
       removal_requested: true,
       equipment_type: "Projector",
       owned: 10,
+      out_of_service: 0,
       other_holds: [
         { event_status: "Confirmed", preferred_date: "2026-11-14", quantity_reserved: 3 },
         { event_status: "Cancelled", preferred_date: null, quantity_reserved: 1 },
@@ -82,11 +83,26 @@ describe("technical equipment mapper (SPM-273)", () => {
         line: expect.objectContaining({ equipmentItemId: "1", removalRequested: true }),
         equipmentType: "Projector",
         owned: 10,
+        outOfService: 0,
         otherHolds: [
           { eventStatus: "Confirmed", eventDate: "2026-11-14", quantityReserved: 3 },
           { eventStatus: "Cancelled", eventDate: null, quantityReserved: 1 },
         ],
       },
     ]);
+  });
+});
+
+describe("technical equipment mapper (SPM-17)", () => {
+  it("AC4: maps a line's units out of service", () => {
+    const line: TechnicalEquipmentStockRow = {
+      ...changedProjector,
+      equipment_type: "Projector",
+      owned: 10,
+      out_of_service: 3,
+      other_holds: [],
+    };
+
+    expect(toEventEquipmentStock({ ...event, lines: [line] }).lines[0]?.outOfService).toBe(3);
   });
 });
