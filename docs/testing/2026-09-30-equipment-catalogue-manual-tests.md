@@ -7,7 +7,7 @@ the sidebar): adding equipment from the **Add equipment** button and updating th
 number owned and the location on the cards.
 
 These cases are registered in [`../tests/manual-registry.csv`](../tests/manual-registry.csv)
-as `TC-EQCAT-008` to `TC-EQCAT-015`. When you run them, report each in the PR
+as `TC-EQCAT-009` to `TC-EQCAT-016`. When you run them, report each in the PR
 description's `## Manual test results` table — CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
@@ -17,8 +17,10 @@ belongs to SPM-41's equipment requirement cases.
 **Retired (SPM-17):** TC-EQCAT-001 to 007 were written for an in-memory catalogue
 that emptied when the dev server restarted, and called the card's count
 "Quantity". SPM-17 moved the page onto the real `equipment_item` table and renamed
-the count **Owned**, so they are kept as `Retired` in the registry with their
-original wording and recorded passes, and replaced here by:
+the count **Owned**. TC-EQCAT-008 expected a 404 for other roles, where the app
+answers with the shared 403 access-denied screen (SPM-16). All eight are kept as
+`Retired` in the registry with their original wording and recorded passes, and
+replaced here by:
 
 | Retired | Replaced by |
 | --- | --- |
@@ -29,6 +31,7 @@ original wording and recorded passes, and replaced here by:
 | TC-EQCAT-005 | TC-EQCAT-013 |
 | TC-EQCAT-006 | TC-EQCAT-014 |
 | TC-EQCAT-007 | TC-EQCAT-015 |
+| TC-EQCAT-008 | TC-EQCAT-016 |
 
 Units out of service, added by SPM-17, are tested in
 [`EQUIPMENT_OUT_OF_SERVICE_MANUAL_TESTS.md`](EQUIPMENT_OUT_OF_SERVICE_MANUAL_TESTS.md).
@@ -55,7 +58,7 @@ Units out of service, added by SPM-17, are tested in
 
 ## Run record (retired cases)
 
-The run below is of the retired TC-EQCAT-001 to 007, kept as their record.
+The run below is of the retired TC-EQCAT-001 to 008, kept as their record.
 
 Run on 2026-10-03, driven through a headless browser by Claude for Arin, on the
 branch before its commit of this doc. **This run used
@@ -186,13 +189,16 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 
 ---
 
-## TC-EQCAT-008 Other roles cannot open the Equipment page
+## TC-EQCAT-016 Other roles cannot open the Equipment page
 
 **Steps**
-1. Log in as `ops@test.com` and open `/staff/technical/equipment` directly.
+1. Log in as `ops@test.com` and open `/staff/technical/equipment` directly, with the
+   browser's Network tab open.
 
 **Expected Result**
-- The page responds 404 and no catalogue content is shown. The blank page is the app's
-  existing not-found behaviour for a role mismatch, not something specific to this feature.
+- The shared access-denied screen: "You don’t have access to this page." and "Please
+  contact your respective Technical Support Staff.", with a link back to your workspace.
+- The Network tab shows **403** for the page request (SPM-16).
+- No catalogue content is shown.
 
-![Other role](../screenshots/2026-10-03-spm-40-10-other-role-cannot-open-equipment.png)
+**Status:** [ ] Pass [ ] Fail
