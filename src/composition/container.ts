@@ -86,6 +86,8 @@ import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for
 import { ViewOrganiserEventRequestUseCase } from "@/core/use-cases/view-organiser-event-request";
 import { ViewAllEventCoordinatorsUseCase } from "@/core/use-cases/view-all-event-coordinators";
 import { ViewCoordinatorWorkloadsUseCase } from "@/core/use-cases/view-coordinator-workloads";
+import { ReassignEventCoordinatorUseCase } from "@/core/use-cases/reassign-event-coordinator";
+import { ViewLeadEventUseCase } from "@/core/use-cases/view-lead-event";
 import { ViewAllEventRequestsUseCase } from "@/core/use-cases/view-all-event-requests";
 import { ViewMyEventRequestsUseCase } from "@/core/use-cases/view-my-event-requests";
 import { CreateEquipmentItemUseCase } from "@/core/use-cases/create-equipment-item";
@@ -234,6 +236,26 @@ export async function buildViewCoordinatorWorkloads(): Promise<ViewCoordinatorWo
     eventRequests: new SupabaseEventRequestRepository(client),
     leadEvents: new SupabaseLeadEventRepository(client),
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
+  });
+}
+
+/** SPM-257: one event as the Lead opens it to reassign. */
+export async function buildViewLeadEvent(): Promise<ViewLeadEventUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewLeadEventUseCase({
+    leadEvents: new SupabaseLeadEventRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+  });
+}
+
+/** SPM-257: the Lead hands an active event to another coordinator. */
+export async function buildReassignEventCoordinator(): Promise<ReassignEventCoordinatorUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ReassignEventCoordinatorUseCase({
+    leadEvents: new SupabaseLeadEventRepository(client),
+    userAccounts: new SupabaseUserAccountRepository(client),
+    clientOrganisations: new SupabaseClientOrganisationRepository(client),
+    notifier: recordedNotifier(),
   });
 }
 

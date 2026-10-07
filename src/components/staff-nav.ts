@@ -156,7 +156,9 @@ export function currentSection(role: StaffRole, pathname: string): SidebarSectio
   if (role === "lead") {
     if (pathname === "/staff/lead") return "unassigned"
     if (pathname.startsWith("/staff/lead/assigned")) return "assigned"
-    if (pathname.startsWith("/staff/lead/coordinators")) return "coordinators"
+    if (pathname.startsWith("/staff/lead/coordinators") || pathname.startsWith("/staff/lead/events")) {
+      return "coordinators"
+    }
     const event = eventById(pathname.split("/")[3] ?? "")
     return event?.request.assignedCoordinator !== null ? "assigned" : "unassigned"
   }

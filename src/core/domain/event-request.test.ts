@@ -459,7 +459,7 @@ describe("operationsQueueFor (SPM-255)", () => {
 });
 
 describe("canAssignEventCoordinator (SPM-130)", () => {
-  it.each(["Submitted", "Under Review", "Returned", "Approved"] as const)(
+  it.each(["Submitted", "Under Review", "Returned"] as const)(
     "lets a %s request take a coordinator",
     (status) => {
       expect(canAssignEventCoordinator(status)).toBe(true);
@@ -472,6 +472,12 @@ describe("canAssignEventCoordinator (SPM-130)", () => {
       expect(canAssignEventCoordinator(status)).toBe(false);
     },
   );
+});
+
+describe("canAssignEventCoordinator (SPM-257)", () => {
+  it("refuses a coordinator for an Approved request -- its event is reassigned instead", () => {
+    expect(canAssignEventCoordinator("Approved")).toBe(false);
+  });
 });
 
 describe("coordinatorSectionFor (SPM-127)", () => {

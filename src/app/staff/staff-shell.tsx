@@ -207,7 +207,7 @@ async function getRespectiveQueueItems(
   }
 
   if (role === "lead") {
-    // The Coordinators view is its own overview; it has no queue to list.
+    // The Coordinators view and the events opened from it have no queue to list.
     if (crumbs[0]?.label === "Coordinators") {
       return []
     }
