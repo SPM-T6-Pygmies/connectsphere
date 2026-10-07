@@ -16,7 +16,7 @@ export interface ViewAllEventRequestsDeps {
 }
 
 /**
- * The Event Operations Manager's source list: every request across every
+ * The Event Coordinator Lead's source list: every request across every
  * client organisation, except Drafts, each with the queue it belongs in.
  *
  * Which requests Operations sees, and which queue each sits in, is

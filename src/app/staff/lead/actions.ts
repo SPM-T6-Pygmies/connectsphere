@@ -32,8 +32,8 @@ export async function assignEventCoordinatorAction(
 
   try {
     // A Server Action is reachable without its page, so the page's role check
-    // does not cover it: only an Event Operations Manager may assign.
-    if (!(await getStaffWorkspaces()).includes("ops")) {
+    // does not cover it: only an Event Coordinator Lead may assign.
+    if (!(await getStaffWorkspaces()).includes("lead")) {
       return { status: "error" };
     }
 
@@ -42,7 +42,7 @@ export async function assignEventCoordinatorAction(
 
     // Refreshes this detail (including notification-origin details), plus both
     // Operations queue sidebars, in the same Server Action round trip.
-    revalidatePath("/staff/ops", "layout");
+    revalidatePath("/staff/lead", "layout");
 
     return {
       status: "success",

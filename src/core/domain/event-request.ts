@@ -74,7 +74,7 @@ export interface EventRequest {
   readonly clientOrganisationId: ClientOrganisationId;
   readonly responsibleOrganiserId: UserAccountId;
   /**
-   * Null until the Event Operations Manager assigns a coordinator (SPM-97),
+   * Null until the Event Coordinator Lead assigns a coordinator (SPM-97),
    * which is also what moves a Submitted request to `Under Review` -- see
    * `assignEventCoordinator`. Frozen once the request is `Approved`
    * (schema.sql).
@@ -405,7 +405,7 @@ export function coordinatorArchiveStateFor(
   return state !== null && ARCHIVE_STATES.has(state) ? state : null;
 }
 
-/** The two queues an Event Operations Manager works from. */
+/** The two queues an Event Coordinator Lead works from. */
 export type OperationsQueue = "unassigned" | "assigned";
 
 /**

@@ -69,7 +69,7 @@ pnpm dev
 | Event Organiser                             | `organiser@test.com`   | `TestPass123!` |
 | Event Organiser (second, same organisation) | `organiser2@test.com`  | `TestPass123!` |
 | Event Coordinator                           | `coordinator@test.com` | `TestPass123!` |
-| Event Operations Manager                    | `ops@test.com`         | `TestPass123!` |
+| Event Coordinator Lead                      | `lead@test.com`        | `TestPass123!` |
 | Venue Staff                                 | `venue@test.com`       | `TestPass123!` |
 | Technical Support Staff                     | `support@test.com`     | `TestPass123!` |
 | Safety Officer                              | `safety@test.com`      | `TestPass123!` |
@@ -85,7 +85,7 @@ Staff members are redirected to their role-specific landing view:
 
 - Organiser → `/staff/requester`
 - Coordinator → `/staff/coordinator`
-- Operations Manager → `/staff/ops`
+- Event Coordinator Lead → `/staff/lead`
 - Venue Staff → `/staff/venue`
 - Technical Support Staff → `/staff/technical`
 - Safety Officer → `/staff/safety`

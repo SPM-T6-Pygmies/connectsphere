@@ -49,7 +49,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | --- | --- |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
 | `venue@test.com` | Venue Staff (Test Venue Staff) |
-| `ops@test.com` | Event Operations Manager |
+| `lead@test.com` | Event Coordinator Lead |
 
 ### Booking requests to decide
 
@@ -184,7 +184,7 @@ select b.booking_id, v.location, b.status, e.name
 **Steps:**
 1. Signed in as `coordinator@test.com`, open `/staff/venue`, then
    `/staff/venue/<booking>`.
-2. Signed in as `ops@test.com`, open the same two URLs.
+2. Signed in as `lead@test.com`, open the same two URLs.
 
 **Expected Result:**
 - Each shows the access-denied screen naming Venue Staff, with a **403**
