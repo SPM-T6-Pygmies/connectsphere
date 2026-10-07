@@ -12,7 +12,6 @@ import { SupabaseClarificationThreadRepository } from "@/adapters/outbound/supab
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
 import { SupabaseCoordinatorEventRepository } from "@/adapters/outbound/supabase/supabase-coordinator-event-repository";
-import { SupabaseEquipmentRecheckRepository } from "@/adapters/outbound/supabase/supabase-equipment-recheck-repository";
 import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supabase/supabase-technical-equipment-repository";
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
@@ -76,7 +75,6 @@ import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
-import { ListEquipmentRechecksUseCase } from "@/core/use-cases/list-equipment-rechecks";
 import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue";
 import { ListEventsAwaitingSafetyCheckUseCase } from "@/core/use-cases/list-events-awaiting-safety-check";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
@@ -336,18 +334,11 @@ export async function getCurrentCoordinator(): Promise<{
  *
  * `null` covers every case that isn't one -- no session, no matching
  * `user_account`, or no Technical Support Staff role -- so callers refuse the
- * page rather than show the re-check list. Same shape as `getCurrentCoordinator`.
+ * page rather than show their equipment lists. Same shape as `getCurrentCoordinator`.
  */
 export async function getCurrentTechnicalSupport(): Promise<{ readonly userAccountId: string } | null> {
   const identifyStaffMember = await buildIdentifyStaffMember();
   return (await identifyStaffMember.execute())?.technicalSupport ?? null;
-}
-
-/** SPM-41 AC15: the equipment lines Technical Support Staff must re-check. */
-export async function buildListEquipmentRechecks(): Promise<ListEquipmentRechecksUseCase> {
-  const client = await createSupabaseServerClient();
-
-  return new ListEquipmentRechecksUseCase({ rechecks: new SupabaseEquipmentRecheckRepository(client) });
 }
 
 /** SPM-273: the events on one of Technical Support's lists -- Needs review, Reviewed or Archive. */
