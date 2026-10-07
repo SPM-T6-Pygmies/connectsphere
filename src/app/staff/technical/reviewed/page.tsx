@@ -1,23 +1,26 @@
-import { reviewedReservations } from "@/lib/wireframe";
+import { forbidden } from "next/navigation";
 
-import { QueueEmptyState } from "../../queue-empty-state";
+import { buildListEquipmentQueue, getCurrentTechnicalSupport } from "@/composition/container";
+
 import { StaffShell } from "../../staff-shell";
+import { EquipmentQueueCard } from "../equipment-queue-card";
 
 export const metadata = { title: "Reviewed | ConnectSphere" };
 
-export default function ReviewedReservationsPage() {
-  const reviewed = reviewedReservations();
+/** SPM-273: every active event whose equipment lines are all reserved. */
+export default async function ReviewedReservationsPage() {
+  // Anyone who is not Technical Support Staff gets the shared access-denied screen (SPM-16).
+  const technicalSupport = await getCurrentTechnicalSupport();
+  if (technicalSupport === null) {
+    forbidden();
+  }
+
+  const listEquipmentQueue = await buildListEquipmentQueue();
+  const { events } = await listEquipmentQueue.execute({ ...technicalSupport, queue: "reviewed" });
 
   return (
     <StaffShell role="technical" crumbs={[{ label: "Reviewed" }]} technicalQueue="reviewed">
-      <QueueEmptyState
-        title={reviewed.length === 0 ? "Nothing reviewed yet" : "Select a reservation"}
-        description={
-          reviewed.length === 0
-            ? "Reserved, partially reserved or unavailable requests will appear here."
-            : "Choose one from the list to see its detail."
-        }
-      />
+      <EquipmentQueueCard queue="reviewed" events={events} />
     </StaffShell>
   );
 }
