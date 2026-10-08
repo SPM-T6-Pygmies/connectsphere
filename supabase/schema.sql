@@ -410,12 +410,14 @@ create table equipment_item (
   description           text,
   quantity              integer not null default 0 check (quantity >= 0),
   physical_location     text,
-  operational_status    text not null default 'Available',
+  out_of_service        integer not null default 0,
+    -- added 2026-10-07 (SPM-17): how many of the units owned are out of
+    -- service, replacing the whole-pool operational_status column.
   transfer_time_minutes integer check (transfer_time_minutes is null or transfer_time_minutes >= 0),
   created_at            timestamptz not null default now(),
   updated_at            timestamptz not null default now(),
-  constraint equipment_item_operational_status_chk
-    check (operational_status in ('Available', 'Reserved', 'In Use', 'Maintenance', 'Defective', 'Retired'))
+  constraint equipment_item_out_of_service_chk
+    check (out_of_service >= 0 and out_of_service <= quantity)
 );
 
 -- ---------------------------------------------------------------------------

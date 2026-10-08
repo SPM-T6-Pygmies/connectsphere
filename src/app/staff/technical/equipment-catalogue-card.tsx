@@ -42,7 +42,7 @@ export async function EquipmentCatalogueCard() {
         ) : (
           <ul
             aria-label="Equipment catalogue items"
-            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
           >
             {items.map((item) => (
               <EquipmentRow key={item.id} item={item} />

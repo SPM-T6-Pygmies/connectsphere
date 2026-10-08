@@ -716,6 +716,16 @@
       "title": "Reassign an active event's coordinator",
       "parent": null,
       "status": "In Progress"
+    },
+    "SPM-273": {
+      "title": "See equipment needing attention",
+      "parent": null,
+      "status": "Todo"
+    },
+    "SPM-17": {
+      "title": "Mark equipment out of service",
+      "parent": null,
+      "status": "Todo"
     }
   }
 }
