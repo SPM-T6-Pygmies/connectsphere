@@ -82,7 +82,7 @@ export function toCoordinatorSafetyCheckHistory(row: CoordinatorSafetyCheckHisto
 
 /**
  * The domain error a safety check function's SQLSTATE stands for -- see
- * 20261010010000 and 20261012000000 -- or null for anything else, which the caller reports as
+ * 20261010010000 and 20261013163600 -- or null for anything else, which the caller reports as
  * the unexpected failure it is.
  */
 export function toSafetyCheckError(error: { readonly code?: string }, eventId = ""): DomainError | null {
