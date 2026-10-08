@@ -46,8 +46,8 @@ export function isActiveEvent(status: CoordinatorEventStatus): boolean {
 
 /**
  * The three lists of Technical Support's workspace: events with a line
- * needing attention (AC1), active events whose lines are all reserved, and
- * Completed or Cancelled events.
+ * needing attention (AC1), active events whose lines are all reserved or
+ * marked unfulfilled (SPM-274), and Completed or Cancelled events.
  */
 export type EquipmentQueue = "needsReview" | "reviewed" | "archive";
 

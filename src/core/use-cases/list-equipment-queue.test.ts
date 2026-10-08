@@ -6,6 +6,7 @@ import { equipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
 import type { EquipmentQueue } from "@/core/domain/equipment-review";
 import { eventId } from "@/core/domain/event";
+import { userAccountId } from "@/core/domain/user-account";
 import type { EventEquipmentStock } from "@/core/ports/outbound/technical-equipment-repository";
 
 import { ListEquipmentQueueUseCase } from "./list-equipment-queue";
@@ -85,6 +86,7 @@ describe("ListEquipmentQueueUseCase (SPM-273)", () => {
         status: "Planning",
         lineCount: 4,
         linesNeedingAttention: 3,
+        linesUnfulfilled: 0,
       },
     ]);
   });
@@ -131,5 +133,19 @@ describe("ListEquipmentQueueUseCase (SPM-273)", () => {
     const result = await list([entry("1", [reserved()]), entry("2", [requested()], "Completed")]);
 
     expect(result.events).toEqual([]);
+  });
+});
+
+describe("ListEquipmentQueueUseCase (SPM-274)", () => {
+  it("AC3: an event whose lines are reserved or unfulfilled moves to Reviewed, counting the unfulfilled ones", async () => {
+    const unfulfilled: EquipmentRequirement = {
+      ...requested(),
+      state: "Unfulfilled",
+      decision: { by: userAccountId(SUPPORT), comment: "only 3 available" },
+    };
+    const seed = [entry("1", [reserved(), unfulfilled])];
+
+    expect((await list(seed)).events).toEqual([]);
+    expect((await list(seed, "reviewed")).events[0]).toMatchObject({ lineCount: 2, linesNeedingAttention: 0, linesUnfulfilled: 1 });
   });
 });
