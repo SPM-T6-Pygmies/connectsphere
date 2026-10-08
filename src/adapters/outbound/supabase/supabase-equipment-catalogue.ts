@@ -1,4 +1,5 @@
 import type { EquipmentItem, EquipmentItemId, NewEquipmentItem } from "@/core/domain/equipment-item";
+import type { EventReservation } from "@/core/domain/equipment-review";
 import { NotTechnicalSupportStaffError } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
@@ -8,7 +9,9 @@ import { toKey } from "./coordinator-event-mapper";
 import {
   toEquipmentCatalogueError,
   toEquipmentItem,
+  toEventReservation,
   type EquipmentCatalogueItemRow,
+  type EquipmentReservationRow,
 } from "./equipment-catalogue-mapper";
 
 /**
@@ -16,7 +19,8 @@ import {
  * the table -- RLS is on with no policies. Built for the acting Technical
  * Support Staff member, whom every function re-checks (CS040), so the port
  * stays free of who is asking. It reads and writes the same `equipment_item`
- * rows coordinators pick from (SPM-17 AC5).
+ * rows coordinators pick from (SPM-17 AC5), and reads what events have
+ * reserved of an item (SPM-274 AC7).
  */
 export class SupabaseEquipmentCatalogue implements EquipmentCatalogue {
   constructor(
@@ -86,6 +90,28 @@ export class SupabaseEquipmentCatalogue implements EquipmentCatalogue {
         new Error(`Failed to save equipment item ${item.id}: ${error.message}`, { cause: error })
       );
     }
+  }
+
+  async reservationsOf(id: EquipmentItemId): Promise<readonly EventReservation[]> {
+    const key = toKey(id);
+    if (key === null) {
+      // An id this store could never have issued has nothing reserved against it.
+      return [];
+    }
+
+    const { data, error } = await this.client.rpc("technical_support_equipment_reservations", {
+      p_user_account_id: this.actorKey(),
+      p_equipment_item_id: key,
+    });
+
+    if (error) {
+      throw (
+        toEquipmentCatalogueError(error) ??
+        new Error(`Failed to read equipment item ${id}'s reservations: ${error.message}`, { cause: error })
+      );
+    }
+
+    return ((data ?? []) as unknown as EquipmentReservationRow[]).map(toEventReservation);
   }
 
   private actorKey(): number {

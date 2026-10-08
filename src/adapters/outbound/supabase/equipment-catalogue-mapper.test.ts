@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { equipmentItemId } from "@/core/domain/equipment-item";
 import { InvalidOutOfServiceCountError } from "@/core/domain/errors";
 
-import { toEquipmentCatalogueError, toEquipmentItem } from "./equipment-catalogue-mapper";
+import { toEquipmentCatalogueError, toEquipmentItem, toEventReservation } from "./equipment-catalogue-mapper";
 
 describe("equipment catalogue mapper (SPM-17)", () => {
   it("AC5: maps a catalogue row to the item coordinators also pick from", () => {
@@ -31,5 +31,25 @@ describe("equipment catalogue mapper (SPM-17)", () => {
 
     expect(error).toBeInstanceOf(InvalidOutOfServiceCountError);
     expect(error?.message).toContain("(4)");
+  });
+});
+
+describe("equipment catalogue mapper (SPM-274)", () => {
+  it("AC7: maps an event's reservation of an item", () => {
+    expect(
+      toEventReservation({
+        event_id: 7,
+        event_name: "Tech Summit Keynote",
+        status: "Planning",
+        preferred_date: "2026-11-15",
+        quantity_reserved: 4,
+      }),
+    ).toEqual({
+      eventId: "7",
+      eventName: "Tech Summit Keynote",
+      eventStatus: "Planning",
+      eventDate: "2026-11-15",
+      quantityReserved: 4,
+    });
   });
 });

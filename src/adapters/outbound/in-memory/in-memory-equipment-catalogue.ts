@@ -4,6 +4,7 @@ import {
   type EquipmentItemId,
   type NewEquipmentItem,
 } from "@/core/domain/equipment-item";
+import type { EventReservation } from "@/core/domain/equipment-review";
 import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
 
 /**
@@ -15,7 +16,11 @@ export class InMemoryEquipmentCatalogue implements EquipmentCatalogue {
   private readonly rows = new Map<EquipmentItemId, EquipmentItem>();
   private sequence = 0;
 
-  constructor(seed: readonly NewEquipmentItem[] = []) {
+  /** `reservations` are keyed by item id -- `equipment-1` for the first item seeded, and so on. */
+  constructor(
+    seed: readonly NewEquipmentItem[] = [],
+    private readonly reservations: Readonly<Record<string, readonly EventReservation[]>> = {},
+  ) {
     for (const item of seed) {
       void this.insert(item);
     }
@@ -38,6 +43,10 @@ export class InMemoryEquipmentCatalogue implements EquipmentCatalogue {
       throw new Error(`Cannot save equipment item ${item.id}: it was never created.`);
     }
     this.rows.set(item.id, item);
+  }
+
+  async reservationsOf(id: EquipmentItemId): Promise<readonly EventReservation[]> {
+    return this.reservations[id] ?? [];
   }
 
   private insert(item: NewEquipmentItem): EquipmentItem {

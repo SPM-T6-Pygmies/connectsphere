@@ -1,4 +1,6 @@
+import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { equipmentItemId, type EquipmentItem } from "@/core/domain/equipment-item";
+import type { EventReservation } from "@/core/domain/equipment-review";
 import {
   EquipmentItemNotFoundError,
   InvalidOutOfServiceCountError,
@@ -25,6 +27,25 @@ export function toEquipmentItem(row: EquipmentCatalogueItemRow): EquipmentItem {
     // The column is nullable for rows written before the catalogue required a location.
     location: row.physical_location ?? "",
     outOfService: row.out_of_service,
+  };
+}
+
+/** A row of `technical_support_equipment_reservations` (SPM-274 AC7). */
+export interface EquipmentReservationRow {
+  event_id: number;
+  event_name: string;
+  status: CoordinatorEventStatus;
+  preferred_date: string | null;
+  quantity_reserved: number;
+}
+
+export function toEventReservation(row: EquipmentReservationRow): EventReservation {
+  return {
+    eventId: String(row.event_id),
+    eventName: row.event_name,
+    eventStatus: row.status,
+    eventDate: row.preferred_date,
+    quantityReserved: row.quantity_reserved,
   };
 }
 
