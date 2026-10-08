@@ -55,7 +55,14 @@ function entry(
 ): EventEquipmentStock {
   return {
     event: { id: eventId(id), name: `Event ${id}`, status, preferredDate },
-    lines: lines.map((line) => ({ line, equipmentType: String(line.equipmentItemId), owned: 10, outOfService: 0, otherHolds: [] })),
+    lines: lines.map((line) => ({
+      line,
+      equipmentType: String(line.equipmentItemId),
+      owned: 10,
+      outOfService: 0,
+      otherHolds: [],
+      decidedByName: null,
+    })),
   };
 }
 

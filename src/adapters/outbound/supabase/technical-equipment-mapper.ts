@@ -1,8 +1,16 @@
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { equipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentLineState, EquipmentRequirement } from "@/core/domain/equipment-requirement";
-import { NotTechnicalSupportStaffError, type DomainError } from "@/core/domain/errors";
+import {
+  EquipmentLineNotAwaitingDecisionError,
+  EquipmentRequirementNotFoundError,
+  EventDateRequiredForEquipmentError,
+  NotEnoughEquipmentAvailableError,
+  NotTechnicalSupportStaffError,
+  type DomainError,
+} from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
+import { userAccountId } from "@/core/domain/user-account";
 import type {
   EventEquipmentStock,
   EventWithEquipment,
@@ -21,6 +29,10 @@ export interface TechnicalEquipmentLineRow {
   reviewed_quantity_requested: number | null;
   reviewed_technical_requirements: string | null;
   removal_requested: boolean;
+  /** SPM-274: who last reserved the line or marked it unfulfilled, their name, and why not. */
+  decided_by_user_account_id: number | null;
+  decided_by_name: string | null;
+  decision_comment: string | null;
 }
 
 /** A line of `technical_support_event_equipment`, with its type's stock and other events' holds. */
@@ -66,7 +78,10 @@ function toLine(row: TechnicalEquipmentLineRow): EquipmentRequirement {
     state: row.line_state,
     reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
     removalRequested: row.removal_requested,
-    decision: null,
+    decision:
+      row.decided_by_user_account_id === null
+        ? null
+        : { by: userAccountId(String(row.decided_by_user_account_id)), comment: row.decision_comment },
   };
 }
 
@@ -87,6 +102,7 @@ export function toEventEquipmentStock(row: TechnicalEventEquipmentRow): EventEqu
         eventDate: hold.preferred_date,
         quantityReserved: hold.quantity_reserved,
       })),
+      decidedByName: line.decided_by_name,
     })),
   };
 }
@@ -94,8 +110,25 @@ export function toEventEquipmentStock(row: TechnicalEventEquipmentRow): EventEqu
 /**
  * The domain error a Technical Support function's SQLSTATE stands for -- see
  * its migration -- or null for anything else, which the caller reports as the
- * unexpected failure it is.
+ * unexpected failure it is. The writes pass the line they wrote, which the
+ * SPM-274 errors name.
  */
-export function toTechnicalEquipmentError(error: { readonly code?: string }): DomainError | null {
-  return error.code === "CS040" ? new NotTechnicalSupportStaffError() : null;
+export function toTechnicalEquipmentError(
+  error: { readonly code?: string; readonly details?: string | null },
+  line?: { readonly equipmentItemId: string; readonly quantityRequested: number },
+): DomainError | null {
+  switch (error.code) {
+    case "CS040":
+      return new NotTechnicalSupportStaffError();
+    case "CS043":
+      return line === undefined ? null : new EquipmentRequirementNotFoundError(line.equipmentItemId);
+    case "CS044":
+      return new EventDateRequiredForEquipmentError();
+    case "CS045":
+      return new EquipmentLineNotAwaitingDecisionError();
+    case "CS046":
+      return line === undefined ? null : new NotEnoughEquipmentAvailableError(Number(error.details), line.quantityRequested);
+    default:
+      return null;
+  }
 }

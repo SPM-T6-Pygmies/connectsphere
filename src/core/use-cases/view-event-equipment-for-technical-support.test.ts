@@ -28,7 +28,15 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
 }
 
 function stock(overrides: Partial<EquipmentLineStock> = {}): EquipmentLineStock {
-  return { line: line(), equipmentType: "Projector", owned: 10, outOfService: 0, otherHolds: [], ...overrides };
+  return {
+    line: line(),
+    equipmentType: "Projector",
+    owned: 10,
+    outOfService: 0,
+    otherHolds: [],
+    decidedByName: null,
+    ...overrides,
+  };
 }
 
 function event(lines: readonly EquipmentLineStock[], preferredDate: string | null = "2026-11-15"): EventEquipmentStock {
