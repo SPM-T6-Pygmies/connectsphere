@@ -158,3 +158,6 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-06,TC-SAFETYCHECK-005,Pass,Second Officer's concurrent attempt refused after first records,Second Officer sees first's outcome and form disabled,arinmakk,108,d2f77e2,,docs/screenshots/2026-10-06_TC-SAFETYCHECK-005_step3-second-refused.png
 2026-10-06,TC-SAFETYCHECK-006,Pass,Non-Safety Officer gets 403,Access control enforced,arinmakk,108,d2f77e2,,docs/screenshots/2026-10-06_TC-SAFETYCHECK-006_step1-venue-403.png
 2026-10-06,TC-SAFETYCHECK-007,Pass,Comments trimmed on storage,Whitespace-only and one,arinmakk,108,d2f77e2,,
+2026-10-07,TC-LEAD-004,Pass,"Reassigned; moved to Test Coordinator 2's card; audit row actor 3, 2 → 7 with timestamp; coordinator@ 403 and not in My events; coordinator2@ 200, in My events, inbox item links /staff/coordinator/events/1; Organiser notified",Novu inbox via `pnpm dev:local`,Isaidchia,106,4d212bc,,docs/screenshots/2026-10-06_TC-LEAD-004_event-reassigned.png
+2026-10-07,TC-LEAD-005,Pass,"Reassign disabled: ""A Completed event's coordinator cannot change.""",,Isaidchia,106,4d212bc,,
+2026-10-07,TC-LEAD-006,Pass,"Form disabled: ""Approved requests carry on as an event. Reassign its coordinator from the Coordinators view.""",,Isaidchia,106,4d212bc,,docs/screenshots/2026-10-06_TC-LEAD-006_approved-request-not-reassignable.png

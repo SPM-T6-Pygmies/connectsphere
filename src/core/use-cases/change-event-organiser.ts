@@ -20,7 +20,7 @@ export interface ChangeEventOrganiserDeps {
 /**
  * SPM-39 AC5: reassigns responsibility for an event request, revoking the
  * outgoing Organiser's edit access and granting the incoming one's (#61,
- * #59). #101 names the Event Operations Manager as the only role with
+ * #59). #101 names the Event Coordinator Lead as the only role with
  * assign/reassign authority -- enforced at the driving adapter
  * (`reassignEventOrganiserAction`), not here: this use case delivers the
  * reassignment's effect, the same shape as every other use case in this

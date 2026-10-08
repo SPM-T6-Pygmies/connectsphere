@@ -74,7 +74,7 @@ export interface EventRequest {
   readonly clientOrganisationId: ClientOrganisationId;
   readonly responsibleOrganiserId: UserAccountId;
   /**
-   * Null until the Event Operations Manager assigns a coordinator (SPM-97),
+   * Null until the Event Coordinator Lead assigns a coordinator (SPM-97),
    * which is also what moves a Submitted request to `Under Review` -- see
    * `assignEventCoordinator`. Frozen once the request is `Approved`
    * (schema.sql).
@@ -405,7 +405,7 @@ export function coordinatorArchiveStateFor(
   return state !== null && ARCHIVE_STATES.has(state) ? state : null;
 }
 
-/** The two queues an Event Operations Manager works from. */
+/** The two queues an Event Coordinator Lead works from. */
 export type OperationsQueue = "unassigned" | "assigned";
 
 /**
@@ -416,7 +416,9 @@ export type OperationsQueue = "unassigned" | "assigned";
  * something Operations can act on (`assignEventCoordinator` refuses it) -- so
  * it is in neither queue. Every other request is sorted by whether it has an
  * Event Coordinator yet, whatever its status: a decided request keeps its
- * coordinator and stays under "assigned".
+ * coordinator and stays under "assigned". "unassigned" holds only requests a
+ * coordinator can still be assigned to, so a Withdrawn or Rejected request
+ * that never had one appears in neither (SPM-255).
  *
  * Like `coordinatorQueueStateFor`, one call answers membership and placement
  * together, so a screen cannot filter on one rule and file on another.
@@ -427,7 +429,10 @@ export function operationsQueueFor(
   if (request.status === "Draft") {
     return null;
   }
-  return request.assignedCoordinatorUserAccountId === null ? "unassigned" : "assigned";
+  if (request.assignedCoordinatorUserAccountId !== null) {
+    return "assigned";
+  }
+  return canAssignEventCoordinator(request.status) ? "unassigned" : null;
 }
 
 /** The three places an Event Coordinator's work lives. */
@@ -467,12 +472,14 @@ export function reassignResponsibleOrganiser(
 /**
  * Whether an Event Coordinator can be assigned to a request in this status.
  *
- * Not a Draft, which the Organiser has not submitted, and not a request
- * decided without becoming an event (Rejected, Withdrawn), which has no review
- * left to run. Every other request can take a coordinator, or a new one.
+ * Not a Draft, which the Organiser has not submitted, and not a decided
+ * request. Rejected and Withdrawn ones have no review left to run; an
+ * Approved one carries on as an event, whose own coordinator is the one that
+ * changes from then on (SPM-257) -- the request's stays as the record of who
+ * reviewed it. Every other request can take a coordinator, or a new one.
  */
 export function canAssignEventCoordinator(status: EventRequestStatus): boolean {
-  return status !== "Draft" && status !== "Withdrawn" && status !== "Rejected";
+  return status === "Submitted" || status === "Under Review" || status === "Returned";
 }
 
 /**

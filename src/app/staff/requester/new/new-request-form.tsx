@@ -427,7 +427,7 @@ export function NewRequestForm({
               <ol className="space-y-3 text-sm">
                 {[
                   "You submit the request.",
-                  "An Event Operations Manager assigns a coordinator.",
+                  "An Event Coordinator Lead assigns a coordinator.",
                   "Your coordinator reviews it and may ask for clarification.",
                   "They approve it so planning can start.",
                   "Venue and equipment are arranged.",

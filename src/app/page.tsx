@@ -32,7 +32,7 @@ const ROLE_CARDS: ReadonlyArray<{
     does: "Drafts an event request and submits it. Sees only their own drafts and submissions.",
   },
   {
-    role: "ops",
+    role: "lead",
     step: "Step 3",
     icon: InboxIcon,
     does: "Sees every submitted request and assigns an Event Coordinator to each one.",

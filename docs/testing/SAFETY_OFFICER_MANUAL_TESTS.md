@@ -53,7 +53,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | `safety@test.com` | Test Safety Officer | Safety Officer | `/staff/safety` |
 | `organiser@test.com` | Test Organiser | Event Organiser | `/staff/requester` |
 | `coordinator@test.com` | Test Coordinator | Event Coordinator | `/staff/coordinator` |
-| `ops@test.com` | Test Ops Manager | Event Operations Manager | `/staff/ops` |
+| `lead@test.com` | Test Coordinator Lead | Event Coordinator Lead | `/staff/lead` |
 | `venue@test.com` | Test Venue Staff | Venue Staff | `/staff/venue` |
 | `support@test.com` | Test Support Staff | Technical Support Staff | `/staff/technical` |
 
@@ -123,7 +123,7 @@ AC5.
 | --- | --- |
 | `organiser@test.com` | `/staff/requester` |
 | `coordinator@test.com` | `/staff/coordinator` |
-| `ops@test.com` | `/staff/ops` |
+| `lead@test.com` | `/staff/lead` |
 | `venue@test.com` | `/staff/venue` |
 | `support@test.com` | `/staff/technical` |
 
@@ -150,13 +150,13 @@ AC6.
 
 **Steps:**
 1. Open each URL below and read the screen and the document request's status.
-2. On `/staff/ops`, press **Go back to your workspace**.
+2. On `/staff/lead`, press **Go back to your workspace**.
 
 | Open | Contact named |
 | --- | --- |
 | `/staff/requester` | Event Organiser |
 | `/staff/coordinator` | Event Coordinator |
-| `/staff/ops` | Event Operations Manager |
+| `/staff/lead` | Event Coordinator Lead |
 | `/staff/venue` | Venue Staff |
 | `/staff/technical` | Technical Support Staff |
 
@@ -181,7 +181,7 @@ AC4, AC7.
 
 **Steps:**
 1. Open `/staff/safety`.
-2. Open `/staff/ops`.
+2. Open `/staff/lead`.
 
 **Expected Result:**
 - Step 1: the bottom bar shows the Awaiting check and Notifications entries;

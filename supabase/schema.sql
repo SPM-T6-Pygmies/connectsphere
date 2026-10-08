@@ -82,7 +82,7 @@ create table event_request (
   decision_record           text,
   requesting_user_account_id bigint not null references user_account (user_account_id) on delete restrict,
   assigned_coordinator_user_account_id bigint references user_account (user_account_id) on delete restrict,
-    -- nullable: unset in Draft/Submitted, set by the Event Operations Manager
+    -- nullable: unset in Draft/Submitted, set by the Event Coordinator Lead
     -- at Step 3 (#73), before Under Review/Approved. Copied onto the
     -- resulting event.assigned_coordinator_user_account_id at approval —
     -- this column is then frozen, since 'Approved' is terminal for the
@@ -753,7 +753,7 @@ $$;
 insert into role (role_name) values
   ('Event Organiser'),
   ('Event Coordinator'),
-  ('Event Operations Manager'),
+  ('Event Coordinator Lead'),
   ('Venue Staff'),
   ('Technical Support Staff'),
   ('Safety Officer'),

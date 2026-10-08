@@ -12,7 +12,7 @@ import type { ListPaneItem, SidebarSection, StaffRole } from "@/lib/wireframe"
 /**
  * The role's queue, as the page body, below md.
  *
- * On a phone there is no list pane -- so this is the only way ops, venue and
+ * On a phone there is no list pane -- so this is the only way lead, venue and
  * technical reach their work at all, their index routes rendering nothing but
  * a `QueueEmptyState` ("items exist in the pane, nothing open yet"), which is
  * a two-pane idea with no meaning on one screen.
