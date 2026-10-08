@@ -13,16 +13,30 @@ import { venueId } from "@/core/domain/venue";
 
 describe("booking mapper (SPM-46)", () => {
   it("reads a booked slot, keeping only the calendar date", () => {
-    expect(toOccupiedSlot({ slot_date: "2026-10-05", slot: "Night", status: "Confirmed" })).toEqual({
+    expect(
+      toOccupiedSlot({ slot_date: "2026-10-05", slot: "Night", status: "Confirmed", hold_expires_at: null }),
+    ).toEqual({
       date: "2026-10-05",
       slot: "Night",
       status: "Confirmed",
+      holdExpiresAt: null,
     });
   });
 
+  it("reads a hold's expiry as an instant (AC4)", () => {
+    expect(
+      toOccupiedSlot({
+        slot_date: "2026-10-05",
+        slot: "AM",
+        status: "Tentative Hold",
+        hold_expires_at: "2026-10-03T10:00:00+00:00",
+      }).holdExpiresAt,
+    ).toEqual(new Date("2026-10-03T10:00:00Z"));
+  });
+
   it("refuses a slot or status the schema does not allow", () => {
-    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "Evening", status: "Confirmed" })).toThrow();
-    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "AM", status: "Pending" })).toThrow();
+    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "Evening", status: "Confirmed", hold_expires_at: null })).toThrow();
+    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "AM", status: "Pending", hold_expires_at: null })).toThrow();
   });
 
   it("reads an event's booking with its layout name and slots", () => {

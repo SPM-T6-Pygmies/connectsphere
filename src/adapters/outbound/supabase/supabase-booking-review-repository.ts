@@ -121,6 +121,6 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
       venueId(booking.venueId),
       [...new Set(booking.slots.map(({ date }) => date))],
     );
-    return clashingSlots(booking.slots, occupied);
+    return clashingSlots(booking.slots, occupied, new Date());
   }
 }

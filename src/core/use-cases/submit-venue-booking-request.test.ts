@@ -8,6 +8,7 @@ import {
   InMemoryCoordinatorEventRepository,
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 import {
   CoordinatorEventNotFoundError,
@@ -75,12 +76,19 @@ function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): 
   };
 }
 
+const NOW = new Date("2026-10-01T09:00:00+08:00");
+
+function heldAt(venue: string, slot: "AM" | "PM" | "Night", holdExpiresAt: Date | null): StoredBooking {
+  return { ...confirmedAt(venue, "2026-10-05", slot), status: "Tentative Hold", holdExpiresAt };
+}
+
 function buildUseCase(existing: readonly StoredBooking[] = []) {
   const bookings = new InMemoryBookingRepository(existing);
   const useCase = new SubmitVenueBookingRequestUseCase({
     events: new InMemoryCoordinatorEventRepository([EVENT]),
     venues: new InMemoryVenueCatalogue([HALL, STUDIO]),
     bookings,
+    clock: new FixedClock(NOW),
   });
   return { useCase, bookings };
 }
@@ -162,6 +170,55 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
 
   it("does not block on the same slot confirmed at a different venue (AC4)", async () => {
     const { useCase, bookings } = buildUseCase([confirmedAt("venue-studio", "2026-10-05", "PM")]);
+
+    await useCase.execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+      venueId: "venue-hall",
+      roomLayout: "Theatre",
+      slots: [{ date: "2026-10-05", slot: "PM" }],
+    });
+
+    expect(bookings.all()).toHaveLength(2);
+  });
+
+  it("accepts a slot whose only hold expired before now (AC4)", async () => {
+    const expired = new Date(NOW.getTime() - 1000);
+    const { useCase, bookings } = buildUseCase([heldAt("venue-hall", "PM", expired)]);
+
+    await useCase.execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+      venueId: "venue-hall",
+      roomLayout: "Theatre",
+      slots: [{ date: "2026-10-05", slot: "PM" }],
+    });
+
+    expect(bookings.all()).toHaveLength(2);
+  });
+
+  it("blocks a slot on a hold that has not expired, naming it (AC4)", async () => {
+    const live = new Date(NOW.getTime() + 1000);
+    const { useCase } = buildUseCase([heldAt("venue-hall", "PM", live)]);
+
+    const error = await useCase
+      .execute({
+        eventId: "event-1",
+        userAccountId: COORDINATOR,
+        venueId: "venue-hall",
+        roomLayout: "Theatre",
+        slots: [{ date: "2026-10-05", slot: "PM" }],
+      })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenueSlotUnavailableError);
+    expect((error as VenueSlotUnavailableError).slots).toEqual([{ date: "2026-10-05", slot: "PM" }]);
+  });
+
+  it("does not clash with the same event's own live booking at another venue (AC5)", async () => {
+    const { useCase, bookings } = buildUseCase([
+      { ...confirmedAt("venue-studio", "2026-10-05", "PM"), eventId: "event-1", requestedBy: COORDINATOR },
+    ]);
 
     await useCase.execute({
       eventId: "event-1",

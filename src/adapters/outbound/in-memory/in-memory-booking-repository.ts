@@ -17,6 +17,8 @@ export interface StoredBooking extends Omit<EventBookingSummary, "venueId"> {
   readonly eventId: string;
   readonly venueId: string;
   readonly requestedBy: string;
+  /** A Tentative Hold's expiry; absent reads as none set. */
+  readonly holdExpiresAt?: Date | null;
 }
 
 /** Where the store learns which slots Venue Staff have blocked (SPM-21). */
@@ -43,7 +45,11 @@ export class InMemoryBookingRepository implements BookingRepository {
       .flatMap((booking) =>
         booking.slots
           .filter((slot) => dates.includes(slot.date))
-          .map((slot) => ({ ...slot, status: booking.status })),
+          .map((slot) => ({
+            ...slot,
+            status: booking.status,
+            holdExpiresAt: booking.holdExpiresAt ?? null,
+          })),
       );
   }
 

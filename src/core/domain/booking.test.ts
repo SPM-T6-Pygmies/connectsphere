@@ -43,8 +43,18 @@ function venue(layouts: readonly string[] = [THEATRE, CLASSROOM]): Venue {
   };
 }
 
-function occupied(date: string, slot: SlotOnDate["slot"], status: BookingStatus): OccupiedSlot {
-  return { date, slot, status };
+/** The clock every rule here reads; a hold expires either side of it. */
+const NOW = new Date("2026-10-01T09:00:00+08:00");
+const BEFORE_NOW = new Date("2026-10-01T08:59:59+08:00");
+const AFTER_NOW = new Date("2026-10-01T09:00:01+08:00");
+
+function occupied(
+  date: string,
+  slot: SlotOnDate["slot"],
+  status: BookingStatus,
+  holdExpiresAt: Date | null = null,
+): OccupiedSlot {
+  return { date, slot, status, holdExpiresAt };
 }
 
 function request(
@@ -59,6 +69,7 @@ function request(
     slots,
     requestedBy: userAccountId("coordinator-1"),
     occupied: existing,
+    now: NOW,
   });
 }
 
@@ -138,7 +149,34 @@ describe("requestVenueBooking (SPM-46)", () => {
 
   it("blocks a slot on tentative hold too -- one hold or booking per slot (#41)", () => {
     expect(() =>
-      request([{ date: "2026-10-05", slot: "AM" }], [occupied("2026-10-05", "AM", "Tentative Hold")]),
+      request(
+        [{ date: "2026-10-05", slot: "AM" }],
+        [occupied("2026-10-05", "AM", "Tentative Hold", AFTER_NOW)],
+      ),
+    ).toThrow(VenueSlotUnavailableError);
+  });
+
+  it("does not block on a hold that expired before now (AC4)", () => {
+    expect(
+      request(
+        [{ date: "2026-10-05", slot: "AM" }],
+        [occupied("2026-10-05", "AM", "Tentative Hold", BEFORE_NOW)],
+      ).status,
+    ).toBe("Requested");
+  });
+
+  it("does not block on a hold expiring exactly now -- it holds only while expiry is later (AC4)", () => {
+    expect(
+      request(
+        [{ date: "2026-10-05", slot: "AM" }],
+        [occupied("2026-10-05", "AM", "Tentative Hold", NOW)],
+      ).status,
+    ).toBe("Requested");
+  });
+
+  it("blocks on a hold with no expiry, which counts as live (AC4)", () => {
+    expect(() =>
+      request([{ date: "2026-10-05", slot: "AM" }], [occupied("2026-10-05", "AM", "Tentative Hold", null)]),
     ).toThrow(VenueSlotUnavailableError);
   });
 
@@ -215,7 +253,7 @@ describe("decideBooking (SPM-22)", () => {
   };
 
   it("approving confirms the booking and records who decided", () => {
-    expect(decideBooking(waiting, { kind: "approve" }, staff, [])).toEqual({
+    expect(decideBooking(waiting, { kind: "approve" }, staff, [], NOW)).toEqual({
       id: waiting.id,
       status: "Confirmed",
       decidedBy: staff,
@@ -227,9 +265,33 @@ describe("decideBooking (SPM-22)", () => {
   it("approving is blocked when another booking holds one of its slots", () => {
     for (const status of ["Confirmed", "Tentative Hold"] as const) {
       expect(() =>
-        decideBooking(waiting, { kind: "approve" }, staff, [occupied("2026-10-22", "PM", status)]),
+        decideBooking(waiting, { kind: "approve" }, staff, [occupied("2026-10-22", "PM", status)], NOW),
       ).toThrow(VenueSlotUnavailableError);
     }
+  });
+
+  it("approving is blocked by a hold that has not expired yet", () => {
+    expect(() =>
+      decideBooking(
+        waiting,
+        { kind: "approve" },
+        staff,
+        [occupied("2026-10-22", "AM", "Tentative Hold", AFTER_NOW)],
+        NOW,
+      ),
+    ).toThrow(VenueSlotUnavailableError);
+  });
+
+  it("approving is not blocked by a hold that expired before now", () => {
+    expect(
+      decideBooking(
+        waiting,
+        { kind: "approve" },
+        staff,
+        [occupied("2026-10-22", "AM", "Tentative Hold", BEFORE_NOW)],
+        NOW,
+      ).status,
+    ).toBe("Confirmed");
   });
 
   it("approving is not blocked by requests, rejections or releases on the same slot", () => {
@@ -237,7 +299,7 @@ describe("decideBooking (SPM-22)", () => {
       occupied("2026-10-22", "AM", status),
     );
 
-    expect(decideBooking(waiting, { kind: "approve" }, staff, others).status).toBe("Confirmed");
+    expect(decideBooking(waiting, { kind: "approve" }, staff, others, NOW).status).toBe("Confirmed");
   });
 
   it("approving is not blocked by a hold on a different slot or day", () => {
@@ -246,7 +308,7 @@ describe("decideBooking (SPM-22)", () => {
       occupied("2026-10-23", "AM", "Confirmed"),
     ];
 
-    expect(decideBooking(waiting, { kind: "approve" }, staff, elsewhere).status).toBe("Confirmed");
+    expect(decideBooking(waiting, { kind: "approve" }, staff, elsewhere, NOW).status).toBe("Confirmed");
   });
 
   it("rejecting keeps the trimmed reason and the suggested alternative", () => {
@@ -256,6 +318,7 @@ describe("decideBooking (SPM-22)", () => {
         { kind: "reject", reason: "  Closed for maintenance  ", suggestedAlternative: venueId("v2") },
         staff,
         [],
+        NOW,
       ),
     ).toEqual({
       id: waiting.id,
@@ -269,7 +332,7 @@ describe("decideBooking (SPM-22)", () => {
   it("rejecting without a reason is refused", () => {
     for (const reason of ["", "   "]) {
       expect(() =>
-        decideBooking(waiting, { kind: "reject", reason, suggestedAlternative: null }, staff, []),
+        decideBooking(waiting, { kind: "reject", reason, suggestedAlternative: null }, staff, [], NOW),
       ).toThrow(DecisionReasonRequiredError);
     }
   });
@@ -278,7 +341,7 @@ describe("decideBooking (SPM-22)", () => {
     const taken = [occupied("2026-10-22", "AM", "Confirmed")];
 
     expect(
-      decideBooking(waiting, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, taken)
+      decideBooking(waiting, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, taken, NOW)
         .status,
     ).toBe("Rejected");
   });
@@ -286,11 +349,11 @@ describe("decideBooking (SPM-22)", () => {
   it("refuses a booking that is no longer waiting, whichever way it is decided", () => {
     for (const status of ["Tentative Hold", "Confirmed", "Rejected", "Released", "Cancelled"] as const) {
       const decided = { ...waiting, status };
-      expect(() => decideBooking(decided, { kind: "approve" }, staff, [])).toThrow(
+      expect(() => decideBooking(decided, { kind: "approve" }, staff, [], NOW)).toThrow(
         BookingNotDecidableError,
       );
       expect(() =>
-        decideBooking(decided, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, []),
+        decideBooking(decided, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, [], NOW),
       ).toThrow(BookingNotDecidableError);
     }
   });

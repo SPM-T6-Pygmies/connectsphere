@@ -187,7 +187,7 @@ export class SupabaseBookingRepository implements BookingRepository {
       request.venueId,
       [...new Set(request.slots.map(({ date }) => date))],
     );
-    return clashingSlots(request.slots, occupied);
+    return clashingSlots(request.slots, occupied, new Date());
   }
 
   /**

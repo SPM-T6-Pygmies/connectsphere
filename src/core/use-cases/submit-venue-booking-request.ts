@@ -3,6 +3,7 @@ import { CoordinatorEventNotFoundError, VenueNotFoundError } from "../domain/err
 import { userAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
+import type { Clock } from "../ports/outbound/clock";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 
@@ -26,6 +27,7 @@ export interface SubmitVenueBookingRequestDeps {
   readonly events: CoordinatorEventRepository;
   readonly venues: VenueCatalogue;
   readonly bookings: BookingRepository;
+  readonly clock: Clock;
 }
 
 /**
@@ -43,7 +45,7 @@ export class SubmitVenueBookingRequestUseCase {
   async execute(
     command: SubmitVenueBookingRequestCommand,
   ): Promise<SubmitVenueBookingRequestResult> {
-    const { events, venues, bookings } = this.deps;
+    const { events, venues, bookings, clock } = this.deps;
     const requestedBy = userAccountId(command.userAccountId);
 
     const event = await events.findAssigned(requestedBy, command.eventId);
@@ -66,6 +68,7 @@ export class SubmitVenueBookingRequestUseCase {
       slots: command.slots,
       requestedBy,
       occupied,
+      now: clock.now(),
     });
 
     const bookingId = await bookings.submit(request);
