@@ -796,6 +796,15 @@ export class EventNotAwaitingSafetyCheckError extends DomainError {
   }
 }
 
+/** SPM-261 AC3: only a Planning event whose latest check is an unresubmitted rejection goes back for another. */
+export class SafetyCheckNotResubmittableError extends DomainError {
+  readonly code = "safety_check_not_resubmittable";
+
+  constructor() {
+    super("This event cannot be resubmitted for a safety check.");
+  }
+}
+
 /** SPM-260 AC3: a rejection says what must change. */
 export class SafetyCheckCommentsRequiredError extends DomainError {
   readonly code = "safety_check_comments_required";

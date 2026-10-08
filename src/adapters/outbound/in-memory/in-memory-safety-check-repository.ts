@@ -1,9 +1,18 @@
-import { EventNotAwaitingSafetyCheckError, NotSafetyOfficerError } from "@/core/domain/errors";
+import {
+  EventNotAwaitingSafetyCheckError,
+  EventNotFoundError,
+  NotSafetyOfficerError,
+  SafetyCheckNotResubmittableError,
+} from "@/core/domain/errors";
 import type { EventId } from "@/core/domain/event";
-import type { RecordedSafetyCheck } from "@/core/domain/safety-check";
+import { canResubmitForSafetyCheck, type RecordedSafetyCheck } from "@/core/domain/safety-check";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { Clock } from "@/core/ports/outbound/clock";
-import type { SafetyCheckRepository, SafetyCheckReview } from "@/core/ports/outbound/safety-check-repository";
+import type {
+  CoordinatorSafetyCheckHistory,
+  SafetyCheckRepository,
+  SafetyCheckReview,
+} from "@/core/ports/outbound/safety-check-repository";
 
 /** Safety checks held in memory, for tests and local wiring. */
 export class InMemorySafetyCheckRepository implements SafetyCheckRepository {
@@ -40,10 +49,39 @@ export class InMemorySafetyCheckRepository implements SafetyCheckRepository {
           comments: check.comments,
           checkedByName: this.officers[check.checkedBy] ?? check.checkedBy,
           checkedAt: this.clock.now().toISOString(),
+          resubmittedAt: null,
         },
         ...review.checks,
       ],
     };
+  }
+
+  async history(coordinator: UserAccountId, event: EventId): Promise<CoordinatorSafetyCheckHistory | null> {
+    const review = this.coordinated(coordinator, event);
+    return review === undefined ? null : { eventStatus: review.candidate.event.status, checks: review.checks };
+  }
+
+  async resubmit(coordinator: UserAccountId, event: EventId): Promise<void> {
+    const review = this.coordinated(coordinator, event);
+    if (review === undefined) {
+      throw new EventNotFoundError(event);
+    }
+    const [latest, ...earlier] = review.checks;
+    if (!canResubmitForSafetyCheck(review.candidate.event.status, latest ?? null) || latest === undefined) {
+      throw new SafetyCheckNotResubmittableError();
+    }
+
+    this.events[this.events.indexOf(review)] = {
+      ...review,
+      candidate: { ...review.candidate, checked: false },
+      checks: [{ ...latest, resubmittedAt: this.clock.now().toISOString() }, ...earlier],
+    };
+  }
+
+  private coordinated(coordinator: UserAccountId, event: EventId): SafetyCheckReview | undefined {
+    return this.events.find(
+      (review) => review.candidate.event.id === event && review.coordinatorUserAccountId === coordinator,
+    );
   }
 
   private requireOfficer(account: UserAccountId): void {

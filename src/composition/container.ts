@@ -107,6 +107,8 @@ import { LiftVenueUnavailabilityUseCase } from "@/core/use-cases/lift-venue-unav
 import { ListVenueUnavailabilityUseCase } from "@/core/use-cases/list-venue-unavailability";
 import { RecordVenueUnavailabilityUseCase } from "@/core/use-cases/record-venue-unavailability";
 import { RecordSafetyCheckUseCase } from "@/core/use-cases/record-safety-check";
+import { ResubmitForSafetyCheckUseCase } from "@/core/use-cases/resubmit-for-safety-check";
+import { ViewEventSafetyChecksUseCase } from "@/core/use-cases/view-event-safety-checks";
 import { ViewSafetyCheckUseCase } from "@/core/use-cases/view-safety-check";
 import { SearchVenuesUseCase } from "@/core/use-cases/search-venues";
 import { UpdateVenueUseCase } from "@/core/use-cases/update-venue";
@@ -568,6 +570,23 @@ function safetyCheckAnnouncer(): SafetyCheckEntryAnnouncer {
   return new SafetyCheckEntryAnnouncer({
     watch: new SupabaseSafetyCheckWatch(createSupabaseAdminClient()),
     notifier: recordedNotifier(),
+  });
+}
+
+/** SPM-261: an event's safety checks, for its assigned coordinator. */
+export async function buildViewEventSafetyChecks(): Promise<ViewEventSafetyChecksUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ViewEventSafetyChecksUseCase({ safetyChecks: new SupabaseSafetyCheckRepository(client) });
+}
+
+/** SPM-261: the coordinator sends a rejected event back for a fresh safety check. */
+export async function buildResubmitForSafetyCheck(): Promise<ResubmitForSafetyCheckUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ResubmitForSafetyCheckUseCase({
+    safetyChecks: new SupabaseSafetyCheckRepository(client),
+    safetyCheck: safetyCheckAnnouncer(),
   });
 }
 

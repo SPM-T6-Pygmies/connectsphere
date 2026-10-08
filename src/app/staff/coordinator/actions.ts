@@ -9,6 +9,7 @@ import {
   requestClarificationSchema,
   resolveClarificationThreadSchema,
 } from "@/adapters/inbound/request-clarification-schema";
+import { resubmitForSafetyCheckSchema } from "@/adapters/inbound/resubmit-for-safety-check-schema";
 import { withdrawEventRequestSchema } from "@/adapters/inbound/withdraw-event-request-schema";
 import {
   buildConfirmEvent,
@@ -16,6 +17,7 @@ import {
   buildPostCoordinatorClarificationMessage,
   buildRequestClarification,
   buildResolveClarificationThread,
+  buildResubmitForSafetyCheck,
   buildWithdrawEventRequest,
   getCurrentCoordinator,
 } from "@/composition/container";
@@ -286,4 +288,42 @@ export async function confirmEventAction(
   revalidatePath("/staff/coordinator", "layout");
 
   return { status: "confirmed" };
+}
+
+export type ResubmitForSafetyCheckState = { status: "idle" } | { status: "error"; message: string };
+
+/**
+ * SPM-261: the assigned coordinator sends a rejected event back for a fresh
+ * safety check.
+ *
+ * Who is resubmitting comes from `getCurrentCoordinator()` on the server; an
+ * event that is not theirs is refused like one that does not exist (#91). On
+ * success the page re-renders, showing the check as resubmitted.
+ */
+export async function resubmitForSafetyCheckAction(
+  _previous: ResubmitForSafetyCheckState,
+  formData: FormData,
+): Promise<ResubmitForSafetyCheckState> {
+  const parsed = resubmitForSafetyCheckSchema.safeParse({ eventId: String(formData.get("eventId") ?? "") });
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "The event is missing." };
+  }
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new EventNotFoundError(parsed.data.eventId);
+    }
+
+    const resubmitForSafetyCheck = await buildResubmitForSafetyCheck();
+    await resubmitForSafetyCheck.execute({ ...parsed.data, userAccountId: coordinator.userAccountId });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+  return { status: "idle" };
 }
