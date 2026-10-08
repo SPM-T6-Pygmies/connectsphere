@@ -135,6 +135,34 @@ supabase db query --file scripts/seed-equipment-review/verify.sql --local
 Then sign in as `support@test.com`. The event and line lists are duplicated
 across all three files.
 
+## seed-equipment-reserve
+
+The lines Technical Support reserve or mark unfulfilled (SPM-274): four events,
+assigned to Test Coordinator, whose lines are all New, on three catalogue types
+of the seed's own, so the other equipment seeds' counts are untouched.
+
+Design Sprint Demo (20 Nov) and Sales Kickoff (21 Nov) both need Wireless
+presenters, of which 6 are owned: reserve Design Sprint Demo's 4 and Sales
+Kickoff has 2 left for its 3, so it can only be marked unfulfilled. Design
+Sprint Demo and Board Offsite (20 Nov) each need 2 of the 3 Confidence
+monitors, so whoever reserves second is refused. Press Briefing has no date,
+so nothing can be reserved for it.
+
+| File           | What it does                                                         |
+| -------------- | -------------------------------------------------------------------- |
+| `seed.sql`     | Inserts the catalogue, the events and their lines. Safe to re-run.   |
+| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
+| `teardown.sql` | Deletes the events (their lines go with them) and the unused catalogue. |
+
+```bash
+supabase db query --file scripts/seed-equipment-reserve/seed.sql --local
+supabase db query --file scripts/seed-equipment-reserve/verify.sql --local
+```
+
+Then sign in as `support@test.com`. The cases run in order — see
+`docs/testing/EQUIPMENT_RESERVE_MANUAL_TESTS.md`. The event and line lists are
+duplicated across all three files.
+
 ## seed-venue-unavailability
 
 Three venue unavailability blocks, for the Venue Staff unavailability page, the
