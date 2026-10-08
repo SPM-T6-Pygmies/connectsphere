@@ -1,5 +1,14 @@
 import type { CoordinatorEventStatus } from "./coordinator-event";
 import { recheckReason, type EquipmentRequirement, type EquipmentReviewBaseline } from "./equipment-requirement";
+import {
+  EquipmentAvailableToReserveError,
+  EquipmentLineNotAwaitingDecisionError,
+  EventDateRequiredForEquipmentError,
+  NotEnoughEquipmentAvailableError,
+  UnfulfilledCommentRequiredError,
+  UnfulfilledCommentTooLongError,
+} from "./errors";
+import type { UserAccountId } from "./user-account";
 
 /**
  * Why a line needs Technical Support's attention (SPM-273 AC1): nothing has
@@ -14,9 +23,10 @@ export function attentionReason(line: EquipmentRequirement): AttentionReason | n
 }
 
 /**
- * AC3: what the line was when Technical Support reserved against it, while
- * that differs from what it is now -- null otherwise. A removal request on its
- * own changes nothing about the line, so it has nothing to show.
+ * AC3: what the line was when Technical Support reserved against it -- or
+ * marked it unfulfilled (SPM-274 AC4) -- while that differs from what it is
+ * now; null otherwise. A removal request on its own changes nothing about the
+ * line, so it has nothing to show.
  */
 export function reservedAs(line: EquipmentRequirement): EquipmentReviewBaseline | null {
   const baseline = line.reviewBaseline;
@@ -99,4 +109,106 @@ export function unitsAvailable(
     )
     .reduce((total, hold) => total + hold.quantityReserved, 0);
   return owned - outOfService - held;
+}
+
+/** SPM-274: an event's date and status, as far as deciding on its lines needs. */
+export interface EquipmentDecisionEvent {
+  readonly status: CoordinatorEventStatus;
+  /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
+  readonly preferredDate: string | null;
+}
+
+/** SPM-274: one line, with what `unitsAvailable` needs to judge it. */
+export interface EquipmentDecisionLine {
+  readonly line: EquipmentRequirement;
+  readonly owned: number;
+  readonly outOfService: number;
+  readonly otherHolds: readonly EquipmentHold[];
+}
+
+/** SPM-274 AC3. */
+export const UNFULFILLED_COMMENT_MAX_LENGTH = 500;
+
+/**
+ * SPM-274: whether Technical Support can reserve this line or mark it
+ * unfulfilled -- it needs their attention and nothing is held against it: a
+ * New line (AC1), or one marked unfulfilled that the coordinator then changed
+ * (AC4). A reserved line that changed is released or replaced instead (SPM-108).
+ */
+export function awaitsDecision(status: CoordinatorEventStatus, line: EquipmentRequirement): boolean {
+  return (
+    isActiveEvent(status) &&
+    line.quantityReserved === 0 &&
+    (line.state === "Requested" || (line.state === "Under review" && !line.removalRequested))
+  );
+}
+
+/**
+ * SPM-274 AC1: reserves the full quantity requested, recording who did. AC2:
+ * not before the event has a date. AC3: all or nothing -- with too few units
+ * free, nothing is reserved.
+ */
+export function reserveEquipmentLine(
+  event: EquipmentDecisionEvent,
+  target: EquipmentDecisionLine,
+  by: UserAccountId,
+): EquipmentRequirement {
+  const { line } = target;
+  const available = availableToDecide(event, target);
+  if (available < line.quantityRequested) {
+    throw new NotEnoughEquipmentAvailableError(available, line.quantityRequested);
+  }
+  return {
+    ...line,
+    quantityReserved: line.quantityRequested,
+    state: "Reserved",
+    reviewBaseline: null,
+    decision: { by, comment: null },
+  };
+}
+
+/**
+ * SPM-274 AC3: with too few units free, the line is marked unfulfilled with a
+ * comment saying why, and nothing is reserved. Not while enough are free --
+ * then it is reserved instead.
+ */
+export function markEquipmentLineUnfulfilled(
+  event: EquipmentDecisionEvent,
+  target: EquipmentDecisionLine,
+  by: UserAccountId,
+  comment: string,
+): EquipmentRequirement {
+  const { line } = target;
+  const available = availableToDecide(event, target);
+  if (available >= line.quantityRequested) {
+    throw new EquipmentAvailableToReserveError(available, line.quantityRequested);
+  }
+  return {
+    ...line,
+    state: "Unfulfilled",
+    reviewBaseline: null,
+    decision: { by, comment: validComment(comment) },
+  };
+}
+
+function availableToDecide(event: EquipmentDecisionEvent, target: EquipmentDecisionLine): number {
+  if (!awaitsDecision(event.status, target.line)) {
+    throw new EquipmentLineNotAwaitingDecisionError();
+  }
+  const available = unitsAvailable(target.owned, target.outOfService, event.preferredDate, target.otherHolds);
+  if (available === null) {
+    throw new EventDateRequiredForEquipmentError();
+  }
+  return available;
+}
+
+function validComment(comment: string): string {
+  const trimmed = comment.trim();
+  if (trimmed === "") {
+    throw new UnfulfilledCommentRequiredError();
+  }
+  if (trimmed.length > UNFULFILLED_COMMENT_MAX_LENGTH) {
+    throw new UnfulfilledCommentTooLongError(UNFULFILLED_COMMENT_MAX_LENGTH);
+  }
+  return trimmed;
 }
