@@ -456,6 +456,8 @@ create table equipment_reservation_line (
   line_state               text not null default 'Requested',
   reviewed_quantity_requested     integer,
   reviewed_technical_requirements text,
+  decided_by_user_account_id bigint references user_account (user_account_id) on delete restrict,
+  decision_comment         text,
     -- added 2026-09-28 (SPM-183, SPM-41 AC5/AC8/AC11): the coordinator's notes
     -- for Technical Support, and when a reserved line's removal was requested.
     -- line_state added 2026-10-03: Requested (nothing reserved), Reserved, or
@@ -466,15 +468,28 @@ create table equipment_reservation_line (
     -- back to exactly that returns it to Reserved. quantity_reserved <= quantity_requested was dropped
     -- at the same time: a reserved line may be cut below what is held until
     -- Technical Support release the excess (SPM-41 AC8).
+    -- decided_by_user_account_id, decision_comment and line_state 'Unfulfilled'
+    -- added 2026-10-08 (SPM-274): who last reserved the line or marked it
+    -- Unfulfilled (too few free, nothing reserved), and why not. A changed
+    -- Unfulfilled line goes Under review with nothing reserved, so Under review
+    -- no longer implies units held. fulfilment_status stays unused.
   unique (equipment_reservation_id, equipment_item_id),
   constraint equipment_reservation_line_fulfilment_chk
     check (fulfilment_status in ('Pending', 'Fulfilled', 'Partially Fulfilled', 'Unfulfilled')),
   constraint equipment_reservation_line_technical_requirements_chk
     check (technical_requirements is null or char_length(technical_requirements) <= 500),
   constraint equipment_reservation_line_state_chk
-    check (line_state in ('Requested', 'Reserved', 'Under review')),
+    check (line_state in ('Requested', 'Reserved', 'Under review', 'Unfulfilled')),
   constraint equipment_reservation_line_state_reserved_chk
-    check ((line_state = 'Requested') = (quantity_reserved = 0)),
+    check (
+      (line_state in ('Requested', 'Unfulfilled') and quantity_reserved = 0)
+      or (line_state = 'Reserved' and quantity_reserved > 0)
+      or line_state = 'Under review'
+    ),
+  constraint equipment_reservation_line_unfulfilled_chk
+    check (line_state <> 'Unfulfilled' or (decided_by_user_account_id is not null and decision_comment is not null)),
+  constraint equipment_reservation_line_decision_comment_chk
+    check (decision_comment is null or char_length(decision_comment) between 1 and 500),
   constraint equipment_reservation_line_review_baseline_chk
     check ((line_state = 'Under review') = (reviewed_quantity_requested is not null))
 );
@@ -691,6 +706,7 @@ create index equipment_reservation_session_idx  on equipment_reservation (sessio
 create index equipment_reservation_reviewer_idx on equipment_reservation (reviewed_by_user_account_id);
 create index equipment_line_reservation_idx     on equipment_reservation_line (equipment_reservation_id);
 create index equipment_line_item_idx            on equipment_reservation_line (equipment_item_id);
+create index equipment_line_decided_by_idx      on equipment_reservation_line (decided_by_user_account_id);
 create index support_request_event_idx          on support_request (event_id);
 create index support_request_assignment_user_idx on support_request_assignment (technical_support_user_account_id);
 create index registration_event_idx             on registration (event_id);
