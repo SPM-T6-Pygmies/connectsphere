@@ -78,9 +78,11 @@ import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
 import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue";
+import { MarkEquipmentLineUnfulfilledUseCase } from "@/core/use-cases/mark-equipment-line-unfulfilled";
 import { ListEventsAwaitingSafetyCheckUseCase } from "@/core/use-cases/list-events-awaiting-safety-check";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
+import { ReserveEquipmentLineUseCase } from "@/core/use-cases/reserve-equipment-line";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
 import { ViewEventEquipmentUseCase } from "@/core/use-cases/view-event-equipment";
 import { ViewEventEquipmentForTechnicalSupportUseCase } from "@/core/use-cases/view-event-equipment-for-technical-support";
@@ -395,6 +397,20 @@ export async function buildViewEventEquipmentForTechnicalSupport(): Promise<View
   return new ViewEventEquipmentForTechnicalSupportUseCase({
     equipment: new SupabaseTechnicalEquipmentRepository(client),
   });
+}
+
+/** SPM-274 AC1: reserve a line's full quantity. */
+export async function buildReserveEquipmentLine(): Promise<ReserveEquipmentLineUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new ReserveEquipmentLineUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+}
+
+/** SPM-274 AC3: mark a line unfulfilled, with why. */
+export async function buildMarkEquipmentLineUnfulfilled(): Promise<MarkEquipmentLineUnfulfilledUseCase> {
+  const client = await createSupabaseServerClient();
+
+  return new MarkEquipmentLineUnfulfilledUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
 }
 
 /**
