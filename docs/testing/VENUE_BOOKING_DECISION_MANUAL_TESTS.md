@@ -20,7 +20,7 @@ tentatively" (SPM-218, SPM-219). The coordinator sees the outcome as the
 booking's status on **Request a venue**; the rejection reason and suggestion
 are shown to Venue Staff only.
 
-These cases are registered as `TC-VBDECIDE-001`–`TC-VBDECIDE-006` in
+These cases are registered as `TC-VBDECIDE-001`–`TC-VBDECIDE-008` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table. CI records it in
@@ -189,5 +189,47 @@ select b.booking_id, v.location, b.status, e.name
 **Expected Result:**
 - Each shows the access-denied screen naming Venue Staff, with a **403**
 - No booking, venue or event details are shown
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-VBDECIDE-007: A block recorded after the request refuses the approval
+
+**Preconditions:** As `coordinator@test.com`, request **Studio** on
+**2026-12-08 AM** for event A. Then, as `venue@test.com`, block **Studio** for
+**AM** on **2026-12-08** at `/staff/venue/unavailability`, reason Maintenance.
+The request is still **Requested**: a block does not change existing bookings.
+
+**Steps:**
+1. Signed in as `venue@test.com`, open the Studio 2026-12-08 request and click
+   **Approve booking**.
+2. Reload the page.
+
+**Expected Result:**
+- The form shows *The venue is unavailable for 2026-12-08 AM. Choose other
+  slots or another venue.*, the same words the coordinator gets for a blocked
+  slot
+- After reload the booking is still **Requested**, with the decision form
+- Rejecting it instead still works: a rejection holds nothing (do not reject
+  it here, TC-VBDECIDE-008 needs it)
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-VBDECIDE-008: Lifting the block lets the approval go through
+
+**Preconditions:** As left by TC-VBDECIDE-007.
+
+**Steps:**
+1. At `/staff/venue/unavailability`, lift the Studio 2026-12-08 AM block.
+2. Open the Studio 2026-12-08 request and click **Approve booking**.
+3. As `coordinator@test.com`, open event A's **Request a venue** page.
+
+**Expected Result:**
+- The approval is accepted: *Already decided — Confirmed by Test Venue Staff*
+- The booking is listed in **Decided**
+- The coordinator's row reads **Confirmed**
 
 **Status:** [ ] Pass [ ] Fail
