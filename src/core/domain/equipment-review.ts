@@ -212,3 +212,51 @@ function validComment(comment: string): string {
   }
   return trimmed;
 }
+
+/** SPM-274 AC7: one event's reservation of an equipment type. */
+export interface EventReservation extends EquipmentHold {
+  readonly eventId: string;
+  readonly eventName: string;
+}
+
+/** SPM-274 AC7: an upcoming event that, with the events over its days, holds more than is in service. */
+export interface OverheldEvent {
+  readonly eventId: string;
+  readonly eventName: string;
+  /** ISO calendar date, `YYYY-MM-DD`. */
+  readonly eventDate: string;
+  /** What it has reserved itself. */
+  readonly reserved: number;
+  /** What it and every active event over overlapping days have reserved together. */
+  readonly held: number;
+}
+
+/**
+ * SPM-274 AC7: after a type's stock changes, the upcoming events (dated today
+ * or later) that now hold more than is in service -- those for which what
+ * they and every other active event over overlapping days have reserved
+ * comes to more than the units in service. Soonest first.
+ */
+export function eventsHoldingMoreThanInService(
+  inService: number,
+  reservations: readonly EventReservation[],
+  today: string,
+): OverheldEvent[] {
+  const active = reservations.filter(
+    (reservation): reservation is EventReservation & { readonly eventDate: string } =>
+      isActiveEvent(reservation.eventStatus) && reservation.eventDate !== null,
+  );
+  return active
+    .filter((reservation) => reservation.eventDate >= today)
+    .map((reservation) => ({
+      eventId: reservation.eventId,
+      eventName: reservation.eventName,
+      eventDate: reservation.eventDate,
+      reserved: reservation.quantityReserved,
+      held: active
+        .filter((other) => holdsOverlap(reservation.eventDate, other.eventDate))
+        .reduce((total, other) => total + other.quantityReserved, 0),
+    }))
+    .filter((event) => event.held > inService)
+    .sort((a, b) => a.eventDate.localeCompare(b.eventDate) || a.eventName.localeCompare(b.eventName));
+}
