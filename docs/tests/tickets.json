@@ -726,6 +726,11 @@
       "title": "Mark equipment out of service",
       "parent": null,
       "status": "Todo"
+    },
+    "SPM-274": {
+      "title": "Reserve equipment for events",
+      "parent": null,
+      "status": "Todo"
     }
   }
 }

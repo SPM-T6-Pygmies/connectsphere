@@ -77,6 +77,7 @@ export function toEventEquipment(rows: readonly EventEquipmentRow[]): EventEquip
               state: row.line_state ?? "Requested",
               reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
               removalRequested: row.removal_requested ?? false,
+              decision: null,
             },
           ],
     ),

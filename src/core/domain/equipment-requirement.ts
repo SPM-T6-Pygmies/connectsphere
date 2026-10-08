@@ -8,6 +8,7 @@ import {
   InvalidEquipmentRequirementQuantityError,
   TechnicalRequirementsTooLongError,
 } from "./errors";
+import type { UserAccountId } from "./user-account";
 
 /** SPM-41 AC5. */
 export const TECHNICAL_REQUIREMENTS_MAX_LENGTH = 500;
@@ -29,9 +30,11 @@ export interface EquipmentRequirement {
   readonly quantityReserved: number;
   /**
    * Where the line stands with Technical Support: `Requested` until they
-   * reserve, `Reserved` after, and `Under review` once a coordinator's change
-   * (AC8) or removal request (AC11) means they must re-check it. `Requested`
-   * exactly when `quantityReserved` is 0.
+   * decide on it, then `Reserved`, or `Unfulfilled` when too few units were
+   * free (SPM-274 AC3), and `Under review` once a coordinator's change (AC8,
+   * SPM-274 AC4) or removal request (AC11) means they must re-check it.
+   * Something is reserved exactly when the line is `Reserved`, or `Under
+   * review` after being `Reserved`.
    */
   readonly state: EquipmentLineState;
   /** What Technical Support last had reserved against. Set exactly while the line is `Under review`. */
@@ -42,14 +45,29 @@ export interface EquipmentRequirement {
    * coordinator undoes the removal (AC17).
    */
   readonly removalRequested: boolean;
+  /**
+   * Technical Support's last decision on the line (SPM-274): who reserved it,
+   * or who marked it unfulfilled and why. Kept while the line is under review,
+   * so an edit back restores it (AC19). Null until a decision is made, and on
+   * lines reserved before decisions were recorded.
+   */
+  readonly decision: EquipmentLineDecision | null;
 }
 
-export type EquipmentLineState = "Requested" | "Reserved" | "Under review";
+export type EquipmentLineState = "Requested" | "Reserved" | "Under review" | "Unfulfilled";
+
+export interface EquipmentLineDecision {
+  /** The Technical Support Staff member who made it. */
+  readonly by: UserAccountId;
+  /** Why the line could not be fulfilled (SPM-274 AC3); null for a reservation. */
+  readonly comment: string | null;
+}
 
 /**
- * What Technical Support last had reserved against a line, kept while the line
- * is Under review: editing the line back to exactly this means there is nothing
- * left to re-check, so it returns to Reserved (AC19).
+ * What the line was when Technical Support last decided on it, kept while the
+ * line is Under review: editing the line back to exactly this means there is
+ * nothing left to re-check, so it returns to Reserved, or to Unfulfilled
+ * (AC19, SPM-274 AC4).
  */
 export interface EquipmentReviewBaseline {
   readonly quantityRequested: number;
@@ -70,9 +88,9 @@ export interface EquipmentRequirementEdit {
   readonly line: EquipmentRequirement;
   /** False for a save that changed nothing (AC9) -- nothing to persist, nothing to tell anyone. */
   readonly changed: boolean;
-  /** This edit left a reserved line under review for Technical Support to re-check (AC8). */
+  /** This edit left a reserved or unfulfilled line under review for Technical Support to re-check (AC8, SPM-274 AC4). */
   readonly underReview: boolean;
-  /** This edit put a line under review back to what Technical Support had, so it is Reserved again (AC19). */
+  /** This edit put a line under review back to what Technical Support had, so it is Reserved or Unfulfilled again (AC19). */
   readonly reviewCleared: boolean;
 }
 
@@ -106,7 +124,7 @@ export function recheckReason(line: EquipmentRequirement): RecheckReason | null 
 
 /** Whether Technical Support have reserved any equipment against this line yet. */
 export function isReserved(line: EquipmentRequirement): boolean {
-  return line.state !== "Requested";
+  return line.quantityReserved > 0;
 }
 
 /** AC1-5: the only way to add a line to an event. */
@@ -129,17 +147,20 @@ export function recordEquipmentRequirement(
     state: "Requested",
     reviewBaseline: null,
     removalRequested: false,
+    decision: null,
   };
 }
 
 /**
  * AC7-9: a change to a reserved line is saved and puts it under review, and
  * what Technical Support reserved stays held -- even above a reduced quantity,
- * since releasing it is their call (SPM-108), not this edit's.
+ * since releasing it is their call (SPM-108), not this edit's. SPM-274 AC4: a
+ * change to a line they marked unfulfilled puts it under review the same way.
  *
- * AC19: the values the line had when it was Reserved are remembered, so an edit
- * that returns to exactly them clears the review -- Technical Support have
- * nothing to change. Any other edit keeps the original to compare against.
+ * AC19: the values the line had when it was Reserved or Unfulfilled are
+ * remembered, so an edit that returns to exactly them clears the review --
+ * Technical Support have nothing to change. Any other edit keeps the original
+ * to compare against.
  */
 export function editEquipmentRequirement(
   event: CoordinatorEvent,
@@ -159,28 +180,28 @@ export function editEquipmentRequirement(
 
   if (line.state === "Under review" && line.reviewBaseline !== null && isBaseline(details, line.reviewBaseline)) {
     return {
-      line: { ...line, ...details, state: "Reserved", reviewBaseline: null },
+      line: { ...line, ...details, state: isReserved(line) ? "Reserved" : "Unfulfilled", reviewBaseline: null },
       changed: true,
       underReview: false,
       reviewCleared: true,
     };
   }
 
-  const reserved = isReserved(line);
+  const decided = line.state !== "Requested";
   return {
     line: {
       ...line,
       ...details,
-      state: reserved ? "Under review" : line.state,
-      reviewBaseline: reserved ? (line.reviewBaseline ?? baselineOf(line)) : null,
+      state: decided ? "Under review" : line.state,
+      reviewBaseline: decided ? (line.reviewBaseline ?? baselineOf(line)) : null,
     },
     changed: true,
-    underReview: reserved,
+    underReview: decided,
     reviewCleared: false,
   };
 }
 
-/** AC10-11. */
+/** AC10-11. A line with nothing reserved, unfulfilled ones included, simply goes. */
 export function removeEquipmentRequirement(
   event: CoordinatorEvent,
   line: EquipmentRequirement,

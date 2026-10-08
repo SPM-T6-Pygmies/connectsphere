@@ -60,6 +60,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           state: "Under review",
           reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
           removalRequested: false,
+          decision: null,
         },
         {
           equipmentItemId: "2",
@@ -69,6 +70,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           state: "Requested",
           reviewBaseline: null,
           removalRequested: false,
+          decision: null,
         },
       ],
     });

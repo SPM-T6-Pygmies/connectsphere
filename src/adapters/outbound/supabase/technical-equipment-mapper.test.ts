@@ -44,6 +44,7 @@ describe("technical equipment mapper (SPM-273)", () => {
           state: "Under review",
           reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
           removalRequested: false,
+          decision: null,
         },
         {
           equipmentItemId: "2",
@@ -53,6 +54,7 @@ describe("technical equipment mapper (SPM-273)", () => {
           state: "Requested",
           reviewBaseline: null,
           removalRequested: false,
+          decision: null,
         },
       ],
     });

@@ -66,6 +66,7 @@ function toLine(row: TechnicalEquipmentLineRow): EquipmentRequirement {
     state: row.line_state,
     reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
     removalRequested: row.removal_requested,
+    decision: null,
   };
 }
 

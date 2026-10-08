@@ -70,6 +70,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     state: "Requested",
     reviewBaseline: null,
     removalRequested: false,
+    decision: null,
     ...overrides,
   };
   // A line under review always remembers what it was reviewed as; default to its own values.
@@ -116,6 +117,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
       state: "Requested",
       reviewBaseline: null,
       removalRequested: false,
+      decision: null,
     });
   });
 
@@ -590,5 +592,39 @@ describe("reverting an edit to a reserved line (SPM-232)", () => {
 
     expect(edit.line.reviewBaseline).toBeNull();
     expect(edit.reviewCleared).toBe(false);
+  });
+});
+
+describe("editing a line marked unfulfilled (SPM-274)", () => {
+  const SUPPORT = userAccountId("support-1");
+  const unfulfilled = () =>
+    line({ quantityRequested: 5, state: "Unfulfilled", decision: { by: SUPPORT, comment: "only 3 available" } });
+  const change = (target: EquipmentRequirement, quantityRequested: number) =>
+    editEquipmentRequirement(event(), target, { quantityRequested, technicalRequirements: target.technicalRequirements });
+
+  it("AC4: a change puts it under review as changed, remembering what was marked unfulfilled", () => {
+    const edit = change(unfulfilled(), 3);
+
+    expect(edit).toMatchObject({ changed: true, underReview: true, reviewCleared: false });
+    expect(edit.line).toMatchObject({ state: "Under review", quantityRequested: 3, quantityReserved: 0 });
+    expect(edit.line.reviewBaseline).toEqual({ quantityRequested: 5, technicalRequirements: "HDMI input" });
+    expect(recheckReason(edit.line)).toBe("changed");
+  });
+
+  it("AC4: a change back to what was marked unfulfilled returns it to Unfulfilled, comment and all", () => {
+    const back = change(change(unfulfilled(), 3).line, 5);
+
+    expect(back).toMatchObject({ changed: true, underReview: false, reviewCleared: true });
+    expect(back.line).toMatchObject({ state: "Unfulfilled", reviewBaseline: null, quantityReserved: 0 });
+    expect(back.line.decision).toEqual({ by: SUPPORT, comment: "only 3 available" });
+  });
+
+  it("AC4: a save that changes nothing leaves it unfulfilled", () => {
+    expect(change(unfulfilled(), 5)).toMatchObject({ changed: false, line: { state: "Unfulfilled" } });
+  });
+
+  it("AC3: nothing is held against an unfulfilled line, so removing it deletes it", () => {
+    expect(removeEquipmentRequirement(event(), unfulfilled())).toEqual({ kind: "deleted" });
+    expect(removeEquipmentRequirement(event(), change(unfulfilled(), 3).line)).toEqual({ kind: "deleted" });
   });
 });

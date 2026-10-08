@@ -21,6 +21,7 @@ function reserved(item = "item-projector"): EquipmentRequirement {
     state: "Reserved",
     reviewBaseline: null,
     removalRequested: false,
+    decision: null,
   };
 }
 

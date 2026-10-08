@@ -25,6 +25,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     state: "Reserved",
     reviewBaseline: null,
     removalRequested: false,
+    decision: null,
     ...overrides,
   };
 }
