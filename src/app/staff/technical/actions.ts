@@ -17,6 +17,7 @@ import {
   getCurrentTechnicalSupport,
   getStaffWorkspaces,
 } from "@/composition/container";
+import type { OverheldEvent } from "@/core/domain/equipment-review";
 import {
   DomainError,
   EquipmentLineNotAwaitingDecisionError,
@@ -25,7 +26,12 @@ import {
 
 export type EquipmentFormState =
   | { status: "idle" }
-  | { status: "success"; message: string }
+  | {
+      status: "success";
+      message: string;
+      /** SPM-274 AC7: upcoming events that now hold more than is in service. */
+      overheld?: readonly OverheldEvent[];
+    }
   | {
       status: "error";
       message: string;
@@ -85,7 +91,11 @@ export async function createEquipmentItemAction(
   }
 }
 
-/** SPM-40 AC2, SPM-17 AC1: correct an existing line's quantity, location and units out of service. */
+/**
+ * SPM-40 AC2, SPM-17 AC1: correct an existing line's quantity, location and
+ * units out of service. SPM-274 AC7: saved even when that leaves too few in
+ * service, with the events affected.
+ */
 export async function updateEquipmentStockAction(
   _previous: EquipmentFormState,
   formData: FormData,
@@ -107,10 +117,10 @@ export async function updateEquipmentStockAction(
 
   try {
     const updateEquipmentStock = await buildUpdateEquipmentStock();
-    await updateEquipmentStock.execute(parsed.data);
+    const { overheld } = await updateEquipmentStock.execute(parsed.data);
 
     revalidatePath("/staff/technical", "layout");
-    return { status: "success", message: "Saved." };
+    return { status: "success", message: "Saved.", overheld };
   } catch (error) {
     if (error instanceof DomainError) {
       return { status: "error", message: error.message };

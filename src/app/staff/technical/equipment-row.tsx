@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +16,8 @@ const INITIAL: EquipmentFormState = { status: "idle" };
 /**
  * One catalogue item as a card, with how many are owned, where they are kept
  * and how many are out of service editable in place (SPM-40 AC2, SPM-17 AC1),
- * and how many are in service (SPM-17 AC3).
+ * and how many are in service (SPM-17 AC3). After a save that leaves fewer in
+ * service than upcoming events hold, it names them (SPM-274 AC7).
  */
 export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
   const [state, formAction, pending] = useActionState(updateEquipmentStockAction, INITIAL);
@@ -79,6 +81,22 @@ export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
                 />
               </label>
             </div>
+
+            {state.status === "success" && state.overheld && state.overheld.length > 0 ? (
+              <Alert variant="warning" className="px-2 py-1.5 text-xs">
+                <AlertTitle className="text-xs">Fewer in service than these events hold</AlertTitle>
+                <AlertDescription className="text-xs">
+                  <ul>
+                    {state.overheld.map((event) => (
+                      <li key={event.eventId}>
+                        {`${event.eventName} (${event.eventDate}): ${event.held} held over its days`}
+                        {event.held === event.reserved ? null : ` (${event.reserved} its own)`}
+                      </li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
             <div className="flex items-center justify-end gap-2">
               {state.status === "error" ? (
