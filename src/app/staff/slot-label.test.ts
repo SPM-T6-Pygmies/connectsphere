@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { slotLabel } from "./slot-label";
 
-describe("slotLabel", () => {
+describe("slotLabel (SPM-46)", () => {
   it("names each slot with its hours", () => {
     expect(slotLabel("AM")).toBe("AM (7:00 AM – 12:00 PM)");
     expect(slotLabel("PM")).toBe("PM (1:00 PM – 6:00 PM)");
