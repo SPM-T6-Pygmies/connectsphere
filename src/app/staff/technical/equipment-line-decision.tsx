@@ -52,7 +52,7 @@ export function EquipmentLineDecision({ eventId, line }: { eventId: string; line
   );
 
   return (
-    <div className="grid min-w-52 gap-1.5">
+    <div className="grid gap-1.5">
       <Message state={reserveState} />
       {enough ? (
         <form action={reserveAction}>

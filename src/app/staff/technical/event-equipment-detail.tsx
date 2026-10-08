@@ -75,7 +75,7 @@ function EquipmentRow({ eventId, line }: { eventId: string; line: TechnicalSuppo
           <Badge variant={ATTENTION[line.attention].variant}>{ATTENTION[line.attention].label}</Badge>
         )}
       </TableCell>
-      <TableCell className="align-top">
+      <TableCell className="w-72 max-w-72 align-top whitespace-normal">
         {line.canDecide ? <EquipmentLineDecision eventId={eventId} line={line} /> : <Decision line={line} />}
       </TableCell>
     </TableRow>
