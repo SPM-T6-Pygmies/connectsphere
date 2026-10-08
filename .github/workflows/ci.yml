@@ -43,6 +43,24 @@ jobs:
             exit 1
           fi
 
+      # The shared project already has every migration on main, and `supabase
+      # db push` refuses one dated before the newest it has applied. Catch that
+      # here, while the branch is still easy to re-stamp, not at deploy.
+      - name: New migrations sort after main's
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        continue-on-error: false
+        run: |
+          git fetch --quiet --depth=1 origin main
+          versions() { sed 's#.*/##' | grep '\.sql$' | cut -d_ -f1 | sort -u; }
+          on_main=$(git ls-tree --name-only FETCH_HEAD supabase/migrations/ | versions)
+          newest=$(echo "$on_main" | tail -1)
+          added=$(ls supabase/migrations/*.sql | versions | comm -13 <(echo "$on_main") -)
+          stale=$(echo "$added" | awk -v n="$newest" 'NF && $1 <= n')
+          if [ -n "$stale" ]; then
+            echo "::error::Migrations dated before main's newest ($newest), which supabase db push would refuse. Re-stamp them after it, keeping their order:" $stale
+            exit 1
+          fi
+
       - name: Type check
         if: ${{ always() }}
         continue-on-error: false
