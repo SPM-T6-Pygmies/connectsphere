@@ -3,6 +3,7 @@ import {
   BookingNotDecidableError,
   BookingNotFoundError,
   DecisionReasonRequiredError,
+  VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
@@ -27,6 +28,9 @@ const NOT_FOUND = "CS030";
 const NOT_DECIDABLE = "CS031";
 const REASON_REQUIRED = "CS032";
 const SLOT_TAKEN = "CS025";
+// A Venue Staff block covers one of the booking's slots (SPM-22), the same
+// code the booking_slot trigger raises for a request.
+const SLOT_BLOCKED = "CS028";
 
 /**
  * Reached through `security definer` functions, not the tables: `booking`
@@ -84,6 +88,8 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
         throw new DecisionReasonRequiredError();
       case SLOT_TAKEN:
         throw new VenueSlotUnavailableError(await this.takenBy(decided));
+      case SLOT_BLOCKED:
+        throw new VenueSlotBlockedError(await this.blockedBy(decided, error.message));
       default:
         throw new Error(`Failed to decide the booking: ${error.message}`, { cause: error });
     }
@@ -109,6 +115,15 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
     }
 
     return ((data ?? []) as unknown as BookingReviewRow[]).map(toBookingForReview);
+  }
+
+  /** Which of the booking's slots are blocked, for a message that names them. */
+  private async blockedBy(decided: DecidedBooking, refusal: string) {
+    const booking = await this.find(decided.decidedBy, decided.id);
+    if (booking === null) {
+      return [];
+    }
+    return this.bookings.blockedOf(booking.venueId, booking.slots, refusal);
   }
 
   /** Which of the booking's slots were taken, for a message that names them. */
