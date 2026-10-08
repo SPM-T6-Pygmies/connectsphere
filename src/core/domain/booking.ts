@@ -19,11 +19,14 @@ export type BookingSlot = "AM" | "PM" | "Night";
 /** In the order they fall in a day, which is also the order a request is shown in. */
 export const BOOKING_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
 
-/** Each slot's span as `HH:MM` wall-clock time in Singapore, as the `slot` table seeds it. */
+/**
+ * Each slot's span as `HH:MM` wall-clock time in Singapore, as the `slot` table
+ * holds it. Night ends at midnight, written `24:00` so it falls after its start.
+ */
 export const SLOT_HOURS: Readonly<Record<BookingSlot, { start: string; end: string }>> = {
   AM: { start: "07:00", end: "12:00" },
-  PM: { start: "12:00", end: "18:00" },
-  Night: { start: "18:00", end: "22:00" },
+  PM: { start: "13:00", end: "18:00" },
+  Night: { start: "19:00", end: "24:00" },
 };
 
 /**

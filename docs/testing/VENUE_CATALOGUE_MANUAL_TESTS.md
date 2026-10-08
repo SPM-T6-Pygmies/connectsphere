@@ -3,7 +3,7 @@
 ## Overview
 Manual browser tests for Venue Staff maintaining the venue catalogue (SPM-42),
 on slot-based timing: a venue offers some of the three day slots (AM
-07:00–12:00, PM 12:00–18:00, Night 18:00–22:00, Singapore time) instead of
+07:00–12:00, PM 13:00–18:00, Night 19:00–24:00, Singapore time) instead of
 opening and closing hours.
 
 SPM-42 AC1 still says "operating hours". Slots replace them, so these cases
@@ -62,8 +62,8 @@ catalogue (`/staff/venue/catalogue`).
       and Catering area as checkboxes, none ticked, with no free-text box.
 - [ ] **Accessibility** offers exactly Step-free access, Hearing loop,
       Accessible toilets, Lift access and Wheelchair seating, the same way.
-- [ ] **Slots** offers `AM (7:00 AM – 12:00 PM)`, `PM (12:00 PM – 6:00 PM)` and
-      `Night (6:00 PM – 10:00 PM)`. There are no opening or closing time fields.
+- [ ] **Slots** offers `AM (7:00 AM – 12:00 PM)`, `PM (1:00 PM – 6:00 PM)` and
+      `Night (7:00 PM – 12:00 AM)`. There are no opening or closing time fields.
 - [ ] After step 3, **Add venue** is still disabled; ticking one slot enables it.
 
 ### TC-VCAT-002 Create a venue

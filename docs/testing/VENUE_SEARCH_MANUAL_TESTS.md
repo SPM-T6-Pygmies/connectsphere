@@ -3,7 +3,7 @@
 ## Overview
 Manual browser tests for the Event Coordinator searching the venue catalogue on
 **Find a venue** (`/staff/coordinator/venues`), on slot-based timing: a search
-asks for a date plus slots (AM 07:00–12:00, PM 12:00–18:00, Night 18:00–22:00,
+asks for a date plus slots (AM 07:00–12:00, PM 13:00–18:00, Night 19:00–24:00,
 Singapore time) instead of a start and end time.
 
 SPM-44 AC2 still says "start and end time". Slots replace it, so these cases
