@@ -6,6 +6,7 @@ import type {
   Notifier,
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
+  SafetyCheckRecordedNotice,
 } from "@/core/ports/outbound/notifier";
 
 export class RecordingNotifier implements Notifier {
@@ -15,6 +16,7 @@ export class RecordingNotifier implements Notifier {
   readonly clarificationRequests: ClarificationRequestedNotice[] = [];
   readonly decisions: EventRequestDecidedNotice[] = [];
   readonly safetyChecksReady: SafetyCheckReadyNotice[] = [];
+  readonly safetyChecksRecorded: SafetyCheckRecordedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
     this.sent.push(connection);
@@ -38,5 +40,9 @@ export class RecordingNotifier implements Notifier {
 
   async safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void> {
     this.safetyChecksReady.push(notice);
+  }
+
+  async safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void> {
+    this.safetyChecksRecorded.push(notice);
   }
 }

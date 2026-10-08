@@ -123,3 +123,25 @@ export function recordSafetyCheck(
     checkedBy,
   };
 }
+
+/** SPM-261: the latest outcome on an event, and when it was sent back for a fresh check, if it was. */
+export interface LatestSafetyCheck {
+  readonly outcome: SafetyCheckOutcome;
+  /** ISO instant. Null until the coordinator resubmits. */
+  readonly resubmittedAt: string | null;
+}
+
+/**
+ * SPM-261 AC3: whether the coordinator can send an event back for a fresh
+ * check. Only a Planning event whose latest outcome is a rejection not yet
+ * resubmitted: an approval needs no second check, and one resubmission is
+ * enough to put the event back in line (AC4).
+ */
+export function canResubmitForSafetyCheck(
+  eventStatus: CoordinatorEventStatus,
+  latest: LatestSafetyCheck | null,
+): boolean {
+  return (
+    eventStatus === "Planning" && latest !== null && latest.outcome === "Rejected" && latest.resubmittedAt === null
+  );
+}
