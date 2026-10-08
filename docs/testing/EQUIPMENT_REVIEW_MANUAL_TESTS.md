@@ -33,11 +33,25 @@ These cases check the same rules end to end, through the real login, the
 `technical_support_equipment_events` and `technical_support_event_equipment`
 functions, and the pages.
 
-These cases are registered as `TC-EQUIPREVIEW-001`–`TC-EQUIPREVIEW-005` in
+These cases are registered as `TC-EQUIPREVIEW-001`, `003`, `004`, `006` and `007` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run them,
 tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
+
+**Retired:** TC-EQUIPREVIEW-002 and 005 said the event page has no Reserve button —
+true until SPM-274 added one to each line awaiting a decision
+([`EQUIPMENT_RESERVE_MANUAL_TESTS.md`](EQUIPMENT_RESERVE_MANUAL_TESTS.md)). They are kept
+as `Retired` in the registry with their original wording and their recorded passes, and
+are replaced here by:
+
+| Retired | Replaced by |
+| --- | --- |
+| TC-EQUIPREVIEW-002 | TC-EQUIPREVIEW-006 |
+| TC-EQUIPREVIEW-005 | TC-EQUIPREVIEW-007 |
+
+The replacements check the same SPM-273 behaviour, with the **Decision** column SPM-274
+added.
 
 ---
 
@@ -102,29 +116,6 @@ events belong to both test coordinators.
 
 ---
 
-### TC-EQUIPREVIEW-002: An event's lines are marked New, Changed or Removal requested (AC3)
-
-**Preconditions:** As TC-EQUIPREVIEW-001.
-
-**Steps:**
-1. On **Needs review**, open *Tech Summit Keynote*.
-2. Read the **Equipment lines** table.
-
-**Expected Result:**
-- Three lines, each with type, quantity requested, quantity reserved and technical
-  requirements:
-  - *Handheld microphone* · Requested **6**, *was 4* · Reserved **4** · *Two on the
-    stage*, *was: One on the stage* · **Changed**
-  - *Laser projector* · Requested **4** · Reserved **0** · *HDMI and USB-C* · **New**
-  - *Stage monitor* · Requested **2** · Reserved **2** · None · **Removal requested**,
-    with no *was* line (only the removal changed)
-- No Reserve, Mark unavailable, return date, technical-support or activity controls
-  appear: the page is read-only.
-
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
-
----
-
 ### TC-EQUIPREVIEW-003: Each line shows the units free on the event's date (AC4)
 
 **Preconditions:** As TC-EQUIPREVIEW-001.
@@ -165,7 +156,31 @@ or after `teardown.sql`).
 
 ---
 
-### TC-EQUIPREVIEW-005: The sidebar and every Technical Support screen show real events only (AC6)
+### TC-EQUIPREVIEW-006: An event's lines are marked New, Changed or Removal requested (AC3)
+
+**Preconditions:** As TC-EQUIPREVIEW-001.
+
+**Steps:**
+1. On **Needs review**, open *Tech Summit Keynote*.
+2. Read the **Equipment lines** table.
+
+**Expected Result:**
+- Three lines, each with type, quantity requested, quantity reserved and technical
+  requirements:
+  - *Handheld microphone* · Requested **6**, *was 4* · Reserved **4** · *Two on the
+    stage*, *was: One on the stage* · **Changed**
+  - *Laser projector* · Requested **4** · Reserved **0** · *HDMI and USB-C* · **New**
+  - *Stage monitor* · Requested **2** · Reserved **2** · None · **Removal requested**,
+    with no *was* line (only the removal changed)
+- In the **Decision** column, only *Laser projector* has an action (**Reserve 4**, from
+  SPM-274). The Changed and Removal requested lines, which have equipment reserved,
+  have none: releasing or replacing it is SPM-108.
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-EQUIPREVIEW-007: The sidebar and every Technical Support screen show real events only (AC6)
 
 **Preconditions:** As TC-EQUIPREVIEW-001.
 
@@ -181,9 +196,9 @@ or after `teardown.sql`).
 - Step 2: *Product Launch Rehearsal*, *Board Strategy Day*, *Charity Gala Setup* and
   *Year-End Town Hall*, each *N lines, all reserved*, in the sidebar and the table.
 - Step 3: *Spring Conference* and *Autumn Workshop*, in the sidebar and the table.
-- Step 4: the page shows its two lines with no attention mark; the crumb and the open
-  sidebar list are **Reviewed**.
-- No screen shows a placeholder event, reservation or equipment item (such as the
-  earlier wireframe's reservation ids or *Reserve* button).
+- Step 4: the page shows its two lines with no attention mark, each reading *Reserved*
+  in the Decision column; the crumb and the open sidebar list are **Reviewed**.
+- No screen shows a placeholder event, reservation id or equipment item from the
+  earlier wireframe.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [ ] Pass [ ] Fail
