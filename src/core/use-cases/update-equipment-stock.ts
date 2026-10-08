@@ -6,19 +6,25 @@ export interface UpdateEquipmentStockCommand {
   readonly equipmentItemId: string;
   readonly quantity: number;
   readonly location: string;
+  /** SPM-17 AC1: how many units are out of service. */
+  readonly outOfService: number;
 }
 
 export interface UpdateEquipmentStockResult {
   readonly equipmentItemId: string;
   readonly quantity: number;
   readonly location: string;
+  readonly outOfService: number;
 }
 
 export interface UpdateEquipmentStockDeps {
   readonly equipment: EquipmentCatalogue;
 }
 
-/** SPM-40 AC2: Technical Support Staff correct an existing line's quantity and location. */
+/**
+ * SPM-40 AC2, SPM-17 AC1: Technical Support Staff correct an existing line's
+ * quantity, location and units out of service.
+ */
 export class UpdateEquipmentStockUseCase {
   constructor(private readonly deps: UpdateEquipmentStockDeps) {}
 
@@ -35,6 +41,11 @@ export class UpdateEquipmentStockUseCase {
     const updated = updateEquipmentStock(existing, command);
     await equipment.save(updated);
 
-    return { equipmentItemId: updated.id, quantity: updated.quantity, location: updated.location };
+    return {
+      equipmentItemId: updated.id,
+      quantity: updated.quantity,
+      location: updated.location,
+      outOfService: updated.outOfService,
+    };
   }
 }

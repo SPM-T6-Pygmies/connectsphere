@@ -582,6 +582,15 @@ export class InvalidEquipmentQuantityError extends DomainError {
   }
 }
 
+/** SPM-17 AC2: out of service is a whole number from 0 up to the number owned. */
+export class InvalidOutOfServiceCountError extends DomainError {
+  readonly code = "invalid_out_of_service_count";
+
+  constructor(readonly owned: number) {
+    super(`Out of service must be a whole number from 0 up to the number owned (${owned}).`);
+  }
+}
+
 export class InvalidVenueIdError extends DomainError {
   readonly code = "invalid_venue_id";
 
@@ -760,12 +769,12 @@ export class EquipmentRequirementNotFoundError extends DomainError {
  * Takes no argument: only the Supabase adapter raises this, when it loses the
  * race, and there it holds nothing to put in the message.
  */
-/** SPM-41 AC16: only Technical Support Staff may read the equipment re-check list. */
+/** SPM-41 AC16, SPM-273: only Technical Support Staff may read their equipment lists. */
 export class NotTechnicalSupportStaffError extends DomainError {
   readonly code = "not_technical_support_staff";
 
   constructor() {
-    super("Only Technical Support Staff can see the equipment re-check list.");
+    super("Only Technical Support Staff can see the equipment lists.");
   }
 }
 

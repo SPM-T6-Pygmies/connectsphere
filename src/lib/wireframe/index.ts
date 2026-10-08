@@ -15,7 +15,6 @@ import type {
   ArrangementRecord,
   BookingRecord,
   BookingStatus,
-  EquipmentReservationRecord,
   EquipmentReservationStatus,
   EventRecord,
   EventRequestStatus,
@@ -198,49 +197,6 @@ export function archivedBookings(): ReturnType<typeof bookingQueue> {
   );
 }
 
-/** Every event carrying an equipment reservation -- the technical queue. */
-export function technicalQueue(): Array<{
-  event: EventRecord;
-  reservation: EquipmentReservationRecord;
-}> {
-  return EVENTS.flatMap((event) =>
-    event.equipment ? [{ event, reservation: event.equipment }] : [],
-  ).sort(
-    (a, b) =>
-      Number(a.reservation.status !== "Requested") -
-      Number(b.reservation.status !== "Requested"),
-  );
-}
-
-export function reservationById(
-  id: string,
-): { event: EventRecord; reservation: EquipmentReservationRecord } | undefined {
-  return technicalQueue().find((entry) => entry.reservation.id === id);
-}
-
-/** Equipment reservations technical support has not yet reviewed. */
-export function reservationsNeedingReview(): ReturnType<typeof technicalQueue> {
-  return technicalQueue().filter(
-    ({ reservation }) => reservation.status === "Requested",
-  );
-}
-
-/** Equipment reservations technical support has already dispositioned. */
-export function reviewedReservations(): ReturnType<typeof technicalQueue> {
-  return technicalQueue().filter(({ reservation }) =>
-    ["Reserved", "Partially Reserved", "Unavailable"].includes(
-      reservation.status,
-    ),
-  );
-}
-
-/** Equipment reservations resolved and put away: released or returned. */
-export function archivedReservations(): ReturnType<typeof technicalQueue> {
-  return technicalQueue().filter(({ reservation }) =>
-    ["Released", "Returned"].includes(reservation.status),
-  );
-}
-
 /**
  * The confirmation gate (#80).
  *
@@ -414,30 +370,9 @@ function queueItemsFor(role: StaffRole, section: SidebarSection): ListPaneItem[]
       }));
     }
 
-    case "technical": {
-      const entries =
-        section === "reviewed"
-          ? reviewedReservations()
-          : section === "archive"
-            ? archivedReservations()
-            : reservationsNeedingReview();
-      return entries.map(({ event, reservation }) => {
-        const short = reservation.lines.filter(
-          (line) => line.quantityReserved < line.quantityRequested,
-        ).length;
-        return {
-          id: reservation.id,
-          href: `/staff/technical/${reservation.id}`,
-          title: event.name,
-          meta: event.request.preferredDate ?? "No date",
-          teaser:
-            short === 0
-              ? `${reservation.lines.length} lines, all filled.`
-              : `${short} of ${reservation.lines.length} lines short.`,
-          status: reservation.status,
-        };
-      });
-    }
+    // No fixtures: Technical Support's lists are SPM-273's, read from real data.
+    case "technical":
+      return [];
 
     // No fixtures: the safety-check list is SPM-259's, read from real data.
     case "safety":

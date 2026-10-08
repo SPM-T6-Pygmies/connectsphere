@@ -39,7 +39,7 @@ describe("CreateEquipmentItemUseCase (SPM-40)", () => {
       location: "Store A",
     });
     const { items } = await list.execute();
-    expect(items).toEqual([{ id: result.equipmentItemId, ...PROJECTOR }]);
+    expect(items).toEqual([{ id: result.equipmentItemId, ...PROJECTOR, outOfService: 0, inService: 6 }]);
   });
 
   it("AC4: the catalogue starts empty -- nothing is imported", async () => {

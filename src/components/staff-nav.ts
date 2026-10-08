@@ -21,7 +21,6 @@ import {
   bookingById,
   eventById,
   listPaneItems,
-  reservationById,
   type ListPaneItem,
   type SidebarSection,
   type StaffRole,
@@ -189,17 +188,10 @@ export function currentSection(role: StaffRole, pathname: string): SidebarSectio
 
   if (role === "safety") return "awaitingCheck"
 
-  // technical
-  if (pathname === "/staff/technical") return "needsReview"
+  // technical: an event page passes the list it is on as `activeSection`.
   if (pathname.startsWith("/staff/technical/reviewed")) return "reviewed"
   if (pathname.startsWith("/staff/technical/archive")) return "archive"
-  const entry = reservationById(pathname.split("/")[3] ?? "")
-  if (!entry) return "needsReview"
-  if (entry.reservation.status === "Requested") return "needsReview"
-  if (["Reserved", "Partially Reserved", "Unavailable"].includes(entry.reservation.status)) {
-    return "reviewed"
-  }
-  return "archive" // Released | Returned
+  return "needsReview"
 }
 
 /**
@@ -220,8 +212,8 @@ export function isRailDestination(role: StaffRole, pathname: string): boolean {
  * What the list surfaces show for this path: which section is active, its
  * heading and its rows.
  *
- * Real data arrives as `queueItems` from the server; technical has no use
- * case wired yet, so its queue still falls back to the wireframe fixtures.
+ * Real data arrives as `queueItems` from the server; a role without it falls
+ * back to the wireframe fixtures.
  * The inbox has no rows here: it renders its own list from Novu
  * (`NotificationList`).
  */

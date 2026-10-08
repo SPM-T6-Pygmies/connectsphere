@@ -161,3 +161,14 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-07,TC-LEAD-004,Pass,"Reassigned; moved to Test Coordinator 2's card; audit row actor 3, 2 → 7 with timestamp; coordinator@ 403 and not in My events; coordinator2@ 200, in My events, inbox item links /staff/coordinator/events/1; Organiser notified",Novu inbox via `pnpm dev:local`,Isaidchia,106,4d212bc,,docs/screenshots/2026-10-06_TC-LEAD-004_event-reassigned.png
 2026-10-07,TC-LEAD-005,Pass,"Reassign disabled: ""A Completed event's coordinator cannot change.""",,Isaidchia,106,4d212bc,,
 2026-10-07,TC-LEAD-006,Pass,"Form disabled: ""Approved requests carry on as an event. Reassign its coordinator from the Coordinators view.""",,Isaidchia,106,4d212bc,,docs/screenshots/2026-10-06_TC-LEAD-006_approved-request-not-reassignable.png
+2026-10-08,TC-EQUIPREVIEW-001,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIPREVIEW-002,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIPREVIEW-003,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIPREVIEW-004,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIPREVIEW-005,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIP-012,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIP-013,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIP-014,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIP-015,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIP-016,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-08,TC-EQUIP-017,Pass,As expected,,jerricknsc,112,110a34e,,
