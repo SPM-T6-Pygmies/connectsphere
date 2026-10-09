@@ -50,8 +50,8 @@ Seeded venues (from `scripts/seed-venue-search-uat/seed.sql`):
 
 | Venue | Slots | Layouts | Facilities / Accessibility | Bookings |
 | --- | --- | --- | --- | --- |
-| UAT-44 Harbour Room | AM, PM, Night | Theatre 200, Boardroom 20 | Projector, Wi-Fi / Step-free access, Hearing loop | Confirmed on D PM |
-| UAT-44 Garden Hall | AM, PM | Banquet 150, Classroom 80 | PA system, Catering area / Lift access | Rejected on D AM |
+| UAT-44 Harbour Room | AM, PM, Night | Theatre 200, Boardroom 20 | Wi-Fi, Video-conferencing / Step-free access, Hearing loop | Confirmed on D PM |
+| UAT-44 Garden Hall | AM, PM | Banquet 150, Classroom 80 | Catering area / Lift access | Rejected on D AM |
 
 Both have a 60-day booking horizon; Harbour Room's venue capacity is 250,
 Garden Hall's 500.
@@ -79,8 +79,8 @@ Garden Hall's 500.
 ### TC-VSEARCH-003 Every selected facility and accessibility feature is required
 
 **Steps**
-1. Tick **Projector** and **Hearing loop**. Click **Search**.
-2. Open the page again. Tick **Projector** and **Lift access**. Click **Search**.
+1. Tick **Video-conferencing** and **Hearing loop**. Click **Search**.
+2. Open the page again. Tick **Video-conferencing** and **Lift access**. Click **Search**.
 
 **Expected Result**
 - [ ] Step 1: only Harbour Room is listed.
@@ -131,8 +131,8 @@ Garden Hall's 500.
 ### TC-VSEARCH-009 Attribute and date filters combine into a candidate list
 
 **Steps**
-1. Choose **Room layout** Theatre, **Attendance** `150`; tick **Projector** and
-   **Step-free access**; **Date** D, tick **Night**. Click **Search**.
+1. Choose **Room layout** Theatre, **Attendance** `150`; tick **Video-conferencing**
+   and **Step-free access**; **Date** D, tick **Night**. Click **Search**.
 
 **Expected Result**
 - [ ] Only Harbour Room is listed, with its attributes and no pass/fail or
@@ -155,7 +155,7 @@ Garden Hall's 500.
 1. Choose Theatre, tick **Wi-Fi** and **Hearing loop**, **Date** D, tick **AM**.
    Click **Search**.
 2. Click **Clear**.
-3. Choose Banquet, tick **Projector** and **Lift access** without searching.
+3. Choose Banquet, tick **Catering area** and **Lift access** without searching.
 4. Click **Clear**.
 
 **Expected Result**

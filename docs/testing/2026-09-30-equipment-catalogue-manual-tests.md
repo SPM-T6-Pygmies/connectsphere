@@ -49,6 +49,10 @@ Units out of service, added by SPM-17, are tested in
   ```
 - Running: `pnpm dev:local` (open it at `http://localhost:3000`)
 - Run the cases in order: TC-EQCAT-010 adds the items the later cases change.
+- Clean up afterwards: the run leaves `Projector (4K)` and a `Wireless microphone` of
+  24 in the database, which are not the equipment types and counts of the
+  Connectsphere Data Single Source of Truth. Run `supabase db reset` before loading
+  any seed.
 
 ### Test Accounts (password `TestPass123!`)
 - `support@test.com` (Technical Support Staff)

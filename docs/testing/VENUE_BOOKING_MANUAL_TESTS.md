@@ -22,8 +22,8 @@ them, tick the boxes below **and** report each in the PR description's
    its event. Every case below starts from that approved request.
 
 The seeded venues: **Main Hall** (Theatre, Banquet, Classroom), **Seminar Room
-2-1** (Classroom, Boardroom), **Studio** (Theatre only), **Rooftop Terrace** (no
-layouts).
+2-1** (Classroom, Boardroom), **Studio** (Theatre only), **Rooftop Terrace**
+(Banquet, Exhibition).
 
 ## Cases
 
@@ -96,8 +96,7 @@ right-hand card.
 - [x] Change **Boardroom** to **Classroom** and save. The row shows
       **Classroom**, the capacity line is re-checked against Classroom, and a
       confirmation repeats it.
-- [x] A venue with only one layout (Studio) or none (Rooftop Terrace) shows no
-      picker on its row.
+- [x] A venue with only one layout (Studio) shows no picker on its row.
 - [x] `select * from audit_record where entity_type = 'booking' order by
       occurred_at desc limit 1` shows `field_changed = 'room_layout'` with the
       old and new layout names.

@@ -60,11 +60,12 @@ venue** page send:
 | Event | Venue | Layout | Slots | Used by |
 | --- | --- | --- | --- | --- |
 | A | Studio | Theatre | its preferred date, AM | TC-VBDECIDE-001, -004 |
-| A | Rooftop Terrace | — | its preferred date, PM | TC-VBDECIDE-002, -003 |
+| A | Rooftop Terrace | Banquet | its preferred date, PM | TC-VBDECIDE-002, -003 |
 | A | Seminar Room 2-1 | Classroom | 2026-12-15, AM | TC-VBDECIDE-005 |
 | B | Seminar Room 2-1 | Boardroom | 2026-12-15, AM | TC-VBDECIDE-005 |
 
-`TC-VENUE-BOOK-003` and `-004` leave the first two behind. Find a booking's
+`TC-VENUE-BOOK-003` leaves the Studio request behind; send the Rooftop Terrace
+one yourself, choosing a layout (it has two). Find a booking's
 ID with:
 
 ```sql
