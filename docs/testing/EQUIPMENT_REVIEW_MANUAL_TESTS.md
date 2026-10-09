@@ -53,7 +53,7 @@ tick the boxes below **and** report each in the PR description's
   supabase db query --file scripts/seed-equipment-review/seed.sql --local
   supabase db query --file scripts/seed-equipment-review/verify.sql --local
   ```
-  `verify.sql` should show 23 rows, all `ok = t`.
+  `verify.sql` should show 26 rows, all `ok = t`.
 - `pnpm dev:local`
 - Signed in as `support@test.com` (password `TestPass123!`).
 
@@ -64,17 +64,19 @@ before the seed, or after `scripts/seed-equipment-review/teardown.sql`.
 
 | Event | Date | Status | Lines | List |
 | --- | --- | --- | --- | --- |
-| Tech Summit Keynote | 2026-11-15 | Planning | Laser projector 4 (none reserved) · Handheld microphone 6, reserved 4, was 4 · Stage monitor 2, reserved 2, removal requested | Needs review |
-| Alumni Networking Night | 2026-12-03 | Blocked | Lectern 1 (none reserved) | Needs review |
-| Partner Roadshow | no date | Confirmed | Laser projector 2 (none reserved) | Needs review |
-| Product Launch Rehearsal | 2026-11-14 | Planning | Laser projector 3/3 | Reviewed |
-| Board Strategy Day | 2026-11-15 | Confirmed | Laser projector 2/2 · Handheld microphone 2/2 | Reviewed |
-| Charity Gala Setup | 2026-11-16 | Blocked | Laser projector 1/1 | Reviewed |
-| Year-End Town Hall | 2026-11-17 | Planning | Laser projector 5/5 | Reviewed |
-| Autumn Workshop | 2026-11-15 | Cancelled | Laser projector 4/4 · Lectern 1 (none reserved) | Archive |
-| Spring Conference | 2026-09-20 | Completed | Handheld microphone 2/2 | Archive |
+| Tech Summit Keynote | 2026-11-15 | Planning | Projector 4 (none reserved) · Wireless microphone 6, reserved 4, was 4 · PA speaker 2, reserved 2, removal requested | Needs review |
+| Alumni Networking Night | 2026-12-03 | Blocked | Livestream kit 1 (none reserved) | Needs review |
+| Partner Roadshow | no date | Confirmed | Projector 2 (none reserved) | Needs review |
+| Product Launch Rehearsal | 2026-11-14 | Planning | Projector 3/3 | Reviewed |
+| Board Strategy Day | 2026-11-15 | Confirmed | Projector 2/2 · Wireless microphone 2/2 | Reviewed |
+| Charity Gala Setup | 2026-11-16 | Blocked | Projector 1/1 | Reviewed |
+| Year-End Town Hall | 2026-11-17 | Planning | Projector 5/5 | Reviewed |
+| Autumn Workshop | 2026-11-15 | Cancelled | Projector 4/4 · Livestream kit 1 (none reserved) | Archive |
+| Spring Conference | 2026-09-20 | Completed | Wireless microphone 2/2 | Archive |
 
-Owned: Laser projector 10, Handheld microphone 8, Stage monitor 4, Lectern 3. The
+Owned: Projector 10, Wireless microphone 30, PA speaker 5, Livestream kit 2. These are
+four of the six equipment types of the Connectsphere Data Single Source of Truth, with
+the same counts `seed-equipment` gives them, so either seed can be loaded first. The
 events belong to both test coordinators.
 
 ---
@@ -111,13 +113,13 @@ events belong to both test coordinators.
 2. Read the **Equipment lines** table.
 
 **Expected Result:**
-- Three lines, each with type, quantity requested, quantity reserved and technical
-  requirements:
-  - *Handheld microphone* · Requested **6**, *was 4* · Reserved **4** · *Two on the
-    stage*, *was: One on the stage* · **Changed**
-  - *Laser projector* · Requested **4** · Reserved **0** · *HDMI and USB-C* · **New**
-  - *Stage monitor* · Requested **2** · Reserved **2** · None · **Removal requested**,
+- Three lines, in alphabetical order of type, each with type, quantity requested,
+  quantity reserved and technical requirements:
+  - *PA speaker* · Requested **2** · Reserved **2** · None · **Removal requested**,
     with no *was* line (only the removal changed)
+  - *Projector* · Requested **4** · Reserved **0** · *HDMI and USB-C* · **New**
+  - *Wireless microphone* · Requested **6**, *was 4* · Reserved **4** · *Two on the
+    stage*, *was: One on the stage* · **Changed**
 - No Reserve, Mark unavailable, return date, technical-support or activity controls
   appear: the page is read-only.
 
@@ -135,12 +137,12 @@ events belong to both test coordinators.
 
 **Expected Result:**
 - Step 1:
-  - *Laser projector* **4**: 10 owned, less 3 (Product Launch Rehearsal, 14 Nov), 2
+  - *PA speaker* **5**: 5 owned; no other event holds one.
+  - *Projector* **4**: 10 owned, less 3 (Product Launch Rehearsal, 14 Nov), 2
     (Board Strategy Day, 15 Nov) and 1 (Charity Gala Setup, 16 Nov). The 5 held on
     17 Nov and the 4 held by the Cancelled Autumn Workshop on 15 Nov do not count.
-  - *Handheld microphone* **6**: 8 owned, less Board Strategy Day's 2. Spring
+  - *Wireless microphone* **28**: 30 owned, less Board Strategy Day's 2. Spring
     Conference's 2 (September, Completed) do not count.
-  - *Stage monitor* **4**: no other event holds one.
 - Step 2: the line says *Event has no date yet* instead of a number.
 
 **Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
