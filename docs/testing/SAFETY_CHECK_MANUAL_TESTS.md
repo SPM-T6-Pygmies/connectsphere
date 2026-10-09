@@ -83,7 +83,7 @@ begin
   insert into venue_supported_layout (venue_id, room_layout_id, capacity)
   values (v_hall, v_banquet, 180), (v_hall, v_theatre, 300);
   insert into venue (location) values ('Canal Annex') returning venue_id into v_annex;
-  insert into equipment_item (type, quantity) values ('Wireless microphone', 10) returning equipment_item_id into v_mic;
+  insert into equipment_item (type, quantity) values ('Wireless microphone', 30) returning equipment_item_id into v_mic;
   insert into equipment_item (type, quantity) values ('Crowd barrier', 40) returning equipment_item_id into v_barrier;
 
   -- 1. Awaiting: 220 expected in a banquet layout that holds 180, two lines reserved in full.
