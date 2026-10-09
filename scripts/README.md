@@ -20,10 +20,12 @@ automatically — not on `supabase db reset`, not in CI.
 
 ## seed-venues
 
-Four venues and four room layouts for the coordinator's venue booking request
-page (SPM-46), until the venue catalogue (SPM-42) lets Venue Staff add their
-own. The venues cover every layout case the form tells apart: several layouts,
-one layout, and none on record. Safe to re-run.
+Four venues and the five room layouts for the coordinator's venue booking
+request page (SPM-46), until the venue catalogue (SPM-42) lets Venue Staff add
+their own. Facilities, accessibility and layouts follow the Connectsphere Data
+Single Source of Truth. The venues cover the layout cases the form tells apart:
+several layouts to choose from, and exactly one. Safe to re-run: it inserts what
+is missing and does not change a venue that already exists.
 
 ```bash
 supabase db query --file scripts/seed-venues/seed.sql --local
