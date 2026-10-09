@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
 import { checkLayoutCapacity } from "@/core/domain/booking";
+import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
 import type {
   CoordinatorEventDetails,
   EventBookingSummary,
@@ -30,6 +31,7 @@ import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
 import { describeCapacity } from "../../../booking-capacity-message";
 import { ChangeLayoutForm } from "./change-layout-form";
+import { FacilitiesNeededForm } from "./facilities-needed-form";
 
 export const metadata = { title: "Request a venue | ConnectSphere" };
 
@@ -218,6 +220,32 @@ export default async function VenueBookingPage({
                   { label: "Accessibility", value: event.accessibilityRequirements },
                 ]}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Facilities needed</CardTitle>
+              <CardDescription>
+                What the event needs from a venue, ticked from the same list a
+                venue&apos;s facilities come from.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {eventFacilitiesEditable(event.status) ? (
+                <FacilitiesNeededForm
+                  // Remount when the saved facilities change, so the ticks follow them.
+                  key={event.requiredFacilities ?? ""}
+                  eventId={event.id}
+                  eventRequestId={id}
+                  saved={event.requiredFacilities ?? ""}
+                />
+              ) : (
+                <FieldList
+                  columns={1}
+                  fields={[{ label: "Facilities needed", value: event.requiredFacilities }]}
+                />
+              )}
             </CardContent>
           </Card>
         </div>

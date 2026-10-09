@@ -120,6 +120,7 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
         venue_requirements: "Stage",
         room_layout_preference: "Theatre",
         accessibility_requirements: "Step-free",
+        required_facilities: "Wi-Fi, Catering area",
       }),
     ).toEqual({
       id: "5",
@@ -132,7 +133,27 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       venueRequirements: "Stage",
       roomLayoutPreference: "Theatre",
       accessibilityRequirements: "Step-free",
+      requiredFacilities: "Wi-Fi, Catering area",
     });
+  });
+
+  it("reads an event with no recorded facilities as needing none", () => {
+    const details = toCoordinatorEventDetails({
+      event_id: 5,
+      event_request_id: null,
+      name: "Roadmap Conference",
+      status: "Planning",
+      preferred_date: null,
+      assigned_coordinator_user_account_id: 2,
+      client_organisation_id: 1,
+      expected_attendance: null,
+      venue_requirements: null,
+      room_layout_preference: null,
+      accessibility_requirements: null,
+      required_facilities: null,
+    });
+
+    expect(details.requiredFacilities).toBeNull();
   });
 
   it("reads an event whose query did not select its slots as having none", () => {
@@ -148,6 +169,7 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       venue_requirements: null,
       room_layout_preference: null,
       accessibility_requirements: null,
+      required_facilities: null,
     });
 
     expect(details.slots).toEqual([]);

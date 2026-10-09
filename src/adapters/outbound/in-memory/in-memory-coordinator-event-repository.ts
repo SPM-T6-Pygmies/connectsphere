@@ -1,5 +1,6 @@
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
+import { CoordinatorEventNotFoundError } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type {
@@ -37,6 +38,7 @@ function toDetails(event: SeedCoordinatorEvent): CoordinatorEventDetails {
     venueRequirements: event.venueRequirements ?? null,
     roomLayoutPreference: event.roomLayoutPreference ?? null,
     accessibilityRequirements: event.accessibilityRequirements ?? null,
+    requiredFacilities: event.requiredFacilities ?? null,
   };
 }
 
@@ -95,6 +97,21 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
       return null;
     }
     return toCoordinatorEvent(row);
+  }
+
+  /** Stores the facilities. The audit record it writes for real is not modelled in memory. */
+  async setRequiredFacilities(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    facilities: string | null,
+  ): Promise<void> {
+    const index = this.rows.findIndex(
+      (row) => row.id === eventId && row.assignedCoordinatorUserAccountId === coordinatorId,
+    );
+    if (index === -1) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+    this.rows[index] = { ...this.rows[index], requiredFacilities: facilities };
   }
 
   /** Stores the confirmed status. The audit record it writes for real is not modelled in memory. */

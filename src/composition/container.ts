@@ -50,6 +50,7 @@ import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-required-facilities";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
@@ -538,6 +539,11 @@ export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBooki
 /** SPM-104: the assigned coordinator moves a pending booking request to another layout. */
 export async function buildChangeBookingRoomLayout(): Promise<ChangeBookingRoomLayoutUseCase> {
   return new ChangeBookingRoomLayoutUseCase(await venueBookingAdapters());
+}
+
+/** SPM-247: the assigned coordinator records the facilities an event needs. */
+export async function buildSetEventRequiredFacilities(): Promise<SetEventRequiredFacilitiesUseCase> {
+  return new SetEventRequiredFacilitiesUseCase({ events: (await venueBookingAdapters()).events });
 }
 
 /** SPM-22: the signed-in Venue Staff member, or null for anyone else (answered as not found, #91). */
