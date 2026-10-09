@@ -178,3 +178,55 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-09,TC-SAFETYOUTCOME-004,Pass,Outcome recorded; no notification row,Event with no coordinator,arinmakk,109,bd6d5de,,[`…004_step2-recorded-without-coordinator.png`](../screenshots/2026-10-06_TC-SAFETYOUTCOME-004_step2-recorded-without-coordinator.png)
 2026-10-09,TC-SAFETYOUTCOME-005,Pass,No form shown; no notification row,Event not awaiting check,arinmakk,109,bd6d5de,,
 2026-10-09,TC-SAFETYOUTCOME-006,Pass,200 for assigned coordinator; 403 for other,Redirect URL access control,arinmakk,109,bd6d5de,,[`…006_step1-coordinator-opens-event.png`](../screenshots/2026-10-06_TC-SAFETYOUTCOME-006_step1-coordinator-opens-event.png)
+2026-10-09,TC-VCAT-001,Pass,Four facilities in order; slots and Add venue gating as expected,,JameszLau,118,3f3ac60,,2026-10-09_TC-VCAT-001_*
+2026-10-09,TC-VCAT-002,Pass,Venue created; catalogue row and opened values match,,JameszLau,118,3f3ac60,,2026-10-09_TC-VCAT-002_*
+2026-10-09,TC-VCAT-003,Pass,Two layouts each carry a capacity; duplicate Theatre refused,,JameszLau,118,3f3ac60,,2026-10-09_TC-VCAT-003_*
+2026-10-09,TC-VCAT-004,Pass,Update saved and survives reload; Save disabled with no slot,,JameszLau,118,3f3ac60,,2026-10-09_TC-VCAT-004_*
+2026-10-09,TC-VCAT-005,Pass,A second Venue Staff account sees and saves the venue,,JameszLau,118,3f3ac60,,2026-10-09_TC-VCAT-005_*
+2026-10-09,TC-VCAT-006,Pass,"Legacy facilities shown as stored, save refused (""Projector, PA system is not an option -- choose from …""), saves after ticking Wi-Fi",New case,JameszLau,118,3f3ac60,,2026-10-09_TC-VCAT-006_*
+2026-10-09,TC-VSEARCH-001,Pass,Boardroom 100 excludes Harbour Room; Theatre 100 lists it,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-001_*
+2026-10-09,TC-VSEARCH-002,Pass,Attendance 300 finds no venue; no fallback to venue capacity,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-002_*
+2026-10-09,TC-VSEARCH-003,Pass,"Video-conferencing + Hearing loop lists Harbour Room only; with Lift access, none",,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-003_*
+2026-10-09,TC-VSEARCH-004,Pass,Booked PM slot excluded; AM listed,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-004_*
+2026-10-09,TC-VSEARCH-006,Pass,Rejected booking does not block Garden Hall,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-006_*
+2026-10-09,TC-VSEARCH-007,Pass,Date beyond the horizon finds none,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-007_*
+2026-10-09,TC-VSEARCH-009,Pass,Combined filters list Harbour Room only,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-009_*
+2026-10-09,TC-VSEARCH-010,Pass,Blank filters list the catalogue; Exhibition finds none,Holds on the UAT seed only; doc now says so,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-010_*
+2026-10-09,TC-VSEARCH-011,Pass,Clear empties every filter,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-011_*
+2026-10-09,TC-VSEARCH-012,Pass,Venue must offer every chosen slot,,JameszLau,118,3f3ac60,,2026-10-09_TC-VSEARCH-012_*
+2026-10-09,TC-VENUE-BOOK-008,Pass,"Boardroom to Classroom: capacity re-checked, `room_layout` audited; single-layout venue shows no picker",,JameszLau,118,3f3ac60,,2026-10-09_TC-VENUE-BOOK-008_*
+2026-10-09,TC-VBDECIDE-001,Pass,Requests list and detail show the venue and fit,,JameszLau,118,3f3ac60,,2026-10-09_TC-VBDECIDE-001_*
+2026-10-09,TC-VBDECIDE-002,Pass,Blank reason refused; booking stays Requested,,JameszLau,118,3f3ac60,,2026-10-09_TC-VBDECIDE-002_*
+2026-10-09,TC-VBDECIDE-003,Pass,Rejected with reason and suggestion; Archive and coordinator show Rejected,,JameszLau,118,3f3ac60,,2026-10-09_TC-VBDECIDE-003_*
+2026-10-09,TC-EQUIP-001,Pass,Livestream kit line added beside the Organiser's stated needs,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-001_*
+2026-10-09,TC-EQUIP-002,Pass,All eight add-form rows behave as written,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-002_*
+2026-10-09,TC-EQUIP-006,Pass,Completed and Cancelled events are read-only,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-006_*
+2026-10-09,TC-EQUIP-007,Pass,Unassigned coordinator gets the 403 screen,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-007_*
+2026-10-09,TC-EQUIP-009,Pass,"Only the Projector remains, Under review 3/2; audit rows all by the coordinator",Database queries; no screenshots,JameszLau,118,3f3ac60,,
+2026-10-09,TC-EQUIP-012,Pass,Unreserved edit and removal behave as written; Needs review then says Nothing needs your attention.,Now removes the three unreserved lines first,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-012_*
+2026-10-09,TC-EQUIP-013,Pass,"Reserved line change reaches Technical Support: 1 line of 1, Changed, `Under review` in the DB",,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-013_*
+2026-10-09,TC-EQUIP-014,Pass,Removal request and undo behave as written,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-014_*
+2026-10-09,TC-EQUIP-015,Pass,Only Technical Support sees Needs review; others get 403,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-015_*
+2026-10-09,TC-EQUIP-016,Pass,Editing back to what was reserved clears the re-check; list empty; DB `Reserved`,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-016_*
+2026-10-09,TC-EQUIP-017,Pass,Withdrawing a removal request clears the re-check; list empty; DB `Reserved`,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIP-017_*
+2026-10-09,TC-EQCAT-009,Pass,Empty catalogue message shown,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-009_*
+2026-10-09,TC-EQCAT-010,Pass,"Two items added; cards show Owned, Out of service, In service",,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-010_*
+2026-10-09,TC-EQCAT-011,Pass,Invalid item refused with three messages; panel keeps input,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-011_*
+2026-10-09,TC-EQCAT-012,Pass,Owned and location update and survive reload,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-012_*
+2026-10-09,TC-EQCAT-013,Pass,Negative update refused; value unchanged,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-013_*
+2026-10-09,TC-EQCAT-014,Pass,Catalogue only on the Equipment page,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-014_*
+2026-10-09,TC-EQCAT-015,Pass,Cards stack at 390px; no sideways scroll,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-015_*
+2026-10-09,TC-EQCAT-016,Pass,Other roles get the 403 screen,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQCAT-016_*
+2026-10-09,TC-EQUIPREVIEW-001,Pass,Three events in order with counts; Cancelled event not listed,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIPREVIEW-001_*
+2026-10-09,TC-EQUIPREVIEW-002,Pass,"Lines marked Removal requested, New, Changed",,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIPREVIEW-002_*
+2026-10-09,TC-EQUIPREVIEW-003,Pass,"Available: PA speaker 5, Projector 4, Wireless microphone 28",,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIPREVIEW-003_*
+2026-10-09,TC-EQUIPREVIEW-004,Pass,Empty states on all three screens,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIPREVIEW-004_*
+2026-10-09,TC-EQUIPREVIEW-005,Pass,Sidebar and tables agree on every screen,,JameszLau,118,3f3ac60,,2026-10-09_TC-EQUIPREVIEW-005_*
+2026-10-09,TC-OOS-001,Pass,Out of service set and returned,,JameszLau,118,3f3ac60,,2026-10-09_TC-OOS-001_*
+2026-10-09,TC-OOS-002,Pass,Out-of-service bounds enforced,,JameszLau,118,3f3ac60,,2026-10-09_TC-OOS-002_*
+2026-10-09,TC-OOS-003,Pass,Owned cannot drop below out of service,,JameszLau,118,3f3ac60,,2026-10-09_TC-OOS-003_*
+2026-10-09,TC-OOS-004,Pass,"Available 4, then 2, then 4",,JameszLau,118,3f3ac60,,2026-10-09_TC-OOS-004_*
+2026-10-09,TC-OOS-005,Pass,New type reaches the coordinator's list and survives a server restart,,JameszLau,118,3f3ac60,,2026-10-09_TC-OOS-005_*
+2026-10-09,TC-SAFETYCHECK-001,Pass,Review page shows the listed data; equipment rows as written,Fixture with Wireless microphone 30,JameszLau,118,3f3ac60,,2026-10-09_TC-SAFETYCHECK-001_*
+2026-10-09,TC-SAFETYRETURN-001,Pass,Rejected event stays Planning and shows the comments,Fixture with Wireless microphone 30,JameszLau,118,3f3ac60,,2026-10-09_TC-SAFETYRETURN-001_*
+2026-10-09,TC-SAFETYOUTCOME-001,Pass,One `Sent` notification for account 2 with the expected text,Run without Novu,JameszLau,118,3f3ac60,,2026-10-09_TC-SAFETYOUTCOME-001_*
