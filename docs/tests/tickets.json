@@ -322,6 +322,16 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-45": {
+      "title": "Check venue suitability",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-246": {
+      "title": "Venue suitability rules in the domain",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
     "SPM-182": {
       "title": "Equipment requirement rules in the domain",
       "parent": "SPM-41",
