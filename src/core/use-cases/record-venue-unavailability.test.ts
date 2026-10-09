@@ -28,7 +28,7 @@ const NOW = new Date("2026-10-05T04:00:00.000Z");
 const GRAND_HALL: Venue = {
   id: venueId("venue-1"),
   location: "Grand Hall",
-  facilities: "Projector",
+  facilities: "Wi-Fi",
   accessibility: "Step-free access",
   slots: ["AM", "PM", "Night"],
   capacity: 300,

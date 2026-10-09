@@ -9,11 +9,10 @@
  * way in and out of that form.
  */
 export const FACILITY_OPTIONS = [
-  "Projector",
-  "PA system",
   "Wi-Fi",
   "Breakout rooms",
   "Catering area",
+  "Video-conferencing",
 ] as const;
 
 export const ACCESSIBILITY_OPTIONS = [

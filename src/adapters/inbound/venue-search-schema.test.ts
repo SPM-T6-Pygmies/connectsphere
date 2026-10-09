@@ -22,7 +22,7 @@ describe("venueSearchSchema (SPM-44)", () => {
       venueSearchSchema.parse({
         layout: "Theatre",
         attendance: "120",
-        facilities: "Projector, Wi-Fi",
+        facilities: "Wi-Fi, Video-conferencing",
         accessibility: "Lift access",
         date: "2026-11-05",
         slots: "AM, PM",
@@ -30,7 +30,7 @@ describe("venueSearchSchema (SPM-44)", () => {
     ).toEqual({
       layout: "Theatre",
       attendance: 120,
-      facilities: ["Projector", "Wi-Fi"],
+      facilities: ["Wi-Fi", "Video-conferencing"],
       accessibility: ["Lift access"],
       date: "2026-11-05",
       slots: ["AM", "PM"],
