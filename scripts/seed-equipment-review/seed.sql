@@ -4,7 +4,7 @@
 -- Cancelled events (Archive) -- plus the neighbours that make AC4's
 -- availability count something.
 --
--- AC4, worked: Laser projector, 10 owned. Tech Summit Keynote runs on
+-- AC4, worked: Projector, 10 owned. Tech Summit Keynote runs on
 -- 15 Nov and needs 4. Other events hold 3 (14 Nov), 2 (15 Nov) and 1 (16 Nov),
 -- so 4 are available. The 5 held on 17 Nov, and the 4 a Cancelled event holds
 -- on 15 Nov, do not count.
@@ -62,14 +62,17 @@ begin
       using hint = 'Seed the accounts first: supabase db reset.';
   end if;
 
-  -- 2. The catalogue -- its own types, so seed-equipment's counts are untouched
+  -- 2. The catalogue: four of the six equipment types of the Connectsphere Data
+  --    Single Source of Truth (SPM-277), with the same description, count and
+  --    location as seed-equipment, so loading either seed first gives the same
+  --    catalogue. No type is added here that the SSOT does not list.
   insert into public.equipment_item (type, description, quantity, physical_location)
   select c.type, c.description, c.quantity, c.physical_location
   from (values
-    ('Laser projector',     '6000-lumen laser projector.',               10, 'Store room C'),
-    ('Handheld microphone', 'Wired handheld microphone with stand.',     8,  'Store room C'),
-    ('Stage monitor',       'Wedge monitor speaker for presenters.',     4,  'Store room D'),
-    ('Lectern',             'Lectern with a gooseneck microphone.',      3,  'Store room D')
+    ('Projector',           '5000-lumen laser projector with HDMI and USB-C inputs.', 10, 'Store room A'),
+    ('Wireless microphone', 'Handheld UHF microphone with receiver.',                  30, 'Store room A'),
+    ('PA speaker',          'Powered 12-inch speaker on a stand.',                     5,  'Store room B'),
+    ('Livestream kit',      'Camera, encoder and tripod for streaming a session.',     2,  'Store room B')
   ) as c(type, description, quantity, physical_location)
   where not exists (select 1 from public.equipment_item i where i.type = c.type);
 
@@ -121,19 +124,19 @@ begin
            l.reviewed_requested, l.reviewed_notes,
            case when l.removal then now() end
     from (values
-      ('Tech Summit Keynote',      'Laser projector',     4, 0, 'HDMI and USB-C',        null::int, null,               false),
-      ('Tech Summit Keynote',      'Handheld microphone', 6, 4, 'Two on the stage',      4,         'One on the stage', false),
-      ('Tech Summit Keynote',      'Stage monitor',       2, 2, null,                    2,         null,               true),
-      ('Alumni Networking Night',  'Lectern',             1, 0, null,                    null,      null,               false),
-      ('Partner Roadshow',         'Laser projector',     2, 0, null,                    null,      null,               false),
-      ('Product Launch Rehearsal', 'Laser projector',     3, 3, null,                    null,      null,               false),
-      ('Board Strategy Day',       'Laser projector',     2, 2, null,                    null,      null,               false),
-      ('Board Strategy Day',       'Handheld microphone', 2, 2, null,                    null,      null,               false),
-      ('Charity Gala Setup',       'Laser projector',     1, 1, null,                    null,      null,               false),
-      ('Year-End Town Hall',       'Laser projector',     5, 5, null,                    null,      null,               false),
-      ('Autumn Workshop',          'Laser projector',     4, 4, null,                    null,      null,               false),
-      ('Autumn Workshop',          'Lectern',             1, 0, null,                    null,      null,               false),
-      ('Spring Conference',        'Handheld microphone', 2, 2, null,                    null,      null,               false)
+      ('Tech Summit Keynote',      'Projector',           4, 0, 'HDMI and USB-C',        null::int, null,               false),
+      ('Tech Summit Keynote',      'Wireless microphone', 6, 4, 'Two on the stage',      4,         'One on the stage', false),
+      ('Tech Summit Keynote',      'PA speaker',          2, 2, null,                    2,         null,               true),
+      ('Alumni Networking Night',  'Livestream kit',      1, 0, null,                    null,      null,               false),
+      ('Partner Roadshow',         'Projector',           2, 0, null,                    null,      null,               false),
+      ('Product Launch Rehearsal', 'Projector',           3, 3, null,                    null,      null,               false),
+      ('Board Strategy Day',       'Projector',           2, 2, null,                    null,      null,               false),
+      ('Board Strategy Day',       'Wireless microphone', 2, 2, null,                    null,      null,               false),
+      ('Charity Gala Setup',       'Projector',           1, 1, null,                    null,      null,               false),
+      ('Year-End Town Hall',       'Projector',           5, 5, null,                    null,      null,               false),
+      ('Autumn Workshop',          'Projector',           4, 4, null,                    null,      null,               false),
+      ('Autumn Workshop',          'Livestream kit',      1, 0, null,                    null,      null,               false),
+      ('Spring Conference',        'Wireless microphone', 2, 2, null,                    null,      null,               false)
     ) as l(event, type, requested, reserved, notes, reviewed_requested, reviewed_notes, removal)
     join public.equipment_item i on i.type = l.type
     where l.event = v_event.name;

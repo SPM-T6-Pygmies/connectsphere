@@ -116,10 +116,12 @@ duplicated across all three files.
 Technical Support's three equipment lists (SPM-273): nine events across both
 test coordinators, with lines that are new, changed after they were reserved,
 or have their removal requested (Needs review), events whose lines are all
-reserved (Reviewed), and Completed or Cancelled ones (Archive). Its own four
-catalogue types, so seed-equipment's counts are untouched.
+reserved (Reviewed), and Completed or Cancelled ones (Archive). Its catalogue is
+four of the six equipment types of the Connectsphere Data Single Source of Truth
+(Projector, Wireless microphone, PA speaker, Livestream kit), with the same counts
+seed-equipment gives them, so either seed can be loaded first.
 
-Tech Summit Keynote (15 Nov) shows AC4's count: 10 Laser projectors owned,
+Tech Summit Keynote (15 Nov) shows AC4's count: 10 Projectors owned,
 less 3, 2 and 1 held by events on 14, 15 and 16 Nov, leaves 4. The 5 held on
 17 Nov and the 4 a Cancelled event holds on 15 Nov do not count. Partner
 Roadshow has no date, so its line shows no number.
@@ -128,7 +130,7 @@ Roadshow has no date, so its line shows no number.
 | -------------- | -------------------------------------------------------------------- |
 | `seed.sql`     | Inserts the catalogue, the events and their lines. Safe to re-run.   |
 | `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
-| `teardown.sql` | Deletes the events (their lines go with them) and the unused catalogue. |
+| `teardown.sql` | Deletes the events (their lines go with them). Leaves the catalogue.   |
 
 Needs only the test accounts from `supabase db reset`:
 
