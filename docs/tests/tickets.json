@@ -342,6 +342,11 @@
       "parent": "SPM-45",
       "status": "In Progress"
     },
+    "SPM-249": {
+      "title": "Suitability checklist on the Request a venue page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
     "SPM-182": {
       "title": "Equipment requirement rules in the domain",
       "parent": "SPM-41",
