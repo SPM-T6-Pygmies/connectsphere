@@ -230,3 +230,17 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-09,TC-SAFETYCHECK-001,Pass,Review page shows the listed data; equipment rows as written,Fixture with Wireless microphone 30,JameszLau,118,3f3ac60,,2026-10-09_TC-SAFETYCHECK-001_*
 2026-10-09,TC-SAFETYRETURN-001,Pass,Rejected event stays Planning and shows the comments,Fixture with Wireless microphone 30,JameszLau,118,3f3ac60,,2026-10-09_TC-SAFETYRETURN-001_*
 2026-10-09,TC-SAFETYOUTCOME-001,Pass,One `Sent` notification for account 2 with the expected text,Run without Novu,JameszLau,118,3f3ac60,,2026-10-09_TC-SAFETYOUTCOME-001_*
+2026-10-09,TC-VENUE-BOOK-002,Pass,Main Hall offers three layouts; Send disabled until one is picked; request sent with three slots,Re-run: the form changed,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-002_*
+2026-10-09,TC-VENUE-BOOK-003,Pass,Studio takes its only layout; the new row shows Theatre,Re-run: the form changed,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-003_*
+2026-10-09,TC-VENUE-BOOK-006,Pass,Venue staff and an unassigned coordinator get the access-denied screen with a 403 and none of the event,,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-006_*
+2026-10-09,TC-VENUE-BOOK-007,Pass,Capacity row follows the layout picked; over-capacity request is not blocked and shows its reason,Re-run: capacity line is now the checklist's row,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-007_*
+2026-10-09,TC-VENUE-BOOK-008,Pass,Layout change re-works out the row's Suitability; toast repeats the capacity; audit row written; single-layout venue has no picker,Re-run: UI changed,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-008_*
+2026-10-09,TC-VENUE-BOOK-010,Pass,Event needs card; four facilities offered; save with confirmation and audit row; clear; read-only on a Completed event,"New · AC1, AC2",JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-010_*
+2026-10-09,TC-VENUE-BOOK-011,Pass,Studio reads Suitable with all four rows fitting; Send enables,"New · AC3, AC4, AC7",JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-011_*
+2026-10-09,TC-VENUE-BOOK-012,Pass,Main Hall reads Not suitable: facilities; the request is still sent and its row shows the reason,"New · AC3, AC6, AC7",JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-012_*
+2026-10-09,TC-VENUE-BOOK-013,Pass,Seminar Room 2-1 reads Not suitable: accessibility (Missing: Step-free access),"New · AC6, AC7",JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-013_*
+2026-10-09,TC-VENUE-BOOK-014,Pass,"60 on 60 fits; 61 is 1 over; Banquet uses its own 180, not the hall's 300",New · AC5,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-014_*
+2026-10-09,TC-VENUE-BOOK-015,Pass,No attendance reads Not known yet; no layout preference reads Not stated; both Check incomplete,"New · AC4, AC5, AC7",JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-015_*
+2026-10-09,TC-VENUE-BOOK-016,Pass,"The same request moves Suitable → Not suitable (capacity, then facilities) → Suitable as the event changes",New · AC8,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-016_*
+2026-10-09,TC-VENUE-BOOK-017,Pass,"A Rejected request shows a dash; Requested, Tentative Hold and Confirmed keep their verdict",New · AC8,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-017_*
+2026-10-09,TC-VENUE-BOOK-018,Pass,"An unassigned coordinator gets the same access-denied page, 403, as for an event that does not exist",New · AC9,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-018_*
