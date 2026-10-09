@@ -84,7 +84,10 @@ supabase db query --file scripts/seed-coordinator-view/seed.sql --linked
 ## seed-equipment
 
 An equipment catalogue and one event with requirements, for the coordinator's
-event page (SPM-41). The event is Founders' Gala Dinner — seed-coordinator-view
+event page (SPM-41). The catalogue is the six types and owned counts of the
+Connectsphere Data Single Source of Truth: Projector 10, Wireless microphone 30,
+PA speaker 5, Presentation laptop 8, Livestream kit 2 and Crowd barrier 40. The
+event is Founders' Gala Dinner — seed-coordinator-view
 seeds its request as Approved but opens no event for it, so this does, the way
 approving it in the app would. It has one line Technical Support have already
 reserved against (Projector) and one they have not (Wireless microphone), so
