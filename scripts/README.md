@@ -18,6 +18,47 @@ with your `<username>-` prefix, never a teammate's or Production's.
 One-off SQL for putting test data into a Supabase database. None of it runs
 automatically — not on `supabase db reset`, not in CI.
 
+## Seed everything to match the SSOT
+
+A fresh local database with all six venues, all six equipment types and the
+sample events, as the Connectsphere Data Single Source of Truth (v1.1) lists
+them. Run these in this order:
+
+```bash
+supabase db reset
+supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+supabase db query --file scripts/seed-venues/seed.sql --local
+supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
+supabase db query --file scripts/seed-equipment/seed.sql --local
+```
+
+- `db reset` first: it rebuilds the database and creates the test logins. It
+  drops your local data.
+- `seed-coordinator-view` before `seed-equipment`: the equipment seed opens an
+  event from one of its requests.
+- `seed-venues` gives Main Hall, Seminar Room 2-1, Studio and Rooftop Terrace.
+  `seed-venue-search-uat` adds UAT-44 Harbour Room and UAT-44 Garden Hall. Either
+  order works.
+
+Check it, with the same two commands on any database:
+
+```bash
+supabase db query --file scripts/apply-ssot/verify.sql --local
+supabase db query --file scripts/seed-equipment/verify.sql --local
+```
+
+The first shows 31 rows and the second 9, every one `ok = true`.
+
+Left out on purpose, because each belongs to its own manual tests: `seed-equipment-review` and
+`seed-venue-unavailability`. Load them on top when you run those cases. The venue-search cases
+(`TC-VSEARCH-*`) are written for `seed-venue-search-uat` alone: TC-VSEARCH-010 step 2 expects no
+venue with an Exhibition layout, and Rooftop Terrace from `seed-venues` now has one. For those, run
+`db reset` and load only `seed-venue-search-uat`.
+
+A database that already holds older data is fixed with `apply-ssot` instead (see its section below),
+never by resetting a shared one. Nothing here is run against the remote project: a person applies
+`apply-ssot` there.
+
 ## seed-venues
 
 Four venues and the five room layouts for the coordinator's venue booking
