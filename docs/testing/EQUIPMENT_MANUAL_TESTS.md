@@ -165,7 +165,10 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 
 ### TC-EQUIP-012: Changing an unreserved line, saving a reserved one unchanged, and removing an unreserved one (AC7, AC9, AC10)
 
-**Preconditions:** As TC-EQUIP-002.
+**Preconditions:** As TC-EQUIP-002, then remove the three lines it left with nothing reserved: **Livestream kit**,
+**PA speaker** and **Presentation laptop** (**Remove**, then **Remove line**, on each). A line nothing is reserved
+against is New and keeps the event on Technical Support's list, and the checks below, and TC-EQUIP-013, 016 and
+017, expect that list to hold only the Projector's changes.
 
 **Steps:**
 1. On **Wireless microphone** (not reserved), press **Edit**, change the quantity to
@@ -370,8 +373,9 @@ them without re-seeding.
 
 **Expected Result:**
 - Step 1: **Projector** is `Under review` with `quantity_requested` 3 and
-  `quantity_reserved` 2 (AC8, AC17). Lines nothing was reserved against, such as
-  Livestream kit, are `Requested`. No line is `Reserved` and changed at the same
+  `quantity_reserved` 2 (AC8, AC17). The Livestream kit, PA speaker and
+  Presentation laptop lines were removed in TC-EQUIP-012's preconditions, so only the Projector
+  remains. No line is `Reserved` and changed at the same
   time: a changed reserved line is always `Under review` (AC8).
 - Step 2: one row for every add, edit, removal request, removal undone and delete
   made in the earlier cases, each with *Test Coordinator* as the actor (AC18). The
