@@ -167,6 +167,8 @@ AC1, AC2.
 
 **Status:** [x] Pass [ ] Fail
 
+**Re-run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau, with Wireless microphone 30 (SPM-277). Screenshots: [step1-rejected](../screenshots/2026-10-09_TC-SAFETYRETURN-001_step1-rejected.png) · [step2-list-without-gala](../screenshots/2026-10-09_TC-SAFETYRETURN-001_step2-list-without-gala.png) · [step3-rejected-card](../screenshots/2026-10-09_TC-SAFETYRETURN-001_step3-rejected-card.png)
+
 ---
 
 ### TC-SAFETYRETURN-002: An event with no check yet says so

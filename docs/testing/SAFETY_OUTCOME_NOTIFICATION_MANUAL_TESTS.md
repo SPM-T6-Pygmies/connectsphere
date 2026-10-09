@@ -174,6 +174,8 @@ AC1, AC2.
 
 **Status:** [x] Pass [ ] Fail
 
+**Re-run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau, with Wireless microphone 30 (SPM-277). Screenshots: [step2-rejected](../screenshots/2026-10-09_TC-SAFETYOUTCOME-001_step2-rejected.png)
+
 ---
 
 ### TC-SAFETYOUTCOME-002: An approval without comments says it can go on to confirmation

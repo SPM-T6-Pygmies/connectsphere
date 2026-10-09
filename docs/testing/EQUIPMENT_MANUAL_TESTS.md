@@ -44,6 +44,10 @@ Needs review list and the event's equipment page.
 into the SPM-41 branch (see each case's Status and Screenshots). A browser script drove the cases and checked each expected result,
 including the database checks (85 checks in all); the screenshots are in [`../screenshots/`](../screenshots/).
 
+**Re-run 9/10/2026 (SPM-277, after the equipment counts changed):** TC-EQUIP-001, 002, 006, 007, 009, 014 and 015 pass.
+TC-EQUIP-012, 013, 016 and 017 pass every step except the Needs review list check, which fails: the unreserved lines
+TC-EQUIP-001 and 002 add are New, so the event stays listed (see each case's Status).
+
 **Run the cases in order**, or re-seed (below) between them: TC-EQUIP-013 changes
 the reserved Projector line, and later cases expect that.
 
@@ -123,9 +127,10 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
   with no badges (AC1).
 - The Projector and Wireless microphone lines are unchanged.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (8/8 checks)
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-organiser-needs-and-lines](../screenshots/2026-10-03_TC-EQUIP-001_step1-organiser-needs-and-lines.jpg) · [step3-livestream-line-added](../screenshots/2026-10-03_TC-EQUIP-001_step3-livestream-line-added.jpg)
+**Screenshots:** [step1-organiser-needs-and-lines](../screenshots/2026-10-09_TC-EQUIP-001_step1-organiser-needs-and-lines.png) · [step3-livestream-line-added](../screenshots/2026-10-09_TC-EQUIP-001_step3-livestream-line-added.png)
+
 
 ---
 
@@ -151,9 +156,10 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 - Nothing is added for a refused row. Only the last two rows add a line: PA speaker
   (with its 500-character notes) and Presentation laptop.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (11/11 checks)
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [refused-1-ac2](../screenshots/2026-10-03_TC-EQUIP-002_refused-1-ac2.jpg) · [refused-4-ac3](../screenshots/2026-10-03_TC-EQUIP-002_refused-4-ac3.jpg) · [refused-6-ac5](../screenshots/2026-10-03_TC-EQUIP-002_refused-6-ac5.jpg) · [accepted-pa-speaker-and-laptop](../screenshots/2026-10-03_TC-EQUIP-002_accepted-pa-speaker-and-laptop.jpg)
+**Screenshots:** [accepted-pa-speaker-and-laptop](../screenshots/2026-10-09_TC-EQUIP-002_accepted-pa-speaker-and-laptop.png) · [refused-1-ac2](../screenshots/2026-10-09_TC-EQUIP-002_refused-1-ac2.png) · [refused-4-ac3-text](../screenshots/2026-10-09_TC-EQUIP-002_refused-4-ac3-text.png) · [refused-6-ac5-501](../screenshots/2026-10-09_TC-EQUIP-002_refused-6-ac5-501.png)
+
 
 ---
 
@@ -177,7 +183,9 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
   after these three steps: the only line left, the Projector, is reserved and unchanged.
   (Before step 3 the event was listed, its unreserved microphone being **New**.)
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [ ] Pass [x] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau. Every step passes except the last check: the list says "3 lines of 4 need attention", not "Nothing needs your attention.". The Livestream kit, PA speaker and Presentation laptop lines added in TC-EQUIP-001 and 002 have nothing reserved, so each is New and keeps the event listed. Not caused by SPM-277.
+
+**Screenshots:** [step1-microphone-edited](../screenshots/2026-10-09_TC-EQUIP-012_step1-microphone-edited.png) · [step2-projector-saved-unchanged](../screenshots/2026-10-09_TC-EQUIP-012_step2-projector-saved-unchanged.png) · [step3-microphone-removed](../screenshots/2026-10-09_TC-EQUIP-012_step3-microphone-removed.png) · [step3-support-list](../screenshots/2026-10-09_TC-EQUIP-012_step3-support-list.png)
 
 
 ---
@@ -206,7 +214,9 @@ This is the end-to-end case across both roles.
 - In the database, the Projector's `line_state` is now `Under review` and its
   `quantity_reserved` is still `2` (query in TC-EQUIP-009).
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [ ] Pass [x] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau. Every step passes except step 4: the list says "4 lines of 4 need attention", not "1 line of 1 needs attention". The Livestream kit, PA speaker and Presentation laptop lines added in TC-EQUIP-001 and 002 have nothing reserved, so each is New and keeps the event listed. Not caused by SPM-277.
+
+**Screenshots:** [step2-warning](../screenshots/2026-10-09_TC-EQUIP-013_step2-warning.png) · [step3-line-needs-recheck](../screenshots/2026-10-09_TC-EQUIP-013_step3-line-needs-recheck.png) · [step4-event-page-changed](../screenshots/2026-10-09_TC-EQUIP-013_step4-event-page-changed.png) · [step4-needs-review-list](../screenshots/2026-10-09_TC-EQUIP-013_step4-needs-review-list.png)
 
 
 ---
@@ -239,7 +249,9 @@ This is the end-to-end case across both roles.
 - In the database, after step 2 and again after step 5, the Projector's `line_state`
   is `Under review`: undoing the removal does not put it back to `Reserved`.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-removal-panel](../screenshots/2026-10-09_TC-EQUIP-014_step2-removal-panel.png) · [step3-removal-requested](../screenshots/2026-10-09_TC-EQUIP-014_step3-removal-requested.png) · [step4-event-page-removal-requested](../screenshots/2026-10-09_TC-EQUIP-014_step4-event-page-removal-requested.png) · [step5-undo-removal](../screenshots/2026-10-09_TC-EQUIP-014_step5-undo-removal.png) · [step6-event-page-changed](../screenshots/2026-10-09_TC-EQUIP-014_step6-event-page-changed.png)
 
 
 ---
@@ -265,9 +277,10 @@ This is the end-to-end case across both roles.
   are still listed, but there are no **Edit**, **Remove** or **Undo removal**
   buttons and no **Add equipment** form.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (6/6 checks)
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [read-only-completed](../screenshots/2026-10-03_TC-EQUIP-006_read-only-completed.jpg) · [read-only-cancelled](../screenshots/2026-10-03_TC-EQUIP-006_read-only-cancelled.jpg)
+**Screenshots:** [read-only-cancelled](../screenshots/2026-10-09_TC-EQUIP-006_read-only-cancelled.png) · [read-only-completed](../screenshots/2026-10-09_TC-EQUIP-006_read-only-completed.png)
+
 
 ---
 
@@ -294,9 +307,10 @@ This is the end-to-end case across both roles.
   `/staff/coordinator/events/999999` and compare. No equipment lines, no stated
   needs and no forms are shown.
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (3/3 checks)
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-unassigned-event](../screenshots/2026-10-03_TC-EQUIP-007_step2-unassigned-event.jpg) · [compare-missing-event](../screenshots/2026-10-03_TC-EQUIP-007_compare-missing-event.jpg)
+**Screenshots:** [compare-missing-event](../screenshots/2026-10-09_TC-EQUIP-007_compare-missing-event.png) · [step2-unassigned-event](../screenshots/2026-10-09_TC-EQUIP-007_step2-unassigned-event.png)
+
 
 ---
 
@@ -316,7 +330,9 @@ This is the end-to-end case across both roles.
   Support Staff.* The Network tab shows **403** for the page request (SPM-16).
 - Neither screen shows any equipment, event or line.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-support-sees-list](../screenshots/2026-10-09_TC-EQUIP-015_step1-support-sees-list.png) · [step2-coordinator-denied](../screenshots/2026-10-09_TC-EQUIP-015_step2-coordinator-denied.png) · [step3-venue-denied](../screenshots/2026-10-09_TC-EQUIP-015_step3-venue-denied.png)
 
 
 ---
@@ -361,9 +377,8 @@ them without re-seeding.
   made in the earlier cases, each with *Test Coordinator* as the actor (AC18). The
   removal request and the undo are their own rows (AC11, AC17).
 
-**Status:** [x] Pass [ ] Fail — 3/10/2026, commit `7e4ed7d`, run in Chrome via Playwright for JameszLau (9/9 checks)
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau (database queries; all 3 query results checked)
 
-**Screenshots:** 
 
 ---
 
@@ -402,7 +417,9 @@ review; changing it back to exactly that means there is nothing for them to re-c
 - Step 6: `line_state` is `Reserved`, `quantity_requested` and `quantity_reserved` are both `2`,
   and `reviewed_quantity_requested` is empty.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [ ] Pass [x] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau. Every step passes except step 5: the list says "3 lines of 4 need attention", not "Nothing needs your attention.". The Livestream kit, PA speaker and Presentation laptop lines added in TC-EQUIP-001 and 002 have nothing reserved, so each is New and keeps the event listed. Not caused by SPM-277.
+
+**Screenshots:** [step1-projector-1](../screenshots/2026-10-09_TC-EQUIP-016_step1-projector-1.png) · [step2-support-was-2](../screenshots/2026-10-09_TC-EQUIP-016_step2-support-was-2.png) · [step4-back-to-normal](../screenshots/2026-10-09_TC-EQUIP-016_step4-back-to-normal.png) · [step5-nothing-needs-attention](../screenshots/2026-10-09_TC-EQUIP-016_step5-nothing-needs-attention.png)
 
 
 ---
@@ -439,5 +456,7 @@ Signed in as `coordinator@test.com`.
 - Step 5: `line_state` is `Reserved`, `reviewed_quantity_requested` is empty, and
   `removal_requested` is `false`.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [ ] Pass [x] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau. Every step passes except step 4: the list says "3 lines of 4 need attention", not "Nothing needs your attention.". The Livestream kit, PA speaker and Presentation laptop lines added in TC-EQUIP-001 and 002 have nothing reserved, so each is New and keeps the event listed. Not caused by SPM-277.
+
+**Screenshots:** [step1-removal-requested](../screenshots/2026-10-09_TC-EQUIP-017_step1-removal-requested.png) · [step2-support-removal-requested](../screenshots/2026-10-09_TC-EQUIP-017_step2-support-removal-requested.png) · [step3-undo-clears-recheck](../screenshots/2026-10-09_TC-EQUIP-017_step3-undo-clears-recheck.png) · [step4-nothing-needs-attention](../screenshots/2026-10-09_TC-EQUIP-017_step4-nothing-needs-attention.png)
 

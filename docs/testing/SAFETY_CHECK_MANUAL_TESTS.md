@@ -149,6 +149,8 @@ AC1.
 
 **Status:** [x] Pass [ ] Fail
 
+**Re-run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau, with Wireless microphone 30 (SPM-277). Screenshots: [step2-gala-review](../screenshots/2026-10-09_TC-SAFETYCHECK-001_step2-gala-review.png) · [step3-canal-fallbacks](../screenshots/2026-10-09_TC-SAFETYCHECK-001_step3-canal-fallbacks.png)
+
 ---
 
 ### TC-SAFETYCHECK-002: A rejection needs comments, then leaves the event off the list

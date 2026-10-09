@@ -88,7 +88,9 @@ Truth, with the same counts `seed-equipment` gives them.
   and *In service: 8 of 10*.
 - Step 3: "Saved."; *In service: 10 of 10*. Every unit is back in service.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-projector-card](../screenshots/2026-10-09_TC-OOS-001_step1-projector-card.png) · [step2-two-out-of-service](../screenshots/2026-10-09_TC-OOS-001_step2-two-out-of-service.png) · [step3-returned-to-service](../screenshots/2026-10-09_TC-OOS-001_step3-returned-to-service.png)
 
 ---
 
@@ -106,7 +108,9 @@ Truth, with the same counts `seed-equipment` gives them.
 - Step 3: "Saved."; *In service: 0 of 2*.
 - Step 4: "Saved."; after the reload *In service: 2 of 2*. None of the refused values was saved.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-three-refused](../screenshots/2026-10-09_TC-OOS-002_step1-three-refused.png) · [step2-fraction-refused](../screenshots/2026-10-09_TC-OOS-002_step2-fraction-refused.png) · [step3-two-of-two-out](../screenshots/2026-10-09_TC-OOS-002_step3-two-of-two-out.png) · [step4-back-to-two-of-two](../screenshots/2026-10-09_TC-OOS-002_step4-back-to-two-of-two.png)
 
 ---
 
@@ -125,7 +129,9 @@ Truth, with the same counts `seed-equipment` gives them.
 - Step 3: "Saved."; *In service: 0 of 3*. Owned may drop to exactly the out-of-service count.
 - Step 4: "Saved."; *In service: 5 of 5*.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-three-out](../screenshots/2026-10-09_TC-OOS-003_step1-three-out.png) · [step2-owned-2-refused](../screenshots/2026-10-09_TC-OOS-003_step2-owned-2-refused.png) · [step3-owned-3](../screenshots/2026-10-09_TC-OOS-003_step3-owned-3.png) · [step4-restored](../screenshots/2026-10-09_TC-OOS-003_step4-restored.png)
 
 ---
 
@@ -142,7 +148,9 @@ Truth, with the same counts `seed-equipment` gives them.
 - Step 3: **2** — the 2 units out of service are left out.
 - Step 4: **4** again.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-available-4](../screenshots/2026-10-09_TC-OOS-004_step1-available-4.png) · [step3-available-2](../screenshots/2026-10-09_TC-OOS-004_step3-available-2.png) · [step4-available-4-again](../screenshots/2026-10-09_TC-OOS-004_step4-available-4-again.png)
 
 ---
 
@@ -164,4 +172,6 @@ Truth, with the same counts `seed-equipment` gives them.
 the six in the SSOT. Run `supabase db reset` and re-seed, or delete it (nothing references
 it): `delete from equipment_item where type = 'Smoke machine';`.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-smoke-machine-added](../screenshots/2026-10-09_TC-OOS-005_step1-smoke-machine-added.png) · [step2-coordinator-type-list](../screenshots/2026-10-09_TC-OOS-005_step2-coordinator-type-list.png) · [step3-smoke-machine-after-restart](../screenshots/2026-10-09_TC-OOS-005_step3-smoke-machine-after-restart.png)

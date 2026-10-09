@@ -101,6 +101,8 @@ right-hand card.
       occurred_at desc limit 1` shows `field_changed = 'room_layout'` with the
       old and new layout names.
 
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-picker-and-disabled-button](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step1-picker-and-disabled-button.png) · [step2-changed-to-classroom](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step2-changed-to-classroom.png) · [step3-studio-has-no-picker](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step3-studio-has-no-picker.png)
+
 ### TC-VENUE-BOOK-009 A layout can no longer change once Venue Staff answer (SPM-104)
 
 - [x] Approve or reject the request as Venue Staff (SPM-22). Reload the page as

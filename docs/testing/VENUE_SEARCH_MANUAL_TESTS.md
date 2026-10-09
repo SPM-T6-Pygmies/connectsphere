@@ -56,6 +56,10 @@ Seeded venues (from `scripts/seed-venue-search-uat/seed.sql`):
 Both have a 60-day booking horizon; Harbour Room's venue capacity is 250,
 Garden Hall's 500.
 
+**Load only this seed for these cases.** TC-VSEARCH-010 step 2 expects no venue with an
+Exhibition layout. Rooftop Terrace in `scripts/seed-venues` now has Exhibition 150 (SPM-277), so
+with that seed loaded as well, step 2 lists it.
+
 ### TC-VSEARCH-001 Capacity is checked on the searched layout
 
 **Steps**
@@ -63,9 +67,11 @@ Garden Hall's 500.
 2. Change **Room layout** to Theatre, keep **Attendance** `100`. Click **Search**.
 
 **Expected Result**
-- [ ] Step 1: Harbour Room is not listed; the summary says 1 venue not shown
+- [x] Step 1: Harbour Room is not listed; the summary says 1 venue not shown
       because its Boardroom layout seats fewer than 100.
-- [ ] Step 2: Harbour Room is listed.
+- [x] Step 2: Harbour Room is listed.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-boardroom-100](../screenshots/2026-10-09_TC-VSEARCH-001_step1-boardroom-100.png) · [step2-theatre-100](../screenshots/2026-10-09_TC-VSEARCH-001_step2-theatre-100.png)
 
 ### TC-VSEARCH-002 No fallback to the venue-wide capacity
 
@@ -73,8 +79,10 @@ Garden Hall's 500.
 1. Leave **Room layout** as Any layout. Enter **Attendance** `300`. Click **Search**.
 
 **Expected Result**
-- [ ] No venues found. Garden Hall is not listed although its venue capacity is
+- [x] No venues found. Garden Hall is not listed although its venue capacity is
       500; the summary says no layout seats 300.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-attendance-300](../screenshots/2026-10-09_TC-VSEARCH-002_step1-attendance-300.png)
 
 ### TC-VSEARCH-003 Every selected facility and accessibility feature is required
 
@@ -83,9 +91,11 @@ Garden Hall's 500.
 2. Open the page again. Tick **Video-conferencing** and **Lift access**. Click **Search**.
 
 **Expected Result**
-- [ ] Step 1: only Harbour Room is listed.
-- [ ] Step 2: no venues found, since no venue has both; the summary names the
+- [x] Step 1: only Harbour Room is listed.
+- [x] Step 2: no venues found, since no venue has both; the summary names the
       missing facility and accessibility feature.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-video-conferencing-hearing-loop](../screenshots/2026-10-09_TC-VSEARCH-003_step1-video-conferencing-hearing-loop.png) · [step2-video-conferencing-lift-access](../screenshots/2026-10-09_TC-VSEARCH-003_step2-video-conferencing-lift-access.png)
 
 ### TC-VSEARCH-004 A venue booked in a chosen slot is excluded
 
@@ -94,9 +104,11 @@ Garden Hall's 500.
 2. Open the page again. Enter **Date** D, tick **AM**. Click **Search**.
 
 **Expected Result**
-- [ ] Step 1: Harbour Room is not listed; the summary says it is already booked
+- [x] Step 1: Harbour Room is not listed; the summary says it is already booked
       in a slot chosen.
-- [ ] Step 2: Harbour Room is listed; the slot before a booked one is free.
+- [x] Step 2: Harbour Room is listed; the slot before a booked one is free.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-date-d-pm](../screenshots/2026-10-09_TC-VSEARCH-004_step1-date-d-pm.png) · [step2-date-d-am](../screenshots/2026-10-09_TC-VSEARCH-004_step2-date-d-am.png)
 
 ### TC-VSEARCH-006 A rejected booking does not block the venue
 
@@ -104,8 +116,10 @@ Garden Hall's 500.
 1. Enter **Date** D, tick **AM**. Click **Search**.
 
 **Expected Result**
-- [ ] Garden Hall is listed. Only Tentative Hold and Confirmed bookings make a
+- [x] Garden Hall is listed. Only Tentative Hold and Confirmed bookings make a
       venue busy.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-garden-hall-listed](../screenshots/2026-10-09_TC-VSEARCH-006_step1-garden-hall-listed.png)
 
 ### TC-VSEARCH-007 A date beyond the booking horizon is excluded
 
@@ -113,8 +127,10 @@ Garden Hall's 500.
 1. Enter a **Date** 61 days from today, tick **AM**. Click **Search**.
 
 **Expected Result**
-- [ ] No venues found; the summary says they cannot be booked as far ahead as
+- [x] No venues found; the summary says they cannot be booked as far ahead as
       the searched date.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-61-days-ahead](../screenshots/2026-10-09_TC-VSEARCH-007_step1-61-days-ahead.png)
 
 ### TC-VSEARCH-012 A venue that does not offer a chosen slot is excluded
 
@@ -123,10 +139,12 @@ Garden Hall's 500.
 2. Open the page again. Enter **Date** D, tick **AM** and **Night**. Click **Search**.
 
 **Expected Result**
-- [ ] Step 1: Harbour Room is listed. Garden Hall is not; the summary says it
+- [x] Step 1: Harbour Room is listed. Garden Hall is not; the summary says it
       does not offer every slot chosen (Night).
-- [ ] Step 2: the same. A venue must offer *every* chosen slot, so Garden Hall's
+- [x] Step 2: the same. A venue must offer *every* chosen slot, so Garden Hall's
       AM does not let it in.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-night](../screenshots/2026-10-09_TC-VSEARCH-012_step1-night.png) · [step2-am-and-night](../screenshots/2026-10-09_TC-VSEARCH-012_step2-am-and-night.png)
 
 ### TC-VSEARCH-009 Attribute and date filters combine into a candidate list
 
@@ -135,8 +153,10 @@ Garden Hall's 500.
    and **Step-free access**; **Date** D, tick **Night**. Click **Search**.
 
 **Expected Result**
-- [ ] Only Harbour Room is listed, with its attributes and no pass/fail or
+- [x] Only Harbour Room is listed, with its attributes and no pass/fail or
       suitability column (#83).
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-combined-filters](../screenshots/2026-10-09_TC-VSEARCH-009_step1-combined-filters.png)
 
 ### TC-VSEARCH-010 Blank filters and an empty result
 
@@ -145,9 +165,11 @@ Garden Hall's 500.
 2. Choose **Room layout** Exhibition. Click **Search**.
 
 **Expected Result**
-- [ ] Step 1: every venue in the catalogue is listed, with "N venues found".
-- [ ] Step 2: no venues found, with the reason (no Exhibition layout) and a tip
+- [x] Step 1: every venue in the catalogue is listed, with "N venues found".
+- [x] Step 2: no venues found, with the reason (no Exhibition layout) and a tip
       to widen the search.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-blank-filters](../screenshots/2026-10-09_TC-VSEARCH-010_step1-blank-filters.png) · [step2-alt-exhibition-attendance-200](../screenshots/2026-10-09_TC-VSEARCH-010_step2-alt-exhibition-attendance-200.png) · [step2-exhibition-as-written](../screenshots/2026-10-09_TC-VSEARCH-010_step2-exhibition-as-written.png)
 
 ### TC-VSEARCH-011 Clear empties every filter
 
@@ -159,6 +181,9 @@ Garden Hall's 500.
 4. Click **Clear**.
 
 **Expected Result**
-- [ ] After steps 2 and 4: date, layout and attendance are blank, no checkbox
+- [x] After steps 2 and 4: date, layout and attendance are blank, no checkbox
       (slot, facility or accessibility) is ticked, and the whole catalogue is
       listed.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-filters-set-and-searched](../screenshots/2026-10-09_TC-VSEARCH-011_step1-filters-set-and-searched.png) · [step2-after-clear](../screenshots/2026-10-09_TC-VSEARCH-011_step2-after-clear.png) · [step4-after-clear](../screenshots/2026-10-09_TC-VSEARCH-011_step4-after-clear.png)
+

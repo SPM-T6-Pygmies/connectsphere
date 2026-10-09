@@ -100,7 +100,9 @@ events belong to both test coordinators.
 - *Autumn Workshop* is **not** listed, although it has a line with nothing reserved:
   it is Cancelled (AC1). No Reviewed or Completed event is listed.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-needs-review-three-rows](../screenshots/2026-10-09_TC-EQUIPREVIEW-001_step2-needs-review-three-rows.png)
 
 ---
 
@@ -123,7 +125,9 @@ events belong to both test coordinators.
 - No Reserve, Mark unavailable, return date, technical-support or activity controls
   appear: the page is read-only.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-tech-summit-lines](../screenshots/2026-10-09_TC-EQUIPREVIEW-002_step2-tech-summit-lines.png)
 
 ---
 
@@ -145,7 +149,9 @@ events belong to both test coordinators.
     Conference's 2 (September, Completed) do not count.
 - Step 2: the line says *Event has no date yet* instead of a number.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-tech-summit-available](../screenshots/2026-10-09_TC-EQUIPREVIEW-003_step1-tech-summit-available.png) · [step2-partner-roadshow-no-date](../screenshots/2026-10-09_TC-EQUIPREVIEW-003_step2-partner-roadshow-no-date.png)
 
 ---
 
@@ -163,7 +169,9 @@ or after `teardown.sql`).
 - Step 2: *Nothing reviewed yet.* and *Nothing archived.*, with no table.
 - The sidebar list is empty on each.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-needs-review-empty](../screenshots/2026-10-09_TC-EQUIPREVIEW-004_step1-needs-review-empty.png) · [step2-archive-empty](../screenshots/2026-10-09_TC-EQUIPREVIEW-004_step2-archive-empty.png) · [step2-reviewed-empty](../screenshots/2026-10-09_TC-EQUIPREVIEW-004_step2-reviewed-empty.png)
 
 ---
 
@@ -188,4 +196,6 @@ or after `teardown.sql`).
 - No screen shows a placeholder event, reservation or equipment item (such as the
   earlier wireframe's reservation ids or *Reserve* button).
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-needs-review-sidebar-vs-table](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step1-needs-review-sidebar-vs-table.png) · [step2-reviewed-sidebar-vs-table](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step2-reviewed-sidebar-vs-table.png) · [step3-archive-sidebar-vs-table](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step3-archive-sidebar-vs-table.png) · [step4-board-strategy-day](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step4-board-strategy-day.png)
