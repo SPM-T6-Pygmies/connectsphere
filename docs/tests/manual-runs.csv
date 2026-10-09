@@ -172,3 +172,9 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-08,TC-EQUIP-015,Pass,As expected,,jerricknsc,112,110a34e,,
 2026-10-08,TC-EQUIP-016,Pass,As expected,,jerricknsc,112,110a34e,,
 2026-10-08,TC-EQUIP-017,Pass,As expected,,jerricknsc,112,110a34e,,
+2026-10-09,TC-SAFETYOUTCOME-001,Pass,"One notification for coordinator, Sent, with full trimmed comments",Rejection with comments,arinmakk,109,bd6d5de,,
+2026-10-09,TC-SAFETYOUTCOME-002,Pass,"One notification for coordinator, Sent, no note appended",Approval without comments,arinmakk,109,bd6d5de,,
+2026-10-09,TC-SAFETYOUTCOME-003,Pass,"One notification for Test Coordinator 2 only, with note appended",Approval with note; correct coordinator targeted,arinmakk,109,bd6d5de,,
+2026-10-09,TC-SAFETYOUTCOME-004,Pass,Outcome recorded; no notification row,Event with no coordinator,arinmakk,109,bd6d5de,,[`…004_step2-recorded-without-coordinator.png`](../screenshots/2026-10-06_TC-SAFETYOUTCOME-004_step2-recorded-without-coordinator.png)
+2026-10-09,TC-SAFETYOUTCOME-005,Pass,No form shown; no notification row,Event not awaiting check,arinmakk,109,bd6d5de,,
+2026-10-09,TC-SAFETYOUTCOME-006,Pass,200 for assigned coordinator; 403 for other,Redirect URL access control,arinmakk,109,bd6d5de,,[`…006_step1-coordinator-opens-event.png`](../screenshots/2026-10-06_TC-SAFETYOUTCOME-006_step1-coordinator-opens-event.png)
