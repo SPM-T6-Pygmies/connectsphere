@@ -1,4 +1,4 @@
-import { checkLayoutCapacity } from "./booking";
+import { checkLayoutCapacity, type BookingStatus } from "./booking";
 import type { Venue } from "./venue";
 import { parseOptionList } from "./venue-options";
 
@@ -88,4 +88,12 @@ function listRow(
   return missing.length === 0
     ? { check, status: "pass", detail: `Has ${needed.join(", ")}` }
     : { check, status: "fail", detail: `Missing: ${missing.join(", ")}` };
+}
+
+/**
+ * SPM-45 AC8: only a request still in play is checked against the event. A
+ * Rejected, Released or Cancelled one is over, so a verdict on it would only mislead.
+ */
+export function suitabilityApplies(status: BookingStatus): boolean {
+  return status === "Requested" || status === "Tentative Hold" || status === "Confirmed";
 }

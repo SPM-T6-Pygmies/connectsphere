@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { venueId, type Venue } from "./venue";
-import { checkVenueSuitability, type EventNeeds } from "./venue-suitability";
+import { checkVenueSuitability, suitabilityApplies, type EventNeeds } from "./venue-suitability";
 
 const studio: Venue = {
   id: venueId("studio"),
@@ -185,5 +185,18 @@ describe("checkVenueSuitability (SPM-246)", () => {
       expect(after.overall).toBe("Not suitable");
       expect(row(after, "capacity").detail).toBe("Theatre seats 60, 20 over");
     });
+  });
+});
+
+describe("suitabilityApplies (SPM-248)", () => {
+  it.each(["Requested", "Tentative Hold", "Confirmed"] as const)(
+    "checks a %s booking, which is still in play",
+    (status) => {
+      expect(suitabilityApplies(status)).toBe(true);
+    },
+  );
+
+  it.each(["Rejected", "Released", "Cancelled"] as const)("does not check a %s booking, which is over", (status) => {
+    expect(suitabilityApplies(status)).toBe(false);
   });
 });

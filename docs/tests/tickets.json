@@ -337,6 +337,11 @@
       "parent": "SPM-45",
       "status": "In Progress"
     },
+    "SPM-248": {
+      "title": "Load the event's needs and work out suitability for the booking page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
     "SPM-182": {
       "title": "Equipment requirement rules in the domain",
       "parent": "SPM-41",
