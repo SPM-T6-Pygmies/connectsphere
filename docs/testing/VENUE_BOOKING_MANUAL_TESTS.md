@@ -161,7 +161,7 @@ advises: none of these cases stops a request being sent (AC3).
 
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-event-needs-card](../screenshots/2026-10-09_TC-VENUE-BOOK-010_step1-event-needs-card.png) · [step3-saved](../screenshots/2026-10-09_TC-VENUE-BOOK-010_step3-saved.png) · [step5-completed-read-only](../screenshots/2026-10-09_TC-VENUE-BOOK-010_step5-completed-read-only.png)
 
-### TC-VENUE-BOOK-011 A venue that fits the event is Suitable (AC3, AC7)
+### TC-VENUE-BOOK-011 A venue that fits the event is Suitable (AC3, AC4, AC7)
 
 - [x] Choose **Studio**. The only layout is Theatre, so the checklist appears straight away,
       reading **Suitable**: Layout *Offers Theatre*; Capacity *Theatre seats 60 · fits the 50
@@ -203,7 +203,7 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
 
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-exactly-at-capacity](../screenshots/2026-10-09_TC-VENUE-BOOK-014_step1-exactly-at-capacity.png) · [step2-one-over](../screenshots/2026-10-09_TC-VENUE-BOOK-014_step2-one-over.png) · [step3-banquet-20-over](../screenshots/2026-10-09_TC-VENUE-BOOK-014_step3-banquet-20-over.png)
 
-### TC-VENUE-BOOK-015 Check incomplete when something is not known yet (AC5, AC7)
+### TC-VENUE-BOOK-015 Check incomplete when something is not known yet (AC4, AC5, AC7)
 
 - [x] With no expected attendance (`update event set expected_attendance = null …`), **Studio** reads
       *Check incomplete*: Capacity *Not known yet*, the other rows fit.
