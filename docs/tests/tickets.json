@@ -322,6 +322,31 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-45": {
+      "title": "Check venue suitability",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-246": {
+      "title": "Venue suitability rules in the domain",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-247": {
+      "title": "Let the Coordinator record the facilities an event needs",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-248": {
+      "title": "Load the event's needs and work out suitability for the booking page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-249": {
+      "title": "Suitability checklist on the Request a venue page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
     "SPM-182": {
       "title": "Equipment requirement rules in the domain",
       "parent": "SPM-41",

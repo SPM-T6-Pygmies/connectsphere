@@ -7,11 +7,11 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOOKING_SLOTS, checkLayoutCapacity, type BookingSlot } from "@/core/domain/booking";
-import type { Venue } from "@/core/use-cases/view-venue-booking-options";
+import { BOOKING_SLOTS, type BookingSlot } from "@/core/domain/booking";
+import type { Venue, VenueLayoutSuitability } from "@/core/use-cases/view-venue-booking-options";
 
 import { submitVenueBookingRequestAction, type SubmitVenueBookingRequestState } from "./actions";
-import { describeCapacity } from "../../../booking-capacity-message";
+import { SuitabilityChecklist } from "../../../suitability-checklist";
 
 const INITIAL: SubmitVenueBookingRequestState = { status: "idle" };
 
@@ -41,7 +41,8 @@ function defaultLayout(venue: Venue | undefined): string {
 
 /**
  * SPM-46 / SPM-104: one venue, its layout, and one or more slots on one or
- * more days. Every field is held in state, so a refused request keeps what
+ * more days. SPM-45: once the venue (and its layout) is chosen, a checklist says
+ * whether it fits the event's needs -- advice only, the request can still be sent. Every field is held in state, so a refused request keeps what
  * was chosen. The server decides everything -- a clash, a missing layout --
  * and this only keeps the Submit button honest.
  */
@@ -49,15 +50,15 @@ export function BookingRequestForm({
   eventId,
   eventRequestId,
   defaultDate,
-  expectedAttendance,
   venues,
+  suitability,
 }: {
   eventId: string;
   eventRequestId: string;
   defaultDate: string | null;
-  /** The event's expected attendance, for the capacity hint under the layout. */
-  expectedAttendance: number | null;
   venues: readonly Venue[];
+  /** The server's verdict for each venue and layout, worked out from the event's needs now. */
+  suitability: readonly VenueLayoutSuitability[];
 }) {
   const [state, formAction, pending] = useActionState(submitVenueBookingRequestAction, INITIAL);
   const idPrefix = useId();
@@ -83,11 +84,13 @@ export function BookingRequestForm({
 
   const venue = venues.find((candidate) => candidate.id === venueId);
   const needsLayoutChoice = (venue?.layouts.length ?? 0) > 1;
-  // Only once a layout is chosen: until then there is no figure to compare.
-  const capacityHint =
-    venue !== undefined && layout !== ""
-      ? describeCapacity(checkLayoutCapacity(venue, layout, expectedAttendance))
-      : null;
+  // Once the venue is chosen, and its layout if it has several (AC3).
+  const verdict =
+    venue !== undefined && (!needsLayoutChoice || layout !== "")
+      ? suitability.find(
+          (entry) => entry.venueId === venue.id && entry.layout === (layout === "" ? null : layout),
+        )?.suitability
+      : undefined;
   const chosenSlots = rows.flatMap((row) =>
     row.date === "" ? [] : row.slots.map((slot) => `${row.date}|${slot}`),
   );
@@ -204,19 +207,11 @@ export function BookingRequestForm({
                 ))}
               </div>
             )}
-            {capacityHint ? (
-              <p
-                role="status"
-                className={
-                  capacityHint.tone === "over"
-                    ? "text-destructive text-xs font-medium"
-                    : "text-muted-foreground text-xs"
-                }
-              >
-                {capacityHint.text}
-              </p>
-            ) : null}
           </div>
+        ) : null}
+
+        {verdict ? (
+          <SuitabilityChecklist suitability={verdict} label={`Suitability of ${venue?.location}`} />
         ) : null}
 
         <div className="space-y-2">
