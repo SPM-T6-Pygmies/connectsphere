@@ -97,7 +97,7 @@ begin
   insert into venue_supported_layout (venue_id, room_layout_id, capacity)
   values (v_hall, v_banquet, 180), (v_hall, v_theatre, 300);
   insert into venue (location) values ('Canal Annex') returning venue_id into v_annex;
-  insert into equipment_item (type, quantity) values ('Wireless microphone', 10) returning equipment_item_id into v_mic;
+  insert into equipment_item (type, quantity) values ('Wireless microphone', 30) returning equipment_item_id into v_mic;
   insert into equipment_item (type, quantity) values ('Crowd barrier', 40) returning equipment_item_id into v_barrier;
 
   -- 1. Awaiting: 220 expected in a banquet layout that holds 180, two lines reserved in full.
@@ -166,6 +166,8 @@ AC1, AC2.
 **Evidence:** [`…001_step3-rejected-card.png`](../screenshots/2026-10-06_TC-SAFETYRETURN-001_step3-rejected-card.png)
 
 **Status:** [x] Pass [ ] Fail
+
+**Re-run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau, with Wireless microphone 30 (SPM-277). Screenshots: [step1-rejected](../screenshots/2026-10-09_TC-SAFETYRETURN-001_step1-rejected.png) · [step2-list-without-gala](../screenshots/2026-10-09_TC-SAFETYRETURN-001_step2-list-without-gala.png) · [step3-rejected-card](../screenshots/2026-10-09_TC-SAFETYRETURN-001_step3-rejected-card.png)
 
 ---
 

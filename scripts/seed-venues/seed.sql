@@ -2,11 +2,15 @@
 -- booking request page (SPM-46, SPM-104) has something to book until the
 -- venue catalogue (SPM-42) lets Venue Staff add their own.
 --
--- The four venues cover every layout case the booking form tells apart:
+-- The four venues cover the layout cases the booking form tells apart:
 --   Main Hall            three layouts -- the coordinator must choose one
 --   Seminar Room 2-1     two layouts
 --   Studio               one layout   -- taken without asking
---   Rooftop Terrace      no layouts on record -- nothing to choose
+--   Rooftop Terrace      two layouts  -- the coordinator must choose one
+-- No seeded venue has zero layouts.
+--
+-- Facilities, accessibility and layouts follow the Connectsphere Data Single
+-- Source of Truth (SPM-277).
 --
 -- Run against a local stack:
 --   supabase db query --file scripts/seed-venues/seed.sql --local
@@ -28,16 +32,16 @@ declare
   v_layout_id bigint;
 begin
   insert into public.room_layout (name)
-  values ('Theatre'), ('Classroom'), ('Banquet'), ('Boardroom')
+  values ('Theatre'), ('Classroom'), ('Banquet'), ('Boardroom'), ('Exhibition')
   on conflict (name) do nothing;
 
   for v in
     select *
     from (values
-      ('Main Hall',        300, 'Stage, projector, PA system',    'Step-free access, hearing loop', 120, 120),
-      ('Seminar Room 2-1',  40, 'Projector, whiteboard',          'Lift access',                     30,  30),
-      ('Studio',            60, 'Lighting rig, blackout blinds',  'Step-free access',                60,  60),
-      ('Rooftop Terrace',  150, 'Outdoor, covered area',          'Lift access',                     90,  90)
+      ('Main Hall',        300, 'Wi-Fi, Catering area',           'Step-free access, Hearing loop', 120, 120),
+      ('Seminar Room 2-1',  40, 'Wi-Fi, Video-conferencing',      'Lift access',                     30,  30),
+      ('Studio',            60, 'Wi-Fi, Video-conferencing',      'Step-free access',                60,  60),
+      ('Rooftop Terrace',  150, 'Catering area',                  'Lift access',                     90,  90)
     ) as t (location, capacity, facilities, accessibility, setup_minutes, turnaround_minutes)
   loop
     select venue_id into v_venue_id from public.venue where location = v.location;
@@ -63,7 +67,9 @@ begin
       ('Main Hall',        'Classroom', 150),
       ('Seminar Room 2-1', 'Classroom',  40),
       ('Seminar Room 2-1', 'Boardroom',  24),
-      ('Studio',           'Theatre',    60)
+      ('Studio',           'Theatre',    60),
+      ('Rooftop Terrace',  'Banquet',   120),
+      ('Rooftop Terrace',  'Exhibition', 150)
     ) as t (location, layout, capacity)
   loop
     select venue_id into v_venue_id from public.venue where location = l.location;

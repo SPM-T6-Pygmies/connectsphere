@@ -63,10 +63,13 @@ tick the boxes below **and** report each in the PR description's
 
 | Type | Owned | Out of service | Location |
 | --- | --- | --- | --- |
-| Handheld microphone | 8 | 0 | Store room C |
-| Laser projector | 10 | 0 | Store room C |
-| Lectern | 3 | 0 | Store room D |
-| Stage monitor | 4 | 0 | Store room D |
+| Livestream kit | 2 | 0 | Store room B |
+| PA speaker | 5 | 0 | Store room B |
+| Projector | 10 | 0 | Store room A |
+| Wireless microphone | 30 | 0 | Store room A |
+
+These are four of the six equipment types of the Connectsphere Data Single Source of
+Truth, with the same counts `seed-equipment` gives them.
 
 ---
 
@@ -75,7 +78,7 @@ tick the boxes below **and** report each in the PR description's
 ### TC-OOS-001: Set units out of service, and return them (AC1, AC3)
 
 **Steps:**
-1. Open `/staff/technical/equipment` and read the Laser projector card.
+1. Open `/staff/technical/equipment` and read the Projector card.
 2. Set **Out of service** to `2` and click **Update**. Reload the page.
 3. Set **Out of service** back to `0` and click **Update**.
 
@@ -85,61 +88,69 @@ tick the boxes below **and** report each in the PR description's
   and *In service: 8 of 10*.
 - Step 3: "Saved."; *In service: 10 of 10*. Every unit is back in service.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-projector-card](../screenshots/2026-10-09_TC-OOS-001_step1-projector-card.png) · [step2-two-out-of-service](../screenshots/2026-10-09_TC-OOS-001_step2-two-out-of-service.png) · [step3-returned-to-service](../screenshots/2026-10-09_TC-OOS-001_step3-returned-to-service.png)
 
 ---
 
 ### TC-OOS-002: Out of service must be from 0 up to the number owned (AC2)
 
 **Steps:**
-1. On the Lectern card (Owned `3`), set **Out of service** to `4` and click **Update**.
+1. On the Livestream kit card (Owned `2`), set **Out of service** to `3` and click **Update**.
 2. Set it to `-1`, then `1.5`, clicking **Update** each time.
-3. Set it to `3` and click **Update**.
+3. Set it to `2` and click **Update**.
 4. Set it back to `0` and click **Update**. Reload.
 
 **Expected Result:**
-- Step 1: "Out of service must be a whole number from 0 up to the number owned (3)." on the card.
+- Step 1: "Out of service must be a whole number from 0 up to the number owned (2)." on the card.
 - Step 2: "Out of service must be a whole number, zero or more." each time.
-- Step 3: "Saved."; *In service: 0 of 3*.
-- Step 4: "Saved."; after the reload *In service: 3 of 3*. None of the refused values was saved.
+- Step 3: "Saved."; *In service: 0 of 2*.
+- Step 4: "Saved."; after the reload *In service: 2 of 2*. None of the refused values was saved.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-three-refused](../screenshots/2026-10-09_TC-OOS-002_step1-three-refused.png) · [step2-fraction-refused](../screenshots/2026-10-09_TC-OOS-002_step2-fraction-refused.png) · [step3-two-of-two-out](../screenshots/2026-10-09_TC-OOS-002_step3-two-of-two-out.png) · [step4-back-to-two-of-two](../screenshots/2026-10-09_TC-OOS-002_step4-back-to-two-of-two.png)
 
 ---
 
 ### TC-OOS-003: Owned cannot drop below the units out of service (AC2)
 
 **Steps:**
-1. On the Stage monitor card (Owned `4`), set **Out of service** to `3` and click **Update**.
+1. On the PA speaker card (Owned `5`), set **Out of service** to `3` and click **Update**.
 2. Set **Owned** to `2` and click **Update**. Reload.
 3. Set **Owned** to `3` and click **Update**.
-4. Set **Owned** to `4`, **Out of service** to `0`, and click **Update**.
+4. Set **Owned** to `5`, **Out of service** to `0`, and click **Update**.
 
 **Expected Result:**
-- Step 1: "Saved."; *In service: 1 of 4*.
+- Step 1: "Saved."; *In service: 2 of 5*.
 - Step 2: "Out of service must be a whole number from 0 up to the number owned (2)."; after the
-  reload the card still shows **Owned** `4` and **Out of service** `3`. Nothing was saved.
+  reload the card still shows **Owned** `5` and **Out of service** `3`. Nothing was saved.
 - Step 3: "Saved."; *In service: 0 of 3*. Owned may drop to exactly the out-of-service count.
-- Step 4: "Saved."; *In service: 4 of 4*.
+- Step 4: "Saved."; *In service: 5 of 5*.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-three-out](../screenshots/2026-10-09_TC-OOS-003_step1-three-out.png) · [step2-owned-2-refused](../screenshots/2026-10-09_TC-OOS-003_step2-owned-2-refused.png) · [step3-owned-3](../screenshots/2026-10-09_TC-OOS-003_step3-owned-3.png) · [step4-restored](../screenshots/2026-10-09_TC-OOS-003_step4-restored.png)
 
 ---
 
 ### TC-OOS-004: Units out of service are not counted as available (AC4)
 
 **Steps:**
-1. Open **Needs review**, open *Tech Summit Keynote* and read **Available** for Laser projector.
-2. On the Equipment page set Laser projector **Out of service** to `2` and click **Update**.
-3. Open *Tech Summit Keynote* again and read **Available** for Laser projector.
-4. Set Laser projector **Out of service** back to `0`, then read **Available** once more.
+1. Open **Needs review**, open *Tech Summit Keynote* and read **Available** for Projector.
+2. On the Equipment page set Projector **Out of service** to `2` and click **Update**.
+3. Open *Tech Summit Keynote* again and read **Available** for Projector.
+4. Set Projector **Out of service** back to `0`, then read **Available** once more.
 
 **Expected Result:**
 - Step 1: **4** (10 owned, less 3, 2 and 1 held by the events on 14, 15 and 16 Nov).
 - Step 3: **2** — the 2 units out of service are left out.
 - Step 4: **4** again.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-available-4](../screenshots/2026-10-09_TC-OOS-004_step1-available-4.png) · [step3-available-2](../screenshots/2026-10-09_TC-OOS-004_step3-available-2.png) · [step4-available-4-again](../screenshots/2026-10-09_TC-OOS-004_step4-available-4-again.png)
 
 ---
 
@@ -157,4 +168,10 @@ tick the boxes below **and** report each in the PR description's
 - Step 3: the Smoke machine card is still there, with **Owned** `2` and *In service: 2 of 2*.
   Restarting the app does not empty the catalogue.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Clean up:** this case leaves a `Smoke machine` type in the database, which is not one of
+the six in the SSOT. Run `supabase db reset` and re-seed, or delete it (nothing references
+it): `delete from equipment_item where type = 'Smoke machine';`.
+
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-smoke-machine-added](../screenshots/2026-10-09_TC-OOS-005_step1-smoke-machine-added.png) · [step2-coordinator-type-list](../screenshots/2026-10-09_TC-OOS-005_step2-coordinator-type-list.png) · [step3-smoke-machine-after-restart](../screenshots/2026-10-09_TC-OOS-005_step3-smoke-machine-after-restart.png)

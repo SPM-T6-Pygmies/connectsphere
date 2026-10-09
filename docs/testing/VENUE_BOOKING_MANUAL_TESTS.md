@@ -22,8 +22,8 @@ them, tick the boxes below **and** report each in the PR description's
    its event. Every case below starts from that approved request.
 
 The seeded venues: **Main Hall** (Theatre, Banquet, Classroom), **Seminar Room
-2-1** (Classroom, Boardroom), **Studio** (Theatre only), **Rooftop Terrace** (no
-layouts).
+2-1** (Classroom, Boardroom), **Studio** (Theatre only), **Rooftop Terrace**
+(Banquet, Exhibition).
 
 ## Cases
 
@@ -96,11 +96,12 @@ right-hand card.
 - [x] Change **Boardroom** to **Classroom** and save. The row shows
       **Classroom**, the capacity line is re-checked against Classroom, and a
       confirmation repeats it.
-- [x] A venue with only one layout (Studio) or none (Rooftop Terrace) shows no
-      picker on its row.
+- [x] A venue with only one layout (Studio) shows no picker on its row.
 - [x] `select * from audit_record where entity_type = 'booking' order by
       occurred_at desc limit 1` shows `field_changed = 'room_layout'` with the
       old and new layout names.
+
+**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-picker-and-disabled-button](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step1-picker-and-disabled-button.png) · [step2-changed-to-classroom](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step2-changed-to-classroom.png) · [step3-studio-has-no-picker](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step3-studio-has-no-picker.png)
 
 ### TC-VENUE-BOOK-009 A layout can no longer change once Venue Staff answer (SPM-104)
 

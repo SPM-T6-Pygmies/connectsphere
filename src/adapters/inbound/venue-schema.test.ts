@@ -9,7 +9,7 @@ import {
 
 const valid = {
   location: " Marina Bay Hall ",
-  facilities: "Projector",
+  facilities: "Wi-Fi",
   accessibility: "Step-free",
   slots: ["AM", "PM"],
   capacity: "300",
@@ -30,7 +30,7 @@ describe("createVenueSchema (SPM-146)", () => {
   it("parses a filled-in form: trimmed text, slots as given, numeric capacities", () => {
     expect(createVenueSchema.parse(valid)).toEqual({
       location: "Marina Bay Hall",
-      facilities: "Projector",
+      facilities: "Wi-Fi",
       accessibility: "Step-free",
       slots: ["AM", "PM"],
       capacity: 300,

@@ -20,10 +20,12 @@ automatically — not on `supabase db reset`, not in CI.
 
 ## seed-venues
 
-Four venues and four room layouts for the coordinator's venue booking request
-page (SPM-46), until the venue catalogue (SPM-42) lets Venue Staff add their
-own. The venues cover every layout case the form tells apart: several layouts,
-one layout, and none on record. Safe to re-run.
+Four venues and the five room layouts for the coordinator's venue booking
+request page (SPM-46), until the venue catalogue (SPM-42) lets Venue Staff add
+their own. Facilities, accessibility and layouts follow the Connectsphere Data
+Single Source of Truth. The venues cover the layout cases the form tells apart:
+several layouts to choose from, and exactly one. Safe to re-run: it inserts what
+is missing and does not change a venue that already exists.
 
 ```bash
 supabase db query --file scripts/seed-venues/seed.sql --local
@@ -82,7 +84,10 @@ supabase db query --file scripts/seed-coordinator-view/seed.sql --linked
 ## seed-equipment
 
 An equipment catalogue and one event with requirements, for the coordinator's
-event page (SPM-41). The event is Founders' Gala Dinner — seed-coordinator-view
+event page (SPM-41). The catalogue is the six types and owned counts of the
+Connectsphere Data Single Source of Truth: Projector 10, Wireless microphone 30,
+PA speaker 5, Presentation laptop 8, Livestream kit 2 and Crowd barrier 40. The
+event is Founders' Gala Dinner — seed-coordinator-view
 seeds its request as Approved but opens no event for it, so this does, the way
 approving it in the app would. It has one line Technical Support have already
 reserved against (Projector) and one they have not (Wireless microphone), so
@@ -111,10 +116,12 @@ duplicated across all three files.
 Technical Support's three equipment lists (SPM-273): nine events across both
 test coordinators, with lines that are new, changed after they were reserved,
 or have their removal requested (Needs review), events whose lines are all
-reserved (Reviewed), and Completed or Cancelled ones (Archive). Its own four
-catalogue types, so seed-equipment's counts are untouched.
+reserved (Reviewed), and Completed or Cancelled ones (Archive). Its catalogue is
+four of the six equipment types of the Connectsphere Data Single Source of Truth
+(Projector, Wireless microphone, PA speaker, Livestream kit), with the same counts
+seed-equipment gives them, so either seed can be loaded first.
 
-Tech Summit Keynote (15 Nov) shows AC4's count: 10 Laser projectors owned,
+Tech Summit Keynote (15 Nov) shows AC4's count: 10 Projectors owned,
 less 3, 2 and 1 held by events on 14, 15 and 16 Nov, leaves 4. The 5 held on
 17 Nov and the 4 a Cancelled event holds on 15 Nov do not count. Partner
 Roadshow has no date, so its line shows no number.
@@ -123,7 +130,7 @@ Roadshow has no date, so its line shows no number.
 | -------------- | -------------------------------------------------------------------- |
 | `seed.sql`     | Inserts the catalogue, the events and their lines. Safe to re-run.   |
 | `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
-| `teardown.sql` | Deletes the events (their lines go with them) and the unused catalogue. |
+| `teardown.sql` | Deletes the events (their lines go with them). Leaves the catalogue.   |
 
 Needs only the test accounts from `supabase db reset`:
 
@@ -163,3 +170,42 @@ supabase db query --file scripts/seed-venue-unavailability/verify.sql --local
 
 The same gotchas apply as above, and the block list is duplicated across the
 seed, verify and teardown files.
+
+## apply-ssot
+
+Brings an existing database to the Connectsphere Data Single Source of Truth
+(SPM-277): the facilities, accessibility, capacity and layouts of the six venues,
+and the owned counts of the six equipment types. The seeds only insert what is
+missing, so re-running them leaves old rows wrong; this corrects the rows already
+there, on a local or a remote database.
+
+| File         | What it does                                                                                       |
+| ------------ | -------------------------------------------------------------------------------------------------- |
+| `verify.sql` | Read-only. One row per check — every row should read `ok = true` once `apply.sql` has run.         |
+| `apply.sql`  | Corrects the venues and equipment. Safe to re-run: it updates a row only when it differs.          |
+
+```bash
+supabase db query --file scripts/apply-ssot/verify.sql --local   # what differs
+supabase db query --file scripts/apply-ssot/apply.sql --local
+supabase db query --file scripts/apply-ssot/verify.sql --local   # every row ok
+```
+
+What it changes: the facilities, accessibility and capacity of the six venues
+(matched by exact location); their layouts and seats (inserting a missing layout,
+updating seats); the owned count of the six equipment types; and it deletes
+Laser projector, Handheld microphone, Stage monitor and Lectern **only when no
+reservation line uses them**. Nothing else.
+
+What it leaves alone: a venue that is not there (it never creates one), a layout
+a venue has beyond the SSOT, a location or equipment type that appears twice, a
+count that would drop below the units out of service, and an extra equipment type
+a reservation line still uses. `supabase db query` does not print the notices
+the script raises, so `verify.sql` is the report: each of these shows as a row
+that is not `ok`, and "extra equipment types" also lists any type a manual test
+added. A person decides about those. The exit code is 0 even when the SQL fails.
+
+To apply it to the remote project, run
+`verify.sql`, then `apply.sql`, then `verify.sql` again, with `--linked` in place
+of `--local`; do that before deploying the facilities change, because a venue
+that still stores `Projector` or `PA system` cannot be saved from the app until
+it is corrected.
