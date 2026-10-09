@@ -168,3 +168,42 @@ supabase db query --file scripts/seed-venue-unavailability/verify.sql --local
 
 The same gotchas apply as above, and the block list is duplicated across the
 seed, verify and teardown files.
+
+## apply-ssot
+
+Brings an existing database to the Connectsphere Data Single Source of Truth
+(SPM-277): the facilities, accessibility, capacity and layouts of the six venues,
+and the owned counts of the six equipment types. The seeds only insert what is
+missing, so re-running them leaves old rows wrong; this corrects the rows already
+there, on a local or a remote database.
+
+| File         | What it does                                                                                       |
+| ------------ | -------------------------------------------------------------------------------------------------- |
+| `verify.sql` | Read-only. One row per check — every row should read `ok = true` once `apply.sql` has run.         |
+| `apply.sql`  | Corrects the venues and equipment. Safe to re-run: it updates a row only when it differs.          |
+
+```bash
+supabase db query --file scripts/apply-ssot/verify.sql --local   # what differs
+supabase db query --file scripts/apply-ssot/apply.sql --local
+supabase db query --file scripts/apply-ssot/verify.sql --local   # every row ok
+```
+
+What it changes: the facilities, accessibility and capacity of the six venues
+(matched by exact location); their layouts and seats (inserting a missing layout,
+updating seats); the owned count of the six equipment types; and it deletes
+Laser projector, Handheld microphone, Stage monitor and Lectern **only when no
+reservation line uses them**. Nothing else.
+
+What it leaves alone: a venue that is not there (it never creates one), a layout
+a venue has beyond the SSOT, a location or equipment type that appears twice, a
+count that would drop below the units out of service, and an extra equipment type
+a reservation line still uses. `supabase db query` does not print the notices
+the script raises, so `verify.sql` is the report: each of these shows as a row
+that is not `ok`, and "extra equipment types" also lists any type a manual test
+added. A person decides about those. The exit code is 0 even when the SQL fails.
+
+To apply it to the remote project, run
+`verify.sql`, then `apply.sql`, then `verify.sql` again, with `--linked` in place
+of `--local`; do that before deploying the facilities change, because a venue
+that still stores `Projector` or `PA system` cannot be saved from the app until
+it is corrected.
