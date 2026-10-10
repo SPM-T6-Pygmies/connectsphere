@@ -45,10 +45,12 @@ cases only use the four above.
 
 ### TC-VENUE-BOOK-001 Reach the page from an approved event
 
-- [ ] On the approved request, the **Venue** card shows **Request a venue**.
-- [ ] In *My events*, the event's row has a **Request a venue** link.
-- [ ] Both open the same page, titled *Request a venue*, with the event's
+- [x] On the approved request, the **Venue** card shows **Request a venue**.
+- [x] In *My events*, the event's row has a **Request a venue** link.
+- [x] Both open the same page, titled *Request a venue*, with the event's
       preferred date, time, attendance and venue requirements on the right.
+
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-approved-request-venue-card](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step1-approved-request-venue-card.png) · [step3-request-a-venue-page](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step3-request-a-venue-page.png)
 
 ### TC-VENUE-BOOK-002 Submit a request with a chosen layout
 
@@ -61,7 +63,7 @@ cases only use the four above.
       *Booking requests for this event* as **Requested**, with Banquet and
       the three slots.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step2-request-sent](../screenshots/2026-10-09_TC-VENUE-BOOK-002_step2-request-sent.png)
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step2-form-filled](../screenshots/2026-10-10_TC-VENUE-BOOK-002_step2-form-filled.png) · [step3-request-listed](../screenshots/2026-10-10_TC-VENUE-BOOK-002_step3-request-listed.png)
 
 ### TC-VENUE-BOOK-003 A single-layout venue takes its layout
 
@@ -78,13 +80,15 @@ cases only use the four above.
 
 ### TC-VENUE-BOOK-005 A confirmed slot is blocked outright
 
-- [ ] Mark the Main Hall request from TC-VENUE-BOOK-002 as confirmed by hand
+- [x] Mark the Main Hall request from TC-VENUE-BOOK-002 as confirmed by hand
       (`update booking set status = 'Confirmed', decided_by_user_account_id =
       requested_by_user_account_id where ...`), since approving is SPM-22.
-- [ ] Request Main Hall again for one of the same slots. The page refuses it,
+- [x] Request Main Hall again for one of the same slots. The page refuses it,
       naming the clashing date and slot, and keeps the choices on the form.
-- [ ] Request Main Hall for the slot next to it instead. It is accepted
+- [x] Request Main Hall for the slot next to it instead. It is accepted
       (buffer slots are a known gap, #123).
+
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step2-confirmed-slot-refused](../screenshots/2026-10-10_TC-VENUE-BOOK-005_step2-confirmed-slot-refused.png) · [step3-adjacent-slot-accepted](../screenshots/2026-10-10_TC-VENUE-BOOK-005_step3-adjacent-slot-accepted.png)
 
 ### TC-VENUE-BOOK-006 Another coordinator cannot reach the page
 
@@ -93,7 +97,7 @@ cases only use the four above.
       the access-denied screen naming the Event Coordinator, with a 403
       (SPM-16), and none of the event's details.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-denied](../screenshots/2026-10-09_TC-VENUE-BOOK-006_step1-denied.png)
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-denied-venue](../screenshots/2026-10-10_TC-VENUE-BOOK-006_step1-denied-venue.png) · [step1-denied-lead](../screenshots/2026-10-10_TC-VENUE-BOOK-006_step1-denied-lead.png)
 
 ### TC-VENUE-BOOK-007 The page checks the event against the chosen layout (SPM-104)
 
@@ -148,35 +152,43 @@ PM expiring in thirty days. Holds have no UI until SPM-218.
 supabase db query --file scripts/seed-booking-holds/seed.sql --local
 ```
 
-- [ ] Request **Main Hall**, any layout, on **2026-12-01 AM**. It is accepted
+- [x] Request **Main Hall**, any layout, on **2026-12-01 AM**. It is accepted
       and appears as **Requested**. The expired hold there holds nothing.
+
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-expired-hold-accepted](../screenshots/2026-10-10_TC-VENUE-BOOK-019_step1-expired-hold-accepted.png)
 
 ### TC-VENUE-BOOK-020 A hold that has not expired blocks, naming the slot (SPM-46 AC4)
 
-- [ ] With the holds from TC-VENUE-BOOK-019, request **Main Hall** on
+- [x] With the holds from TC-VENUE-BOOK-019, request **Main Hall** on
       **2026-12-01 PM**. The page refuses it with *The venue is already booked
       for 2026-12-01 PM. Choose other slots or another venue.* and keeps the
       choices on the form.
 
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-live-hold-refused](../screenshots/2026-10-10_TC-VENUE-BOOK-020_step1-live-hold-refused.png)
+
 ### TC-VENUE-BOOK-021 One event may book several venues for the same slot (SPM-46 AC5)
 
-- [ ] For the same event, request **Studio** on **2026-12-02 AM**, then
+- [x] For the same event, request **Studio** on **2026-12-02 AM**, then
       **Seminar Room 2-1** on **2026-12-02 AM**. Both are accepted and listed
       as **Requested** under the one event.
-- [ ] Mark the Studio request `Confirmed` by hand (as in TC-VENUE-BOOK-005),
+- [x] Mark the Studio request `Confirmed` by hand (as in TC-VENUE-BOOK-005),
       then request **Rooftop Terrace** on **2026-12-02 AM** for the same event.
       It is accepted: a live booking at another venue does not clash.
 
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step2-three-venues-same-slot](../screenshots/2026-10-10_TC-VENUE-BOOK-021_step2-three-venues-same-slot.png)
+
 ### TC-VENUE-BOOK-022 Venue Staff see the event's details beside the request (SPM-46 AC3)
 
-- [ ] Request **Studio** on the event's preferred date, **AM**. Sign in as
+- [x] Request **Studio** on the event's preferred date, **AM**. Sign in as
       `venue@test.com` and open that request from *Requests*.
-- [ ] The event's card names the event and shows its **Date**, **Event
+- [x] The event's card names the event and shows its **Date**, **Event
       slots**, **Expected attendance** and **Venue requirements**, as on the
       coordinator's *Request a venue* page.
-- [ ] Beside it, the page shows the requested venue (Studio), its layout
+- [x] Beside it, the page shows the requested venue (Studio), its layout
       (**Theatre**, highlighted under *Supported layouts*) and the requested
       date and slot.
+
+**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step2-event-beside-request](../screenshots/2026-10-10_TC-VENUE-BOOK-022_step2-event-beside-request.png)
 
 ## SPM-45: is the venue suitable for the event?
 
