@@ -16,6 +16,7 @@ export interface BookedSlotRow {
   slot_date: string;
   slot: string;
   status: string;
+  hold_expires_at: string | null;
 }
 
 /** A row of `coordinator_event_bookings()`. */
@@ -62,7 +63,12 @@ export function toDate(raw: string): string {
 }
 
 export function toOccupiedSlot(row: BookedSlotRow): OccupiedSlot {
-  return { date: toDate(row.slot_date), slot: toSlot(row.slot), status: toStatus(row.status) };
+  return {
+    date: toDate(row.slot_date),
+    slot: toSlot(row.slot),
+    status: toStatus(row.status),
+    holdExpiresAt: row.hold_expires_at === null ? null : new Date(row.hold_expires_at),
+  };
 }
 
 export function toEventBookingSummary(row: EventBookingRow): EventBookingSummary {

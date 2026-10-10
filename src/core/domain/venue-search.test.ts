@@ -139,7 +139,7 @@ describe("matchesAttributes (SPM-44)", () => {
 });
 
 describe("isOpenFor (SPM-44)", () => {
-  // The venue offers AM (07:00-12:00) and PM (12:00-18:00), not Night.
+  // The venue offers AM (07:00-12:00) and PM (13:00-18:00), not Night.
   it("is open in every slot the venue offers", () => {
     expect(openFor(["AM", "PM"])).toBe(true);
   });
@@ -191,8 +191,8 @@ describe("isOpenFor (SPM-44)", () => {
       to: new Date("2026-11-02T10:00:00Z"),
     });
     expect(windowInstants({ date: "2026-11-02", slots: ["Night"] }, SG)).toEqual({
-      from: new Date("2026-11-02T10:00:00Z"),
-      to: new Date("2026-11-02T14:00:00Z"),
+      from: new Date("2026-11-02T11:00:00Z"),
+      to: new Date("2026-11-02T16:00:00Z"),
     });
   });
 

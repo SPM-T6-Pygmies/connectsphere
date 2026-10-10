@@ -336,7 +336,7 @@ create table slot (
   constraint slot_code_chk check (slot_code in ('AM', 'PM', 'Night')),
   constraint slot_time_order_chk check (end_time > start_time)
 );
--- Seeded: AM 07:00-12:00, PM 12:00-18:00, Night 18:00-22:00.
+-- Seeded: AM 07:00-12:00, PM 13:00-18:00, Night 19:00-24:00 (2026-10-15).
 
 create table venue_slot (
   venue_id  bigint not null references venue (venue_id) on delete cascade,

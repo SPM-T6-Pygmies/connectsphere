@@ -13,7 +13,7 @@ describe("slotTimes", () => {
         { date: "2026-11-04", slot: "AM" },
         { date: "2026-11-04", slot: "Night" },
       ]),
-    ).toBe("AM (7:00 am – 12:00 pm), Night (6:00 pm – 10:00 pm)");
+    ).toBe("AM (7:00 am – 12:00 pm), Night (7:00 pm – 12:00 am)");
   });
 
   it("names the day before each slot when the event runs over more than one day", () => {
@@ -22,6 +22,6 @@ describe("slotTimes", () => {
         { date: "2026-11-04", slot: "PM" },
         { date: "2026-11-05", slot: "AM" },
       ]),
-    ).toBe("4 Nov PM (12:00 pm – 6:00 pm), 5 Nov AM (7:00 am – 12:00 pm)");
+    ).toBe("4 Nov PM (1:00 pm – 6:00 pm), 5 Nov AM (7:00 am – 12:00 pm)");
   });
 });

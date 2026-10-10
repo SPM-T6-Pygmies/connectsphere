@@ -534,7 +534,10 @@ export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOp
 
 /** SPM-46 / SPM-104: the assigned coordinator submits a venue booking request. */
 export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
-  return new SubmitVenueBookingRequestUseCase(await venueBookingAdapters());
+  return new SubmitVenueBookingRequestUseCase({
+    ...(await venueBookingAdapters()),
+    clock: systemClock,
+  });
 }
 
 /** SPM-104: the assigned coordinator moves a pending booking request to another layout. */
@@ -609,6 +612,7 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
     reviews: new SupabaseBookingReviewRepository(client),
     bookings: new SupabaseBookingRepository(client),
     safetyCheck: safetyCheckAnnouncer(),
+    clock: systemClock,
   });
 }
 
