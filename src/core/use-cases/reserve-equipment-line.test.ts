@@ -153,3 +153,17 @@ describe("ReserveEquipmentLineUseCase (SPM-274)", () => {
     expect((await view("A"))?.lines[0]?.attention).toBeNull();
   });
 });
+
+describe("ReserveEquipmentLineUseCase (SPM-275)", () => {
+  it("AC1: reserves for an event between two others that are never out on the same day", async () => {
+    const { reserve } = setup([
+      event("day before", "2026-11-14", [projector(6)]),
+      event("day after", "2026-11-16", [projector(6)]),
+      event("B", "2026-11-15", [projector(4)]),
+    ]);
+    await reserve("day before");
+    await reserve("day after");
+
+    expect(await reserve("B")).toMatchObject({ state: "Reserved", quantityReserved: 4 });
+  });
+});
