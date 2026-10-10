@@ -9,7 +9,9 @@ reserved yet), **changed** after it was reserved, or has its **removal requested
 Opening an event shows all its lines, each marked, with how many units are free on
 the event's date. **Reviewed** and **Archive** list the other events with equipment.
 
-Units free on a date: the number owned, less what other active events hold.
+Units free on a date: the number owned, less what other active events hold. A line
+that already has units reserved shows what is left after its own reservation — how
+many more could be reserved for it.
 Equipment is collected the day before an event and is free again the day after it
 is returned, the return day being the event's date
 ([#5](https://github.com/SinYang13/IS212-2026/discussions/5),
@@ -33,7 +35,7 @@ These cases check the same rules end to end, through the real login, the
 `technical_support_equipment_events` and `technical_support_event_equipment`
 functions, and the pages.
 
-These cases are registered as `TC-EQUIPREVIEW-001`, `003`, `004`, `006` and `007` in
+These cases are registered as `TC-EQUIPREVIEW-001`, `004`, `006`, `007` and `008` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run them,
 tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
@@ -52,6 +54,14 @@ are replaced here by:
 
 The replacements check the same SPM-273 behaviour, with the **Decision** column SPM-274
 added.
+
+TC-EQUIPREVIEW-003 is retired too: AC4 was revised so a line that already has units
+reserved shows what is left after its own reservation, which changes two of its expected
+figures. It is replaced by TC-EQUIPREVIEW-008.
+
+| Retired | Replaced by |
+| --- | --- |
+| TC-EQUIPREVIEW-003 | TC-EQUIPREVIEW-008 |
 
 ---
 
@@ -120,30 +130,6 @@ events belong to both test coordinators.
 
 ---
 
-### TC-EQUIPREVIEW-003: Each line shows the units free on the event's date (AC4)
-
-**Preconditions:** As TC-EQUIPREVIEW-001.
-
-**Steps:**
-1. Open *Tech Summit Keynote* and read the **Available** column.
-2. Go back to **Needs review**, open *Partner Roadshow* and read **Available**.
-
-**Expected Result:**
-- Step 1:
-  - *PA speaker* **5**: 5 owned; no other event holds one.
-  - *Projector* **4**: 10 owned, less 3 (Product Launch Rehearsal, 14 Nov), 2
-    (Board Strategy Day, 15 Nov) and 1 (Charity Gala Setup, 16 Nov). The 5 held on
-    17 Nov and the 4 held by the Cancelled Autumn Workshop on 15 Nov do not count.
-  - *Wireless microphone* **28**: 30 owned, less Board Strategy Day's 2. Spring
-    Conference's 2 (September, Completed) do not count.
-- Step 2: the line says *Event has no date yet* instead of a number.
-
-**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
-
-**Screenshots:** [step1-tech-summit-available](../screenshots/2026-10-09_TC-EQUIPREVIEW-003_step1-tech-summit-available.png) · [step2-partner-roadshow-no-date](../screenshots/2026-10-09_TC-EQUIPREVIEW-003_step2-partner-roadshow-no-date.png)
-
----
-
 ### TC-EQUIPREVIEW-004: An empty list says nothing needs attention (AC5)
 
 **Preconditions:** A freshly reset database with no equipment lines (before the seed,
@@ -208,5 +194,29 @@ or after `teardown.sql`).
   in the Decision column; the crumb and the open sidebar list are **Reviewed**.
 - No screen shows a placeholder event, reservation id or equipment item from the
   earlier wireframe.
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-EQUIPREVIEW-008: Each line shows how many more units could be reserved for it (AC4)
+
+**Preconditions:** As TC-EQUIPREVIEW-001.
+
+**Steps:**
+1. Open *Tech Summit Keynote* and read the **Available** column.
+2. Go back to **Needs review**, open *Partner Roadshow* and read **Available**.
+
+**Expected Result:**
+- Step 1:
+  - *PA speaker* **3**: 5 owned, less the 2 this line already holds; no other event
+    holds one.
+  - *Projector* **4**: 10 owned, less 3 (Product Launch Rehearsal, 14 Nov), 2
+    (Board Strategy Day, 15 Nov) and 1 (Charity Gala Setup, 16 Nov). The 5 held on
+    17 Nov and the 4 held by the Cancelled Autumn Workshop on 15 Nov do not count.
+    The line holds none itself.
+  - *Wireless microphone* **24**: 30 owned, less Board Strategy Day's 2 and the 4 this
+    line already holds. Spring Conference's 2 (September, Completed) do not count.
+- Step 2: the line says *Event has no date yet* instead of a number.
 
 **Status:** [ ] Pass [ ] Fail
