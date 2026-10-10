@@ -37,6 +37,11 @@ export function slotStartsAt({ date, slot }: SlotOnDate): Date {
   return new Date(`${date}T${SLOT_HOURS[slot].start}:00+08:00`);
 }
 
+/** The instant `slot` ends on its date, on the same +08:00 footing as `slotStartsAt`. */
+export function slotEndsAt({ date, slot }: SlotOnDate): Date {
+  return new Date(`${date}T${SLOT_HOURS[slot].end}:00+08:00`);
+}
+
 export function isBookingSlot(raw: string): raw is BookingSlot {
   return (BOOKING_SLOTS as readonly string[]).includes(raw);
 }
