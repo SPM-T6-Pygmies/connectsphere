@@ -15,6 +15,7 @@ import {
   reserveEquipmentLine,
   reservedAs,
   unitsAvailable,
+  unitsAvailableForLine,
   type EquipmentDecisionEvent,
   type EquipmentDecisionLine,
   type EquipmentHold,
@@ -183,6 +184,26 @@ describe("unitsAvailable (SPM-273)", () => {
 
   it("AC4: gives no number for an event with no date yet", () => {
     expect(unitsAvailable(10, 0, null, [hold()])).toBeNull();
+  });
+});
+
+describe("unitsAvailableForLine (SPM-273)", () => {
+  const holds: EquipmentHold[] = [{ eventStatus: "Planning", eventDate: "2026-11-14", quantityReserved: 3 }];
+
+  it("AC4: takes what the line already holds off what is free for the event", () => {
+    expect(unitsAvailableForLine(line({ quantityReserved: 2 }), 10, 0, "2026-11-15", holds)).toBe(5);
+  });
+
+  it("AC4: a changed line counts what it still holds, not its new quantity", () => {
+    expect(unitsAvailableForLine(changedLine(), 10, 0, "2026-11-15", holds)).toBe(5);
+  });
+
+  it("AC4: a line with nothing reserved shows everything free for the event", () => {
+    expect(unitsAvailableForLine(newLine(), 10, 0, "2026-11-15", holds)).toBe(7);
+  });
+
+  it("AC4: gives no number for an event with no date yet", () => {
+    expect(unitsAvailableForLine(line({ quantityReserved: 2 }), 10, 0, null, holds)).toBeNull();
   });
 });
 

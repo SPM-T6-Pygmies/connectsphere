@@ -5,7 +5,7 @@ import {
   awaitsDecision,
   equipmentQueueOf,
   reservedAs,
-  unitsAvailable,
+  unitsAvailableForLine,
   type AttentionReason,
   type EquipmentQueue,
 } from "../domain/equipment-review";
@@ -30,7 +30,11 @@ export interface TechnicalSupportEquipmentLine {
   readonly attention: AttentionReason | null;
   /** What the line was when it was reserved, while that differs from now. */
   readonly reservedAs: EquipmentReviewBaseline | null;
-  /** Units free on the event's date; null while the event has no date. */
+  /**
+   * How many more units could be reserved for the line on the event's date:
+   * what is free for the event, less what the line already holds. Null while
+   * the event has no date.
+   */
   readonly available: number | null;
   readonly state: EquipmentLineState;
   /** SPM-274: whether it can be reserved or marked unfulfilled now -- new, or changed after being marked unfulfilled. */
@@ -89,7 +93,7 @@ export class ViewEventEquipmentForTechnicalSupportUseCase {
         technicalRequirements: line.technicalRequirements,
         attention: attentionReason(line),
         reservedAs: reservedAs(line),
-        available: unitsAvailable(owned, outOfService, event.preferredDate, otherHolds),
+        available: unitsAvailableForLine(line, owned, outOfService, event.preferredDate, otherHolds),
         state: line.state,
         canDecide: awaitsDecision(event.status, line),
         decision: line.decision === null ? null : { byName: decidedByName, comment: line.decision.comment },

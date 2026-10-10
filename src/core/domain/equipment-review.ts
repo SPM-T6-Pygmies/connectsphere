@@ -111,6 +111,23 @@ export function unitsAvailable(
   return owned - outOfService - held;
 }
 
+/**
+ * AC4: the figure a line shows -- how many more units of its type could be
+ * reserved for it: what is free for the event (`unitsAvailable`), less what
+ * the line already holds. The same as `unitsAvailable` for a line with
+ * nothing reserved. Null when the event has no date yet.
+ */
+export function unitsAvailableForLine(
+  line: EquipmentRequirement,
+  owned: number,
+  outOfService: number,
+  eventDate: string | null,
+  otherHolds: readonly EquipmentHold[],
+): number | null {
+  const available = unitsAvailable(owned, outOfService, eventDate, otherHolds);
+  return available === null ? null : available - line.quantityReserved;
+}
+
 /** SPM-274: an event's date and status, as far as deciding on its lines needs. */
 export interface EquipmentDecisionEvent {
   readonly status: CoordinatorEventStatus;

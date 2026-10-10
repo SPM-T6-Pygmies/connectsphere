@@ -86,7 +86,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
         technicalRequirements: "HDMI input",
         attention: null,
         reservedAs: null,
-        available: 10,
+        available: 8,
         state: "Reserved",
         canDecide: false,
         decision: null,
@@ -146,6 +146,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
     const result = await view([
       event([
         stock({
+          line: line({ quantityReserved: 0, state: "Requested" }),
           owned: 10,
           otherHolds: [
             { eventStatus: "Planning", eventDate: "2026-11-14", quantityReserved: 3 },
@@ -166,6 +167,20 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
 
     expect(result?.lines[0]?.available).toBeNull();
   });
+
+  it("AC4: a line that holds units shows how many more could be reserved for it", async () => {
+    const result = await view([
+      event([
+        stock({
+          line: line({ quantityRequested: 2, quantityReserved: 2 }),
+          owned: 10,
+          otherHolds: [{ eventStatus: "Planning", eventDate: "2026-11-14", quantityReserved: 3 }],
+        }),
+      ]),
+    ]);
+
+    expect(result?.lines[0]?.available).toBe(5);
+  });
 });
 
 describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-17)", () => {
@@ -173,6 +188,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-17)", () => {
     const result = await view([
       event([
         stock({
+          line: line({ quantityReserved: 0, state: "Requested" }),
           owned: 10,
           outOfService: 2,
           otherHolds: [{ eventStatus: "Planning", eventDate: "2026-11-14", quantityReserved: 3 }],
