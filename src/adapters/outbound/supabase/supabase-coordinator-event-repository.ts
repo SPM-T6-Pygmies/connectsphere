@@ -1,6 +1,7 @@
 import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
 import {
   CoordinatorEventNotFoundError,
+  EventDetailsLockedError,
   EventFacilitiesLockedError,
   EventNotConfirmableError,
   EventNotFoundError,
@@ -11,6 +12,7 @@ import {
   blockingArrangements,
   type ArrangementType,
 } from "@/core/domain/event-readiness";
+import type { OrdinaryEventChanges } from "@/core/domain/event-details-edit";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   AssignedEventSummary,
@@ -26,6 +28,7 @@ import {
   toCoordinatorEvent,
   toCoordinatorEventDetails,
   toKey,
+  toOrdinaryChangesPayload,
   type CoordinatorEventDetailsRow,
   type CoordinatorEventRecordRow,
   type CoordinatorEventRow,
@@ -44,6 +47,10 @@ const NOT_READY = "CS022";
 /** SQLSTATEs `coordinator_set_event_required_facilities` comes back with. See its migration. */
 const FACILITIES_EVENT_NOT_FOUND = "CS029";
 const FACILITIES_EVENT_LOCKED = "CS043";
+
+/** SQLSTATEs `coordinator_update_event_details` comes back with. See its migration. */
+const DETAILS_EVENT_NOT_FOUND = "CS064";
+const DETAILS_EVENT_LOCKED = "CS065";
 
 /**
  * Reached through `coordinator_events`, not the table -- the table's own
@@ -175,6 +182,39 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventFacilitiesLockedError(error.details || "closed");
       }
       throw new Error(`Failed to save the event's facilities: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * SPM-49: goes through `coordinator_update_event_details`, which re-checks
+   * the assignment and status under a row lock, accepts only the ordinary
+   * columns, and audits each change in the same transaction.
+   */
+  async updateOrdinaryDetails(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    changes: OrdinaryEventChanges,
+  ): Promise<void> {
+    const eventKey = toKey(eventId);
+    const coordinatorKey = toKey(coordinatorId);
+    if (eventKey === null || coordinatorKey === null) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+
+    const { error } = await this.client.rpc("coordinator_update_event_details", {
+      p_coordinator_user_account_id: coordinatorKey,
+      p_event_id: eventKey,
+      p_changes: toOrdinaryChangesPayload(changes),
+    });
+
+    if (error) {
+      if (error.code === DETAILS_EVENT_NOT_FOUND) {
+        throw new CoordinatorEventNotFoundError(eventId);
+      }
+      if (error.code === DETAILS_EVENT_LOCKED) {
+        throw new EventDetailsLockedError(error.details || "closed");
+      }
+      throw new Error(`Failed to save the event's details: ${error.message}`, { cause: error });
     }
   }
 

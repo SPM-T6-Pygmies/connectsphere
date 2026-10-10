@@ -121,6 +121,12 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
         room_layout_preference: "Theatre",
         accessibility_requirements: "Step-free",
         required_facilities: "Wi-Fi, Catering area",
+        description: null,
+        purpose: null,
+        category_type: null,
+        programme_agenda: null,
+        special_arrangements: null,
+        operational_notes: null,
       }),
     ).toEqual({
       id: "5",
@@ -134,6 +140,12 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       roomLayoutPreference: "Theatre",
       accessibilityRequirements: "Step-free",
       requiredFacilities: "Wi-Fi, Catering area",
+      description: null,
+      purpose: null,
+      categoryType: null,
+      programmeAgenda: null,
+      specialArrangements: null,
+      operationalNotes: null,
     });
   });
 
@@ -151,6 +163,12 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       room_layout_preference: null,
       accessibility_requirements: null,
       required_facilities: null,
+      description: null,
+      purpose: null,
+      category_type: null,
+      programme_agenda: null,
+      special_arrangements: null,
+      operational_notes: null,
     });
 
     expect(details.requiredFacilities).toBeNull();
@@ -170,6 +188,12 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       room_layout_preference: null,
       accessibility_requirements: null,
       required_facilities: null,
+      description: null,
+      purpose: null,
+      category_type: null,
+      programme_agenda: null,
+      special_arrangements: null,
+      operational_notes: null,
     });
 
     expect(details.slots).toEqual([]);
