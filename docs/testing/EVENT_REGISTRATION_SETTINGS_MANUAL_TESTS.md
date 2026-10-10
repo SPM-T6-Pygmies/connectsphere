@@ -61,9 +61,10 @@ Attendees have no account; they register by name and email, signed out.
 
 1. Sign in as `coordinator@test.com`, open **Operations Roadmap Conference**
    from `/staff/coordinator` and click **Approve**. This opens its event in
-   `Planning`, with the request's slots.
-2. Find the event's ID, call it `<event>`, and confirm it with registration
-   off and no window:
+   `Planning`. The seeded request has no timeslots, so the event has none.
+2. Find the event's ID, call it `<event>`, confirm it with registration off
+   and no window, and give it a morning slot on its preferred date so the
+   Attendee pages show a time:
    ```sql
    select e.event_id
      from event e
@@ -76,6 +77,9 @@ Attendees have no account; they register by name and email, signed out.
           registration_open_date = null,
           registration_close_date = null
     where event_id = <event>;
+
+   insert into event_slot (event_id, slot_date, slot_code)
+   values (<event>, date '2026-11-25', 'AM');
    ```
 
 ---
@@ -104,14 +108,16 @@ Attendees have no account; they register by name and email, signed out.
 **Expected Result:**
 - Step 2: "Set both the opening and closing dates to enable registration."
   shows under the form; nothing is saved
-- Step 3: "Registration settings saved." appears; the readiness row reads
-  **Done** with "Open <today> to <a week from today>."
+- Step 3: "Registration settings saved." appears, and the toggle and both
+  dates keep their saved values. The seeded event doesn't mark registration
+  as an essential arrangement, so its readiness row stays "Not marked
+  essential for this event."
 - Three audit rows (`registration_enabled_flag` false → true,
   `registration_open_date` and `registration_close_date` empty → the dates),
   each with the coordinator's account id and a timestamp
 - `/events` lists the event; registering succeeds and shows the confirmation
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -125,12 +131,12 @@ Attendees have no account; they register by name and email, signed out.
 2. In the private window, reload `/events`, then open `/events/<event>`.
 
 **Expected Result:**
-- "Registration settings saved." appears; the dates are still filled in; the
-  readiness row reads "Registration is not enabled for this event."
+- "Registration settings saved." appears; the toggle is off and the dates
+  are still filled in
 - `/events` no longer lists the event
 - `/events/<event>` shows the not-found page, with no registration form
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -151,7 +157,7 @@ update event set status = 'Completed' where event_id = <event>;
 
 Afterwards, put the status back to `Confirmed`.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -166,4 +172,4 @@ Afterwards, put the status back to `Confirmed`.
 - The access-denied page shows; nothing of the event or its registration
   settings is shown
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
