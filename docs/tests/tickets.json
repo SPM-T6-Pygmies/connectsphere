@@ -767,6 +767,11 @@
       "parent": null,
       "status": "Todo"
     },
+    "SPM-275": {
+      "title": "Hold equipment until return",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-285": {
       "title": "Split the coordinator event page into tabs",
       "parent": null,
