@@ -82,4 +82,12 @@ export interface CoordinatorEventRepository {
 
   /** SPM-50: persists the event's confirmation. `confirmedBy` is who confirmed it, for the audit trail. */
   confirmEvent(event: CoordinatorEvent, confirmedBy: UserAccountId): Promise<void>;
+
+  /**
+   * SPM-51: marks the event Completed and, when `notes` is not null, stores them as its
+   * operational notes (null keeps the ones already there). The caller has already decided
+   * the event can be completed; this re-checks the assignment, status and end, and audits
+   * the completion and any notes change against the coordinator.
+   */
+  completeEvent(coordinatorId: UserAccountId, eventId: string, notes: string | null): Promise<void>;
 }

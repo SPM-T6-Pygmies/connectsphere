@@ -3,9 +3,11 @@ import {
   CoordinatorEventNotFoundError,
   EventDetailsLockedError,
   EventFacilitiesLockedError,
+  EventNotCompletableError,
   EventNotConfirmableError,
   EventNotFoundError,
   EventNotReadyForConfirmationError,
+  EventNotYetEndedError,
 } from "@/core/domain/errors";
 import {
   assessReadiness,
@@ -51,6 +53,11 @@ const FACILITIES_EVENT_LOCKED = "CS043";
 /** SQLSTATEs `coordinator_update_event_details` comes back with. See its migration. */
 const DETAILS_EVENT_NOT_FOUND = "CS064";
 const DETAILS_EVENT_LOCKED = "CS065";
+
+/** SQLSTATEs `coordinator_complete_event` comes back with. See its migration. */
+const COMPLETE_EVENT_NOT_FOUND = "CS070";
+const COMPLETE_NOT_COMPLETABLE = "CS071";
+const COMPLETE_NOT_ENDED = "CS072";
 
 /**
  * Reached through `coordinator_events`, not the table -- the table's own
@@ -250,6 +257,38 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event, confirmedBy));
       }
       throw new Error(`Failed to confirm event: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * SPM-51: goes through `coordinator_complete_event`, which re-checks the
+   * assignment, status and end under a row lock, writes the notes, and audits
+   * the completion and the notes change in the same transaction.
+   */
+  async completeEvent(coordinatorId: UserAccountId, eventId: string, notes: string | null): Promise<void> {
+    const eventKey = toKey(eventId);
+    const coordinatorKey = toKey(coordinatorId);
+    if (eventKey === null || coordinatorKey === null) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+
+    const { error } = await this.client.rpc("coordinator_complete_event", {
+      p_coordinator_user_account_id: coordinatorKey,
+      p_event_id: eventKey,
+      p_notes: notes,
+    });
+
+    if (error) {
+      if (error.code === COMPLETE_EVENT_NOT_FOUND) {
+        throw new CoordinatorEventNotFoundError(eventId);
+      }
+      if (error.code === COMPLETE_NOT_COMPLETABLE) {
+        throw new EventNotCompletableError(error.details || "unknown");
+      }
+      if (error.code === COMPLETE_NOT_ENDED) {
+        throw new EventNotYetEndedError();
+      }
+      throw new Error(`Failed to complete the event: ${error.message}`, { cause: error });
     }
   }
 
