@@ -8,7 +8,7 @@
 -- 15 Nov and needs 4, so its units are out on 14 and 15 Nov. Other events hold
 -- 3 (14 Nov), 2 (15 Nov) and 1 (16 Nov): 5 are out on 14 Nov (the 14 and
 -- 15 Nov events) and 3 on 15 Nov (the 15 and 16 Nov events), so 5 are
--- available. The 5 held on 17 Nov, and the 4 a Cancelled event holds on
+-- available (counted per day, SPM-275). The 5 held on 17 Nov, and the 4 a Cancelled event holds on
 -- 15 Nov, do not count.
 --
 --   Event                     Date        Status     Coordinator  List

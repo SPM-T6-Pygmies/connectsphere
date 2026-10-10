@@ -99,7 +99,7 @@ function unitsOutOn(day: number, holds: readonly EquipmentHold[]): number {
  * AC4: how many units of a type are free for an event -- the number owned,
  * less those out of service (SPM-17 AC4), less what other events have out on
  * whichever of the event's two days, the day before it and its date, has more
- * out. Null when the event has no date yet, since there is nothing to compare
+ * out (SPM-275 AC1). Null when the event has no date yet, since there is nothing to compare
  * against.
  */
 export function unitsAvailable(

@@ -1,5 +1,5 @@
--- SPM-273 AC4 (reopened): the Reserve check counts free units per day, as
--- the availability figure now does (unitsAvailable).
+-- SPM-275 AC1: the Reserve check counts free units per day, as the
+-- availability figure now does (unitsAvailable).
 --
 -- An event's units are out on the day before it, when they are collected,
 -- and on its date, when they come back (#5, #113). technical_support_reserve_
