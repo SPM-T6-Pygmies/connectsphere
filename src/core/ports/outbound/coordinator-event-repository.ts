@@ -1,6 +1,7 @@
 import type { SlotOnDate } from "../../domain/booking";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "../../domain/coordinator-event";
 import type { OrdinaryEventChanges } from "../../domain/event-details-edit";
+import type { RegistrationSettings } from "../../domain/event-registration-settings";
 import type { UserAccountId } from "../../domain/user-account";
 
 /**
@@ -44,6 +45,10 @@ export interface CoordinatorEventDetails {
   readonly programmeAgenda: string | null;
   readonly specialArrangements: string | null;
   readonly operationalNotes: string | null;
+  /** SPM-25: whether Attendees can register, and the window they can do it in (`YYYY-MM-DD`, inclusive). */
+  readonly registrationEnabled: boolean;
+  readonly registrationOpensOn: string | null;
+  readonly registrationClosesOn: string | null;
 }
 
 /** Driven port: events, scoped the way a coordinator is allowed to see them. */
@@ -78,6 +83,17 @@ export interface CoordinatorEventRepository {
     coordinatorId: UserAccountId,
     eventId: string,
     changes: OrdinaryEventChanges,
+  ): Promise<void>;
+
+  /**
+   * SPM-25: stores whether registration is enabled and its window. The caller has already
+   * validated the settings and seen that they change; this re-checks the assignment and
+   * status, and audits each changed setting against the coordinator who made it.
+   */
+  setRegistrationSettings(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    settings: RegistrationSettings,
   ): Promise<void>;
 
   /** SPM-50: persists the event's confirmation. `confirmedBy` is who confirmed it, for the audit trail. */

@@ -4,6 +4,7 @@ import { toDate, toSlot } from "./booking-mapper";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import type { OrdinaryEventChanges, OrdinaryEventField } from "@/core/domain/event-details-edit";
+import type { RegistrationSettings } from "@/core/domain/event-registration-settings";
 import { userAccountId } from "@/core/domain/user-account";
 import type {
   AssignedEventSummary,
@@ -43,6 +44,9 @@ export interface CoordinatorEventDetailsRow extends CoordinatorEventRow {
   programme_agenda: string | null;
   special_arrangements: string | null;
   operational_notes: string | null;
+  registration_enabled_flag: boolean;
+  registration_open_date: string | null;
+  registration_close_date: string | null;
 }
 
 /** Selects every column plus the `event_slots` computed field. */
@@ -114,6 +118,22 @@ export function toCoordinatorEventDetails(row: CoordinatorEventDetailsRow): Coor
     programmeAgenda: row.programme_agenda,
     specialArrangements: row.special_arrangements,
     operationalNotes: row.operational_notes,
+    registrationEnabled: row.registration_enabled_flag,
+    registrationOpensOn: row.registration_open_date,
+    registrationClosesOn: row.registration_close_date,
+  };
+}
+
+/** The settings as `coordinator_set_event_registration` takes them (SPM-25); `date` parameters accept `YYYY-MM-DD`. */
+export function toRegistrationSettingsArgs(settings: RegistrationSettings): {
+  p_enabled: boolean;
+  p_open_date: string | null;
+  p_close_date: string | null;
+} {
+  return {
+    p_enabled: settings.enabled,
+    p_open_date: settings.opensOn,
+    p_close_date: settings.closesOn,
   };
 }
 
