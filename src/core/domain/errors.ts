@@ -977,3 +977,21 @@ export class InvalidEventDetailsError extends DomainError {
     super(reason);
   }
 }
+
+/** SPM-25: a Completed or Cancelled event's registration settings are read-only. */
+export class EventRegistrationLockedError extends DomainError {
+  readonly code = "event_registration_locked";
+
+  constructor(readonly status: string) {
+    super(`A ${status} event's registration settings are read-only.`);
+  }
+}
+
+/** SPM-25: registration settings that break one of their rules. */
+export class InvalidRegistrationSettingsError extends DomainError {
+  readonly code = "invalid_registration_settings";
+
+  constructor(reason: string) {
+    super(reason);
+  }
+}
