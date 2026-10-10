@@ -756,6 +756,11 @@
       "title": "See equipment needing attention",
       "parent": null,
       "status": "Todo"
+    },
+    "SPM-285": {
+      "title": "Split the coordinator event page into tabs",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }
