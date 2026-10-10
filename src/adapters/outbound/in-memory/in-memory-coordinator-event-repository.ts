@@ -3,6 +3,7 @@ import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
 import { CoordinatorEventNotFoundError } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
 import type { OrdinaryEventChanges } from "@/core/domain/event-details-edit";
+import type { RegistrationSettings } from "@/core/domain/event-registration-settings";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type {
   AssignedEventSummary,
@@ -46,10 +47,20 @@ function toDetails(event: SeedCoordinatorEvent): CoordinatorEventDetails {
     programmeAgenda: event.programmeAgenda ?? null,
     specialArrangements: event.specialArrangements ?? null,
     operationalNotes: event.operationalNotes ?? null,
+    registrationEnabled: event.registrationEnabled ?? false,
+    registrationOpensOn: event.registrationOpensOn ?? null,
+    registrationClosesOn: event.registrationClosesOn ?? null,
   };
 }
 
-/** One audited change, as `coordinator_update_event_details` writes it to `audit_record`. */
+/** Each registration setting under the column `coordinator_set_event_registration` audits it as. */
+const REGISTRATION_AUDIT_FIELDS = [
+  ["registration_enabled_flag", (settings: RegistrationSettings) => String(settings.enabled)],
+  ["registration_open_date", (settings: RegistrationSettings) => settings.opensOn],
+  ["registration_close_date", (settings: RegistrationSettings) => settings.closesOn],
+] as const;
+
+/** One audited change, as `coordinator_update_event_details` and `coordinator_set_event_registration` write it to `audit_record`. */
 export interface AuditedEventChange {
   readonly actorUserAccountId: string;
   readonly eventId: string;
@@ -164,7 +175,40 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
     this.rows[index] = { ...this.rows[index], ...changes };
   }
 
-  /** Test-only window on the field changes `updateOrdinaryDetails` and `completeEvent` audited. */
+  /** Stores the settings and, as the database does, audits each changed one against the coordinator. */
+  async setRegistrationSettings(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    settings: RegistrationSettings,
+  ): Promise<void> {
+    const index = this.rows.findIndex(
+      (row) => row.id === eventId && row.assignedCoordinatorUserAccountId === coordinatorId,
+    );
+    if (index === -1) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+    const before = toDetails(this.rows[index]);
+    const current: RegistrationSettings = {
+      enabled: before.registrationEnabled,
+      opensOn: before.registrationOpensOn,
+      closesOn: before.registrationClosesOn,
+    };
+    for (const [field, valueOf] of REGISTRATION_AUDIT_FIELDS) {
+      const oldValue = valueOf(current);
+      const newValue = valueOf(settings);
+      if (oldValue !== newValue) {
+        this.audit.push({ actorUserAccountId: coordinatorId, eventId, field, oldValue, newValue });
+      }
+    }
+    this.rows[index] = {
+      ...this.rows[index],
+      registrationEnabled: settings.enabled,
+      registrationOpensOn: settings.opensOn,
+      registrationClosesOn: settings.closesOn,
+    };
+  }
+
+  /** Test-only window on the audit trail `updateOrdinaryDetails`, `setRegistrationSettings` and `completeEvent` wrote. */
   auditTrail(): readonly AuditedEventChange[] {
     return [...this.audit];
   }

@@ -141,6 +141,9 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
         programme_agenda: null,
         special_arrangements: null,
         operational_notes: null,
+        registration_enabled_flag: false,
+        registration_open_date: null,
+        registration_close_date: null,
       }),
     ).toEqual({
       id: "5",
@@ -160,6 +163,9 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       programmeAgenda: null,
       specialArrangements: null,
       operationalNotes: null,
+      registrationEnabled: false,
+      registrationOpensOn: null,
+      registrationClosesOn: null,
     });
   });
 
@@ -183,6 +189,9 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       programme_agenda: null,
       special_arrangements: null,
       operational_notes: null,
+      registration_enabled_flag: false,
+      registration_open_date: null,
+      registration_close_date: null,
     });
 
     expect(details.requiredFacilities).toBeNull();
@@ -208,6 +217,9 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       programme_agenda: null,
       special_arrangements: null,
       operational_notes: null,
+      registration_enabled_flag: false,
+      registration_open_date: null,
+      registration_close_date: null,
     });
 
     expect(details.slots).toEqual([]);

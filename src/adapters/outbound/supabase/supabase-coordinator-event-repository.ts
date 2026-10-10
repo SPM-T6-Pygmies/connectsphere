@@ -8,7 +8,10 @@ import {
   EventNotFoundError,
   EventNotReadyForConfirmationError,
   EventNotYetEndedError,
+  EventRegistrationLockedError,
+  InvalidRegistrationSettingsError,
 } from "@/core/domain/errors";
+import type { RegistrationSettings } from "@/core/domain/event-registration-settings";
 import {
   assessReadiness,
   blockingArrangements,
@@ -31,6 +34,7 @@ import {
   toCoordinatorEventDetails,
   toKey,
   toOrdinaryChangesPayload,
+  toRegistrationSettingsArgs,
   type CoordinatorEventDetailsRow,
   type CoordinatorEventRecordRow,
   type CoordinatorEventRow,
@@ -53,6 +57,11 @@ const FACILITIES_EVENT_LOCKED = "CS043";
 /** SQLSTATEs `coordinator_update_event_details` comes back with. See its migration. */
 const DETAILS_EVENT_NOT_FOUND = "CS064";
 const DETAILS_EVENT_LOCKED = "CS065";
+
+/** SQLSTATEs `coordinator_set_event_registration` comes back with. See its migration. */
+const REGISTRATION_EVENT_NOT_FOUND = "CS067";
+const REGISTRATION_EVENT_LOCKED = "CS068";
+const REGISTRATION_INVALID = "CS069";
 
 /** SQLSTATEs `coordinator_complete_event` comes back with. See its migration. */
 const COMPLETE_EVENT_NOT_FOUND = "CS070";
@@ -222,6 +231,44 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventDetailsLockedError(error.details || "closed");
       }
       throw new Error(`Failed to save the event's details: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * SPM-25: goes through `coordinator_set_event_registration`, which re-checks
+   * the assignment, status and window under a row lock, and audits each
+   * changed setting in the same transaction.
+   */
+  async setRegistrationSettings(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    settings: RegistrationSettings,
+  ): Promise<void> {
+    const eventKey = toKey(eventId);
+    const coordinatorKey = toKey(coordinatorId);
+    if (eventKey === null || coordinatorKey === null) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+
+    const { error } = await this.client.rpc("coordinator_set_event_registration", {
+      p_coordinator_user_account_id: coordinatorKey,
+      p_event_id: eventKey,
+      ...toRegistrationSettingsArgs(settings),
+    });
+
+    if (error) {
+      if (error.code === REGISTRATION_EVENT_NOT_FOUND) {
+        throw new CoordinatorEventNotFoundError(eventId);
+      }
+      if (error.code === REGISTRATION_EVENT_LOCKED) {
+        throw new EventRegistrationLockedError(error.details || "closed");
+      }
+      if (error.code === REGISTRATION_INVALID) {
+        throw new InvalidRegistrationSettingsError(
+          "Set both the opening and closing dates to enable registration, opening on or before it closes.",
+        );
+      }
+      throw new Error(`Failed to save the event's registration settings: ${error.message}`, { cause: error });
     }
   }
 

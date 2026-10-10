@@ -50,6 +50,7 @@ import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
 import { ListEventsOpenForRegistrationUseCase } from "@/core/use-cases/list-events-open-for-registration";
 import { ChangeEventOrganiserUseCase } from "@/core/use-cases/change-event-organiser";
+import { SetEventRegistrationUseCase } from "@/core/use-cases/set-event-registration";
 import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-required-facilities";
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
@@ -554,6 +555,11 @@ export async function buildSetEventRequiredFacilities(): Promise<SetEventRequire
 /** SPM-49: the assigned coordinator updates an event's ordinary details. */
 export async function buildUpdateEventDetails(): Promise<UpdateEventDetailsUseCase> {
   return new UpdateEventDetailsUseCase({ events: (await venueBookingAdapters()).events });
+}
+
+/** SPM-25: the assigned coordinator enables or disables registration and sets its window. */
+export async function buildSetEventRegistration(): Promise<SetEventRegistrationUseCase> {
+  return new SetEventRegistrationUseCase({ events: (await venueBookingAdapters()).events });
 }
 
 /** SPM-22: the signed-in Venue Staff member, or null for anyone else (answered as not found, #91). */
