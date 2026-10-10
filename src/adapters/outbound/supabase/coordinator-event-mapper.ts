@@ -3,6 +3,7 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { toDate, toSlot } from "./booking-mapper";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
+import type { OrdinaryEventChanges, OrdinaryEventField } from "@/core/domain/event-details-edit";
 import { userAccountId } from "@/core/domain/user-account";
 import type {
   AssignedEventSummary,
@@ -36,6 +37,12 @@ export interface CoordinatorEventDetailsRow extends CoordinatorEventRow {
   room_layout_preference: string | null;
   accessibility_requirements: string | null;
   required_facilities: string | null;
+  description: string | null;
+  purpose: string | null;
+  category_type: string | null;
+  programme_agenda: string | null;
+  special_arrangements: string | null;
+  operational_notes: string | null;
 }
 
 /** Selects every column plus the `event_slots` computed field. */
@@ -101,7 +108,35 @@ export function toCoordinatorEventDetails(row: CoordinatorEventDetailsRow): Coor
     roomLayoutPreference: row.room_layout_preference,
     accessibilityRequirements: row.accessibility_requirements,
     requiredFacilities: row.required_facilities,
+    description: row.description,
+    purpose: row.purpose,
+    categoryType: row.category_type,
+    programmeAgenda: row.programme_agenda,
+    specialArrangements: row.special_arrangements,
+    operationalNotes: row.operational_notes,
   };
+}
+
+/** The `event` column each ordinary detail is stored in (SPM-49). */
+const ORDINARY_COLUMNS: Record<OrdinaryEventField, string> = {
+  name: "name",
+  description: "description",
+  purpose: "purpose",
+  categoryType: "category_type",
+  programmeAgenda: "programme_agenda",
+  specialArrangements: "special_arrangements",
+  accessibilityRequirements: "accessibility_requirements",
+  operationalNotes: "operational_notes",
+};
+
+/** The changes as `coordinator_update_event_details` takes them: column name to new value. */
+export function toOrdinaryChangesPayload(changes: OrdinaryEventChanges): Record<string, string | null> {
+  return Object.fromEntries(
+    (Object.entries(changes) as [OrdinaryEventField, string | null][]).map(([field, value]) => [
+      ORDINARY_COLUMNS[field],
+      value,
+    ]),
+  );
 }
 
 /** `coordinator_event`/`coordinator_confirm_event` return the full `event` row; only these columns matter to `CoordinatorEvent`. */

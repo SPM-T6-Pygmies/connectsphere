@@ -1,5 +1,6 @@
 import type { SlotOnDate } from "../../domain/booking";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "../../domain/coordinator-event";
+import type { OrdinaryEventChanges } from "../../domain/event-details-edit";
 import type { UserAccountId } from "../../domain/user-account";
 
 /**
@@ -36,6 +37,13 @@ export interface CoordinatorEventDetails {
   readonly accessibilityRequirements: string | null;
   /** SPM-247: the facilities the coordinator says the event needs, stored as a venue's are. */
   readonly requiredFacilities: string | null;
+  /** SPM-49: the rest of the ordinary details the coordinator edits directly. */
+  readonly description: string | null;
+  readonly purpose: string | null;
+  readonly categoryType: string | null;
+  readonly programmeAgenda: string | null;
+  readonly specialArrangements: string | null;
+  readonly operationalNotes: string | null;
 }
 
 /** Driven port: events, scoped the way a coordinator is allowed to see them. */
@@ -60,6 +68,17 @@ export interface CoordinatorEventRepository {
    * validated them; this re-checks the assignment and status, and records the change.
    */
   setRequiredFacilities(coordinatorId: UserAccountId, eventId: string, facilities: string | null): Promise<void>;
+
+  /**
+   * SPM-49: stores changes to the event's ordinary details. The caller has already worked out
+   * what changed; this re-checks the assignment and status, and audits each changed field
+   * against the coordinator who made it.
+   */
+  updateOrdinaryDetails(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    changes: OrdinaryEventChanges,
+  ): Promise<void>;
 
   /** SPM-50: persists the event's confirmation. `confirmedBy` is who confirmed it, for the audit trail. */
   confirmEvent(event: CoordinatorEvent, confirmedBy: UserAccountId): Promise<void>;
