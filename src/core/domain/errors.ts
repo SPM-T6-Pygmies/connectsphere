@@ -612,6 +612,68 @@ export class InvalidOutOfServiceCountError extends DomainError {
   }
 }
 
+/** SPM-274: the line is not one Technical Support can reserve or mark unfulfilled -- or no longer is. */
+export class EquipmentLineNotAwaitingDecisionError extends DomainError {
+  readonly code = "equipment_line_not_awaiting_decision";
+
+  constructor() {
+    super("This line is no longer waiting for a decision. Reload the page to see where it stands.");
+  }
+}
+
+/** SPM-274 AC2: availability is judged against the event's date, so there must be one. */
+export class EventDateRequiredForEquipmentError extends DomainError {
+  readonly code = "event_date_required_for_equipment";
+
+  constructor() {
+    super("This event needs a date before equipment can be reserved for it.");
+  }
+}
+
+/** SPM-274 AC3, AC6: a line is reserved in full or not at all. */
+export class NotEnoughEquipmentAvailableError extends DomainError {
+  readonly code = "not_enough_equipment_available";
+
+  constructor(
+    readonly available: number,
+    readonly requested: number,
+  ) {
+    super(
+      `Only ${Math.max(available, 0)} available, fewer than the ${requested} requested, so nothing was reserved. ` +
+        "Mark the line unfulfilled instead.",
+    );
+  }
+}
+
+/** SPM-274 AC3: a line is marked unfulfilled only when too few units are free. */
+export class EquipmentAvailableToReserveError extends DomainError {
+  readonly code = "equipment_available_to_reserve";
+
+  constructor(
+    readonly available: number,
+    readonly requested: number,
+  ) {
+    super(`${available} available, enough for the ${requested} requested. Reserve the line instead.`);
+  }
+}
+
+/** SPM-274 AC3: the coordinator is told why. */
+export class UnfulfilledCommentRequiredError extends DomainError {
+  readonly code = "unfulfilled_comment_required";
+
+  constructor() {
+    super('Say why the line cannot be fulfilled, e.g. "only 3 available".');
+  }
+}
+
+export class UnfulfilledCommentTooLongError extends DomainError {
+  readonly code = "unfulfilled_comment_too_long";
+
+  constructor(readonly max: number) {
+    super(`The comment must be ${max} characters or fewer.`);
+  }
+}
+
 export class InvalidVenueIdError extends DomainError {
   readonly code = "invalid_venue_id";
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryEquipmentCatalogue } from "@/adapters/outbound/in-memory/in-memory-equipment-catalogue";
 import {
   EquipmentLocationRequiredError,
@@ -15,7 +16,7 @@ function build() {
   return {
     equipment,
     create: new CreateEquipmentItemUseCase({ equipment }),
-    list: new ListEquipmentCatalogueUseCase({ equipment }),
+    list: new ListEquipmentCatalogueUseCase({ equipment, clock: new FixedClock(new Date("2026-11-10T00:00:00Z")) }),
   };
 }
 
@@ -39,7 +40,7 @@ describe("CreateEquipmentItemUseCase (SPM-40)", () => {
       location: "Store A",
     });
     const { items } = await list.execute();
-    expect(items).toEqual([{ id: result.equipmentItemId, ...PROJECTOR, outOfService: 0, inService: 6 }]);
+    expect(items).toEqual([{ id: result.equipmentItemId, ...PROJECTOR, outOfService: 0, inService: 6, shortDays: [] }]);
   });
 
   it("AC4: the catalogue starts empty -- nothing is imported", async () => {

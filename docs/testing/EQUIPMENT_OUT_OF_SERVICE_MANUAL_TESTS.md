@@ -23,11 +23,24 @@ mapper), including exactly the number owned, one more, and owned lowered to exac
 the out-of-service count. These cases check the same rules end to end, through the
 real login, the `technical_support_*` catalogue functions and the pages.
 
-These cases are registered as `TC-OOS-001`–`TC-OOS-005` in
+These cases are registered as `TC-OOS-001`, `002`, `004`, `005` and `006` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run them,
 tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
+
+**Retired:** TC-OOS-003 did not mention the warning its step 3 now shows. Owned 3 with
+3 out of service leaves none of the PA speakers in service while *Tech Summit Keynote*
+holds 2, so SPM-274 (AC7) names that event on the card
+([`EQUIPMENT_RESERVE_MANUAL_TESTS.md`](EQUIPMENT_RESERVE_MANUAL_TESTS.md)). It is kept as
+`Retired` in the registry with its original wording and its recorded passes, and is
+replaced here by:
+
+| Retired | Replaced by |
+| --- | --- |
+| TC-OOS-003 | TC-OOS-006 |
+
+The replacement checks the same SPM-17 rule, and says which steps show the warning.
 
 ---
 
@@ -114,27 +127,6 @@ Truth, with the same counts `seed-equipment` gives them.
 
 ---
 
-### TC-OOS-003: Owned cannot drop below the units out of service (AC2)
-
-**Steps:**
-1. On the PA speaker card (Owned `5`), set **Out of service** to `3` and click **Update**.
-2. Set **Owned** to `2` and click **Update**. Reload.
-3. Set **Owned** to `3` and click **Update**.
-4. Set **Owned** to `5`, **Out of service** to `0`, and click **Update**.
-
-**Expected Result:**
-- Step 1: "Saved."; *In service: 2 of 5*.
-- Step 2: "Out of service must be a whole number from 0 up to the number owned (2)."; after the
-  reload the card still shows **Owned** `5` and **Out of service** `3`. Nothing was saved.
-- Step 3: "Saved."; *In service: 0 of 3*. Owned may drop to exactly the out-of-service count.
-- Step 4: "Saved."; *In service: 5 of 5*.
-
-**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
-
-**Screenshots:** [step1-three-out](../screenshots/2026-10-09_TC-OOS-003_step1-three-out.png) · [step2-owned-2-refused](../screenshots/2026-10-09_TC-OOS-003_step2-owned-2-refused.png) · [step3-owned-3](../screenshots/2026-10-09_TC-OOS-003_step3-owned-3.png) · [step4-restored](../screenshots/2026-10-09_TC-OOS-003_step4-restored.png)
-
----
-
 ### TC-OOS-004: Units out of service are not counted as available (AC4)
 
 **Steps:**
@@ -175,3 +167,26 @@ it): `delete from equipment_item where type = 'Smoke machine';`.
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-smoke-machine-added](../screenshots/2026-10-09_TC-OOS-005_step1-smoke-machine-added.png) · [step2-coordinator-type-list](../screenshots/2026-10-09_TC-OOS-005_step2-coordinator-type-list.png) · [step3-smoke-machine-after-restart](../screenshots/2026-10-09_TC-OOS-005_step3-smoke-machine-after-restart.png)
+
+---
+
+### TC-OOS-006: Owned cannot drop below the units out of service (AC2)
+
+**Steps:**
+1. On the PA speaker card (Owned `5`), set **Out of service** to `3` and click **Update**.
+2. Set **Owned** to `2` and click **Update**. Reload.
+3. Set **Owned** to `3` and click **Update**.
+4. Set **Owned** to `5`, **Out of service** to `0`, and click **Update**.
+
+**Expected Result:**
+- Step 1: "Saved."; *In service: 2 of 5*. No warning: the 2 in service cover the 2
+  *Tech Summit Keynote* holds.
+- Step 2: "Out of service must be a whole number from 0 up to the number owned (2)."; after the
+  reload the card still shows **Owned** `5` and **Out of service** `3`. Nothing was saved.
+- Step 3: "Saved."; *In service: 0 of 3*. Owned may drop to exactly the out-of-service count.
+  The card also shows the warning *Not enough in service on these dates* reading
+  *14–15 Nov (2 reserved but only 0 in service): Tech Summit Keynote (15 Nov) has 2
+  reserved* — expected (SPM-274 AC7): the save still went through.
+- Step 4: "Saved."; *In service: 5 of 5*, and no warning.
+
+**Status:** [ ] Pass [ ] Fail

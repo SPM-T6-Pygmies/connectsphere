@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryEquipmentCatalogue } from "@/adapters/outbound/in-memory/in-memory-equipment-catalogue";
 import { equipmentItemId } from "@/core/domain/equipment-item";
 import {
@@ -125,7 +126,10 @@ describe("UpdateEquipmentStockUseCase (SPM-17)", () => {
     const { useCase, equipment, id } = await build();
     await useCase.execute({ equipmentItemId: id, quantity: 6, location: "Store A", outOfService: 2 });
 
-    const { items } = await new ListEquipmentCatalogueUseCase({ equipment }).execute();
+    const { items } = await new ListEquipmentCatalogueUseCase({
+      equipment,
+      clock: new FixedClock(new Date("2026-11-10T00:00:00Z")),
+    }).execute();
 
     expect(items).toEqual([expect.objectContaining({ id, quantity: 6, outOfService: 2, inService: 4 })]);
   });

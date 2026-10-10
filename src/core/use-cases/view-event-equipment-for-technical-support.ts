@@ -1,10 +1,11 @@
 import type { CoordinatorEventStatus } from "../domain/coordinator-event";
-import type { EquipmentReviewBaseline } from "../domain/equipment-requirement";
+import type { EquipmentLineState, EquipmentReviewBaseline } from "../domain/equipment-requirement";
 import {
   attentionReason,
+  awaitsDecision,
   equipmentQueueOf,
   reservedAs,
-  unitsAvailable,
+  unitsAvailableForLine,
   type AttentionReason,
   type EquipmentQueue,
 } from "../domain/equipment-review";
@@ -29,8 +30,17 @@ export interface TechnicalSupportEquipmentLine {
   readonly attention: AttentionReason | null;
   /** What the line was when it was reserved, while that differs from now. */
   readonly reservedAs: EquipmentReviewBaseline | null;
-  /** Units free on the event's date; null while the event has no date. */
+  /**
+   * How many more units could be reserved for the line on the event's date:
+   * what is free for the event, less what the line already holds. Null while
+   * the event has no date.
+   */
   readonly available: number | null;
+  readonly state: EquipmentLineState;
+  /** SPM-274: whether it can be reserved or marked unfulfilled now -- new, or changed after being marked unfulfilled. */
+  readonly canDecide: boolean;
+  /** SPM-274: who last reserved it or marked it unfulfilled, and why not; null while nobody has. */
+  readonly decision: { readonly byName: string | null; readonly comment: string | null } | null;
 }
 
 export interface ViewEventEquipmentForTechnicalSupportResult {
@@ -52,8 +62,9 @@ export interface ViewEventEquipmentForTechnicalSupportDeps {
 
 /**
  * SPM-273 AC3-4: every equipment line of one event, marked with why it needs
- * attention, and with how many units are free on the event's date. Read-only:
- * acting on a line is SPM-274 and SPM-108.
+ * attention, and with how many units are free on the event's date. SPM-274:
+ * which lines can be reserved or marked unfulfilled, and what was decided on
+ * the others. Releasing or replacing a reservation is SPM-108.
  */
 export class ViewEventEquipmentForTechnicalSupportUseCase {
   constructor(private readonly deps: ViewEventEquipmentForTechnicalSupportDeps) {}
@@ -74,7 +85,7 @@ export class ViewEventEquipmentForTechnicalSupportUseCase {
     return {
       event: { id: event.id, name: event.name, status: event.status, preferredDate: event.preferredDate },
       queue: equipmentQueueOf(event.status, lines.map(({ line }) => line)),
-      lines: lines.map(({ line, equipmentType, owned, outOfService, otherHolds }) => ({
+      lines: lines.map(({ line, equipmentType, owned, outOfService, otherHolds, decidedByName }) => ({
         equipmentItemId: line.equipmentItemId,
         equipmentType,
         quantityRequested: line.quantityRequested,
@@ -82,7 +93,10 @@ export class ViewEventEquipmentForTechnicalSupportUseCase {
         technicalRequirements: line.technicalRequirements,
         attention: attentionReason(line),
         reservedAs: reservedAs(line),
-        available: unitsAvailable(owned, outOfService, event.preferredDate, otherHolds),
+        available: unitsAvailableForLine(line, owned, outOfService, event.preferredDate, otherHolds),
+        state: line.state,
+        canDecide: awaitsDecision(event.status, line),
+        decision: line.decision === null ? null : { byName: decidedByName, comment: line.decision.comment },
       })),
     };
   }
