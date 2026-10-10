@@ -127,6 +127,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-51": {
+      "title": "Mark an event as completed",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-57": {
       "title": "Notify a coordinator of their assignment to an event",
       "parent": null,
