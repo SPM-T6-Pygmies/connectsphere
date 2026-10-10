@@ -53,6 +53,8 @@ table — CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when th
   ```
   `verify.sql` should show 14 rows, all `ok = true`.
 - `pnpm dev:local`
+- Use `http://localhost:3000`, not `127.0.0.1`: Next's dev server blocks its client
+  scripts for `127.0.0.1`, so the coordinator event page's tabs do not switch (SPM-285).
 - Run the cases in order: each starts where the one before left off. To start again,
   run `scripts/seed-equipment-reserve/teardown.sql`, then the seed.
 
@@ -91,7 +93,8 @@ others alongside does not change the numbers below.
 1. Signed in as `support@test.com`, open `/staff/technical` and open *Design Sprint Demo*.
 2. On **Presentation laptop**, read the row, then click **Reserve 6**.
 3. Open `/staff/technical` again.
-4. Sign in as `coordinator@test.com`, open **My events** and open *Design Sprint Demo*.
+4. Sign in as `coordinator@test.com`, open **My events**, open *Design Sprint Demo* and
+   click the **Equipment** tab.
 
 **Expected Result:**
 - Step 2: before: Requested **6**, Reserved **0**, Available **8**, **New**, **Reserve 6**.
@@ -131,7 +134,7 @@ others alongside does not change the numbers below.
 2. Type `only 2 available` and click **Mark unfulfilled**.
 3. Read the **Wireless microphone** row.
 4. Open `/staff/technical`.
-5. Sign in as `coordinator@test.com` and open *Sales Kickoff*.
+5. Sign in as `coordinator@test.com`, open *Sales Kickoff* and click the **Equipment** tab.
 
 **Expected Result:**
 - Step 1: *Say why the line cannot be fulfilled, e.g. "only 3 available".* Nothing is saved.
@@ -151,7 +154,7 @@ others alongside does not change the numbers below.
 **Preconditions:** TC-RESERVE-003 passed.
 
 **Steps:**
-1. Signed in as `coordinator@test.com`, on *Sales Kickoff* click **Edit** on
+1. Signed in as `coordinator@test.com`, on *Sales Kickoff*'s **Equipment** tab click **Edit** on
    **Presentation laptop**, set the quantity to `2` and click **Save changes**.
 2. Sign in as `support@test.com` and open *Sales Kickoff*.
 3. As the coordinator, edit **Presentation laptop** back to `3` and save.
