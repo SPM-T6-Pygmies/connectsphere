@@ -95,7 +95,7 @@ export default async function CoordinatorEventPage({
           <EventTabs
             initialTab={initialTab}
             panels={{
-              event: <EventDetailsTab event={event} readiness={readiness} />,
+              event: <EventDetailsTab event={event} details={details} readiness={readiness} />,
               venue: <VenueTab details={details} readiness={readiness} />,
               equipment: <EquipmentSection equipment={equipment} />,
               safety: <SafetyCheckCard eventId={event.id} view={safetyChecks} />,
