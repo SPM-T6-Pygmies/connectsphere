@@ -136,3 +136,11 @@ describe("ListEventsOpenForRegistrationUseCase (SPM-79)", () => {
     ]);
   });
 });
+
+describe("ListEventsOpenForRegistrationUseCase (SPM-25)", () => {
+  it("AC2: leaves out an event whose coordinator disabled registration, keeping the others", async () => {
+    await expect(
+      listedIds([event("summit", { registrationEnabled: false }), event("workshop")]),
+    ).resolves.toEqual(["workshop"]);
+  });
+});
