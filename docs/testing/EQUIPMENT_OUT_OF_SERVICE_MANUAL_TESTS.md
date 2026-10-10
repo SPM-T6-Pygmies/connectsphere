@@ -23,7 +23,7 @@ mapper), including exactly the number owned, one more, and owned lowered to exac
 the out-of-service count. These cases check the same rules end to end, through the
 real login, the `technical_support_*` catalogue functions and the pages.
 
-These cases are registered as `TC-OOS-001`, `002`, `004`, `005` and `006` in
+These cases are registered as `TC-OOS-001`, `002`, `005`, `006` and `007` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run them,
 tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
@@ -42,6 +42,14 @@ replaced here by:
 
 The replacement checks the same SPM-17 rule, and says which steps show the warning.
 
+TC-OOS-004 is retired too: SPM-273 AC4 now counts availability per day, so the Projector
+figures it reads on *Tech Summit Keynote* change from 4, 2 and 4 to 5, 3 and 5. It is
+replaced by TC-OOS-007, which checks the same SPM-17 rule with the new figures.
+
+| Retired | Replaced by |
+| --- | --- |
+| TC-OOS-004 | TC-OOS-007 |
+
 ---
 
 ## Test Environment Setup
@@ -49,7 +57,7 @@ The replacement checks the same SPM-17 rule, and says which steps show the warni
 ### Prerequisites
 
 - Local Supabase, reset, then the SPM-273 seed, which gives a catalogue and the
-  events whose availability TC-OOS-004 reads:
+  events whose availability TC-OOS-007 reads:
   ```bash
   supabase start
   supabase db reset
@@ -127,22 +135,22 @@ Truth, with the same counts `seed-equipment` gives them.
 
 ---
 
-### TC-OOS-004: Units out of service are not counted as available (AC4)
+### TC-OOS-007: Units out of service are not counted as available (AC4)
 
 **Steps:**
-1. Open **Needs review**, open *Tech Summit Keynote* and read **Available** for Projector.
+1. Open **Needs review**, open *Tech Summit Keynote* (15 Nov) and read **Available** for Projector.
 2. On the Equipment page set Projector **Out of service** to `2` and click **Update**.
 3. Open *Tech Summit Keynote* again and read **Available** for Projector.
 4. Set Projector **Out of service** back to `0`, then read **Available** once more.
 
 **Expected Result:**
-- Step 1: **4** (10 owned, less 3, 2 and 1 held by the events on 14, 15 and 16 Nov).
-- Step 3: **2** — the 2 units out of service are left out.
-- Step 4: **4** again.
+- Step 1: **5**. The event's units are out on 14 and 15 Nov, and the busier of the two is
+  14 Nov, with 5 out (3 for the event on 14 Nov and 2 for the one on 15 Nov). 10 owned,
+  less those 5.
+- Step 3: **3** — the 2 units out of service are left out.
+- Step 4: **5** again.
 
-**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
-
-**Screenshots:** [step1-available-4](../screenshots/2026-10-09_TC-OOS-004_step1-available-4.png) · [step3-available-2](../screenshots/2026-10-09_TC-OOS-004_step3-available-2.png) · [step4-available-4-again](../screenshots/2026-10-09_TC-OOS-004_step4-available-4-again.png)
+**Status:** [ ] Pass [ ] Fail
 
 ---
 

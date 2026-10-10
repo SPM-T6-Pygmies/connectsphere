@@ -9,14 +9,15 @@ reserved yet), **changed** after it was reserved, or has its **removal requested
 Opening an event shows all its lines, each marked, with how many units are free on
 the event's date. **Reviewed** and **Archive** list the other events with equipment.
 
-Units free on a date: the number owned, less what other active events hold. A line
-that already has units reserved shows what is left after its own reservation — how
-many more could be reserved for it.
 Equipment is collected the day before an event and is free again the day after it
 is returned, the return day being the event's date
 ([#5](https://github.com/SinYang13/IS212-2026/discussions/5),
-[#113](https://github.com/SinYang13/IS212-2026/discussions/113)) — so events one day
-either side count.
+[#113](https://github.com/SinYang13/IS212-2026/discussions/113)) — so an event's units
+are out on the day before it and on its date. For each of those two days, the units free
+are the number owned, less what other active events have out that day (those dated that
+day or the next); a line shows the smaller of the two. A line that already has units
+reserved shows what is left after its own reservation — how many more could be reserved
+for it.
 
 What SPM-273 does **not** cover, so is not tested here:
 
@@ -28,14 +29,14 @@ What SPM-273 does **not** cover, so is not tested here:
   read this list (they replace the retired TC-EQUIP-003, 004, 005, 008, 010 and 011).
 
 The rules are unit-tested (`attentionReason`, `reservedAs`, `isActiveEvent`,
-`equipmentQueueOf`, `holdsOverlap`, `unitsAvailable`, `ListEquipmentQueueUseCase` and
+`equipmentQueueOf`, `unitsAvailable`, `ListEquipmentQueueUseCase` and
 `ViewEventEquipmentForTechnicalSupportUseCase`, all tagged SPM-273), including every
-event status, every line state and the day boundaries either side of the window.
+event status, every line state, and events one and two days either side.
 These cases check the same rules end to end, through the real login, the
 `technical_support_equipment_events` and `technical_support_event_equipment`
 functions, and the pages.
 
-These cases are registered as `TC-EQUIPREVIEW-001`, `004`, `006`, `007` and `008` in
+These cases are registered as `TC-EQUIPREVIEW-001`, `004`, `006`, `007` and `009` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run them,
 tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
@@ -62,6 +63,15 @@ figures. It is replaced by TC-EQUIPREVIEW-008.
 | Retired | Replaced by |
 | --- | --- |
 | TC-EQUIPREVIEW-003 | TC-EQUIPREVIEW-008 |
+
+TC-EQUIPREVIEW-008 is retired as well: AC4 now counts per day. An event's units are out
+on the day before it and on its date, so the Projector line subtracts only the busier of
+*Tech Summit Keynote*'s two days, which changes its expected figure from 4 to 5. It is
+replaced by TC-EQUIPREVIEW-009.
+
+| Retired | Replaced by |
+| --- | --- |
+| TC-EQUIPREVIEW-008 | TC-EQUIPREVIEW-009 |
 
 ---
 
@@ -199,22 +209,25 @@ or after `teardown.sql`).
 
 ---
 
-### TC-EQUIPREVIEW-008: Each line shows how many more units could be reserved for it (AC4)
+### TC-EQUIPREVIEW-009: Each line shows how many more units could be reserved for it, counted per day (AC4)
 
 **Preconditions:** As TC-EQUIPREVIEW-001.
 
 **Steps:**
-1. Open *Tech Summit Keynote* and read the **Available** column.
+1. Open *Tech Summit Keynote* (15 Nov) and read the **Available** column.
 2. Go back to **Needs review**, open *Partner Roadshow* and read **Available**.
 
 **Expected Result:**
 - Step 1:
   - *PA speaker* **3**: 5 owned, less the 2 this line already holds; no other event
     holds one.
-  - *Projector* **4**: 10 owned, less 3 (Product Launch Rehearsal, 14 Nov), 2
-    (Board Strategy Day, 15 Nov) and 1 (Charity Gala Setup, 16 Nov). The 5 held on
-    17 Nov and the 4 held by the Cancelled Autumn Workshop on 15 Nov do not count.
-    The line holds none itself.
+  - *Projector* **5**: the event's units are out on 14 and 15 Nov.
+    - 14 Nov has 5 out: Product Launch Rehearsal's 3 (14 Nov) and Board Strategy Day's 2
+      (15 Nov).
+    - 15 Nov has 3 out: Board Strategy Day's 2 and Charity Gala Setup's 1 (16 Nov).
+    - 10 owned, less the busier day's 5. The line holds none itself.
+    - Year-End Town Hall's 5 (17 Nov, out on 16–17 Nov) and the Cancelled Autumn
+      Workshop's 4 do not count.
   - *Wireless microphone* **24**: 30 owned, less Board Strategy Day's 2 and the 4 this
     line already holds. Spring Conference's 2 (September, Completed) do not count.
 - Step 2: the line says *Event has no date yet* instead of a number.
