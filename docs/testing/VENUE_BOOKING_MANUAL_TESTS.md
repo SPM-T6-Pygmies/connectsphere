@@ -6,7 +6,7 @@ Browser checks for the coordinator's **Request a venue** page. The rules behind
 it (layout choice, slot clashes, who may book) are covered by automated tests;
 these cases check the page itself, end to end against Supabase.
 
-They are registered as `TC-VENUE-BOOK-001`–`TC-VENUE-BOOK-018` in
+They are registered as `TC-VENUE-BOOK-001`–`TC-VENUE-BOOK-022` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
@@ -166,6 +166,17 @@ supabase db query --file scripts/seed-booking-holds/seed.sql --local
 - [ ] Mark the Studio request `Confirmed` by hand (as in TC-VENUE-BOOK-005),
       then request **Rooftop Terrace** on **2026-12-02 AM** for the same event.
       It is accepted: a live booking at another venue does not clash.
+
+### TC-VENUE-BOOK-022 Venue Staff see the event's details beside the request (SPM-46 AC3)
+
+- [ ] Request **Studio** on the event's preferred date, **AM**. Sign in as
+      `venue@test.com` and open that request from *Requests*.
+- [ ] The event's card names the event and shows its **Date**, **Event
+      slots**, **Expected attendance** and **Venue requirements**, as on the
+      coordinator's *Request a venue* page.
+- [ ] Beside it, the page shows the requested venue (Studio), its layout
+      (**Theatre**, highlighted under *Supported layouts*) and the requested
+      date and slot.
 
 ## SPM-45: is the venue suitable for the event?
 
