@@ -14,7 +14,7 @@ import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "./venue-options";
 function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
   return {
     location: "Level 3, Marina Bay Hall",
-    facilities: "Projector, PA system",
+    facilities: "Wi-Fi, Catering area",
     accessibility: "Step-free access",
     slots: ["AM", "PM", "Night"],
     capacity: 300,
@@ -44,10 +44,10 @@ describe("defineVenue (SPM-42)", () => {
   });
 
   it("trims text", () => {
-    const venue = defineVenue(details({ location: "  Hall A  ", facilities: " Wi-Fi ,Projector " }));
+    const venue = defineVenue(details({ location: "  Hall A  ", facilities: " Wi-Fi ,Catering area " }));
 
     expect(venue.location).toBe("Hall A");
-    expect(venue.facilities).toBe("Wi-Fi, Projector");
+    expect(venue.facilities).toBe("Wi-Fi, Catering area");
   });
 
   it("trims a layout name", () => {
@@ -90,7 +90,7 @@ describe("defineVenue (SPM-42)", () => {
   });
 
   it.each([
-    ["facilities", { facilities: "Projector, Trampoline" }],
+    ["facilities", { facilities: "Wi-Fi, Trampoline" }],
     ["accessibility", { accessibility: "Moat" }],
     ["layouts", { layouts: [{ name: "U-shape", capacity: 30 }] }],
   ] as const)("refuses a value outside the %s list", (field, overrides) => {
@@ -150,7 +150,7 @@ describe("facilities, accessibility and layouts come from fixed lists (SPM-42)",
       }),
     );
 
-    expect(venue.facilities).toBe("Projector, PA system, Wi-Fi, Breakout rooms, Catering area");
+    expect(venue.facilities).toBe("Wi-Fi, Breakout rooms, Catering area, Video-conferencing");
     expect(venue.layouts).toHaveLength(STANDARD_LAYOUTS.length);
   });
 
@@ -163,8 +163,8 @@ describe("facilities, accessibility and layouts come from fixed lists (SPM-42)",
   });
 
   it("stores a selection as its labels joined by a comma and a space", () => {
-    expect(defineVenue(details({ facilities: "Wi-Fi,Projector" })).facilities).toBe(
-      "Wi-Fi, Projector",
+    expect(defineVenue(details({ facilities: "Wi-Fi,Catering area" })).facilities).toBe(
+      "Wi-Fi, Catering area",
     );
   });
 
@@ -177,7 +177,7 @@ describe("facilities, accessibility and layouts come from fixed lists (SPM-42)",
   });
 
   it("refuses one unlisted value among listed ones", () => {
-    expect(flaggedField(details({ facilities: "Projector, Trampoline" }))).toBe("facilities");
+    expect(flaggedField(details({ facilities: "Wi-Fi, Trampoline" }))).toBe("facilities");
   });
 
   it("refuses the old free-text wording", () => {
@@ -185,12 +185,22 @@ describe("facilities, accessibility and layouts come from fixed lists (SPM-42)",
   });
 
   it("refuses a listed value spelled in another case", () => {
-    expect(flaggedField(details({ facilities: "projector" }))).toBe("facilities");
+    expect(flaggedField(details({ facilities: "wi-fi" }))).toBe("facilities");
+  });
+
+  it("accepts Video-conferencing, a built-in room feature", () => {
+    expect(defineVenue(details({ facilities: "Wi-Fi, Video-conferencing" })).facilities).toBe(
+      "Wi-Fi, Video-conferencing",
+    );
+  });
+
+  it.each(["Projector", "PA system"])("refuses %s, which is equipment, not a facility", (equipment) => {
+    expect(flaggedField(details({ facilities: equipment }))).toBe("facilities");
   });
 
   it("names the offending value and the allowed ones in the message", () => {
     expect(() => defineVenue(details({ facilities: "Trampoline" }))).toThrow(
-      /Trampoline.*Projector/,
+      /Trampoline.*Wi-Fi/,
     );
   });
 

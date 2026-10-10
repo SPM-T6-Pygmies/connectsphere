@@ -17,6 +17,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-17": {
+      "title": "Mark equipment out of service",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-19": {
       "title": "Automatic Venue Availability Update upon Booking Confirmation",
       "parent": null,
@@ -96,6 +101,11 @@
       "title": "Search and filter venues",
       "parent": null,
       "status": "done"
+    },
+    "SPM-45": {
+      "title": "Check venue suitability",
+      "parent": null,
+      "status": "In Progress"
     },
     "SPM-46": {
       "title": "Submit a venue booking request",
@@ -642,6 +652,26 @@
       "parent": "SPM-60",
       "status": "In Progress"
     },
+    "SPM-246": {
+      "title": "Venue suitability rules in the domain",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-247": {
+      "title": "Let the Coordinator record the facilities an event needs",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-248": {
+      "title": "Load the event's needs and work out suitability for the booking page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-249": {
+      "title": "Suitability checklist on the Request a venue page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
     "SPM-255": {
       "title": "Review an unassigned request",
       "parent": null,
@@ -672,8 +702,18 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-261": {
+      "title": "Return an event after a safety outcome",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-262": {
       "title": "Notify the Safety Officer of an event ready for check",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
+    "SPM-263": {
+      "title": "Notify the coordinator of the safety outcome",
       "parent": "SPM-47",
       "status": "In Progress"
     },
@@ -711,6 +751,11 @@
       "title": "Manual tests, registry and seed evidence",
       "parent": "SPM-21",
       "status": "In Progress"
+    },
+    "SPM-273": {
+      "title": "See equipment needing attention",
+      "parent": null,
+      "status": "Todo"
     }
   }
 }

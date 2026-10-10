@@ -33,7 +33,7 @@
   },
   {
     "domain": "Equipment",
-    "match": ["equipment"]
+    "match": ["equipment", "queue-teaser"]
   },
   {
     "domain": "Venue Unavailability",

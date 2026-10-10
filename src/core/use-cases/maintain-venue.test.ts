@@ -28,7 +28,7 @@ function newVenue(overrides: Partial<CreateVenueCommand> = {}): CreateVenueComma
   return {
     roles: STAFF,
     location: "Marina Bay Hall",
-    facilities: "Projector",
+    facilities: "Wi-Fi",
     accessibility: "Step-free access",
     slots: ["AM", "PM", "Night"],
     capacity: 300,
@@ -156,14 +156,14 @@ describe("Venue lists are enforced on save (SPM-42)", () => {
     const { create, view } = build();
     const { venue } = await create.execute(
       newVenue({
-        facilities: "Projector, Wi-Fi",
+        facilities: "Wi-Fi, Catering area",
         accessibility: "Hearing loop, Lift access",
       }),
     );
 
     const stored = (await view.execute({ venueId: venue.id })).venue;
 
-    expect(stored.facilities).toBe("Projector, Wi-Fi");
+    expect(stored.facilities).toBe("Wi-Fi, Catering area");
     expect(stored.accessibility).toBe("Hearing loop, Lift access");
   });
 

@@ -19,17 +19,17 @@ with event as (
   join public.event_request r on r.event_request_id = e.event_request_id
   where r.event_name = 'Founders'' Gala Dinner'
 ),
-catalogue (type) as (
-  values ('Projector'), ('Wireless microphone'), ('PA speaker'),
-         ('Presentation laptop'), ('Livestream kit')
+catalogue (type, owned) as (
+  values ('Projector', 10), ('Wireless microphone', 30), ('PA speaker', 5),
+         ('Presentation laptop', 8), ('Livestream kit', 2), ('Crowd barrier', 40)
 ),
 lines (type, expected) as (
   values ('Projector',           '2 requested, 2 reserved, Reserved'),
          ('Wireless microphone', '4 requested, 0 reserved, Requested')
 ),
 checks as (
-  select 'catalogue ' || c.type as check_name, 'present' as expected,
-         case when i.equipment_item_id is null then 'missing' else 'present' end as actual
+  select 'catalogue ' || c.type as check_name, c.owned || ' owned' as expected,
+         case when i.equipment_item_id is null then 'missing' else i.quantity || ' owned' end as actual
   from catalogue c
   left join public.equipment_item i on i.type = c.type
   union all

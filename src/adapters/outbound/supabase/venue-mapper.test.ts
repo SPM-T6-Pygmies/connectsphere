@@ -6,7 +6,7 @@ describe("venue mapper (SPM-146)", () => {
   const row: VenueRow = {
     venue_id: 7,
     location: "Marina Bay Hall",
-    facilities: "Projector",
+    facilities: "Wi-Fi",
     accessibility: null,
     slots: ["AM", "Night"],
     capacity: 300,
@@ -18,7 +18,7 @@ describe("venue mapper (SPM-146)", () => {
     expect(toVenue(row)).toEqual({
       id: "7",
       location: "Marina Bay Hall",
-      facilities: "Projector",
+      facilities: "Wi-Fi",
       accessibility: null,
       slots: ["AM", "Night"],
       capacity: 300,

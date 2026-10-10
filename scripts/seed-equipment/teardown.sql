@@ -24,7 +24,7 @@ begin
 
   delete from public.equipment_item i
   where i.type in ('Projector', 'Wireless microphone', 'PA speaker',
-                   'Presentation laptop', 'Livestream kit')
+                   'Presentation laptop', 'Livestream kit', 'Crowd barrier')
     and not exists (
       select 1 from public.equipment_reservation_line x
       where x.equipment_item_id = i.equipment_item_id

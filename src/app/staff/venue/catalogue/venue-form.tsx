@@ -2,7 +2,7 @@
 
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,19 @@ export function VenueForm({
   action: (previous: VenueFormState, formData: FormData) => Promise<VenueFormState>;
   venue?: Venue;
 }) {
-  const [state, formAction, pending] = useActionState(action, INITIAL);
+  // An update stays on this page, so the save needs its own confirmation. It is
+  // shown here, as soon as the save returns: the page remounts this form when the
+  // saved record changes, which would discard an effect waiting on `state`.
+  const [state, formAction, pending] = useActionState(
+    async (previous: VenueFormState, formData: FormData) => {
+      const next = await action(previous, formData);
+      if (next.status === "saved") {
+        toast.success("Venue saved.");
+      }
+      return next;
+    },
+    INITIAL,
+  );
 
   const [location, setLocation] = useState(venue?.location ?? "");
   const [capacity, setCapacity] = useState(venue?.capacity?.toString() ?? "");
@@ -77,13 +89,6 @@ export function VenueForm({
         }))
       : [{ key: 0, name: "", capacity: "" }],
   );
-
-  // An update stays on this page, so the save needs its own confirmation.
-  useEffect(() => {
-    if (state.status === "saved") {
-      toast.success("Venue saved.");
-    }
-  }, [state]);
 
   const errors = state.status === "error" ? state.fieldErrors : undefined;
   const layoutCapacityErrors = layouts.map(

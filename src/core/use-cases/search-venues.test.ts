@@ -16,7 +16,7 @@ function venue(id: string, overrides: Partial<Venue> = {}): Venue {
   return {
     id: venueId(id),
     location: `Hall ${id}`,
-    facilities: "Projector, Wi-Fi",
+    facilities: "Wi-Fi, Catering area",
     accessibility: "Step-free access",
     slots: ["AM", "PM"],
     capacity: 300,
@@ -102,7 +102,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
   it("reports how many venues each filter left out", async () => {
     const result = await build([
       venue("a"),
-      venue("b", { facilities: "Projector" }),
+      venue("b", { facilities: "Catering area" }),
       venue("c", { bookingHorizonDays: 1 }),
     ]).execute(
       search({ facilities: ["Wi-Fi"], date: "2026-11-05", slots: ["PM"] }),

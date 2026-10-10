@@ -12,11 +12,11 @@
 --
 --   UAT-44 Harbour Room  slots AM, PM, Night; horizon 60, venue capacity 250
 --                        Theatre 200, Boardroom 20
---                        Projector, Wi-Fi / Step-free access, Hearing loop
+--                        Wi-Fi, Video-conferencing / Step-free access, Hearing loop
 --                        Confirmed booking on D, PM
 --   UAT-44 Garden Hall   slots AM, PM; horizon 60, venue capacity 500
 --                        Banquet 150, Classroom 80
---                        PA system, Catering area / Lift access
+--                        Catering area / Lift access
 --                        Rejected booking on D, AM (must not block)
 --
 -- Uses the test accounts from the migrations and supabase/seed.sql
@@ -53,7 +53,7 @@ begin
   if v_harbour is null then
     insert into public.venue (location, capacity, facilities, accessibility,
       booking_horizon_days)
-    values ('UAT-44 Harbour Room', 250, 'Projector, Wi-Fi', 'Step-free access, Hearing loop', 60)
+    values ('UAT-44 Harbour Room', 250, 'Wi-Fi, Video-conferencing', 'Step-free access, Hearing loop', 60)
     returning venue_id into v_harbour;
     insert into public.venue_slot (venue_id, slot_code)
     values (v_harbour, 'AM'), (v_harbour, 'PM'), (v_harbour, 'Night');
@@ -67,7 +67,7 @@ begin
   if v_garden is null then
     insert into public.venue (location, capacity, facilities, accessibility,
       booking_horizon_days)
-    values ('UAT-44 Garden Hall', 500, 'PA system, Catering area', 'Lift access', 60)
+    values ('UAT-44 Garden Hall', 500, 'Catering area', 'Lift access', 60)
     returning venue_id into v_garden;
     insert into public.venue_slot (venue_id, slot_code)
     values (v_garden, 'AM'), (v_garden, 'PM');

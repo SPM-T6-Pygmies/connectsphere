@@ -8,12 +8,14 @@ describe("updateEquipmentStockSchema (SPM-40)", () => {
       equipmentItemId: "equipment-1",
       quantity: "4",
       location: "Store B",
+      outOfService: "0",
     });
 
     expect(parsed.success && parsed.data).toEqual({
       equipmentItemId: "equipment-1",
       quantity: 4,
       location: "Store B",
+      outOfService: 0,
     });
   });
 
@@ -22,6 +24,7 @@ describe("updateEquipmentStockSchema (SPM-40)", () => {
       equipmentItemId: " ",
       quantity: "4",
       location: "Store B",
+      outOfService: "0",
     });
 
     expect(parsed.success).toBe(false);
@@ -32,6 +35,7 @@ describe("updateEquipmentStockSchema (SPM-40)", () => {
       equipmentItemId: "equipment-1",
       quantity: "-2",
       location: "Store B",
+      outOfService: "0",
     });
 
     expect(parsed.success).toBe(false);
@@ -42,6 +46,7 @@ describe("updateEquipmentStockSchema (SPM-40)", () => {
       equipmentItemId: "equipment-1",
       quantity: "4",
       location: "",
+      outOfService: "0",
     });
 
     expect(parsed.success).toBe(false);
