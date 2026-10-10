@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryEquipmentCatalogue } from "@/adapters/outbound/in-memory/in-memory-equipment-catalogue";
 import { equipmentItemId } from "@/core/domain/equipment-item";
-import type { EventReservation } from "@/core/domain/equipment-review";
 import {
   EquipmentItemNotFoundError,
   EquipmentLocationRequiredError,
@@ -22,17 +21,13 @@ const PROJECTOR = {
   outOfService: 0,
 };
 
-/** 10 November 2026, 1am in Singapore. */
-const NOW = new Date("2026-11-09T17:00:00Z");
-
-/** The projector, with any reservations events hold of it. */
-async function build(reservations: readonly EventReservation[] = []) {
-  const equipment = new InMemoryEquipmentCatalogue([PROJECTOR], { "equipment-1": reservations });
+async function build() {
+  const equipment = new InMemoryEquipmentCatalogue([PROJECTOR]);
   const [seeded] = await equipment.list();
   return {
     equipment,
     id: seeded.id,
-    useCase: new UpdateEquipmentStockUseCase({ equipment, clock: new FixedClock(NOW) }),
+    useCase: new UpdateEquipmentStockUseCase({ equipment }),
   };
 }
 
@@ -42,7 +37,7 @@ describe("UpdateEquipmentStockUseCase (SPM-40)", () => {
 
     const result = await useCase.execute({ equipmentItemId: id, quantity: 4, location: "Store B", outOfService: 0 });
 
-    expect(result).toEqual({ equipmentItemId: id, quantity: 4, location: "Store B", outOfService: 0, overheld: [] });
+    expect(result).toEqual({ equipmentItemId: id, quantity: 4, location: "Store B", outOfService: 0 });
     await expect(equipment.findById(id)).resolves.toEqual({
       ...PROJECTOR,
       id,
@@ -131,41 +126,11 @@ describe("UpdateEquipmentStockUseCase (SPM-17)", () => {
     const { useCase, equipment, id } = await build();
     await useCase.execute({ equipmentItemId: id, quantity: 6, location: "Store A", outOfService: 2 });
 
-    const { items } = await new ListEquipmentCatalogueUseCase({ equipment }).execute();
+    const { items } = await new ListEquipmentCatalogueUseCase({
+      equipment,
+      clock: new FixedClock(new Date("2026-11-10T00:00:00Z")),
+    }).execute();
 
     expect(items).toEqual([expect.objectContaining({ id, quantity: 6, outOfService: 2, inService: 4 })]);
-  });
-});
-
-describe("UpdateEquipmentStockUseCase (SPM-274)", () => {
-  function reservation(eventId: string, eventDate: string, quantityReserved: number): EventReservation {
-    return { eventId, eventName: `Event ${eventId}`, eventStatus: "Planning", eventDate, quantityReserved };
-  }
-
-  it("AC7: saves units out of service that leave fewer in service than an upcoming event holds, and names the event", async () => {
-    const { useCase, equipment, id } = await build([reservation("A", "2026-11-15", 5)]);
-
-    const result = await useCase.execute({ equipmentItemId: id, quantity: 6, location: "Store A", outOfService: 2 });
-
-    await expect(equipment.findById(id)).resolves.toMatchObject({ outOfService: 2 });
-    expect(result.overheld).toEqual([
-      { eventId: "A", eventName: "Event A", eventDate: "2026-11-15", reserved: 5, held: 5 },
-    ]);
-  });
-
-  it("AC7: names nothing while what is in service still covers every upcoming event", async () => {
-    const { useCase, id } = await build([reservation("A", "2026-11-15", 4)]);
-
-    const result = await useCase.execute({ equipmentItemId: id, quantity: 6, location: "Store A", outOfService: 2 });
-
-    expect(result.overheld).toEqual([]);
-  });
-
-  it("AC7: judges which events are upcoming by today's date in Singapore", async () => {
-    const { useCase, id } = await build([reservation("today", "2026-11-10", 5), reservation("yesterday", "2026-11-09", 5)]);
-
-    const result = await useCase.execute({ equipmentItemId: id, quantity: 6, location: "Store A", outOfService: 6 });
-
-    expect(result.overheld.map((event) => event.eventId)).toEqual(["today"]);
   });
 });

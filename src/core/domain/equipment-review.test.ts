@@ -8,7 +8,7 @@ import {
   attentionReason,
   awaitsDecision,
   equipmentQueueOf,
-  eventsHoldingMoreThanInService,
+  daysShortOfService,
   holdsOverlap,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
@@ -385,47 +385,82 @@ describe("attentionReason (SPM-274)", () => {
   });
 });
 
-describe("eventsHoldingMoreThanInService (SPM-274)", () => {
+describe("daysShortOfService (SPM-274)", () => {
   const TODAY = "2026-11-10";
 
-  function reservation(eventId: string, eventDate: string | null, quantityReserved: number, overrides: Partial<EventReservation> = {}): EventReservation {
+  function reservation(
+    eventId: string,
+    eventDate: string | null,
+    quantityReserved: number,
+    overrides: Partial<EventReservation> = {},
+  ): EventReservation {
     return { eventId, eventName: `Event ${eventId}`, eventStatus: "Planning", eventDate, quantityReserved, ...overrides };
   }
 
-  it("AC7: lists an upcoming event that has reserved more than is in service", () => {
-    expect(eventsHoldingMoreThanInService(4, [reservation("A", "2026-11-15", 6)], TODAY)).toEqual([
-      { eventId: "A", eventName: "Event A", eventDate: "2026-11-15", reserved: 6, held: 6 },
+  const event = (eventId: string, eventDate: string, quantityReserved: number) => ({
+    eventId,
+    eventName: `Event ${eventId}`,
+    eventDate,
+    quantityReserved,
+  });
+
+  it("AC7: a day is short when the events whose units are out that day hold more than is in service", () => {
+    const reservations = [reservation("A", "2026-11-20", 6), reservation("B", "2026-11-21", 2)];
+
+    expect(daysShortOfService(7, reservations, TODAY)).toEqual([
+      { from: "2026-11-20", to: "2026-11-20", reserved: 8, events: [event("A", "2026-11-20", 6), event("B", "2026-11-21", 2)] },
     ]);
   });
 
-  it("AC7: counts what events a day either side hold with it", () => {
-    const reservations = [reservation("A", "2026-11-15", 3), reservation("B", "2026-11-16", 2), reservation("C", "2026-11-18", 4)];
+  it("AC7: an event's units are out only on the day before it and on its date", () => {
+    const reservations = [
+      reservation("A", "2026-11-14", 3),
+      reservation("B", "2026-11-15", 2),
+      reservation("C", "2026-11-16", 1),
+      reservation("D", "2026-11-17", 5),
+    ];
 
-    expect(eventsHoldingMoreThanInService(4, reservations, TODAY).map((event) => [event.eventId, event.held])).toEqual([
-      ["A", 5],
-      ["B", 5],
+    expect(daysShortOfService(4, reservations, TODAY).map((run) => [run.from, run.to, run.reserved])).toEqual([
+      ["2026-11-14", "2026-11-14", 5],
+      ["2026-11-16", "2026-11-16", 6],
+      ["2026-11-17", "2026-11-17", 5],
     ]);
   });
 
-  it("AC7: lists nothing when exactly what is in service is held, and the event once one more is", () => {
-    expect(eventsHoldingMoreThanInService(5, [reservation("A", "2026-11-15", 5)], TODAY)).toEqual([]);
-    expect(eventsHoldingMoreThanInService(4, [reservation("A", "2026-11-15", 5)], TODAY)).toHaveLength(1);
+  it("AC7: merges back-to-back days with the same events into one run", () => {
+    expect(daysShortOfService(5, [reservation("A", "2026-11-20", 6)], TODAY)).toEqual([
+      { from: "2026-11-19", to: "2026-11-20", reserved: 6, events: [event("A", "2026-11-20", 6)] },
+    ]);
   });
 
-  it("AC7: an event today is upcoming, one yesterday is not", () => {
-    const reservations = [reservation("today", TODAY, 5), reservation("yesterday", "2026-11-09", 5)];
+  it("AC7: keeps back-to-back days apart when different events are out", () => {
+    const reservations = [reservation("A", "2026-11-20", 6), reservation("B", "2026-11-21", 2)];
 
-    expect(eventsHoldingMoreThanInService(1, reservations, TODAY).map((event) => event.eventId)).toEqual(["today"]);
+    expect(daysShortOfService(5, reservations, TODAY).map((run) => [run.from, run.to, run.reserved])).toEqual([
+      ["2026-11-19", "2026-11-19", 6],
+      ["2026-11-20", "2026-11-20", 8],
+    ]);
+  });
+
+  it("AC7: exactly what is in service is not short; one more is", () => {
+    expect(daysShortOfService(5, [reservation("A", "2026-11-20", 5)], TODAY)).toEqual([]);
+    expect(daysShortOfService(4, [reservation("A", "2026-11-20", 5)], TODAY)).toHaveLength(1);
+  });
+
+  it("AC7: counts days from today on, including today", () => {
+    expect(daysShortOfService(0, [reservation("A", "2026-11-11", 1)], TODAY)).toEqual([
+      { from: "2026-11-10", to: "2026-11-11", reserved: 1, events: [event("A", "2026-11-11", 1)] },
+    ]);
+    expect(daysShortOfService(0, [reservation("A", "2026-11-09", 1)], TODAY)).toEqual([]);
   });
 
   it("AC7: leaves out undated events, and Completed or Cancelled events' reservations", () => {
     const reservations = [
-      reservation("A", "2026-11-15", 3),
       reservation("undated", null, 9),
       reservation("cancelled", "2026-11-15", 9, { eventStatus: "Cancelled" }),
       reservation("completed", "2026-11-15", 9, { eventStatus: "Completed" }),
     ];
 
-    expect(eventsHoldingMoreThanInService(3, reservations, TODAY)).toEqual([]);
+    expect(daysShortOfService(3, reservations, TODAY)).toEqual([]);
   });
 });

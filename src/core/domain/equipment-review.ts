@@ -236,44 +236,77 @@ export interface EventReservation extends EquipmentHold {
   readonly eventName: string;
 }
 
-/** SPM-274 AC7: an upcoming event that, with the events over its days, holds more than is in service. */
-export interface OverheldEvent {
+/** SPM-274 AC7: an event whose reserved units are out on a short day. */
+export interface ShortDayEvent {
   readonly eventId: string;
   readonly eventName: string;
   /** ISO calendar date, `YYYY-MM-DD`. */
   readonly eventDate: string;
-  /** What it has reserved itself. */
-  readonly reserved: number;
-  /** What it and every active event over overlapping days have reserved together. */
-  readonly held: number;
+  readonly quantityReserved: number;
 }
 
 /**
- * SPM-274 AC7: after a type's stock changes, the upcoming events (dated today
- * or later) that now hold more than is in service -- those for which what
- * they and every other active event over overlapping days have reserved
- * comes to more than the units in service. Soonest first.
+ * SPM-274 AC7: one day, or a run of back-to-back days, on which more units
+ * of a type are reserved than are in service -- with the same events out on
+ * each day of the run.
  */
-export function eventsHoldingMoreThanInService(
+export interface ShortDays {
+  /** ISO calendar dates, `YYYY-MM-DD`; the same for a single day. */
+  readonly from: string;
+  readonly to: string;
+  /** What the events out on those days have reserved between them. */
+  readonly reserved: number;
+  readonly events: readonly ShortDayEvent[];
+}
+
+function isoDate(day: number): string {
+  return new Date(day * 86_400_000).toISOString().slice(0, 10);
+}
+
+/**
+ * SPM-274 AC7: the days, from today on, on which more units of a type are out
+ * than are in service. An event's units are out on the day before it, when
+ * they are collected, and on its date, when they come back (#5, #113), so a
+ * day counts what active events on that day and the next have reserved.
+ * Back-to-back days with the same events out are merged into one run.
+ * Soonest first.
+ */
+export function daysShortOfService(
   inService: number,
   reservations: readonly EventReservation[],
   today: string,
-): OverheldEvent[] {
+): ShortDays[] {
   const active = reservations.filter(
     (reservation): reservation is EventReservation & { readonly eventDate: string } =>
       isActiveEvent(reservation.eventStatus) && reservation.eventDate !== null,
   );
-  return active
-    .filter((reservation) => reservation.eventDate >= today)
-    .map((reservation) => ({
-      eventId: reservation.eventId,
-      eventName: reservation.eventName,
-      eventDate: reservation.eventDate,
-      reserved: reservation.quantityReserved,
-      held: active
-        .filter((other) => holdsOverlap(reservation.eventDate, other.eventDate))
-        .reduce((total, other) => total + other.quantityReserved, 0),
-    }))
-    .filter((event) => event.held > inService)
-    .sort((a, b) => a.eventDate.localeCompare(b.eventDate) || a.eventName.localeCompare(b.eventName));
+  const first = dayNumber(today);
+  const days = [...new Set(active.flatMap(({ eventDate }) => [dayNumber(eventDate) - 1, dayNumber(eventDate)]))]
+    .filter((day) => day >= first)
+    .sort((a, b) => a - b);
+
+  const runs: (ShortDays & { readonly last: number; readonly key: string })[] = [];
+  for (const day of days) {
+    const out = active
+      .filter(({ eventDate }) => dayNumber(eventDate) === day || dayNumber(eventDate) === day + 1)
+      .sort((a, b) => a.eventDate.localeCompare(b.eventDate) || a.eventName.localeCompare(b.eventName));
+    const reserved = out.reduce((total, { quantityReserved }) => total + quantityReserved, 0);
+    if (reserved <= inService) {
+      continue;
+    }
+    const events = out.map(({ eventId, eventName, eventDate, quantityReserved }) => ({
+      eventId,
+      eventName,
+      eventDate,
+      quantityReserved,
+    }));
+    const key = events.map((event) => `${event.eventId}:${event.quantityReserved}`).join(",");
+    const previous = runs.at(-1);
+    if (previous !== undefined && previous.last === day - 1 && previous.key === key) {
+      runs[runs.length - 1] = { ...previous, to: isoDate(day), last: day };
+    } else {
+      runs.push({ from: isoDate(day), to: isoDate(day), reserved, events, last: day, key });
+    }
+  }
+  return runs.map(({ from, to, reserved, events }) => ({ from, to, reserved, events }));
 }

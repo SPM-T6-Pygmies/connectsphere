@@ -19,7 +19,7 @@ export class InMemoryEquipmentCatalogue implements EquipmentCatalogue {
   /** `reservations` are keyed by item id -- `equipment-1` for the first item seeded, and so on. */
   constructor(
     seed: readonly NewEquipmentItem[] = [],
-    private readonly reservations: Readonly<Record<string, readonly EventReservation[]>> = {},
+    private readonly seededReservations: Readonly<Record<string, readonly EventReservation[]>> = {},
   ) {
     for (const item of seed) {
       void this.insert(item);
@@ -45,8 +45,8 @@ export class InMemoryEquipmentCatalogue implements EquipmentCatalogue {
     this.rows.set(item.id, item);
   }
 
-  async reservationsOf(id: EquipmentItemId): Promise<readonly EventReservation[]> {
-    return this.reservations[id] ?? [];
+  async reservations(): Promise<ReadonlyMap<EquipmentItemId, readonly EventReservation[]>> {
+    return new Map(Object.entries(this.seededReservations).map(([id, held]) => [equipmentItemId(id), held]));
   }
 
   private insert(item: NewEquipmentItem): EquipmentItem {

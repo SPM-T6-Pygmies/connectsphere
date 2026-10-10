@@ -9,7 +9,7 @@ import { toKey } from "./coordinator-event-mapper";
 import {
   toEquipmentCatalogueError,
   toEquipmentItem,
-  toEventReservation,
+  toEventReservations,
   type EquipmentCatalogueItemRow,
   type EquipmentReservationRow,
 } from "./equipment-catalogue-mapper";
@@ -92,26 +92,19 @@ export class SupabaseEquipmentCatalogue implements EquipmentCatalogue {
     }
   }
 
-  async reservationsOf(id: EquipmentItemId): Promise<readonly EventReservation[]> {
-    const key = toKey(id);
-    if (key === null) {
-      // An id this store could never have issued has nothing reserved against it.
-      return [];
-    }
-
+  async reservations(): Promise<ReadonlyMap<EquipmentItemId, readonly EventReservation[]>> {
     const { data, error } = await this.client.rpc("technical_support_equipment_reservations", {
       p_user_account_id: this.actorKey(),
-      p_equipment_item_id: key,
     });
 
     if (error) {
       throw (
         toEquipmentCatalogueError(error) ??
-        new Error(`Failed to read equipment item ${id}'s reservations: ${error.message}`, { cause: error })
+        new Error(`Failed to read the equipment reservations: ${error.message}`, { cause: error })
       );
     }
 
-    return ((data ?? []) as unknown as EquipmentReservationRow[]).map(toEventReservation);
+    return toEventReservations((data ?? []) as unknown as EquipmentReservationRow[]);
   }
 
   private actorKey(): number {

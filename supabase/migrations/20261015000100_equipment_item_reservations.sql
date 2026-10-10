@@ -1,11 +1,12 @@
--- SPM-274 AC7: every event's reservation of one equipment item, so a save on
--- the Equipment page can say which upcoming events now hold more than is in
--- service. Which of them overlap, and which are upcoming, is the domain's call
--- (eventsHoldingMoreThanInService), as for the availability figure.
+-- SPM-274 AC7: every event's reservation of every equipment item, so each card
+-- on the Equipment page can say on which days, from today on, more units are
+-- reserved than are in service -- whenever the page loads, not only after a
+-- save. Which days are short, and which are upcoming, is the domain's call
+-- (daysShortOfService), as for the availability figure.
 --
---   technical_support_equipment_reservations(p_user_account_id, p_equipment_item_id)
---     One row per event line with units of the item reserved, whatever the
---     event's status: the event's id, name, status and date, and how many.
+--   technical_support_equipment_reservations(p_user_account_id)
+--     One row per event line with units reserved, whatever the event's status:
+--     the item, the event's id, name, status and date, and how many.
 --
 -- Custom SQLSTATE, translated back into a DomainError by the adapter:
 --   CS040  the account does not hold the Technical Support Staff role
@@ -17,10 +18,10 @@
 begin;
 
 create function public.technical_support_equipment_reservations(
-  p_user_account_id   bigint,
-  p_equipment_item_id bigint
+  p_user_account_id bigint
 )
 returns table (
+  equipment_item_id bigint,
   event_id          bigint,
   event_name        text,
   status            text,
@@ -45,17 +46,16 @@ begin
   end if;
 
   return query
-  select e.event_id, e.name, e.status, e.preferred_date, l.quantity_reserved
+  select l.equipment_item_id, e.event_id, e.name, e.status, e.preferred_date, l.quantity_reserved
   from public.equipment_reservation_line l
   join public.equipment_reservation r on r.equipment_reservation_id = l.equipment_reservation_id
   join public.event e on e.event_id = r.event_id
-  where l.equipment_item_id = p_equipment_item_id
-    and l.quantity_reserved > 0
-  order by e.preferred_date nulls last, e.name;
+  where l.quantity_reserved > 0
+  order by l.equipment_item_id, e.preferred_date nulls last, e.name;
 end;
 $$;
 
-revoke execute on function public.technical_support_equipment_reservations(bigint, bigint) from public;
-grant execute on function public.technical_support_equipment_reservations(bigint, bigint) to anon, authenticated;
+revoke execute on function public.technical_support_equipment_reservations(bigint) from public;
+grant execute on function public.technical_support_equipment_reservations(bigint) to anon, authenticated;
 
 commit;

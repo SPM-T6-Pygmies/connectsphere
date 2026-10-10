@@ -1,5 +1,5 @@
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
-import { equipmentItemId, type EquipmentItem } from "@/core/domain/equipment-item";
+import { equipmentItemId, type EquipmentItem, type EquipmentItemId } from "@/core/domain/equipment-item";
 import type { EventReservation } from "@/core/domain/equipment-review";
 import {
   EquipmentItemNotFoundError,
@@ -32,6 +32,7 @@ export function toEquipmentItem(row: EquipmentCatalogueItemRow): EquipmentItem {
 
 /** A row of `technical_support_equipment_reservations` (SPM-274 AC7). */
 export interface EquipmentReservationRow {
+  equipment_item_id: number;
   event_id: number;
   event_name: string;
   status: CoordinatorEventStatus;
@@ -39,14 +40,25 @@ export interface EquipmentReservationRow {
   quantity_reserved: number;
 }
 
-export function toEventReservation(row: EquipmentReservationRow): EventReservation {
-  return {
-    eventId: String(row.event_id),
-    eventName: row.event_name,
-    eventStatus: row.status,
-    eventDate: row.preferred_date,
-    quantityReserved: row.quantity_reserved,
-  };
+/** The rows of `technical_support_equipment_reservations`, grouped by item. */
+export function toEventReservations(
+  rows: readonly EquipmentReservationRow[],
+): ReadonlyMap<EquipmentItemId, readonly EventReservation[]> {
+  const byItem = new Map<EquipmentItemId, EventReservation[]>();
+  for (const row of rows) {
+    const id = equipmentItemId(String(row.equipment_item_id));
+    byItem.set(id, [
+      ...(byItem.get(id) ?? []),
+      {
+        eventId: String(row.event_id),
+        eventName: row.event_name,
+        eventStatus: row.status,
+        eventDate: row.preferred_date,
+        quantityReserved: row.quantity_reserved,
+      },
+    ]);
+  }
+  return byItem;
 }
 
 /**

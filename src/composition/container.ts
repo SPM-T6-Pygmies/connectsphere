@@ -856,7 +856,7 @@ async function buildEquipmentCatalogue(): Promise<EquipmentCatalogue> {
 }
 
 export async function buildListEquipmentCatalogue(): Promise<ListEquipmentCatalogueUseCase> {
-  return new ListEquipmentCatalogueUseCase({ equipment: await buildEquipmentCatalogue() });
+  return new ListEquipmentCatalogueUseCase({ equipment: await buildEquipmentCatalogue(), clock: systemClock });
 }
 
 export async function buildCreateEquipmentItem(): Promise<CreateEquipmentItemUseCase> {
@@ -864,5 +864,5 @@ export async function buildCreateEquipmentItem(): Promise<CreateEquipmentItemUse
 }
 
 export async function buildUpdateEquipmentStock(): Promise<UpdateEquipmentStockUseCase> {
-  return new UpdateEquipmentStockUseCase({ equipment: await buildEquipmentCatalogue(), clock: systemClock });
+  return new UpdateEquipmentStockUseCase({ equipment: await buildEquipmentCatalogue() });
 }

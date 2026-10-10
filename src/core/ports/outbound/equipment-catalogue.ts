@@ -20,6 +20,9 @@ export interface EquipmentCatalogue {
   create(item: NewEquipmentItem): Promise<EquipmentItem>;
   /** Persists a change to an existing line; the store has already given it an id. */
   save(item: EquipmentItem): Promise<void>;
-  /** Every event's reservation of the item, whatever the event's status (SPM-274 AC7). */
-  reservationsOf(id: EquipmentItemId): Promise<readonly EventReservation[]>;
+  /**
+   * Every event's reservation of each item, whatever the event's status, keyed
+   * by item (SPM-274 AC7). An item nothing is reserved of has no entry.
+   */
+  reservations(): Promise<ReadonlyMap<EquipmentItemId, readonly EventReservation[]>>;
 }

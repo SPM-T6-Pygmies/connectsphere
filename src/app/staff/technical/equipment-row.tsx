@@ -10,14 +10,15 @@ import { Input } from "@/components/ui/input";
 import type { EquipmentCatalogueEntry } from "@/core/use-cases/list-equipment-catalogue";
 
 import { updateEquipmentStockAction, type EquipmentFormState } from "./actions";
+import { shortDaysText } from "./short-days-text";
 
 const INITIAL: EquipmentFormState = { status: "idle" };
 
 /**
  * One catalogue item as a card, with how many are owned, where they are kept
  * and how many are out of service editable in place (SPM-40 AC2, SPM-17 AC1),
- * and how many are in service (SPM-17 AC3). After a save that leaves fewer in
- * service than upcoming events hold, it names them (SPM-274 AC7).
+ * and how many are in service (SPM-17 AC3). While upcoming events have more
+ * reserved than is in service on some days, it lists those days (SPM-274 AC7).
  */
 export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
   const [state, formAction, pending] = useActionState(updateEquipmentStockAction, INITIAL);
@@ -82,16 +83,13 @@ export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
               </label>
             </div>
 
-            {state.status === "success" && state.overheld && state.overheld.length > 0 ? (
+            {item.shortDays.length > 0 ? (
               <Alert variant="warning" className="px-2 py-1.5 text-xs">
-                <AlertTitle className="text-xs">Fewer in service than these events hold</AlertTitle>
+                <AlertTitle className="text-xs">Not enough in service on these dates</AlertTitle>
                 <AlertDescription className="text-xs">
                   <ul>
-                    {state.overheld.map((event) => (
-                      <li key={event.eventId}>
-                        {`${event.eventName} (${event.eventDate}): ${event.held} held over its days`}
-                        {event.held === event.reserved ? null : ` (${event.reserved} its own)`}
-                      </li>
+                    {item.shortDays.map((run) => (
+                      <li key={run.from}>{shortDaysText(run, item.inService)}</li>
                     ))}
                   </ul>
                 </AlertDescription>
