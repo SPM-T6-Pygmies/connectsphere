@@ -9,7 +9,6 @@ import {
   awaitsDecision,
   equipmentQueueOf,
   daysShortOfService,
-  holdsOverlap,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
   reserveEquipmentLine,
@@ -131,30 +130,39 @@ describe("equipmentQueueOf (SPM-273)", () => {
   });
 });
 
-describe("holdsOverlap (SPM-273)", () => {
-  it.each([
-    ["2026-11-13", false],
-    ["2026-11-14", true],
-    ["2026-11-15", true],
-    ["2026-11-16", true],
-    ["2026-11-17", false],
-  ])("AC4: an event on 15 Nov and one on %s share days: %s", (other, overlaps) => {
-    expect(holdsOverlap("2026-11-15", other)).toBe(overlaps);
-  });
-
-  it("AC4: counts days across a month and a year end", () => {
-    expect(holdsOverlap("2026-11-30", "2026-12-01")).toBe(true);
-    expect(holdsOverlap("2026-12-31", "2027-01-01")).toBe(true);
-    expect(holdsOverlap("2026-12-31", "2027-01-02")).toBe(false);
-  });
-});
-
 describe("unitsAvailable (SPM-273)", () => {
   function hold(overrides: Partial<EquipmentHold> = {}): EquipmentHold {
     return { eventStatus: "Planning", eventDate: "2026-11-15", quantityReserved: 1, ...overrides };
   }
 
-  it("AC4: subtracts what events the day before, the same day and the day after hold, and nothing further out", () => {
+  it("AC4: on the day before, events that day and on the event's date have units out", () => {
+    const holds = [
+      hold({ eventDate: "2026-11-14", quantityReserved: 3 }),
+      hold({ eventDate: "2026-11-15", quantityReserved: 2 }),
+    ];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(5);
+  });
+
+  it("AC4: on the event's date, events that day and the day after have units out", () => {
+    const holds = [
+      hold({ eventDate: "2026-11-15", quantityReserved: 2 }),
+      hold({ eventDate: "2026-11-16", quantityReserved: 1 }),
+    ];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(7);
+  });
+
+  it("AC4: events the day before and the day after are never out on the same day, so only the busier day counts", () => {
+    const holds = [
+      hold({ eventDate: "2026-11-14", quantityReserved: 6 }),
+      hold({ eventDate: "2026-11-16", quantityReserved: 6 }),
+    ];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(4);
+  });
+
+  it("AC4: subtracts whichever of the event's two days has more out, and nothing further out", () => {
     const holds = [
       hold({ eventDate: "2026-11-13", quantityReserved: 7 }),
       hold({ eventDate: "2026-11-14", quantityReserved: 3 }),
@@ -163,7 +171,25 @@ describe("unitsAvailable (SPM-273)", () => {
       hold({ eventDate: "2026-11-17", quantityReserved: 5 }),
     ];
 
-    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(4);
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(5);
+  });
+
+  it("AC4: events two days before or after have no units out on either day", () => {
+    const holds = [
+      hold({ eventDate: "2026-11-13", quantityReserved: 7 }),
+      hold({ eventDate: "2026-11-17", quantityReserved: 5 }),
+    ];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(10);
+  });
+
+  it("AC4: counts days across a year end", () => {
+    const holds = [
+      hold({ eventDate: "2026-12-31", quantityReserved: 3 }),
+      hold({ eventDate: "2027-01-02", quantityReserved: 4 }),
+    ];
+
+    expect(unitsAvailable(10, 0, "2027-01-01", holds)).toBe(6);
   });
 
   it("AC4: everything owned is available when no other event holds any", () => {

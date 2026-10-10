@@ -81,18 +81,26 @@ function dayNumber(isoDate: string): number {
 /**
  * Equipment for an event on day D is collected on D-1 and is available again
  * from Return Day + 1, the return day being the event's date (#5, #113). So
- * two events hold the same units over days they share exactly when they are at
- * most one day apart.
+ * on any day, the units out are what active events on that day and the next
+ * have reserved.
  */
-export function holdsOverlap(eventDate: string, otherEventDate: string): boolean {
-  return Math.abs(dayNumber(eventDate) - dayNumber(otherEventDate)) <= 1;
+function unitsOutOn(day: number, holds: readonly EquipmentHold[]): number {
+  return holds
+    .filter(
+      (hold) =>
+        isActiveEvent(hold.eventStatus) &&
+        hold.eventDate !== null &&
+        (dayNumber(hold.eventDate) === day || dayNumber(hold.eventDate) === day + 1),
+    )
+    .reduce((total, hold) => total + hold.quantityReserved, 0);
 }
 
 /**
  * AC4: how many units of a type are free for an event -- the number owned,
- * less those out of service (SPM-17 AC4), less what other active events hold
- * over overlapping days. Null when the event has no date yet, since there is
- * nothing to compare against.
+ * less those out of service (SPM-17 AC4), less what other events have out on
+ * whichever of the event's two days, the day before it and its date, has more
+ * out. Null when the event has no date yet, since there is nothing to compare
+ * against.
  */
 export function unitsAvailable(
   owned: number,
@@ -103,12 +111,8 @@ export function unitsAvailable(
   if (eventDate === null) {
     return null;
   }
-  const held = otherHolds
-    .filter(
-      (hold) => isActiveEvent(hold.eventStatus) && hold.eventDate !== null && holdsOverlap(eventDate, hold.eventDate),
-    )
-    .reduce((total, hold) => total + hold.quantityReserved, 0);
-  return owned - outOfService - held;
+  const day = dayNumber(eventDate);
+  return owned - outOfService - Math.max(unitsOutOn(day - 1, otherHolds), unitsOutOn(day, otherHolds));
 }
 
 /**

@@ -142,7 +142,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
     expect(result?.lines[0]).toMatchObject({ attention: "removalRequested", reservedAs: null });
   });
 
-  it("AC4: counts what other active events one day either side hold against the units owned", async () => {
+  it("AC4: counts what other active events have out on the busier of the event's two days against the units owned", async () => {
     const result = await view([
       event([
         stock({
@@ -159,7 +159,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
       ]),
     ]);
 
-    expect(result?.lines[0]?.available).toBe(4);
+    expect(result?.lines[0]?.available).toBe(5);
   });
 
   it("AC4: gives no number for an event with no date yet", async () => {
