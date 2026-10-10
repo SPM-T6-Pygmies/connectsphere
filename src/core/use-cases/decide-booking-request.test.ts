@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { InMemoryBookingRepository } from "@/adapters/outbound/in-memory/in-memory-booking-repository";
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
+import {
+  InMemoryBookingRepository,
+  type StoredBooking,
+} from "@/adapters/outbound/in-memory/in-memory-booking-repository";
 import { InMemoryBookingReviewRepository } from "@/adapters/outbound/in-memory/in-memory-booking-review-repository";
 import { InMemorySafetyCheckWatch } from "@/adapters/outbound/in-memory/in-memory-safety-check-watch";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
@@ -56,10 +60,36 @@ function booking(
   };
 }
 
-function build(rows: BookingForReview[], safetyWatch = new InMemorySafetyCheckWatch()) {
+const NOW = new Date("2026-10-01T09:00:00+08:00");
+
+/** A Tentative Hold on b1's slot, raised for another event, that lapses at `holdExpiresAt`. */
+function holdOnSlot(holdExpiresAt: Date | null): StoredBooking {
+  return {
+    id: "hold-1",
+    eventId: "e2",
+    venueId: "v1",
+    venueLocation: "Venue v1",
+    roomLayoutName: null,
+    status: "Tentative Hold",
+    slots: [{ date: "2026-10-22", slot: "AM" }],
+    requestedBy: "c2",
+    requestedAt: "2026-09-20T00:00:00.000Z",
+    holdExpiresAt,
+  };
+}
+
+/**
+ * `holds` sit only in the booking store: Venue Staff's review rows carry no
+ * expiry, and the store releases an expired hold before it confirms.
+ */
+function build(
+  rows: BookingForReview[],
+  safetyWatch = new InMemorySafetyCheckWatch(),
+  holds: readonly StoredBooking[] = [],
+) {
   const reviews = new InMemoryBookingReviewRepository(rows, [STAFF]);
-  const bookings = new InMemoryBookingRepository(
-    rows.map((row) => ({
+  const bookings = new InMemoryBookingRepository([
+    ...rows.map((row) => ({
       id: row.id,
       eventId: "e1",
       venueId: row.venueId,
@@ -70,14 +100,20 @@ function build(rows: BookingForReview[], safetyWatch = new InMemorySafetyCheckWa
       requestedBy: "c1",
       requestedAt: row.requestedAt,
     })),
-  );
+    ...holds,
+  ]);
   const notifier = new RecordingNotifier();
   const safetyCheck = new SafetyCheckEntryAnnouncer({ watch: safetyWatch, notifier });
   return {
     reviews,
     safetyWatch,
     notifier,
-    useCase: new DecideBookingRequestUseCase({ reviews, bookings, safetyCheck }),
+    useCase: new DecideBookingRequestUseCase({
+      reviews,
+      bookings,
+      safetyCheck,
+      clock: new FixedClock(NOW),
+    }),
   };
 }
 
@@ -130,6 +166,25 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
       useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
     ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
     expect(reviews.all()[0]?.status).toBe("Requested");
+  });
+
+  it("refuses to approve a slot a hold keeps until after now", async () => {
+    const live = new Date(NOW.getTime() + 1000);
+    const { useCase, reviews } = build([booking("b1", "Requested")], undefined, [holdOnSlot(live)]);
+
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
+    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    expect(reviews.all()[0]?.status).toBe("Requested");
+  });
+
+  it("approves a slot whose only other booking is a hold that expired before now", async () => {
+    const expired = new Date(NOW.getTime() - 1000);
+    const { useCase, reviews } = build([booking("b1", "Requested")], undefined, [holdOnSlot(expired)]);
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+
+    expect(reviews.all()[0]?.status).toBe("Confirmed");
   });
 
   it("approves the second of two requests for one slot only if the first was not approved", async () => {

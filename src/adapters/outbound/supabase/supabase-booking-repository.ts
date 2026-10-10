@@ -3,6 +3,7 @@ import {
   type BookingId,
   type BookingRequest,
   type OccupiedSlot,
+  type SlotOnDate,
 } from "@/core/domain/booking";
 import {
   BookingNotFoundError,
@@ -128,7 +129,9 @@ export class SupabaseBookingRepository implements BookingRepository {
         case SLOT_TAKEN:
           throw new VenueSlotUnavailableError(await this.takenOf(request));
         case SLOT_BLOCKED:
-          throw new VenueSlotBlockedError(await this.blockedOf(request, error.message));
+          throw new VenueSlotBlockedError(
+            await this.blockedOf(request.venueId, request.slots, error.message),
+          );
         default:
           throw new Error(`Failed to submit the booking request: ${error.message}`, {
             cause: error,
@@ -187,18 +190,23 @@ export class SupabaseBookingRepository implements BookingRepository {
       request.venueId,
       [...new Set(request.slots.map(({ date }) => date))],
     );
-    return clashingSlots(request.slots, occupied);
+    return clashingSlots(request.slots, occupied, new Date());
   }
 
   /**
-   * Which of the request's slots are blocked, for a message that names them.
+   * Which of a booking's slots are blocked, for a message that names them.
    * The trigger stops at the first one; the read says them all. If a lift
-   * landed in between and nothing is blocked any more, the trigger's own
-   * message still names the slot it refused.
+   * landed in between and nothing is blocked any more, the database's own
+   * message still names the slot it refused. Venue Staff's approval reads it
+   * too (SPM-22).
    */
-  private async blockedOf(request: BookingRequest, triggerMessage: string) {
-    const key = toKey(request.venueId);
-    const dates = request.slots.map(({ date }) => date).sort();
+  async blockedOf(
+    venue: VenueId,
+    slots: readonly SlotOnDate[],
+    refusal: string,
+  ): Promise<SlotOnDate[]> {
+    const key = toKey(venue);
+    const dates = slots.map(({ date }) => date).sort();
     if (key !== null && dates.length > 0) {
       const { data } = await this.client.rpc("venue_blocked_slots", {
         p_venue_id: key,
@@ -210,13 +218,13 @@ export class SupabaseBookingRepository implements BookingRepository {
           ({ date, slot }) => `${date.slice(0, 10)}|${slot}`,
         ),
       );
-      const named = request.slots.filter(({ date, slot }) => blocked.has(`${date}|${slot}`));
+      const named = slots.filter(({ date, slot }) => blocked.has(`${date}|${slot}`));
       if (named.length > 0) {
         return named;
       }
     }
 
-    const fromMessage = /(\d{4}-\d{2}-\d{2}) (AM|PM|Night)/.exec(triggerMessage);
+    const fromMessage = /(\d{4}-\d{2}-\d{2}) (AM|PM|Night)/.exec(refusal);
     return fromMessage === null
       ? []
       : [{ date: fromMessage[1], slot: toSlot(fromMessage[2]) }];

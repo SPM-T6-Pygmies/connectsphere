@@ -4,6 +4,7 @@ import { userAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
 import type { BookingReviewRepository } from "../ports/outbound/booking-review-repository";
+import type { Clock } from "../ports/outbound/clock";
 import type { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
 
 export type DecideBookingRequestCommand = {
@@ -30,6 +31,7 @@ export interface DecideBookingRequestDeps {
   readonly reviews: BookingReviewRepository;
   readonly bookings: BookingRepository;
   readonly safetyCheck: Pick<SafetyCheckEntryAnnouncer, "around">;
+  readonly clock: Clock;
 }
 
 /**
@@ -52,7 +54,7 @@ export class DecideBookingRequestUseCase {
   }
 
   private async decide(command: DecideBookingRequestCommand): Promise<DecideBookingRequestResult> {
-    const { reviews, bookings } = this.deps;
+    const { reviews, bookings, clock } = this.deps;
     const staff = userAccountId(command.userAccountId);
 
     const booking = await reviews.find(staff, command.bookingId as BookingId);
@@ -73,7 +75,7 @@ export class DecideBookingRequestUseCase {
               command.suggestedAlternative === null ? null : venueId(command.suggestedAlternative),
           };
 
-    const decided = decideBooking(booking, decision, staff, occupied);
+    const decided = decideBooking(booking, decision, staff, occupied, clock.now());
     await reviews.decide(decided);
 
     return {

@@ -139,6 +139,34 @@ right-hand card.
       changed while the request is waiting for Venue Staff, and the layout is
       unchanged.
 
+### TC-VENUE-BOOK-019 An expired hold does not block a new request (SPM-46 AC4)
+
+Seed two Tentative Holds at Main Hall on 2026-12-01: AM expired an hour ago,
+PM expiring in thirty days. Holds have no UI until SPM-218.
+
+```bash
+supabase db query --file scripts/seed-booking-holds/seed.sql --local
+```
+
+- [ ] Request **Main Hall**, any layout, on **2026-12-01 AM**. It is accepted
+      and appears as **Requested**. The expired hold there holds nothing.
+
+### TC-VENUE-BOOK-020 A hold that has not expired blocks, naming the slot (SPM-46 AC4)
+
+- [ ] With the holds from TC-VENUE-BOOK-019, request **Main Hall** on
+      **2026-12-01 PM**. The page refuses it with *The venue is already booked
+      for 2026-12-01 PM. Choose other slots or another venue.* and keeps the
+      choices on the form.
+
+### TC-VENUE-BOOK-021 One event may book several venues for the same slot (SPM-46 AC5)
+
+- [ ] For the same event, request **Studio** on **2026-12-02 AM**, then
+      **Seminar Room 2-1** on **2026-12-02 AM**. Both are accepted and listed
+      as **Requested** under the one event.
+- [ ] Mark the Studio request `Confirmed` by hand (as in TC-VENUE-BOOK-005),
+      then request **Rooftop Terrace** on **2026-12-02 AM** for the same event.
+      It is accepted: a live booking at another venue does not clash.
+
 ## SPM-45: is the venue suitable for the event?
 
 Start each case from the base fixture above unless it says otherwise. The checklist only

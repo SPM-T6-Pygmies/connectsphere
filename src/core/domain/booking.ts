@@ -19,11 +19,14 @@ export type BookingSlot = "AM" | "PM" | "Night";
 /** In the order they fall in a day, which is also the order a request is shown in. */
 export const BOOKING_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
 
-/** Each slot's span as `HH:MM` wall-clock time in Singapore, as the `slot` table seeds it. */
+/**
+ * Each slot's span as `HH:MM` wall-clock time in Singapore, as the `slot` table
+ * holds it. Night ends at midnight, written `24:00` so it falls after its start.
+ */
 export const SLOT_HOURS: Readonly<Record<BookingSlot, { start: string; end: string }>> = {
   AM: { start: "07:00", end: "12:00" },
-  PM: { start: "12:00", end: "18:00" },
-  Night: { start: "18:00", end: "22:00" },
+  PM: { start: "13:00", end: "18:00" },
+  Night: { start: "19:00", end: "24:00" },
 };
 
 /**
@@ -58,6 +61,8 @@ export interface SlotOnDate {
 /** A slot some existing booking at the venue already sits on. */
 export interface OccupiedSlot extends SlotOnDate {
   readonly status: BookingStatus;
+  /** When a Tentative Hold lapses; null when none is set, and for every other status. */
+  readonly holdExpiresAt: Date | null;
 }
 
 /** A booking request as submitted, before Venue Staff have seen it. */
@@ -76,17 +81,29 @@ export interface BookingRequest {
 }
 
 /**
- * The statuses that keep a venue slot from anyone else: only one tentative
- * hold or confirmed booking per venue and slot (#41), and a clash is blocked
+ * Whether a booking keeps its slot from anyone else: only one tentative hold
+ * or confirmed booking per venue and slot (#41), and a clash is blocked
  * outright, not warned about (#35). A pending, rejected or released booking
  * holds nothing.
+ *
+ * SPM-46 AC4: a Tentative Hold holds only until `holdExpiresAt`. A hold with
+ * no expiry counts as live -- nothing creates one without an expiry until
+ * SPM-218, so this errs towards keeping the slot. The database restates the
+ * rule in `booking_holds_slot`.
  *
  * Known gap (#123): the setup and turnaround buffer slots either side of a
  * booking are not counted yet -- only the booking's own slots are. The buffer
  * rules are still open on SPM-19.
  */
-export function holdsSlot(status: BookingStatus): boolean {
-  return status === "Confirmed" || status === "Tentative Hold";
+export function holdsSlot(
+  slot: Pick<OccupiedSlot, "status" | "holdExpiresAt">,
+  now: Date,
+): boolean {
+  return (
+    slot.status === "Confirmed" ||
+    (slot.status === "Tentative Hold" &&
+      (slot.holdExpiresAt === null || slot.holdExpiresAt > now))
+  );
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -184,12 +201,13 @@ export function chooseLayoutChange(
   return chooseRoomLayout(venue, requested);
 }
 
-/** The requested slots that an existing hold or confirmed booking already has. */
+/** The requested slots that a live hold or confirmed booking already has at `now`. */
 export function clashingSlots(
   requested: readonly SlotOnDate[],
   occupied: readonly OccupiedSlot[],
+  now: Date,
 ): SlotOnDate[] {
-  const taken = new Set(occupied.filter((o) => holdsSlot(o.status)).map(slotKey));
+  const taken = new Set(occupied.filter((o) => holdsSlot(o, now)).map(slotKey));
   return requested.filter((slot) => taken.has(slotKey(slot)));
 }
 
@@ -198,9 +216,9 @@ export function clashingSlots(
  * slots across one or more days, for one event.
  *
  * `occupied` is what the venue already carries on the requested days. A clash
- * with a hold or confirmed booking refuses the request outright (#35, #41);
- * clashing with another pending request does not, because nothing is decided
- * yet.
+ * with a live hold or confirmed booking refuses the request outright (#35,
+ * #41); clashing with another pending request, or a hold that expired before
+ * `now`, does not.
  */
 export function requestVenueBooking(input: {
   readonly eventId: string;
@@ -209,6 +227,7 @@ export function requestVenueBooking(input: {
   readonly slots: readonly SlotOnDate[];
   readonly requestedBy: UserAccountId;
   readonly occupied: readonly OccupiedSlot[];
+  readonly now: Date;
 }): BookingRequest {
   if (input.slots.length === 0) {
     throw new NoBookingSlotsError();
@@ -228,7 +247,7 @@ export function requestVenueBooking(input: {
 
   const roomLayout = chooseRoomLayout(input.venue, input.roomLayout);
 
-  const clashes = clashingSlots(input.slots, input.occupied);
+  const clashes = clashingSlots(input.slots, input.occupied, input.now);
   if (clashes.length > 0) {
     throw new VenueSlotUnavailableError([...clashes].sort(compareSlots));
   }
@@ -285,13 +304,14 @@ export function decideBooking(
   decision: BookingDecision,
   decidedBy: UserAccountId,
   occupied: readonly OccupiedSlot[],
+  now: Date,
 ): DecidedBooking {
   if (booking.status !== "Requested") {
     throw new BookingNotDecidableError();
   }
 
   if (decision.kind === "approve") {
-    const clashes = clashingSlots(booking.slots, occupied);
+    const clashes = clashingSlots(booking.slots, occupied, now);
     if (clashes.length > 0) {
       throw new VenueSlotUnavailableError([...clashes].sort(compareSlots));
     }
