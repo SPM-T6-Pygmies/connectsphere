@@ -978,6 +978,27 @@ export class InvalidEventDetailsError extends DomainError {
   }
 }
 
+/**
+ * SPM-51: only a Confirmed event can be marked completed. Distinct from
+ * `EventAlreadyCompletedError`, which is the Attendee's withdrawal wording.
+ */
+export class EventNotCompletableError extends DomainError {
+  readonly code = "event_not_completable";
+
+  constructor(readonly status: string) {
+    super(`An event with status ${status} cannot be marked completed.`);
+  }
+}
+
+/** SPM-51: an event can be marked completed only once its last timeslot has ended. */
+export class EventNotYetEndedError extends DomainError {
+  readonly code = "event_not_yet_ended";
+
+  constructor() {
+    super("This event can be marked completed only after its last timeslot ends.");
+  }
+}
+
 /** SPM-25: a Completed or Cancelled event's registration settings are read-only. */
 export class EventRegistrationLockedError extends DomainError {
   readonly code = "event_registration_locked";

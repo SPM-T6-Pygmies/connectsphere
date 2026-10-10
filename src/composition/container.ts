@@ -54,6 +54,7 @@ import { SetEventRegistrationUseCase } from "@/core/use-cases/set-event-registra
 import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-required-facilities";
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
+import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
@@ -626,7 +627,13 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
   const { events, readiness, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
-  return new ViewCoordinatorEventUseCase({ events, readiness, clientOrganisations, userAccounts });
+  return new ViewCoordinatorEventUseCase({
+    events,
+    readiness,
+    clientOrganisations,
+    userAccounts,
+    clock: systemClock,
+  });
 }
 
 /** SPM-50: the assigned coordinator confirms an event once nothing essential is left incomplete. */
@@ -634,6 +641,13 @@ export async function buildConfirmEvent(): Promise<ConfirmEventUseCase> {
   const { events, readiness } = await coordinatorAdapters();
 
   return new ConfirmEventUseCase({ events, readiness });
+}
+
+/** SPM-51: the assigned coordinator marks a Confirmed event completed once it has ended. */
+export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
+  const { events } = await coordinatorAdapters();
+
+  return new CompleteEventUseCase({ events, clock: systemClock });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */
