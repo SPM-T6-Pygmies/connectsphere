@@ -20,6 +20,7 @@ import { detailCrumbs } from "../../../detail-origin";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { ARRANGEMENT_LABELS } from "./arrangement-labels";
+import { CompleteForm } from "./complete-form";
 import { ConfirmForm } from "./confirm-form";
 import { EquipmentSection } from "./equipment-section";
 import { EVENT_TABS, type EventTab } from "./event-tab-names";
@@ -74,8 +75,16 @@ export default async function CoordinatorEventPage({
     forbidden();
   }
 
-  const { event, details, clientOrganisationName, owningOrganiserName, readiness, confirmation, blockingArrangements } =
-    result;
+  const {
+    event,
+    details,
+    clientOrganisationName,
+    owningOrganiserName,
+    readiness,
+    confirmation,
+    blockingArrangements,
+    canComplete,
+  } = result;
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
 
   return (
@@ -151,6 +160,14 @@ export default async function CoordinatorEventPage({
 
               {confirmation === "ready" || confirmation === "blocked-by-arrangements" ? (
                 <ConfirmForm eventId={event.id} canConfirm={confirmation === "ready"} />
+              ) : null}
+
+              {event.status === "Confirmed" ? (
+                <CompleteForm
+                  eventId={event.id}
+                  canComplete={canComplete}
+                  operationalNotes={details.operationalNotes}
+                />
               ) : null}
             </CardContent>
           </Card>

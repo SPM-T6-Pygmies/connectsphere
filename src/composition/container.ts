@@ -621,7 +621,13 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
   const { events, readiness, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
-  return new ViewCoordinatorEventUseCase({ events, readiness, clientOrganisations, userAccounts });
+  return new ViewCoordinatorEventUseCase({
+    events,
+    readiness,
+    clientOrganisations,
+    userAccounts,
+    clock: systemClock,
+  });
 }
 
 /** SPM-50: the assigned coordinator confirms an event once nothing essential is left incomplete. */
