@@ -17,9 +17,10 @@ with organisation as (
   select client_organisation_id from public.user_account where name = 'Test Organiser'
 ),
 expected_items (type, expected) as (
-  values ('Wireless presenter', '6 owned, 0 out of service'),
-         ('Confidence monitor', '3 owned, 0 out of service'),
-         ('Lapel microphone',   '10 owned, 0 out of service')
+  values ('Presentation laptop', '8 owned, 0 out of service'),
+         ('PA speaker',          '5 owned, 0 out of service'),
+         ('Wireless microphone', '30 owned, 0 out of service'),
+         ('Projector',           '10 owned, 0 out of service')
 ),
 expected_events (name, expected) as (
   values ('Design Sprint Demo', '2026-11-20 Planning'),
@@ -28,12 +29,12 @@ expected_events (name, expected) as (
          ('Press Briefing',     'no date Planning')
 ),
 expected_lines (event, type, expected) as (
-  values ('Design Sprint Demo', 'Wireless presenter', '4/0 Requested'),
-         ('Design Sprint Demo', 'Confidence monitor', '2/0 Requested'),
-         ('Sales Kickoff',      'Wireless presenter', '3/0 Requested'),
-         ('Sales Kickoff',      'Lapel microphone',   '2/0 Requested'),
-         ('Board Offsite',      'Confidence monitor', '2/0 Requested'),
-         ('Press Briefing',     'Wireless presenter', '1/0 Requested')
+  values ('Design Sprint Demo', 'Presentation laptop', '6/0 Requested'),
+         ('Design Sprint Demo', 'PA speaker',          '3/0 Requested'),
+         ('Sales Kickoff',      'Presentation laptop', '3/0 Requested'),
+         ('Sales Kickoff',      'Wireless microphone', '2/0 Requested'),
+         ('Board Offsite',      'PA speaker',          '3/0 Requested'),
+         ('Press Briefing',     'Projector',           '1/0 Requested')
 ),
 checks as (
   select 'catalogue ' || x.type as check_name, x.expected,

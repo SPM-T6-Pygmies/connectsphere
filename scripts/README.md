@@ -49,8 +49,8 @@ supabase db query --file scripts/seed-equipment/verify.sql --local
 
 The first shows 31 rows and the second 9, every one `ok = true`.
 
-Left out on purpose, because each belongs to its own manual tests: `seed-equipment-review` and
-`seed-venue-unavailability`. Load them on top when you run those cases. The venue-search cases
+Left out on purpose, because each belongs to its own manual tests: `seed-equipment-review`,
+`seed-equipment-reserve` and `seed-venue-unavailability`. Load them on top when you run those cases. The venue-search cases
 (`TC-VSEARCH-*`) are written for `seed-venue-search-uat` alone: TC-VSEARCH-010 step 2 expects no
 venue with an Exhibition layout, and Rooftop Terrace from `seed-venues` now has one. For those, run
 `db reset` and load only `seed-venue-search-uat`.
@@ -186,21 +186,24 @@ across all three files.
 ## seed-equipment-reserve
 
 The lines Technical Support reserve or mark unfulfilled (SPM-274): four events,
-assigned to Test Coordinator, whose lines are all New, on three catalogue types
-of the seed's own, so the other equipment seeds' counts are untouched.
+assigned to Test Coordinator, whose lines are all New. Its catalogue is four of
+the six equipment types of the Connectsphere Data Single Source of Truth
+(Projector, Wireless microphone, PA speaker, Presentation laptop), with the same
+counts seed-equipment gives them, so either seed can be loaded first.
 
-Design Sprint Demo (20 Nov) and Sales Kickoff (21 Nov) both need Wireless
-presenters, of which 6 are owned: reserve Design Sprint Demo's 4 and Sales
-Kickoff has 2 left for its 3, so it can only be marked unfulfilled. Design
-Sprint Demo and Board Offsite (20 Nov) each need 2 of the 3 Confidence
-monitors, so whoever reserves second is refused. Press Briefing has no date,
-so nothing can be reserved for it.
+Design Sprint Demo (20 Nov) and Sales Kickoff (21 Nov) both need Presentation
+laptops, of which 8 are owned: reserve Design Sprint Demo's 6 and Sales Kickoff
+has 2 left for its 3, so it can only be marked unfulfilled. Design Sprint Demo
+and Board Offsite (20 Nov) each need 3 of the 5 PA speakers, so whoever reserves
+second is refused. Press Briefing has no date, so nothing can be reserved for
+it. No other seed's event is within a day of 20 or 21 Nov, so loading them too
+does not change these counts.
 
 | File           | What it does                                                         |
 | -------------- | -------------------------------------------------------------------- |
 | `seed.sql`     | Inserts the catalogue, the events and their lines. Safe to re-run.   |
 | `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
-| `teardown.sql` | Deletes the events (their lines go with them) and the unused catalogue. |
+| `teardown.sql` | Deletes the events (their lines go with them). Leaves the catalogue.   |
 
 ```bash
 supabase db query --file scripts/seed-equipment-reserve/seed.sql --local

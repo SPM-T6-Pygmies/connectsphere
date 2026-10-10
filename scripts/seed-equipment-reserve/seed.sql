@@ -1,24 +1,19 @@
 -- Seeds the lines Technical Support reserve or mark unfulfilled in the
 -- SPM-274 manual tests (docs/testing/EQUIPMENT_RESERVE_MANUAL_TESTS.md). Every
--- line is New, and the types are this seed's own, so the counts the other
--- equipment seeds' tests read are untouched.
---
---   Type                Owned
---   Wireless presenter  6
---   Confidence monitor  3
---   Lapel microphone    10
+-- line starts New, with nothing reserved.
 --
 --   Event               Date        Status     Lines (all New)
---   Design Sprint Demo  2026-11-20  Planning   Wireless presenter 4, Confidence monitor 2
---   Sales Kickoff       2026-11-21  Planning   Wireless presenter 3, Lapel microphone 2
---   Board Offsite       2026-11-20  Confirmed  Confidence monitor 2
---   Press Briefing      no date     Planning   Wireless presenter 1
+--   Design Sprint Demo  2026-11-20  Planning   Presentation laptop 6, PA speaker 3
+--   Sales Kickoff       2026-11-21  Planning   Presentation laptop 3, Wireless microphone 2
+--   Board Offsite       2026-11-20  Confirmed  PA speaker 3
+--   Press Briefing      no date     Planning   Projector 1
 --
 -- Design Sprint Demo and Sales Kickoff are a day apart, so they draw on the
--- same 6 presenters: once 4 are reserved for one, 2 are left for the other
--- (AC5), too few for its 3 (AC3). Design Sprint Demo and Board Offsite each
--- need 2 of the 3 confidence monitors on the same day: whoever reserves
--- second is refused (AC6).
+-- same 8 Presentation laptops: once 6 are reserved for one, 2 are left for the
+-- other (AC5), too few for its 3 (AC3). Design Sprint Demo and Board Offsite
+-- each need 3 of the 5 PA speakers on the same day: whoever reserves second is
+-- refused (AC6). No other seed's event is within a day of 20 or 21 Nov, so its
+-- reservations do not change these counts.
 --
 -- The events are inserted directly -- there is no request behind them -- for
 -- Test Organiser's organisation, assigned to Test Coordinator. Seed the
@@ -55,13 +50,17 @@ begin
       using hint = 'Seed the accounts first: supabase db reset.';
   end if;
 
-  -- 2. The catalogue ---------------------------------------------------------
+  -- 2. The catalogue: four of the six equipment types of the Connectsphere Data
+  --    Single Source of Truth (SPM-277), with the same description, count and
+  --    location as seed-equipment, so loading either seed first gives the same
+  --    catalogue. No type is added here that the SSOT does not list.
   insert into public.equipment_item (type, description, quantity, physical_location)
   select c.type, c.description, c.quantity, c.physical_location
   from (values
-    ('Wireless presenter', 'Slide clicker with laser pointer.',   6,  'Store room E'),
-    ('Confidence monitor', '32-inch floor monitor for speakers.', 3,  'Store room E'),
-    ('Lapel microphone',   'Wireless lapel microphone.',          10, 'Store room E')
+    ('Projector',           '5000-lumen laser projector with HDMI and USB-C inputs.', 10, 'Store room A'),
+    ('Wireless microphone', 'Handheld UHF microphone with receiver.',                  30, 'Store room A'),
+    ('PA speaker',          'Powered 12-inch speaker on a stand.',                     5,  'Store room B'),
+    ('Presentation laptop', 'Laptop with presentation software and clicker.',          8,  'IT desk')
   ) as c(type, description, quantity, physical_location)
   where not exists (select 1 from public.equipment_item i where i.type = c.type);
 
@@ -93,12 +92,12 @@ begin
     insert into public.equipment_reservation_line (equipment_reservation_id, equipment_item_id, quantity_requested)
     select v_reservation, i.equipment_item_id, l.requested
     from (values
-      ('Design Sprint Demo', 'Wireless presenter', 4),
-      ('Design Sprint Demo', 'Confidence monitor', 2),
-      ('Sales Kickoff',      'Wireless presenter', 3),
-      ('Sales Kickoff',      'Lapel microphone',   2),
-      ('Board Offsite',      'Confidence monitor', 2),
-      ('Press Briefing',     'Wireless presenter', 1)
+      ('Design Sprint Demo', 'Presentation laptop', 6),
+      ('Design Sprint Demo', 'PA speaker',          3),
+      ('Sales Kickoff',      'Presentation laptop', 3),
+      ('Sales Kickoff',      'Wireless microphone', 2),
+      ('Board Offsite',      'PA speaker',          3),
+      ('Press Briefing',     'Projector',           1)
     ) as l(event, type, requested)
     join public.equipment_item i on i.type = l.type
     where l.event = v_event.name;
