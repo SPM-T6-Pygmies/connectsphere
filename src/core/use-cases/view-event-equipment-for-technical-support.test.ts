@@ -142,26 +142,6 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
     expect(result?.lines[0]).toMatchObject({ attention: "removalRequested", reservedAs: null });
   });
 
-  it("AC4: counts what other active events one day either side hold against the units owned", async () => {
-    const result = await view([
-      event([
-        stock({
-          line: line({ quantityReserved: 0, state: "Requested" }),
-          owned: 10,
-          otherHolds: [
-            { eventStatus: "Planning", eventDate: "2026-11-14", quantityReserved: 3 },
-            { eventStatus: "Confirmed", eventDate: "2026-11-15", quantityReserved: 2 },
-            { eventStatus: "Blocked", eventDate: "2026-11-16", quantityReserved: 1 },
-            { eventStatus: "Planning", eventDate: "2026-11-17", quantityReserved: 5 },
-            { eventStatus: "Cancelled", eventDate: "2026-11-15", quantityReserved: 4 },
-          ],
-        }),
-      ]),
-    ]);
-
-    expect(result?.lines[0]?.available).toBe(4);
-  });
-
   it("AC4: gives no number for an event with no date yet", async () => {
     const result = await view([event([stock()], null)]);
 
@@ -247,5 +227,27 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-274)", () => {
       canDecide: true,
       reservedAs: { quantityRequested: 5, technicalRequirements: "HDMI input" },
     });
+  });
+});
+
+describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-275)", () => {
+  it("AC1: takes off what other active events have out on the busier of the event's two days", async () => {
+    const result = await view([
+      event([
+        stock({
+          line: line({ quantityReserved: 0, state: "Requested" }),
+          owned: 10,
+          otherHolds: [
+            { eventStatus: "Planning", eventDate: "2026-11-14", quantityReserved: 3 },
+            { eventStatus: "Confirmed", eventDate: "2026-11-15", quantityReserved: 2 },
+            { eventStatus: "Blocked", eventDate: "2026-11-16", quantityReserved: 1 },
+            { eventStatus: "Planning", eventDate: "2026-11-17", quantityReserved: 5 },
+            { eventStatus: "Cancelled", eventDate: "2026-11-15", quantityReserved: 4 },
+          ],
+        }),
+      ]),
+    ]);
+
+    expect(result?.lines[0]?.available).toBe(5);
   });
 });
