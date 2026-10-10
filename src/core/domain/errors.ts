@@ -1021,3 +1021,21 @@ export class VenueSlotBlockedError extends DomainError {
     );
   }
 }
+
+/** SPM-49: a Completed or Cancelled event's details are read-only. */
+export class EventDetailsLockedError extends DomainError {
+  readonly code = "event_details_locked";
+
+  constructor(readonly status: string) {
+    super(`A ${status} event's details are read-only.`);
+  }
+}
+
+/** SPM-49: an edit to an event's ordinary details breaks one of their rules. */
+export class InvalidEventDetailsError extends DomainError {
+  readonly code = "invalid_event_details";
+
+  constructor(reason: string) {
+    super(reason);
+  }
+}

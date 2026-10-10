@@ -10,6 +10,7 @@ import {
   resolveClarificationThreadSchema,
 } from "@/adapters/inbound/request-clarification-schema";
 import { resubmitForSafetyCheckSchema } from "@/adapters/inbound/resubmit-for-safety-check-schema";
+import { updateEventDetailsSchema } from "@/adapters/inbound/update-event-details-schema";
 import { withdrawEventRequestSchema } from "@/adapters/inbound/withdraw-event-request-schema";
 import {
   buildConfirmEvent,
@@ -18,10 +19,16 @@ import {
   buildRequestClarification,
   buildResolveClarificationThread,
   buildResubmitForSafetyCheck,
+  buildUpdateEventDetails,
   buildWithdrawEventRequest,
   getCurrentCoordinator,
 } from "@/composition/container";
-import { DomainError, EventNotFoundError, EventRequestNotFoundError } from "@/core/domain/errors";
+import {
+  CoordinatorEventNotFoundError,
+  DomainError,
+  EventNotFoundError,
+  EventRequestNotFoundError,
+} from "@/core/domain/errors";
 
 export type DecideEventRequestState =
   | { status: "idle" }
@@ -326,4 +333,60 @@ export async function resubmitForSafetyCheckAction(
 
   revalidatePath("/staff/coordinator", "layout");
   return { status: "idle" };
+}
+
+export type UpdateEventDetailsState =
+  | { status: "idle" }
+  | { status: "saved"; changed: number }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-49: the assigned Event Coordinator updates an event's ordinary details.
+ * Who is editing comes from `getCurrentCoordinator()` on the server, never
+ * from the form, and an event that is not theirs is refused like one that
+ * does not exist (#91).
+ */
+export async function updateEventDetailsAction(
+  _previous: UpdateEventDetailsState,
+  formData: FormData,
+): Promise<UpdateEventDetailsState> {
+  const field = (name: string) => String(formData.get(name) ?? "");
+  const parsed = updateEventDetailsSchema.safeParse({
+    eventId: field("eventId"),
+    name: field("name"),
+    description: field("description"),
+    purpose: field("purpose"),
+    categoryType: field("categoryType"),
+    programmeAgenda: field("programmeAgenda"),
+    specialArrangements: field("specialArrangements"),
+    accessibilityRequirements: field("accessibilityRequirements"),
+    operationalNotes: field("operationalNotes"),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the details." };
+  }
+
+  const { eventId, ...details } = parsed.data;
+  let changed: number;
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+
+    const updateEventDetails = await buildUpdateEventDetails();
+    const result = await updateEventDetails.execute({ eventId, details, ...coordinator });
+    changed = result.changed.length;
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "saved", changed };
 }
