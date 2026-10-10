@@ -169,3 +169,26 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
     ).resolves.toBeNull();
   });
 });
+
+describe("ViewCoordinatorEventUseCase planning details (SPM-285)", () => {
+  it("AC5: returns the venue requirements and source request the Venue tab shows", async () => {
+    const useCase = buildUseCase([
+      seedEvent({
+        venueRequirements: "Stage and breakout rooms",
+        roomLayoutPreference: "Theatre",
+        accessibilityRequirements: "Step-free access",
+        requiredFacilities: "Projector, Stage",
+      }),
+    ]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.details).toMatchObject({
+      eventRequestId: "request-1",
+      venueRequirements: "Stage and breakout rooms",
+      roomLayoutPreference: "Theatre",
+      accessibilityRequirements: "Step-free access",
+      requiredFacilities: "Projector, Stage",
+    });
+  });
+});

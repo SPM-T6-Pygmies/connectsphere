@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 
 import { changeBookingRoomLayoutSchema } from "@/adapters/inbound/change-booking-room-layout-schema";
+import { setEventRequiredFacilitiesSchema } from "@/adapters/inbound/set-event-required-facilities-schema";
 import { submitVenueBookingRequestSchema } from "@/adapters/inbound/submit-venue-booking-request-schema";
 import {
   buildChangeBookingRoomLayout,
+  buildSetEventRequiredFacilities,
   buildSubmitVenueBookingRequest,
   getCurrentCoordinator,
 } from "@/composition/container";
@@ -119,4 +121,51 @@ export async function changeBookingRoomLayoutAction(
   revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
 
   return { status: "changed", ...changed };
+}
+
+export type SetEventRequiredFacilitiesState =
+  | { status: "idle" }
+  | { status: "saved" }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-247: the assigned Event Coordinator records the facilities the event
+ * needs. As with the other actions here, who is asking comes from
+ * `getCurrentCoordinator()` on the server, never from the form, and a broken
+ * business rule comes back as a message.
+ */
+export async function setEventRequiredFacilitiesAction(
+  _previous: SetEventRequiredFacilitiesState,
+  formData: FormData,
+): Promise<SetEventRequiredFacilitiesState> {
+  const parsed = setEventRequiredFacilitiesSchema.safeParse({
+    eventId: String(formData.get("eventId") ?? ""),
+    eventRequestId: String(formData.get("eventRequestId") ?? ""),
+    facilities: String(formData.get("facilities") ?? ""),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the facilities." };
+  }
+
+  const { eventRequestId, ...command } = parsed.data;
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new CoordinatorEventNotFoundError(command.eventId);
+    }
+
+    const setEventRequiredFacilities = await buildSetEventRequiredFacilities();
+    await setEventRequiredFacilities.execute({ ...command, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
+
+  return { status: "saved" };
 }

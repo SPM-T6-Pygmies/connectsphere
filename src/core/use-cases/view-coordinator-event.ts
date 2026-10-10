@@ -10,7 +10,10 @@ import {
 } from "../domain/event-readiness";
 import { userAccountId } from "../domain/user-account";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
-import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+import type {
+  CoordinatorEventDetails,
+  CoordinatorEventRepository,
+} from "../ports/outbound/coordinator-event-repository";
 import type { EventReadinessRepository } from "../ports/outbound/event-readiness-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
@@ -21,6 +24,8 @@ export interface ViewCoordinatorEventCommand {
 
 export interface ViewCoordinatorEventResult {
   readonly event: CoordinatorEvent;
+  /** SPM-285: the planning details the Venue tab shows, and the request the venue booking page is keyed by. */
+  readonly details: CoordinatorEventDetails;
   readonly clientOrganisationName: string;
   readonly owningOrganiserName: string;
   readonly readiness: EventReadiness;
@@ -61,19 +66,21 @@ export class ViewCoordinatorEventUseCase {
       return null;
     }
 
-    const [facts, organisationNames, organiserNames] = await Promise.all([
+    const [details, facts, organisationNames, organiserNames] = await Promise.all([
+      this.deps.events.findAssigned(caller, id),
       this.deps.readiness.factsFor(caller, id),
       this.deps.clientOrganisations.findNamesByIds([event.clientOrganisationId]),
       this.deps.userAccounts.findNamesByIds([event.owningOrganiserUserAccountId]),
     ]);
 
-    if (facts === null) {
+    if (details === null || facts === null) {
       return null;
     }
     const readiness = assessReadiness(facts);
 
     return {
       event,
+      details,
       clientOrganisationName: organisationNames.get(event.clientOrganisationId) ?? "",
       owningOrganiserName: organiserNames.get(event.owningOrganiserUserAccountId) ?? "",
       readiness,

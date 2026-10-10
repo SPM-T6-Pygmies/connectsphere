@@ -22,7 +22,7 @@ function venue(overrides: Partial<Venue> = {}): Venue {
   return {
     id: venueId("1"),
     location: "Marina Bay Hall",
-    facilities: "Projector, PA system",
+    facilities: "Wi-Fi, Catering area",
     accessibility: "Step-free access, Lift access",
     slots: ["AM", "PM"],
     capacity: 300,
@@ -118,8 +118,8 @@ describe("matchesAttributes (SPM-44)", () => {
   });
 
   it("requires every selected facility", () => {
-    expect(matchesAttributes(venue(), criteria({ facilities: ["Projector"] }))).toBe(true);
-    expect(matchesAttributes(venue(), criteria({ facilities: ["Projector", "Wi-Fi"] }))).toBe(
+    expect(matchesAttributes(venue(), criteria({ facilities: ["Wi-Fi"] }))).toBe(true);
+    expect(matchesAttributes(venue(), criteria({ facilities: ["Wi-Fi", "Video-conferencing"] }))).toBe(
       false,
     );
   });
@@ -255,7 +255,7 @@ describe("venue search (SPM-44)", () => {
   it.each([
     ["layout", criteria({ layout: "Banquet" })],
     ["capacity", criteria({ layout: "Boardroom", attendance: 100 })],
-    ["facilities", criteria({ facilities: ["Wi-Fi"] })],
+    ["facilities", criteria({ facilities: ["Video-conferencing"] })],
     ["accessibility", criteria({ accessibility: ["Hearing loop"] })],
     ["slotNotOffered", criteria({ window: { date: "2026-11-02", slots: ["Night"] } })],
     ["beyondHorizon", criteria({ window: { date: "2026-12-02", slots: ["AM"] } })],
@@ -275,7 +275,7 @@ describe("venue search (SPM-44)", () => {
   });
 
   it("counts a venue once, under the first filter it fails", () => {
-    const search = criteria({ layout: "Banquet", facilities: ["Wi-Fi"] });
+    const search = criteria({ layout: "Banquet", facilities: ["Video-conferencing"] });
 
     expect(searchVenues([venue(), venue({ id: venueId("2") })], search, [], TODAY, SG).excluded).toEqual(
       [{ reason: "layout", count: 2 }],

@@ -6,6 +6,7 @@ import type {
   Notifier,
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
+  SafetyCheckRecordedNotice,
 } from "@/core/ports/outbound/notifier";
 
 /**
@@ -49,6 +50,12 @@ export class LoggingNotifier implements Notifier {
   async safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void> {
     console.info(
       `[notifier] safety officer ${notice.recipientUserAccountId} told event ${notice.eventId} is ready for a safety check`,
+    );
+  }
+
+  async safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told event ${notice.eventId}'s safety check was ${notice.outcome}`,
     );
   }
 }

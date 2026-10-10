@@ -10,6 +10,7 @@ export type NotificationTrigger =
   | "Clarification requested"
   | "Request decided"
   | "Ready for safety check"
+  | "Safety check outcome"
   | "Booking requested"
   | "Booking decided"
   | "Equipment recorded"

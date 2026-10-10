@@ -12,6 +12,26 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-16": {
+      "title": "Clear access-denied response",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-17": {
+      "title": "Mark equipment out of service",
+      "parent": null,
+      "status": "Todo"
+    },
+    "SPM-19": {
+      "title": "Automatic Venue Availability Update upon Booking Confirmation",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-22": {
+      "title": "Review and Decide on Venue Booking Requests",
+      "parent": null,
+      "status": "Backlog"
+    },
     "SPM-24": {
       "title": "Register for a confirmed event",
       "parent": null,
@@ -42,6 +62,11 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-33": {
+      "title": "Request clarification on an event request",
+      "parent": null,
+      "status": "Done"
+    },
     "SPM-34": {
       "title": "Approve or reject an event request",
       "parent": null,
@@ -57,8 +82,43 @@
       "parent": null,
       "status": "Done"
     },
+    "SPM-40": {
+      "title": "Maintain the equipment catalogue",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-41": {
       "title": "Specify equipment requirements for an event",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-42": {
+      "title": "Maintain the venue catalogue",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-44": {
+      "title": "Search and filter venues",
+      "parent": null,
+      "status": "done"
+    },
+    "SPM-45": {
+      "title": "Check venue suitability",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-46": {
+      "title": "Submit a venue booking request",
+      "parent": null,
+      "status": "In Review"
+    },
+    "SPM-47": {
+      "title": "Receive notification of relevant event activity",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-49": {
+      "title": "Update event planning information",
       "parent": null,
       "status": "In Progress"
     },
@@ -67,10 +127,30 @@
       "parent": null,
       "status": "In Progress"
     },
-    "SPM-40": {
-      "title": "Maintain the equipment catalogue",
+    "SPM-57": {
+      "title": "Notify a coordinator of their assignment to an event",
       "parent": null,
-      "status": "Todo"
+      "status": "In Progress"
+    },
+    "SPM-58": {
+      "title": "Notify the organiser that their event has a coordinator",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-59": {
+      "title": "Notify the organiser of a clarification request",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-60": {
+      "title": "Notify the organiser of the review decision",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-73": {
+      "title": "Notify an attendee of a waiting-list status change",
+      "parent": null,
+      "status": "Backlog"
     },
     "SPM-78": {
       "title": "Event Operations Manager landing view (frontend)",
@@ -166,6 +246,26 @@
       "title": "Allow EOM to assign an EC to an event request",
       "parent": "SPM-29",
       "status": "Canceled"
+    },
+    "SPM-101": {
+      "title": "Record the withdrawal of a submitted event request",
+      "parent": null,
+      "status": "Done"
+    },
+    "SPM-104": {
+      "title": "Record the chosen room layout on a booking",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-106": {
+      "title": "Resolve venue.capacity vs per-layout capacity precedence",
+      "parent": null,
+      "status": "Backlog"
+    },
+    "SPM-109": {
+      "title": "Mark an equipment requirement as essential",
+      "parent": null,
+      "status": "Backlog"
     },
     "SPM-112": {
       "title": "Allow an Organiser to view their organisation's event requests",
@@ -322,151 +422,6 @@
       "parent": null,
       "status": "Done"
     },
-    "SPM-182": {
-      "title": "Equipment requirement rules in the domain",
-      "parent": "SPM-41",
-      "status": "In Progress"
-    },
-    "SPM-184": {
-      "title": "Record / edit / remove / list use cases, port and in-memory adapter",
-      "parent": "SPM-41",
-      "status": "In Progress"
-    },
-    "SPM-185": {
-      "title": "Supabase functions and repository adapter",
-      "parent": "SPM-41",
-      "status": "In Progress"
-    },
-    "SPM-186": {
-      "title": "Coordinator equipment section on the event page",
-      "parent": "SPM-41",
-      "status": "In Progress"
-    },
-    "SPM-187": {
-      "title": "Technical Support \"Needs re-check\" list",
-      "parent": "SPM-41",
-      "status": "Todo"
-    },
-    "SPM-232": {
-      "title": "Clear the re-check when a coordinator edits a line back to what was reserved",
-      "parent": "SPM-41",
-      "status": "In Progress"
-    },
-    "SPM-44": {
-      "title": "Search and filter venues",
-      "parent": null,
-      "status": "done"
-    },
-    "SPM-16": {
-      "title": "Clear access-denied response",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-57": {
-      "title": "Notify a coordinator of their assignment to an event",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-173": {
-      "title": "Novu adapter: bridge route, coordinator-assigned workflow, NovuNotifier",
-      "parent": "SPM-57",
-      "status": "In Progress"
-    },
-    "SPM-174": {
-      "title": "Novu Inbox bell in the staff header",
-      "parent": "SPM-57",
-      "status": "In Progress"
-    },
-    "SPM-180": {
-      "title": "Notification preferences per type and channel",
-      "parent": "SPM-57",
-      "status": "In Progress"
-    },
-    "SPM-179": {
-      "title": "Triage notifications in the inbox: read/unread and archive",
-      "parent": "SPM-57",
-      "status": "In Progress"
-    },
-    "SPM-178": {
-      "title": "Keep each developer's local Novu inbox separate",
-      "parent": "SPM-57",
-      "status": "In Progress"
-    },
-    "SPM-177": {
-      "title": "Record each notification in the notification table",
-      "parent": "SPM-57",
-      "status": "Todo"
-    },
-    "SPM-19": {
-      "title": "Automatic Venue Availability Update upon Booking Confirmation",
-      "parent": null,
-      "status": "Backlog"
-    },
-    "SPM-22": {
-      "title": "Review and Decide on Venue Booking Requests",
-      "parent": null,
-      "status": "Backlog"
-    },
-    "SPM-33": {
-      "title": "Request clarification on an event request",
-      "parent": null,
-      "status": "Done"
-    },
-    "SPM-41": {
-      "title": "Specify equipment requirements for an event",
-      "parent": null,
-      "status": "Done"
-    },
-    "SPM-42": {
-      "title": "Maintain the venue catalogue",
-      "parent": null,
-      "status": "Done"
-    },
-    "SPM-46": {
-      "title": "Submit a venue booking request",
-      "parent": null,
-      "status": "In Review"
-    },
-    "SPM-47": {
-      "title": "Receive notification of relevant event activity",
-      "parent": null,
-      "status": "Backlog"
-    },
-    "SPM-58": {
-      "title": "Notify the organiser that their event has a coordinator",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-59": {
-      "title": "Notify the organiser of a clarification request",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-73": {
-      "title": "Notify an attendee of a waiting-list status change",
-      "parent": null,
-      "status": "Backlog"
-    },
-    "SPM-101": {
-      "title": "Record the withdrawal of a submitted event request",
-      "parent": null,
-      "status": "Done"
-    },
-    "SPM-104": {
-      "title": "Record the chosen room layout on a booking",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-106": {
-      "title": "Resolve venue.capacity vs per-layout capacity precedence",
-      "parent": null,
-      "status": "Backlog"
-    },
-    "SPM-109": {
-      "title": "Mark an equipment requirement as essential",
-      "parent": null,
-      "status": "Backlog"
-    },
     "SPM-144": {
       "title": "Decide how arrangement essentiality is determined and recorded",
       "parent": "SPM-50",
@@ -567,6 +522,61 @@
       "parent": "SPM-57",
       "status": "Done"
     },
+    "SPM-173": {
+      "title": "Novu adapter: bridge route, coordinator-assigned workflow, NovuNotifier",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-174": {
+      "title": "Novu Inbox bell in the staff header",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-177": {
+      "title": "Record each notification in the notification table",
+      "parent": "SPM-57",
+      "status": "Todo"
+    },
+    "SPM-178": {
+      "title": "Keep each developer's local Novu inbox separate",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-179": {
+      "title": "Triage notifications in the inbox: read/unread and archive",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-180": {
+      "title": "Notification preferences per type and channel",
+      "parent": "SPM-57",
+      "status": "In Progress"
+    },
+    "SPM-182": {
+      "title": "Equipment requirement rules in the domain",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-184": {
+      "title": "Record / edit / remove / list use cases, port and in-memory adapter",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-185": {
+      "title": "Supabase functions and repository adapter",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-186": {
+      "title": "Coordinator equipment section on the event page",
+      "parent": "SPM-41",
+      "status": "In Progress"
+    },
+    "SPM-187": {
+      "title": "Technical Support \"Needs re-check\" list",
+      "parent": "SPM-41",
+      "status": "Todo"
+    },
     "SPM-188": {
       "title": "Build access-denied screen and page-area message",
       "parent": "SPM-16",
@@ -597,9 +607,9 @@
       "parent": null,
       "status": "Backlog"
     },
-    "SPM-60": {
-      "title": "Notify the organiser of the review decision",
-      "parent": null,
+    "SPM-232": {
+      "title": "Clear the re-check when a coordinator edits a line back to what was reserved",
+      "parent": "SPM-41",
       "status": "In Progress"
     },
     "SPM-233": {
@@ -647,6 +657,71 @@
       "parent": "SPM-60",
       "status": "In Progress"
     },
+    "SPM-246": {
+      "title": "Venue suitability rules in the domain",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-247": {
+      "title": "Let the Coordinator record the facilities an event needs",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-248": {
+      "title": "Load the event's needs and work out suitability for the booking page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-249": {
+      "title": "Suitability checklist on the Request a venue page",
+      "parent": "SPM-45",
+      "status": "In Progress"
+    },
+    "SPM-255": {
+      "title": "Review an unassigned request",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-256": {
+      "title": "Oversee coordinator assignments",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-257": {
+      "title": "Reassign an active event's coordinator",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-258": {
+      "title": "Safety Officer role",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-259": {
+      "title": "See events awaiting a safety check",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-260": {
+      "title": "Conduct an operational safety check",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-261": {
+      "title": "Return an event after a safety outcome",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-262": {
+      "title": "Notify the Safety Officer of an event ready for check",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
+    "SPM-263": {
+      "title": "Notify the coordinator of the safety outcome",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-265": {
       "title": "Venue block rules in the domain",
       "parent": "SPM-21",
@@ -682,38 +757,13 @@
       "parent": "SPM-21",
       "status": "In Progress"
     },
-    "SPM-258": {
-      "title": "Safety Officer role",
+    "SPM-273": {
+      "title": "See equipment needing attention",
       "parent": null,
-      "status": "In Progress"
+      "status": "Todo"
     },
-    "SPM-259": {
-      "title": "See events awaiting a safety check",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-260": {
-      "title": "Conduct an operational safety check",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-262": {
-      "title": "Notify the Safety Officer of an event ready for check",
-      "parent": "SPM-47",
-      "status": "In Progress"
-    },
-    "SPM-255": {
-      "title": "Review an unassigned request",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-256": {
-      "title": "Oversee coordinator assignments",
-      "parent": null,
-      "status": "In Progress"
-    },
-    "SPM-257": {
-      "title": "Reassign an active event's coordinator",
+    "SPM-285": {
+      "title": "Split the coordinator event page into tabs",
       "parent": null,
       "status": "In Progress"
     }

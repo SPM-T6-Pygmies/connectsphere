@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   toAssignedEventSummary,
   toCoordinatorEvent,
+  toCoordinatorEventDetails,
+  toOrdinaryChangesPayload,
   type CoordinatorEventRecordRow,
   type CoordinatorEventRow,
 } from "./coordinator-event-mapper";
@@ -64,5 +66,47 @@ describe("toCoordinatorEvent (SPM-186)", () => {
 
   it("AC6: maps an event with no stated equipment needs to none", () => {
     expect(toCoordinatorEvent({ ...record, equipment_requirements: null }).statedEquipmentNeeds).toBeNull();
+  });
+});
+
+describe("coordinator event mapper -- ordinary details (SPM-49)", () => {
+  it("AC1: reads the ordinary details from their columns", () => {
+    const details = toCoordinatorEventDetails({
+      event_id: 5,
+      event_request_id: 24,
+      name: "Roadmap Conference",
+      status: "Planning",
+      preferred_date: null,
+      assigned_coordinator_user_account_id: 2,
+      client_organisation_id: 1,
+      expected_attendance: null,
+      venue_requirements: null,
+      room_layout_preference: null,
+      accessibility_requirements: "Lift access",
+      required_facilities: null,
+      description: "Where the roadmap is shared",
+      purpose: "Alignment",
+      category_type: "Conference",
+      programme_agenda: "Keynote, then panels",
+      special_arrangements: "Halal catering",
+      operational_notes: "Load-in at 7am",
+    });
+
+    expect(details).toMatchObject({
+      name: "Roadmap Conference",
+      description: "Where the roadmap is shared",
+      purpose: "Alignment",
+      categoryType: "Conference",
+      programmeAgenda: "Keynote, then panels",
+      specialArrangements: "Halal catering",
+      accessibilityRequirements: "Lift access",
+      operationalNotes: "Load-in at 7am",
+    });
+  });
+
+  it("AC1: sends each change under its column name, a cleared one as null", () => {
+    expect(
+      toOrdinaryChangesPayload({ categoryType: "Workshop", operationalNotes: null, name: "Summit" }),
+    ).toEqual({ category_type: "Workshop", operational_notes: null, name: "Summit" });
   });
 });

@@ -13,7 +13,7 @@
   },
   {
     "domain": "Event Staffing",
-    "match": ["coordinator", "change-event-organiser", "reassign-event-organiser", "assigned-events"]
+    "match": ["coordinator", "change-event-organiser", "reassign-event-organiser", "assigned-events", "event-details-edit", "update-event-details"]
   },
   {
     "domain": "Request Review",
@@ -33,7 +33,7 @@
   },
   {
     "domain": "Equipment",
-    "match": ["equipment"]
+    "match": ["equipment", "queue-teaser"]
   },
   {
     "domain": "Venue Unavailability",

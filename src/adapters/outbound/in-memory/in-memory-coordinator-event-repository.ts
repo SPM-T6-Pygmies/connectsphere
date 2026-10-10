@@ -1,6 +1,8 @@
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
+import { CoordinatorEventNotFoundError } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
+import type { OrdinaryEventChanges } from "@/core/domain/event-details-edit";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type {
   AssignedEventSummary,
@@ -37,11 +39,28 @@ function toDetails(event: SeedCoordinatorEvent): CoordinatorEventDetails {
     venueRequirements: event.venueRequirements ?? null,
     roomLayoutPreference: event.roomLayoutPreference ?? null,
     accessibilityRequirements: event.accessibilityRequirements ?? null,
+    requiredFacilities: event.requiredFacilities ?? null,
+    description: event.description,
+    purpose: event.purpose ?? null,
+    categoryType: event.categoryType ?? null,
+    programmeAgenda: event.programmeAgenda ?? null,
+    specialArrangements: event.specialArrangements ?? null,
+    operationalNotes: event.operationalNotes ?? null,
   };
+}
+
+/** One audited change, as `coordinator_update_event_details` writes it to `audit_record`. */
+export interface AuditedEventChange {
+  readonly actorUserAccountId: string;
+  readonly eventId: string;
+  readonly field: string;
+  readonly oldValue: string | null;
+  readonly newValue: string | null;
 }
 
 export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepository {
   private readonly rows: SeedCoordinatorEvent[];
+  private readonly audit: AuditedEventChange[] = [];
 
   constructor(seed: readonly SeedCoordinatorEvent[] = []) {
     this.rows = [...seed];
@@ -95,6 +114,51 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
       return null;
     }
     return toCoordinatorEvent(row);
+  }
+
+  /** Stores the facilities. The audit record it writes for real is not modelled in memory. */
+  async setRequiredFacilities(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    facilities: string | null,
+  ): Promise<void> {
+    const index = this.rows.findIndex(
+      (row) => row.id === eventId && row.assignedCoordinatorUserAccountId === coordinatorId,
+    );
+    if (index === -1) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+    this.rows[index] = { ...this.rows[index], requiredFacilities: facilities };
+  }
+
+  /** Stores the changes and, as the database does, audits each one against the coordinator. */
+  async updateOrdinaryDetails(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    changes: OrdinaryEventChanges,
+  ): Promise<void> {
+    const index = this.rows.findIndex(
+      (row) => row.id === eventId && row.assignedCoordinatorUserAccountId === coordinatorId,
+    );
+    if (index === -1) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+    const before = toDetails(this.rows[index]);
+    for (const [field, newValue] of Object.entries(changes)) {
+      this.audit.push({
+        actorUserAccountId: coordinatorId,
+        eventId,
+        field,
+        oldValue: before[field as keyof OrdinaryEventChanges] ?? null,
+        newValue: newValue ?? null,
+      });
+    }
+    this.rows[index] = { ...this.rows[index], ...changes };
+  }
+
+  /** Test-only window on the audit trail `updateOrdinaryDetails` wrote. */
+  auditTrail(): readonly AuditedEventChange[] {
+    return [...this.audit];
   }
 
   /** Stores the confirmed status. The audit record it writes for real is not modelled in memory. */

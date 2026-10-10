@@ -126,3 +126,15 @@ describe("notificationItem (SPM-262)", () => {
     expect(item.href).toBe("/staff/safety")
   })
 })
+
+describe("notificationItem (SPM-263)", () => {
+  it("AC4: names a safety check outcome and opens the event at its own route", () => {
+    const item = notificationItem(
+      "coordinator",
+      notification({ redirect: { url: "/staff/coordinator/events/7" }, tags: ["safety-check-recorded"] }),
+    )
+
+    expect(item.status).toBe("Safety check outcome")
+    expect(item.href).toBe("/staff/coordinator/events/7")
+  })
+})

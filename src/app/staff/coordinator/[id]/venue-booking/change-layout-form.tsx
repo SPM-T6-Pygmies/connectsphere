@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import type { Venue } from "@/core/use-cases/view-venue-booking-options";
@@ -20,6 +21,10 @@ const SELECT_CLASS =
  * only while the request is waiting for Venue Staff, and only when the venue
  * has another layout to move to. The server makes every call; this only keeps
  * the button honest.
+ *
+ * The page remounts this form when the saved layout changes, which drops the
+ * form's own state -- so the confirmation is a toast fired from the action, not
+ * a message read from state afterwards.
  */
 export function ChangeLayoutForm({
   eventId,
@@ -35,7 +40,13 @@ export function ChangeLayoutForm({
   currentLayout: string | null;
 }) {
   const [state, formAction, pending] = useActionState(
-    changeBookingRoomLayoutAction,
+    async (previous: ChangeBookingRoomLayoutState, formData: FormData) => {
+      const next = await changeBookingRoomLayoutAction(previous, formData);
+      if (next.status === "changed") {
+        toast.success(`Layout changed. ${next.summary}`);
+      }
+      return next;
+    },
     INITIAL,
   );
   const [layout, setLayout] = useState(currentLayout ?? "");
@@ -85,11 +96,6 @@ export function ChangeLayoutForm({
       {state.status === "error" ? (
         <p role="alert" className="text-destructive text-xs">
           {state.message}
-        </p>
-      ) : null}
-      {state.status === "changed" && state.bookingId === bookingId ? (
-        <p role="status" className="text-muted-foreground text-xs">
-          Layout changed. {state.summary}
         </p>
       ) : null}
     </form>

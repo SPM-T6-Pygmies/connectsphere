@@ -44,15 +44,17 @@ begin
       using hint = 'Seed the accounts (supabase db reset), then scripts/seed-coordinator-view/seed.sql.';
   end if;
 
-  -- 2. The catalogue --------------------------------------------------------
+  -- 2. The catalogue: the six types and owned counts of the Connectsphere Data
+--    Single Source of Truth (SPM-277) ----------------------------------------
   insert into public.equipment_item (type, description, quantity, physical_location)
   select c.type, c.description, c.quantity, c.physical_location
   from (values
-    ('Projector',           '5000-lumen laser projector with HDMI and USB-C inputs.', 4,  'Store room A'),
-    ('Wireless microphone', 'Handheld UHF microphone with receiver.',                  12, 'Store room A'),
-    ('PA speaker',          'Powered 12-inch speaker on a stand.',                     6,  'Store room B'),
-    ('Presentation laptop', 'Laptop with presentation software and clicker.',          5,  'IT desk'),
-    ('Livestream kit',      'Camera, encoder and tripod for streaming a session.',     2,  'Store room B')
+    ('Projector',           '5000-lumen laser projector with HDMI and USB-C inputs.', 10, 'Store room A'),
+    ('Wireless microphone', 'Handheld UHF microphone with receiver.',                  30, 'Store room A'),
+    ('PA speaker',          'Powered 12-inch speaker on a stand.',                     5,  'Store room B'),
+    ('Presentation laptop', 'Laptop with presentation software and clicker.',          8,  'IT desk'),
+    ('Livestream kit',      'Camera, encoder and tripod for streaming a session.',     2,  'Store room B'),
+    ('Crowd barrier',       'Free-standing steel barrier panel for marshalling a crowd.', 40, 'Store room B')
   ) as c(type, description, quantity, physical_location)
   where not exists (select 1 from public.equipment_item i where i.type = c.type);
 
@@ -60,7 +62,7 @@ begin
   select event_id into v_event from public.event where event_request_id = v_request.event_request_id;
   if v_event is null then
     insert into public.event (
-      event_request_id, name, description, purpose, preferred_date, start_time, end_time,
+      event_request_id, name, description, purpose, preferred_date,
       expected_attendance, venue_requirements, room_layout_preference,
       accessibility_requirements, equipment_requirements, programme_agenda,
       special_arrangements, status, assigned_coordinator_user_account_id,
@@ -68,8 +70,7 @@ begin
     )
     values (
       v_request.event_request_id, v_request.event_name, v_request.description,
-      v_request.purpose, v_request.preferred_date, v_request.preferred_start_time,
-      v_request.preferred_end_time, v_request.expected_attendance,
+      v_request.purpose, v_request.preferred_date, v_request.expected_attendance,
       v_request.venue_requirements, v_request.room_layout_preferences,
       v_request.accessibility_needs, v_request.equipment_requirements,
       v_request.general_programme, v_request.other_special_arrangements, 'Planning',

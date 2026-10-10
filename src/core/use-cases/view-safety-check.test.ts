@@ -39,6 +39,7 @@ describe("ViewSafetyCheckUseCase (SPM-260)", () => {
           comments: "Banquet layout holds 180; 220 expected.",
           checkedByName: "Test Safety Officer",
           checkedAt: "2026-10-05T08:00:00.000Z",
+          resubmittedAt: null,
         },
       ],
     });
