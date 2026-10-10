@@ -2,7 +2,6 @@ import { CheckIcon, AlertTriangleIcon } from "lucide-react";
 import { forbidden } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -11,39 +10,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   buildViewCoordinatorEvent,
   buildViewEventEquipment,
   buildViewEventSafetyChecks,
   getCurrentCoordinator,
 } from "@/composition/container";
-import type { ArrangementType } from "@/core/domain/event-readiness";
 
 import { detailCrumbs } from "../../../detail-origin";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
+import { ARRANGEMENT_LABELS } from "./arrangement-labels";
 import { ConfirmForm } from "./confirm-form";
 import { EquipmentSection } from "./equipment-section";
+import { EVENT_TABS, type EventTab } from "./event-tab-names";
+import { EventTabs } from "./event-tabs";
 import { SafetyCheckCard } from "./safety-check-card";
+import { EventDetailsTab } from "./tabs/event-tab";
+import { RegistrationTab } from "./tabs/registration-tab";
+import { VenueTab } from "./tabs/venue-tab";
 
 export const metadata = { title: "Event | ConnectSphere" };
-
-/** Display labels only -- the domain names arrangement types, not their prose. */
-const ARRANGEMENT_LABELS: Record<ArrangementType, string> = {
-  venue: "Venue",
-  equipment: "Equipment",
-  technical_support: "Technical support",
-  programme: "Programme",
-  registration: "Registration",
-  other: "Other",
-};
 
 /**
  * SPM-50: one event, its essential-arrangement readiness, and the Confirm
@@ -51,11 +37,17 @@ const ARRANGEMENT_LABELS: Record<ArrangementType, string> = {
  * envisioned (SPM-137 was cancelled before that got built). Only venue,
  * programme and registration are evaluated for completeness (SPM-144 tracks
  * deciding essentiality for the rest).
+ *
+ * SPM-285: split into tabs, one per area, with the Confirm gate beside every
+ * tab since it is about the whole event.
  */
 export default async function CoordinatorEventPage({
   params,
+  searchParams,
 }: PageProps<"/staff/coordinator/events/[id]">) {
   const { id } = await params;
+  const { tab } = await searchParams;
+  const initialTab: EventTab = EVENT_TABS.find((candidate) => candidate === tab) ?? "event";
 
   // An event that is not theirs, or does not exist, gets the same access-denied
   // screen (SPM-16, #91), so a guess cannot confirm an event exists.
@@ -82,7 +74,7 @@ export default async function CoordinatorEventPage({
     forbidden();
   }
 
-  const { event, clientOrganisationName, owningOrganiserName, readiness, confirmation, blockingArrangements } =
+  const { event, details, clientOrganisationName, owningOrganiserName, readiness, confirmation, blockingArrangements } =
     result;
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
 
@@ -99,73 +91,17 @@ export default async function CoordinatorEventPage({
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <Card>
-            <CardContent className="space-y-3 pt-6">
-              {event.description ? (
-                <p className="text-sm">{event.description}</p>
-              ) : (
-                <p className="text-muted-foreground text-sm">No description was given.</p>
-              )}
-              <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                <div>
-                  <dt className="text-muted-foreground text-xs">Preferred date</dt>
-                  <dd>{event.preferredDate ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground text-xs">Expected attendance</dt>
-                  <dd>{event.expectedAttendance ?? "—"}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Essential arrangements</CardTitle>
-              <CardDescription>
-                Only venue, programme and registration are checked automatically today.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {readiness.essentialArrangements.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No essential arrangements are recorded for this event.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Arrangement</TableHead>
-                      <TableHead>Complete</TableHead>
-                      <TableHead>Detail</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {readiness.essentialArrangements.map((arrangement) => (
-                      <TableRow key={arrangement.type}>
-                        <TableCell className="font-medium">
-                          {ARRANGEMENT_LABELS[arrangement.type]}
-                        </TableCell>
-                        <TableCell>
-                          {arrangement.complete ? (
-                            <Badge variant="success">Done</Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">Outstanding</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-xs">
-                          {arrangement.detail}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-
-          <EquipmentSection equipment={equipment} />
+        <div className="lg:col-span-2">
+          <EventTabs
+            initialTab={initialTab}
+            panels={{
+              event: <EventDetailsTab event={event} readiness={readiness} />,
+              venue: <VenueTab details={details} readiness={readiness} />,
+              equipment: <EquipmentSection equipment={equipment} />,
+              safety: <SafetyCheckCard eventId={event.id} view={safetyChecks} />,
+              registration: <RegistrationTab readiness={readiness} />,
+            }}
+          />
         </div>
 
         <div className="space-y-6 lg:sticky lg:top-16 lg:self-start">
@@ -218,8 +154,6 @@ export default async function CoordinatorEventPage({
               ) : null}
             </CardContent>
           </Card>
-
-          <SafetyCheckCard eventId={event.id} view={safetyChecks} />
         </div>
       </div>
     </StaffShell>
