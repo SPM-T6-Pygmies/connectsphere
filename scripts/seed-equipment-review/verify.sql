@@ -16,6 +16,9 @@
 with organisation as (
   select client_organisation_id from public.user_account where name = 'Test Organiser'
 ),
+catalogue (type, owned) as (
+  values ('Projector', 10), ('Wireless microphone', 30), ('PA speaker', 5), ('Livestream kit', 2)
+),
 expected_events (name, expected) as (
   values ('Tech Summit Keynote',      '2026-11-15 Planning'),
          ('Alumni Networking Night',  '2026-12-03 Blocked'),
@@ -28,24 +31,25 @@ expected_events (name, expected) as (
          ('Spring Conference',        '2026-09-20 Completed')
 ),
 expected_lines (event, type, expected) as (
-  values ('Tech Summit Keynote',      'Laser projector',     '4/0 Requested'),
-         ('Tech Summit Keynote',      'Handheld microphone', '6/4 Under review, was 4'),
-         ('Tech Summit Keynote',      'Stage monitor',       '2/2 Under review, was 2, removal requested'),
-         ('Alumni Networking Night',  'Lectern',             '1/0 Requested'),
-         ('Partner Roadshow',         'Laser projector',     '2/0 Requested'),
-         ('Product Launch Rehearsal', 'Laser projector',     '3/3 Reserved'),
-         ('Board Strategy Day',       'Laser projector',     '2/2 Reserved'),
-         ('Board Strategy Day',       'Handheld microphone', '2/2 Reserved'),
-         ('Charity Gala Setup',       'Laser projector',     '1/1 Reserved'),
-         ('Year-End Town Hall',       'Laser projector',     '5/5 Reserved'),
-         ('Autumn Workshop',          'Laser projector',     '4/4 Reserved'),
-         ('Autumn Workshop',          'Lectern',             '1/0 Requested'),
-         ('Spring Conference',        'Handheld microphone', '2/2 Reserved')
+  values ('Tech Summit Keynote',      'Projector',           '4/0 Requested'),
+         ('Tech Summit Keynote',      'Wireless microphone', '6/4 Under review, was 4'),
+         ('Tech Summit Keynote',      'PA speaker',          '2/2 Under review, was 2, removal requested'),
+         ('Alumni Networking Night',  'Livestream kit',      '1/0 Requested'),
+         ('Partner Roadshow',         'Projector',           '2/0 Requested'),
+         ('Product Launch Rehearsal', 'Projector',           '3/3 Reserved'),
+         ('Board Strategy Day',       'Projector',           '2/2 Reserved'),
+         ('Board Strategy Day',       'Wireless microphone', '2/2 Reserved'),
+         ('Charity Gala Setup',       'Projector',           '1/1 Reserved'),
+         ('Year-End Town Hall',       'Projector',           '5/5 Reserved'),
+         ('Autumn Workshop',          'Projector',           '4/4 Reserved'),
+         ('Autumn Workshop',          'Livestream kit',      '1/0 Requested'),
+         ('Spring Conference',        'Wireless microphone', '2/2 Reserved')
 ),
 checks as (
-  select 'catalogue Laser projector' as check_name, '10 owned' as expected,
-         coalesce((select quantity || ' owned' from public.equipment_item where type = 'Laser projector'),
+  select 'catalogue ' || c.type as check_name, c.owned || ' owned' as expected,
+         coalesce((select quantity || ' owned' from public.equipment_item where type = c.type),
                   'missing') as actual
+  from catalogue c
   union all
   select 'event ' || x.name, x.expected,
          coalesce((

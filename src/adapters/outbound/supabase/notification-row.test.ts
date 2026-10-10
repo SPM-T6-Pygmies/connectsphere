@@ -6,6 +6,7 @@ import {
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
   safetyCheckReadyRow,
+  safetyCheckRecordedRow,
 } from "./notification-row";
 
 describe("coordinatorAssignedRow (SPM-177)", () => {
@@ -110,6 +111,28 @@ describe("safetyCheckReadyRow (SPM-262)", () => {
       related_event_id: "7",
       message_content:
         "Harbour Lights Gala is ready for a safety check\nConfirmed at Grand Ballroom. All equipment reserved. Event date: Fri, 20 Nov 2026.",
+    });
+  });
+});
+
+describe("safetyCheckRecordedRow (SPM-263)", () => {
+  it("AC1, AC6: records the notice as Pending against the coordinator and the event", () => {
+    expect(
+      safetyCheckRecordedRow({
+        recipientUserAccountId: "2",
+        eventId: "7",
+        eventName: "Marina Bay Gala",
+        outcome: "Rejected",
+        comments: "Switch to Theatre.",
+      }),
+    ).toEqual({
+      recipient_user_account_id: "2",
+      trigger_scenario: "safety-check-recorded",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      message_content:
+        "Marina Bay Gala failed its safety check\nThe Safety Officer rejected Marina Bay Gala. Changes needed: Switch to Theatre.",
     });
   });
 });

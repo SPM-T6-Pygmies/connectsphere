@@ -35,6 +35,7 @@ export interface CoordinatorEventDetailsRow extends CoordinatorEventRow {
   venue_requirements: string | null;
   room_layout_preference: string | null;
   accessibility_requirements: string | null;
+  required_facilities: string | null;
 }
 
 /** Selects every column plus the `event_slots` computed field. */
@@ -99,6 +100,7 @@ export function toCoordinatorEventDetails(row: CoordinatorEventDetailsRow): Coor
     venueRequirements: row.venue_requirements,
     roomLayoutPreference: row.room_layout_preference,
     accessibilityRequirements: row.accessibility_requirements,
+    requiredFacilities: row.required_facilities,
   };
 }
 

@@ -317,6 +317,27 @@ export class CoordinatorEventNotFoundError extends DomainError {
   }
 }
 
+/**
+ * SPM-247: a facility the event needs that is not on the venue facility list.
+ * Written for the Coordinator, so it can be shown as it is.
+ */
+export class InvalidEventFacilitiesError extends DomainError {
+  readonly code = "invalid_event_facilities";
+
+  constructor(reason: string) {
+    super(reason);
+  }
+}
+
+/** SPM-247: a Completed or Cancelled event's facilities are read-only. */
+export class EventFacilitiesLockedError extends DomainError {
+  readonly code = "event_facilities_locked";
+
+  constructor(readonly status: string) {
+    super(`The facilities needed by a ${status} event are read-only.`);
+  }
+}
+
 export class NoBookingSlotsError extends DomainError {
   readonly code = "no_booking_slots";
 
@@ -855,6 +876,15 @@ export class EventNotAwaitingSafetyCheckError extends DomainError {
 
   constructor() {
     super("This event is not awaiting a safety check.");
+  }
+}
+
+/** SPM-261 AC3: only a Planning event whose latest check is an unresubmitted rejection goes back for another. */
+export class SafetyCheckNotResubmittableError extends DomainError {
+  readonly code = "safety_check_not_resubmittable";
+
+  constructor() {
+    super("This event cannot be resubmitted for a safety check.");
   }
 }
 

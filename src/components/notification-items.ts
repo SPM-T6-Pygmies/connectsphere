@@ -23,6 +23,7 @@ const TRIGGERS: Readonly<Record<string, NotificationTrigger>> = {
   "clarification-requested": "Clarification requested",
   "event-request-decided": "Request decided",
   "safety-check-ready": "Ready for safety check",
+  "safety-check-recorded": "Safety check outcome",
 }
 
 /**

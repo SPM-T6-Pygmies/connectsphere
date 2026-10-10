@@ -1,5 +1,7 @@
 import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
 import {
+  CoordinatorEventNotFoundError,
+  EventFacilitiesLockedError,
   EventNotConfirmableError,
   EventNotFoundError,
   EventNotReadyForConfirmationError,
@@ -38,6 +40,10 @@ interface ClientOrganisationNameRow {
 const NOT_FOUND_OR_NOT_ASSIGNED = "CS020";
 const NOT_CONFIRMABLE = "CS021";
 const NOT_READY = "CS022";
+
+/** SQLSTATEs `coordinator_set_event_required_facilities` comes back with. See its migration. */
+const FACILITIES_EVENT_NOT_FOUND = "CS029";
+const FACILITIES_EVENT_LOCKED = "CS043";
 
 /**
  * Reached through `coordinator_events`, not the table -- the table's own
@@ -137,6 +143,39 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
     // Single-row (not `setof`) function: a miss comes back as one row of
     // nulls rather than SQL NULL, same quirk `organiser_event_request` has.
     return row && row.event_id !== null ? toCoordinatorEvent(row) : null;
+  }
+
+  /**
+   * SPM-247: goes through `coordinator_set_event_required_facilities`, which
+   * re-checks the assignment and status under a row lock and audits the change
+   * in the same transaction. Its SQLSTATEs come back as the domain's own errors.
+   */
+  async setRequiredFacilities(
+    coordinatorId: UserAccountId,
+    eventId: string,
+    facilities: string | null,
+  ): Promise<void> {
+    const eventKey = toKey(eventId);
+    const coordinatorKey = toKey(coordinatorId);
+    if (eventKey === null || coordinatorKey === null) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+
+    const { error } = await this.client.rpc("coordinator_set_event_required_facilities", {
+      p_coordinator_user_account_id: coordinatorKey,
+      p_event_id: eventKey,
+      p_facilities: facilities,
+    });
+
+    if (error) {
+      if (error.code === FACILITIES_EVENT_NOT_FOUND) {
+        throw new CoordinatorEventNotFoundError(eventId);
+      }
+      if (error.code === FACILITIES_EVENT_LOCKED) {
+        throw new EventFacilitiesLockedError(error.details || "closed");
+      }
+      throw new Error(`Failed to save the event's facilities: ${error.message}`, { cause: error });
+    }
   }
 
   /**

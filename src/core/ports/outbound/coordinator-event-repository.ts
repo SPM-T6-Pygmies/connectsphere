@@ -34,6 +34,8 @@ export interface CoordinatorEventDetails {
   readonly venueRequirements: string | null;
   readonly roomLayoutPreference: string | null;
   readonly accessibilityRequirements: string | null;
+  /** SPM-247: the facilities the coordinator says the event needs, stored as a venue's are. */
+  readonly requiredFacilities: string | null;
 }
 
 /** Driven port: events, scoped the way a coordinator is allowed to see them. */
@@ -52,6 +54,12 @@ export interface CoordinatorEventRepository {
     coordinatorId: UserAccountId,
     id: CoordinatorEvent["id"],
   ): Promise<CoordinatorEvent | null>;
+
+  /**
+   * SPM-247: stores the facilities the event needs (null clears them). The caller has already
+   * validated them; this re-checks the assignment and status, and records the change.
+   */
+  setRequiredFacilities(coordinatorId: UserAccountId, eventId: string, facilities: string | null): Promise<void>;
 
   /** SPM-50: persists the event's confirmation. `confirmedBy` is who confirmed it, for the audit trail. */
   confirmEvent(event: CoordinatorEvent, confirmedBy: UserAccountId): Promise<void>;

@@ -114,6 +114,8 @@ create table event (
   programme_agenda         text,
   room_layout_preference   text,
   accessibility_requirements text,
+  required_facilities      text,
+    -- the facilities the coordinator says it needs, stored as a venue's are (SPM-247)
   equipment_requirements   text,
   registration_enabled_flag boolean not null default false,
   special_arrangements     text,

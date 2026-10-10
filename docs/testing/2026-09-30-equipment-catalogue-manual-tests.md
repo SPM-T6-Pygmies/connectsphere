@@ -49,6 +49,10 @@ Units out of service, added by SPM-17, are tested in
   ```
 - Running: `pnpm dev:local` (open it at `http://localhost:3000`)
 - Run the cases in order: TC-EQCAT-010 adds the items the later cases change.
+- Clean up afterwards: the run leaves `Projector (4K)` and a `Wireless microphone` of
+  24 in the database, which are not the equipment types and counts of the
+  Connectsphere Data Single Source of Truth. Run `supabase db reset` before loading
+  any seed.
 
 ### Test Accounts (password `TestPass123!`)
 - `support@test.com` (Technical Support Staff)
@@ -93,7 +97,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The **Equipment catalogue** card says "The catalogue is empty. Use Add equipment to add the first item."
 - No equipment is listed: nothing is imported from an existing equipment database.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-empty-catalogue](../screenshots/2026-10-09_TC-EQCAT-009_step2-empty-catalogue.png)
 
 ---
 
@@ -112,7 +118,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - A new item starts with **Out of service** `0` and *In service: 6 of 6* (or *24 of 24*).
 - The "catalogue is empty" message is gone.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-panel-open](../screenshots/2026-10-09_TC-EQCAT-010_step1-panel-open.png) · [step3-both-items-added](../screenshots/2026-10-09_TC-EQCAT-010_step3-both-items-added.png)
 
 ---
 
@@ -127,7 +135,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
   and Quantity ("Quantity must be a whole number, zero or more."), plus "Check the highlighted fields."
 - The panel stays open with what was typed (`-1`, `keep me`) kept. No card is added.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-invalid-refused](../screenshots/2026-10-09_TC-EQCAT-011_step1-invalid-refused.png)
 
 ---
 
@@ -143,7 +153,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The Wireless microphone card is unchanged (`24`, `Store A`).
 - The screen reports counts per type and nothing finer (no per-unit records).
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-after-reload](../screenshots/2026-10-09_TC-EQCAT-012_step2-after-reload.png) · [step2-saved](../screenshots/2026-10-09_TC-EQCAT-012_step2-saved.png)
 
 ---
 
@@ -156,7 +168,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - "Quantity must be a whole number, zero or more." appears on that card.
 - After the reload Wireless microphone is still `24`.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-bad-update-refused](../screenshots/2026-10-09_TC-EQCAT-013_step1-bad-update-refused.png)
 
 ---
 
@@ -168,7 +182,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 **Expected Result**
 - None of them shows the equipment catalogue; it is reached from **Equipment** in the sidebar.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-archive](../screenshots/2026-10-09_TC-EQCAT-014_step1-archive.png) · [step1-needs-review](../screenshots/2026-10-09_TC-EQCAT-014_step1-needs-review.png) · [step1-reviewed](../screenshots/2026-10-09_TC-EQCAT-014_step1-reviewed.png)
 
 ---
 
@@ -185,7 +201,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The Add equipment panel opens beside a sliver of the page, and every field fits on screen.
 - The page does not scroll sideways.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-cards-stacked](../screenshots/2026-10-09_TC-EQCAT-015_step1-cards-stacked.png) · [step2-add-panel](../screenshots/2026-10-09_TC-EQCAT-015_step2-add-panel.png)
 
 ---
 
@@ -201,4 +219,6 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 - The Network tab shows **403** for the page request (SPM-16).
 - No catalogue content is shown.
 
-**Status:** [x] Pass [ ] Fail — 7/10/2026, run by Jerrick
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-lead-denied](../screenshots/2026-10-09_TC-EQCAT-016_step1-lead-denied.png)

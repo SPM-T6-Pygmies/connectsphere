@@ -60,11 +60,12 @@ venue** page send:
 | Event | Venue | Layout | Slots | Used by |
 | --- | --- | --- | --- | --- |
 | A | Studio | Theatre | its preferred date, AM | TC-VBDECIDE-001, -004 |
-| A | Rooftop Terrace | — | its preferred date, PM | TC-VBDECIDE-002, -003 |
+| A | Rooftop Terrace | Banquet | its preferred date, PM | TC-VBDECIDE-002, -003 |
 | A | Seminar Room 2-1 | Classroom | 2026-12-15, AM | TC-VBDECIDE-005 |
 | B | Seminar Room 2-1 | Boardroom | 2026-12-15, AM | TC-VBDECIDE-005 |
 
-`TC-VENUE-BOOK-003` and `-004` leave the first two behind. Find a booking's
+`TC-VENUE-BOOK-003` leaves the Studio request behind; send the Rooftop Terrace
+one yourself, choosing a layout (it has two). Find a booking's
 ID with:
 
 ```sql
@@ -92,7 +93,9 @@ select b.booking_id, v.location, b.status, e.name
   facilities, supported layouts with Theatre highlighted), the event's card on
   the right, and the **Decision** card with **Approve booking** and **Reject**
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [setup-rooftop-must-choose-layout](../screenshots/2026-10-09_TC-VBDECIDE-001_setup-rooftop-must-choose-layout.png) · [step1-requests-list](../screenshots/2026-10-09_TC-VBDECIDE-001_step1-requests-list.png) · [step2-studio-detail](../screenshots/2026-10-09_TC-VBDECIDE-001_step2-studio-detail.png)
 
 ---
 
@@ -111,7 +114,9 @@ select b.booking_id, v.location, b.status, e.name
 - After reload the booking is still **Requested** with the decision form, and
   still in Requests
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-reject-without-reason-refused](../screenshots/2026-10-09_TC-VBDECIDE-002_step2-reject-without-reason-refused.png) · [step3-still-requested-after-reload](../screenshots/2026-10-09_TC-VBDECIDE-002_step3-still-requested-after-reload.png)
 
 ---
 
@@ -133,7 +138,9 @@ select b.booking_id, v.location, b.status, e.name
 - The booking has left Requests and is listed in Archive
 - On the coordinator's page the Rooftop Terrace row reads **Rejected**
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step1-rejected-with-reason-and-suggestion](../screenshots/2026-10-09_TC-VBDECIDE-003_step1-rejected-with-reason-and-suggestion.png) · [step2-archive-lists-it](../screenshots/2026-10-09_TC-VBDECIDE-003_step2-archive-lists-it.png) · [step3-coordinator-sees-rejected](../screenshots/2026-10-09_TC-VBDECIDE-003_step3-coordinator-sees-rejected.png)
 
 ---
 

@@ -6,12 +6,14 @@ import { clarificationRequestedMessage } from "@/adapters/outbound/notification-
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
+import { safetyCheckRecordedMessage } from "@/adapters/outbound/notification-content/safety-check-recorded";
 import type {
   ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
+  SafetyCheckRecordedNotice,
 } from "@/core/ports/outbound/notifier";
 
 /** A `notification` row as recorded before delivery: in-app, Pending, about one event request or one event. */
@@ -84,6 +86,19 @@ export function safetyCheckReadyRow(notice: SafetyCheckReadyNotice): Notificatio
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: "safety-check-ready",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a coordinator their event's safety check outcome (SPM-263). */
+export function safetyCheckRecordedRow(notice: SafetyCheckRecordedNotice): NotificationRow {
+  const { subject, body } = safetyCheckRecordedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "safety-check-recorded",
     channel: "in_app",
     status: "Pending",
     related_event_id: notice.eventId,

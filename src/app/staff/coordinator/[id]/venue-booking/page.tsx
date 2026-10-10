@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import {
   Card,
@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
-import { checkLayoutCapacity } from "@/core/domain/booking";
+import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
+import type { VenueSuitability } from "@/core/domain/venue-suitability";
 import type {
   CoordinatorEventDetails,
   EventBookingSummary,
@@ -28,27 +29,25 @@ import { formatSlotsOnDates } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
-import { describeCapacity } from "../../../booking-capacity-message";
+import { SuitabilityChecklist } from "../../../suitability-checklist";
 import { ChangeLayoutForm } from "./change-layout-form";
+import { FacilitiesNeededForm } from "./facilities-needed-form";
 
 export const metadata = { title: "Request a venue | ConnectSphere" };
-
-const TONE_CLASS = {
-  ok: "text-muted-foreground",
-  over: "text-destructive font-medium",
-  unknown: "text-muted-foreground",
-} as const;
 
 function BookingsTable({
   bookings,
   venues,
   event,
   eventRequestId,
+  suitability,
 }: {
   bookings: readonly EventBookingSummary[];
   venues: readonly Venue[];
   event: CoordinatorEventDetails;
   eventRequestId: string;
+  /** SPM-45: the server's verdict per booking still in play, by booking id. */
+  suitability: Readonly<Record<string, VenueSuitability>>;
 }) {
   if (bookings.length === 0) {
     return (
@@ -66,19 +65,14 @@ function BookingsTable({
           <TableHead>Venue</TableHead>
           <TableHead>Slots</TableHead>
           <TableHead>Layout</TableHead>
-          <TableHead>Capacity</TableHead>
+          <TableHead>Suitability</TableHead>
           <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {bookings.map((booking) => {
           const venue = venues.find((candidate) => candidate.id === booking.venueId);
-          const capacity =
-            venue === undefined
-              ? null
-              : describeCapacity(
-                  checkLayoutCapacity(venue, booking.roomLayoutName, event.expectedAttendance),
-                );
+          const verdict = suitability[booking.id];
 
           return (
             <TableRow key={booking.id}>
@@ -102,10 +96,16 @@ function BookingsTable({
                   ) : null}
                 </div>
               </TableCell>
-              <TableCell
-                className={`text-xs whitespace-normal ${TONE_CLASS[capacity?.tone ?? "unknown"]}`}
-              >
-                {capacity?.text ?? "—"}
+              <TableCell className="text-xs whitespace-normal">
+                {verdict === undefined ? (
+                  "—"
+                ) : (
+                  <SuitabilityChecklist
+                    compact
+                    suitability={verdict}
+                    label={`Suitability of the booking at ${booking.venueLocation}`}
+                  />
+                )}
               </TableCell>
               <TableCell>
                 <StatusBadge status={booking.status} />
@@ -131,16 +131,16 @@ export default async function VenueBookingPage({
 
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const viewVenueBookingOptions = await buildViewVenueBookingOptions();
   const result = await viewVenueBookingOptions.execute({ eventRequestId: id, ...coordinator });
   if (result === null) {
-    notFound();
+    forbidden();
   }
 
-  const { event, venues, bookings } = result;
+  const { event, venues, bookings, venueSuitability, bookingSuitability } = result;
 
   return (
     <StaffShell
@@ -176,8 +176,8 @@ export default async function VenueBookingPage({
                 eventId={event.id}
                 eventRequestId={id}
                 defaultDate={event.preferredDate}
-                expectedAttendance={event.expectedAttendance}
                 venues={venues}
+                suitability={venueSuitability}
               />
             </CardContent>
           </Card>
@@ -192,6 +192,7 @@ export default async function VenueBookingPage({
                 venues={venues}
                 event={event}
                 eventRequestId={id}
+                suitability={bookingSuitability}
               />
             </CardContent>
           </Card>
@@ -200,10 +201,10 @@ export default async function VenueBookingPage({
         <div className="min-w-0 space-y-6 lg:sticky lg:top-16 lg:self-start">
           <Card>
             <CardHeader>
-              <CardTitle>Sent with the request</CardTitle>
+              <CardTitle>Event needs</CardTitle>
               <CardDescription>
-                The event&apos;s timing and requirements, for Venue Staff to
-                review against.
+                What the event needs from a venue. The checklist compares each
+                venue with this, and Venue Staff review the request against it.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -218,6 +219,22 @@ export default async function VenueBookingPage({
                   { label: "Accessibility", value: event.accessibilityRequirements },
                 ]}
               />
+              <div className="mt-4 space-y-2 border-t pt-4">
+                <p className="text-sm font-medium">Facilities needed</p>
+                {eventFacilitiesEditable(event.status) ? (
+                  <FacilitiesNeededForm
+                    // Remount when the saved facilities change, so the ticks follow them.
+                    key={event.requiredFacilities ?? ""}
+                    eventId={event.id}
+                    eventRequestId={id}
+                    saved={event.requiredFacilities ?? ""}
+                  />
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    {event.requiredFacilities ?? "None recorded"}
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

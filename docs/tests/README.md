@@ -108,6 +108,8 @@ case, not part of which case it is.
 [`tickets.json`](tickets.json) maps each ticket to its title and parent, so the
 registry can fill `TicketTitle` and `UserStory` without reaching Linear. It is a
 snapshot of Sprint 1 (Linear cycle 2) — extend it as later sprints land.
+`--update` keeps its issues in ticket-number order, so add an entry anywhere and
+let it sort.
 
 `UserStory` is the column that answers the Week 13 question. Pick a feature,
 say `SPM-28`, filter on it, and every case that is evidence for it is there
@@ -132,9 +134,10 @@ specification half of the template: `CaseID`, `Scenario`, `Preconditions`,
 `StepsDoc` pointing at the write-up in [`../testing/`](../testing) when there is
 one. `CaseID` is the `TC-<AREA>-NNN` id used in that document, so it is unique
 within the feature you are writing and means the same case forever. `Status` is
-`Active`, or `Retired` once the case is gone. `--update` only refills
-`TicketTitle` and `UserStory` from `tickets.json`; it never reorders or rewrites
-what you wrote.
+`Active`, or `Retired` once the case is gone. `--update` refills
+`TicketTitle` and `UserStory` from `tickets.json` and sorts the rows by `CaseID`,
+so parallel branches add their cases in different places instead of all at the
+end; it never rewrites what you wrote.
 
 ### The execution record — `manual-runs.csv`
 
