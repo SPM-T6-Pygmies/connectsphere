@@ -244,3 +244,7 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-09,TC-VENUE-BOOK-016,Pass,"The same request moves Suitable → Not suitable (capacity, then facilities) → Suitable as the event changes",New · AC8,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-016_*
 2026-10-09,TC-VENUE-BOOK-017,Pass,"A Rejected request shows a dash; Requested, Tentative Hold and Confirmed keep their verdict",New · AC8,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-017_*
 2026-10-09,TC-VENUE-BOOK-018,Pass,"An unassigned coordinator gets the same access-denied page, 403, as for an event that does not exist",New · AC9,JameszLau,119,67f5649,,2026-10-09_TC-VENUE-BOOK-018_*
+2026-10-10,TC-EVDETAILS-001,Pass,"Saved toast; name updated in header, breadcrumb and My events; 3 audit rows (name, category_type, operational_notes) with actor 2, old/new and timestamp",Event 1 on local seed; data restored afterwards,Isaidchia,121,55de783,,Playwright run + SQL output
+2026-10-10,TC-EVDETAILS-002,Pass,"""An event must have a name."" shown; typed note kept; nothing saved",,Isaidchia,121,55de783,,Screenshots above
+2026-10-10,TC-EVDETAILS-003,Pass,"Locked card with the change-request note; form has no date, timeslot or attendance field",,Isaidchia,121,55de783,,Screenshots above
+2026-10-10,TC-EVDETAILS-004,Pass,Completed event shows Details with no Edit details button,Status set via SQL then restored,Isaidchia,121,55de783,,Playwright run
