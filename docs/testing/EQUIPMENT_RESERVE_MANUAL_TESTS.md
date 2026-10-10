@@ -15,8 +15,10 @@ A line awaits a decision when nothing is reserved against it and it is **New**, 
 **Changed** by the coordinator after being marked unfulfilled (AC4). Units reserved for
 one event are not available to another from the day before to the day after (AC5), and
 what is free is checked again when you reserve (AC6). On the **Equipment** page, a save
-that leaves fewer in service than upcoming events hold still goes through, and the card
-names those events (AC7).
+that leaves fewer in service than upcoming events have reserved still goes through, and
+the card lists each date that is short and the events whose units are out then — every
+time the page loads, until the shortfall is gone (AC7). An event's units count as out on
+the day before it (collection) and on its date (return).
 
 What SPM-274 does **not** cover, so is not tested here:
 
@@ -25,7 +27,7 @@ What SPM-274 does **not** cover, so is not tested here:
 - **Telling the coordinator** of the outcome: SPM-65.
 
 The rules are unit-tested (`awaitsDecision`, `reserveEquipmentLine`,
-`markEquipmentLineUnfulfilled`, `eventsHoldingMoreThanInService`, the use cases and the
+`markEquipmentLineUnfulfilled`, `daysShortOfService`, the use cases and the
 mappers, all tagged SPM-274), including exactly the quantity requested available, one
 fewer, a comment of 500 and 501 characters, and an event today or yesterday. These cases
 check the same rules end to end, through the real logins, the
@@ -210,7 +212,7 @@ others alongside does not change the numbers below.
 
 ---
 
-### TC-RESERVE-007: Units out of service that leave too few name the events affected (AC7)
+### TC-RESERVE-007: Units out of service that leave too few list the short dates (AC7)
 
 **Preconditions:** TC-RESERVE-001 and 004 passed: 6 presentation laptops reserved for
 *Design Sprint Demo* (20 Nov) and 2 for *Sales Kickoff* (21 Nov).
@@ -222,11 +224,15 @@ others alongside does not change the numbers below.
 3. Set **Out of service** back to `0` and click **Update**.
 
 **Expected Result:**
-- Step 1: *Saved.* and *In service: 7 of 8*, with a warning *Fewer in service than these
-  events hold* listing:
-  - *Design Sprint Demo (2026-11-20): 8 held over its days (6 its own)*
-  - *Sales Kickoff (2026-11-21): 8 held over its days (2 its own)*
-- Step 2: the card still shows **Out of service** `1` — the save went through.
+- Step 1: *Saved.* and *In service: 7 of 8*, with a warning *Not enough in service on these
+  dates* reading:
+  - *20 Nov (8 reserved but only 7 in service): Design Sprint Demo (20 Nov) has 6 reserved,
+    Sales Kickoff (21 Nov) has 2 reserved*
+
+  Only 20 Nov is listed: it is the one day both events' laptops are out (Design Sprint
+  Demo's on 19–20 Nov, Sales Kickoff's on 20–21 Nov).
+- Step 2: the card still shows **Out of service** `1` — the save went through — and the
+  same warning is still there.
 - Step 3: *Saved.*, *In service: 8 of 8*, and no warning.
 
 **Status:** [ ] Pass [ ] Fail

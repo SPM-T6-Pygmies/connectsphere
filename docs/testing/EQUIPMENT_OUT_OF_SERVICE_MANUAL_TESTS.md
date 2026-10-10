@@ -184,9 +184,9 @@ it): `delete from equipment_item where type = 'Smoke machine';`.
 - Step 2: "Out of service must be a whole number from 0 up to the number owned (2)."; after the
   reload the card still shows **Owned** `5` and **Out of service** `3`. Nothing was saved.
 - Step 3: "Saved."; *In service: 0 of 3*. Owned may drop to exactly the out-of-service count.
-  The card also shows the warning *Fewer in service than these events hold* naming
-  *Tech Summit Keynote (2026-11-15): 2 held over its days* — expected (SPM-274 AC7): the
-  save still went through.
+  The card also shows the warning *Not enough in service on these dates* reading
+  *14–15 Nov (2 reserved but only 0 in service): Tech Summit Keynote (15 Nov) has 2
+  reserved* — expected (SPM-274 AC7): the save still went through.
 - Step 4: "Saved."; *In service: 5 of 5*, and no warning.
 
 **Status:** [ ] Pass [ ] Fail
