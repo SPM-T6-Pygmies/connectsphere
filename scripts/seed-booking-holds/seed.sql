@@ -1,7 +1,7 @@
 -- SPM-46 / SPM-22 manual tests: two Tentative Holds at Main Hall on 2026-12-01.
 --
---   AM  expired an hour ago      -- must not block (TC-VENUE-BOOK-010)
---   PM  expires in thirty days   -- must block    (TC-VENUE-BOOK-011)
+--   AM  expired an hour ago      -- must not block (TC-VENUE-BOOK-019)
+--   PM  expires in thirty days   -- must block    (TC-VENUE-BOOK-020)
 --
 -- Holds have no UI until SPM-218, so they are inserted here. Run after
 -- seed-coordinator-view and seed-venues, once coordinator@test.com has
