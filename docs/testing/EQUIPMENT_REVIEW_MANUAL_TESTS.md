@@ -9,15 +9,15 @@ reserved yet), **changed** after it was reserved, or has its **removal requested
 Opening an event shows all its lines, each marked, with how many units are free on
 the event's date. **Reviewed** and **Archive** list the other events with equipment.
 
-Equipment is collected the day before an event and is free again the day after it
-is returned, the return day being the event's date
+Equipment is collected the day before an event and is free again the day after it is
+returned, the return day being the event's date
 ([#5](https://github.com/SinYang13/IS212-2026/discussions/5),
 [#113](https://github.com/SinYang13/IS212-2026/discussions/113)) — so an event's units
 are out on the day before it and on its date. For each of those two days, the units free
 are the number owned, less what other active events have out that day (those dated that
-day or the next); a line shows the smaller of the two. A line that already has units
-reserved shows what is left after its own reservation — how many more could be reserved
-for it.
+day or the next); a line shows the smaller of the two (SPM-275 AC1). A line that already
+has units reserved shows what is left after its own reservation — how many more could be
+reserved for it.
 
 What SPM-273 does **not** cover, so is not tested here:
 
@@ -30,8 +30,9 @@ What SPM-273 does **not** cover, so is not tested here:
 
 The rules are unit-tested (`attentionReason`, `reservedAs`, `isActiveEvent`,
 `equipmentQueueOf`, `unitsAvailable`, `ListEquipmentQueueUseCase` and
-`ViewEventEquipmentForTechnicalSupportUseCase`, all tagged SPM-273), including every
-event status, every line state, and events one and two days either side.
+`ViewEventEquipmentForTechnicalSupportUseCase`, tagged SPM-273, with the per-day count
+tagged SPM-275), including every event status, every line state, and events one and two
+days either side.
 These cases check the same rules end to end, through the real login, the
 `technical_support_equipment_events` and `technical_support_event_equipment`
 functions, and the pages.
@@ -64,10 +65,10 @@ figures. It is replaced by TC-EQUIPREVIEW-008.
 | --- | --- |
 | TC-EQUIPREVIEW-003 | TC-EQUIPREVIEW-008 |
 
-TC-EQUIPREVIEW-008 is retired as well: AC4 now counts per day. An event's units are out
-on the day before it and on its date, so the Projector line subtracts only the busier of
-*Tech Summit Keynote*'s two days, which changes its expected figure from 4 to 5. It is
-replaced by TC-EQUIPREVIEW-009.
+TC-EQUIPREVIEW-008 is retired as well: SPM-275 now counts availability per day. An
+event's units are out on the day before it and on its date, so the Projector line
+subtracts only the busier of *Tech Summit Keynote*'s two days, which changes its
+expected figure from 4 to 5. It is replaced by TC-EQUIPREVIEW-009.
 
 | Retired | Replaced by |
 | --- | --- |

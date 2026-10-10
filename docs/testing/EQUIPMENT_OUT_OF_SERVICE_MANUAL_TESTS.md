@@ -42,7 +42,7 @@ replaced here by:
 
 The replacement checks the same SPM-17 rule, and says which steps show the warning.
 
-TC-OOS-004 is retired too: SPM-273 AC4 now counts availability per day, so the Projector
+TC-OOS-004 is retired too: SPM-275 now counts availability per day, so the Projector
 figures it reads on *Tech Summit Keynote* change from 4, 2 and 4 to 5, 3 and 5. It is
 replaced by TC-OOS-007, which checks the same SPM-17 rule with the new figures.
 
