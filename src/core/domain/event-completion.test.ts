@@ -9,7 +9,7 @@ import {
   type CompletableEvent,
 } from "./event-completion";
 
-/** Two slots on two days; the later one, 15 Oct Night, ends 22:00 Singapore time. */
+/** Two slots on two days; the later one, 15 Oct Night, ends at midnight Singapore time. */
 function event(overrides: Partial<CompletableEvent> = {}): CompletableEvent {
   return {
     status: "Confirmed",
@@ -22,7 +22,7 @@ function event(overrides: Partial<CompletableEvent> = {}): CompletableEvent {
   };
 }
 
-const ENDS_AT = new Date("2026-10-15T22:00:00+08:00");
+const ENDS_AT = new Date("2026-10-16T00:00:00+08:00");
 const JUST_BEFORE = new Date(ENDS_AT.getTime() - 1);
 const JUST_AFTER = new Date(ENDS_AT.getTime() + 1);
 
