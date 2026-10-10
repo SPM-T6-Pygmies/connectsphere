@@ -107,7 +107,7 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 - Two audit rows with the coordinator's account id: action `completed`, and
   a field change on `operational_notes` from "Doors at 9." to the new notes
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -131,7 +131,7 @@ values (<event>, current_date + 1, 'PM');
 
 Afterwards, put the timeslot back to `current_date - 1`.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -151,7 +151,7 @@ update event set status = 'Planning' where event_id = <event>;
 
 Afterwards, set the status back to `Confirmed`.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -170,7 +170,7 @@ Afterwards, set the status back to `Confirmed`.
   event can no longer be changed." and no way to add or change a line
 - The Confirmation card has no **Confirm event** or **Mark completed**
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -186,4 +186,4 @@ Afterwards, set the status back to `Confirmed`.
 - The access-denied screen, the same one an id that does not exist gets;
   nothing of the event and no **Mark completed** is shown
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
