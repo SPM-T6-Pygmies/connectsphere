@@ -187,6 +187,17 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
     expect(reviews.all()[0]?.status).toBe("Confirmed");
   });
 
+  it("approves a slot the same event already holds at another venue -- each request is decided on its own (AC4)", async () => {
+    const { useCase, reviews } = build([
+      booking("b1", "Requested", "AM", "v1"),
+      booking("b2", "Confirmed", "AM", "v2"),
+    ]);
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+
+    expect(reviews.all()[0]?.status).toBe("Confirmed");
+  });
+
   it("approves the second of two requests for one slot only if the first was not approved", async () => {
     const { useCase } = build([booking("b1", "Requested"), booking("b2", "Requested")]);
 
