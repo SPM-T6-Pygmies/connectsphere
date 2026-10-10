@@ -60,6 +60,7 @@ function build() {
       events: new InMemoryCoordinatorEventRepository([EVENT]),
       venues,
       bookings,
+      clock,
     }),
   };
 }

@@ -3,8 +3,8 @@
 ## Overview
 Manual browser tests for the Event Organiser submitting an event request
 (SPM-31) and saving it as a draft first (SPM-38), on the slot-based form: one
-preferred date plus the slots wanted on it (AM 07:00–12:00, PM 12:00–18:00,
-Night 18:00–22:00, Singapore time).
+preferred date plus the slots wanted on it (AM 07:00–12:00, PM 13:00–18:00,
+Night 19:00–24:00, Singapore time).
 
 The rules behind the form (mandatory fields, the future-date rule, slots needing
 a date) are covered by automated tests tagged SPM-31 and SPM-38. These cases
@@ -61,8 +61,8 @@ them, tick the boxes below **and** report each in the PR description's
 - [ ] After step 1, **Event name**, **Preferred date**, **Preferred slots** and
       **Expected attendance** carry a red `*`, the page says fields marked `*`
       are mandatory, and **Submit request** is disabled.
-- [ ] The slot checkboxes read `AM (7:00 AM – 12:00 PM)`, `PM (12:00 PM – 6:00 PM)`
-      and `Night (6:00 PM – 10:00 PM)`, are disabled, and say "Choose the date
+- [ ] The slot checkboxes read `AM (7:00 AM – 12:00 PM)`, `PM (1:00 PM – 6:00 PM)`
+      and `Night (7:00 PM – 12:00 AM)`, are disabled, and say "Choose the date
       first." until a date is picked.
 - [ ] After step 2, **Submit request** is still disabled.
 - [ ] After step 4, **Submit request** is enabled. No optional field had to be

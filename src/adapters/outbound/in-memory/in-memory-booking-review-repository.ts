@@ -1,4 +1,4 @@
-import { clashingSlots, holdsSlot, type BookingId, type DecidedBooking } from "@/core/domain/booking";
+import { clashingSlots, type BookingId, type DecidedBooking } from "@/core/domain/booking";
 import { BookingNotDecidableError, VenueSlotUnavailableError } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
@@ -50,14 +50,14 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
     }
 
     if (decided.status === "Confirmed") {
+      // Review rows carry no hold expiry, so a hold here counts as live, as
+      // one with no expiry does.
       const held = this.rows
         .filter((other) => other.id !== row.id && other.venueId === row.venueId)
         .flatMap((other) =>
-          holdsSlot(other.status)
-            ? other.slots.map((slot) => ({ ...slot, status: other.status }))
-            : [],
+          other.slots.map((slot) => ({ ...slot, status: other.status, holdExpiresAt: null })),
         );
-      const clashes = clashingSlots(row.slots, held);
+      const clashes = clashingSlots(row.slots, held, new Date());
       if (clashes.length > 0) {
         throw new VenueSlotUnavailableError(clashes);
       }
