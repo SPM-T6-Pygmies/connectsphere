@@ -117,6 +117,11 @@
       "parent": null,
       "status": "Backlog"
     },
+    "SPM-49": {
+      "title": "Update event planning information",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-50": {
       "title": "Confirm an event",
       "parent": null,
