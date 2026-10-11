@@ -69,9 +69,17 @@ export interface AuditedEventChange {
   readonly newValue: string | null;
 }
 
+/** One audited action on an event, as `coordinator_complete_event` writes it to `audit_record`. */
+export interface AuditedEventAction {
+  readonly actorUserAccountId: string;
+  readonly eventId: string;
+  readonly action: string;
+}
+
 export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepository {
   private readonly rows: SeedCoordinatorEvent[];
   private readonly audit: AuditedEventChange[] = [];
+  private readonly activity: AuditedEventAction[] = [];
 
   constructor(seed: readonly SeedCoordinatorEvent[] = []) {
     this.rows = [...seed];
@@ -200,7 +208,7 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
     };
   }
 
-  /** Test-only window on the audit trail `updateOrdinaryDetails` and `setRegistrationSettings` wrote. */
+  /** Test-only window on the audit trail `updateOrdinaryDetails`, `setRegistrationSettings` and `completeEvent` wrote. */
   auditTrail(): readonly AuditedEventChange[] {
     return [...this.audit];
   }
@@ -212,6 +220,41 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
       return;
     }
     this.rows[index] = { ...this.rows[index], status: event.status };
+  }
+
+  /**
+   * Stores the Completed status and any new notes and, as the database does, audits the
+   * completion and the notes change against the coordinator. The status and end checks
+   * the database restates are the domain's, already made.
+   */
+  async completeEvent(coordinatorId: UserAccountId, eventId: string, notes: string | null): Promise<void> {
+    const index = this.rows.findIndex(
+      (row) => row.id === eventId && row.assignedCoordinatorUserAccountId === coordinatorId,
+    );
+    if (index === -1) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+    const before = this.rows[index];
+    this.activity.push({ actorUserAccountId: coordinatorId, eventId, action: "completed" });
+    if (notes !== null) {
+      this.audit.push({
+        actorUserAccountId: coordinatorId,
+        eventId,
+        field: "operationalNotes",
+        oldValue: before.operationalNotes ?? null,
+        newValue: notes,
+      });
+    }
+    this.rows[index] = {
+      ...before,
+      status: "Completed",
+      ...(notes === null ? {} : { operationalNotes: notes }),
+    };
+  }
+
+  /** Test-only window on the actions `completeEvent` audited. */
+  activityTrail(): readonly AuditedEventAction[] {
+    return [...this.activity];
   }
 
   /** Test-only window on what was stored, so a test can assert a status change. */

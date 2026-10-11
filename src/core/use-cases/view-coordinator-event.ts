@@ -1,5 +1,6 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
+import { canComplete } from "../domain/event-completion";
 import {
   assessReadiness,
   blockingArrangements,
@@ -9,6 +10,7 @@ import {
   type EventReadiness,
 } from "../domain/event-readiness";
 import { userAccountId } from "../domain/user-account";
+import type { Clock } from "../ports/outbound/clock";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type {
   CoordinatorEventDetails,
@@ -32,6 +34,8 @@ export interface ViewCoordinatorEventResult {
   readonly confirmation: ConfirmationState;
   /** What blocks confirmation right now -- empty unless `confirmation` is `blocked-by-arrangements`. */
   readonly blockingArrangements: readonly ArrangementType[];
+  /** SPM-51: whether the event can be marked completed now -- Confirmed, and its last slot over. */
+  readonly canComplete: boolean;
 }
 
 export interface ViewCoordinatorEventDeps {
@@ -39,6 +43,7 @@ export interface ViewCoordinatorEventDeps {
   readonly readiness: EventReadinessRepository;
   readonly clientOrganisations: ClientOrganisationRepository;
   readonly userAccounts: UserAccountRepository;
+  readonly clock: Clock;
 }
 
 /**
@@ -86,6 +91,7 @@ export class ViewCoordinatorEventUseCase {
       readiness,
       confirmation: confirmationState(event, readiness),
       blockingArrangements: blockingArrangements(readiness),
+      canComplete: canComplete(details, this.deps.clock.now()),
     };
   }
 }
