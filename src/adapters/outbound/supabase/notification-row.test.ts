@@ -7,6 +7,7 @@ import {
   organiserCoordinatorAssignedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
+  venueBookingRequestedRow,
 } from "./notification-row";
 
 describe("coordinatorAssignedRow (SPM-177)", () => {
@@ -133,6 +134,28 @@ describe("safetyCheckRecordedRow (SPM-263)", () => {
       related_event_id: "7",
       message_content:
         "Marina Bay Gala failed its safety check\nThe Safety Officer rejected Marina Bay Gala. Changes needed: Switch to Theatre.",
+    });
+  });
+});
+
+describe("venueBookingRequestedRow (SPM-61)", () => {
+  it("AC1: records the notice as Pending against its Venue Staff member and the booking", () => {
+    expect(
+      venueBookingRequestedRow({
+        recipientUserAccountId: "5",
+        bookingId: "31",
+        eventName: "Harbour Lights Gala",
+        venueLocation: "Grand Ballroom",
+        slots: [{ date: "2026-11-20", slot: "PM" }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "5",
+      trigger_scenario: "venue-booking-requested",
+      channel: "in_app",
+      status: "Pending",
+      related_booking_id: "31",
+      message_content:
+        "Grand Ballroom requested for Harbour Lights Gala\nRequested for Fri, 20 Nov 2026 (PM). Approve or reject it.",
     });
   });
 });
