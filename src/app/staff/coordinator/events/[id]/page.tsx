@@ -99,7 +99,7 @@ export default async function CoordinatorEventPage({
               venue: <VenueTab details={details} readiness={readiness} />,
               equipment: <EquipmentSection equipment={equipment} />,
               safety: <SafetyCheckCard eventId={event.id} view={safetyChecks} />,
-              registration: <RegistrationTab readiness={readiness} />,
+              registration: <RegistrationTab event={event} details={details} readiness={readiness} />,
             }}
           />
         </div>

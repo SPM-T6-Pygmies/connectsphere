@@ -309,3 +309,24 @@ describe("RegisterForEventUseCase (SPM-24)", () => {
     },
   );
 });
+
+describe("RegisterForEventUseCase (SPM-25)", () => {
+  it("AC2: refuses an Attendee once the coordinator disables registration, even inside the window", async () => {
+    const { useCase, registrations } = buildUseCase({
+      events: [event(SUMMIT, { registrationEnabled: false })],
+    });
+
+    await expect(useCase.execute({ eventId: SUMMIT, ...ADA })).rejects.toBeInstanceOf(
+      EventNotOpenForRegistrationError,
+    );
+    expect(registrations.all()).toEqual([]);
+  });
+
+  it("AC2: lets the same Attendee register once registration is enabled again", async () => {
+    const { useCase, registrations } = buildUseCase({ events: [event(SUMMIT, { registrationEnabled: true })] });
+
+    await useCase.execute({ eventId: SUMMIT, ...ADA });
+
+    expect(registrations.all()).toHaveLength(1);
+  });
+});

@@ -93,9 +93,9 @@ select b.booking_id, v.location, b.status, e.name
   facilities, supported layouts with Theatre highlighted), the event's card on
   the right, and the **Decision** card with **Approve booking** and **Reject**
 
-**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
 
-**Screenshots:** [setup-rooftop-must-choose-layout](../screenshots/2026-10-09_TC-VBDECIDE-001_setup-rooftop-must-choose-layout.png) · [step1-requests-list](../screenshots/2026-10-09_TC-VBDECIDE-001_step1-requests-list.png) · [step2-studio-detail](../screenshots/2026-10-09_TC-VBDECIDE-001_step2-studio-detail.png)
+**Screenshots:** [step1-requests-list](../screenshots/2026-10-10_TC-VBDECIDE-001_step1-requests-list.png) · [step2-studio-detail](../screenshots/2026-10-10_TC-VBDECIDE-001_step2-studio-detail.png)
 
 ---
 
@@ -114,9 +114,9 @@ select b.booking_id, v.location, b.status, e.name
 - After reload the booking is still **Requested** with the decision form, and
   still in Requests
 
-**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
 
-**Screenshots:** [step2-reject-without-reason-refused](../screenshots/2026-10-09_TC-VBDECIDE-002_step2-reject-without-reason-refused.png) · [step3-still-requested-after-reload](../screenshots/2026-10-09_TC-VBDECIDE-002_step3-still-requested-after-reload.png)
+**Screenshots:** [step2-blank-reason-refused](../screenshots/2026-10-10_TC-VBDECIDE-002_step2-blank-reason-refused.png)
 
 ---
 
@@ -138,9 +138,9 @@ select b.booking_id, v.location, b.status, e.name
 - The booking has left Requests and is listed in Archive
 - On the coordinator's page the Rooftop Terrace row reads **Rejected**
 
-**Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
 
-**Screenshots:** [step1-rejected-with-reason-and-suggestion](../screenshots/2026-10-09_TC-VBDECIDE-003_step1-rejected-with-reason-and-suggestion.png) · [step2-archive-lists-it](../screenshots/2026-10-09_TC-VBDECIDE-003_step2-archive-lists-it.png) · [step3-coordinator-sees-rejected](../screenshots/2026-10-09_TC-VBDECIDE-003_step3-coordinator-sees-rejected.png)
+**Screenshots:** [step1-rejected-with-reason-and-suggestion](../screenshots/2026-10-10_TC-VBDECIDE-003_step1-rejected-with-reason-and-suggestion.png) · [step2-archive-lists-it](../screenshots/2026-10-10_TC-VBDECIDE-003_step2-archive-lists-it.png) · [step3-coordinator-sees-rejected](../screenshots/2026-10-10_TC-VBDECIDE-003_step3-coordinator-sees-rejected.png)
 
 ---
 
@@ -160,7 +160,9 @@ select b.booking_id, v.location, b.status, e.name
 - The booking has left Requests and is listed in Decided
 - On the coordinator's page the Studio row reads **Confirmed**
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
+
+**Screenshots:** [step1-approved-confirmed](../screenshots/2026-10-10_TC-VBDECIDE-004_step1-approved-confirmed.png) · [step2-decided-lists-it](../screenshots/2026-10-10_TC-VBDECIDE-004_step2-decided-lists-it.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-10_TC-VBDECIDE-004_step3-coordinator-sees-confirmed.png)
 
 ---
 
@@ -180,7 +182,9 @@ select b.booking_id, v.location, b.status, e.name
   other slots or another venue."
 - After reload event B's booking is still **Requested**
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
+
+**Screenshots:** [step2-second-approval-refused](../screenshots/2026-10-10_TC-VBDECIDE-005_step2-second-approval-refused.png)
 
 ---
 
@@ -197,7 +201,9 @@ select b.booking_id, v.location, b.status, e.name
 - Each shows the access-denied screen naming Venue Staff, with a **403**
 - No booking, venue or event details are shown
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
+
+**Screenshots:** [step-denied-coordinator](../screenshots/2026-10-10_TC-VBDECIDE-006_step-denied-coordinator.png) · [step-denied-lead](../screenshots/2026-10-10_TC-VBDECIDE-006_step-denied-lead.png)
 
 ---
 
@@ -221,7 +227,9 @@ The request is still **Requested**: a block does not change existing bookings.
 - Rejecting it instead still works: a rejection holds nothing (do not reject
   it here, TC-VBDECIDE-008 needs it)
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
+
+**Screenshots:** [step1-approval-over-block-refused](../screenshots/2026-10-10_TC-VBDECIDE-007_step1-approval-over-block-refused.png)
 
 ---
 
@@ -239,4 +247,6 @@ The request is still **Requested**: a block does not change existing bookings.
 - The booking is listed in **Decided**
 - The coordinator's row reads **Confirmed**
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 10/10/2026, run in Chrome via Playwright for joyceetran
+
+**Screenshots:** [step2-approved-after-lift](../screenshots/2026-10-10_TC-VBDECIDE-008_step2-approved-after-lift.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-10_TC-VBDECIDE-008_step3-coordinator-sees-confirmed.png)

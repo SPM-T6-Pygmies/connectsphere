@@ -104,3 +104,11 @@ describe("ViewEventForRegistrationUseCase (SPM-79)", () => {
     );
   });
 });
+
+describe("ViewEventForRegistrationUseCase (SPM-25)", () => {
+  it("AC2: does not show an Attendee an event whose coordinator disabled registration, even inside the window", async () => {
+    await expect(
+      buildUseCase([event({ registrationEnabled: false })]).execute({ eventId: SUMMIT }),
+    ).rejects.toBeInstanceOf(EventNotOpenForRegistrationError);
+  });
+});

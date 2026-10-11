@@ -5,6 +5,8 @@ import {
   toCoordinatorEvent,
   toCoordinatorEventDetails,
   toOrdinaryChangesPayload,
+  toRegistrationSettingsArgs,
+  type CoordinatorEventDetailsRow,
   type CoordinatorEventRecordRow,
   type CoordinatorEventRow,
 } from "./coordinator-event-mapper";
@@ -90,6 +92,9 @@ describe("coordinator event mapper -- ordinary details (SPM-49)", () => {
       programme_agenda: "Keynote, then panels",
       special_arrangements: "Halal catering",
       operational_notes: "Load-in at 7am",
+      registration_enabled_flag: false,
+      registration_open_date: null,
+      registration_close_date: null,
     });
 
     expect(details).toMatchObject({
@@ -108,5 +113,58 @@ describe("coordinator event mapper -- ordinary details (SPM-49)", () => {
     expect(
       toOrdinaryChangesPayload({ categoryType: "Workshop", operationalNotes: null, name: "Summit" }),
     ).toEqual({ category_type: "Workshop", operational_notes: null, name: "Summit" });
+  });
+});
+
+describe("coordinator event mapper -- registration settings (SPM-25)", () => {
+  const row: CoordinatorEventDetailsRow = {
+    event_id: 5,
+    event_request_id: 24,
+    name: "Roadmap Conference",
+    status: "Confirmed",
+    preferred_date: "2026-11-20",
+    assigned_coordinator_user_account_id: 2,
+    client_organisation_id: 1,
+    expected_attendance: null,
+    venue_requirements: null,
+    room_layout_preference: null,
+    accessibility_requirements: null,
+    required_facilities: null,
+    description: null,
+    purpose: null,
+    category_type: null,
+    programme_agenda: null,
+    special_arrangements: null,
+    operational_notes: null,
+    registration_enabled_flag: true,
+    registration_open_date: "2026-11-01",
+    registration_close_date: "2026-11-18",
+  };
+
+  it("AC1: reads whether registration is enabled and its window from their columns", () => {
+    expect(toCoordinatorEventDetails(row)).toMatchObject({
+      registrationEnabled: true,
+      registrationOpensOn: "2026-11-01",
+      registrationClosesOn: "2026-11-18",
+    });
+  });
+
+  it("AC1: reads an event with registration off and no window as such", () => {
+    expect(
+      toCoordinatorEventDetails({
+        ...row,
+        registration_enabled_flag: false,
+        registration_open_date: null,
+        registration_close_date: null,
+      }),
+    ).toMatchObject({ registrationEnabled: false, registrationOpensOn: null, registrationClosesOn: null });
+  });
+
+  it("AC1: sends the settings as the function's parameters", () => {
+    expect(toRegistrationSettingsArgs({ enabled: false, opensOn: "2026-11-01", closesOn: null })).toEqual({
+      p_enabled: false,
+      p_open_date: "2026-11-01",
+      p_close_date: null,
+    });
   });
 });

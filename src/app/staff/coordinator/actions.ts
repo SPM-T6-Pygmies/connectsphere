@@ -10,6 +10,7 @@ import {
   resolveClarificationThreadSchema,
 } from "@/adapters/inbound/request-clarification-schema";
 import { resubmitForSafetyCheckSchema } from "@/adapters/inbound/resubmit-for-safety-check-schema";
+import { setEventRegistrationSchema } from "@/adapters/inbound/set-event-registration-schema";
 import { updateEventDetailsSchema } from "@/adapters/inbound/update-event-details-schema";
 import { withdrawEventRequestSchema } from "@/adapters/inbound/withdraw-event-request-schema";
 import {
@@ -19,6 +20,7 @@ import {
   buildRequestClarification,
   buildResolveClarificationThread,
   buildResubmitForSafetyCheck,
+  buildSetEventRegistration,
   buildUpdateEventDetails,
   buildWithdrawEventRequest,
   getCurrentCoordinator,
@@ -379,6 +381,57 @@ export async function updateEventDetailsAction(
     const updateEventDetails = await buildUpdateEventDetails();
     const result = await updateEventDetails.execute({ eventId, details, ...coordinator });
     changed = result.changed.length;
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "saved", changed };
+}
+
+export type SetEventRegistrationState =
+  | { status: "idle" }
+  | { status: "saved"; changed: boolean }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-25: the assigned Event Coordinator enables or disables registration and
+ * sets its window. Who is saving comes from `getCurrentCoordinator()` on the
+ * server, never from the form, and an event that is not theirs is refused
+ * like one that does not exist (#91).
+ */
+export async function setEventRegistrationAction(
+  _previous: SetEventRegistrationState,
+  formData: FormData,
+): Promise<SetEventRegistrationState> {
+  const field = (name: string) => String(formData.get(name) ?? "");
+  const parsed = setEventRegistrationSchema.safeParse({
+    eventId: field("eventId"),
+    enabled: field("enabled"),
+    opensOn: field("opensOn"),
+    closesOn: field("closesOn"),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the registration settings." };
+  }
+
+  const { eventId, ...settings } = parsed.data;
+  let changed: boolean;
+
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+
+    const setEventRegistration = await buildSetEventRegistration();
+    const result = await setEventRegistration.execute({ eventId, settings, ...coordinator });
+    changed = result.changed;
   } catch (error) {
     if (error instanceof DomainError) {
       return { status: "error", message: error.message };
