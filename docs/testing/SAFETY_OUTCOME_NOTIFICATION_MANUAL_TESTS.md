@@ -293,9 +293,29 @@ AC1, AC4, AC5. Needs `pnpm dev:local` with Novu.
 - Step 3: its unread dot goes and stays gone; Marina Bay Gala's stays unread.
 - Step 4: `/staff/coordinator/events/<id>`, Marina Bay Gala's event page.
 
-**Status:** [ ] Pass [ ] Fail — not yet run
+**Evidence:**
+- [`TC-SAFETYOUTCOME-007_step2-two-notices.png`](../screenshots/2026-10-12_TC-SAFETYOUTCOME-007_step2-two-notices.png)
+- [`TC-SAFETYOUTCOME-007_step2-coordinator2-inbox.png`](../screenshots/2026-10-12_TC-SAFETYOUTCOME-007_step2-coordinator2-inbox.png)
+- [`TC-SAFETYOUTCOME-007_step3-marked-read.png`](../screenshots/2026-10-12_TC-SAFETYOUTCOME-007_step3-marked-read.png)
+- [`TC-SAFETYOUTCOME-007_step4-opened-event.png`](../screenshots/2026-10-12_TC-SAFETYOUTCOME-007_step4-opened-event.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
+
+## Run record — 2026-10-12
+
+Run by Claude Code for joyceetran on branch
+`feat/spm-61-notify-venue-staff-of-a-new-booking-request`, against `pnpm dev:local` (Next.js 16.3.4, dev mode, Novu Development through
+a `novu dev` tunnel, `NOVU_BRIDGE_URL` set) on local Supabase, in headless
+Chromium driven by Playwright at 1440 × 900. No page errors were raised.
+The fixture was loaded onto the existing local database, not a reset one
+(events 3, 4 and 6). TC-SAFETYOUTCOME-001 to 003 were re-run with Novu as
+007's preconditions and produced the same three rows as on 2026-10-06.
+
+| Case | Result | Observed |
+| --- | --- | --- |
+| TC-SAFETYOUTCOME-007 | Pass | Coordinator's inbox: Marina Bay Gala's and Canal Side Workshop's notices, both unread and badged Safety check outcome, with 001's and 002's wording; coordinator2's has only Winter Lantern Ball's. Canal Side Workshop marked read stayed read after reload, Marina Bay Gala stayed unread; clicking Marina Bay Gala opened `/staff/coordinator/events/3` |
 
 ## Run record — 2026-10-06
 

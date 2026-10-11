@@ -66,9 +66,11 @@ AC1, AC2.
 - Step 2: "Booking request sent for Studio." One `Sent` row each for accounts 4 and 9, both against the new booking; no row for any other account.
 - Steps 3–4: each inbox has "Studio requested for Operations Roadmap Conference", badged **Booking requested**, reading "Requested for Wed, 20 Jan 2027 (AM, PM) and Thu, 21 Jan 2027 (Night). Approve or reject it."
 
-**Evidence:** [`TC-VENUENOTE-001_step1-request-sent.png`](../screenshots/2026-10-11_TC-VENUENOTE-001_step1-request-sent.png)
+**Evidence:**
+- [`TC-VENUENOTE-001_step3-venue-inbox.png`](../screenshots/2026-10-12_TC-VENUENOTE-001_step3-venue-inbox.png)
+- [`TC-VENUENOTE-001_step4-venue2-inbox.png`](../screenshots/2026-10-12_TC-VENUENOTE-001_step4-venue2-inbox.png)
 
-**Status:** [ ] Pass [ ] Fail — Blocked at steps 3–4, see the run record
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -87,10 +89,10 @@ AC3.
 - Step 2: the booking is Confirmed, on the same page.
 
 **Evidence:**
-- [`TC-VENUENOTE-002_step1-opened-from-inbox.png`](../screenshots/2026-10-11_TC-VENUENOTE-002_step1-opened-from-inbox.png)
-- [`TC-VENUENOTE-002_step2-approved-in-inbox.png`](../screenshots/2026-10-11_TC-VENUENOTE-002_step2-approved-in-inbox.png)
+- [`TC-VENUENOTE-002_step1-opened-from-notice.png`](../screenshots/2026-10-12_TC-VENUENOTE-002_step1-opened-from-notice.png)
+- [`TC-VENUENOTE-002_step2-approved.png`](../screenshots/2026-10-12_TC-VENUENOTE-002_step2-approved.png)
 
-**Status:** [ ] Pass [ ] Fail — Blocked at step 1, see the run record
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -108,7 +110,7 @@ AC1.
 - Step 1: "The venue is already booked for 2027-01-20 AM." No booking is created.
 - Step 2: no new row.
 
-**Evidence:** [`TC-VENUENOTE-003_step1-clash-refused.png`](../screenshots/2026-10-11_TC-VENUENOTE-003_step1-clash-refused.png)
+**Evidence:** [`TC-VENUENOTE-003_step1-clash-refused.png`](../screenshots/2026-10-12_TC-VENUENOTE-003_step1-clash-refused.png)
 
 **Status:** [x] Pass [ ] Fail
 
@@ -128,11 +130,34 @@ AC4.
 - Step 1: its unread dot goes and the unread count drops by one.
 - Step 2: it is still read.
 
-**Status:** [ ] Pass [ ] Fail — Blocked, see the run record
+**Evidence:**
+- [`TC-VENUENOTE-004_step1-marked-read.png`](../screenshots/2026-10-12_TC-VENUENOTE-004_step1-marked-read.png)
+- [`TC-VENUENOTE-004_step2-still-read-after-reload.png`](../screenshots/2026-10-12_TC-VENUENOTE-004_step2-still-read-after-reload.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
+## Run record — 2026-10-12
+
+Run by Claude Code for joyceetran on branch
+`feat/spm-61-notify-venue-staff-of-a-new-booking-request`, against `pnpm dev:local` (Next.js 16.3.4, dev mode, Novu Development through
+a `novu dev` tunnel, `NOVU_BRIDGE_URL` set) on local Supabase, in headless
+Chromium driven by Playwright at 1440 × 900. No page errors were raised.
+Studio on 2027-01-20 was already Confirmed by the first run, so the request
+used 2027-02-10 (AM, PM) and 2027-02-11 (Night), and the clash 2027-02-10 AM.
+
+| Case | Result | Observed |
+| --- | --- | --- |
+| TC-VENUENOTE-001 | Pass | Booking 17. Rows for accounts 4 and 9 only, both `Sent`. Both inboxes show "Studio requested for Operations Roadmap Conference", badged Booking requested, "Requested for Wed, 10 Feb 2027 (AM, PM) and Thu, 11 Feb 2027 (Night). Approve or reject it." |
+| TC-VENUENOTE-002 | Pass | Clicking the notice opened `/staff/venue/notifications/17`, Requested, with the Decision panel; **Approve booking** made it Confirmed on the same page. Opening it marked it read |
+| TC-VENUENOTE-003 | Pass | "The venue is already booked for 2027-02-10 AM."; no booking, no notification row |
+| TC-VENUENOTE-004 | Pass | Mark as read cleared the dot, 1 unread → 0; still read after reload |
+
 ## Run record — 2026-10-11
+
+Superseded by the run above. Local Novu delivery was not set up
+(`NOVU_BRIDGE_URL` missing), so notifications were only logged.
 
 Run by Claude Code for joyceetran on branch
 `feat/spm-61-notify-venue-staff-of-a-new-booking-request`, against
