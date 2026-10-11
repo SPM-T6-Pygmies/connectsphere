@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { completeEventSchema } from "@/adapters/inbound/complete-event-schema";
 import { confirmEventSchema } from "@/adapters/inbound/confirm-event-schema";
 import { decideEventRequestSchema } from "@/adapters/inbound/decide-event-request-schema";
 import { postClarificationMessageSchema } from "@/adapters/inbound/post-clarification-message-schema";
@@ -14,6 +15,7 @@ import { setEventRegistrationSchema } from "@/adapters/inbound/set-event-registr
 import { updateEventDetailsSchema } from "@/adapters/inbound/update-event-details-schema";
 import { withdrawEventRequestSchema } from "@/adapters/inbound/withdraw-event-request-schema";
 import {
+  buildCompleteEvent,
   buildConfirmEvent,
   buildDecideEventRequest,
   buildPostCoordinatorClarificationMessage,
@@ -297,6 +299,52 @@ export async function confirmEventAction(
   revalidatePath("/staff/coordinator", "layout");
 
   return { status: "confirmed" };
+}
+
+export type CompleteEventState =
+  | { status: "idle" }
+  | { status: "completed" }
+  | { status: "error"; message: string; notes: string };
+
+/**
+ * SPM-51: the assigned Event Coordinator marks a Confirmed event completed,
+ * with any operational notes.
+ *
+ * The page already disables the button until the event has ended -- this
+ * action's own check is defence against a stale page, not the primary way a
+ * coordinator finds out. A refusal hands back the notes as typed, because
+ * React resets the form after every action.
+ */
+export async function completeEventAction(
+  _previous: CompleteEventState,
+  formData: FormData,
+): Promise<CompleteEventState> {
+  const notes = String(formData.get("notes") ?? "");
+  const parsed = completeEventSchema.safeParse({ id: String(formData.get("id") ?? ""), notes });
+
+  if (!parsed.success) {
+    return { status: "error", message: "The event is missing.", notes };
+  }
+
+  try {
+    // Same not-found-shaped scoping as confirming the event (#91).
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new CoordinatorEventNotFoundError(parsed.data.id);
+    }
+
+    const completeEvent = await buildCompleteEvent();
+    await completeEvent.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message, notes };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "completed" };
 }
 
 export type ResubmitForSafetyCheckState = { status: "idle" } | { status: "error"; message: string };
