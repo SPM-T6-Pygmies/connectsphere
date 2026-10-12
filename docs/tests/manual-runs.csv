@@ -292,3 +292,5 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-12,TC-EQUIPREVIEW-007,Pass,"Sidebar and table match on Needs review, Reviewed and Archive; Board Strategy Day shows Reserved on both lines under Reviewed",New · replaces 002 and 005,jerricknsc,117,34701c7,,
 2026-10-12,TC-EQUIPREVIEW-008,Pass,"Tech Summit Keynote: PA speaker 3, Projector 4, Wireless microphone 24; Partner Roadshow reads Event has no date yet",New · replaces 003 · SPM-273 AC4 revised,jerricknsc,117,34701c7,,
 2026-10-12,TC-OOS-006,Pass,Owned 2 under 3 out of service refused; Owned 3 saves with the 14–15 Nov warning naming Tech Summit Keynote; back to 5 of 5 with no warning,New · replaces 003,jerricknsc,117,34701c7,,
+2026-10-12,TC-EQUIPREVIEW-009,Pass,"Tech Summit Keynote: PA speaker 3, Projector 5, Wireless microphone 24; Partner Roadshow reads Event has no date yet",New · replaces 008 · SPM-275 per-day count,jerricknsc,126,cf1b17e,,2026-10-10_SPM-273_after-per-day-available
+2026-10-12,TC-OOS-007,Pass,Projector Available 5; 3 with 2 out of service; 5 again once they are back in service,New · replaces 004 · SPM-275 per-day count,jerricknsc,126,cf1b17e,,
