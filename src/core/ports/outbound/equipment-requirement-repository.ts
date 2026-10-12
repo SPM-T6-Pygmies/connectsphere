@@ -17,6 +17,11 @@ export interface EventEquipment {
   /** Null exactly when `lines` is empty and no line has ever been recorded. */
   readonly reservation: EquipmentReservationRef | null;
   readonly lines: readonly EquipmentRequirement[];
+  /**
+   * The names of the Technical Support Staff who made the lines' decisions
+   * (SPM-274), keyed by user account id. Absent when no line has one.
+   */
+  readonly deciderNames?: Readonly<Record<string, string>>;
 }
 
 /**

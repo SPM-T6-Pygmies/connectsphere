@@ -28,6 +28,8 @@ export interface EquipmentLineStock {
   readonly outOfService: number;
   /** What every other event has reserved of the type. Which of them overlap is `unitsAvailable`'s call. */
   readonly otherHolds: readonly EquipmentHold[];
+  /** The name of who made the line's decision (SPM-274), or null while it has none. */
+  readonly decidedByName: string | null;
 }
 
 export interface EventEquipmentStock {
@@ -51,4 +53,22 @@ export interface TechnicalEquipmentRepository {
 
   /** One event's lines, ordered by type, or null when there is no such event. Re-checks the reader the same way. */
   eventEquipment(reader: UserAccountId, eventId: EventId): Promise<EventEquipmentStock | null>;
+
+  /*
+   * The writes below store a decision the domain made on a line it read
+   * (SPM-274). A store re-checks, at the moment it writes, that the line still
+   * awaits a decision with the quantity it was read with, refusing with
+   * `EquipmentLineNotAwaitingDecisionError` if not -- someone else decided on
+   * it, or the coordinator changed it, in between.
+   */
+
+  /**
+   * Stores `line` as Reserved. A store also re-checks that enough units are
+   * still free (AC6) and refuses with `NotEnoughEquipmentAvailableError` if
+   * another reservation took them since the line was read.
+   */
+  reserve(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void>;
+
+  /** Stores `line` as Unfulfilled, with its decision's comment (AC3). */
+  markUnfulfilled(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void>;
 }

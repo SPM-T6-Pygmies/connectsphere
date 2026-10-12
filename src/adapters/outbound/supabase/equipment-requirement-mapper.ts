@@ -37,6 +37,10 @@ export interface EventEquipmentRow {
   reviewed_quantity_requested: number | null;
   reviewed_technical_requirements: string | null;
   removal_requested: boolean | null;
+  /** SPM-274: who last reserved the line or marked it unfulfilled, their name, and why not. */
+  decided_by_user_account_id: number | null;
+  decided_by_name: string | null;
+  decision_comment: string | null;
 }
 
 /** What Technical Support last had reserved against: present exactly while a line is Under review. */
@@ -77,10 +81,24 @@ export function toEventEquipment(rows: readonly EventEquipmentRow[]): EventEquip
               state: row.line_state ?? "Requested",
               reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
               removalRequested: row.removal_requested ?? false,
+              decision:
+                row.decided_by_user_account_id === null
+                  ? null
+                  : { by: userAccountId(String(row.decided_by_user_account_id)), comment: row.decision_comment },
             },
           ],
     ),
+    ...deciderNamesOf(rows),
   };
+}
+
+function deciderNamesOf(rows: readonly EventEquipmentRow[]): Pick<EventEquipment, "deciderNames"> {
+  const named = rows.flatMap((row) =>
+    row.decided_by_user_account_id === null || row.decided_by_name === null
+      ? []
+      : [[String(row.decided_by_user_account_id), row.decided_by_name] as const],
+  );
+  return named.length === 0 ? {} : { deciderNames: Object.fromEntries(named) };
 }
 
 /**

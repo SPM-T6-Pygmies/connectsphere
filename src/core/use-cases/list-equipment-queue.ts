@@ -13,6 +13,8 @@ export interface EquipmentQueueEntry {
   readonly lineCount: number;
   /** How many of its lines are new, changed or have their removal requested. */
   readonly linesNeedingAttention: number;
+  /** How many of its lines Technical Support marked unfulfilled (SPM-274 AC3). */
+  readonly linesUnfulfilled: number;
 }
 
 export interface ListEquipmentQueueCommand {
@@ -51,6 +53,7 @@ export class ListEquipmentQueueUseCase {
           status: event.status,
           lineCount: lines.length,
           linesNeedingAttention: lines.filter((line) => attentionReason(line) !== null).length,
+          linesUnfulfilled: lines.filter((line) => line.state === "Unfulfilled").length,
         })),
     };
   }

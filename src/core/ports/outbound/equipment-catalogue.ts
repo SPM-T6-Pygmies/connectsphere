@@ -3,6 +3,7 @@ import type {
   EquipmentItemId,
   NewEquipmentItem,
 } from "../../domain/equipment-item";
+import type { EventReservation } from "../../domain/equipment-review";
 
 /**
  * Driven port: the equipment ConnectSphere owns, as Technical Support Staff
@@ -19,4 +20,9 @@ export interface EquipmentCatalogue {
   create(item: NewEquipmentItem): Promise<EquipmentItem>;
   /** Persists a change to an existing line; the store has already given it an id. */
   save(item: EquipmentItem): Promise<void>;
+  /**
+   * Every event's reservation of each item, whatever the event's status, keyed
+   * by item (SPM-274 AC7). An item nothing is reserved of has no entry.
+   */
+  reservations(): Promise<ReadonlyMap<EquipmentItemId, readonly EventReservation[]>>;
 }

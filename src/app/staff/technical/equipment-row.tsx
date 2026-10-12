@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,13 +10,15 @@ import { Input } from "@/components/ui/input";
 import type { EquipmentCatalogueEntry } from "@/core/use-cases/list-equipment-catalogue";
 
 import { updateEquipmentStockAction, type EquipmentFormState } from "./actions";
+import { shortDaysText } from "./short-days-text";
 
 const INITIAL: EquipmentFormState = { status: "idle" };
 
 /**
  * One catalogue item as a card, with how many are owned, where they are kept
  * and how many are out of service editable in place (SPM-40 AC2, SPM-17 AC1),
- * and how many are in service (SPM-17 AC3).
+ * and how many are in service (SPM-17 AC3). While upcoming events have more
+ * reserved than is in service on some days, it lists those days (SPM-274 AC7).
  */
 export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
   const [state, formAction, pending] = useActionState(updateEquipmentStockAction, INITIAL);
@@ -79,6 +82,19 @@ export function EquipmentRow({ item }: { item: EquipmentCatalogueEntry }) {
                 />
               </label>
             </div>
+
+            {item.shortDays.length > 0 ? (
+              <Alert variant="warning" className="px-2 py-1.5 text-xs">
+                <AlertTitle className="text-xs">Not enough in service on these dates</AlertTitle>
+                <AlertDescription className="text-xs">
+                  <ul>
+                    {item.shortDays.map((run) => (
+                      <li key={run.from}>{shortDaysText(run, item.inService)}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
             <div className="flex items-center justify-end gap-2">
               {state.status === "error" ? (

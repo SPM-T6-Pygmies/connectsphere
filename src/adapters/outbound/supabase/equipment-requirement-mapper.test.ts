@@ -27,6 +27,9 @@ const projector: EventEquipmentRow = {
   reviewed_quantity_requested: 2,
   reviewed_technical_requirements: "HDMI input",
   removal_requested: false,
+  decided_by_user_account_id: null,
+  decided_by_name: null,
+  decision_comment: null,
 };
 
 describe("equipment requirement mapper (SPM-185)", () => {
@@ -60,6 +63,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           state: "Under review",
           reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
           removalRequested: false,
+          decision: null,
         },
         {
           equipmentItemId: "2",
@@ -69,6 +73,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           state: "Requested",
           reviewBaseline: null,
           removalRequested: false,
+          decision: null,
         },
       ],
     });
@@ -88,6 +93,9 @@ describe("equipment requirement mapper (SPM-185)", () => {
           reviewed_quantity_requested: null,
           reviewed_technical_requirements: null,
           removal_requested: null,
+          decided_by_user_account_id: null,
+          decided_by_name: null,
+          decision_comment: null,
         },
       ]),
     ).toEqual({ reservation: { id: "10", reviewerUserAccountId: null }, lines: [] });
@@ -115,5 +123,41 @@ describe("equipment requirement mapper (SPM-185)", () => {
 
   it("leaves any other failure to the caller", () => {
     expect(toEquipmentRequirementError({ code: "23514" }, context)).toBeNull();
+  });
+});
+
+describe("equipment requirement mapper (SPM-274)", () => {
+  it("AC3: maps an unfulfilled line's comment, and the name of who marked it", () => {
+    const unfulfilled: EventEquipmentRow = {
+      ...projector,
+      quantity_reserved: 0,
+      line_state: "Unfulfilled",
+      reviewed_quantity_requested: null,
+      reviewed_technical_requirements: null,
+      decided_by_user_account_id: 5,
+      decided_by_name: "Test Support Staff",
+      decision_comment: "only 3 available",
+    };
+
+    const mapped = toEventEquipment([unfulfilled]);
+
+    expect(mapped.lines[0]).toMatchObject({ state: "Unfulfilled", decision: { by: "5", comment: "only 3 available" } });
+    expect(mapped.deciderNames).toEqual({ "5": "Test Support Staff" });
+  });
+
+  it("AC1: maps who reserved a line", () => {
+    const reserved: EventEquipmentRow = {
+      ...projector,
+      line_state: "Reserved",
+      reviewed_quantity_requested: null,
+      reviewed_technical_requirements: null,
+      decided_by_user_account_id: 5,
+      decided_by_name: "Test Support Staff",
+    };
+
+    const mapped = toEventEquipment([reserved]);
+
+    expect(mapped.lines[0]?.decision).toEqual({ by: "5", comment: null });
+    expect(mapped.deciderNames).toEqual({ "5": "Test Support Staff" });
   });
 });

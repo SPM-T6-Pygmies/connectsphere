@@ -28,6 +28,10 @@ export interface EquipmentLineData {
   readonly reserved: boolean;
   readonly underReview: boolean;
   readonly removalRequested: boolean;
+  /** SPM-274 AC3. */
+  readonly unfulfilled: boolean;
+  /** SPM-274 AC1, AC3: who reserved the line or marked it unfulfilled, and why not. */
+  readonly decision: { readonly byName: string | null; readonly comment: string | null } | null;
 }
 
 type Mode = "view" | "editing" | "removing";
@@ -39,6 +43,9 @@ type Mode = "view" | "editing" | "removing";
  * re-check it, so the form says so before it is saved (AC12). A line whose
  * removal is pending offers only Undo (AC17): until undone it cannot be
  * edited or removed again, and the domain refuses both.
+ *
+ * SPM-274: a reserved line names who reserved it (AC1); an unfulfilled one
+ * says why it could not be met and who said so (AC3).
  */
 export function EquipmentLine({
   eventId,
@@ -60,12 +67,22 @@ export function EquipmentLine({
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{line.equipmentType}</span>
             {line.reserved ? <Badge variant="success">Reserved</Badge> : null}
+            {line.unfulfilled ? <Badge variant="destructive">Unfulfilled</Badge> : null}
             {line.underReview ? <Badge variant="warning">Needs re-check</Badge> : null}
             {line.removalRequested ? <Badge variant="destructive">Removal requested</Badge> : null}
           </div>
           <p className="text-muted-foreground text-sm">
             Requested {line.quantityRequested} · Reserved {line.quantityReserved}
+            {line.reserved && line.decision?.byName ? ` · Reserved by ${line.decision.byName}` : null}
           </p>
+          {line.unfulfilled && line.decision !== null ? (
+            <p className="text-sm break-words">
+              {line.decision.comment}
+              {line.decision.byName ? (
+                <span className="text-muted-foreground">{` — ${line.decision.byName}, Technical Support`}</span>
+              ) : null}
+            </p>
+          ) : null}
           {line.technicalRequirements ? (
             <p className="text-sm break-words">{line.technicalRequirements}</p>
           ) : null}

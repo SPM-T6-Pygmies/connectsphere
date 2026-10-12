@@ -19,6 +19,10 @@ export interface EquipmentLineView {
   readonly reserved: boolean;
   readonly underReview: boolean;
   readonly removalRequested: boolean;
+  /** SPM-274 AC3: Technical Support could not fulfil it; `decision` says why. */
+  readonly unfulfilled: boolean;
+  /** SPM-274 AC1, AC3: who last reserved the line or marked it unfulfilled, and why not; null while nobody has. */
+  readonly decision: { readonly byName: string | null; readonly comment: string | null } | null;
 }
 
 export interface ViewEventEquipmentResult {
@@ -70,6 +74,11 @@ export class ViewEventEquipmentUseCase {
         reserved: isReserved(line),
         underReview: line.state === "Under review",
         removalRequested: line.removalRequested,
+        unfulfilled: line.state === "Unfulfilled",
+        decision:
+          line.decision === null
+            ? null
+            : { byName: current.deciderNames?.[line.decision.by] ?? null, comment: line.decision.comment },
       })),
       catalogue,
     };
