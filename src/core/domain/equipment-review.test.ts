@@ -9,7 +9,6 @@ import {
   awaitsDecision,
   equipmentQueueOf,
   daysShortOfService,
-  holdsOverlap,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
   reserveEquipmentLine,
@@ -131,40 +130,10 @@ describe("equipmentQueueOf (SPM-273)", () => {
   });
 });
 
-describe("holdsOverlap (SPM-273)", () => {
-  it.each([
-    ["2026-11-13", false],
-    ["2026-11-14", true],
-    ["2026-11-15", true],
-    ["2026-11-16", true],
-    ["2026-11-17", false],
-  ])("AC4: an event on 15 Nov and one on %s share days: %s", (other, overlaps) => {
-    expect(holdsOverlap("2026-11-15", other)).toBe(overlaps);
-  });
-
-  it("AC4: counts days across a month and a year end", () => {
-    expect(holdsOverlap("2026-11-30", "2026-12-01")).toBe(true);
-    expect(holdsOverlap("2026-12-31", "2027-01-01")).toBe(true);
-    expect(holdsOverlap("2026-12-31", "2027-01-02")).toBe(false);
-  });
-});
-
 describe("unitsAvailable (SPM-273)", () => {
   function hold(overrides: Partial<EquipmentHold> = {}): EquipmentHold {
     return { eventStatus: "Planning", eventDate: "2026-11-15", quantityReserved: 1, ...overrides };
   }
-
-  it("AC4: subtracts what events the day before, the same day and the day after hold, and nothing further out", () => {
-    const holds = [
-      hold({ eventDate: "2026-11-13", quantityReserved: 7 }),
-      hold({ eventDate: "2026-11-14", quantityReserved: 3 }),
-      hold({ eventDate: "2026-11-15", quantityReserved: 2 }),
-      hold({ eventDate: "2026-11-16", quantityReserved: 1 }),
-      hold({ eventDate: "2026-11-17", quantityReserved: 5 }),
-    ];
-
-    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(4);
-  });
 
   it("AC4: everything owned is available when no other event holds any", () => {
     expect(unitsAvailable(10, 0, "2026-11-15", [])).toBe(10);
@@ -184,6 +153,65 @@ describe("unitsAvailable (SPM-273)", () => {
 
   it("AC4: gives no number for an event with no date yet", () => {
     expect(unitsAvailable(10, 0, null, [hold()])).toBeNull();
+  });
+});
+
+describe("unitsAvailable (SPM-275)", () => {
+  function hold(eventDate: string, quantityReserved: number): EquipmentHold {
+    return { eventStatus: "Planning", eventDate, quantityReserved };
+  }
+
+  it("AC1: on the day before the event, units are out for events that day and on the event's date", () => {
+    const holds = [hold("2026-11-14", 3), hold("2026-11-15", 2)];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(5);
+  });
+
+  it("AC1: on the event's date, units are out for events that day and the day after", () => {
+    const holds = [hold("2026-11-15", 2), hold("2026-11-16", 1)];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(7);
+  });
+
+  it("AC1: events the day before and the day after are never out on the same day, so only the busier day counts", () => {
+    const holds = [hold("2026-11-14", 6), hold("2026-11-16", 6)];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(4);
+  });
+
+  it("AC1: takes off whichever of the event's two days has more out, and nothing further out", () => {
+    const holds = [
+      hold("2026-11-13", 7),
+      hold("2026-11-14", 3),
+      hold("2026-11-15", 2),
+      hold("2026-11-16", 1),
+      hold("2026-11-17", 5),
+    ];
+
+    expect(unitsAvailable(10, 0, "2026-11-15", holds)).toBe(5);
+  });
+
+  it("AC1: counts days across a year end", () => {
+    const holds = [hold("2026-12-31", 3), hold("2027-01-02", 4)];
+
+    expect(unitsAvailable(10, 0, "2027-01-01", holds)).toBe(6);
+  });
+
+  it.each([
+    ["2026-12-08", 10],
+    ["2026-12-09", 0],
+    ["2026-12-11", 0],
+    ["2026-12-12", 10],
+  ])("AC2: with event A on 10 Dec holding all 10, event B on %s has %i free", (date, free) => {
+    expect(unitsAvailable(10, 0, date, [hold("2026-12-10", 10)])).toBe(free);
+  });
+
+  it("AC4: moving an event's date moves the days its units are out", () => {
+    const before = [hold("2026-12-10", 10)];
+    const after = [hold("2026-12-13", 10)];
+
+    expect([unitsAvailable(10, 0, "2026-12-11", before), unitsAvailable(10, 0, "2026-12-14", before)]).toEqual([0, 10]);
+    expect([unitsAvailable(10, 0, "2026-12-11", after), unitsAvailable(10, 0, "2026-12-14", after)]).toEqual([10, 0]);
   });
 });
 

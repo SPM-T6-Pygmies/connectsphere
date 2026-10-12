@@ -122,9 +122,10 @@ export async function EventEquipmentDetail({ id, origin = "queue" }: { id: strin
         <CardHeader>
           <CardTitle>Equipment lines</CardTitle>
           <CardDescription>
-            Available counts the units owned, less those out of service, what other events hold from the day
-            before to the day of their event, and what the line has already reserved, so it is how many more
-            could be reserved.
+            Available is how many more could be reserved: the units owned, less those out of service, less what
+            other events have out on the busier of this event&apos;s two days (the day before it and its date),
+            less what the line has already reserved. An event&apos;s units are out from the day before it to its
+            date.
           </CardDescription>
         </CardHeader>
         <CardContent>
