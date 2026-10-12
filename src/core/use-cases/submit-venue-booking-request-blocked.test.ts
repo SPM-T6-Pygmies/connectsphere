@@ -7,6 +7,8 @@ import {
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
+import { InMemoryVenueStaffDirectory } from "@/adapters/outbound/in-memory/in-memory-venue-staff-directory";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 import { VenueSlotBlockedError } from "@/core/domain/errors";
 import { venueId, type Venue } from "@/core/domain/venue";
@@ -60,6 +62,8 @@ function build() {
       events: new InMemoryCoordinatorEventRepository([EVENT]),
       venues,
       bookings,
+      venueStaff: new InMemoryVenueStaffDirectory(),
+      notifier: new RecordingNotifier(),
       clock,
     }),
   };

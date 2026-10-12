@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryClientOrganisationRepository } from "@/adapters/outbound/in-memory/in-memory-client-organisation-repository";
 import {
   InMemoryCoordinatorEventRepository,
@@ -56,9 +57,13 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
   };
 }
 
+/** The morning after event-1's 14 Oct PM slot. */
+const AFTER_END = new Date("2026-10-15T09:00:00+08:00");
+
 function buildUseCase(
   events: readonly SeedCoordinatorEvent[],
   readiness: readonly ReadinessFacts[] = [],
+  now: Date = AFTER_END,
 ) {
   return new ViewCoordinatorEventUseCase({
     events: new InMemoryCoordinatorEventRepository(events),
@@ -74,6 +79,7 @@ function buildUseCase(
     ),
     clientOrganisations: new InMemoryClientOrganisationRepository(ORG_NAMES),
     userAccounts: new InMemoryUserAccountRepository({ names: ORGANISER_NAMES }),
+    clock: new FixedClock(now),
   });
 }
 
@@ -190,5 +196,37 @@ describe("ViewCoordinatorEventUseCase planning details (SPM-285)", () => {
       accessibilityRequirements: "Step-free access",
       requiredFacilities: "Projector, Stage",
     });
+  });
+});
+
+describe("ViewCoordinatorEventUseCase completion (SPM-51)", () => {
+  const slots = [{ date: "2026-10-14", slot: "PM" }] as const;
+
+  it("offers completion on a Confirmed event once its last slot has ended", async () => {
+    const useCase = buildUseCase([seedEvent({ status: "Confirmed", slots })]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.canComplete).toBe(true);
+  });
+
+  it("holds completion back before the last slot ends", async () => {
+    const useCase = buildUseCase(
+      [seedEvent({ status: "Confirmed", slots })],
+      [],
+      new Date("2026-10-14T17:59:59+08:00"),
+    );
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.canComplete).toBe(false);
+  });
+
+  it("does not offer completion on a Planning event, even after it would have ended", async () => {
+    const useCase = buildUseCase([seedEvent({ status: "Planning", slots })]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.canComplete).toBe(false);
   });
 });

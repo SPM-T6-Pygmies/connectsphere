@@ -132,6 +132,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-51": {
+      "title": "Mark an event as completed",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-57": {
       "title": "Notify a coordinator of their assignment to an event",
       "parent": null,
@@ -150,6 +155,11 @@
     "SPM-60": {
       "title": "Notify the organiser of the review decision",
       "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-61": {
+      "title": "Notify venue staff of a new booking request",
+      "parent": "SPM-47",
       "status": "In Progress"
     },
     "SPM-73": {

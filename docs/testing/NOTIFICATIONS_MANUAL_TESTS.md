@@ -127,7 +127,11 @@ unread one").
 - The row's dot and the bell's dot disappear
 - The unread count drops by one (the "unread" badge disappears at zero)
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-NOTIFY-003_step1-unread-before-opening.png`](../screenshots/2026-10-12_TC-NOTIFY-003_step1-unread-before-opening.png)
+- [`TC-NOTIFY-003_step2-dot-and-count-cleared.png`](../screenshots/2026-10-12_TC-NOTIFY-003_step2-dot-and-count-cleared.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -151,7 +155,10 @@ and opens the request).
   badged "Coordinator assigned"
 - Clicking it opens the Quarterly Partner Forum request
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-NOTIFY-004_step3-opened-request.png`](../screenshots/2026-10-12_TC-NOTIFY-004_step3-opened-request.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -176,7 +183,11 @@ Forum and has its notification). `coordinator2@test.com`'s inbox is empty.
   assigned to you" notification
 - `coordinator@test.com` has nothing new: only the original assignment notification
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-NOTIFY-005_step2-coordinator2-inbox.png`](../screenshots/2026-10-12_TC-NOTIFY-005_step2-coordinator2-inbox.png)
+- [`TC-NOTIFY-005_step3-coordinator-inbox.png`](../screenshots/2026-10-12_TC-NOTIFY-005_step3-coordinator-inbox.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -319,3 +330,21 @@ signed in as an Event Coordinator.
   switch is disabled
 
 **Status:** [ ] Pass [ ] Fail
+
+---
+
+## Run record — 2026-10-12
+
+Run by Claude Code for joyceetran on branch
+`feat/spm-61-notify-venue-staff-of-a-new-booking-request`, against `pnpm dev:local` (Next.js 16.3.4, dev mode, Novu Development through
+a `novu dev` tunnel, `NOVU_BRIDGE_URL` set) on local Supabase, in headless
+Chromium driven by Playwright at 1440 × 900. No page errors were raised.
+The database was not reset: Quarterly Partner Forum (request 2) was still
+Submitted and unassigned from the seed, and both coordinator inboxes were empty.
+
+| Case | Result | Observed |
+| --- | --- | --- |
+| TC-NOTIFY-003 | Pass | Before: row dot, bell dot, "1 unread notification". After opening: both dots gone, "0 unread notifications" |
+| TC-NOTIFY-004 | Pass | One unread "Quarterly Partner Forum has been assigned to you", badged Coordinator assigned; clicking it opened the request at `/staff/coordinator/notifications/2` |
+| TC-NOTIFY-005 | Pass | After reassigning to Test Coordinator 2: one new unread notice for coordinator2; coordinator still has only the original, now read |
+| TC-NOTIFY-012 | Not Executed | Production-only after the Novu sync; cannot appear locally |

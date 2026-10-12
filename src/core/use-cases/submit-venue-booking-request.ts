@@ -5,7 +5,9 @@ import { venueId } from "../domain/venue";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
 import type { Clock } from "../ports/outbound/clock";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+import type { Notifier } from "../ports/outbound/notifier";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
+import type { VenueStaffDirectory } from "../ports/outbound/venue-staff-directory";
 
 export interface SubmitVenueBookingRequestCommand {
   readonly eventId: string;
@@ -27,6 +29,8 @@ export interface SubmitVenueBookingRequestDeps {
   readonly events: CoordinatorEventRepository;
   readonly venues: VenueCatalogue;
   readonly bookings: BookingRepository;
+  readonly venueStaff: VenueStaffDirectory;
+  readonly notifier: Notifier;
   readonly clock: Clock;
 }
 
@@ -38,6 +42,9 @@ export interface SubmitVenueBookingRequestDeps {
  * event does not exist (#91). Whether the layout is needed and supported,
  * and whether a slot is already held, are `requestVenueBooking`'s calls --
  * this file only gathers what it needs to decide.
+ *
+ * SPM-61: once the request is saved, every Venue Staff member is told, so it
+ * does not sit unreviewed. A refused request is never saved, so never told.
  */
 export class SubmitVenueBookingRequestUseCase {
   constructor(private readonly deps: SubmitVenueBookingRequestDeps) {}
@@ -72,6 +79,16 @@ export class SubmitVenueBookingRequestUseCase {
     });
 
     const bookingId = await bookings.submit(request);
+
+    for (const staff of await this.deps.venueStaff.venueStaff()) {
+      await this.deps.notifier.venueBookingRequested({
+        recipientUserAccountId: staff,
+        bookingId,
+        eventName: event.name,
+        venueLocation: venue.location,
+        slots: request.slots,
+      });
+    }
 
     return { bookingId, status: request.status, venueLocation: venue.location };
   }

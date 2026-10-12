@@ -17,6 +17,7 @@ import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supaba
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
+import { SupabaseVenueStaffDirectory } from "@/adapters/outbound/supabase/supabase-venue-staff-directory";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/supabase-event-readiness-repository";
@@ -54,6 +55,7 @@ import { SetEventRegistrationUseCase } from "@/core/use-cases/set-event-registra
 import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-required-facilities";
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
+import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
@@ -549,10 +551,16 @@ export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOp
   return new ViewVenueBookingOptionsUseCase(await venueBookingAdapters());
 }
 
-/** SPM-46 / SPM-104: the assigned coordinator submits a venue booking request. */
+/**
+ * SPM-46 / SPM-104: the assigned coordinator submits a venue booking request.
+ * SPM-61: every Venue Staff member is told, read with the admin client since
+ * the coordinator may not list staff accounts themselves.
+ */
 export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
   return new SubmitVenueBookingRequestUseCase({
     ...(await venueBookingAdapters()),
+    venueStaff: new SupabaseVenueStaffDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
     clock: systemClock,
   });
 }
@@ -642,7 +650,13 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
   const { events, readiness, clientOrganisations, userAccounts } = await coordinatorAdapters();
 
-  return new ViewCoordinatorEventUseCase({ events, readiness, clientOrganisations, userAccounts });
+  return new ViewCoordinatorEventUseCase({
+    events,
+    readiness,
+    clientOrganisations,
+    userAccounts,
+    clock: systemClock,
+  });
 }
 
 /** SPM-50: the assigned coordinator confirms an event once nothing essential is left incomplete. */
@@ -650,6 +664,13 @@ export async function buildConfirmEvent(): Promise<ConfirmEventUseCase> {
   const { events, readiness } = await coordinatorAdapters();
 
   return new ConfirmEventUseCase({ events, readiness });
+}
+
+/** SPM-51: the assigned coordinator marks a Confirmed event completed once it has ended. */
+export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
+  const { events } = await coordinatorAdapters();
+
+  return new CompleteEventUseCase({ events, clock: systemClock });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */

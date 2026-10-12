@@ -1,4 +1,4 @@
-import type { BookingSlot } from "../../domain/booking";
+import type { BookingSlot, SlotOnDate } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
 import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
@@ -96,6 +96,20 @@ export interface SafetyCheckRecordedNotice {
 }
 
 /**
+ * What a Venue Staff member is told when a coordinator asks for a venue
+ * (SPM-61). Every Venue Staff member gets their own copy: staff are not
+ * scoped to particular venues (#66).
+ */
+export interface VenueBookingRequestedNotice {
+  readonly recipientUserAccountId: string;
+  readonly bookingId: string;
+  readonly eventName: string;
+  readonly venueLocation: string;
+  /** Sorted by date, then by slot within the day, as the request stores them. */
+  readonly slots: readonly SlotOnDate[];
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -110,4 +124,5 @@ export interface Notifier {
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void>;
   safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void>;
   safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void>;
+  venueBookingRequested(notice: VenueBookingRequestedNotice): Promise<void>;
 }
