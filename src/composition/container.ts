@@ -17,6 +17,7 @@ import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supaba
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
+import { SupabaseVenueStaffDirectory } from "@/adapters/outbound/supabase/supabase-venue-staff-directory";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
 import { SupabaseEventReadinessRepository } from "@/adapters/outbound/supabase/supabase-event-readiness-repository";
@@ -534,10 +535,16 @@ export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOp
   return new ViewVenueBookingOptionsUseCase(await venueBookingAdapters());
 }
 
-/** SPM-46 / SPM-104: the assigned coordinator submits a venue booking request. */
+/**
+ * SPM-46 / SPM-104: the assigned coordinator submits a venue booking request.
+ * SPM-61: every Venue Staff member is told, read with the admin client since
+ * the coordinator may not list staff accounts themselves.
+ */
 export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
   return new SubmitVenueBookingRequestUseCase({
     ...(await venueBookingAdapters()),
+    venueStaff: new SupabaseVenueStaffDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
     clock: systemClock,
   });
 }

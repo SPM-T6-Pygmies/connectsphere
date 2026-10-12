@@ -24,6 +24,7 @@ const TRIGGERS: Readonly<Record<string, NotificationTrigger>> = {
   "event-request-decided": "Request decided",
   "safety-check-ready": "Ready for safety check",
   "safety-check-recorded": "Safety check outcome",
+  "venue-booking-requested": "Booking requested",
 }
 
 /**

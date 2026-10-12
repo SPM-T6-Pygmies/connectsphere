@@ -10,6 +10,8 @@ import {
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
+import { InMemoryVenueStaffDirectory } from "@/adapters/outbound/in-memory/in-memory-venue-staff-directory";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import {
   CoordinatorEventNotFoundError,
   RoomLayoutRequiredError,
@@ -82,15 +84,21 @@ function heldAt(venue: string, slot: "AM" | "PM" | "Night", holdExpiresAt: Date 
   return { ...confirmedAt(venue, "2026-10-05", slot), status: "Tentative Hold", holdExpiresAt };
 }
 
-function buildUseCase(existing: readonly StoredBooking[] = []) {
+function buildUseCase(
+  existing: readonly StoredBooking[] = [],
+  venueStaff: readonly string[] = ["venue-staff-1"],
+) {
   const bookings = new InMemoryBookingRepository(existing);
+  const notifier = new RecordingNotifier();
   const useCase = new SubmitVenueBookingRequestUseCase({
     events: new InMemoryCoordinatorEventRepository([EVENT]),
     venues: new InMemoryVenueCatalogue([HALL, STUDIO]),
     bookings,
+    venueStaff: new InMemoryVenueStaffDirectory(venueStaff),
+    notifier,
     clock: new FixedClock(NOW),
   });
-  return { useCase, bookings };
+  return { useCase, bookings, notifier };
 }
 
 describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
@@ -272,5 +280,67 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         slots: [{ date: "2026-10-05", slot: "AM" }],
       }),
     ).rejects.toThrow(VenueNotFoundError);
+  });
+});
+
+describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
+  it("AC1, AC2: tells every Venue Staff member the venue, dates and slots requested", async () => {
+    const { useCase, notifier } = buildUseCase([], ["venue-staff-1", "venue-staff-2"]);
+
+    await useCase.execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+      venueId: "venue-hall",
+      roomLayout: "Banquet",
+      slots: [
+        { date: "2026-10-06", slot: "AM" },
+        { date: "2026-10-05", slot: "Night" },
+      ],
+    });
+
+    const expected = {
+      bookingId: "booking-1",
+      eventName: "Annual Conference",
+      venueLocation: "Main Hall",
+      slots: [
+        { date: "2026-10-05", slot: "Night" },
+        { date: "2026-10-06", slot: "AM" },
+      ],
+    };
+    expect(notifier.bookingRequests).toEqual([
+      { recipientUserAccountId: "venue-staff-1", ...expected },
+      { recipientUserAccountId: "venue-staff-2", ...expected },
+    ]);
+  });
+
+  it("AC1: tells no one when the request is refused", async () => {
+    const { useCase, notifier } = buildUseCase([confirmedAt("venue-hall", "2026-10-05", "AM")]);
+
+    await expect(
+      useCase.execute({
+        eventId: "event-1",
+        userAccountId: COORDINATOR,
+        venueId: "venue-hall",
+        roomLayout: "Banquet",
+        slots: [{ date: "2026-10-05", slot: "AM" }],
+      }),
+    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    expect(notifier.bookingRequests).toEqual([]);
+  });
+
+  it("AC1: still records the request when there is no Venue Staff account to tell", async () => {
+    const { useCase, bookings, notifier } = buildUseCase([], []);
+
+    const result = await useCase.execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+      venueId: "venue-studio",
+      roomLayout: null,
+      slots: [{ date: "2026-10-05", slot: "AM" }],
+    });
+
+    expect(result.status).toBe("Requested");
+    expect(bookings.all()).toHaveLength(1);
+    expect(notifier.bookingRequests).toEqual([]);
   });
 });

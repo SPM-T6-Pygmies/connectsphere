@@ -7,6 +7,7 @@ import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-con
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
 import { safetyCheckRecordedMessage } from "@/adapters/outbound/notification-content/safety-check-recorded";
+import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
   ClarificationRequestedNotice,
   EventCoordinatorAssignedNotice,
@@ -14,9 +15,10 @@ import type {
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
 
-/** A `notification` row as recorded before delivery: in-app, Pending, about one event request or one event. */
+/** A `notification` row as recorded before delivery: in-app, Pending, about one event request, event or booking. */
 export interface NotificationRow {
   readonly recipient_user_account_id: string;
   readonly trigger_scenario: string;
@@ -24,6 +26,7 @@ export interface NotificationRow {
   readonly status: string;
   readonly related_event_request_id?: string;
   readonly related_event_id?: string;
+  readonly related_booking_id?: string;
   readonly message_content: string;
 }
 
@@ -102,6 +105,19 @@ export function safetyCheckRecordedRow(notice: SafetyCheckRecordedNotice): Notif
     channel: "in_app",
     status: "Pending",
     related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a Venue Staff member a venue was requested (SPM-61). */
+export function venueBookingRequestedRow(notice: VenueBookingRequestedNotice): NotificationRow {
+  const { subject, body } = venueBookingRequestedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "venue-booking-requested",
+    channel: "in_app",
+    status: "Pending",
+    related_booking_id: notice.bookingId,
     message_content: `${subject}\n${body}`,
   };
 }

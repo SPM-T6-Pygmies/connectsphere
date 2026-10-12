@@ -157,6 +157,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-61": {
+      "title": "Notify venue staff of a new booking request",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-73": {
       "title": "Notify an attendee of a waiting-list status change",
       "parent": null,
