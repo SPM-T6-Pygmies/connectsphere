@@ -17,6 +17,7 @@ import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supaba
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
+import { SupabaseEquipmentNoticeDirectory } from "@/adapters/outbound/supabase/supabase-equipment-notice-directory";
 import { SupabaseVenueStaffDirectory } from "@/adapters/outbound/supabase/supabase-venue-staff-directory";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
@@ -57,6 +58,7 @@ import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
+import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
@@ -618,6 +620,18 @@ function safetyCheckAnnouncer(): SafetyCheckEntryAnnouncer {
   });
 }
 
+/**
+ * SPM-64: tells every Technical Support Staff member when a coordinator's
+ * change puts a line in front of them. Reads with the admin client: the
+ * coordinator may not list staff accounts themselves.
+ */
+function equipmentAttentionAnnouncer(): EquipmentAttentionAnnouncer {
+  return new EquipmentAttentionAnnouncer({
+    directory: new SupabaseEquipmentNoticeDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-261: an event's safety checks, for its assigned coordinator. */
 export async function buildViewEventSafetyChecks(): Promise<ViewEventSafetyChecksUseCase> {
   const client = await createSupabaseServerClient();
@@ -684,21 +698,31 @@ export async function buildViewEventEquipment(): Promise<ViewEventEquipmentUseCa
 export async function buildRecordEquipmentRequirement(): Promise<RecordEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new RecordEquipmentRequirementUseCase({ events, equipment });
+  return new RecordEquipmentRequirementUseCase({ events, equipment, attention: equipmentAttentionAnnouncer() });
 }
 
 /** SPM-41 AC7-9: the assigned coordinator changes a line's quantity or technical requirements. */
 export async function buildEditEquipmentRequirement(): Promise<EditEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new EditEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new EditEquipmentRequirementUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-41 AC10-11: the assigned coordinator removes a line. */
 export async function buildRemoveEquipmentRequirement(): Promise<RemoveEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new RemoveEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new RemoveEquipmentRequirementUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-41 AC17: the assigned coordinator takes back a removal Technical Support have not yet acted on. */

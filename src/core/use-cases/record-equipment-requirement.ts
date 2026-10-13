@@ -10,6 +10,7 @@ import {
   describeChange,
   type EquipmentRequirementChange,
 } from "./equipment-requirement-change";
+import type { EquipmentAttentionAnnouncer } from "./announce-equipment-attention";
 import type { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
 
 export interface RecordEquipmentRequirementCommand {
@@ -35,12 +36,17 @@ export interface EquipmentRequirementChangeDeps extends EquipmentRequirementDeps
   readonly safetyCheck: Pick<SafetyCheckEntryAnnouncer, "around">;
 }
 
+/** For the changes that can put a line in front of Technical Support anew (SPM-64). */
+export interface EquipmentAttentionDeps {
+  readonly attention: Pick<EquipmentAttentionAnnouncer, "announce">;
+}
+
 /**
  * SPM-41 AC1-5: the assigned Event Coordinator adds a line to an event's
  * equipment requirements. The first line opens the event's reservation.
  */
 export class RecordEquipmentRequirementUseCase {
-  constructor(private readonly deps: EquipmentRequirementDeps) {}
+  constructor(private readonly deps: EquipmentRequirementDeps & EquipmentAttentionDeps) {}
 
   /** Throws `EventNotFoundError` both for no such event and for one not assigned to this caller (#91). */
   async execute(command: RecordEquipmentRequirementCommand): Promise<EquipmentRequirementChange> {
@@ -58,6 +64,8 @@ export class RecordEquipmentRequirementUseCase {
     });
 
     const reservationId = await equipment.add(id, line, caller);
+    // SPM-64 AC1: a new line needs Technical Support's attention.
+    await this.deps.attention.announce({ event, equipmentType: item.type, before: null, after: line });
 
     return describeChange({
       action: "recorded",

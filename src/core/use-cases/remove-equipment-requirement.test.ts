@@ -82,3 +82,32 @@ describe("RemoveEquipmentRequirementUseCase telling Safety Officers (SPM-262)", 
     expect(notifier.safetyChecksReady).toEqual([]);
   });
 });
+
+describe("RemoveEquipmentRequirementUseCase telling Technical Support (SPM-64)", () => {
+  it("AC2: asking to remove a reserved line tells every Technical Support Staff member", async () => {
+    const { useCase, notifier } = remove();
+
+    await useCase.execute({ ...base, equipmentItemId: PROJECTOR });
+
+    expect(notifier.equipmentNeedingAttention).toEqual(
+      ["support-1", "support-2"].map((recipientUserAccountId) => ({
+        recipientUserAccountId,
+        eventId: "event-1",
+        eventName: "Founders' Gala Dinner",
+        preferredDate: "2026-12-12",
+        equipmentType: "Projector",
+        quantityRequested: 2,
+        reason: "removalRequested",
+        quantityWas: null,
+      })),
+    );
+  });
+
+  it("AC3: deleting a line with nothing reserved tells no one", async () => {
+    const { useCase, notifier } = remove();
+
+    await useCase.execute({ ...base, equipmentItemId: MICROPHONE });
+
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
+  });
+});

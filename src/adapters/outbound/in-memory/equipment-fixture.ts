@@ -4,12 +4,14 @@ import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
 import { eventId } from "@/core/domain/event";
 import { userAccountId } from "@/core/domain/user-account";
 import type { EventEquipment } from "@/core/ports/outbound/equipment-requirement-repository";
+import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 
 import {
   InMemoryCoordinatorEventRepository,
   type SeedCoordinatorEvent,
 } from "./in-memory-coordinator-event-repository";
+import { InMemoryEquipmentNoticeDirectory } from "./in-memory-equipment-notice-directory";
 import { InMemoryEquipmentRequirementRepository } from "./in-memory-equipment-requirement-repository";
 import { InMemorySafetyCheckWatch } from "./in-memory-safety-check-watch";
 import { RecordingNotifier } from "./recording-notifier";
@@ -101,6 +103,10 @@ export function buildEquipmentDeps(
     safetyWatch,
     notifier,
     safetyCheck: new SafetyCheckEntryAnnouncer({ watch: safetyWatch, notifier }),
+    attention: new EquipmentAttentionAnnouncer({
+      directory: new InMemoryEquipmentNoticeDirectory(["support-1", "support-2"]),
+      notifier,
+    }),
   };
 }
 

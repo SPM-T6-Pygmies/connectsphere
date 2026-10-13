@@ -114,3 +114,33 @@ describe("RecordEquipmentRequirementUseCase (SPM-184)", () => {
     expect(equipment.stored("event-1")).toEqual(seededEquipment());
   });
 });
+
+describe("RecordEquipmentRequirementUseCase telling Technical Support (SPM-64)", () => {
+  it("AC1: adding a line tells every Technical Support Staff member, naming the event, its date and the line", async () => {
+    const { useCase, notifier } = record();
+
+    await useCase.execute(speaker);
+
+    expect(notifier.equipmentNeedingAttention).toEqual(
+      ["support-1", "support-2"].map((recipientUserAccountId) => ({
+        recipientUserAccountId,
+        eventId: "event-1",
+        eventName: "Founders' Gala Dinner",
+        preferredDate: "2026-12-12",
+        equipmentType: "PA speaker",
+        quantityRequested: 2,
+        reason: "new",
+        quantityWas: null,
+      })),
+    );
+  });
+
+  it("AC3: a refused line tells no one", async () => {
+    const { useCase, notifier } = record();
+
+    await expect(useCase.execute({ ...speaker, equipmentItemId: PROJECTOR })).rejects.toThrow(
+      DuplicateEquipmentRequirementError,
+    );
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
+  });
+});

@@ -9,7 +9,7 @@ import {
   existingLine,
   type EquipmentRequirementChange,
 } from "./equipment-requirement-change";
-import type { EquipmentRequirementChangeDeps } from "./record-equipment-requirement";
+import type { EquipmentAttentionDeps, EquipmentRequirementChangeDeps } from "./record-equipment-requirement";
 
 export interface RemoveEquipmentRequirementCommand {
   readonly eventId: string;
@@ -24,7 +24,7 @@ export interface RemoveEquipmentRequirementCommand {
  * until Technical Support release its equipment (SPM-108).
  */
 export class RemoveEquipmentRequirementUseCase {
-  constructor(private readonly deps: EquipmentRequirementChangeDeps) {}
+  constructor(private readonly deps: EquipmentRequirementChangeDeps & EquipmentAttentionDeps) {}
 
   /** Throws `EventNotFoundError` both for no such event and for one not assigned to this caller (#91). */
   async execute(command: RemoveEquipmentRequirementCommand): Promise<EquipmentRequirementChange> {
@@ -43,19 +43,23 @@ export class RemoveEquipmentRequirementUseCase {
     const { line, reservation } = existingLine(current, itemId);
     const removal = removeEquipmentRequirement(event, line);
 
+    const item = catalogueItem(catalogue, itemId);
+    const after = removal.kind === "deleted" ? null : removal.line;
     if (removal.kind === "deleted") {
       await equipment.delete(id, itemId, caller);
     } else {
       await equipment.update(id, removal.line, caller);
     }
+    // SPM-64 AC2-3: a removal request needs re-review; a deleted line needs nothing.
+    await this.deps.attention.announce({ event, equipmentType: item.type, before: line, after });
 
     return describeChange({
       action: removal.kind,
       event,
       reservation,
-      item: catalogueItem(catalogue, itemId),
+      item,
       before: line,
-      after: removal.kind === "deleted" ? null : removal.line,
+      after,
       changed: true,
       underReview: removal.kind === "removalRequested",
     });

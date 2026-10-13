@@ -8,6 +8,7 @@ import {
   PROJECTOR,
   REVIEWER,
   SPEAKER,
+  line,
   seedEvent,
   seededEquipment,
   watchEquipmentForSafety,
@@ -190,5 +191,86 @@ describe("EditEquipmentRequirementUseCase telling Safety Officers (SPM-262)", ()
     await useCase.execute(projector(3));
 
     expect(notifier.safetyChecksReady).toEqual([]);
+  });
+});
+
+describe("EditEquipmentRequirementUseCase telling Technical Support (SPM-64)", () => {
+  const projector = (quantityRequested: number) => ({
+    ...base,
+    equipmentItemId: PROJECTOR,
+    quantityRequested,
+    technicalRequirements: "HDMI input",
+  });
+  const microphone = (quantityRequested: number) => ({
+    ...base,
+    equipmentItemId: MICROPHONE,
+    quantityRequested,
+    technicalRequirements: null,
+  });
+
+  it("AC2: changing a reserved line tells every Technical Support Staff member, with what it was", async () => {
+    const { useCase, notifier } = edit();
+
+    await useCase.execute(projector(3));
+
+    expect(notifier.equipmentNeedingAttention).toEqual(
+      ["support-1", "support-2"].map((recipientUserAccountId) => ({
+        recipientUserAccountId,
+        eventId: "event-1",
+        eventName: "Founders' Gala Dinner",
+        preferredDate: "2026-12-12",
+        equipmentType: "Projector",
+        quantityRequested: 3,
+        reason: "changed",
+        quantityWas: 2,
+      })),
+    );
+  });
+
+  it("AC2: changing a line marked unfulfilled tells them too", async () => {
+    const unfulfilled = line({ state: "Unfulfilled", decision: { by: REVIEWER, comment: "only 2 available" } });
+    const { useCase, notifier } = edit(
+      buildEquipmentDeps([seedEvent()], { "event-1": { ...seededEquipment(), lines: [unfulfilled] } }),
+    );
+
+    await useCase.execute(microphone(2));
+
+    expect(notifier.equipmentNeedingAttention.map(({ reason, quantityWas }) => ({ reason, quantityWas }))).toEqual([
+      { reason: "changed", quantityWas: 4 },
+      { reason: "changed", quantityWas: 4 },
+    ]);
+  });
+
+  it("AC3: editing a line that is still new tells no one", async () => {
+    const { useCase, notifier } = edit();
+
+    await useCase.execute(microphone(5));
+
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
+  });
+
+  it("AC3: a second change to a line already under review tells no one again", async () => {
+    const { useCase, notifier } = edit();
+    await useCase.execute(projector(3));
+
+    await useCase.execute(projector(4));
+
+    expect(notifier.equipmentNeedingAttention).toHaveLength(2);
+  });
+
+  it("AC3: editing a changed line back to what Technical Support decided tells no one", async () => {
+    const { useCase, notifier } = edit();
+    await useCase.execute(projector(3));
+
+    await useCase.execute(projector(2));
+
+    expect(notifier.equipmentNeedingAttention).toHaveLength(2);
+  });
+
+  it("AC3: a refused change tells no one", async () => {
+    const { useCase, notifier } = edit(buildEquipmentDeps([seedEvent({ status: "Cancelled" })]));
+
+    await expect(useCase.execute(projector(3))).rejects.toThrow(EquipmentRequirementsLockedError);
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
   });
 });
