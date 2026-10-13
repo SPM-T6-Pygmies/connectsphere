@@ -1078,3 +1078,12 @@ export class InvalidRegistrationSettingsError extends DomainError {
     super(reason);
   }
 }
+
+/** SPM-43: a calendar range that cannot be shown -- not real dates, backwards, or too long. */
+export class InvalidCalendarRangeError extends DomainError {
+  readonly code = "invalid_calendar_range";
+
+  constructor(reason: string) {
+    super(reason);
+  }
+}
