@@ -1,4 +1,4 @@
--- SPM-46 / SPM-22 manual tests: two Tentative Holds at Main Hall, three weeks from today.
+-- SPM-46 / SPM-22 manual tests: two Tentative Holds at Main Hall, three weeks from today, Singapore time.
 --
 --   AM  expired an hour ago      -- must not block (TC-VENUE-BOOK-019)
 --   PM  expires in thirty days   -- must block    (TC-VENUE-BOOK-020)
@@ -15,7 +15,7 @@
 
 do $$
 declare
-  v_day date := current_date + 21;
+  v_day date := (now() at time zone 'Asia/Singapore')::date + 21;
   v_venue bigint := (select venue_id from public.venue where location = 'Main Hall');
   v_staff bigint := (
     select ua.user_account_id
