@@ -150,3 +150,27 @@ describe("notificationItem (SPM-61)", () => {
     expect(item.href).toBe("/staff/venue/notifications/31")
   })
 })
+
+describe("notificationItem (SPM-64)", () => {
+  it("AC6: names an equipment notice and opens the event inside Technical Support's inbox", () => {
+    const item = notificationItem(
+      "technical",
+      notification({ redirect: { url: "/staff/technical/12" }, tags: ["equipment-needs-attention"] }),
+    )
+
+    expect(item.status).toBe("Equipment recorded")
+    expect(item.href).toBe("/staff/technical/notifications/12")
+  })
+})
+
+describe("notificationItem (SPM-65)", () => {
+  it("AC5: names an equipment outcome and opens the event's Equipment tab", () => {
+    const item = notificationItem(
+      "coordinator",
+      notification({ redirect: { url: "/staff/coordinator/events/12?tab=equipment" }, tags: ["equipment-decided"] }),
+    )
+
+    expect(item.status).toBe("Equipment decided")
+    expect(item.href).toBe("/staff/coordinator/events/12?tab=equipment")
+  })
+})

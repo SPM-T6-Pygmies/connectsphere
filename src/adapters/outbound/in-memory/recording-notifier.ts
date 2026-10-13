@@ -1,6 +1,8 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
+  EquipmentDecidedNotice,
+  EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   Notifier,
@@ -19,6 +21,8 @@ export class RecordingNotifier implements Notifier {
   readonly safetyChecksReady: SafetyCheckReadyNotice[] = [];
   readonly safetyChecksRecorded: SafetyCheckRecordedNotice[] = [];
   readonly bookingRequests: VenueBookingRequestedNotice[] = [];
+  readonly equipmentNeedingAttention: EquipmentNeedsAttentionNotice[] = [];
+  readonly equipmentDecisions: EquipmentDecidedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
     this.sent.push(connection);
@@ -50,5 +54,13 @@ export class RecordingNotifier implements Notifier {
 
   async venueBookingRequested(notice: VenueBookingRequestedNotice): Promise<void> {
     this.bookingRequests.push(notice);
+  }
+
+  async equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void> {
+    this.equipmentNeedingAttention.push(notice);
+  }
+
+  async equipmentDecided(notice: EquipmentDecidedNotice): Promise<void> {
+    this.equipmentDecisions.push(notice);
   }
 }

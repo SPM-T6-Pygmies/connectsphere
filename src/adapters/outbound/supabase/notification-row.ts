@@ -3,6 +3,8 @@ import {
   type NotificationMessage,
 } from "@/adapters/outbound/notification-content/coordinator-assigned";
 import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
+import { equipmentDecidedMessage } from "@/adapters/outbound/notification-content/equipment-decided";
+import { equipmentNeedsAttentionMessage } from "@/adapters/outbound/notification-content/equipment-needs-attention";
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
@@ -10,6 +12,8 @@ import { safetyCheckRecordedMessage } from "@/adapters/outbound/notification-con
 import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
   ClarificationRequestedNotice,
+  EquipmentDecidedNotice,
+  EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   OrganiserCoordinatorAssignedNotice,
@@ -118,6 +122,32 @@ export function venueBookingRequestedRow(notice: VenueBookingRequestedNotice): N
     channel: "in_app",
     status: "Pending",
     related_booking_id: notice.bookingId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a Technical Support Staff member a line needs their attention (SPM-64). */
+export function equipmentNeedsAttentionRow(notice: EquipmentNeedsAttentionNotice): NotificationRow {
+  const { subject, body } = equipmentNeedsAttentionMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "equipment-needs-attention",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a coordinator Technical Support have finished their event's equipment (SPM-65). */
+export function equipmentDecidedRow(notice: EquipmentDecidedNotice): NotificationRow {
+  const { subject, body } = equipmentDecidedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "equipment-decided",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
     message_content: `${subject}\n${body}`,
   };
 }
