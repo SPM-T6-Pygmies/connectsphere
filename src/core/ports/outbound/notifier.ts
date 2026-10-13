@@ -110,6 +110,29 @@ export interface VenueBookingRequestedNotice {
 }
 
 /**
+ * What an event's assigned Event Coordinator is told when Venue Staff decide
+ * one of its booking requests (SPM-62). An event can hold several bookings,
+ * so the notice names the venue it concerns. A rejection carries the stored
+ * reason and the venue suggested instead, if any -- an informal suggestion,
+ * not a counter-offer (#45).
+ */
+export interface VenueBookingDecidedNotice {
+  readonly recipientUserAccountId: string;
+  readonly bookingId: string;
+  readonly eventId: string;
+  /** The approved request the coordinator books venues from; null if the event has none. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  readonly venueLocation: string;
+  /** Sorted by date, then by slot within the day, as the booking stores them. */
+  readonly slots: readonly SlotOnDate[];
+  readonly outcome: "Confirmed" | "Rejected";
+  /** Null when approved. */
+  readonly reason: string | null;
+  readonly suggestedAlternativeLocation: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -125,4 +148,5 @@ export interface Notifier {
   safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void>;
   safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void>;
   venueBookingRequested(notice: VenueBookingRequestedNotice): Promise<void>;
+  venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
 }

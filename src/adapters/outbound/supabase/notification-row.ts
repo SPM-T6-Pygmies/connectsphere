@@ -7,6 +7,7 @@ import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-con
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
 import { safetyCheckRecordedMessage } from "@/adapters/outbound/notification-content/safety-check-recorded";
+import { venueBookingDecidedMessage } from "@/adapters/outbound/notification-content/venue-booking-decided";
 import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
   ClarificationRequestedNotice,
@@ -15,6 +16,7 @@ import type {
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
 
@@ -115,6 +117,19 @@ export function venueBookingRequestedRow(notice: VenueBookingRequestedNotice): N
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: "venue-booking-requested",
+    channel: "in_app",
+    status: "Pending",
+    related_booking_id: notice.bookingId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a coordinator Venue Staff decided their booking (SPM-62). */
+export function venueBookingDecidedRow(notice: VenueBookingDecidedNotice): NotificationRow {
+  const { subject, body } = venueBookingDecidedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "venue-booking-decided",
     channel: "in_app",
     status: "Pending",
     related_booking_id: notice.bookingId,
