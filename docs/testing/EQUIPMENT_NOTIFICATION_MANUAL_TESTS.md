@@ -104,7 +104,11 @@ SPM-64 AC1, AC5.
 - Step 2: one `equipment-needs-attention` row each for accounts 5 and 10, both `Sent`; no row for any other account.
 - Steps 3–4: each inbox has "Projector requested for Design Sprint Demo", badged **Equipment recorded**, reading "2 requested. Event date: Fri, 20 Nov 2026."
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-EQUIPNOTE-001_step3-support-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-001_step3-support-inbox.png)
+- [`TC-EQUIPNOTE-001_step4-support2-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-001_step4-support2-inbox.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -124,7 +128,12 @@ SPM-64 AC6, AC7.
 - Step 2: `/staff/technical/notifications/<event id>` — *Design Sprint Demo*'s equipment lines with the rail still on Notifications and an **Open event** button beside its status. **Projector** is marked **New**, with **Reserve 2**.
 - Step 3: `/staff/technical/<event id>` — the same lines with the rail on **Needs review** and the trail "Needs review › Design Sprint Demo", and no **Open event** button.
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-EQUIPNOTE-002_step1-marked-read.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-002_step1-marked-read.png)
+- [`TC-EQUIPNOTE-002_step2-opened-from-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-002_step2-opened-from-inbox.png)
+- [`TC-EQUIPNOTE-002_step3-event-page.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-002_step3-event-page.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -144,7 +153,10 @@ SPM-65 AC1, AC3.
 - Step 2: one `equipment-decided` row, for account 2 only, `Sent`.
 - Step 3: "Equipment reserved for Design Sprint Demo", badged **Equipment decided**, reading "PA speaker: 3 reserved by Test Support Staff. Presentation laptop: 6 reserved by Test Support Staff. Projector: 2 reserved by Test Support Staff. Event date: Fri, 20 Nov 2026."
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-EQUIPNOTE-003_step3-coordinator-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-003_step3-coordinator-inbox.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -164,7 +176,11 @@ SPM-65 AC3, AC5, AC6.
 - Step 3: "Equipment for Sales Kickoff: 1 of 2 lines unfulfilled", reading "Presentation laptop: unfulfilled (only 2 available), marked by Test Support Staff 2. Wireless microphone: 2 reserved by Test Support Staff 2. Event date: Sat, 21 Nov 2026."
 - Step 4: still read after the reload; clicking it opens *Sales Kickoff* on its **Equipment** tab, where **Presentation laptop** shows **Unfulfilled** with **Edit** and **Remove**.
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-EQUIPNOTE-004_step3-coordinator-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-004_step3-coordinator-inbox.png)
+- [`TC-EQUIPNOTE-004_step4-equipment-tab.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-004_step4-equipment-tab.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -187,7 +203,10 @@ SPM-64 AC2.
   - "Presentation laptop changed on Sales Kickoff" — "Now 1 requested, was 2. The earlier decision needs re-review. Event date: Sat, 21 Nov 2026."
   - "Projector removal requested on Design Sprint Demo" — "The coordinator asked to remove this line. Its reservation needs re-review. Event date: Fri, 20 Nov 2026."
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-EQUIPNOTE-005_step4-support-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-005_step4-support-inbox.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -214,4 +233,27 @@ SPM-64 AC1, AC2.
   - "Presentation laptop changed on Design Sprint Demo" — "Now 5 requested, was 6. The earlier decision needs re-review. Event date: Fri, 20 Nov 2026."
   - "Projector removal withdrawn on Design Sprint Demo" — "The coordinator is keeping this line. Its reservation stands. Event date: Fri, 20 Nov 2026."
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-EQUIPNOTE-006_step4-support-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-006_step4-support-inbox.png)
+
+**Status:** [x] Pass [ ] Fail
+
+---
+
+## Run record — 2026-10-13
+
+Run by Claude Code for jerricknsc on branch
+`feat/spm-64-65-equipment-notifications`, against `pnpm dev:local` (Next.js
+dev mode, Novu Development through a `novu dev` tunnel, `NOVU_BRIDGE_URL` set
+in `.env.local`) on a freshly reset and seeded local Supabase, after
+`pnpm novu:clear`, in headless Chromium driven by Playwright at 1440 × 900.
+No page errors were raised. All 20 `notification` rows ended `Sent`.
+
+| Case | Result | Observed |
+| --- | --- | --- |
+| TC-EQUIPNOTE-001 | Pass | One `Sent` row each for accounts 5 and 10, no others. Both inboxes show "Projector requested for Design Sprint Demo", badged Equipment recorded, "2 requested. Event date: Fri, 20 Nov 2026." |
+| TC-EQUIPNOTE-002 | Pass | Mark as read cleared the unread dot and it stayed read after a reload. Clicking the notice opened `/staff/technical/notifications/1` with Projector New, Reserve 2, and an Open event button; Open event went to `/staff/technical/1`, rail on Needs review, no button |
+| TC-EQUIPNOTE-003 | Pass | No `equipment-decided` row after the laptops and speakers; one for account 2 after the projector. Inbox: "Equipment reserved for Design Sprint Demo", "PA speaker: 3 reserved by Test Support Staff. Presentation laptop: 6 reserved by Test Support Staff. Projector: 2 reserved by Test Support Staff. Event date: Fri, 20 Nov 2026." |
+| TC-EQUIPNOTE-004 | Pass | "Equipment for Sales Kickoff: 1 of 2 lines unfulfilled", "Presentation laptop: unfulfilled (only 2 available), marked by Test Support Staff 2. Wireless microphone: 2 reserved by Test Support Staff 2. Event date: Sat, 21 Nov 2026." Still read after reload; opened `/staff/coordinator/events/2?tab=equipment` with the laptop Unfulfilled, Edit and Remove |
+| TC-EQUIPNOTE-005 | Pass | Two rows (accounts 5 and 10) after each of steps 1–3. Inbox: "Now 2 requested, was 3." and "Now 1 requested, was 2.", each "The earlier decision needs re-review."; "Projector removal requested on Design Sprint Demo" |
+| TC-EQUIPNOTE-006 | Pass | 2, 4 and 4 new rows. Inbox, newest first: Wireless microphone removed ("…nothing to do"), Wireless microphone requested ("4 requested"), Presentation laptop "Now 6 requested, was 5. That is what was decided, so the earlier decision stands.", "Now 5 requested, was 6. The earlier decision needs re-review.", Projector removal withdrawn ("Its reservation stands.") |
