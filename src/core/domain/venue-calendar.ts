@@ -18,6 +18,12 @@ export interface CalendarSlot {
   readonly status: CalendarSlotStatus;
   /** When the hold lapses; set only when `status` is `held`, and null if the hold has no expiry. */
   readonly holdExpiresAt: Date | null;
+  /**
+   * SPM-153: why the slot is blocked, once per reason, in the order the blocks
+   * were given. Empty unless `status` is `blocked`. Overlapping blocks may give
+   * more than one.
+   */
+  readonly reasons: readonly UnavailabilityReason[];
 }
 
 export interface CalendarDay {
@@ -93,7 +99,14 @@ export function deriveVenueCalendar(input: {
   readonly blocked: readonly CalendarBlock[];
   readonly now: Date;
 }): CalendarDay[] {
-  const blocked = new Set(input.blocked.map(slotKey));
+  const blocked = new Map<string, UnavailabilityReason[]>();
+  for (const block of input.blocked) {
+    const reasons = blocked.get(slotKey(block)) ?? [];
+    if (!reasons.includes(block.reason)) {
+      reasons.push(block.reason);
+    }
+    blocked.set(slotKey(block), reasons);
+  }
   const holding = new Map<string, OccupiedSlot>();
   for (const occupied of input.occupied) {
     if (holdsSlot(occupied, input.now)) {
@@ -106,20 +119,21 @@ export function deriveVenueCalendar(input: {
     slots: BOOKING_SLOTS.map((slot): CalendarSlot => {
       const key = slotKey({ date, slot });
       const booking = holding.get(key);
+      const reasons = blocked.get(key);
 
-      if (blocked.has(key)) {
-        return { slot, status: "blocked", holdExpiresAt: null };
+      if (reasons !== undefined) {
+        return { slot, status: "blocked", holdExpiresAt: null, reasons };
       }
       if (booking?.status === "Confirmed") {
-        return { slot, status: "booked", holdExpiresAt: null };
+        return { slot, status: "booked", holdExpiresAt: null, reasons: [] };
       }
       if (booking !== undefined) {
-        return { slot, status: "held", holdExpiresAt: booking.holdExpiresAt };
+        return { slot, status: "held", holdExpiresAt: booking.holdExpiresAt, reasons: [] };
       }
       if (!input.offeredSlots.includes(slot)) {
-        return { slot, status: "notOffered", holdExpiresAt: null };
+        return { slot, status: "notOffered", holdExpiresAt: null, reasons: [] };
       }
-      return { slot, status: "available", holdExpiresAt: null };
+      return { slot, status: "available", holdExpiresAt: null, reasons: [] };
     }),
   }));
 }

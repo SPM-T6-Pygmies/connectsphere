@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { BookingSlot, BookingStatus, OccupiedSlot } from "./booking";
 import { InvalidCalendarRangeError } from "./errors";
+import type { UnavailabilityReason } from "./venue-unavailability";
 import {
   CALENDAR_MAX_DAYS,
   calendarDays,
@@ -22,8 +23,8 @@ function occupied(
   return { date: DAY, slot, status, holdExpiresAt };
 }
 
-function block(slot: BookingSlot): CalendarBlock {
-  return { date: DAY, slot, reason: "Maintenance" };
+function block(slot: BookingSlot, reason: UnavailabilityReason = "Maintenance"): CalendarBlock {
+  return { date: DAY, slot, reason };
 }
 
 function statuses(input: {
@@ -125,7 +126,7 @@ describe("deriveVenueCalendar holds (SPM-43)", () => {
   it("shows an unexpired hold as held, with its expiry", () => {
     const expiry = new Date(NOW.getTime() + 60_000);
 
-    expect(heldSlot(expiry)).toEqual({ slot: "AM", status: "held", holdExpiresAt: expiry });
+    expect(heldSlot(expiry)).toEqual({ slot: "AM", status: "held", holdExpiresAt: expiry, reasons: [] });
   });
 
   it("shows a hold that expires exactly now as available", () => {
@@ -137,11 +138,48 @@ describe("deriveVenueCalendar holds (SPM-43)", () => {
       slot: "AM",
       status: "available",
       holdExpiresAt: null,
+      reasons: [],
     });
   });
 
   it("shows a hold with no expiry as held, as the clash rule does", () => {
-    expect(heldSlot(null)).toEqual({ slot: "AM", status: "held", holdExpiresAt: null });
+    expect(heldSlot(null)).toEqual({ slot: "AM", status: "held", holdExpiresAt: null, reasons: [] });
+  });
+});
+
+describe("deriveVenueCalendar block reasons (SPM-153)", () => {
+  function slotsFor(blocked: readonly CalendarBlock[]) {
+    const [day] = deriveVenueCalendar({
+      days: [DAY],
+      offeredSlots: ALL_SLOTS,
+      occupied: [],
+      blocked,
+      now: NOW,
+    });
+    return Object.fromEntries(day.slots.map((s) => [s.slot, s]));
+  }
+
+  it("gives a blocked slot the reason Venue Staff recorded", () => {
+    expect(slotsFor([block("PM", "Renovation")]).PM.reasons).toEqual(["Renovation"]);
+  });
+
+  it("gives every reason when overlapping blocks cover one slot", () => {
+    expect(
+      slotsFor([block("PM", "Renovation"), block("PM", "Safety")]).PM.reasons,
+    ).toEqual(["Renovation", "Safety"]);
+  });
+
+  it("lists a reason once when two blocks give the same one", () => {
+    expect(
+      slotsFor([block("PM", "Maintenance"), block("PM", "Maintenance")]).PM.reasons,
+    ).toEqual(["Maintenance"]);
+  });
+
+  it("gives no reason, without erroring, on a slot that is not blocked", () => {
+    const slots = slotsFor([block("PM")]);
+
+    expect(slots.AM.reasons).toEqual([]);
+    expect(slots.Night.reasons).toEqual([]);
   });
 });
 
