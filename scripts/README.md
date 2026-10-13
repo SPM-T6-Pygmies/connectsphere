@@ -1,260 +1,196 @@
 # scripts
 
-## test-report.mjs
+Test data and helper scripts for a **local** database. Nothing here runs
+automatically: not on `supabase db reset`, not in CI.
 
-Runs the test suite and reports it by domain. Also keeps
-[`docs/tests/`](../docs/tests/README.md) — the test-case registry and the record
-of what passed at each merge to `main`. CI runs it; see that README.
+| I want to… | Go to |
+| --- | --- |
+| Get a working local database with the test data, from scratch | [1. Set up your database](#1-set-up-your-database) |
+| Run one of the manual test documents | [2. Run a manual test document](#2-run-a-manual-test-document) |
+| Start over, or undo one seed | [3. Start over or undo](#3-start-over-or-undo) |
+| Look up one script | [4. Every script](#4-every-script) |
+| Fix a database that already holds older data | [6. apply-ssot](#6-apply-ssot-a-database-that-already-has-data) |
 
-## novu-clear.mjs
+> **Local only.** Seed scripts are run with `--local`. Never run one against a
+> shared or remote project. The one script that ever touches a remote database,
+> `apply-ssot`, is run there by a person, with the steps in
+> [section 6](#6-apply-ssot-a-database-that-already-has-data).
 
-`pnpm novu:clear` deletes your own local subscribers, and their notifications,
-from Novu's Development environment. Run it after `teardown.sql` or
-`supabase db reset`: Postgres cannot cascade into Novu. It only touches ids
-with your `<username>-` prefix, never a teammate's or Production's.
+---
 
-## seed SQL
+## 1. Set up your database
 
-One-off SQL for putting test data into a Supabase database. None of it runs
-automatically — not on `supabase db reset`, not in CI.
+Do these four steps, in this order. It takes a few minutes and gives you every
+account and the data the Connectsphere Data Single Source of Truth lists.
 
-## Seed everything to match the SSOT
+### Step 0. Before you start
 
-A fresh local database with all six venues, all six equipment types and the
-sample events, as the Connectsphere Data Single Source of Truth (v1.1) lists
-them. Run these in this order:
+- Docker is running.
+- `pnpm install` has been run.
+- The local stack is up: `supabase start`.
+
+### Step 1. Rebuild the database and create the logins
 
 ```bash
 supabase db reset
+```
+
+This **drops all your local data**, replays every migration, and creates the
+twelve test logins (password `TestPass123!`, listed in
+[`supabase/SEED.md`](../supabase/SEED.md)). It creates no venues, no equipment and
+no events: the catalogue starts empty.
+
+### Step 2. Load the baseline
+
+Run these four, in this order:
+
+```bash
 supabase db query --file scripts/seed-coordinator-view/seed.sql --local
 supabase db query --file scripts/seed-venues/seed.sql --local
 supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
 supabase db query --file scripts/seed-equipment/seed.sql --local
 ```
 
-- `db reset` first: it rebuilds the database and creates the test logins. It
-  drops your local data.
-- `seed-coordinator-view` before `seed-equipment`: the equipment seed opens an
-  event from one of its requests.
-- `seed-venues` gives Main Hall, Seminar Room 2-1, Studio and Rooftop Terrace.
-  `seed-venue-search-uat` adds UAT-44 Harbour Room and UAT-44 Garden Hall. Either
-  order works.
+What you now have:
 
-Check it, with the same two commands on any database:
+| Seed | Gives you |
+| --- | --- |
+| `seed-coordinator-view` | 8 event requests, one in each state the screens tell apart. Includes *Founders' Gala Dinner*, Approved, assigned to Test Coordinator. No events yet. |
+| `seed-venues` | Main Hall, Seminar Room 2-1, Studio and Rooftop Terrace, with their layouts. |
+| `seed-venue-search-uat` | UAT-44 Harbour Room and UAT-44 Garden Hall, with slots and a booking horizon, and two bookings on them. |
+| `seed-equipment` | The six equipment types (Projector 10, Wireless microphone 30, PA speaker 5, Presentation laptop 8, Livestream kit 2, Crowd barrier 40) and the *Founders' Gala Dinner* event, with two equipment lines. |
 
-```bash
-supabase db query --file scripts/apply-ssot/verify.sql --local
-supabase db query --file scripts/seed-equipment/verify.sql --local
-```
+The order matters only in one place: `seed-coordinator-view` must come before
+`seed-equipment`, because the equipment seed opens its event from one of the
+requests. `seed-venues` and `seed-venue-search-uat` can swap.
 
-The first shows 31 rows and the second 9, every one `ok = true`.
-
-Left out on purpose, because each belongs to its own manual tests: `seed-equipment-review`,
-`seed-equipment-reserve` and `seed-venue-unavailability`. Load them on top when you run those cases. The venue-search cases
-(`TC-VSEARCH-*`) are written for `seed-venue-search-uat` alone: TC-VSEARCH-010 step 2 expects no
-venue with an Exhibition layout, and Rooftop Terrace from `seed-venues` now has one. For those, run
-`db reset` and load only `seed-venue-search-uat`.
-
-A database that already holds older data is fixed with `apply-ssot` instead (see its section below),
-never by resetting a shared one. Nothing here is run against the remote project: a person applies
-`apply-ssot` there.
-
-## seed-venues
-
-Four venues and the five room layouts for the coordinator's venue booking
-request page (SPM-46), until the venue catalogue (SPM-42) lets Venue Staff add
-their own. Facilities, accessibility and layouts follow the Connectsphere Data
-Single Source of Truth. The venues cover the layout cases the form tells apart:
-several layouts to choose from, and exactly one. Safe to re-run: it inserts what
-is missing and does not change a venue that already exists.
+### Step 3. Check it worked
 
 ```bash
-supabase db query --file scripts/seed-venues/seed.sql --local
+supabase db query --file scripts/seed-coordinator-view/verify.sql --local   # 12 rows
+supabase db query --file scripts/seed-equipment/verify.sql --local          # 9 rows
+supabase db query --file scripts/apply-ssot/verify.sql --local              # 31 rows
 ```
 
-To reach the page, sign in as Test Coordinator, approve one of the seeded
-requests (that opens its event), then choose **Request a venue**.
+Every row should read `ok = true`. The third one checks all six venues and all
+six equipment types against the Single Source of Truth.
 
-## seed-coordinator-view
-
-Eight event requests owned by the real test accounts, covering every status the
-organiser, operations and coordinator screens tell apart.
-
-| File           | What it does                                                        |
-| -------------- | ------------------------------------------------------------------- |
-| `seed.sql`     | Inserts the requests. Safe to re-run; skips any that already exist.  |
-| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
-| `teardown.sql` | Deletes the seeded requests and the events/audit rows hanging off them. |
-
-### Before you seed
-
-The script creates no people. Create the test accounts first (see
-[`supabase/SEED.md`](../supabase/SEED.md)) — `supabase/seed.sql` does that, and
-`db reset` runs it for you:
+### Step 4. Run the app
 
 ```bash
-supabase db reset                                    # local
-supabase db query --file supabase/seed.sql --linked  # remote
+pnpm dev:local
 ```
 
-### Run
+Sign in at <http://localhost:3000> as, for example, `coordinator@test.com`,
+`venue@test.com` or `support@test.com` (password `TestPass123!`).
 
-Swap `--linked` for `--local` to target your local stack.
+The baseline is enough to explore the app. A few scenarios need more, and two
+families need a different starting point: read on.
+
+---
+
+## 2. Run a manual test document
+
+Open the document in [`docs/testing/`](../docs/testing) and follow its **Setup**
+section. Every document starts with `supabase db reset` and then loads what it
+needs. This table says what that is.
+
+| Manual test document | After the reset, load |
+| --- | --- |
+| Access denied, Assignment, Clarification, Complete event, Coordinator lead, Event page tabs, Notifications, Organisation events, Staff role guards, Update event details | `seed-coordinator-view` |
+| Coordinator queue, Request decision | `seed-coordinator-view` (`teardown.sql` resets between runs) |
+| Confirm event, Event registration settings, Venue booking decision | `seed-coordinator-view`, `seed-venues` |
+| Event registration | `seed-venues` |
+| Equipment requirements | `seed-coordinator-view`, `seed-equipment` |
+| Equipment out of service | `seed-equipment-review`; case 005 also `seed-coordinator-view`, `seed-equipment` |
+| Venue booking | `seed-coordinator-view`, `seed-venues`, `seed-equipment`; cases 019, 020 also `seed-booking-holds` |
+| Venue hold | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-holds` |
+| Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
+| **Equipment review** | `seed-equipment-review` **only** |
+| **Equipment reserve** | `seed-equipment-reserve` **only** |
+| **Venue search** | `seed-venue-search-uat` **only** |
+
+**Only** means: load nothing else after the reset. The other seeds add venues or
+events that change what these screens list.
+
+Documents not listed (the safety checks, for example) build their data with SQL
+written in the document.
+
+---
+
+## 3. Start over or undo
+
+**The simplest way to start over is Step 1 again**: `supabase db reset`, then
+re-load what you need. It is also the only reliable way back to a known state.
+
+To undo one seed without a reset, use its `teardown.sql`, and undo in the
+**reverse** order you loaded:
 
 ```bash
-supabase db query --file scripts/seed-coordinator-view/seed.sql --linked
-supabase db query --file scripts/seed-coordinator-view/verify.sql --linked
+supabase db query --file scripts/seed-equipment/teardown.sql --local
+supabase db query --file scripts/seed-venue-search-uat/teardown.sql --local
+supabase db query --file scripts/seed-coordinator-view/teardown.sql --local
 ```
 
-To start over — e.g. after approving a seeded request in the app, which
-re-running `seed.sql` will not undo:
+Afterwards run `pnpm novu:clear`: Postgres cannot cascade into Novu, so your
+local subscribers and notifications stay behind otherwise.
 
-```bash
-supabase db query --file scripts/seed-coordinator-view/teardown.sql --linked
-supabase db query --file scripts/seed-coordinator-view/seed.sql --linked
-```
+`seed-venues` has no teardown: reset instead.
 
-### Gotchas
+---
 
-- `supabase db query --file` exits 0 even when the SQL fails. Read the output,
-  not the exit code.
-- It also refuses files with more than one statement, which is why each script
-  is a single `do` block or CTE.
-- The request list is duplicated across all three files. Change one, change all.
+## 4. Every script
 
-## seed-equipment
+| Script | Creates | Needs first | Safe to re-run | Files |
+| --- | --- | --- | --- | --- |
+| `seed-coordinator-view` | 8 event requests across the test accounts, no events | The base logins | Yes | `seed`, `verify` (12 rows), `teardown` |
+| `seed-venues` | 4 venues and their layouts | The base logins | Yes | `seed` |
+| `seed-venue-search-uat` | 2 "UAT-44" venues, their events and two bookings | The base logins | Yes | `seed`, `teardown` |
+| `seed-equipment` | The 6 equipment types, and the *Founders' Gala Dinner* event with 2 lines | `seed-coordinator-view` | Yes | `seed`, `verify` (9 rows), `teardown` |
+| `seed-equipment-review` | 9 events across both coordinators, for Technical Support's three lists | The base logins | Yes | `seed`, `verify` (26 rows), `teardown` |
+| `seed-equipment-reserve` | 4 events whose lines are all New, for reserving | The base logins | Yes | `seed`, `verify` (14 rows), `teardown` |
+| `seed-venue-unavailability` | 3 venue blocks on Main Hall and Studio | `seed-venues` | Yes | `seed`, `verify` (5 rows), `refusals`, `checks`, `teardown` |
+| `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, three weeks from today (one expired, one live) | `seed-venues` | Replaces its own event and holds | `seed`, `teardown` |
+| `apply-ssot` | Nothing: corrects venue and equipment data already there | A database that already has data | Yes | `verify` (31 rows), `apply` |
 
-An equipment catalogue and one event with requirements, for the coordinator's
-event page (SPM-41). The catalogue is the six types and owned counts of the
-Connectsphere Data Single Source of Truth: Projector 10, Wireless microphone 30,
-PA speaker 5, Presentation laptop 8, Livestream kit 2 and Crowd barrier 40. The
-event is Founders' Gala Dinner — seed-coordinator-view
-seeds its request as Approved but opens no event for it, so this does, the way
-approving it in the app would. It has one line Technical Support have already
-reserved against (Projector) and one they have not (Wireless microphone), so
-editing either kind can be tried.
+"Safe to re-run" means it inserts only what is missing, so a row you have since
+changed in the app is kept. For a fresh start, use the teardown or a reset.
 
-| File           | What it does                                                          |
-| -------------- | --------------------------------------------------------------------- |
-| `seed.sql`     | Inserts the catalogue, the event and its lines. Safe to re-run.       |
-| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.     |
-| `teardown.sql` | Deletes the event (its lines go with it) and the unused catalogue.   |
+Two of the scripts have extra read-only files:
 
-Run seed-coordinator-view first — this script stops with an error naming the
-missing request if you have not:
+- `seed-venue-unavailability/refusals.sql` tries inputs the database must refuse
+  (a bad reason, a note under Safety, a 501-character note) and writes nothing.
+- `seed-venue-unavailability/checks.sql` checks the functions, audit rows, busy-time
+  read and the booking refusal (TC-VBLOCK-008). It needs `seed-venue-search-uat`
+  as well.
 
-```bash
-supabase db query --file scripts/seed-coordinator-view/seed.sql --local
-supabase db query --file scripts/seed-equipment/seed.sql --local
-supabase db query --file scripts/seed-equipment/verify.sql --local
-```
+Both report **success as an error**: a line reading `ERROR: ok: all refusals held`
+or `ERROR: ok: all 19 checks held` means every check passed. They raise on purpose,
+so nothing is saved.
 
-The same gotchas apply as above, and the catalogue and line lists are
-duplicated across all three files.
+---
 
-## seed-equipment-review
+## 5. Reading the output
 
-Technical Support's three equipment lists (SPM-273): nine events across both
-test coordinators, with lines that are new, changed after they were reserved,
-or have their removal requested (Needs review), events whose lines are all
-reserved (Reviewed), and Completed or Cancelled ones (Archive). Its catalogue is
-four of the six equipment types of the Connectsphere Data Single Source of Truth
-(Projector, Wireless microphone, PA speaker, Livestream kit), with the same counts
-seed-equipment gives them, so either seed can be loaded first.
+- **The exit code is not the result.** `supabase db query --file` exits 0 even
+  when the SQL fails. Read the output.
+- **One statement per file.** The command refuses a file with more than one, which
+  is why each script is a single `do` block or one query.
+- **Notices are not shown.** A script's `notice` lines do not reach you. The
+  `verify.sql` files are the report.
+- **`verify.sql` is read-only.** One row per check; every row should read
+  `ok = true`.
 
-Tech Summit Keynote (15 Nov) shows AC4's count: 10 Projectors owned,
-less 3, 2 and 1 held by events on 14, 15 and 16 Nov, leaves 4. The 5 held on
-17 Nov and the 4 a Cancelled event holds on 15 Nov do not count. Partner
-Roadshow has no date, so its line shows no number.
+---
 
-| File           | What it does                                                         |
-| -------------- | -------------------------------------------------------------------- |
-| `seed.sql`     | Inserts the catalogue, the events and their lines. Safe to re-run.   |
-| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
-| `teardown.sql` | Deletes the events (their lines go with them). Leaves the catalogue.   |
+## 6. apply-ssot: a database that already has data
 
-Needs only the test accounts from `supabase db reset`:
-
-```bash
-supabase db query --file scripts/seed-equipment-review/seed.sql --local
-supabase db query --file scripts/seed-equipment-review/verify.sql --local
-```
-
-Then sign in as `support@test.com`. The event and line lists are duplicated
-across all three files.
-
-## seed-equipment-reserve
-
-The lines Technical Support reserve or mark unfulfilled (SPM-274): four events,
-assigned to Test Coordinator, whose lines are all New. Its catalogue is four of
-the six equipment types of the Connectsphere Data Single Source of Truth
-(Projector, Wireless microphone, PA speaker, Presentation laptop), with the same
-counts seed-equipment gives them, so either seed can be loaded first.
-
-Design Sprint Demo (20 Nov) and Sales Kickoff (21 Nov) both need Presentation
-laptops, of which 8 are owned: reserve Design Sprint Demo's 6 and Sales Kickoff
-has 2 left for its 3, so it can only be marked unfulfilled. Design Sprint Demo
-and Board Offsite (20 Nov) each need 3 of the 5 PA speakers, so whoever reserves
-second is refused. Press Briefing has no date, so nothing can be reserved for
-it. No other seed's event is within a day of 20 or 21 Nov, so loading them too
-does not change these counts.
-
-| File           | What it does                                                         |
-| -------------- | -------------------------------------------------------------------- |
-| `seed.sql`     | Inserts the catalogue, the events and their lines. Safe to re-run.   |
-| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.    |
-| `teardown.sql` | Deletes the events (their lines go with them). Leaves the catalogue.   |
-
-```bash
-supabase db query --file scripts/seed-equipment-reserve/seed.sql --local
-supabase db query --file scripts/seed-equipment-reserve/verify.sql --local
-```
-
-Then sign in as `support@test.com`. The cases run in order — see
-`docs/testing/EQUIPMENT_RESERVE_MANUAL_TESTS.md`. The event and line lists are
-duplicated across all three files.
-
-## seed-venue-unavailability
-
-Three venue unavailability blocks, for the Venue Staff unavailability page, the
-coordinator's venue search and the booking refusal (SPM-21). Main Hall has a
-Renovation block (five days of AM) and a Maintenance block (the middle day, all
-three slots), so one slot is covered by two blocks. Studio has a Safety block
-that is already lifted. Dates are relative to today, starting 14 days out, so
-the seed does not go stale.
-
-| File           | What it does                                                                                   |
-| -------------- | ---------------------------------------------------------------------------------------------- |
-| `seed.sql`     | Inserts the three blocks. Safe to re-run.                                                      |
-| `verify.sql`   | Read-only. One row per check — every row should read `ok = true`.                              |
-| `refusals.sql` | Tries the inputs the database must refuse (a bad reason, a note under Safety, a 501-character note). Prints an error saying `ok` when every refusal held, and writes nothing. |
-| `checks.sql`   | Checks the functions, audit rows, busy-time read and the booking refusal (TC-VBLOCK-008). Needs `seed-venue-search-uat` as well. Prints an error saying `ok: all 19 checks held` or `FAILED: …`, and writes nothing. |
-| `teardown.sql` | Deletes the three blocks and the audit rows they wrote.                                        |
-
-Run seed-venues first — this script stops with an error naming what is missing
-if you have not:
-
-```bash
-supabase db query --file scripts/seed-venues/seed.sql --local
-supabase db query --file scripts/seed-venue-unavailability/seed.sql --local
-supabase db query --file scripts/seed-venue-unavailability/verify.sql --local
-```
-
-The same gotchas apply as above, and the block list is duplicated across the
-seed, verify and teardown files.
-
-## apply-ssot
-
-Brings an existing database to the Connectsphere Data Single Source of Truth
-(SPM-277): the facilities, accessibility, capacity and layouts of the six venues,
-and the owned counts of the six equipment types. The seeds only insert what is
-missing, so re-running them leaves old rows wrong; this corrects the rows already
-there, on a local or a remote database.
-
-| File         | What it does                                                                                       |
-| ------------ | -------------------------------------------------------------------------------------------------- |
-| `verify.sql` | Read-only. One row per check — every row should read `ok = true` once `apply.sql` has run.         |
-| `apply.sql`  | Corrects the venues and equipment. Safe to re-run: it updates a row only when it differs.          |
+The seeds only insert what is missing, so on a database that already holds older
+rows they leave the old values wrong. `apply-ssot` corrects the rows already there:
+the facilities, accessibility, capacity and layouts of the six venues, and the
+owned count of the six equipment types, as the Connectsphere Data Single Source of
+Truth lists them (SPM-277). It is safe to re-run: it updates a row only when it
+differs.
 
 ```bash
 supabase db query --file scripts/apply-ssot/verify.sql --local   # what differs
@@ -262,22 +198,32 @@ supabase db query --file scripts/apply-ssot/apply.sql --local
 supabase db query --file scripts/apply-ssot/verify.sql --local   # every row ok
 ```
 
-What it changes: the facilities, accessibility and capacity of the six venues
+**What it changes:** the facilities, accessibility and capacity of the six venues
 (matched by exact location); their layouts and seats (inserting a missing layout,
-updating seats); the owned count of the six equipment types; and it deletes
-Laser projector, Handheld microphone, Stage monitor and Lectern **only when no
+updating seats); the owned count of the six equipment types; and it deletes Laser
+projector, Handheld microphone, Stage monitor and Lectern **only when no
 reservation line uses them**. Nothing else.
 
-What it leaves alone: a venue that is not there (it never creates one), a layout
-a venue has beyond the SSOT, a location or equipment type that appears twice, a
-count that would drop below the units out of service, and an extra equipment type
-a reservation line still uses. `supabase db query` does not print the notices
-the script raises, so `verify.sql` is the report: each of these shows as a row
-that is not `ok`, and "extra equipment types" also lists any type a manual test
-added. A person decides about those. The exit code is 0 even when the SQL fails.
+**What it leaves alone:** a venue that is not there (it never creates one), a layout
+a venue has beyond the Single Source of Truth, a location or equipment type that
+appears twice, a count that would drop below the units out of service, and an extra
+equipment type a reservation line still uses. Each shows up as a row that is not
+`ok` in `verify.sql` (the "extra equipment types" row also lists any type a manual
+test added). A person decides about those.
 
-To apply it to the remote project, run
-`verify.sql`, then `apply.sql`, then `verify.sql` again, with `--linked` in place
-of `--local`; do that before deploying the facilities change, because a venue
-that still stores `Projector` or `PA system` cannot be saved from the app until
-it is corrected.
+**On a remote project,** a person runs `verify.sql`, then `apply.sql`, then
+`verify.sql` again, with `--linked` in place of `--local`, before deploying the
+facilities change: a venue that still stores `Projector` or `PA system` cannot be
+saved from the app until it is corrected.
+
+---
+
+## 7. Other scripts
+
+- **`test-report.mjs`** runs the test suite and reports it by domain. It also keeps
+  [`docs/tests/`](../docs/tests/README.md), the test-case registry and the record of
+  what passed at each merge to `main`. CI runs it.
+- **`novu-clear.mjs`** (`pnpm novu:clear`) deletes your own local subscribers, and
+  their notifications, from Novu's Development environment. Run it after a
+  `teardown.sql` or `supabase db reset`. It only touches ids with your
+  `<username>-` prefix, never a teammate's or Production's.

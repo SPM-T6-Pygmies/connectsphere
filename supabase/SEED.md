@@ -55,7 +55,7 @@ supabase db query --file scripts/seed-coordinator-view/seed.sql --local
 
 To load everything the way the Single Source of Truth lists it (all six venues, all six
 equipment types, the sample events), run the commands in order from
-[Seed everything to match the SSOT](../scripts/README.md#seed-everything-to-match-the-ssot).
+[Set up your database](../scripts/README.md#1-set-up-your-database).
 
 See [scripts/README.md](../scripts/README.md).
 
