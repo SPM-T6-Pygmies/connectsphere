@@ -13,6 +13,7 @@ export type DecideBookingRequestCommand = {
   readonly userAccountId: string;
 } & (
   | { readonly decision: "approve" }
+  | { readonly decision: "hold" }
   | {
       readonly decision: "reject";
       readonly reason: string;
@@ -23,8 +24,10 @@ export type DecideBookingRequestCommand = {
 
 export interface DecideBookingRequestResult {
   readonly bookingId: string;
-  readonly status: "Confirmed" | "Rejected";
+  readonly status: "Confirmed" | "Rejected" | "Tentative Hold";
   readonly venueLocation: string;
+  /** Only on a hold: when it lapses, as an ISO instant. */
+  readonly holdExpiresAt?: string;
 }
 
 export interface DecideBookingRequestDeps {
@@ -35,7 +38,8 @@ export interface DecideBookingRequestDeps {
 }
 
 /**
- * SPM-22: Venue Staff approve or reject a booking request.
+ * SPM-22: Venue Staff approve or reject a booking request. SPM-218: or hold it
+ * while the coordinator finalises the event.
  *
  * A booking Venue Staff may not see is refused exactly like one that does not
  * exist (#91). Whether it can still be decided, whether an approval would
@@ -68,12 +72,14 @@ export class DecideBookingRequestUseCase {
     const decision: BookingDecision =
       command.decision === "approve"
         ? { kind: "approve" }
-        : {
-            kind: "reject",
-            reason: command.reason,
-            suggestedAlternative:
-              command.suggestedAlternative === null ? null : venueId(command.suggestedAlternative),
-          };
+        : command.decision === "hold"
+          ? { kind: "hold" }
+          : {
+              kind: "reject",
+              reason: command.reason,
+              suggestedAlternative:
+                command.suggestedAlternative === null ? null : venueId(command.suggestedAlternative),
+            };
 
     const decided = decideBooking(booking, decision, staff, occupied, clock.now());
     await reviews.decide(decided);
@@ -82,6 +88,9 @@ export class DecideBookingRequestUseCase {
       bookingId: decided.id,
       status: decided.status,
       venueLocation: booking.venueLocation,
+      ...(decided.holdExpiresAt === undefined
+        ? {}
+        : { holdExpiresAt: decided.holdExpiresAt.toISOString() }),
     };
   }
 }

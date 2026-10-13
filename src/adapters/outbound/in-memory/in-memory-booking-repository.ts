@@ -13,7 +13,7 @@ import type {
 } from "@/core/ports/outbound/booking-repository";
 
 /** A booking as stored: the event's list view plus what scoping and clashes need. */
-export interface StoredBooking extends Omit<EventBookingSummary, "venueId"> {
+export interface StoredBooking extends Omit<EventBookingSummary, "venueId" | "holdExpiresAt"> {
   readonly eventId: string;
   readonly venueId: string;
   readonly requestedBy: string;
@@ -60,12 +60,13 @@ export class InMemoryBookingRepository implements BookingRepository {
   ): Promise<readonly EventBookingSummary[]> {
     return this.rows
       .filter((booking) => booking.eventId === eventId)
-      .map(({ id, venueId: venue, venueLocation, roomLayoutName, status, slots, requestedAt }) => ({
+      .map(({ id, venueId: venue, venueLocation, roomLayoutName, status, holdExpiresAt, slots, requestedAt }) => ({
         id,
         venueId: venueId(venue),
         venueLocation,
         roomLayoutName,
         status,
+        holdExpiresAt: holdExpiresAt?.toISOString() ?? null,
         slots,
         requestedAt,
       }));

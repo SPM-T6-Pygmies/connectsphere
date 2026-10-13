@@ -35,6 +35,8 @@ export interface BookingForReview {
   /** ISO instant. */
   readonly requestedAt: string;
   readonly decidedByName: string | null;
+  /** SPM-218: ISO instant a Tentative Hold lapses; null for any other status. */
+  readonly holdExpiresAt: string | null;
   readonly rejectionNote: string | null;
   readonly suggestedAlternativeLocation: string | null;
   readonly event: BookedEvent;
