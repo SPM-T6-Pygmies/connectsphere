@@ -3,9 +3,10 @@
 --
 -- 1. `venue_staff_bookings` returns JSON, so it gains a `hold_expires_at` key
 --    with no change to its signature. The rest is its latest definition
---    (20261006050000).
+--    (20261018000000, SPM-62).
 -- 2. `coordinator_event_bookings` returns a table, so a new column means drop
---    and create. The rest is its latest definition (20261005040000).
+--    and create. The rest is its latest definition (20261018000100, SPM-62),
+--    grants restated.
 --
 -- Both are reads. Nothing here decides whether a hold is still live: that is
 -- `booking_holds_slot`, and SPM-253 moves expired holds to their own status.
@@ -45,6 +46,9 @@ as $$
       'rejection_note', b.rejection_note,
       'suggested_alternative_location', av.location,
       'event', jsonb_build_object(
+        'event_id', e.event_id,
+        'event_request_id', e.event_request_id,
+        'coordinator_user_account_id', e.assigned_coordinator_user_account_id,
         'name', e.name,
         'status', e.status,
         'organisation_name', co.name,
@@ -109,7 +113,10 @@ returns table (
   status text,
   hold_expires_at timestamptz,
   created_at timestamptz,
-  slots jsonb
+  slots jsonb,
+  rejection_note text,
+  suggested_alternative_venue_id bigint,
+  suggested_alternative_location text
 )
 language sql
 security definer
@@ -134,11 +141,15 @@ as $$
         where bs.booking_id = b.booking_id
       ),
       '[]'::jsonb
-    )
+    ),
+    b.rejection_note,
+    b.suggested_alternative_venue_id,
+    av.location
   from public.booking b
   join public.event e on e.event_id = b.event_id
   join public.venue v on v.venue_id = b.venue_id
   left join public.room_layout rl on rl.room_layout_id = b.room_layout_id
+  left join public.venue av on av.venue_id = b.suggested_alternative_venue_id
   where b.event_id = p_event_id
     and e.assigned_coordinator_user_account_id = p_coordinator_user_account_id
   order by b.created_at desc;
