@@ -7,7 +7,7 @@ import { buildViewEventEquipmentForTechnicalSupport, getCurrentTechnicalSupport 
 import type { AttentionReason, EquipmentQueue } from "@/core/domain/equipment-review";
 import type { TechnicalSupportEquipmentLine } from "@/core/use-cases/view-event-equipment-for-technical-support";
 
-import { detailCrumbs } from "../detail-origin";
+import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { EquipmentLineDecision } from "./equipment-line-decision";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
@@ -89,7 +89,7 @@ function EquipmentRow({ eventId, line }: { eventId: string; line: TechnicalSuppo
  * a line awaiting a decision is reserved or marked unfulfilled in place, and
  * the others show what was decided. Releasing or replacing is SPM-108.
  */
-export async function EventEquipmentDetail({ id }: { id: string }) {
+export async function EventEquipmentDetail({ id, origin = "queue" }: { id: string; origin?: DetailOrigin }) {
   // Anyone who is not Technical Support Staff gets the shared access-denied screen (SPM-16).
   const technicalSupport = await getCurrentTechnicalSupport();
   if (technicalSupport === null) {
@@ -108,8 +108,8 @@ export async function EventEquipmentDetail({ id }: { id: string }) {
   return (
     <StaffShell
       role="technical"
-      crumbs={detailCrumbs("technical", "queue", QUEUES[queue].label, event.name, QUEUES[queue].href)}
-      activeSection={queue}
+      crumbs={detailCrumbs("technical", origin, QUEUES[queue].label, event.name, QUEUES[queue].href)}
+      activeSection={origin === "queue" ? queue : undefined}
       technicalQueue={queue}
     >
       <PageHeader
