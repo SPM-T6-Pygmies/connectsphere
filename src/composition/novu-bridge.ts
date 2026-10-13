@@ -6,6 +6,7 @@ import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-re
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { safetyCheckRecorded } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
+import { venueBookingDecided } from "@/adapters/outbound/novu/workflows/venue-booking-decided";
 import { venueBookingRequested } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 
 /**
@@ -32,6 +33,7 @@ function handlers(): Bridge {
       safetyCheckReady,
       safetyCheckRecorded,
       venueBookingRequested,
+      venueBookingDecided,
     ],
   });
   return bridge;

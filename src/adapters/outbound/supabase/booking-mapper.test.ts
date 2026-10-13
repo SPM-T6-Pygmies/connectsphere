@@ -49,6 +49,9 @@ describe("booking mapper (SPM-46)", () => {
         status: "Requested",
         created_at: "2026-09-28T02:00:00+00:00",
         slots: [{ date: "2026-10-05", slot: "AM" }],
+        rejection_note: null,
+        suggested_alternative_venue_id: null,
+        suggested_alternative_location: null,
       }),
     ).toEqual({
       id: "12",
@@ -58,6 +61,30 @@ describe("booking mapper (SPM-46)", () => {
       status: "Requested",
       slots: [{ date: "2026-10-05", slot: "AM" }],
       requestedAt: "2026-09-28T02:00:00+00:00",
+      rejectionNote: null,
+      suggestedAlternative: null,
+    });
+  });
+});
+
+describe("booking mapper -- Venue Staff's answer (SPM-62)", () => {
+  it("AC2: reads a rejected booking's reason and the venue suggested instead", () => {
+    expect(
+      toEventBookingSummary({
+        booking_id: 12,
+        venue_id: 3,
+        venue_location: "Rooftop Terrace",
+        room_layout_name: null,
+        status: "Rejected",
+        created_at: "2026-09-28T02:00:00+00:00",
+        slots: [{ date: "2026-10-05", slot: "AM" }],
+        rejection_note: "Closed for resurfacing.",
+        suggested_alternative_venue_id: 1,
+        suggested_alternative_location: "Main Hall",
+      }),
+    ).toMatchObject({
+      rejectionNote: "Closed for resurfacing.",
+      suggestedAlternative: { venueId: venueId("1"), location: "Main Hall" },
     });
   });
 });

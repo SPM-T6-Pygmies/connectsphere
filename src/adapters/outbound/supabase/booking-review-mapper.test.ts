@@ -23,6 +23,9 @@ const row: BookingReviewRow = {
   rejection_note: null,
   suggested_alternative_location: null,
   event: {
+    event_id: 12,
+    event_request_id: 6,
+    coordinator_user_account_id: 3,
     name: "Summit",
     status: "Planning",
     organisation_name: "Org",
@@ -104,5 +107,24 @@ describe("booking review mapper (SPM-22)", () => {
   it("gives up on an id this store could not have issued", () => {
     expect(toDecideBookingArgs(decided({ id: "booking-1" as BookingId }))).toBeNull();
     expect(toDecideBookingArgs(decided({ suggestedAlternative: venueId("v-x") }))).toBeNull();
+  });
+});
+
+describe("booking review mapper (SPM-62)", () => {
+  it("reads the event's ids and its assigned coordinator, so a decision can tell them", () => {
+    expect(toBookingForReview(row).event).toMatchObject({
+      id: "12",
+      requestId: "6",
+      coordinatorUserAccountId: "3",
+    });
+  });
+
+  it("reads an event with no request and no coordinator as null, not as \"null\"", () => {
+    const review = toBookingForReview({
+      ...row,
+      event: { ...row.event, event_request_id: null, coordinator_user_account_id: null },
+    });
+
+    expect(review.event).toMatchObject({ requestId: null, coordinatorUserAccountId: null });
   });
 });
