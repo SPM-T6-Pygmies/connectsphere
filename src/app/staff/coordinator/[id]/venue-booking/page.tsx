@@ -1,4 +1,7 @@
+import Link from "next/link";
 import { forbidden } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
 
 import {
   Card,
@@ -42,6 +45,7 @@ function BookingsTable({
   event,
   eventRequestId,
   suitability,
+  openedBookingId,
 }: {
   bookings: readonly EventBookingSummary[];
   venues: readonly Venue[];
@@ -49,6 +53,8 @@ function BookingsTable({
   eventRequestId: string;
   /** SPM-45: the server's verdict per booking still in play, by booking id. */
   suitability: Readonly<Record<string, VenueSuitability>>;
+  /** SPM-62 AC3: the booking a notification opened, picked out in the list. */
+  openedBookingId: string | undefined;
 }) {
   if (bookings.length === 0) {
     return (
@@ -68,6 +74,7 @@ function BookingsTable({
           <TableHead>Layout</TableHead>
           <TableHead>Suitability</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Venue Staff&apos;s answer</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -76,7 +83,10 @@ function BookingsTable({
           const verdict = suitability[booking.id];
 
           return (
-            <TableRow key={booking.id}>
+            <TableRow
+              key={booking.id}
+              data-state={booking.id === openedBookingId ? "selected" : undefined}
+            >
               <TableCell className="font-medium whitespace-normal">
                 {booking.venueLocation}
                 {booking.status === "Tentative Hold" && booking.holdExpiresAt !== null ? (
@@ -120,11 +130,50 @@ function BookingsTable({
               <TableCell>
                 <StatusBadge status={booking.status} />
               </TableCell>
+              <TableCell className="text-xs whitespace-normal">
+                <VenueStaffAnswer booking={booking} eventRequestId={eventRequestId} />
+              </TableCell>
             </TableRow>
           );
         })}
       </TableBody>
     </Table>
+  );
+}
+
+/**
+ * SPM-62 AC2/AC3: why Venue Staff rejected a booking, and the venue they
+ * suggested instead, which the coordinator can request afresh -- the
+ * suggestion is informal and books nothing (#45).
+ */
+function VenueStaffAnswer({
+  booking,
+  eventRequestId,
+}: {
+  booking: EventBookingSummary;
+  eventRequestId: string;
+}) {
+  if (booking.rejectionNote === null) {
+    return "—";
+  }
+  const suggestion = booking.suggestedAlternative;
+
+  return (
+    <div className="space-y-2">
+      <p>{booking.rejectionNote}</p>
+      {suggestion === null ? null : (
+        <>
+          <p className="text-muted-foreground">Suggested instead: {suggestion.location}</p>
+          <Button asChild size="sm" variant="outline">
+            <Link
+              href={`/staff/coordinator/${eventRequestId}/venue-booking?venue=${suggestion.venueId}#new-request`}
+            >
+              Request {suggestion.location}
+            </Link>
+          </Button>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -136,8 +185,10 @@ function BookingsTable({
  */
 export default async function VenueBookingPage({
   params,
+  searchParams,
 }: PageProps<"/staff/coordinator/[id]/venue-booking">) {
   const { id } = await params;
+  const { booking: openedBookingId, venue: requestedVenueId } = await searchParams;
 
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
@@ -151,6 +202,9 @@ export default async function VenueBookingPage({
   }
 
   const { event, venues, bookings, venueSuitability, bookingSuitability } = result;
+  // SPM-62 AC3: "Request <venue>" on a rejected booking starts a fresh request
+  // for it; a venue id that is not one on offer is ignored.
+  const initialVenueId = venues.find((venue) => venue.id === requestedVenueId)?.id;
 
   return (
     <StaffShell
@@ -173,7 +227,7 @@ export default async function VenueBookingPage({
         {/* min-w-0: a grid item otherwise grows to its widest content, and the
             bookings table would push the whole page past a phone's width. */}
         <div className="min-w-0 space-y-6 lg:col-span-2">
-          <Card>
+          <Card id="new-request" className="scroll-mt-16">
             <CardHeader>
               <CardTitle>New booking request</CardTitle>
               <CardDescription>
@@ -183,6 +237,9 @@ export default async function VenueBookingPage({
             </CardHeader>
             <CardContent>
               <BookingRequestForm
+                // Remount when a suggestion is picked, so the form starts from it.
+                key={initialVenueId ?? ""}
+                initialVenueId={initialVenueId}
                 eventId={event.id}
                 eventRequestId={id}
                 defaultDate={event.preferredDate}
@@ -203,6 +260,7 @@ export default async function VenueBookingPage({
                 event={event}
                 eventRequestId={id}
                 suitability={bookingSuitability}
+                openedBookingId={typeof openedBookingId === "string" ? openedBookingId : undefined}
               />
             </CardContent>
           </Card>

@@ -21,6 +21,10 @@ export interface EventBookingSummary {
   readonly slots: readonly SlotOnDate[];
   /** ISO instant. */
   readonly requestedAt: string;
+  /** Venue Staff's reason for a rejection (SPM-62 AC2); null otherwise. */
+  readonly rejectionNote: string | null;
+  /** The venue Venue Staff suggested instead -- informal, it books nothing (#45). */
+  readonly suggestedAlternative: { readonly venueId: VenueId; readonly location: string } | null;
 }
 
 /**

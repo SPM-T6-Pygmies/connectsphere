@@ -47,6 +47,9 @@ const BOOKING_ROW: BookingReviewRow = {
   rejection_note: null,
   suggested_alternative_location: null,
   event: {
+    event_id: 1,
+    event_request_id: 1,
+    coordinator_user_account_id: null,
     name: "Summit",
     status: "Planning",
     organisation_name: null,

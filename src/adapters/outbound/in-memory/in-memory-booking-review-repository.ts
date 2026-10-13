@@ -21,6 +21,8 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
     seed: readonly BookingForReview[] = [],
     /** Who counts as Venue Staff; anyone else sees nothing. */
     private readonly venueStaff: readonly string[] = [],
+    /** Venue names by id, so a suggested alternative reads back by name, as the store's does. */
+    private readonly venueNames: Readonly<Record<string, string>> = {},
   ) {
     this.rows = [...seed];
   }
@@ -67,6 +69,8 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
       ...row,
       status: decided.status,
       rejectionNote: decided.rejectionNote,
+      suggestedAlternativeLocation:
+        decided.suggestedAlternative === null ? null : (this.venueNames[decided.suggestedAlternative] ?? null),
       decidedByName: decided.decidedBy,
     };
   }

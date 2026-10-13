@@ -20,6 +20,9 @@ export interface BookingReviewRow {
   rejection_note: string | null;
   suggested_alternative_location: string | null;
   event: {
+    event_id: number;
+    event_request_id: number | null;
+    coordinator_user_account_id: number | null;
     name: string;
     status: string;
     organisation_name: string | null;
@@ -50,6 +53,12 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
     rejectionNote: row.rejection_note,
     suggestedAlternativeLocation: row.suggested_alternative_location,
     event: {
+      id: String(row.event.event_id),
+      requestId: row.event.event_request_id === null ? null : String(row.event.event_request_id),
+      coordinatorUserAccountId:
+        row.event.coordinator_user_account_id === null
+          ? null
+          : String(row.event.coordinator_user_account_id),
       name: row.event.name,
       status: row.event.status,
       organisationName: row.event.organisation_name,

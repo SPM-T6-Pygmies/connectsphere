@@ -1,10 +1,18 @@
-import { decideBooking, type BookingId, type BookingDecision } from "../domain/booking";
+import {
+  decideBooking,
+  type BookingDecision,
+  type BookingId,
+} from "../domain/booking";
 import { BookingNotFoundError } from "../domain/errors";
-import { userAccountId } from "../domain/user-account";
+import { userAccountId, type UserAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
-import type { BookingReviewRepository } from "../ports/outbound/booking-review-repository";
+import type {
+  BookingForReview,
+  BookingReviewRepository,
+} from "../ports/outbound/booking-review-repository";
 import type { Clock } from "../ports/outbound/clock";
+import type { Notifier } from "../ports/outbound/notifier";
 import type { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
 
 export type DecideBookingRequestCommand = {
@@ -35,6 +43,7 @@ export interface DecideBookingRequestDeps {
   readonly bookings: BookingRepository;
   readonly safetyCheck: Pick<SafetyCheckEntryAnnouncer, "around">;
   readonly clock: Clock;
+  readonly notifier: Pick<Notifier, "venueBookingDecided">;
 }
 
 /**
@@ -45,6 +54,10 @@ export interface DecideBookingRequestDeps {
  * exist (#91). Whether it can still be decided, whether an approval would
  * clash and whether a rejection has its reason are `decideBooking`'s calls --
  * this file gathers what it needs and records the outcome.
+ *
+ * SPM-62: then it tells the event's assigned coordinator, if it has one. The
+ * decision is stored first, so a notice that fails to send cannot undo it;
+ * composition's notifier records a failure rather than throwing.
  */
 export class DecideBookingRequestUseCase {
   constructor(private readonly deps: DecideBookingRequestDeps) {}
@@ -83,6 +96,11 @@ export class DecideBookingRequestUseCase {
 
     const decided = decideBooking(booking, decision, staff, occupied, clock.now());
     await reviews.decide(decided);
+    // A hold is not an answer to the request, so the coordinator is told nothing yet: they
+    // see "On hold until …" on the booking, and confirming or releasing it is SPM-219.
+    if (decided.status !== "Tentative Hold") {
+      await this.tellCoordinator(staff, booking, decided.status);
+    }
 
     return {
       bookingId: decided.id,
@@ -92,5 +110,34 @@ export class DecideBookingRequestUseCase {
         ? {}
         : { holdExpiresAt: decided.holdExpiresAt.toISOString() }),
     };
+  }
+
+  /**
+   * Reads the booking back as stored, so the notice carries the reason and
+   * the suggested venue's name exactly as the coordinator will find them.
+   */
+  private async tellCoordinator(
+    staff: UserAccountId,
+    before: BookingForReview,
+    outcome: "Confirmed" | "Rejected",
+  ): Promise<void> {
+    const recipient = before.event.coordinatorUserAccountId;
+    if (recipient === null) {
+      return;
+    }
+    const after = (await this.deps.reviews.find(staff, before.id)) ?? before;
+
+    await this.deps.notifier.venueBookingDecided({
+      recipientUserAccountId: recipient,
+      bookingId: after.id,
+      eventId: after.event.id,
+      eventRequestId: after.event.requestId,
+      eventName: after.event.name,
+      venueLocation: after.venueLocation,
+      slots: after.slots,
+      outcome,
+      reason: after.rejectionNote,
+      suggestedAlternativeLocation: after.suggestedAlternativeLocation,
+    });
   }
 }

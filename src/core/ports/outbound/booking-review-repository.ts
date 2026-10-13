@@ -7,6 +7,11 @@ export type BookingReviewSection = "requests" | "decided" | "archive";
 
 /** The event a booking is for, as Venue Staff review the request against it. */
 export interface BookedEvent {
+  readonly id: string;
+  /** The approved request the event came from; null if it has none. */
+  readonly requestId: string | null;
+  /** Its assigned Event Coordinator, told of the decision (SPM-62); null if unassigned. */
+  readonly coordinatorUserAccountId: string | null;
   readonly name: string;
   readonly status: string;
   readonly organisationName: string | null;
