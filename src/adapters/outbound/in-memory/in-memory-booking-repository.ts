@@ -13,8 +13,12 @@ import type {
 } from "@/core/ports/outbound/booking-repository";
 
 /** A booking as stored: the event's list view plus what scoping and clashes need. */
-export interface StoredBooking extends Omit<EventBookingSummary, "venueId"> {
+export interface StoredBooking
+  extends Omit<EventBookingSummary, "venueId" | "rejectionNote" | "suggestedAlternative"> {
   readonly eventId: string;
+  /** Absent reads as none, as for a booking that was never rejected. */
+  readonly rejectionNote?: string | null;
+  readonly suggestedAlternative?: EventBookingSummary["suggestedAlternative"];
   readonly venueId: string;
   readonly requestedBy: string;
   /** A Tentative Hold's expiry; absent reads as none set. */
@@ -60,14 +64,16 @@ export class InMemoryBookingRepository implements BookingRepository {
   ): Promise<readonly EventBookingSummary[]> {
     return this.rows
       .filter((booking) => booking.eventId === eventId)
-      .map(({ id, venueId: venue, venueLocation, roomLayoutName, status, slots, requestedAt }) => ({
-        id,
-        venueId: venueId(venue),
-        venueLocation,
-        roomLayoutName,
-        status,
-        slots,
-        requestedAt,
+      .map((booking) => ({
+        id: booking.id,
+        venueId: venueId(booking.venueId),
+        venueLocation: booking.venueLocation,
+        roomLayoutName: booking.roomLayoutName,
+        status: booking.status,
+        slots: booking.slots,
+        requestedAt: booking.requestedAt,
+        rejectionNote: booking.rejectionNote ?? null,
+        suggestedAlternative: booking.suggestedAlternative ?? null,
       }));
   }
 

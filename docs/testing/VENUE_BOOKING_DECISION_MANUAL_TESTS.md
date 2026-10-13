@@ -14,11 +14,12 @@ reason, an approval may not clash with a slot already held) are unit-tested in
 `decideBooking`, tagged `SPM-22`. These cases cover what the unit tests cannot:
 the screens on both sides, the messages, and who can reach them.
 
-Not built yet, so not covered: notifying Venue Staff of a new request
-(SPM-61), notifying the coordinator of the outcome (SPM-62), and "Hold
-tentatively" (SPM-218, SPM-219). The coordinator sees the outcome as the
-booking's status on **Request a venue**; the rejection reason and suggestion
-are shown to Venue Staff only.
+Covered elsewhere: notifying Venue Staff of a new request (SPM-61,
+`VENUE_BOOKING_NOTIFICATION_MANUAL_TESTS.md`) and notifying the coordinator of
+the outcome (SPM-62, `VENUE_BOOKING_DECISION_NOTIFICATION_MANUAL_TESTS.md`),
+which also shows the coordinator the rejection reason and suggestion on
+**Request a venue**. Not built yet, so not covered: "Hold tentatively"
+(SPM-218, SPM-219).
 
 These cases are registered as `TC-VBDECIDE-001`–`TC-VBDECIDE-008` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run

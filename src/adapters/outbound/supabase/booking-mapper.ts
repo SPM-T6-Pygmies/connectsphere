@@ -28,6 +28,9 @@ export interface EventBookingRow {
   status: string;
   created_at: string;
   slots: ReadonlyArray<{ date: string; slot: string }>;
+  rejection_note: string | null;
+  suggested_alternative_venue_id: number | null;
+  suggested_alternative_location: string | null;
 }
 
 /** Exactly the six values `booking_status_chk` allows. */
@@ -80,6 +83,14 @@ export function toEventBookingSummary(row: EventBookingRow): EventBookingSummary
     status: toStatus(row.status),
     slots: row.slots.map(({ date, slot }) => ({ date: toDate(date), slot: toSlot(slot) })),
     requestedAt: row.created_at,
+    rejectionNote: row.rejection_note,
+    suggestedAlternative:
+      row.suggested_alternative_venue_id === null || row.suggested_alternative_location === null
+        ? null
+        : {
+            venueId: venueId(String(row.suggested_alternative_venue_id)),
+            location: row.suggested_alternative_location,
+          },
   };
 }
 

@@ -47,12 +47,15 @@ function defaultLayout(venue: Venue | undefined): string {
  * and this only keeps the Submit button honest.
  */
 export function BookingRequestForm({
+  initialVenueId,
   eventId,
   eventRequestId,
   defaultDate,
   venues,
   suitability,
 }: {
+  /** SPM-62 AC3: the venue Venue Staff suggested, when the coordinator chose to request it. */
+  initialVenueId?: string;
   eventId: string;
   eventRequestId: string;
   defaultDate: string | null;
@@ -63,8 +66,10 @@ export function BookingRequestForm({
   const [state, formAction, pending] = useActionState(submitVenueBookingRequestAction, INITIAL);
   const idPrefix = useId();
 
-  const [venueId, setVenueId] = useState("");
-  const [layout, setLayout] = useState("");
+  const [venueId, setVenueId] = useState(initialVenueId ?? "");
+  const [layout, setLayout] = useState(() =>
+    defaultLayout(venues.find((candidate) => candidate.id === initialVenueId)),
+  );
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<readonly DateRow[]>([
     { key: 0, date: defaultDate ?? "", slots: [] },
