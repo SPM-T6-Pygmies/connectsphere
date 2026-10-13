@@ -171,9 +171,10 @@ describe("equipmentNeedsAttentionRow (SPM-64)", () => {
         eventName: "Tech Summit Keynote",
         preferredDate: "2026-11-15",
         equipmentType: "Projector",
+        change: "added",
         quantityRequested: 4,
-        reason: "new",
         quantityWas: null,
+        attention: "new",
       }),
     ).toEqual({
       recipient_user_account_id: "5",

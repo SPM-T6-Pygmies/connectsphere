@@ -51,8 +51,14 @@ export class EditEquipmentRequirementUseCase {
     const item = catalogueItem(catalogue, itemId);
     if (edit.changed) {
       await equipment.update(id, edit.line, caller);
-      // SPM-64 AC2-3: a decided line the coordinator changed needs re-review.
-      await this.deps.attention.announce({ event, equipmentType: item.type, before: line, after: edit.line });
+      // SPM-64 AC1, AC3: Technical Support hear of every edit that changed something.
+      await this.deps.attention.announce({
+        event,
+        equipmentType: item.type,
+        change: "edited",
+        before: line,
+        after: edit.line,
+      });
     }
 
     return describeChange({

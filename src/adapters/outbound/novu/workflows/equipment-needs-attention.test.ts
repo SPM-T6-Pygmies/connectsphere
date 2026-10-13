@@ -10,9 +10,10 @@ describe("equipmentNeedsAttentionInApp (SPM-64)", () => {
       eventName: "Tech Summit Keynote",
       preferredDate: "2026-11-15",
       equipmentType: "Projector",
+      change: "added",
       quantityRequested: 4,
-      reason: "new",
       quantityWas: null,
+      attention: "new",
     });
 
     expect(inApp.redirect).toEqual({ url: "/staff/technical/12", target: "_self" });

@@ -50,8 +50,8 @@ export class RemoveEquipmentRequirementUseCase {
     } else {
       await equipment.update(id, removal.line, caller);
     }
-    // SPM-64 AC2-3: a removal request needs re-review; a deleted line needs nothing.
-    await this.deps.attention.announce({ event, equipmentType: item.type, before: line, after });
+    // SPM-64 AC1: Technical Support hear of a deleted line as well as a removal request.
+    await this.deps.attention.announce({ event, equipmentType: item.type, change: removal.kind, before: line, after });
 
     return describeChange({
       action: removal.kind,

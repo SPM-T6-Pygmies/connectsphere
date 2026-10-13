@@ -128,9 +128,10 @@ describe("RecordEquipmentRequirementUseCase telling Technical Support (SPM-64)",
         eventName: "Founders' Gala Dinner",
         preferredDate: "2026-12-12",
         equipmentType: "PA speaker",
+        change: "added",
         quantityRequested: 2,
-        reason: "new",
         quantityWas: null,
+        attention: "new",
       })),
     );
   });

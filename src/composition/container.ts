@@ -635,9 +635,9 @@ function safetyCheckAnnouncer(): SafetyCheckEntryAnnouncer {
 }
 
 /**
- * SPM-64: tells every Technical Support Staff member when a coordinator's
- * change puts a line in front of them. Reads with the admin client: the
- * coordinator may not list staff accounts themselves.
+ * SPM-64: tells every Technical Support Staff member of each change a
+ * coordinator makes to a line. Reads with the admin client: the coordinator
+ * may not list staff accounts themselves.
  */
 function equipmentAttentionAnnouncer(): EquipmentAttentionAnnouncer {
   return new EquipmentAttentionAnnouncer({
@@ -743,7 +743,12 @@ export async function buildRemoveEquipmentRequirement(): Promise<RemoveEquipment
 export async function buildUndoEquipmentRemoval(): Promise<UndoEquipmentRemovalUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new UndoEquipmentRemovalUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new UndoEquipmentRemovalUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */

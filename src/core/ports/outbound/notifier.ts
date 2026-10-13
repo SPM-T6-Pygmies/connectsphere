@@ -110,9 +110,9 @@ export interface VenueBookingRequestedNotice {
 }
 
 /**
- * What a Technical Support Staff member is told when a coordinator's change
- * puts an equipment line in front of them anew (SPM-64). Every member gets
- * their own copy: staff are not scoped to particular events (#66).
+ * What a Technical Support Staff member is told when a coordinator changes an
+ * equipment line (SPM-64). Every member gets their own copy: staff are not
+ * scoped to particular events (#66).
  */
 export interface EquipmentNeedsAttentionNotice {
   readonly recipientUserAccountId: string;
@@ -121,11 +121,18 @@ export interface EquipmentNeedsAttentionNotice {
   /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
   readonly preferredDate: string | null;
   readonly equipmentType: string;
+  /** What the coordinator did to the line (AC1). */
+  readonly change: "added" | "edited" | "deleted" | "removalRequested" | "removalWithdrawn";
+  /** What the line requests now -- for a deleted line, what it requested. */
   readonly quantityRequested: number;
-  /** Why the line needs attention, as the Needs review page marks it (SPM-273 AC3). */
-  readonly reason: "new" | "changed" | "removalRequested";
-  /** For a changed line, the quantity Technical Support last decided on; null otherwise. */
+  /** For an edit that changed the quantity, what it was just before; null otherwise. */
   readonly quantityWas: number | null;
+  /**
+   * Why the line needs their attention now, as the Needs review page marks it
+   * (SPM-273 AC3); null when it needs nothing -- deleted, or back to what they
+   * decided (AC2).
+   */
+  readonly attention: "new" | "changed" | "removalRequested" | null;
 }
 
 /** One line of an event Technical Support have finished deciding on (SPM-65 AC3). */

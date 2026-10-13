@@ -12,7 +12,6 @@ import {
   finishesReview,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
-  newlyNeedsAttention,
   reserveEquipmentLine,
   reservedAs,
   unitsAvailable,
@@ -492,60 +491,6 @@ describe("daysShortOfService (SPM-274)", () => {
     ];
 
     expect(daysShortOfService(3, reservations, TODAY)).toEqual([]);
-  });
-});
-
-describe("newlyNeedsAttention (SPM-64)", () => {
-  const unfulfilledLine = () =>
-    line({ quantityReserved: 0, state: "Unfulfilled", decision: { by: userAccountId("support-1"), comment: "only 1" } });
-  const changedAfterUnfulfilled = () =>
-    line({
-      quantityRequested: 1,
-      quantityReserved: 0,
-      state: "Under review",
-      reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
-    });
-  const changedThenRemovalRequested = () => ({ ...changedLine(), removalRequested: true });
-
-  it("AC1: a line just added is new", () => {
-    expect(newlyNeedsAttention(null, newLine())).toBe("new");
-  });
-
-  it("AC2: a reserved line the coordinator changed", () => {
-    expect(newlyNeedsAttention(line(), changedLine())).toBe("changed");
-  });
-
-  it("AC2: a line marked unfulfilled that the coordinator changed", () => {
-    expect(newlyNeedsAttention(unfulfilledLine(), changedAfterUnfulfilled())).toBe("changed");
-  });
-
-  it("AC2: a reserved line whose removal is requested", () => {
-    expect(newlyNeedsAttention(line(), removalRequestedLine())).toBe("removalRequested");
-  });
-
-  it("AC2: a changed line whose removal is then requested", () => {
-    expect(newlyNeedsAttention(changedLine(), changedThenRemovalRequested())).toBe("removalRequested");
-  });
-
-  it("AC3: editing a line that is still new", () => {
-    expect(newlyNeedsAttention(newLine(), { ...newLine(), quantityRequested: 5 })).toBeNull();
-  });
-
-  it("AC3: changing a line that is already under review as changed", () => {
-    expect(newlyNeedsAttention(changedLine(), { ...changedLine(), quantityRequested: 4 })).toBeNull();
-  });
-
-  it("AC3: deleting a line with nothing reserved", () => {
-    expect(newlyNeedsAttention(newLine(), null)).toBeNull();
-  });
-
-  it("AC3: undoing a removal request, whether the line goes back to reserved or stays changed", () => {
-    expect(newlyNeedsAttention(removalRequestedLine(), line())).toBeNull();
-    expect(newlyNeedsAttention(changedThenRemovalRequested(), changedLine())).toBeNull();
-  });
-
-  it("AC3: editing a changed line back to what Technical Support decided", () => {
-    expect(newlyNeedsAttention(changedLine(), line())).toBeNull();
   });
 });
 

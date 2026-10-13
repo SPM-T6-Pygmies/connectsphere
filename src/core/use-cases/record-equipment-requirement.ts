@@ -36,7 +36,7 @@ export interface EquipmentRequirementChangeDeps extends EquipmentRequirementDeps
   readonly safetyCheck: Pick<SafetyCheckEntryAnnouncer, "around">;
 }
 
-/** For the changes that can put a line in front of Technical Support anew (SPM-64). */
+/** For the changes Technical Support hear of (SPM-64). */
 export interface EquipmentAttentionDeps {
   readonly attention: Pick<EquipmentAttentionAnnouncer, "announce">;
 }
@@ -64,8 +64,8 @@ export class RecordEquipmentRequirementUseCase {
     });
 
     const reservationId = await equipment.add(id, line, caller);
-    // SPM-64 AC1: a new line needs Technical Support's attention.
-    await this.deps.attention.announce({ event, equipmentType: item.type, before: null, after: line });
+    // SPM-64 AC1: Technical Support hear of every change.
+    await this.deps.attention.announce({ event, equipmentType: item.type, change: "added", before: null, after: line });
 
     return describeChange({
       action: "recorded",

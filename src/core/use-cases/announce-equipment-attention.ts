@@ -1,9 +1,9 @@
 import type { EquipmentRequirement } from "../domain/equipment-requirement";
-import { newlyNeedsAttention } from "../domain/equipment-review";
+import { attentionReason } from "../domain/equipment-review";
 import type { EquipmentNoticeDirectory } from "../ports/outbound/equipment-notice-directory";
-import type { Notifier } from "../ports/outbound/notifier";
+import type { EquipmentNeedsAttentionNotice, Notifier } from "../ports/outbound/notifier";
 
-/** One coordinator change to one line: the line as it was and as it is now. */
+/** One coordinator change to one line: what they did, and the line as it was and as it is now. */
 export interface EquipmentLineChange {
   readonly event: {
     readonly id: string;
@@ -12,6 +12,7 @@ export interface EquipmentLineChange {
     readonly preferredDate: string | null;
   };
   readonly equipmentType: string;
+  readonly change: EquipmentNeedsAttentionNotice["change"];
   /** Null for a line just added. */
   readonly before: EquipmentRequirement | null;
   /** Null for a line just deleted. */
@@ -24,21 +25,24 @@ export interface EquipmentAttentionAnnouncerDeps {
 }
 
 /**
- * SPM-64: tells every Technical Support Staff member when a coordinator's
- * change puts a line in front of them anew. Which changes do is the domain's
- * call (`newlyNeedsAttention`); every use case that can add, change or remove
- * a line hands it here, as it was and as it is, once the change is stored.
- * Undoing a removal request never qualifies, so it does not.
+ * SPM-64: tells every Technical Support Staff member of each change a
+ * coordinator stores to a line -- adding, editing, deleting, asking to remove
+ * or taking that back (AC1) -- and whether it leaves anything for them to do
+ * (AC2). Every use case that can change a line hands it here, as it was and
+ * as it is, once the change is stored; a refused change never gets here (AC3).
  */
 export class EquipmentAttentionAnnouncer {
   constructor(private readonly deps: EquipmentAttentionAnnouncerDeps) {}
 
-  async announce(change: EquipmentLineChange): Promise<void> {
-    const reason = newlyNeedsAttention(change.before, change.after);
-    if (reason === null || change.after === null) {
+  async announce({ event, equipmentType, change, before, after }: EquipmentLineChange): Promise<void> {
+    const line = after ?? before;
+    if (line === null) {
       return;
     }
-    const { event, equipmentType, after } = change;
+    const quantityWas =
+      change === "edited" && before !== null && before.quantityRequested !== line.quantityRequested
+        ? before.quantityRequested
+        : null;
     for (const member of await this.deps.directory.technicalSupportStaff()) {
       await this.deps.notifier.equipmentNeedsAttention({
         recipientUserAccountId: member,
@@ -46,9 +50,10 @@ export class EquipmentAttentionAnnouncer {
         eventName: event.name,
         preferredDate: event.preferredDate,
         equipmentType,
-        quantityRequested: after.quantityRequested,
-        reason,
-        quantityWas: reason === "changed" ? (after.reviewBaseline?.quantityRequested ?? null) : null,
+        change,
+        quantityRequested: line.quantityRequested,
+        quantityWas,
+        attention: after === null ? null : attentionReason(after),
       });
     }
   }

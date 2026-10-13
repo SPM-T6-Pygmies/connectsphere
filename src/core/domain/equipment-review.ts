@@ -66,22 +66,6 @@ export function equipmentQueueOf(
 }
 
 /**
- * SPM-64 AC1-3: why a change to one line puts it in front of Technical
- * Support anew, or null when it does not. A new line, a decided line the
- * coordinator changed, and a removal request all do. A line already waiting
- * for the same reason does not, nor does one leaving their list -- including
- * a withdrawn removal request, which hands back a line they already had.
- */
-export function newlyNeedsAttention(
-  before: EquipmentRequirement | null,
-  after: EquipmentRequirement | null,
-): AttentionReason | null {
-  const was = before === null ? null : attentionReason(before);
-  const now = after === null ? null : attentionReason(after);
-  return now === null || now === was || was === "removalRequested" ? null : now;
-}
-
-/**
  * SPM-65 AC1-2: whether a decision left an event that had lines needing
  * Technical Support's attention with none -- the moment its coordinator is
  * told the outcome.

@@ -6,9 +6,9 @@ import type { EquipmentNeedsAttentionNotice } from "@/core/ports/outbound/notifi
 export const EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID = "equipment-needs-attention";
 
 /**
- * The Inbox entry Technical Support see when a line needs their attention
- * (SPM-64): the shared wording, plus a click that opens the event under Needs
- * review, where the line is reserved or marked unfulfilled (AC6).
+ * The Inbox entry Technical Support see when a coordinator changes a line
+ * (SPM-64): the shared wording, plus a click that opens the event, where the
+ * line is reserved or marked unfulfilled (AC6).
  */
 export function equipmentNeedsAttentionInApp(notice: EquipmentNeedsAttentionNotice) {
   return {
@@ -25,8 +25,8 @@ export const equipmentNeedsAttention = workflow(
   {
     // What the preferences sheet calls it (SPM-180).
     name: "Equipment recorded",
-    // SPM-64 exists so Technical Support hear of a need in time to reserve
-    // for it, so no member may switch it off.
+    // SPM-64 exists so Technical Support hear of every change in time to act
+    // on it, so no member may switch it off.
     preferences: { all: { enabled: true, readOnly: true } },
     // The staff inbox names a notification's trigger by this tag (SPM-174).
     tags: [EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID],
@@ -40,9 +40,10 @@ export const equipmentNeedsAttention = workflow(
         eventName: { type: "string" },
         preferredDate: { type: ["string", "null"] },
         equipmentType: { type: "string" },
+        change: { type: "string", enum: ["added", "edited", "deleted", "removalRequested", "removalWithdrawn"] },
         quantityRequested: { type: "number" },
-        reason: { type: "string", enum: ["new", "changed", "removalRequested"] },
         quantityWas: { type: ["number", "null"] },
+        attention: { type: ["string", "null"], enum: ["new", "changed", "removalRequested", null] },
       },
       required: [
         "recipientUserAccountId",
@@ -50,9 +51,10 @@ export const equipmentNeedsAttention = workflow(
         "eventName",
         "preferredDate",
         "equipmentType",
+        "change",
         "quantityRequested",
-        "reason",
         "quantityWas",
+        "attention",
       ],
       additionalProperties: false,
     } as const,

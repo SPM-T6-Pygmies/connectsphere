@@ -208,7 +208,15 @@ describe("EditEquipmentRequirementUseCase telling Technical Support (SPM-64)", (
     technicalRequirements: null,
   });
 
-  it("AC2: changing a reserved line tells every Technical Support Staff member, with what it was", async () => {
+  const told = (notifier: ReturnType<typeof edit>["notifier"]) =>
+    notifier.equipmentNeedingAttention.map(({ change, quantityRequested, quantityWas, attention }) => ({
+      change,
+      quantityRequested,
+      quantityWas,
+      attention,
+    }));
+
+  it("AC1, AC2: changing a reserved line tells every Technical Support Staff member, with what it was", async () => {
     const { useCase, notifier } = edit();
 
     await useCase.execute(projector(3));
@@ -220,14 +228,15 @@ describe("EditEquipmentRequirementUseCase telling Technical Support (SPM-64)", (
         eventName: "Founders' Gala Dinner",
         preferredDate: "2026-12-12",
         equipmentType: "Projector",
+        change: "edited",
         quantityRequested: 3,
-        reason: "changed",
         quantityWas: 2,
+        attention: "changed",
       })),
     );
   });
 
-  it("AC2: changing a line marked unfulfilled tells them too", async () => {
+  it("AC2: changing a line marked unfulfilled tells them it needs re-review", async () => {
     const unfulfilled = line({ state: "Unfulfilled", decision: { by: REVIEWER, comment: "only 2 available" } });
     const { useCase, notifier } = edit(
       buildEquipmentDeps([seedEvent()], { "event-1": { ...seededEquipment(), lines: [unfulfilled] } }),
@@ -235,36 +244,61 @@ describe("EditEquipmentRequirementUseCase telling Technical Support (SPM-64)", (
 
     await useCase.execute(microphone(2));
 
-    expect(notifier.equipmentNeedingAttention.map(({ reason, quantityWas }) => ({ reason, quantityWas }))).toEqual([
-      { reason: "changed", quantityWas: 4 },
-      { reason: "changed", quantityWas: 4 },
+    expect(told(notifier)).toEqual([
+      { change: "edited", quantityRequested: 2, quantityWas: 4, attention: "changed" },
+      { change: "edited", quantityRequested: 2, quantityWas: 4, attention: "changed" },
     ]);
   });
 
-  it("AC3: editing a line that is still new tells no one", async () => {
+  it("AC1, AC2: editing a line that is still new tells them it still awaits a decision", async () => {
     const { useCase, notifier } = edit();
 
     await useCase.execute(microphone(5));
 
-    expect(notifier.equipmentNeedingAttention).toEqual([]);
+    expect(told(notifier)).toEqual([
+      { change: "edited", quantityRequested: 5, quantityWas: 4, attention: "new" },
+      { change: "edited", quantityRequested: 5, quantityWas: 4, attention: "new" },
+    ]);
   });
 
-  it("AC3: a second change to a line already under review tells no one again", async () => {
+  it("AC1: a second change to a line already under review tells them again, with what it just was", async () => {
     const { useCase, notifier } = edit();
     await useCase.execute(projector(3));
 
     await useCase.execute(projector(4));
 
-    expect(notifier.equipmentNeedingAttention).toHaveLength(2);
+    expect(told(notifier).slice(2)).toEqual([
+      { change: "edited", quantityRequested: 4, quantityWas: 3, attention: "changed" },
+      { change: "edited", quantityRequested: 4, quantityWas: 3, attention: "changed" },
+    ]);
   });
 
-  it("AC3: editing a changed line back to what Technical Support decided tells no one", async () => {
+  it("AC1, AC2: editing a changed line back to what Technical Support decided tells them the decision stands", async () => {
     const { useCase, notifier } = edit();
     await useCase.execute(projector(3));
 
     await useCase.execute(projector(2));
 
-    expect(notifier.equipmentNeedingAttention).toHaveLength(2);
+    expect(told(notifier).slice(2)).toEqual([
+      { change: "edited", quantityRequested: 2, quantityWas: 3, attention: null },
+      { change: "edited", quantityRequested: 2, quantityWas: 3, attention: null },
+    ]);
+  });
+
+  it("AC5: a change to the technical requirements alone carries no earlier quantity", async () => {
+    const { useCase, notifier } = edit();
+
+    await useCase.execute({ ...projector(2), technicalRequirements: "HDMI and VGA input" });
+
+    expect(told(notifier)[0]).toEqual({ change: "edited", quantityRequested: 2, quantityWas: null, attention: "changed" });
+  });
+
+  it("AC3: a save that changes nothing tells no one", async () => {
+    const { useCase, notifier } = edit();
+
+    await useCase.execute(projector(2));
+
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
   });
 
   it("AC3: a refused change tells no one", async () => {

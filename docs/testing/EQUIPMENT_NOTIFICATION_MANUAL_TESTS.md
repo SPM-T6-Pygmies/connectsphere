@@ -4,11 +4,12 @@
 
 Browser checks for two notifications, built together:
 
-- **SPM-64 — Notify technical support of an equipment requirement.** When an
-  event's assigned coordinator adds a line, changes a line that was reserved or
-  marked unfulfilled, or asks to remove a reserved line, every Technical Support
-  Staff member gets an in-app notification naming the event, its date, the line
-  and why it needs them. It opens the event under Needs review.
+- **SPM-64 — Notify technical support of an equipment requirement.** Every
+  change the event's assigned coordinator stores to a line -- adding, editing,
+  deleting, asking to remove or undoing that -- gives every Technical Support
+  Staff member an in-app notification naming the event, its date, the line,
+  what changed and whether it leaves anything for them to do. It opens the
+  event under Needs review.
 - **SPM-65 — Notify the coordinator of the equipment outcome.** When Technical
   Support's decision leaves nothing on the event needing their attention, its
   assigned coordinator gets one notification listing every line: reserved (how
@@ -25,16 +26,17 @@ What these do **not** cover, so is not tested here:
   Technical Support can release the line (SPM-108), so it sends no SPM-65
   notice yet.
 
-The rules — which changes notify and which do not, and when an event is
-finished — are unit-tested (`newlyNeedsAttention`, `finishesReview` and the use
-cases, tagged SPM-64 and SPM-65), including editing a line that is still New,
-deleting an unreserved line, undoing a removal, an edit back to what was
-decided, a refused change, and a decision while another line still waits.
+The rules — what each change says, which changes do not notify, and when an
+event is finished — are unit-tested (`finishesReview` and the use cases, tagged
+SPM-64 and SPM-65), including editing a line that is still New, a second edit
+to a line already under review, a technical-requirements-only edit, a save
+that changes nothing, a refused change, and a decision while another line
+still waits.
 These cases check the same rules end to end, through the real logins, the
 `technical_support_staff_ids` and `event_assigned_coordinator_id` functions,
 Novu and the inboxes.
 
-These cases are registered as `TC-EQUIPNOTE-001`–`TC-EQUIPNOTE-005` in
+These cases are registered as `TC-EQUIPNOTE-001`–`TC-EQUIPNOTE-006` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
@@ -177,11 +179,37 @@ SPM-64 AC2.
 4. Sign in as `support@test.com` and open `/staff/technical/notifications`.
 
 **Expected Result:**
-- Step 1: two new `equipment-needs-attention` rows, for accounts 5 and 10.
-- Step 2: no new row — the line is already waiting as changed.
-- Step 3: two new rows, for accounts 5 and 10.
+- Steps 1, 2 and 3: each adds two new `equipment-needs-attention` rows, for accounts 5 and 10.
 - Step 4: the inbox has:
   - "Presentation laptop changed on Sales Kickoff" — "Now 2 requested, was 3. The earlier decision needs re-review. Event date: Sat, 21 Nov 2026."
+  - "Presentation laptop changed on Sales Kickoff" — "Now 1 requested, was 2. The earlier decision needs re-review. Event date: Sat, 21 Nov 2026."
   - "Projector removal requested on Design Sprint Demo" — "The coordinator asked to remove this line. Its reservation needs re-review. Event date: Fri, 20 Nov 2026."
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-EQUIPNOTE-006: A change that leaves nothing to do is announced too, and says so
+
+SPM-64 AC1, AC2.
+
+**Preconditions:** TC-EQUIPNOTE-005 run; signed in as `coordinator@test.com` on *Design Sprint Demo*'s **Equipment** tab.
+
+**Steps:**
+1. Click **Undo removal** on **Projector**. Run the `notification` query.
+2. Click **Edit** on **Presentation laptop**, set the quantity to `5` and save. Then edit it back to `6` and save. Run the query.
+3. Under **Add equipment**, choose **Wireless microphone**, Quantity `4`, and click **Add line**. Then click **Remove** on it and **Remove line**. Run the query.
+4. Sign in as `support@test.com` and open `/staff/technical/notifications`.
+
+**Expected Result:**
+- Step 1: two new rows, for accounts 5 and 10.
+- Step 2: four new rows — two per save.
+- Step 3: four new rows — two for the add, two for the removal.
+- Step 4: the inbox has, newest first:
+  - "Wireless microphone removed from Design Sprint Demo" — "The coordinator removed this line. Nothing was reserved, so there is nothing to do. Event date: Fri, 20 Nov 2026."
+  - "Wireless microphone requested for Design Sprint Demo" — "4 requested. Event date: Fri, 20 Nov 2026."
+  - "Presentation laptop changed on Design Sprint Demo" — "Now 6 requested, was 5. That is what was decided, so the earlier decision stands. Event date: Fri, 20 Nov 2026."
+  - "Presentation laptop changed on Design Sprint Demo" — "Now 5 requested, was 6. The earlier decision needs re-review. Event date: Fri, 20 Nov 2026."
+  - "Projector removal withdrawn on Design Sprint Demo" — "The coordinator is keeping this line. Its reservation stands. Event date: Fri, 20 Nov 2026."
 
 **Status:** [ ] Pass [ ] Fail
