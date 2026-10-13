@@ -120,7 +120,7 @@ SPM-64 AC6, AC7.
 
 **Expected Result:**
 - Step 1: its unread dot goes and the unread count drops by one; after the reload it is still read.
-- Step 2: `/staff/technical/notifications/<event id>` — *Design Sprint Demo*'s equipment lines with the rail still on Notifications. **Projector** is marked **New**, with **Reserve 2**.
+- Step 2: `/staff/technical/<event id>` — *Design Sprint Demo*'s equipment lines with the rail on **Needs review** and the trail "Needs review › Design Sprint Demo". **Projector** is marked **New**, with **Reserve 2**.
 
 **Status:** [ ] Pass [ ] Fail
 

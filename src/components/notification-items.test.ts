@@ -152,7 +152,7 @@ describe("notificationItem (SPM-61)", () => {
 })
 
 describe("notificationItem (SPM-64)", () => {
-  it("AC6: names an equipment notice and opens the event inside Technical Support's inbox", () => {
+  it("AC6: names an equipment notice and opens it through Technical Support's inbox", () => {
     const item = notificationItem(
       "technical",
       notification({ redirect: { url: "/staff/technical/12" }, tags: ["equipment-needs-attention"] }),

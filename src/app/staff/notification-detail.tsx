@@ -4,7 +4,6 @@ import type { StaffRole } from "@/lib/wireframe";
 
 import { CoordinatorDetail } from "./coordinator/coordinator-detail";
 import { LoadedAssignDetail } from "./lead/assign-detail";
-import { EventEquipmentDetail } from "./technical/event-equipment-detail";
 import { BookingDetail } from "./venue/booking-detail";
 
 /**
@@ -37,7 +36,9 @@ export function NotificationDetail({
     case "venue":
       return <BookingDetail id={recordId} origin="inbox" />;
     case "technical":
-      return <EventEquipmentDetail id={recordId} origin="inbox" />;
+      // SPM-64 AC6: an equipment notice opens its event under Needs review, the
+      // queue where its lines are decided, rather than beside the inbox.
+      redirect(`/staff/technical/${recordId}`);
     case "requester":
       // The Organiser's request page has no inbox trail yet; open it as is.
       redirect(`/staff/requester/${recordId}`);
