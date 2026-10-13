@@ -59,6 +59,7 @@ import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
+import { EquipmentOutcomeAnnouncer } from "@/core/use-cases/announce-equipment-outcome";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
@@ -408,18 +409,31 @@ export async function buildViewEventEquipmentForTechnicalSupport(): Promise<View
   });
 }
 
+/**
+ * SPM-65: tells the event's coordinator the outcome once Technical Support
+ * finish its equipment. The lines are read as the reviewer; the coordinator
+ * with the admin client, since Technical Support may not read assignments.
+ */
+function equipmentOutcomeAnnouncer(equipment: SupabaseTechnicalEquipmentRepository): EquipmentOutcomeAnnouncer {
+  return new EquipmentOutcomeAnnouncer({
+    equipment,
+    directory: new SupabaseEquipmentNoticeDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-274 AC1: reserve a line's full quantity. */
 export async function buildReserveEquipmentLine(): Promise<ReserveEquipmentLineUseCase> {
-  const client = await createSupabaseServerClient();
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
-  return new ReserveEquipmentLineUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+  return new ReserveEquipmentLineUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /** SPM-274 AC3: mark a line unfulfilled, with why. */
 export async function buildMarkEquipmentLineUnfulfilled(): Promise<MarkEquipmentLineUnfulfilledUseCase> {
-  const client = await createSupabaseServerClient();
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
-  return new MarkEquipmentLineUnfulfilledUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+  return new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /**
