@@ -643,6 +643,7 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
     bookings: new SupabaseBookingRepository(client),
     safetyCheck: safetyCheckAnnouncer(),
     clock: systemClock,
+    notifier: recordedNotifier(),
   });
 }
 
