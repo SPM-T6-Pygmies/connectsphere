@@ -162,6 +162,16 @@
       "parent": "SPM-47",
       "status": "In Progress"
     },
+    "SPM-64": {
+      "title": "Notify technical support of an equipment requirement",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
+    "SPM-65": {
+      "title": "Notify the coordinator of the equipment outcome",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-73": {
       "title": "Notify an attendee of a waiting-list status change",
       "parent": null,
