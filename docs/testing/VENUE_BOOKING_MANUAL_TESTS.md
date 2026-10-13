@@ -155,7 +155,7 @@ supabase db query --file scripts/seed-booking-holds/seed.sql --local
 - [x] Request **Main Hall**, any layout, on the **AM** slot three weeks from today. It is accepted
       and appears as **Requested**. The expired hold there holds nothing.
 
-**Run:** Pass, 13/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-expired-hold-accepted](../screenshots/2026-10-13_TC-VENUE-BOOK-019_step1-expired-hold-accepted.png)
+**Run:** Pass, 14/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-expired-hold-accepted](../screenshots/2026-10-14_TC-VENUE-BOOK-019_step1-expired-hold-accepted.png)
 
 ### TC-VENUE-BOOK-020 A hold that has not expired blocks, naming the slot (SPM-46 AC4)
 
@@ -164,7 +164,7 @@ supabase db query --file scripts/seed-booking-holds/seed.sql --local
       for <that date> PM. Choose other slots or another venue.* and keeps the
       choices on the form.
 
-**Run:** Pass, 13/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-live-hold-refused](../screenshots/2026-10-13_TC-VENUE-BOOK-020_step1-live-hold-refused.png)
+**Run:** Pass, 14/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-live-hold-refused](../screenshots/2026-10-14_TC-VENUE-BOOK-020_step1-live-hold-refused.png)
 
 ### TC-VENUE-BOOK-021 One event may book several venues for the same slot (SPM-46 AC5)
 
