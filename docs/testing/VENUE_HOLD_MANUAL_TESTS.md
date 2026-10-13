@@ -22,68 +22,83 @@ beside Confirmed ones; the list filters did not change.
 
 ## Setup
 
-1. `supabase db reset`, then load the data as the Single Source of Truth lists it
-   ([Set up your database](../../scripts/README.md#1-set-up-your-database), Steps 1 and 2):
+Do every step, in this order. Nothing else needs to be loaded or run by hand.
+
+### Before you start
+
+- Docker is running, `pnpm install` has been run, and the Supabase CLI is installed.
+- You can start the app with `pnpm dev:local`. It pulls its environment from Infisical, so run
+  `infisical login` and `infisical init` once (see the root [README](../../README.md#secrets-with-infisical-optional)).
+- Two signed-in users are needed at once in places. Use a normal window for one and a private
+  window (or another browser) for the other, so one sign-in does not replace the other.
+
+### Steps
+
+1. Start the local stack and rebuild the database. This **drops all local data**:
+   ```bash
+   supabase start
+   supabase db reset
+   ```
+   Wait for `Finished supabase db reset`, then give the stack about 15 seconds. If the next step
+   fails with `relation "public.event" does not exist`, it was not ready yet: wait and run it again.
+2. Load the baseline data as the Single Source of Truth lists it
+   ([Set up your database](../../scripts/README.md#1-set-up-your-database), Step 2):
    ```bash
    supabase db query --file scripts/seed-coordinator-view/seed.sql --local
    supabase db query --file scripts/seed-venues/seed.sql --local
    supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
    supabase db query --file scripts/seed-equipment/seed.sql --local
    ```
-2. Add the two holds at Main Hall three weeks from today (AM expired an hour ago, PM expiring in
-   thirty days). They belong to their own event, *Holds Test Event*:
+3. Add the two holds at Main Hall on day **H**, 21 days from today (AM expired an hour ago, PM
+   expiring in thirty days). They belong to their own event, *Holds Test Event*:
    ```bash
    supabase db query --file scripts/seed-booking-holds/seed.sql --local
    ```
-3. `pnpm dev:local`. Venue Staff is `venue@test.com`, the coordinator is
-   `coordinator@test.com` (password `TestPass123!` for both).
+4. Add the fixture: the nine booking requests the cases decide on, and the Rooftop Terrace block.
+   Run it **once**; it adds rows every time, so to start again go back to step 1:
+   ```bash
+   supabase db query --file scripts/seed-booking-holds/fixture.sql --local
+   ```
+5. Check the fixture loaded. This lists the Founders' Gala Dinner's bookings, and must show **9 rows**:
+   ```bash
+   supabase db query --local "select b.booking_id, v.location, bs.slot_date, bs.slot, b.status from booking b join venue v on v.venue_id = b.venue_id join booking_slot bs on bs.booking_id = b.booking_id where b.event_id = (select event_id from event where name = 'Founders'' Gala Dinner') order by b.booking_id"
+   ```
+   Note the nine booking ids. In id order they are **A, B, C, X, Y, D, E, F, G** (the table below).
+   The cases write `<booking A>` where you put A's id.
+6. Start the app: `pnpm dev:local`, then open <http://localhost:3000/auth/login>. Venue Staff is
+   `venue@test.com`, the coordinator is `coordinator@test.com`; the password for both is `TestPass123!`.
 
-### Fixture
+### The days and the bookings
 
-Nine booking requests for the Founders' Gala Dinner, all waiting for Venue Staff except
-one Confirmed booking, and a block on Rooftop Terrace recorded after its request. **D is 14
-days from today, Singapore time**, so venue search (60 days ahead) can still see it. Run it
-once after the setup above (it adds rows each time, so reset to run it again):
+**T** is 14 days from today and **H** is 21 days from today, both in Singapore time. Venue search
+looks 60 days ahead, so it can still see T.
 
-```sql
-do $$
-declare
-  v_event bigint := (select event_id from public.event where name = 'Founders'' Gala Dinner');
-  v_coord bigint := (select user_account_id from public.user_account where name = 'Test Coordinator');
-  v_staff bigint := (select user_account_id from public.user_account where name = 'Test Venue Staff');
-  v_id bigint;
-  d date := (now() at time zone 'Asia/Singapore')::date + 14;
-  r record;
-begin
-  for r in
-    select * from (values
-      ('Studio',          d,     'AM',    'Requested'),   -- A: held in TC-VHOLD-001
-      ('Studio',          d,     'AM',    'Requested'),   -- B: same slot as A, refused in TC-VHOLD-002
-      ('Studio',          d + 1, 'PM',    'Requested'),   -- C: a different slot, unaffected
-      ('Main Hall',       d + 2, 'Night', 'Confirmed'),   -- X: already confirmed
-      ('Main Hall',       d + 2, 'Night', 'Requested'),   -- Y: same slot as X, refused in TC-VHOLD-003
-      ('Main Hall',       current_date + 21, 'AM',    'Requested'),   -- D: over the expired hold, TC-VHOLD-004
-      ('Main Hall',       current_date + 21, 'PM',    'Requested'),   -- E: over the live hold, TC-VHOLD-004
-      ('Rooftop Terrace', d + 6, 'AM',    'Requested'),   -- F: blocked afterwards, TC-VHOLD-003
-      ('UAT-44 Harbour Room', d + 3, 'AM', 'Requested')   -- G: held, then searched for, TC-VHOLD-002
-    ) as t(venue, d, slot, status)
-  loop
-    insert into public.booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
-    values ((select venue_id from public.venue where location = r.venue), v_event, v_coord,
-            case when r.status = 'Requested' then null else v_staff end, r.status)
-    returning booking_id into v_id;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_id, r.d, r.slot);
-  end loop;
+| In id order | Booking | Venue | Day, slot | Status | Used in |
+| --- | --- | --- | --- | --- | --- |
+| 1st | A | Studio | T, AM | Requested | held in TC-VHOLD-001 |
+| 2nd | B | Studio | T, AM | Requested | same slot as A, refused in TC-VHOLD-002 |
+| 3rd | C | Studio | T + 1, PM | Requested | a different slot, unaffected, TC-VHOLD-002 |
+| 4th | X | Main Hall | T + 2, Night | Confirmed | already confirmed, TC-VHOLD-003 and 005 |
+| 5th | Y | Main Hall | T + 2, Night | Requested | same slot as X, refused in TC-VHOLD-003 |
+| 6th | D | Main Hall | H, AM | Requested | over the expired hold, TC-VHOLD-004 |
+| 7th | E | Main Hall | H, PM | Requested | over the live hold, TC-VHOLD-004 |
+| 8th | F | Rooftop Terrace | T + 6, AM | Requested | its slot blocked after the request, TC-VHOLD-003 |
+| 9th | G | UAT-44 Harbour Room | T + 3, AM | Requested | held, then searched for, TC-VHOLD-002 |
 
-  perform public.venue_staff_record_unavailability(
-    v_staff, (select venue_id from public.venue where location = 'Rooftop Terrace'), 'Renovation', null,
-    jsonb_build_array(jsonb_build_object('date', d + 6, 'slot', 'AM')));
-end $$;
-```
+Only the two UAT venues have slots and a booking horizon recorded, so only they can be found by a
+date-and-slot search. Open any booking as `/staff/venue/<booking id>`, or from **Requests** and
+**Decided** on the left.
 
-The bookings below are labelled A to G, X and Y as in the comments. Only the two UAT venues have
-slots and a booking horizon recorded, so only they can be found by a date-and-slot search. Open any
-booking as `/staff/venue/<booking id>`, or from **Requests** and **Decided** on the left.
+### Running the SQL checks
+
+The cases read the database with SQL. Run a query with
+`supabase db query --local "<sql>"`, or paste it into Supabase Studio's SQL editor at
+<http://127.0.0.1:54323>. Replace each `<booking X>` with that booking's id from step 5.
+
+### Order
+
+Run the cases in order, TC-VHOLD-001 to 005: TC-VHOLD-002 and 005 start from the hold TC-VHOLD-001
+placed. Each case changes the data, so to run any of them again go back to step 1.
 
 ---
 
@@ -91,10 +106,12 @@ booking as `/staff/venue/<booking id>`, or from **Requests** and **Decided** on 
 
 ### TC-VHOLD-001: Place a hold on a request (AC1, AC3)
 
-**Preconditions:** The fixture above. Signed in as `venue@test.com`.
+**What this tests:** A hold is Venue Staff saying "keep this slot for the coordinator while they finish planning". Here Venue Staff place one on a waiting request (booking A). It should turn into a Tentative Hold that lasts 72 hours, and everyone should be able to see it: Venue Staff in their lists, the coordinator on the event's booking page, and the database (who placed it, when it lapses).
+
+**Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open **Requests** and the **Studio** request for D AM (booking A).
+1. Open **Requests** and the **Studio** request for T AM (booking A).
 2. Read the **Decision** card, then click **Place hold**.
 3. Open **Requests**, then **Decided**.
 4. Sign in as `coordinator@test.com`, open the Founders' Gala Dinner and choose **Request a venue**.
@@ -124,19 +141,21 @@ booking as `/staff/venue/<booking id>`, or from **Requests** and **Decided** on 
 
 ### TC-VHOLD-002: Held slots are taken (AC2, AC3)
 
-**Preconditions:** After TC-VHOLD-001: booking A is on hold for Studio, D AM.
+**What this tests:** Once a slot is held, nobody else can get it. After booking A holds Studio at T AM, a second request for that same slot (booking B) must be refused, whether Venue Staff try to hold it or approve it, because only one hold or confirmed booking can own a slot. The held slot also disappears from venue search (the coordinator can't find it as free), while a different slot (booking C) is unaffected. Booking B being in the list beside A did not stop A's hold: a request that is merely waiting reserves nothing.
+
+**Preconditions:** After TC-VHOLD-001: booking A is on hold for Studio, T AM. The 9 fixture rows from Setup step 5 are there.
 
 **Steps:**
-1. As `coordinator@test.com`, open **Find a venue** and search on D + 3, **AM**.
-2. As `venue@test.com`, open the **UAT-44 Harbour Room** request for D + 3 AM (booking G) and click **Place hold**.
-3. Search again on D + 3, **AM**.
-4. Open the other **Studio** request for D AM (booking B) and click **Place hold**, then **Approve booking**.
-5. Open the **Studio** request for D + 1 PM (booking C).
+1. As `coordinator@test.com`, open **Find a venue** (`/staff/coordinator/venues`) and search on T + 3, **AM**.
+2. As `venue@test.com`, open the **UAT-44 Harbour Room** request for T + 3 AM (booking G) and click **Place hold**.
+3. Search again on T + 3, **AM**.
+4. Open the other **Studio** request for T AM (booking B) and click **Place hold**, then **Approve booking**.
+5. Open the **Studio** request for T + 1 PM (booking C).
 
 **Expected Result:**
 - Step 1: **UAT-44 Harbour Room** is listed.
 - Step 3: Harbour Room is no longer listed, because it is already booked in that slot (AC3).
-- Step 4: both are refused, naming "D AM" as a date and slot; booking B stays **Requested** and shows no hold (AC2).
+- Step 4: both are refused, naming "T AM" as a date and slot; booking B stays **Requested** and shows no hold (AC2).
 - Step 5: booking C is unaffected, still **Requested**, and its slot is free.
 - Booking B was **Requested** beside booking A when A was held: a request still waiting
   blocks nothing, so it did not stop the hold (AC2).
@@ -149,11 +168,13 @@ booking as `/staff/venue/<booking id>`, or from **Requests** and **Decided** on 
 
 ### TC-VHOLD-003: A clash or a block refuses the hold and leaves nothing behind (AC2)
 
-**Preconditions:** The fixture above. Signed in as `venue@test.com`.
+**What this tests:** A hold must be refused when the slot cannot be kept, and a refusal must change nothing. Two different reasons are tried. Booking Y wants a slot that booking X has already *Confirmed*, so it is refused as a clash. Booking F wants a slot Venue Staff *blocked* (renovation) after the request was made, so it is refused as unavailable. In both cases the request stays Requested, with no expiry and no audit record, as if nothing had been tried.
+
+**Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open the **Main Hall** request for D + 2 Night (booking Y), beside Confirmed booking X, and click **Place hold**.
-2. Open the **Rooftop Terrace** request for D + 6 AM (booking F, whose slot was blocked after the request) and click **Place hold**.
+1. Open the **Main Hall** request for T + 2 Night (booking Y), beside Confirmed booking X, and click **Place hold**.
+2. Open the **Rooftop Terrace** request for T + 6 AM (booking F, whose slot was blocked after the request) and click **Place hold**.
 3. Check the database:
    ```sql
    select booking_id, status, hold_expires_at from booking where booking_id in (<booking Y>, <booking F>);
@@ -161,8 +182,8 @@ booking as `/staff/venue/<booking id>`, or from **Requests** and **Decided** on 
    ```
 
 **Expected Result:**
-- Step 1: refused, naming the date D + 2 and "Night"; the booking stays **Requested** (AC2).
-- Step 2: refused with "The venue is unavailable for <D + 6> AM" (AC2).
+- Step 1: refused, naming the date T + 2 and "Night"; the booking stays **Requested** (AC2).
+- Step 2: refused with "The venue is unavailable for <T + 6> AM" (AC2).
 - Step 3: both are `Requested` with no expiry, and no audit rows (AC2).
 
 **Status:** [x] Pass [ ] Fail — 13/10/2026, run in Chrome via Playwright for JameszLau
@@ -173,15 +194,17 @@ booking as `/staff/venue/<booking id>`, or from **Requests** and **Decided** on 
 
 ### TC-VHOLD-004: An expired hold does not block, and a live one does (AC2)
 
-**Preconditions:** The fixture above, with the two holds from the setup (AM expired, PM live). Signed in as `venue@test.com`.
+**What this tests:** Only a hold that is still running blocks a slot. Main Hall has two holds on day H: the morning one ran out an hour ago (expired), the afternoon one has 30 days left (live). A new hold over the live PM one (booking E) must be refused. A new hold over the expired AM one (booking D) must be accepted, and the old expired hold is then marked Released, with an audit record, so the slot is free again.
+
+**Preconditions:** The fixture from Setup, with the two holds from the setup (AM expired, PM live). Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open the **Main Hall** request for the PM slot three weeks from today (booking E), over the live hold, and click **Place hold**.
-2. Open the **Main Hall** request for the AM slot three weeks from today (booking D), over the expired hold, and click **Place hold**.
+1. Open the **Main Hall** request for the PM slot on day H (booking E), over the live hold, and click **Place hold**.
+2. Open the **Main Hall** request for the AM slot on day H (booking D), over the expired hold, and click **Place hold**.
 3. Check the database:
    ```sql
    select b.booking_id, b.status from booking b join booking_slot bs using (booking_id)
-    where b.venue_id = (select venue_id from venue where location = 'Main Hall') and bs.slot_date = current_date + 21
+    where b.venue_id = (select venue_id from venue where location = 'Main Hall') and bs.slot_date = (now() at time zone 'Asia/Singapore')::date + 21
     order by bs.slot, b.booking_id;
    select entity_id, action from audit_record where action = 'release expired hold';
    ```
@@ -198,6 +221,8 @@ booking as `/staff/venue/<booking id>`, or from **Requests** and **Decided** on 
 ---
 
 ### TC-VHOLD-005: Only Venue Staff, and only a waiting request (AC1, AC4)
+
+**What this tests:** Who may place a hold, and on what. Only Venue Staff can: the coordinator is turned away with an access-denied page (403) and sees none of the booking, and nothing changes. And only a request still *waiting* can be held: a booking already on hold (booking A) or already Confirmed (booking X) shows no Place hold button, or any other decision button.
 
 **Preconditions:** After TC-VHOLD-001 (booking A is on hold) and the fixture's Confirmed booking X.
 

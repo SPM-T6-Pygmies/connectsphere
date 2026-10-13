@@ -40,6 +40,10 @@ twelve test logins (password `TestPass123!`, listed in
 [`supabase/SEED.md`](../supabase/SEED.md)). It creates no venues, no equipment and
 no events: the catalogue starts empty.
 
+Wait for `Finished supabase db reset`, then give the stack about 15 seconds. If a
+step below fails with `relation "public.event" does not exist`, it was not ready
+yet: wait and run it again.
+
 ### Step 2. Load the baseline
 
 Run these four, in this order:
@@ -104,7 +108,7 @@ needs. This table says what that is.
 | Equipment requirements | `seed-coordinator-view`, `seed-equipment` |
 | Equipment out of service | `seed-equipment-review`; case 005 also `seed-coordinator-view`, `seed-equipment` |
 | Venue booking | `seed-coordinator-view`, `seed-venues`, `seed-equipment`; cases 019, 020 also `seed-booking-holds` |
-| Venue hold | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-holds` |
+| Venue hold | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-holds`, then `seed-booking-holds/fixture.sql` (its Setup lists every command) |
 | Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
 | **Equipment review** | `seed-equipment-review` **only** |
 | **Equipment reserve** | `seed-equipment-reserve` **only** |
@@ -150,7 +154,7 @@ local subscribers and notifications stay behind otherwise.
 | `seed-equipment-review` | 9 events across both coordinators, for Technical Support's three lists | The base logins | Yes | `seed`, `verify` (26 rows), `teardown` |
 | `seed-equipment-reserve` | 4 events whose lines are all New, for reserving | The base logins | Yes | `seed`, `verify` (14 rows), `teardown` |
 | `seed-venue-unavailability` | 3 venue blocks on Main Hall and Studio | `seed-venues` | Yes | `seed`, `verify` (5 rows), `refusals`, `checks`, `teardown` |
-| `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, three weeks from today (one expired, one live) | `seed-venues` | Replaces its own event and holds | `seed`, `teardown` |
+| `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, 21 days from today (one expired, one live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset | `seed`, `fixture`, `teardown` |
 | `apply-ssot` | Nothing: corrects venue and equipment data already there | A database that already has data | Yes | `verify` (31 rows), `apply` |
 
 "Safe to re-run" means it inserts only what is missing, so a row you have since
