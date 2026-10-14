@@ -24,6 +24,12 @@ export interface CalendarSlot {
    * more than one.
    */
   readonly reasons: readonly UnavailabilityReason[];
+  /**
+   * SPM-43 AC2: the notes Venue Staff wrote, once each, in the order the
+   * blocks were given. Only an Other block carries a note, so every note here
+   * explains `Other`. Empty unless `status` is `blocked`.
+   */
+  readonly notes: readonly string[];
 }
 
 export interface CalendarDay {
@@ -32,9 +38,11 @@ export interface CalendarDay {
   readonly slots: readonly CalendarSlot[];
 }
 
-/** A slot an In force block covers, with the reason Venue Staff recorded. */
+/** A slot an In force block covers, with the reason and any note Venue Staff recorded. */
 export interface CalendarBlock extends SlotOnDate {
   readonly reason: UnavailabilityReason;
+  /** Only ever set when the reason is Other. */
+  readonly note: string | null;
 }
 
 /** How many days the calendar shows at once: one week. */
@@ -112,13 +120,16 @@ export function deriveVenueCalendar(input: {
   readonly blocked: readonly CalendarBlock[];
   readonly now: Date;
 }): CalendarDay[] {
-  const blocked = new Map<string, UnavailabilityReason[]>();
+  const blocked = new Map<string, { reasons: UnavailabilityReason[]; notes: string[] }>();
   for (const block of input.blocked) {
-    const reasons = blocked.get(slotKey(block)) ?? [];
-    if (!reasons.includes(block.reason)) {
-      reasons.push(block.reason);
+    const why = blocked.get(slotKey(block)) ?? { reasons: [], notes: [] };
+    if (!why.reasons.includes(block.reason)) {
+      why.reasons.push(block.reason);
     }
-    blocked.set(slotKey(block), reasons);
+    if (block.note !== null && !why.notes.includes(block.note)) {
+      why.notes.push(block.note);
+    }
+    blocked.set(slotKey(block), why);
   }
   const holding = new Map<string, OccupiedSlot>();
   for (const occupied of input.occupied) {
@@ -132,21 +143,21 @@ export function deriveVenueCalendar(input: {
     slots: BOOKING_SLOTS.map((slot): CalendarSlot => {
       const key = slotKey({ date, slot });
       const booking = holding.get(key);
-      const reasons = blocked.get(key);
+      const why = blocked.get(key);
 
-      if (reasons !== undefined) {
-        return { slot, status: "blocked", holdExpiresAt: null, reasons };
+      if (why !== undefined) {
+        return { slot, status: "blocked", holdExpiresAt: null, ...why };
       }
       if (booking?.status === "Confirmed") {
-        return { slot, status: "booked", holdExpiresAt: null, reasons: [] };
+        return { slot, status: "booked", holdExpiresAt: null, reasons: [], notes: [] };
       }
       if (booking !== undefined) {
-        return { slot, status: "held", holdExpiresAt: booking.holdExpiresAt, reasons: [] };
+        return { slot, status: "held", holdExpiresAt: booking.holdExpiresAt, reasons: [], notes: [] };
       }
       if (!input.offeredSlots.includes(slot)) {
-        return { slot, status: "notOffered", holdExpiresAt: null, reasons: [] };
+        return { slot, status: "notOffered", holdExpiresAt: null, reasons: [], notes: [] };
       }
-      return { slot, status: "available", holdExpiresAt: null, reasons: [] };
+      return { slot, status: "available", holdExpiresAt: null, reasons: [], notes: [] };
     }),
   }));
 }

@@ -179,12 +179,12 @@ describe("SupabaseVenueUnavailabilityRepository (SPM-268)", () => {
 });
 
 describe("SupabaseVenueUnavailabilityRepository.blockedBetween (SPM-154)", () => {
-  it("reads one venue's blocks for the range, each with its reason", async () => {
+  it("reads one venue's blocks for the range, each with its reason and any note", async () => {
     const { client, calls } = fakeClient({
       venue_blocked_slots: {
         data: [
-          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Renovation" },
-          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Safety" },
+          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Renovation", reason_note: null },
+          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Other", reason_note: "Film shoot" },
         ],
         error: null,
       },
@@ -203,8 +203,8 @@ describe("SupabaseVenueUnavailabilityRepository.blockedBetween (SPM-154)", () =>
       },
     ]);
     expect(blocks).toEqual([
-      { date: "2026-11-02", slot: "AM", reason: "Renovation" },
-      { date: "2026-11-02", slot: "AM", reason: "Safety" },
+      { date: "2026-11-02", slot: "AM", reason: "Renovation", note: null },
+      { date: "2026-11-02", slot: "AM", reason: "Other", note: "Film shoot" },
     ]);
   });
 

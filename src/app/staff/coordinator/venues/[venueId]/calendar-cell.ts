@@ -35,7 +35,10 @@ export function calendarCell(slot: CalendarSlot): CalendarCellView {
   if (slot.status === "held" && slot.holdExpiresAt !== null) {
     detail = `Until ${formatHoldExpiry(slot.holdExpiresAt.toISOString())}`;
   } else if (slot.status === "blocked" && slot.reasons.length > 0) {
-    detail = slot.reasons.join(", ");
+    // Only Other carries a note, so the notes read as part of it.
+    detail = slot.reasons
+      .map((reason) => (reason === "Other" && slot.notes.length > 0 ? `Other: ${slot.notes.join("; ")}` : reason))
+      .join(", ");
   }
   return { ...STATUS[slot.status], detail };
 }

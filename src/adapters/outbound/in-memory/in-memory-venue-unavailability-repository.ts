@@ -113,7 +113,7 @@ export class InMemoryVenueUnavailabilityRepository implements VenueUnavailabilit
       .flatMap((row) =>
         row.slots
           .filter(({ date }) => date >= from && date <= to)
-          .map(({ date, slot }) => ({ date, slot, reason: row.reason })),
+          .map(({ date, slot }) => ({ date, slot, reason: row.reason, note: row.note })),
       );
   }
 

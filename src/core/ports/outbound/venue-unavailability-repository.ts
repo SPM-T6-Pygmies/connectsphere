@@ -59,9 +59,9 @@ export interface VenueUnavailabilityRepository {
 
   /**
    * SPM-43: the slots In force blocks cover at `venueId` from `from` to `to`
-   * (`YYYY-MM-DD`, both included), each with its reason category -- once per
-   * block, so a slot two blocks cover appears twice. Any signed-in reader; the
-   * note and who recorded it are not given.
+   * (`YYYY-MM-DD`, both included), each with its reason category and any note
+   * -- once per block, so a slot two blocks cover appears twice. Any signed-in
+   * reader; who recorded it is not given.
    */
   blockedBetween(venueId: VenueId, from: string, to: string): Promise<readonly CalendarBlock[]>;
 }

@@ -23,8 +23,12 @@ function occupied(
   return { date: DAY, slot, status, holdExpiresAt };
 }
 
-function block(slot: BookingSlot, reason: UnavailabilityReason = "Maintenance"): CalendarBlock {
-  return { date: DAY, slot, reason };
+function block(
+  slot: BookingSlot,
+  reason: UnavailabilityReason = "Maintenance",
+  note: string | null = null,
+): CalendarBlock {
+  return { date: DAY, slot, reason, note };
 }
 
 function statuses(input: {
@@ -126,7 +130,13 @@ describe("deriveVenueCalendar holds (SPM-43)", () => {
   it("shows an unexpired hold as held, with its expiry", () => {
     const expiry = new Date(NOW.getTime() + 60_000);
 
-    expect(heldSlot(expiry)).toEqual({ slot: "AM", status: "held", holdExpiresAt: expiry, reasons: [] });
+    expect(heldSlot(expiry)).toEqual({
+      slot: "AM",
+      status: "held",
+      holdExpiresAt: expiry,
+      reasons: [],
+      notes: [],
+    });
   });
 
   it("shows a hold that expires exactly now as available", () => {
@@ -139,11 +149,18 @@ describe("deriveVenueCalendar holds (SPM-43)", () => {
       status: "available",
       holdExpiresAt: null,
       reasons: [],
+      notes: [],
     });
   });
 
   it("shows a hold with no expiry as held, as the clash rule does", () => {
-    expect(heldSlot(null)).toEqual({ slot: "AM", status: "held", holdExpiresAt: null, reasons: [] });
+    expect(heldSlot(null)).toEqual({
+      slot: "AM",
+      status: "held",
+      holdExpiresAt: null,
+      reasons: [],
+      notes: [],
+    });
   });
 });
 
@@ -208,5 +225,45 @@ describe("calendarDays (SPM-43)", () => {
   it(`allows exactly ${CALENDAR_MAX_DAYS} days and refuses one more`, () => {
     expect(calendarDays("2026-12-01", "2026-12-31")).toHaveLength(CALENDAR_MAX_DAYS);
     expect(() => calendarDays("2026-12-01", "2027-01-01")).toThrow(InvalidCalendarRangeError);
+  });
+});
+
+describe("deriveVenueCalendar block notes (SPM-43)", () => {
+  function pm(blocked: readonly CalendarBlock[]) {
+    const [day] = deriveVenueCalendar({
+      days: [DAY],
+      offeredSlots: ALL_SLOTS,
+      occupied: [],
+      blocked,
+      now: NOW,
+    });
+    return day.slots[1];
+  }
+
+  it("gives the note Venue Staff wrote on an Other block", () => {
+    expect(pm([block("PM", "Other", "Terrace closed for resurfacing")]).notes).toEqual([
+      "Terrace closed for resurfacing",
+    ]);
+  });
+
+  it("gives every note when two Other blocks cover one slot, each once", () => {
+    expect(
+      pm([
+        block("PM", "Other", "Resurfacing"),
+        block("PM", "Other", "Film shoot"),
+        block("PM", "Other", "Resurfacing"),
+      ]).notes,
+    ).toEqual(["Resurfacing", "Film shoot"]);
+  });
+
+  it("gives no note for an Other block without one", () => {
+    const slot = pm([block("PM", "Other")]);
+
+    expect(slot.reasons).toEqual(["Other"]);
+    expect(slot.notes).toEqual([]);
+  });
+
+  it("gives no note on a slot that is not blocked", () => {
+    expect(pm([]).notes).toEqual([]);
   });
 });

@@ -133,6 +133,29 @@ describe("ViewVenueCalendarUseCase (SPM-154)", () => {
   });
 });
 
+describe("ViewVenueCalendarUseCase block notes (SPM-43)", () => {
+  it("shows the note Venue Staff wrote on an Other block", async () => {
+    const { useCase, blocks } = build();
+    await blocks.record(
+      {
+        venueId: HALL.id,
+        startDate: "2026-11-03",
+        endDate: "2026-11-03",
+        reason: "Other",
+        note: "Terrace closed for resurfacing",
+        slots: [{ date: "2026-11-03", slot: "PM" }],
+      },
+      STAFF,
+    );
+
+    const calendar = await useCase.execute({ venueId: "5", from: "2026-11-02" });
+    const pm = calendar.days[1].slots[1];
+
+    expect(pm.reasons).toEqual(["Other"]);
+    expect(pm.notes).toEqual(["Terrace closed for resurfacing"]);
+  });
+});
+
 describe("ViewVenueCalendarUseCase reads live (SPM-43)", () => {
   it("shows a block recorded after the last read on the next read, with no refresh step", async () => {
     const { useCase, blocks } = build();

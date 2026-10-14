@@ -38,13 +38,14 @@ export interface BlockedSlotRow {
   date: string;
   slot: string;
   reason_category: string;
+  reason_note: string | null;
 }
 
 export function toCalendarBlock(row: BlockedSlotRow): CalendarBlock {
   if (!isUnavailabilityReason(row.reason_category)) {
     throw new Error(`Unknown unavailability reason "${row.reason_category}" in venue_unavailability.`);
   }
-  return { date: toDate(row.date), slot: toSlot(row.slot), reason: row.reason_category };
+  return { date: toDate(row.date), slot: toSlot(row.slot), reason: row.reason_category, note: row.reason_note };
 }
 
 export function toVenueUnavailabilityEntry(row: VenueUnavailabilityRow): VenueUnavailabilityEntry {
