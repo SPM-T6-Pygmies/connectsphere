@@ -37,6 +37,19 @@ export interface CalendarBlock extends SlotOnDate {
   readonly reason: UnavailabilityReason;
 }
 
+/** How many days the calendar shows at once: one week. */
+export const CALENDAR_WEEK_DAYS = 7;
+
+/** `date` moved by `days` (negative moves back). `date` must be a real `YYYY-MM-DD`. */
+export function addDays(date: string, days: number): string {
+  if (!isCalendarDate(date)) {
+    throw new InvalidCalendarRangeError(`${date} is not a date.`);
+  }
+  const moved = new Date(`${date}T00:00:00.000Z`);
+  moved.setUTCDate(moved.getUTCDate() + days);
+  return moved.toISOString().slice(0, 10);
+}
+
 /** The longest range one calendar read covers, so a request cannot ask for years of slots. */
 export const CALENDAR_MAX_DAYS = 31;
 

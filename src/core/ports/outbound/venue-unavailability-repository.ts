@@ -1,5 +1,6 @@
 import type { BookingId, BookingStatus, SlotOnDate } from "../../domain/booking";
 import type { UserAccountId } from "../../domain/user-account";
+import type { CalendarBlock } from "../../domain/venue-calendar";
 import type {
   UnavailabilityLift,
   VenueUnavailabilityBlock,
@@ -55,4 +56,12 @@ export interface VenueUnavailabilityRepository {
     venueId: VenueId,
     slots: readonly SlotOnDate[],
   ): Promise<readonly AffectedBooking[]>;
+
+  /**
+   * SPM-43: the slots In force blocks cover at `venueId` from `from` to `to`
+   * (`YYYY-MM-DD`, both included), each with its reason category -- once per
+   * block, so a slot two blocks cover appears twice. Any signed-in reader; the
+   * note and who recorded it are not given.
+   */
+  blockedBetween(venueId: VenueId, from: string, to: string): Promise<readonly CalendarBlock[]>;
 }

@@ -5,6 +5,7 @@ import {
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
+import type { CalendarBlock } from "@/core/domain/venue-calendar";
 import {
   slotsStillBlocked,
   type BlockedSlot,
@@ -103,6 +104,16 @@ export class InMemoryVenueUnavailabilityRepository implements VenueUnavailabilit
             date,
             slot: slot as BookingSlot,
           })),
+      );
+  }
+
+  async blockedBetween(venueId: VenueId, from: string, to: string): Promise<readonly CalendarBlock[]> {
+    return this.rows
+      .filter((row) => row.status === "In force" && row.venueId === venueId)
+      .flatMap((row) =>
+        row.slots
+          .filter(({ date }) => date >= from && date <= to)
+          .map(({ date, slot }) => ({ date, slot, reason: row.reason })),
       );
   }
 

@@ -6,6 +6,7 @@ import {
   VenueUnavailabilityNotPermittedError,
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
+import type { CalendarBlock } from "@/core/domain/venue-calendar";
 import type { VenueId } from "@/core/domain/venue";
 import type {
   UnavailabilityLift,
@@ -21,9 +22,11 @@ import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
 import {
   toAffectedBooking,
+  toCalendarBlock,
   toRecordUnavailabilityArgs,
   toVenueUnavailabilityEntry,
   type AffectedBookingRow,
+  type BlockedSlotRow,
   type VenueUnavailabilityRow,
 } from "./venue-unavailability-mapper";
 
@@ -122,6 +125,24 @@ export class SupabaseVenueUnavailabilityRepository implements VenueUnavailabilit
       throw new Error(`Failed to read the affected bookings: ${error.message}`, { cause: error });
     }
     return ((data ?? []) as unknown as AffectedBookingRow[]).map(toAffectedBooking);
+  }
+
+  /** Through `venue_blocked_slots`, which reads the live tables on every call. */
+  async blockedBetween(venue: VenueId, from: string, to: string): Promise<readonly CalendarBlock[]> {
+    const venueKey = toKey(venue);
+    if (venueKey === null) {
+      return [];
+    }
+
+    const { data, error } = await this.client.rpc("venue_blocked_slots", {
+      p_venue_id: venueKey,
+      p_from: from,
+      p_to: to,
+    });
+    if (error) {
+      throw new Error(`Failed to read the venue's blocked slots: ${error.message}`, { cause: error });
+    }
+    return ((data ?? []) as unknown as BlockedSlotRow[]).map(toCalendarBlock);
   }
 
   private async read(

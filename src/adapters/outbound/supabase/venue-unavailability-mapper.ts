@@ -1,4 +1,5 @@
 import type { BookingId } from "@/core/domain/booking";
+import type { CalendarBlock } from "@/core/domain/venue-calendar";
 import { isUnavailabilityReason, type VenueUnavailabilityBlock, type VenueUnavailabilityEntry } from "@/core/domain/venue-unavailability";
 import { venueId } from "@/core/domain/venue";
 import type { AffectedBooking } from "@/core/ports/outbound/venue-unavailability-repository";
@@ -29,6 +30,21 @@ export interface AffectedBookingRow {
   status: string;
   date: string;
   slot: string;
+}
+
+/** One slot in the JSON `venue_blocked_slots()` returns. */
+export interface BlockedSlotRow {
+  venue_id: number;
+  date: string;
+  slot: string;
+  reason_category: string;
+}
+
+export function toCalendarBlock(row: BlockedSlotRow): CalendarBlock {
+  if (!isUnavailabilityReason(row.reason_category)) {
+    throw new Error(`Unknown unavailability reason "${row.reason_category}" in venue_unavailability.`);
+  }
+  return { date: toDate(row.date), slot: toSlot(row.slot), reason: row.reason_category };
 }
 
 export function toVenueUnavailabilityEntry(row: VenueUnavailabilityRow): VenueUnavailabilityEntry {
