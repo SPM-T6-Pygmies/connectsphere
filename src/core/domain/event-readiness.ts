@@ -166,6 +166,7 @@ export function canConfirm(
  *
  * The invariant itself, not just a use-case-level check -- callers cannot
  * reach `Confirmed` any other way than through this function agreeing to it.
+ * `coordinator_confirm_event` restates the safety rule under its row lock.
  */
 export function confirmEvent(
   event: CoordinatorEvent,
