@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { BookingId, DecidedBooking } from "@/core/domain/booking";
-import { VenueSlotBlockedError, VenueSlotUnavailableError } from "@/core/domain/errors";
+import { BookingNotDecidableError, VenueSlotBlockedError, VenueSlotUnavailableError } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 
 import type { SupabaseServerClient } from "./client";
@@ -43,6 +43,7 @@ const BOOKING_ROW: BookingReviewRow = {
   requested_by_name: "Test Coordinator",
   requested_at: "2026-10-01T00:00:00Z",
   decided_by_name: null,
+  hold_expires_at: null,
   rejection_note: null,
   suggested_alternative_location: null,
   event: {
@@ -115,5 +116,54 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
     await expect(new SupabaseBookingReviewRepository(client).decide(APPROVED)).rejects.toBeInstanceOf(
       VenueSlotUnavailableError,
     );
+  });
+});
+
+describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
+  const HELD: DecidedBooking = {
+    id: "12" as BookingId,
+    status: "Tentative Hold",
+    decidedBy: userAccountId("4"),
+    rejectionNote: null,
+    suggestedAlternative: null,
+    holdExpiresAt: new Date("2026-10-04T01:00:00.000Z"),
+  };
+
+  it("asks the decide function to hold the booking, with the expiry", async () => {
+    const { client, calls } = fakeClient({ venue_staff_decide_booking: { data: null, error: null } });
+
+    await new SupabaseBookingReviewRepository(client).decide(HELD);
+
+    expect(calls).toEqual([
+      {
+        name: "venue_staff_decide_booking",
+        args: {
+          p_staff_user_account_id: 4,
+          p_booking_id: 12,
+          p_decision: "hold",
+          p_note: null,
+          p_suggested_alternative_venue_id: null,
+          p_hold_expires_at: "2026-10-04T01:00:00.000Z",
+        },
+      },
+    ]);
+  });
+
+  it("maps a clash, a block and a booking no longer waiting the same way an approval does", async () => {
+    const refuse = (code: string, message: string) =>
+      fakeClient({
+        venue_staff_decide_booking: { data: null, error: { code, message } },
+        venue_staff_bookings: { data: [BOOKING_ROW], error: null },
+      });
+
+    await expect(
+      new SupabaseBookingReviewRepository(refuse("CS025", "Venue 5 is already booked for 2026-10-22 AM").client).decide(HELD),
+    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    await expect(
+      new SupabaseBookingReviewRepository(refuse("CS028", "Venue 5 is blocked for 2026-10-22 PM").client).decide(HELD),
+    ).rejects.toBeInstanceOf(VenueSlotBlockedError);
+    await expect(
+      new SupabaseBookingReviewRepository(refuse("CS031", "Booking 12 is already Confirmed").client).decide(HELD),
+    ).rejects.toBeInstanceOf(BookingNotDecidableError);
   });
 });

@@ -45,6 +45,7 @@ import {
 } from "@/lib/wireframe"
 
 import { requestStateLabel } from "./coordinator/request-state-badge"
+import { formatHoldExpiry } from "./hold-expiry"
 import { queueTeaser } from "./technical/queue-teaser"
 
 export { PageHeader } from "./page-header"
@@ -195,7 +196,11 @@ async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneIte
     href: `/staff/venue/${booking.id}`,
     title: booking.venueLocation,
     meta: booking.slots[0]?.date ?? "No date",
-    teaser: `${booking.event.name} · ${booking.slots.map(({ slot }) => slot).join(" + ")}`,
+    teaser: `${booking.event.name} · ${booking.slots.map(({ slot }) => slot).join(" + ")}${
+      booking.status === "Tentative Hold" && booking.holdExpiresAt !== null
+        ? ` · on hold until ${formatHoldExpiry(booking.holdExpiresAt)}`
+        : ""
+    }`,
     status: booking.status,
   }))
 }

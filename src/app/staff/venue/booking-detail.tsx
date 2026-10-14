@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, CheckIcon } from "lucide-react";
+import { AlertTriangleIcon, CheckIcon, ClockIcon } from "lucide-react";
 import { forbidden } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -11,11 +11,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { buildReviewBookingRequests, getCurrentVenueStaff } from "@/composition/container";
+import { DEFAULT_HOLD_HOURS } from "@/core/domain/booking";
 import { BookingNotFoundError } from "@/core/domain/errors";
 import type { BookingReviewDetail } from "@/core/use-cases/review-booking-requests";
 
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
+import { formatHoldExpiry } from "../hold-expiry";
 import { formatSlotsOnDates } from "../slot-label";
 import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
@@ -98,6 +100,7 @@ export async function BookingDetail({
   const { section, queueLabel, queueHref } = sectionOf(booking.status);
   const eventSlots = formatSlotsOnDates(event.slots);
   const slots = booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
+  const onHold = booking.status === "Tentative Hold" && booking.holdExpiresAt !== null;
 
   return (
     <StaffShell
@@ -107,7 +110,9 @@ export async function BookingDetail({
     >
       <PageHeader
         title={booking.venueLocation}
-        description={`${slots} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}`}
+        description={`${slots} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}${
+          onHold ? ` · on hold until ${formatHoldExpiry(booking.holdExpiresAt!)}` : ""
+        }`}
         actions={<StatusBadge status={booking.status} />}
       />
 
@@ -169,18 +174,35 @@ export async function BookingDetail({
             <CardHeader>
               <CardTitle>Decision</CardTitle>
               <CardDescription>
-                Approving confirms this booking and holds the venue for the slots above. Nothing
-                else can take them.
+                Approving confirms this booking and holds the venue for the slots above. Holding
+                keeps the slots for {DEFAULT_HOLD_HOURS} hours while the coordinator finalises the
+                event, then frees them. Nothing else can take them in the meantime.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {decided ? (
                 <Alert variant={booking.status === "Rejected" ? "destructive" : "default"}>
-                  {booking.status === "Rejected" ? <AlertTriangleIcon /> : <CheckIcon />}
+                  {booking.status === "Rejected" ? (
+                    <AlertTriangleIcon />
+                  ) : onHold ? (
+                    <ClockIcon />
+                  ) : (
+                    <CheckIcon />
+                  )}
                   <AlertTitle>
-                    Already decided — {booking.status}
+                    {onHold
+                      ? `On hold until ${formatHoldExpiry(booking.holdExpiresAt!)}`
+                      : `Already decided — ${booking.status}`}
                     {booking.decidedByName ? ` by ${booking.decidedByName}` : ""}
                   </AlertTitle>
+                  {onHold ? (
+                    <AlertDescription>
+                      <p>
+                        These slots are kept for this event while the coordinator finalises it.
+                        If the hold is not confirmed by then, they are freed for other events.
+                      </p>
+                    </AlertDescription>
+                  ) : null}
                   {booking.rejectionNote ? (
                     <AlertDescription>
                       <p>{booking.rejectionNote}</p>

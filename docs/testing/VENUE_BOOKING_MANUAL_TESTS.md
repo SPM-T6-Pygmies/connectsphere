@@ -145,26 +145,26 @@ right-hand card.
 
 ### TC-VENUE-BOOK-019 An expired hold does not block a new request (SPM-46 AC4)
 
-Seed two Tentative Holds at Main Hall on 2026-12-01: AM expired an hour ago,
-PM expiring in thirty days. Holds have no UI until SPM-218.
+Seed two Tentative Holds at Main Hall three weeks from today: AM expired an hour ago,
+PM expiring in thirty days. They are inserted, because a hold placed in the app always expires 72 hours later (SPM-218).
 
 ```bash
 supabase db query --file scripts/seed-booking-holds/seed.sql --local
 ```
 
-- [x] Request **Main Hall**, any layout, on **2026-12-01 AM**. It is accepted
+- [x] Request **Main Hall**, any layout, on the **AM** slot three weeks from today. It is accepted
       and appears as **Requested**. The expired hold there holds nothing.
 
-**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-expired-hold-accepted](../screenshots/2026-10-10_TC-VENUE-BOOK-019_step1-expired-hold-accepted.png)
+**Run:** Pass, 14/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-expired-hold-accepted](../screenshots/2026-10-14_TC-VENUE-BOOK-019_step1-expired-hold-accepted.png)
 
 ### TC-VENUE-BOOK-020 A hold that has not expired blocks, naming the slot (SPM-46 AC4)
 
 - [x] With the holds from TC-VENUE-BOOK-019, request **Main Hall** on
-      **2026-12-01 PM**. The page refuses it with *The venue is already booked
-      for 2026-12-01 PM. Choose other slots or another venue.* and keeps the
+      the **PM** slot that day. The page refuses it with *The venue is already booked
+      for <that date> PM. Choose other slots or another venue.* and keeps the
       choices on the form.
 
-**Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-live-hold-refused](../screenshots/2026-10-10_TC-VENUE-BOOK-020_step1-live-hold-refused.png)
+**Run:** Pass, 14/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-live-hold-refused](../screenshots/2026-10-14_TC-VENUE-BOOK-020_step1-live-hold-refused.png)
 
 ### TC-VENUE-BOOK-021 One event may book several venues for the same slot (SPM-46 AC5)
 

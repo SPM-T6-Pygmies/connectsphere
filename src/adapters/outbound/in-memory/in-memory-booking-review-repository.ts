@@ -51,9 +51,9 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
       throw new BookingNotDecidableError();
     }
 
-    if (decided.status === "Confirmed") {
-      // Review rows carry no hold expiry, so a hold here counts as live, as
-      // one with no expiry does.
+    if (decided.status === "Confirmed" || decided.status === "Tentative Hold") {
+      // Both keep the slots from now on. Review rows carry no hold expiry, so a
+      // hold here counts as live, as one with no expiry does.
       const held = this.rows
         .filter((other) => other.id !== row.id && other.venueId === row.venueId)
         .flatMap((other) =>

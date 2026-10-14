@@ -26,6 +26,7 @@ export interface EventBookingRow {
   venue_location: string;
   room_layout_name: string | null;
   status: string;
+  hold_expires_at: string | null;
   created_at: string;
   slots: ReadonlyArray<{ date: string; slot: string }>;
   rejection_note: string | null;
@@ -81,6 +82,7 @@ export function toEventBookingSummary(row: EventBookingRow): EventBookingSummary
     venueLocation: row.venue_location,
     roomLayoutName: row.room_layout_name,
     status: toStatus(row.status),
+    holdExpiresAt: row.hold_expires_at,
     slots: row.slots.map(({ date, slot }) => ({ date: toDate(date), slot: toSlot(slot) })),
     requestedAt: row.created_at,
     rejectionNote: row.rejection_note,

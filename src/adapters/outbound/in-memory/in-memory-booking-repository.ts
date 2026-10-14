@@ -14,7 +14,10 @@ import type {
 
 /** A booking as stored: the event's list view plus what scoping and clashes need. */
 export interface StoredBooking
-  extends Omit<EventBookingSummary, "venueId" | "rejectionNote" | "suggestedAlternative"> {
+  extends Omit<
+    EventBookingSummary,
+    "venueId" | "holdExpiresAt" | "rejectionNote" | "suggestedAlternative"
+  > {
   readonly eventId: string;
   /** Absent reads as none, as for a booking that was never rejected. */
   readonly rejectionNote?: string | null;
@@ -70,6 +73,7 @@ export class InMemoryBookingRepository implements BookingRepository {
         venueLocation: booking.venueLocation,
         roomLayoutName: booking.roomLayoutName,
         status: booking.status,
+        holdExpiresAt: booking.holdExpiresAt?.toISOString() ?? null,
         slots: booking.slots,
         requestedAt: booking.requestedAt,
         rejectionNote: booking.rejectionNote ?? null,

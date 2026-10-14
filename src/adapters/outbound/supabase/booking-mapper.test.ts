@@ -39,6 +39,24 @@ describe("booking mapper (SPM-46)", () => {
     expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "AM", status: "Pending", hold_expires_at: null })).toThrow();
   });
 
+  it("reads a held booking's expiry as the instant it lapses (SPM-218)", () => {
+    expect(
+      toEventBookingSummary({
+        booking_id: 12,
+        venue_id: 3,
+        venue_location: "Studio",
+        room_layout_name: "Theatre",
+        status: "Tentative Hold",
+        hold_expires_at: "2026-10-04T01:00:00+00:00",
+        created_at: "2026-09-28T02:00:00+00:00",
+        slots: [{ date: "2026-10-05", slot: "AM" }],
+        rejection_note: null,
+        suggested_alternative_venue_id: null,
+        suggested_alternative_location: null,
+      }),
+    ).toMatchObject({ status: "Tentative Hold", holdExpiresAt: "2026-10-04T01:00:00+00:00" });
+  });
+
   it("reads an event's booking with its layout name and slots", () => {
     expect(
       toEventBookingSummary({
@@ -47,6 +65,7 @@ describe("booking mapper (SPM-46)", () => {
         venue_location: "Studio",
         room_layout_name: null,
         status: "Requested",
+        hold_expires_at: null,
         created_at: "2026-09-28T02:00:00+00:00",
         slots: [{ date: "2026-10-05", slot: "AM" }],
         rejection_note: null,
@@ -59,6 +78,7 @@ describe("booking mapper (SPM-46)", () => {
       venueLocation: "Studio",
       roomLayoutName: null,
       status: "Requested",
+      holdExpiresAt: null,
       slots: [{ date: "2026-10-05", slot: "AM" }],
       requestedAt: "2026-09-28T02:00:00+00:00",
       rejectionNote: null,
@@ -76,6 +96,7 @@ describe("booking mapper -- Venue Staff's answer (SPM-62)", () => {
         venue_location: "Rooftop Terrace",
         room_layout_name: null,
         status: "Rejected",
+        hold_expires_at: null,
         created_at: "2026-09-28T02:00:00+00:00",
         slots: [{ date: "2026-10-05", slot: "AM" }],
         rejection_note: "Closed for resurfacing.",
