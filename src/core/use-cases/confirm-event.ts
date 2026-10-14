@@ -5,6 +5,7 @@ import { assessReadiness, confirmEvent } from "../domain/event-readiness";
 import { userAccountId } from "../domain/user-account";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type { EventReadinessRepository } from "../ports/outbound/event-readiness-repository";
+import type { SafetyCheckRepository } from "../ports/outbound/safety-check-repository";
 
 export interface ConfirmEventCommand {
   readonly id: string;
@@ -20,6 +21,8 @@ export interface ConfirmEventResult {
 export interface ConfirmEventDeps {
   readonly events: CoordinatorEventRepository;
   readonly readiness: EventReadinessRepository;
+  /** SPM-264: the event's safety checks, newest first. */
+  readonly safetyChecks: Pick<SafetyCheckRepository, "history">;
 }
 
 /**
@@ -30,25 +33,29 @@ export interface ConfirmEventDeps {
  * event that does not exist -- mirrors `DecideEventRequestUseCase`'s
  * not-found-shaped authorisation (#91) for the same reason: a guess cannot
  * confirm an event exists. Whether the event can still be confirmed, and what
- * blocks it, are the domain's `confirmEvent` call, not this file's.
+ * blocks it -- an incomplete arrangement, or a safety check not Approved
+ * (SPM-264) -- are the domain's `confirmEvent` call, not this file's.
  */
 export class ConfirmEventUseCase {
   constructor(private readonly deps: ConfirmEventDeps) {}
 
   /** Throws `EventNotFoundError` both when there is no such event and when it isn't assigned to this caller (#91). */
   async execute(command: ConfirmEventCommand): Promise<ConfirmEventResult> {
-    const { events, readiness } = this.deps;
+    const { events, readiness, safetyChecks } = this.deps;
     const id = eventId(command.id);
     const confirmedBy = userAccountId(command.userAccountId);
 
     const event = await events.findAssignedById(confirmedBy, id);
-    const facts = event === null ? null : await readiness.factsFor(confirmedBy, id);
-    if (event === null || facts === null) {
+    const [facts, history] =
+      event === null
+        ? [null, null]
+        : await Promise.all([readiness.factsFor(confirmedBy, id), safetyChecks.history(confirmedBy, id)]);
+    if (event === null || facts === null || history === null) {
       throw new EventNotFoundError(command.id);
     }
 
     const eventReadiness = assessReadiness(facts);
-    const confirmed = confirmEvent(event, eventReadiness);
+    const confirmed = confirmEvent(event, eventReadiness, history.checks[0] ?? null);
 
     await events.confirmEvent(confirmed, confirmedBy);
 

@@ -15,6 +15,7 @@ import {
   buildViewEventSafetyChecks,
   getCurrentCoordinator,
 } from "@/composition/container";
+import type { SafetyCheckBlocker } from "@/core/domain/safety-check";
 
 import { detailCrumbs } from "../../../detail-origin";
 import { PageHeader, StaffShell } from "../../../staff-shell";
@@ -31,6 +32,13 @@ import { RegistrationTab } from "./tabs/registration-tab";
 import { VenueTab } from "./tabs/venue-tab";
 
 export const metadata = { title: "Event | ConnectSphere" };
+
+/** SPM-264 AC1-AC3: what the coordinator is told while the safety check blocks confirmation. */
+const SAFETY_CHECK_BLOCKERS: Record<SafetyCheckBlocker, string> = {
+  "no-check": "No safety check yet.",
+  rejected: "Rejected. Make the changes and resubmit it for a safety check.",
+  "awaiting-recheck": "Resubmitted; awaiting a fresh safety check.",
+};
 
 /**
  * SPM-50: one event, its essential-arrangement readiness, and the Confirm
@@ -83,6 +91,7 @@ export default async function CoordinatorEventPage({
     readiness,
     confirmation,
     blockingArrangements,
+    safetyCheckBlocker,
     canComplete,
   } = result;
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
@@ -133,24 +142,35 @@ export default async function CoordinatorEventPage({
                   <AlertTitle>Cannot confirm -- this event is {event.status.toLowerCase()}</AlertTitle>
                   <AlertDescription>Only an event in planning can be confirmed.</AlertDescription>
                 </Alert>
-              ) : confirmation === "blocked-by-arrangements" ? (
-                <Alert variant="destructive">
-                  <AlertTriangleIcon />
-                  <AlertTitle>
-                    Cannot confirm -- {blockingArrangements.length} essential arrangement
-                    {blockingArrangements.length === 1 ? "" : "s"} incomplete
-                  </AlertTitle>
-                  <AlertDescription>
-                    <ul className="list-disc space-y-1 pl-4">
-                      {blockers.map((arrangement) => (
-                        <li key={arrangement.type}>
-                          <span className="font-medium">{ARRANGEMENT_LABELS[arrangement.type]}</span> —{" "}
-                          {arrangement.detail}
-                        </li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
+              ) : confirmation === "blocked" ? (
+                <>
+                  {blockingArrangements.length > 0 ? (
+                    <Alert variant="destructive">
+                      <AlertTriangleIcon />
+                      <AlertTitle>
+                        Cannot confirm -- {blockingArrangements.length} essential arrangement
+                        {blockingArrangements.length === 1 ? "" : "s"} incomplete
+                      </AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-4">
+                          {blockers.map((arrangement) => (
+                            <li key={arrangement.type}>
+                              <span className="font-medium">{ARRANGEMENT_LABELS[arrangement.type]}</span> —{" "}
+                              {arrangement.detail}
+                            </li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {safetyCheckBlocker !== null ? (
+                    <Alert variant="destructive">
+                      <AlertTriangleIcon />
+                      <AlertTitle>Cannot confirm -- safety check not approved</AlertTitle>
+                      <AlertDescription>{SAFETY_CHECK_BLOCKERS[safetyCheckBlocker]}</AlertDescription>
+                    </Alert>
+                  ) : null}
+                </>
               ) : (
                 <Alert>
                   <CheckIcon />
@@ -158,7 +178,7 @@ export default async function CoordinatorEventPage({
                 </Alert>
               )}
 
-              {confirmation === "ready" || confirmation === "blocked-by-arrangements" ? (
+              {confirmation === "ready" || confirmation === "blocked" ? (
                 <ConfirmForm eventId={event.id} canConfirm={confirmation === "ready"} />
               ) : null}
 

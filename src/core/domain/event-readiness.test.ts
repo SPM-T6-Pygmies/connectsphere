@@ -9,6 +9,7 @@ import { eventId } from "./event";
 import {
   EventNotConfirmableError,
   EventNotReadyForConfirmationError,
+  SafetyCheckNotApprovedError,
 } from "./errors";
 import {
   assessReadiness,
@@ -20,10 +21,15 @@ import {
   type EventReadiness,
   type ReadinessFacts,
 } from "./event-readiness";
+import type { LatestSafetyCheck } from "./safety-check";
 import { userAccountId } from "./user-account";
 
 const EVENT_ID = eventId("event-1");
 const COORDINATOR = userAccountId("coordinator-1");
+
+const APPROVED: LatestSafetyCheck = { outcome: "Approved", resubmittedAt: null };
+const REJECTED: LatestSafetyCheck = { outcome: "Rejected", resubmittedAt: null };
+const RESUBMITTED: LatestSafetyCheck = { outcome: "Rejected", resubmittedAt: "2026-10-06T10:00:00.000Z" };
 
 function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
   return {
@@ -242,6 +248,7 @@ describe("canConfirm (SPM-50)", () => {
       canConfirm(
         event({ status: "Planning" }),
         readiness([{ type: "venue", complete: true, detail: "" }]),
+        APPROVED,
       ),
     ).toBe(true);
   });
@@ -251,6 +258,7 @@ describe("canConfirm (SPM-50)", () => {
       canConfirm(
         event({ status: "Planning" }),
         readiness([{ type: "venue", complete: false, detail: "" }]),
+        APPROVED,
       ),
     ).toBe(false);
   });
@@ -263,29 +271,40 @@ describe("canConfirm (SPM-50)", () => {
   ] as CoordinatorEventStatus[])(
     "is false when status is %s, even with nothing blocking",
     (status) => {
-      expect(canConfirm(event({ status }), readiness([]))).toBe(false);
+      expect(canConfirm(event({ status }), readiness([]), APPROVED)).toBe(false);
     },
   );
 });
 
+describe("canConfirm (SPM-264)", () => {
+  it.each([
+    ["no check yet", null],
+    ["a rejection", REJECTED],
+    ["a resubmitted rejection", RESUBMITTED],
+  ] as const)("AC1-AC3: is false in Planning with nothing incomplete but %s", (_label, latest) => {
+    expect(canConfirm(event({ status: "Planning" }), readiness([]), latest)).toBe(false);
+  });
+});
+
 describe("confirmationState (SPM-50)", () => {
   it("is ready in Planning with nothing blocking", () => {
-    expect(confirmationState(event({ status: "Planning" }), readiness([]))).toBe("ready");
+    expect(confirmationState(event({ status: "Planning" }), readiness([]), APPROVED)).toBe("ready");
   });
 
-  it("is blocked by arrangements in Planning with something incomplete", () => {
+  it("is blocked in Planning with something incomplete", () => {
     expect(
       confirmationState(
         event({ status: "Planning" }),
         readiness([{ type: "venue", complete: false, detail: "" }]),
+        APPROVED,
       ),
-    ).toBe("blocked-by-arrangements");
+    ).toBe("blocked");
   });
 
   it.each(["Confirmed", "Completed"] as CoordinatorEventStatus[])(
     "is already confirmed when %s",
     (status) => {
-      expect(confirmationState(event({ status }), readiness([]))).toBe("already-confirmed");
+      expect(confirmationState(event({ status }), readiness([]), APPROVED)).toBe("already-confirmed");
     },
   );
 
@@ -296,8 +315,40 @@ describe("confirmationState (SPM-50)", () => {
         confirmationState(
           event({ status }),
           readiness([{ type: "venue", complete: false, detail: "" }]),
+          APPROVED,
         ),
       ).toBe("not-in-planning");
+    },
+  );
+});
+
+describe("confirmationState (SPM-264)", () => {
+  it.each([
+    ["no check yet", null],
+    ["a rejection", REJECTED],
+    ["a resubmitted rejection", RESUBMITTED],
+  ] as const)("AC1-AC3: is blocked in Planning with nothing incomplete but %s", (_label, latest) => {
+    expect(confirmationState(event({ status: "Planning" }), readiness([]), latest)).toBe("blocked");
+  });
+
+  it("AC6: is blocked when both an arrangement and the safety check are outstanding", () => {
+    expect(
+      confirmationState(
+        event({ status: "Planning" }),
+        readiness([{ type: "venue", complete: false, detail: "" }]),
+        null,
+      ),
+    ).toBe("blocked");
+  });
+
+  it("AC5: is ready once the latest check is approved and nothing is incomplete", () => {
+    expect(confirmationState(event({ status: "Planning" }), readiness([]), APPROVED)).toBe("ready");
+  });
+
+  it.each(["Confirmed", "Completed"] as CoordinatorEventStatus[])(
+    "leaves an event already %s alone, even with no check on it",
+    (status) => {
+      expect(confirmationState(event({ status }), readiness([]), null)).toBe("already-confirmed");
     },
   );
 });
@@ -310,6 +361,7 @@ describe("confirmEvent (SPM-50)", () => {
         { type: "venue", complete: true, detail: "" },
         { type: "programme", complete: true, detail: "" },
       ]),
+      APPROVED,
     );
 
     expect(confirmed.status).toBe("Confirmed");
@@ -319,6 +371,7 @@ describe("confirmEvent (SPM-50)", () => {
     const confirmed = confirmEvent(
       event({ status: "Planning" }),
       readiness([{ type: "venue", complete: true, detail: "" }]),
+      APPROVED,
     );
 
     expect(confirmed.status).toBe("Confirmed");
@@ -332,6 +385,7 @@ describe("confirmEvent (SPM-50)", () => {
           { type: "venue", complete: false, detail: "" },
           { type: "registration", complete: false, detail: "" },
         ]),
+        APPROVED,
       ),
     ).toThrow(EventNotReadyForConfirmationError);
 
@@ -342,6 +396,7 @@ describe("confirmEvent (SPM-50)", () => {
           { type: "venue", complete: false, detail: "" },
           { type: "registration", complete: false, detail: "" },
         ]),
+        APPROVED,
       );
       expect.unreachable();
     } catch (error) {
@@ -360,9 +415,27 @@ describe("confirmEvent (SPM-50)", () => {
   ] as CoordinatorEventStatus[])(
     "refuses to confirm an event with status %s",
     (status) => {
-      expect(() => confirmEvent(event({ status }), readiness([]))).toThrow(
+      expect(() => confirmEvent(event({ status }), readiness([]), APPROVED)).toThrow(
         EventNotConfirmableError,
       );
     },
   );
+});
+
+describe("confirmEvent (SPM-264)", () => {
+  it.each([
+    ["no check yet", null],
+    ["a rejection", REJECTED],
+    ["a resubmitted rejection", RESUBMITTED],
+  ] as const)("AC7: refuses a Planning event with every arrangement complete but %s", (_label, latest) => {
+    expect(() => confirmEvent(event({ status: "Planning" }), readiness([]), latest)).toThrow(
+      new SafetyCheckNotApprovedError(),
+    );
+  });
+
+  it("AC7: says the safety check is not approved", () => {
+    expect(new SafetyCheckNotApprovedError().message).toBe(
+      "This event cannot be confirmed: its safety check is not approved.",
+    );
+  });
 });

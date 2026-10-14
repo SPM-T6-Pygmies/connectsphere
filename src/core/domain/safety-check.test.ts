@@ -10,6 +10,7 @@ import {
   confirmedVenues,
   entersSafetyCheck,
   recordSafetyCheck,
+  safetyCheckBlocker,
   type SafetyCheckBooking,
   type SafetyCheckCandidate,
   type SafetyCheckEquipmentLine,
@@ -242,4 +243,24 @@ describe("canResubmitForSafetyCheck (SPM-261)", () => {
       expect(canResubmitForSafetyCheck(status, rejected)).toBe(false);
     },
   );
+});
+
+describe("safetyCheckBlocker (SPM-264)", () => {
+  it("AC1: blocks an event with no check yet", () => {
+    expect(safetyCheckBlocker(null)).toBe("no-check");
+  });
+
+  it("AC2: blocks an event whose latest check is a rejection not yet resubmitted", () => {
+    expect(safetyCheckBlocker({ outcome: "Rejected", resubmittedAt: null })).toBe("rejected");
+  });
+
+  it("AC3: blocks an event resubmitted and awaiting a fresh check", () => {
+    expect(safetyCheckBlocker({ outcome: "Rejected", resubmittedAt: "2026-10-06T10:00:00.000Z" })).toBe(
+      "awaiting-recheck",
+    );
+  });
+
+  it("AC4/AC5: does not block an event whose latest check is an approval", () => {
+    expect(safetyCheckBlocker({ outcome: "Approved", resubmittedAt: null })).toBeNull();
+  });
 });

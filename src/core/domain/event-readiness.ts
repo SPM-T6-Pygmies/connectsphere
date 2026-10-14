@@ -1,6 +1,7 @@
 import type { CoordinatorEvent } from "./coordinator-event";
 import type { EventId } from "./event";
-import { EventNotConfirmableError, EventNotReadyForConfirmationError } from "./errors";
+import { EventNotConfirmableError, EventNotReadyForConfirmationError, SafetyCheckNotApprovedError } from "./errors";
+import { safetyCheckBlocker, type LatestSafetyCheck } from "./safety-check";
 
 /** Mirrors `event_essential_arrangement_type_chk` (`supabase/schema.sql`), one member per allowed value. */
 export type ArrangementType =
@@ -126,15 +127,18 @@ export function blockingArrangements(readiness: EventReadiness): readonly Arrang
  */
 export type ConfirmationState =
   | "ready"
-  | "blocked-by-arrangements"
+  /** Planning, with an essential arrangement incomplete and/or the safety check not Approved (SPM-264). */
+  | "blocked"
   /** Confirmed or Completed: there is nothing left to confirm. */
   | "already-confirmed"
   /** Blocked or Cancelled: only a Planning event can be confirmed. */
   | "not-in-planning";
 
+/** `latestSafetyCheck` is the event's newest check, or null when it has none (SPM-264). */
 export function confirmationState(
   event: CoordinatorEvent,
   readiness: EventReadiness,
+  latestSafetyCheck: LatestSafetyCheck | null,
 ): ConfirmationState {
   if (event.status === "Confirmed" || event.status === "Completed") {
     return "already-confirmed";
@@ -142,21 +146,32 @@ export function confirmationState(
   if (event.status !== "Planning") {
     return "not-in-planning";
   }
-  return blockingArrangements(readiness).length > 0 ? "blocked-by-arrangements" : "ready";
+  return blockingArrangements(readiness).length > 0 || safetyCheckBlocker(latestSafetyCheck) !== null
+    ? "blocked"
+    : "ready";
 }
 
-/** Whether the event may be confirmed right now: `Planning`, with nothing essential left incomplete. */
-export function canConfirm(event: CoordinatorEvent, readiness: EventReadiness): boolean {
-  return confirmationState(event, readiness) === "ready";
+/** Whether the event may be confirmed right now: `Planning`, nothing essential incomplete, and its latest safety check Approved. */
+export function canConfirm(
+  event: CoordinatorEvent,
+  readiness: EventReadiness,
+  latestSafetyCheck: LatestSafetyCheck | null,
+): boolean {
+  return confirmationState(event, readiness, latestSafetyCheck) === "ready";
 }
 
 /**
  * SPM-50: confirms the event once every essential arrangement is complete.
+ * SPM-264: and once its latest safety check is Approved.
  *
  * The invariant itself, not just a use-case-level check -- callers cannot
  * reach `Confirmed` any other way than through this function agreeing to it.
  */
-export function confirmEvent(event: CoordinatorEvent, readiness: EventReadiness): CoordinatorEvent {
+export function confirmEvent(
+  event: CoordinatorEvent,
+  readiness: EventReadiness,
+  latestSafetyCheck: LatestSafetyCheck | null,
+): CoordinatorEvent {
   if (event.status !== "Planning") {
     throw new EventNotConfirmableError(event.status);
   }
@@ -164,6 +179,10 @@ export function confirmEvent(event: CoordinatorEvent, readiness: EventReadiness)
   const blocking = blockingArrangements(readiness);
   if (blocking.length > 0) {
     throw new EventNotReadyForConfirmationError(blocking);
+  }
+
+  if (safetyCheckBlocker(latestSafetyCheck) !== null) {
+    throw new SafetyCheckNotApprovedError();
   }
 
   return { ...event, status: "Confirmed" };

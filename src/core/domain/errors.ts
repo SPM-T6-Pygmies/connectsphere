@@ -888,6 +888,15 @@ export class SafetyCheckNotResubmittableError extends DomainError {
   }
 }
 
+/** SPM-264 AC7: an event is confirmed only once its latest safety check is Approved. */
+export class SafetyCheckNotApprovedError extends DomainError {
+  readonly code = "safety_check_not_approved";
+
+  constructor() {
+    super("This event cannot be confirmed: its safety check is not approved.");
+  }
+}
+
 /** SPM-260 AC3: a rejection says what must change. */
 export class SafetyCheckCommentsRequiredError extends DomainError {
   readonly code = "safety_check_comments_required";
