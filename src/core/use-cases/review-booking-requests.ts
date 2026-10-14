@@ -1,4 +1,4 @@
-import type { BookingId } from "../domain/booking";
+import { holdsSlot, type BookingId } from "../domain/booking";
 import { BookingNotFoundError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import type { Venue } from "../domain/venue";
@@ -7,6 +7,7 @@ import type {
   BookingReviewRepository,
   BookingReviewSection,
 } from "../ports/outbound/booking-review-repository";
+import type { Clock } from "../ports/outbound/clock";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 
 export type { BookingForReview, BookingReviewSection } from "../ports/outbound/booking-review-repository";
@@ -14,10 +15,16 @@ export type { BookingForReview, BookingReviewSection } from "../ports/outbound/b
 export interface ReviewBookingRequestsDeps {
   readonly reviews: BookingReviewRepository;
   readonly venues: VenueCatalogue;
+  readonly clock: Clock;
 }
 
 export interface BookingReviewDetail {
   readonly booking: BookingForReview;
+  /**
+   * SPM-219: whether the booking is a Tentative Hold that has not yet expired, so Venue
+   * Staff can still confirm or release it. Worked out here so the page never reads the clock.
+   */
+  readonly holdLive: boolean;
   /** The venue as the catalogue holds it now; null if it has since gone. */
   readonly venue: Venue | null;
   /** Venues Venue Staff may point the coordinator to instead. */
@@ -51,6 +58,15 @@ export class ReviewBookingRequestsUseCase {
     const venues = await this.deps.venues.list();
     return {
       booking,
+      holdLive:
+        booking.status === "Tentative Hold" &&
+        holdsSlot(
+          {
+            status: booking.status,
+            holdExpiresAt: booking.holdExpiresAt === null ? null : new Date(booking.holdExpiresAt),
+          },
+          this.deps.clock.now(),
+        ),
       venue: venues.find((candidate) => candidate.id === booking.venueId) ?? null,
       alternatives: venues.filter((candidate) => candidate.id !== booking.venueId),
     };

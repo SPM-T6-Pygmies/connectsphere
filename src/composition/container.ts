@@ -603,6 +603,7 @@ export async function buildReviewBookingRequests(): Promise<ReviewBookingRequest
   return new ReviewBookingRequestsUseCase({
     reviews: new SupabaseBookingReviewRepository(client),
     venues: new SupabaseVenueCatalogue(client),
+    clock: systemClock,
   });
 }
 
