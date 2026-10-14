@@ -31,6 +31,13 @@ describe("venueBookingDecidedMessage (SPM-62)", () => {
     });
   });
 
+  it("SPM-219 AC6: a released hold names the venue, the event and its slots, and says they are free", () => {
+    expect(venueBookingDecidedMessage(notice({ outcome: "Released" }))).toEqual({
+      subject: "Grand Ballroom hold released for Harbour Lights Gala",
+      body: "Venue Staff released the hold on Grand Ballroom for Fri, 20 Nov 2026 (AM, PM). The slots are free for other events; send a new request if you still need them.",
+    });
+  });
+
   it("AC1, AC2: a rejection names the outcome and the venue, and carries the reason", () => {
     expect(
       venueBookingDecidedMessage(notice({ outcome: "Rejected", reason: "Closed for resurfacing." })),

@@ -1,8 +1,14 @@
-import { clashingSlots, type BookingId, type DecidedBooking } from "@/core/domain/booking";
+import {
+  clashingSlots,
+  type BookingId,
+  type DecidedBooking,
+  type ResolvedHold,
+} from "@/core/domain/booking";
 import {
   BookingNotDecidableError,
   BookingNotFoundError,
   DecisionReasonRequiredError,
+  HoldNotLiveError,
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
@@ -17,6 +23,7 @@ import type {
 import {
   toBookingForReview,
   toDecideBookingArgs,
+  toResolveHoldArgs,
   type BookingReviewRow,
 } from "./booking-review-mapper";
 import type { SupabaseServerClient } from "./client";
@@ -31,6 +38,9 @@ const SLOT_TAKEN = "CS025";
 // A Venue Staff block covers one of the booking's slots (SPM-22), the same
 // code the booking_slot trigger raises for a request.
 const SLOT_BLOCKED = "CS028";
+// SQLSTATE raised by venue_staff_resolve_hold (SPM-219): not a live hold. CS030 is its not-found,
+// and CS028 (above) its refusal to confirm over a block.
+const HOLD_NOT_LIVE = "CS074";
 
 /**
  * Reached through `security definer` functions, not the tables: `booking`
@@ -89,9 +99,39 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
       case SLOT_TAKEN:
         throw new VenueSlotUnavailableError(await this.takenBy(decided));
       case SLOT_BLOCKED:
-        throw new VenueSlotBlockedError(await this.blockedBy(decided, error.message));
+        throw new VenueSlotBlockedError(await this.blockedBy(decided.id, decided.decidedBy, error.message));
       default:
         throw new Error(`Failed to decide the booking: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * SPM-219: the function re-checks the role and that the booking is still a
+   * live hold, under a lock on the venue, and writes the audit record in the
+   * same transaction. A hold that lapsed or was decided while the page was open
+   * comes back as the domain's own error.
+   */
+  async resolveHold(resolved: ResolvedHold): Promise<void> {
+    const args = toResolveHoldArgs(resolved);
+    if (args === null) {
+      throw new BookingNotFoundError(resolved.id);
+    }
+
+    const { error } = await this.client.rpc("venue_staff_resolve_hold", args);
+    if (!error) {
+      return;
+    }
+
+    switch (error.code) {
+      case NOT_FOUND:
+        throw new BookingNotFoundError(resolved.id);
+      case HOLD_NOT_LIVE:
+        throw new HoldNotLiveError();
+      case SLOT_BLOCKED:
+        // Confirming only: a block recorded after the hold still wins.
+        throw new VenueSlotBlockedError(await this.blockedBy(resolved.id, resolved.resolvedBy, error.message));
+      default:
+        throw new Error(`Failed to resolve the hold: ${error.message}`, { cause: error });
     }
   }
 
@@ -118,8 +158,8 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
   }
 
   /** Which of the booking's slots are blocked, for a message that names them. */
-  private async blockedBy(decided: DecidedBooking, refusal: string) {
-    const booking = await this.find(decided.decidedBy, decided.id);
+  private async blockedBy(id: BookingId, staff: UserAccountId, refusal: string) {
+    const booking = await this.find(staff, id);
     if (booking === null) {
       return [];
     }

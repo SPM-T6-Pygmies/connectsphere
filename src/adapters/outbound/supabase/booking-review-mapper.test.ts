@@ -7,6 +7,7 @@ import type { BookingId, DecidedBooking } from "@/core/domain/booking";
 import {
   toBookingForReview,
   toDecideBookingArgs,
+  toResolveHoldArgs,
   type BookingReviewRow,
 } from "./booking-review-mapper";
 
@@ -165,5 +166,27 @@ describe("booking review mapper (SPM-62)", () => {
     });
 
     expect(review.event).toMatchObject({ requestId: null, coordinatorUserAccountId: null });
+  });
+});
+
+describe("booking review mapper -- resolving a hold (SPM-219)", () => {
+  const resolved = (status: "Confirmed" | "Released", staff = "2", booking = "7") => ({
+    id: booking as BookingId,
+    status,
+    resolvedBy: userAccountId(staff),
+  });
+
+  it("sends a confirmation and a release as the function's two resolutions", () => {
+    expect(toResolveHoldArgs(resolved("Confirmed"))).toEqual({
+      p_staff_user_account_id: 2,
+      p_booking_id: 7,
+      p_resolution: "confirm",
+    });
+    expect(toResolveHoldArgs(resolved("Released"))).toMatchObject({ p_resolution: "release" });
+  });
+
+  it("is null when an id is not one this store issued", () => {
+    expect(toResolveHoldArgs(resolved("Confirmed", "not-a-number"))).toBeNull();
+    expect(toResolveHoldArgs(resolved("Released", "2", "nope"))).toBeNull();
   });
 });
