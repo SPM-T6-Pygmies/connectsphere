@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { venueSearchSchema } from "@/adapters/inbound/venue-search-schema";
@@ -146,7 +147,11 @@ export default async function VenueSearchPage({
               <TableBody>
                 {outcome.venues.map((venue) => (
                   <TableRow key={venue.id}>
-                    <TableCell className="font-medium">{venue.location}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/staff/coordinator/venues/${venue.id}`} className="hover:underline">
+                        {venue.location}
+                      </Link>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ") || "—"}
                     </TableCell>
