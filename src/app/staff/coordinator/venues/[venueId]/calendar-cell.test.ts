@@ -17,13 +17,13 @@ describe("calendarCell (SPM-155)", () => {
     expect(calendarCell(slot({ status: "booked" }))).toMatchObject({ label: "Confirmed", detail: null });
   });
 
-  it("shows a hold with when it lapses, in Singapore time", () => {
+  it("shows a hold with when it lapses, in the words the other hold pages use", () => {
     const cell = calendarCell(
       slot({ status: "held", holdExpiresAt: new Date("2026-11-05T04:00:00Z") }),
     );
 
     expect(cell).toMatchObject({ label: "Held", variant: "warning" });
-    expect(cell.detail).toBe("Until 5 Nov, 12:00 pm");
+    expect(cell.detail).toBe("Until Thu, 5 Nov, 12:00 pm");
   });
 
   it("shows a hold with no expiry without inventing one", () => {

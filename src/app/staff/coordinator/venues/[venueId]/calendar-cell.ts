@@ -1,6 +1,8 @@
 import type { Badge } from "@/components/ui/badge";
 import type { CalendarSlot, CalendarSlotStatus } from "@/core/domain/venue-calendar";
 
+import { formatHoldExpiry } from "../../../hold-expiry";
+
 type Variant = React.ComponentProps<typeof Badge>["variant"];
 
 /** What one calendar slot reads as: a status badge, and a line under it when there is more to say. */
@@ -19,15 +21,6 @@ const STATUS: Record<CalendarSlotStatus, { label: string; variant: Variant }> = 
   notOffered: { label: "Not offered", variant: "outline" },
 };
 
-const holdExpiryFormat = new Intl.DateTimeFormat("en-SG", {
-  timeZone: "Asia/Singapore",
-  day: "numeric",
-  month: "short",
-  hour: "numeric",
-  minute: "2-digit",
-  hour12: true,
-});
-
 // Calendar days are plain `YYYY-MM-DD`; read them at UTC midnight so the day never shifts.
 const dayHeadingFormat = new Intl.DateTimeFormat("en-SG", {
   timeZone: "UTC",
@@ -40,7 +33,7 @@ const dayHeadingFormat = new Intl.DateTimeFormat("en-SG", {
 export function calendarCell(slot: CalendarSlot): CalendarCellView {
   let detail: string | null = null;
   if (slot.status === "held" && slot.holdExpiresAt !== null) {
-    detail = `Until ${holdExpiryFormat.format(slot.holdExpiresAt)}`;
+    detail = `Until ${formatHoldExpiry(slot.holdExpiresAt.toISOString())}`;
   } else if (slot.status === "blocked" && slot.reasons.length > 0) {
     detail = slot.reasons.join(", ");
   }
