@@ -127,7 +127,8 @@ export default async function VenueCalendarPage({
         description={`${dayHeading(calendar.from)} to ${dayHeading(calendar.to)}. Slots are Singapore time.`}
         actions={<WeekNav venueId={venueId} from={calendar.from} />}
       />
-      <div className="mt-6">
+      <div className="mt-6 space-y-4">
+        {/* The grid still shows: a booking or block outranks Not offered, so it is never hidden. */}
         {calendar.venue.slots.length === 0 ? (
           <Alert>
             <AlertDescription>
@@ -135,9 +136,8 @@ export default async function VenueCalendarPage({
               set its slots.
             </AlertDescription>
           </Alert>
-        ) : (
-          <CalendarGrid calendar={calendar} />
-        )}
+        ) : null}
+        <CalendarGrid calendar={calendar} />
       </div>
     </StaffShell>
   );
