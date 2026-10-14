@@ -6,7 +6,7 @@ import type { SupabaseAdminClient } from "./client";
 
 /**
  * SPM-64 and SPM-65, through the service-role-only functions in
- * 20261018000000_equipment_notice_recipients.sql: neither the coordinator nor
+ * 20261019000100_equipment_notice_recipients.sql: neither the coordinator nor
  * Technical Support may read these themselves.
  */
 export class SupabaseEquipmentNoticeDirectory implements EquipmentNoticeDirectory {
