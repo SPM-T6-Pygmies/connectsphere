@@ -34,12 +34,9 @@ records it in `manual-runs.csv` when the PR merges, so do not edit that file.
   supabase db query --file scripts/seed-venues/seed.sql --local
   supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
   supabase db query --file scripts/seed-venue-unavailability/seed.sql --local
-  ```
-- `pnpm dev:local`
-- Approve the **Venue Safety Review** request once as `coordinator@test.com`, then:
-  ```bash
   supabase db query --file scripts/seed-booking-holds/seed.sql --local
   ```
+- `pnpm dev:local`
 
 ### Test accounts
 
@@ -58,7 +55,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | --- | --- | --- |
 | UAT-44 Harbour Room | AM, PM, Night | Confirmed booking on D PM |
 | UAT-44 Garden Hall | AM, PM | Rejected booking on D AM (frees the slot) |
-| Main Hall | none recorded | Renovation block on AM for D to D+4; Maintenance block on all three slots of D+2; holds on 2026-12-01 (AM expired, PM lapsing in 30 days) |
+| Main Hall | none recorded | Renovation block on AM for D to D+4; Maintenance block on all three slots of D+2; holds on D+7 (AM expired, PM lapsing in 30 days) |
 
 ---
 
@@ -91,10 +88,11 @@ other slot reads **Not offered**.
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
-1. Open Main Hall's calendar and add `?from=2026-12-01` to the address.
+1. Open Main Hall's calendar and press **Next week** until D+7 is in view.
 
-**Expected:** 2026-12-01 PM reads **Held** with *Until* and a date about 30 days after
-the seed ran. 2026-12-01 AM reads **Not offered**, not Held: its hold has expired.
+**Expected:** D+7 PM reads **Held** with *Until* and a date about 30 days after the seed
+ran, worded as on the Venue Staff decision page (e.g. *Until Thu, 5 Nov, 12:00 pm*). D+7
+AM reads **Not offered**, not Held: its hold has expired.
 
 - [ ] Pass
 
