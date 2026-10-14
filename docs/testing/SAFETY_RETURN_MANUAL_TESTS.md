@@ -11,8 +11,9 @@ where the Safety Officer records a new outcome. Earlier checks are kept.
 
 What SPM-261 does **not** cover, so is not tested here:
 
-- **Refusing confirmation until the latest check is Approved** — SPM-264. Until
-  then the Confirm button still works on a rejected event.
+- **Refusing confirmation until the latest check is Approved** — SPM-264, tested
+  in [`CONFIRM_EVENT_MANUAL_TESTS.md`](CONFIRM_EVENT_MANUAL_TESTS.md)
+  (`TC-CONFIRM-004`–`TC-CONFIRM-008`).
 - **Flagging arrangements for re-review** — dropped when the ticket was
   simplified; the coordinator reworks the bookings and equipment themselves.
 

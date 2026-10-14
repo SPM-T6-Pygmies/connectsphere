@@ -742,6 +742,11 @@
       "parent": "SPM-47",
       "status": "In Progress"
     },
+    "SPM-264": {
+      "title": "Block confirmation until the safety check is approved",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-265": {
       "title": "Venue block rules in the domain",
       "parent": "SPM-21",
