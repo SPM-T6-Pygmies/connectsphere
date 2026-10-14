@@ -8,6 +8,7 @@ import {
   organiserCoordinatorAssignedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
+  venueBookingDecidedRow,
   venueBookingRequestedRow,
   type NotificationRow,
 } from "@/adapters/outbound/supabase/notification-row";
@@ -22,6 +23,7 @@ import type {
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
 
@@ -93,6 +95,12 @@ export class SupabaseRecordingNotifier implements Notifier {
 
   equipmentDecided(notice: EquipmentDecidedNotice): Promise<void> {
     return this.recordAndDeliver(equipmentDecidedRow(notice), () => this.inner.equipmentDecided(notice));
+  }
+
+  venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
+    return this.recordAndDeliver(venueBookingDecidedRow(notice), () =>
+      this.inner.venueBookingDecided(notice),
+    );
   }
 
   /** Record the row Pending, deliver, then mark it Sent or Failed. */

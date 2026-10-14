@@ -16,9 +16,15 @@ export interface EventBookingSummary {
   /** Null when the booking predates layout capture, or its venue has no layouts. */
   readonly roomLayoutName: string | null;
   readonly status: BookingStatus;
+  /** SPM-218: ISO instant a Tentative Hold lapses; null for any other status. */
+  readonly holdExpiresAt: string | null;
   readonly slots: readonly SlotOnDate[];
   /** ISO instant. */
   readonly requestedAt: string;
+  /** Venue Staff's reason for a rejection (SPM-62 AC2); null otherwise. */
+  readonly rejectionNote: string | null;
+  /** The venue Venue Staff suggested instead -- informal, it books nothing (#45). */
+  readonly suggestedAlternative: { readonly venueId: VenueId; readonly location: string } | null;
 }
 
 /**

@@ -16,9 +16,13 @@ export interface BookingReviewRow {
   requested_by_name: string;
   requested_at: string;
   decided_by_name: string | null;
+  hold_expires_at: string | null;
   rejection_note: string | null;
   suggested_alternative_location: string | null;
   event: {
+    event_id: number;
+    event_request_id: number | null;
+    coordinator_user_account_id: number | null;
     name: string;
     status: string;
     organisation_name: string | null;
@@ -45,9 +49,16 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
     requestedByName: row.requested_by_name,
     requestedAt: row.requested_at,
     decidedByName: row.decided_by_name,
+    holdExpiresAt: row.hold_expires_at,
     rejectionNote: row.rejection_note,
     suggestedAlternativeLocation: row.suggested_alternative_location,
     event: {
+      id: String(row.event.event_id),
+      requestId: row.event.event_request_id === null ? null : String(row.event.event_request_id),
+      coordinatorUserAccountId:
+        row.event.coordinator_user_account_id === null
+          ? null
+          : String(row.event.coordinator_user_account_id),
       name: row.event.name,
       status: row.event.status,
       organisationName: row.event.organisation_name,
@@ -68,9 +79,11 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
 export interface DecideBookingArgs {
   p_staff_user_account_id: number;
   p_booking_id: number;
-  p_decision: "approve" | "reject";
+  p_decision: "approve" | "hold" | "reject";
   p_note: string | null;
   p_suggested_alternative_venue_id: number | null;
+  /** Only with a hold (SPM-218): when it lapses, as an ISO instant. */
+  p_hold_expires_at?: string;
 }
 
 export function toDecideBookingArgs(decided: DecidedBooking): DecideBookingArgs | null {
@@ -81,12 +94,18 @@ export function toDecideBookingArgs(decided: DecidedBooking): DecideBookingArgs 
   if (staff === null || booking === null || (decided.suggestedAlternative !== null && alternative === null)) {
     return null;
   }
+  if (decided.status === "Tentative Hold" && decided.holdExpiresAt === undefined) {
+    // The core always sets one; the database would refuse a hold without it.
+    throw new Error("A hold needs an expiry.");
+  }
 
   return {
     p_staff_user_account_id: staff,
     p_booking_id: booking,
-    p_decision: decided.status === "Confirmed" ? "approve" : "reject",
+    p_decision:
+      decided.status === "Confirmed" ? "approve" : decided.status === "Tentative Hold" ? "hold" : "reject",
     p_note: decided.rejectionNote,
     p_suggested_alternative_venue_id: alternative,
+    ...(decided.holdExpiresAt === undefined ? {} : { p_hold_expires_at: decided.holdExpiresAt.toISOString() }),
   };
 }

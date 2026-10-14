@@ -9,6 +9,7 @@ import {
   organiserCoordinatorAssignedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
+  venueBookingDecidedRow,
   venueBookingRequestedRow,
 } from "./notification-row";
 
@@ -214,6 +215,33 @@ describe("equipmentDecidedRow (SPM-65)", () => {
       related_event_id: "12",
       message_content:
         "Equipment reserved for Design Sprint Demo\nProjector: 4 reserved by Test Support Staff. No event date set yet.",
+    });
+  });
+});
+
+describe("venueBookingDecidedRow (SPM-62)", () => {
+  it("AC1: records the notice as Pending against the coordinator and the booking", () => {
+    expect(
+      venueBookingDecidedRow({
+        recipientUserAccountId: "3",
+        bookingId: "31",
+        eventId: "8",
+        eventRequestId: "6",
+        eventName: "Harbour Lights Gala",
+        venueLocation: "Grand Ballroom",
+        slots: [{ date: "2026-11-20", slot: "PM" }],
+        outcome: "Confirmed",
+        reason: null,
+        suggestedAlternativeLocation: null,
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "venue-booking-decided",
+      channel: "in_app",
+      status: "Pending",
+      related_booking_id: "31",
+      message_content:
+        "Grand Ballroom approved for Harbour Lights Gala\nVenue Staff confirmed Grand Ballroom for Fri, 20 Nov 2026 (PM). The venue is secured.",
     });
   });
 });

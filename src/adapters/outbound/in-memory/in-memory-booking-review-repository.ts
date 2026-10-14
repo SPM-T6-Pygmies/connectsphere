@@ -21,6 +21,8 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
     seed: readonly BookingForReview[] = [],
     /** Who counts as Venue Staff; anyone else sees nothing. */
     private readonly venueStaff: readonly string[] = [],
+    /** Venue names by id, so a suggested alternative reads back by name, as the store's does. */
+    private readonly venueNames: Readonly<Record<string, string>> = {},
   ) {
     this.rows = [...seed];
   }
@@ -49,9 +51,9 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
       throw new BookingNotDecidableError();
     }
 
-    if (decided.status === "Confirmed") {
-      // Review rows carry no hold expiry, so a hold here counts as live, as
-      // one with no expiry does.
+    if (decided.status === "Confirmed" || decided.status === "Tentative Hold") {
+      // Both keep the slots from now on. Review rows carry no hold expiry, so a
+      // hold here counts as live, as one with no expiry does.
       const held = this.rows
         .filter((other) => other.id !== row.id && other.venueId === row.venueId)
         .flatMap((other) =>
@@ -67,6 +69,8 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
       ...row,
       status: decided.status,
       rejectionNote: decided.rejectionNote,
+      suggestedAlternativeLocation:
+        decided.suggestedAlternative === null ? null : (this.venueNames[decided.suggestedAlternative] ?? null),
       decidedByName: decided.decidedBy,
     };
   }

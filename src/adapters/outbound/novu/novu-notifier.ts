@@ -10,6 +10,7 @@ import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/work
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { SAFETY_CHECK_READY_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { SAFETY_CHECK_RECORDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
+import { VENUE_BOOKING_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-decided";
 import { VENUE_BOOKING_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 import type { Connection } from "@/core/domain/connection";
 import type {
@@ -22,6 +23,7 @@ import type {
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
 
@@ -96,6 +98,10 @@ export class NovuNotifier implements Notifier {
 
   equipmentDecided(notice: EquipmentDecidedNotice): Promise<void> {
     return this.trigger(EQUIPMENT_DECIDED_WORKFLOW_ID, notice);
+  }
+
+  venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
+    return this.trigger(VENUE_BOOKING_DECIDED_WORKFLOW_ID, notice);
   }
 
   private async trigger(

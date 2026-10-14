@@ -20,9 +20,13 @@ const row: BookingReviewRow = {
   requested_by_name: "Nadia",
   requested_at: "2026-10-01T00:00:00Z",
   decided_by_name: null,
+  hold_expires_at: null,
   rejection_note: null,
   suggested_alternative_location: null,
   event: {
+    event_id: 12,
+    event_request_id: 6,
+    coordinator_user_account_id: 3,
     name: "Summit",
     status: "Planning",
     organisation_name: "Org",
@@ -76,6 +80,13 @@ describe("booking review mapper (SPM-22)", () => {
     ).toThrow();
   });
 
+  it("carries a held booking's expiry to Venue Staff (SPM-218)", () => {
+    expect(
+      toBookingForReview({ ...row, status: "Tentative Hold", hold_expires_at: "2026-10-04T01:00:00Z" }),
+    ).toMatchObject({ status: "Tentative Hold", holdExpiresAt: "2026-10-04T01:00:00Z" });
+    expect(toBookingForReview(row).holdExpiresAt).toBeNull();
+  });
+
   const decided = (overrides: Partial<DecidedBooking> = {}): DecidedBooking => ({
     id: "7" as BookingId,
     status: "Rejected",
@@ -101,8 +112,58 @@ describe("booking review mapper (SPM-22)", () => {
     ).toMatchObject({ p_decision: "approve", p_note: null, p_suggested_alternative_venue_id: null });
   });
 
+  it("sends a hold with its expiry as an instant, and no note or suggestion (SPM-218)", () => {
+    expect(
+      toDecideBookingArgs(
+        decided({
+          status: "Tentative Hold",
+          rejectionNote: null,
+          suggestedAlternative: null,
+          holdExpiresAt: new Date("2026-10-04T01:00:00.000Z"),
+        }),
+      ),
+    ).toEqual({
+      p_staff_user_account_id: 2,
+      p_booking_id: 7,
+      p_decision: "hold",
+      p_note: null,
+      p_suggested_alternative_venue_id: null,
+      p_hold_expires_at: "2026-10-04T01:00:00.000Z",
+    });
+  });
+
+  it("sends no expiry with an approval or a rejection (SPM-218)", () => {
+    expect(toDecideBookingArgs(decided({ status: "Confirmed", rejectionNote: null, suggestedAlternative: null }))).not.toHaveProperty("p_hold_expires_at");
+    expect(toDecideBookingArgs(decided())).not.toHaveProperty("p_hold_expires_at");
+  });
+
+  it("refuses to send a hold that has no expiry, since the core always sets one (SPM-218)", () => {
+    expect(() =>
+      toDecideBookingArgs(decided({ status: "Tentative Hold", rejectionNote: null, suggestedAlternative: null })),
+    ).toThrow(/needs an expiry/);
+  });
+
   it("gives up on an id this store could not have issued", () => {
     expect(toDecideBookingArgs(decided({ id: "booking-1" as BookingId }))).toBeNull();
     expect(toDecideBookingArgs(decided({ suggestedAlternative: venueId("v-x") }))).toBeNull();
+  });
+});
+
+describe("booking review mapper (SPM-62)", () => {
+  it("reads the event's ids and its assigned coordinator, so a decision can tell them", () => {
+    expect(toBookingForReview(row).event).toMatchObject({
+      id: "12",
+      requestId: "6",
+      coordinatorUserAccountId: "3",
+    });
+  });
+
+  it("reads an event with no request and no coordinator as null, not as \"null\"", () => {
+    const review = toBookingForReview({
+      ...row,
+      event: { ...row.event, event_request_id: null, coordinator_user_account_id: null },
+    });
+
+    expect(review.event).toMatchObject({ requestId: null, coordinatorUserAccountId: null });
   });
 });

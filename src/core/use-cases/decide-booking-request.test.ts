@@ -24,12 +24,14 @@ import { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "./decide-booking-request";
 
 const STAFF = "staff-1";
+const COORDINATOR = "coord-1";
 
 function booking(
   id: string,
   status: BookingStatus,
   slot: "AM" | "PM" = "AM",
   venue = "v1",
+  coordinator: string | null = COORDINATOR,
 ): BookingForReview {
   return {
     id: id as BookingId,
@@ -41,9 +43,13 @@ function booking(
     requestedByName: "Coordinator",
     requestedAt: "2026-10-01T00:00:00.000Z",
     decidedByName: null,
+    holdExpiresAt: null,
     rejectionNote: null,
     suggestedAlternativeLocation: null,
     event: {
+      id: "e1",
+      requestId: "r1",
+      coordinatorUserAccountId: coordinator,
       name: "Summit",
       status: "Planning",
       organisationName: null,
@@ -87,7 +93,7 @@ function build(
   safetyWatch = new InMemorySafetyCheckWatch(),
   holds: readonly StoredBooking[] = [],
 ) {
-  const reviews = new InMemoryBookingReviewRepository(rows, [STAFF]);
+  const reviews = new InMemoryBookingReviewRepository(rows, [STAFF], { v2: "Venue v2" });
   const bookings = new InMemoryBookingRepository([
     ...rows.map((row) => ({
       id: row.id,
@@ -113,6 +119,7 @@ function build(
       bookings,
       safetyCheck,
       clock: new FixedClock(NOW),
+      notifier,
     }),
   };
 }
@@ -231,7 +238,7 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
 describe("DecideBookingRequestUseCase telling Safety Officers (SPM-262)", () => {
   const EVENT = eventId("e1");
 
-  function event(pending: "Requested" | "Confirmed" | "Rejected"): SafetyCheckCandidate {
+  function event(pending: BookingStatus): SafetyCheckCandidate {
     return {
       event: { id: EVENT, name: "Summit", status: "Planning", preferredDate: "2026-10-22", expectedAttendance: 80 },
       bookings: [
@@ -287,5 +294,212 @@ describe("DecideBookingRequestUseCase telling Safety Officers (SPM-262)", () => 
       useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "reject", reason: " ", suggestedAlternative: null }),
     ).rejects.toThrow(DecisionReasonRequiredError);
     expect(notifier.safetyChecksReady).toEqual([]);
+  });
+});
+
+describe("DecideBookingRequestUseCase placing a hold (SPM-218)", () => {
+  it("holding puts the request on hold and says until when (AC1)", async () => {
+    const { useCase, reviews } = build([booking("b1", "Requested")]);
+
+    const result = await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" });
+
+    expect(result).toEqual({
+      bookingId: "b1",
+      status: "Tentative Hold",
+      venueLocation: "Venue v1",
+      holdExpiresAt: "2026-10-04T01:00:00.000Z",
+    });
+    expect(reviews.all()[0]?.status).toBe("Tentative Hold");
+  });
+
+  it("refuses a slot another booking holds, and leaves the request waiting (AC2)", async () => {
+    const { useCase, reviews } = build([booking("b1", "Requested"), booking("b2", "Confirmed")]);
+
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" }),
+    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    expect(reviews.all()[0]?.status).toBe("Requested");
+  });
+
+  it("refuses a slot a live hold keeps, but not one whose hold expired before now (AC2)", async () => {
+    const live = build([booking("b1", "Requested")], undefined, [holdOnSlot(new Date(NOW.getTime() + 1000))]);
+    await expect(
+      live.useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" }),
+    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+
+    const expired = build([booking("b1", "Requested")], undefined, [holdOnSlot(new Date(NOW.getTime() - 1000))]);
+    await expired.useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" });
+    expect(expired.reviews.all()[0]?.status).toBe("Tentative Hold");
+  });
+
+  it("refuses a request that is not waiting any more, whichever status it holds (AC1)", async () => {
+    for (const status of ["Tentative Hold", "Confirmed", "Rejected", "Released", "Cancelled"] as const) {
+      const { useCase } = build([booking("b1", status)]);
+      await expect(
+        useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" }),
+      ).rejects.toBeInstanceOf(BookingNotDecidableError);
+    }
+  });
+
+  it("answers a booking Venue Staff may not see, or someone who is not Venue Staff, as not found (AC4)", async () => {
+    const { useCase, reviews } = build([booking("b1", "Requested")]);
+
+    await expect(
+      useCase.execute({ bookingId: "nope", userAccountId: STAFF, decision: "hold" }),
+    ).rejects.toBeInstanceOf(BookingNotFoundError);
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: "not-staff", decision: "hold" }),
+    ).rejects.toBeInstanceOf(BookingNotFoundError);
+    expect(reviews.all()[0]?.status).toBe("Requested");
+  });
+
+  it("holding the last pending booking tells no Safety Officer, since a hold is not a confirmed booking", async () => {
+    const candidate = (pending: BookingStatus): SafetyCheckCandidate => ({
+      event: {
+        id: eventId("e1"),
+        name: "Summit",
+        status: "Planning",
+        preferredDate: "2026-10-22",
+        expectedAttendance: 80,
+      },
+      bookings: [
+        { status: "Confirmed", venueName: "Venue v2" },
+        { status: pending, venueName: "Venue v1" },
+      ],
+      equipmentLines: [],
+      checked: false,
+    });
+    const safetyWatch = new InMemorySafetyCheckWatch([candidate("Requested")], ["safety-1"], { b1: "e1" });
+    const { useCase, reviews, notifier } = build([booking("b1", "Requested")], safetyWatch);
+    const decide = reviews.decide.bind(reviews);
+    reviews.decide = async (decided) => {
+      await decide(decided);
+      safetyWatch.set(candidate(decided.status));
+    };
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" });
+
+    expect(notifier.safetyChecksReady).toEqual([]);
+  });
+
+  it("holding tells the coordinator nothing: a hold is not yet an answer", async () => {
+    const { useCase, notifier } = build([booking("b1", "Requested")]);
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" });
+
+    expect(notifier.bookingsDecided).toEqual([]);
+  });
+});
+
+describe("DecideBookingRequestUseCase telling the coordinator (SPM-62)", () => {
+  it("AC1: approving tells the event's assigned coordinator once, naming the outcome and the venue", async () => {
+    const { useCase, notifier } = build([booking("b1", "Requested")]);
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+
+    expect(notifier.bookingsDecided).toEqual([
+      {
+        recipientUserAccountId: COORDINATOR,
+        bookingId: "b1",
+        eventId: "e1",
+        eventRequestId: "r1",
+        eventName: "Summit",
+        venueLocation: "Venue v1",
+        slots: [{ date: "2026-10-22", slot: "AM" }],
+        outcome: "Confirmed",
+        reason: null,
+        suggestedAlternativeLocation: null,
+      },
+    ]);
+  });
+
+  it("AC2: rejecting carries the reason as stored and the suggested venue by name", async () => {
+    const { useCase, notifier } = build([booking("b1", "Requested")]);
+
+    await useCase.execute({
+      bookingId: "b1",
+      userAccountId: STAFF,
+      decision: "reject",
+      reason: "  Closed for resurfacing.  ",
+      suggestedAlternative: "v2",
+    });
+
+    expect(notifier.bookingsDecided).toHaveLength(1);
+    expect(notifier.bookingsDecided[0]).toMatchObject({
+      outcome: "Rejected",
+      reason: "Closed for resurfacing.",
+      suggestedAlternativeLocation: "Venue v2",
+    });
+  });
+
+  it("AC2: rejecting with no suggestion carries the reason alone", async () => {
+    const { useCase, notifier } = build([booking("b1", "Requested")]);
+
+    await useCase.execute({
+      bookingId: "b1",
+      userAccountId: STAFF,
+      decision: "reject",
+      reason: "Closed that day",
+      suggestedAlternative: null,
+    });
+
+    expect(notifier.bookingsDecided[0]).toMatchObject({
+      outcome: "Rejected",
+      reason: "Closed that day",
+      suggestedAlternativeLocation: null,
+    });
+  });
+
+  it("AC1: each of an event's bookings, decided in turn, is its own notice naming its own venue", async () => {
+    const { useCase, notifier } = build([
+      booking("b1", "Requested", "AM", "v1"),
+      booking("b2", "Requested", "AM", "v2"),
+    ]);
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+    await useCase.execute({
+      bookingId: "b2",
+      userAccountId: STAFF,
+      decision: "reject",
+      reason: "Closed that day",
+      suggestedAlternative: null,
+    });
+
+    expect(notifier.bookingsDecided.map((notice) => [notice.venueLocation, notice.outcome])).toEqual([
+      ["Venue v1", "Confirmed"],
+      ["Venue v2", "Rejected"],
+    ]);
+  });
+
+  it("an event with no assigned coordinator is still decided, and nobody is told", async () => {
+    const { useCase, notifier, reviews } = build([booking("b1", "Requested", "AM", "v1", null)]);
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+
+    expect(reviews.all()[0]?.status).toBe("Confirmed");
+    expect(notifier.bookingsDecided).toEqual([]);
+  });
+
+  it("a refused decision tells the coordinator nothing", async () => {
+    const { useCase, notifier } = build([
+      booking("b1", "Requested"),
+      booking("b2", "Confirmed"),
+      booking("b3", "Rejected", "PM"),
+    ]);
+
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
+    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "reject", reason: " ", suggestedAlternative: null }),
+    ).rejects.toBeInstanceOf(DecisionReasonRequiredError);
+    await expect(
+      useCase.execute({ bookingId: "b3", userAccountId: STAFF, decision: "approve" }),
+    ).rejects.toBeInstanceOf(BookingNotDecidableError);
+    await expect(
+      useCase.execute({ bookingId: "nope", userAccountId: STAFF, decision: "approve" }),
+    ).rejects.toBeInstanceOf(BookingNotFoundError);
+
+    expect(notifier.bookingsDecided).toEqual([]);
   });
 });

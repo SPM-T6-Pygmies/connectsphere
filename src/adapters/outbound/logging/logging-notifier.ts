@@ -9,6 +9,7 @@ import type {
   OrganiserCoordinatorAssignedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
 
@@ -77,6 +78,12 @@ export class LoggingNotifier implements Notifier {
   async equipmentDecided(notice: EquipmentDecidedNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told event ${notice.eventId}'s equipment is decided`,
+    );
+  }
+
+  async venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told booking ${notice.bookingId} was ${notice.outcome}`,
     );
   }
 }

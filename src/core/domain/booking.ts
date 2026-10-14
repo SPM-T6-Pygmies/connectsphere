@@ -86,15 +86,22 @@ export interface BookingRequest {
 }
 
 /**
+ * How long a Tentative Hold lasts, from the moment Venue Staff place it. The
+ * customer left the figure to the team ([#39]); this is the one place it is
+ * set. SPM-253 expires a hold against it.
+ */
+export const DEFAULT_HOLD_HOURS = 72;
+
+/**
  * Whether a booking keeps its slot from anyone else: only one tentative hold
  * or confirmed booking per venue and slot (#41), and a clash is blocked
  * outright, not warned about (#35). A pending, rejected or released booking
  * holds nothing.
  *
  * SPM-46 AC4: a Tentative Hold holds only until `holdExpiresAt`. A hold with
- * no expiry counts as live -- nothing creates one without an expiry until
- * SPM-218, so this errs towards keeping the slot. The database restates the
- * rule in `booking_holds_slot`.
+ * no expiry counts as live, so this errs towards keeping the slot; every hold
+ * placed by SPM-218 carries one. The database restates the rule in
+ * `booking_holds_slot`.
  *
  * Known gap (#123): the setup and turnaround buffer slots either side of a
  * booking are not counted yet -- only the booking's own slots are. The buffer
@@ -277,6 +284,8 @@ export interface BookingForDecision {
 
 export type BookingDecision =
   | { readonly kind: "approve" }
+  /** SPM-218: Venue Staff hold the request's slots while the coordinator finalises the event. */
+  | { readonly kind: "hold" }
   | {
       readonly kind: "reject";
       readonly reason: string;
@@ -287,19 +296,23 @@ export type BookingDecision =
 /** The outcome of a decision, ready for the store to record. */
 export interface DecidedBooking {
   readonly id: BookingId;
-  readonly status: "Confirmed" | "Rejected";
+  readonly status: "Confirmed" | "Rejected" | "Tentative Hold";
   readonly decidedBy: UserAccountId;
-  /** Null when approved. */
+  /** Null unless rejected. */
   readonly rejectionNote: string | null;
   readonly suggestedAlternative: VenueId | null;
+  /** Only on a hold: when it lapses, `DEFAULT_HOLD_HOURS` after it was placed. */
+  readonly holdExpiresAt?: Date;
 }
 
 /**
- * SPM-22: Venue Staff approve or reject a booking request.
+ * SPM-22: Venue Staff approve or reject a booking request. SPM-218: or hold it.
  *
  * Approving confirms the booking, which holds its slots from then on, so it
  * meets the same hard block a request does (#35, #41): a slot another booking
  * already holds refuses the approval, however many requests asked for it.
+ * Placing a hold keeps the same slots from the same moment, so it meets the
+ * same block; it lapses `DEFAULT_HOLD_HOURS` later.
  * `occupied` is what the venue carries on the booking's own days. Rejecting
  * must say why -- the reason is what the coordinator acts on -- and holds
  * nothing, so it needs no clash check.
@@ -315,10 +328,20 @@ export function decideBooking(
     throw new BookingNotDecidableError();
   }
 
-  if (decision.kind === "approve") {
+  if (decision.kind === "approve" || decision.kind === "hold") {
     const clashes = clashingSlots(booking.slots, occupied, now);
     if (clashes.length > 0) {
       throw new VenueSlotUnavailableError([...clashes].sort(compareSlots));
+    }
+    if (decision.kind === "hold") {
+      return {
+        id: booking.id,
+        status: "Tentative Hold",
+        decidedBy,
+        rejectionNote: null,
+        suggestedAlternative: null,
+        holdExpiresAt: new Date(now.getTime() + DEFAULT_HOLD_HOURS * 60 * 60 * 1000),
+      };
     }
     return {
       id: booking.id,
