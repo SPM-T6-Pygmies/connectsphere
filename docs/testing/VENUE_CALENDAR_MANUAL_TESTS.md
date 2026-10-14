@@ -10,15 +10,17 @@ block recorded by Venue Staff shows on the Coordinator's next load.
 
 A Coordinator opens a venue from **Find a venue** and sees one week, AM/PM/Night per
 day, Singapore time. Each slot reads **Available**, **Confirmed**, **Held** (with when
-it lapses), **Blocked** (with the reason Venue Staff gave) or **Not offered**.
+it lapses), **Blocked** (with the reason Venue Staff gave, and the note under Other) or
+**Not offered**.
 Previous week, This week and Next week move the week.
 
 The cases are specified in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as
-`TC-VCAL-001` to `TC-VCAL-005`. Report what you ran in the PR description's
+`TC-VCAL-001` to `TC-VCAL-006`. Report what you ran in the PR description's
 `## Manual test results` table (CaseID, Result, Actual result, Remarks, Evidence); CI
 records it in `manual-runs.csv` when the PR merges, so do not edit that file.
 
-**Last run:** all five cases passed on 2026-10-15 at commit `ed209e2`. A headless-Chrome
+**Last run:** all six cases passed on 2026-10-15: TC-VCAL-001 to 005 at commit `ed209e2`,
+TC-VCAL-006 at `f5a0308`. A headless-Chrome
 script drove each case against `pnpm next dev` with the Infisical `dev` env and checked
 each expected result; the screenshots are in [`../screenshots/`](../screenshots/).
 
@@ -138,3 +140,19 @@ Step 3 shows the not-found page.
 - [x] Pass
 
 **Screenshots:** [step2-bad-date-message](../screenshots/2026-10-15_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-15_TC-VCAL-005_step3-unknown-venue-404.png)
+
+### TC-VCAL-006: An Other block shows its note (AC2)
+
+Two browser sessions, as in TC-VCAL-004.
+
+1. As Venue Staff, block **UAT-44 Harbour Room** for **PM** on **D+2**, reason **Other**, note
+   *Terrace closed for resurfacing*.
+2. As the Coordinator, open UAT-44 Harbour Room's calendar on the week with D.
+3. As Venue Staff, lift the block.
+
+**Expected:** step 2 shows D+2 PM **Blocked** with *Other: Terrace closed for resurfacing*.
+Main Hall's blocks, which have no note, read as before. After step 3 the slot is Available.
+
+- [x] Pass
+
+**Screenshots:** [step1-other-block-with-note](../screenshots/2026-10-15_TC-VCAL-006_step1-other-block-with-note.png) · [step2-coordinator-sees-note](../screenshots/2026-10-15_TC-VCAL-006_step2-coordinator-sees-note.png)
