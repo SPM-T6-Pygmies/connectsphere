@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { BookingId, DecidedBooking } from "@/core/domain/booking";
-import { BookingNotDecidableError, VenueSlotBlockedError, VenueSlotUnavailableError } from "@/core/domain/errors";
+import type { BookingId, DecidedBooking, ResolvedHold } from "@/core/domain/booking";
+import {
+  BookingNotDecidableError,
+  BookingNotFoundError,
+  HoldNotLiveError,
+  VenueSlotBlockedError,
+  VenueSlotUnavailableError,
+} from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 
 import type { SupabaseServerClient } from "./client";
@@ -165,5 +171,52 @@ describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
     await expect(
       new SupabaseBookingReviewRepository(refuse("CS031", "Booking 12 is already Confirmed").client).decide(HELD),
     ).rejects.toBeInstanceOf(BookingNotDecidableError);
+  });
+});
+
+describe("SupabaseBookingReviewRepository, confirming or releasing a hold (SPM-219)", () => {
+  const confirmed: ResolvedHold = { id: "12" as BookingId, status: "Confirmed", resolvedBy: userAccountId("4") };
+  const released: ResolvedHold = { ...confirmed, status: "Released" };
+
+  it("asks the resolve function to confirm or release the booking", async () => {
+    const { client, calls } = fakeClient({ venue_staff_resolve_hold: { data: null, error: null } });
+    const repository = new SupabaseBookingReviewRepository(client);
+
+    await repository.resolveHold(confirmed);
+    await repository.resolveHold(released);
+
+    expect(calls).toEqual([
+      { name: "venue_staff_resolve_hold", args: { p_staff_user_account_id: 4, p_booking_id: 12, p_resolution: "confirm" } },
+      { name: "venue_staff_resolve_hold", args: { p_staff_user_account_id: 4, p_booking_id: 12, p_resolution: "release" } },
+    ]);
+  });
+
+  it("maps CS074 to a hold that is no longer live, and CS030 to not found (AC4)", async () => {
+    const refuse = (code: string) =>
+      new SupabaseBookingReviewRepository(
+        fakeClient({ venue_staff_resolve_hold: { data: null, error: { code, message: "refused" } } }).client,
+      );
+
+    await expect(refuse("CS074").resolveHold(confirmed)).rejects.toBeInstanceOf(HoldNotLiveError);
+    await expect(refuse("CS030").resolveHold(released)).rejects.toBeInstanceOf(BookingNotFoundError);
+  });
+
+  it("maps CS028 to a blocked-slot error naming the slot, for a confirmation over a block (AC7)", async () => {
+    const { client } = fakeClient({
+      venue_staff_resolve_hold: { data: null, error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 PM" } },
+      venue_staff_bookings: { data: [BOOKING_ROW], error: null },
+    });
+
+    await expect(new SupabaseBookingReviewRepository(client).resolveHold(confirmed)).rejects.toBeInstanceOf(
+      VenueSlotBlockedError,
+    );
+  });
+
+  it("surfaces any other fault as a genuine error", async () => {
+    const { client } = fakeClient({ venue_staff_resolve_hold: { data: null, error: { code: "XX000", message: "boom" } } });
+
+    await expect(new SupabaseBookingReviewRepository(client).resolveHold(confirmed)).rejects.toThrow(
+      "Failed to resolve the hold: boom",
+    );
   });
 });

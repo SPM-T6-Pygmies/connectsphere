@@ -1,7 +1,9 @@
 import {
   decideBooking,
+  resolveHold,
   type BookingDecision,
   type BookingId,
+  type HoldResolution,
 } from "../domain/booking";
 import { BookingNotFoundError } from "../domain/errors";
 import { userAccountId, type UserAccountId } from "../domain/user-account";
@@ -22,6 +24,9 @@ export type DecideBookingRequestCommand = {
 } & (
   | { readonly decision: "approve" }
   | { readonly decision: "hold" }
+  /** SPM-219: end a live hold, committing its slots to the event or freeing them. */
+  | { readonly decision: "confirm" }
+  | { readonly decision: "release" }
   | {
       readonly decision: "reject";
       readonly reason: string;
@@ -32,7 +37,7 @@ export type DecideBookingRequestCommand = {
 
 export interface DecideBookingRequestResult {
   readonly bookingId: string;
-  readonly status: "Confirmed" | "Rejected" | "Tentative Hold";
+  readonly status: "Confirmed" | "Rejected" | "Tentative Hold" | "Released";
   readonly venueLocation: string;
   /** Only on a hold: when it lapses, as an ISO instant. */
   readonly holdExpiresAt?: string;
@@ -79,6 +84,10 @@ export class DecideBookingRequestUseCase {
       throw new BookingNotFoundError(command.bookingId);
     }
 
+    if (command.decision === "confirm" || command.decision === "release") {
+      return this.resolve(command.decision, staff, booking);
+    }
+
     const dates = [...new Set(booking.slots.map(({ date }) => date))];
     const occupied = dates.length === 0 ? [] : await bookings.listSlotsAt(booking.venueId, dates);
 
@@ -113,13 +122,40 @@ export class DecideBookingRequestUseCase {
   }
 
   /**
+   * SPM-219: Venue Staff confirm or release a live hold. Whether it is still
+   * live is `resolveHold`'s call; the store restates it, so a hold that lapsed
+   * while the page was open is refused either way. The coordinator is told, as
+   * for any other decision.
+   */
+  private async resolve(
+    resolution: HoldResolution,
+    staff: UserAccountId,
+    booking: BookingForReview,
+  ): Promise<DecideBookingRequestResult> {
+    const resolved = resolveHold(
+      {
+        id: booking.id,
+        status: booking.status,
+        holdExpiresAt: booking.holdExpiresAt === null ? null : new Date(booking.holdExpiresAt),
+      },
+      resolution,
+      staff,
+      this.deps.clock.now(),
+    );
+    await this.deps.reviews.resolveHold(resolved);
+    await this.tellCoordinator(staff, booking, resolved.status);
+
+    return { bookingId: resolved.id, status: resolved.status, venueLocation: booking.venueLocation };
+  }
+
+  /**
    * Reads the booking back as stored, so the notice carries the reason and
    * the suggested venue's name exactly as the coordinator will find them.
    */
   private async tellCoordinator(
     staff: UserAccountId,
     before: BookingForReview,
-    outcome: "Confirmed" | "Rejected",
+    outcome: "Confirmed" | "Rejected" | "Released",
   ): Promise<void> {
     const recipient = before.event.coordinatorUserAccountId;
     if (recipient === null) {

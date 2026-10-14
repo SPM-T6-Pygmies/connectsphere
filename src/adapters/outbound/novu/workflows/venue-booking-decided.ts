@@ -58,7 +58,7 @@ export const venueBookingDecided = workflow(
             additionalProperties: false,
           },
         },
-        outcome: { type: "string", enum: ["Confirmed", "Rejected"] },
+        outcome: { type: "string", enum: ["Confirmed", "Rejected", "Released"] },
         reason: { type: ["string", "null"] },
         suggestedAlternativeLocation: { type: ["string", "null"] },
       },

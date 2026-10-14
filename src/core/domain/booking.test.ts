@@ -7,7 +7,9 @@ import {
   decideBooking,
   DEFAULT_HOLD_HOURS,
   requestVenueBooking,
+  resolveHold,
   type BookingForDecision,
+  type BookingForHoldResolution,
   type BookingId,
   type BookingStatus,
   type OccupiedSlot,
@@ -18,6 +20,7 @@ import {
   BookingRoomLayoutNotChangeableError,
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
+  HoldNotLiveError,
   InvalidBookingDateError,
   NoBookingSlotsError,
   RoomLayoutRequiredError,
@@ -556,4 +559,51 @@ describe("chooseLayoutChange (SPM-104)", () => {
       );
     },
   );
+});
+
+describe("resolveHold confirming or releasing a hold (SPM-219)", () => {
+  const staff = userAccountId("staff-2");
+  const live: BookingForHoldResolution = {
+    id: "booking-1" as BookingId,
+    status: "Tentative Hold",
+    holdExpiresAt: AFTER_NOW,
+  };
+
+  it("confirming a live hold makes it Confirmed and records who (AC1, AC3)", () => {
+    expect(resolveHold(live, "confirm", staff, NOW)).toEqual({
+      id: live.id,
+      status: "Confirmed",
+      resolvedBy: staff,
+    });
+  });
+
+  it("releasing a live hold makes it Released and records who (AC2, AC3)", () => {
+    expect(resolveHold(live, "release", staff, NOW)).toEqual({
+      id: live.id,
+      status: "Released",
+      resolvedBy: staff,
+    });
+  });
+
+  it("a hold with no expiry counts as live, as it does for blocking its slots (AC4)", () => {
+    expect(resolveHold({ ...live, holdExpiresAt: null }, "confirm", staff, NOW).status).toBe("Confirmed");
+  });
+
+  it("is live up to the instant it expires, and not at it or after (AC4 boundary)", () => {
+    const justBefore = { ...live, holdExpiresAt: new Date(NOW.getTime() + 1) };
+    const exactly = { ...live, holdExpiresAt: NOW };
+    const justAfter = { ...live, holdExpiresAt: new Date(NOW.getTime() - 1) };
+
+    expect(resolveHold(justBefore, "release", staff, NOW).status).toBe("Released");
+    expect(() => resolveHold(exactly, "confirm", staff, NOW)).toThrow(HoldNotLiveError);
+    expect(() => resolveHold(justAfter, "release", staff, NOW)).toThrow(HoldNotLiveError);
+  });
+
+  it("only a hold can be confirmed or released, whatever else the booking is (AC4)", () => {
+    for (const status of ["Requested", "Confirmed", "Rejected", "Released", "Cancelled"] as const) {
+      for (const resolution of ["confirm", "release"] as const) {
+        expect(() => resolveHold({ ...live, status }, resolution, staff, NOW)).toThrow(HoldNotLiveError);
+      }
+    }
+  });
 });

@@ -1,4 +1,4 @@
-import type { BookingId, DecidedBooking } from "@/core/domain/booking";
+import type { BookingId, DecidedBooking, ResolvedHold } from "@/core/domain/booking";
 import { venueId } from "@/core/domain/venue";
 import type { BookingForReview } from "@/core/ports/outbound/booking-review-repository";
 
@@ -107,5 +107,26 @@ export function toDecideBookingArgs(decided: DecidedBooking): DecideBookingArgs 
     p_note: decided.rejectionNote,
     p_suggested_alternative_venue_id: alternative,
     ...(decided.holdExpiresAt === undefined ? {} : { p_hold_expires_at: decided.holdExpiresAt.toISOString() }),
+  };
+}
+
+/** The arguments of `venue_staff_resolve_hold`; null when an id is not one this store issued (SPM-219). */
+export interface ResolveHoldArgs {
+  p_staff_user_account_id: number;
+  p_booking_id: number;
+  p_resolution: "confirm" | "release";
+}
+
+export function toResolveHoldArgs(resolved: ResolvedHold): ResolveHoldArgs | null {
+  const staff = toKey(resolved.resolvedBy);
+  const booking = toKey(resolved.id);
+  if (staff === null || booking === null) {
+    return null;
+  }
+
+  return {
+    p_staff_user_account_id: staff,
+    p_booking_id: booking,
+    p_resolution: resolved.status === "Confirmed" ? "confirm" : "release",
   };
 }

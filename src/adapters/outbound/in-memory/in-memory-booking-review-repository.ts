@@ -1,5 +1,14 @@
-import { clashingSlots, type BookingId, type DecidedBooking } from "@/core/domain/booking";
-import { BookingNotDecidableError, VenueSlotUnavailableError } from "@/core/domain/errors";
+import {
+  clashingSlots,
+  type BookingId,
+  type DecidedBooking,
+  type ResolvedHold,
+} from "@/core/domain/booking";
+import {
+  BookingNotDecidableError,
+  HoldNotLiveError,
+  VenueSlotUnavailableError,
+} from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   BookingForReview,
@@ -72,6 +81,22 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
       suggestedAlternativeLocation:
         decided.suggestedAlternative === null ? null : (this.venueNames[decided.suggestedAlternative] ?? null),
       decidedByName: decided.decidedBy,
+    };
+  }
+
+  /** Checks the status only: review rows carry the expiry, but a test pins it with the clock. */
+  async resolveHold(resolved: ResolvedHold): Promise<void> {
+    const index = this.rows.findIndex((row) => row.id === resolved.id);
+    const row = this.rows[index];
+    if (row === undefined || row.status !== "Tentative Hold") {
+      throw new HoldNotLiveError();
+    }
+
+    this.rows[index] = {
+      ...row,
+      status: resolved.status,
+      holdExpiresAt: resolved.status === "Confirmed" ? null : row.holdExpiresAt,
+      decidedByName: resolved.resolvedBy,
     };
   }
 
