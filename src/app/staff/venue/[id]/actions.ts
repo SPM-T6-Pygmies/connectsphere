@@ -11,7 +11,7 @@ export type DecideBookingRequestState =
   | { status: "error"; message: string; note: string; alternative: string };
 
 /**
- * SPM-22: Venue Staff approve or reject a booking request.
+ * SPM-22: Venue Staff approve or reject a booking request. SPM-218: or hold it.
  *
  * Who is deciding comes from `getCurrentVenueStaff()` on the server, never from
  * the form. A broken business rule -- no reason, already decided, a clash --
@@ -52,7 +52,7 @@ export async function decideBookingRequestAction(
 
     const decideBookingRequest = await buildDecideBookingRequest();
     await decideBookingRequest.execute(
-      decision === "approve"
+      decision === "approve" || decision === "hold"
         ? { bookingId, userAccountId: staff.userAccountId, decision }
         : {
             bookingId,

@@ -28,6 +28,7 @@ import type {
 } from "@/core/use-cases/view-venue-booking-options";
 
 import { EmptyState, FieldList } from "../../../field-list";
+import { formatHoldExpiry } from "../../../hold-expiry";
 import { formatSlotsOnDates } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
@@ -86,7 +87,16 @@ function BookingsTable({
               key={booking.id}
               data-state={booking.id === openedBookingId ? "selected" : undefined}
             >
-              <TableCell className="font-medium">{booking.venueLocation}</TableCell>
+              <TableCell className="font-medium whitespace-normal">
+                {booking.venueLocation}
+                {booking.status === "Tentative Hold" && booking.holdExpiresAt !== null ? (
+                  // First column, not Status: the table scrolls sideways, and the
+                  // expiry is the point of a hold, so it must not sit off-screen.
+                  <div className="text-muted-foreground text-xs font-normal">
+                    On hold until {formatHoldExpiry(booking.holdExpiresAt)}
+                  </div>
+                ) : null}
+              </TableCell>
               <TableCell className="text-muted-foreground text-xs whitespace-normal">
                 {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
               </TableCell>

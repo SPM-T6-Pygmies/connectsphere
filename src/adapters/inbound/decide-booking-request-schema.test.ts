@@ -26,8 +26,14 @@ describe("decideBookingRequestSchema (SPM-22)", () => {
         .success,
     ).toBe(false);
     expect(
-      decideBookingRequestSchema.safeParse({ bookingId: "7", decision: "hold", note: "", alternative: "" })
+      decideBookingRequestSchema.safeParse({ bookingId: "7", decision: "maybe", note: "", alternative: "" })
         .success,
     ).toBe(false);
+  });
+
+  it("reads a hold, with the note and suggestion blank (SPM-218)", () => {
+    expect(
+      decideBookingRequestSchema.parse({ bookingId: "7", decision: "hold", note: "", alternative: "" }),
+    ).toEqual({ bookingId: "7", decision: "hold", note: "", alternative: null });
   });
 });

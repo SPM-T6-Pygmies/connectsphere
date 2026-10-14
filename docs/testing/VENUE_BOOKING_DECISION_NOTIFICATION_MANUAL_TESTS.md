@@ -19,8 +19,9 @@ What SPM-62 does **not** cover, so is not tested here:
 
 - **Email delivery.** The per-type channel choice (#37) belongs to SPM-47;
   every notification so far is in-app only.
-- **Tentative Hold.** That is a third outcome (SPM-218, SPM-219) and isn't
-  built yet.
+- **Tentative Hold.** Placing a hold (SPM-218) tells the coordinator nothing:
+  it is not yet an answer to the request, and the coordinator sees "On hold
+  until …" on the booking. Confirming or releasing one (SPM-219) is not built yet.
 - **A suggested arrangement other than a venue.** Venue Staff can only suggest
   a venue; anything else goes in the reason.
 

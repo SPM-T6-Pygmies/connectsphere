@@ -14,11 +14,13 @@ const INITIAL: DecideBookingRequestState = { status: "idle" };
 
 /**
  * SPM-22: approve or reject the booking request Venue Staff are reviewing.
+ * SPM-218: or hold it.
  *
- * One form, two submit buttons, as the coordinator's decision form does: the
- * pressed button's `name` and `value` reach the FormData, so neither carries a
- * `formAction`. "Hold tentatively" is not offered here -- it belongs to
- * SPM-218 and SPM-219. On success the page re-renders showing the outcome.
+ * One form, three submit buttons, as the coordinator's decision form does: the
+ * pressed button's `name` and `value` reach the FormData, so none carries a
+ * `formAction`. A hold keeps the request's slots while the coordinator
+ * finalises the event, and needs neither a note nor a suggestion. Confirming or
+ * releasing a hold is SPM-219. On success the page re-renders showing the outcome.
  */
 export function DecisionForm({
   bookingId,
@@ -79,6 +81,9 @@ export function DecisionForm({
       <div className="flex flex-wrap gap-2">
         <Button type="submit" name="decision" value="approve" disabled={pending}>
           Approve booking
+        </Button>
+        <Button type="submit" name="decision" value="hold" variant="outline" disabled={pending}>
+          Place hold
         </Button>
         <Button type="submit" name="decision" value="reject" variant="destructive" disabled={pending}>
           Reject
