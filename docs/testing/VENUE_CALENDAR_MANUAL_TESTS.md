@@ -18,7 +18,9 @@ The cases are specified in [`../tests/manual-registry.csv`](../tests/manual-regi
 `## Manual test results` table (CaseID, Result, Actual result, Remarks, Evidence); CI
 records it in `manual-runs.csv` when the PR merges, so do not edit that file.
 
-**Last run:** not yet run.
+**Last run:** all five cases passed on 2026-10-15 at commit `ed209e2`. A headless-Chrome
+script drove each case against `pnpm next dev` with the Infisical `dev` env and checked
+each expected result; the screenshots are in [`../screenshots/`](../screenshots/).
 
 ---
 
@@ -73,7 +75,9 @@ Signed in as `coordinator@test.com`.
 slot of the week. Garden Hall shows **Available** on D AM (the rejected booking does
 not count) and **Not offered** in every Night slot.
 
-- [ ] Pass
+- [x] Pass
+
+**Screenshots:** [step1-search-results-link](../screenshots/2026-10-15_TC-VCAL-001_step1-search-results-link.png) · [step2-harbour-room-confirmed](../screenshots/2026-10-15_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-not-offered](../screenshots/2026-10-15_TC-VCAL-001_step3-garden-hall-not-offered.png)
 
 ### TC-VCAL-002: Blocked slots give their reason (AC2)
 
@@ -84,7 +88,14 @@ shows. AM on D to D+4 reads **Blocked** with *Renovation*, except D+2 AM, which 
 *Renovation, Maintenance*. D+2 PM and Night read **Blocked** with *Maintenance*. Every
 other slot reads **Not offered**.
 
-- [ ] Pass
+> **Seed timing.** `seed-venue-unavailability` dates its blocks from the UTC day, so a
+> run between midnight and 08:00 Singapore time puts them one day earlier than D. The
+> 2026-10-15 run was one: the blocks ran 28 Oct to 1 Nov, with the overlap on 30 Oct,
+> and the calendar matched the stored blocks exactly.
+
+- [x] Pass
+
+**Screenshots:** [step1-main-hall-block-reasons](../screenshots/2026-10-15_TC-VCAL-002_step1-main-hall-block-reasons.png)
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
@@ -94,7 +105,9 @@ other slot reads **Not offered**.
 ran, worded as on the Venue Staff decision page (e.g. *Until Thu, 5 Nov, 12:00 pm*). D+7
 AM reads **Not offered**, not Held: its hold has expired.
 
-- [ ] Pass
+- [x] Pass
+
+**Screenshots:** [step1-main-hall-held](../screenshots/2026-10-15_TC-VCAL-003_step1-main-hall-held.png)
 
 ### TC-VCAL-004: The calendar reads live, with no refresh step (AC3)
 
@@ -108,7 +121,9 @@ Two browser sessions (one in a private window): Coordinator and Venue Staff.
 **Expected:** step 1 shows D+1 AM **Available**; step 3 shows it **Blocked** with *Safety*;
 step 4 shows it **Available** again. There is no refresh or sync button anywhere.
 
-- [ ] Pass
+- [x] Pass
+
+**Screenshots:** [step1-available-before](../screenshots/2026-10-15_TC-VCAL-004_step1-available-before.png) · [step2-staff-records-block](../screenshots/2026-10-15_TC-VCAL-004_step2-staff-records-block.png) · [step3-blocked-after-reload](../screenshots/2026-10-15_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-15_TC-VCAL-004_step4-available-after-lift.png)
 
 ### TC-VCAL-005: Moving between weeks, and a bad address
 
@@ -120,4 +135,6 @@ step 4 shows it **Available** again. There is no refresh or sync button anywhere
 starting today. Step 2 shows *2026-13-01 is not a date.* with a **Show this week** link.
 Step 3 shows the not-found page.
 
-- [ ] Pass
+- [x] Pass
+
+**Screenshots:** [step2-bad-date-message](../screenshots/2026-10-15_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-15_TC-VCAL-005_step3-unknown-venue-404.png)
