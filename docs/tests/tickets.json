@@ -826,6 +826,16 @@
       "title": "Email the registration link through Novu",
       "parent": "SPM-87",
       "status": "In Progress"
+    },
+    "SPM-306": {
+      "title": "Point the confirmation panel at the email",
+      "parent": "SPM-87",
+      "status": "In Progress"
+    },
+    "SPM-307": {
+      "title": "Manual test cases and registry for the registration email",
+      "parent": "SPM-87",
+      "status": "In Progress"
     }
   }
 }
