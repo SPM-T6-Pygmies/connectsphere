@@ -51,6 +51,18 @@ export interface ClarificationRequestedNotice {
 }
 
 /**
+ * What an event request's assigned Event Coordinator is told when its Event
+ * Organiser posts on the clarification thread, as a reply or a new message
+ * (SPM-164). `message` is the post as stored, so the notification quotes it.
+ */
+export interface OrganiserMessagePostedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly message: string;
+}
+
+/**
  * What an Event Organiser is told when the assigned coordinator approves or
  * rejects their request (SPM-60). `decisionRecord` is the coordinator's reason
  * for a rejection, or their optional note on an approval.
@@ -198,6 +210,7 @@ export interface Notifier {
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void>;
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void>;
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void>;
+  organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void>;
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void>;
   safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void>;
   safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void>;

@@ -347,12 +347,13 @@ export async function buildResolveClarificationThread(): Promise<ResolveClarific
   });
 }
 
-/** SPM-33 AC4-AC5: the responsible Organiser answers on the thread. Appends, and nothing else. */
+/** SPM-33 AC4-AC5: the responsible Organiser answers on the thread; SPM-164 tells the Coordinator. */
 export async function buildPostClarificationMessage(): Promise<PostClarificationMessageUseCase> {
   const client = await createSupabaseServerClient();
   return new PostClarificationMessageUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
     clarificationThread: new SupabaseClarificationThreadRepository(client),
+    notifier: recordedNotifier(),
   });
 }
 

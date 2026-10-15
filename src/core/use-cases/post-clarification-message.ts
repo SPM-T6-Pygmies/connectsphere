@@ -17,6 +17,7 @@ import {
 import { userAccountId } from "../domain/user-account";
 import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type { Notifier } from "../ports/outbound/notifier";
 
 export interface PostClarificationMessageCommand {
   readonly id: string;
@@ -35,6 +36,7 @@ export interface PostClarificationMessageResult {
 export interface PostClarificationMessageDeps {
   readonly eventRequests: EventRequestRepository;
   readonly clarificationThread: ClarificationThreadRepository;
+  readonly notifier: Notifier;
 }
 
 /**
@@ -57,8 +59,10 @@ export interface PostClarificationMessageDeps {
  * open on a decided request invites questions nobody is left to act on --
  * the team settled SPM-33's open question that way.
  *
- * Telling the Coordinator that the Organiser replied is its own card under
- * SPM-47, not this use case's.
+ * Once the message is stored, the assigned Coordinator is told what was said
+ * (SPM-164), since nothing about the request changes to tell them otherwise.
+ * A refused post throws before this, so it notifies no one, and a request no
+ * Coordinator has been assigned to yet has no one to tell.
  */
 export class PostClarificationMessageUseCase {
   constructor(private readonly deps: PostClarificationMessageDeps) {}
@@ -112,6 +116,15 @@ export class PostClarificationMessageUseCase {
       // return opens a question (SPM-33 decision 3).
       isClarificationRequest: false,
     });
+
+    if (request.assignedCoordinatorUserAccountId !== null) {
+      await this.deps.notifier.organiserMessagePosted({
+        recipientUserAccountId: request.assignedCoordinatorUserAccountId,
+        eventRequestId: request.id,
+        eventName: request.details.eventName,
+        message: body,
+      });
+    }
 
     return { clarificationMessageId: stored.id };
   }

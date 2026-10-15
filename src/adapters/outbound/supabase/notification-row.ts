@@ -7,6 +7,7 @@ import { equipmentDecidedMessage } from "@/adapters/outbound/notification-conten
 import { equipmentNeedsAttentionMessage } from "@/adapters/outbound/notification-content/equipment-needs-attention";
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
+import { organiserMessagePostedMessage } from "@/adapters/outbound/notification-content/organiser-message-posted";
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
 import { safetyCheckRecordedMessage } from "@/adapters/outbound/notification-content/safety-check-recorded";
 import { venueBookingDecidedMessage } from "@/adapters/outbound/notification-content/venue-booking-decided";
@@ -18,6 +19,7 @@ import type {
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -77,6 +79,15 @@ export function clarificationRequestedRow(notice: ClarificationRequestedNotice):
     "clarification-requested",
     notice,
     clarificationRequestedMessage(notice),
+  );
+}
+
+/** The `notification` row telling a Coordinator what the Organiser wrote (SPM-164). */
+export function organiserMessagePostedRow(notice: OrganiserMessagePostedNotice): NotificationRow {
+  return eventRequestNotificationRow(
+    "organiser-message-posted",
+    notice,
+    organiserMessagePostedMessage(notice),
   );
 }
 

@@ -21,6 +21,7 @@ const TRIGGERS: Readonly<Record<string, NotificationTrigger>> = {
   "coordinator-assigned": "Coordinator assigned",
   "organiser-coordinator-assigned": "Coordinator assigned",
   "clarification-requested": "Clarification requested",
+  "organiser-message-posted": "Organiser message",
   "event-request-decided": "Request decided",
   "safety-check-ready": "Ready for safety check",
   "safety-check-recorded": "Safety check outcome",
