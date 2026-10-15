@@ -358,7 +358,12 @@ Use two browsers, or sign out between steps.
 - Clicking it opens Vendor Appreciation Day beside the list, and the message
   from step 1 is shown in its thread
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-NOTIFY-013_step1-organiser-posts-message.png`](../screenshots/2026-10-15_TC-NOTIFY-013_step1-organiser-posts-message.png)
+- [`TC-NOTIFY-013_step2-coordinator-inbox.png`](../screenshots/2026-10-15_TC-NOTIFY-013_step2-coordinator-inbox.png)
+- [`TC-NOTIFY-013_step3-opened-request-with-message.png`](../screenshots/2026-10-15_TC-NOTIFY-013_step3-opened-request-with-message.png)
+
+**Status:** [x] Pass [ ] Fail
 
 ---
 
@@ -377,3 +382,17 @@ Submitted and unassigned from the seed, and both coordinator inboxes were empty.
 | TC-NOTIFY-004 | Pass | One unread "Quarterly Partner Forum has been assigned to you", badged Coordinator assigned; clicking it opened the request at `/staff/coordinator/notifications/2` |
 | TC-NOTIFY-005 | Pass | After reassigning to Test Coordinator 2: one new unread notice for coordinator2; coordinator still has only the original, now read |
 | TC-NOTIFY-012 | Not Executed | Production-only after the Novu sync; cannot appear locally |
+
+## Run record — 2026-10-15
+
+Run by Claude Code for jerricknsc on branch
+`feat/spm-164-notify-coordinator-of-organiser-message`, against `pnpm dev:local`
+(Novu Development through a `novu dev` tunnel) on local Supabase, in headless
+Chromium driven by Playwright at 1440 × 900. The database was not reset;
+`scripts/seed-coordinator-view/seed.sql` was applied to add the sample requests.
+To meet the "nothing unread" precondition without `pnpm novu:clear`, the
+coordinator's earlier notices were marked read and archived from the inbox menu.
+
+| Case | Result | Observed |
+| --- | --- | --- |
+| TC-NOTIFY-013 | Pass | The organiser's comment appeared in their thread. The coordinator's inbox then held one unread notice, badged Organiser message, reading "Vendor Appreciation Day has a message from the organiser" and quoting the comment. Clicking it opened `/staff/coordinator/notifications/7` with the comment in the Clarification thread. The `notification` row was `organiser-message-posted`, `Sent`, to the coordinator |
