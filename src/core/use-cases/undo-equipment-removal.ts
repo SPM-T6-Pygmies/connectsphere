@@ -9,7 +9,7 @@ import {
   existingLine,
   type EquipmentRequirementChange,
 } from "./equipment-requirement-change";
-import type { EquipmentRequirementChangeDeps } from "./record-equipment-requirement";
+import type { EquipmentAttentionDeps, EquipmentRequirementChangeDeps } from "./record-equipment-requirement";
 
 export interface UndoEquipmentRemovalCommand {
   readonly eventId: string;
@@ -23,7 +23,7 @@ export interface UndoEquipmentRemovalCommand {
  * Support have not yet acted on. The line stays under review.
  */
 export class UndoEquipmentRemovalUseCase {
-  constructor(private readonly deps: EquipmentRequirementChangeDeps) {}
+  constructor(private readonly deps: EquipmentRequirementChangeDeps & EquipmentAttentionDeps) {}
 
   /** Throws `EventNotFoundError` both for no such event and for one not assigned to this caller (#91). */
   async execute(command: UndoEquipmentRemovalCommand): Promise<EquipmentRequirementChange> {
@@ -43,12 +43,21 @@ export class UndoEquipmentRemovalUseCase {
     const restored = undoEquipmentRemoval(event, line);
 
     await equipment.update(id, restored, caller);
+    const item = catalogueItem(catalogue, itemId);
+    // SPM-64 AC1: Technical Support hear the removal was taken back.
+    await this.deps.attention.announce({
+      event,
+      equipmentType: item.type,
+      change: "removalWithdrawn",
+      before: line,
+      after: restored,
+    });
 
     return describeChange({
       action: "removalUndone",
       event,
       reservation,
-      item: catalogueItem(catalogue, itemId),
+      item,
       before: line,
       after: restored,
       changed: true,

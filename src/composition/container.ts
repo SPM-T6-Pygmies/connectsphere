@@ -17,6 +17,7 @@ import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supaba
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
+import { SupabaseEquipmentNoticeDirectory } from "@/adapters/outbound/supabase/supabase-equipment-notice-directory";
 import { SupabaseVenueStaffDirectory } from "@/adapters/outbound/supabase/supabase-venue-staff-directory";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
@@ -58,6 +59,8 @@ import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
+import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
+import { EquipmentOutcomeAnnouncer } from "@/core/use-cases/announce-equipment-outcome";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
@@ -408,18 +411,31 @@ export async function buildViewEventEquipmentForTechnicalSupport(): Promise<View
   });
 }
 
+/**
+ * SPM-65: tells the event's coordinator the outcome once Technical Support
+ * finish its equipment. The lines are read as the reviewer; the coordinator
+ * with the admin client, since Technical Support may not read assignments.
+ */
+function equipmentOutcomeAnnouncer(equipment: SupabaseTechnicalEquipmentRepository): EquipmentOutcomeAnnouncer {
+  return new EquipmentOutcomeAnnouncer({
+    equipment,
+    directory: new SupabaseEquipmentNoticeDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-274 AC1: reserve a line's full quantity. */
 export async function buildReserveEquipmentLine(): Promise<ReserveEquipmentLineUseCase> {
-  const client = await createSupabaseServerClient();
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
-  return new ReserveEquipmentLineUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+  return new ReserveEquipmentLineUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /** SPM-274 AC3: mark a line unfulfilled, with why. */
 export async function buildMarkEquipmentLineUnfulfilled(): Promise<MarkEquipmentLineUnfulfilledUseCase> {
-  const client = await createSupabaseServerClient();
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
-  return new MarkEquipmentLineUnfulfilledUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+  return new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /**
@@ -623,6 +639,18 @@ function safetyCheckAnnouncer(): SafetyCheckEntryAnnouncer {
   });
 }
 
+/**
+ * SPM-64: tells every Technical Support Staff member of each change a
+ * coordinator makes to a line. Reads with the admin client: the coordinator
+ * may not list staff accounts themselves.
+ */
+function equipmentAttentionAnnouncer(): EquipmentAttentionAnnouncer {
+  return new EquipmentAttentionAnnouncer({
+    directory: new SupabaseEquipmentNoticeDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-261: an event's safety checks, for its assigned coordinator. */
 export async function buildViewEventSafetyChecks(): Promise<ViewEventSafetyChecksUseCase> {
   const client = await createSupabaseServerClient();
@@ -691,28 +719,43 @@ export async function buildViewEventEquipment(): Promise<ViewEventEquipmentUseCa
 export async function buildRecordEquipmentRequirement(): Promise<RecordEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new RecordEquipmentRequirementUseCase({ events, equipment });
+  return new RecordEquipmentRequirementUseCase({ events, equipment, attention: equipmentAttentionAnnouncer() });
 }
 
 /** SPM-41 AC7-9: the assigned coordinator changes a line's quantity or technical requirements. */
 export async function buildEditEquipmentRequirement(): Promise<EditEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new EditEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new EditEquipmentRequirementUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-41 AC10-11: the assigned coordinator removes a line. */
 export async function buildRemoveEquipmentRequirement(): Promise<RemoveEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new RemoveEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new RemoveEquipmentRequirementUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-41 AC17: the assigned coordinator takes back a removal Technical Support have not yet acted on. */
 export async function buildUndoEquipmentRemoval(): Promise<UndoEquipmentRemovalUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new UndoEquipmentRemovalUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new UndoEquipmentRemovalUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */

@@ -9,6 +9,7 @@ import {
   awaitsDecision,
   equipmentQueueOf,
   daysShortOfService,
+  finishesReview,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
   reserveEquipmentLine,
@@ -490,5 +491,24 @@ describe("daysShortOfService (SPM-274)", () => {
     ];
 
     expect(daysShortOfService(3, reservations, TODAY)).toEqual([]);
+  });
+});
+
+describe("finishesReview (SPM-65)", () => {
+  const unfulfilledLine = () =>
+    line({ quantityReserved: 0, state: "Unfulfilled", decision: { by: userAccountId("support-1"), comment: "only 1" } });
+
+  it("AC1: the last line needing attention was decided", () => {
+    expect(finishesReview([line(), newLine()], [line(), line()])).toBe(true);
+    expect(finishesReview([newLine()], [unfulfilledLine()])).toBe(true);
+  });
+
+  it("AC2: another line still needs attention", () => {
+    expect(finishesReview([newLine(), newLine()], [line(), newLine()])).toBe(false);
+    expect(finishesReview([newLine(), removalRequestedLine()], [line(), removalRequestedLine()])).toBe(false);
+  });
+
+  it("AC2: nothing needed attention before", () => {
+    expect(finishesReview([line()], [line()])).toBe(false);
   });
 });

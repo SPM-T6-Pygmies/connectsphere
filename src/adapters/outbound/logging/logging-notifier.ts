@@ -1,6 +1,8 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
+  EquipmentDecidedNotice,
+  EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   Notifier,
@@ -64,6 +66,18 @@ export class LoggingNotifier implements Notifier {
   async venueBookingRequested(notice: VenueBookingRequestedNotice): Promise<void> {
     console.info(
       `[notifier] venue staff ${notice.recipientUserAccountId} told booking ${notice.bookingId} was requested`,
+    );
+  }
+
+  async equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void> {
+    console.info(
+      `[notifier] technical support ${notice.recipientUserAccountId} told event ${notice.eventId}'s ${notice.equipmentType} line was ${notice.change}`,
+    );
+  }
+
+  async equipmentDecided(notice: EquipmentDecidedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told event ${notice.eventId}'s equipment is decided`,
     );
   }
 
