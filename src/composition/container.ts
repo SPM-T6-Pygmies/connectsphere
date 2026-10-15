@@ -305,9 +305,18 @@ function recordedNotifier(): Notifier {
   const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
   const delivering =
     secretKey && novuCanRun
-      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix(), appBaseUrl())
       : new LoggingNotifier();
   return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
+}
+
+/**
+ * Where links in emails point (SPM-87). Vercel sets the production domain on
+ * every deployment; anywhere else is a developer's own machine.
+ */
+function appBaseUrl(): string {
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return production ? `https://${production}` : "http://localhost:3000";
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {

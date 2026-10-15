@@ -821,6 +821,11 @@
       "title": "Notify the attendee when they register",
       "parent": "SPM-87",
       "status": "In Progress"
+    },
+    "SPM-305": {
+      "title": "Email the registration link through Novu",
+      "parent": "SPM-87",
+      "status": "In Progress"
     }
   }
 }
