@@ -10,7 +10,7 @@ whether a record exists, and that it works at mobile width.
 The rules behind the screen are unit-tested (tagged `SPM-16`): which role each
 page area names (`pageAreaOwner`) and where the link goes (`homeWorkspaceFor`).
 
-These cases are registered as `TC-DENY-001`–`TC-DENY-008` in
+These cases are registered as `TC-DENY-001`–`TC-DENY-010` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
@@ -58,6 +58,21 @@ select event_request_id, event_name, status
 
 Call its ID `<not-mine>` and its name `<not-mine-name>` below. For a missing ID
 use `999999` (check it does not exist).
+
+### Finding an event that exists but isn't the coordinator's
+
+`/staff/coordinator/events/[id]` is keyed by the event, not the request, and is
+scoped to the coordinator the event is assigned to:
+
+```sql
+select e.event_id, e.name
+  from event e
+ where e.assigned_coordinator_user_account_id is distinct from
+       (select user_account_id from user_account where name = 'Test Coordinator')
+ limit 1;
+```
+
+Call its ID `<not-my-event>`.
 
 ---
 
@@ -264,3 +279,54 @@ someone is already signed in.
 **Cleanup:** Same as TC-DENY-007.
 
 **Status:** [x] Pass [ ] Fail — 2026-09-28
+
+---
+
+### TC-DENY-009: The coordinator's inner pages deny a non-coordinator too (AC1, AC5)
+
+TC-DENY-001 opens each workspace's home. SPM-242 found three Coordinator pages
+below the home that still answered a bare 404, so this case walks them. (The
+bug was reported against `ops@test.com`, which the seed no longer has; any
+account without the Event Coordinator role shows the same thing.)
+
+**Preconditions:** Signed in as `lead@test.com`. Any `<id>` — these pages deny
+before reading anything, so the ids need not exist.
+
+**Steps:** Open each of
+1. `/staff/coordinator/venues`
+2. `/staff/coordinator/venues/<id>`
+3. `/staff/coordinator/events/<id>`
+4. `/staff/coordinator/<id>/venue-booking`
+
+**Expected Result:**
+- Every one shows the access-denied screen, word for word as `/staff/coordinator`
+  does: heading "You don't have access to this page." and "Please contact your
+  respective Event Coordinator."
+- Network tab: **403** on each — never Next's "404 This page could not be found"
+- **Go back to your workspace** is offered and lands on `/staff/lead`
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-DENY-010: An event that isn't the coordinator's and a missing id look identical (AC3)
+
+TC-DENY-003 covers the request detail page. The event page and the venue
+booking page scope the same way, so they must give away as little.
+
+**Preconditions:** Signed in as `coordinator@test.com`; `<not-my-event>` and
+`<not-mine>` found as above.
+
+**Steps:**
+1. Open `/staff/coordinator/events/<not-my-event>`, then
+   `/staff/coordinator/events/999999`. Compare the status and the text.
+2. Open `/staff/coordinator/<not-mine>/venue-booking`, then
+   `/staff/coordinator/999999/venue-booking`. Compare the same.
+3. On all four, view the page source and search for the event's name.
+
+**Expected Result:**
+- Same HTTP status (**403**) and word-for-word the same text within each pair —
+  nothing tells you which of the two ids exists
+- No event or request details in any of the four page sources
+
+**Status:** [ ] Pass [ ] Fail
