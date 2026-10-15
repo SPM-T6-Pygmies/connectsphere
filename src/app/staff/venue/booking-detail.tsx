@@ -22,6 +22,7 @@ import { formatSlotsOnDates } from "../slot-label";
 import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 import { DecisionForm } from "./[id]/decision-form";
+import { HoldResolutionForm } from "./[id]/hold-resolution-form";
 
 function formatInstantDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Singapore" });
@@ -101,6 +102,8 @@ export async function BookingDetail({
   const eventSlots = formatSlotsOnDates(event.slots);
   const slots = booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
   const onHold = booking.status === "Tentative Hold" && booking.holdExpiresAt !== null;
+  // SPM-219: only a hold still running can be confirmed or released.
+  const { holdLive } = detail;
 
   return (
     <StaffShell
@@ -181,37 +184,49 @@ export async function BookingDetail({
             </CardHeader>
             <CardContent className="space-y-4">
               {decided ? (
-                <Alert variant={booking.status === "Rejected" ? "destructive" : "default"}>
-                  {booking.status === "Rejected" ? (
-                    <AlertTriangleIcon />
-                  ) : onHold ? (
-                    <ClockIcon />
-                  ) : (
-                    <CheckIcon />
-                  )}
-                  <AlertTitle>
-                    {onHold
-                      ? `On hold until ${formatHoldExpiry(booking.holdExpiresAt!)}`
-                      : `Already decided — ${booking.status}`}
-                    {booking.decidedByName ? ` by ${booking.decidedByName}` : ""}
-                  </AlertTitle>
-                  {onHold ? (
-                    <AlertDescription>
-                      <p>
-                        These slots are kept for this event while the coordinator finalises it.
-                        If the hold is not confirmed by then, they are freed for other events.
-                      </p>
-                    </AlertDescription>
-                  ) : null}
-                  {booking.rejectionNote ? (
-                    <AlertDescription>
-                      <p>{booking.rejectionNote}</p>
-                      {booking.suggestedAlternativeLocation ? (
-                        <p>Suggested instead: {booking.suggestedAlternativeLocation}</p>
-                      ) : null}
-                    </AlertDescription>
-                  ) : null}
-                </Alert>
+                <div className="space-y-4">
+                  <Alert variant={booking.status === "Rejected" ? "destructive" : "default"}>
+                    {booking.status === "Rejected" ? (
+                      <AlertTriangleIcon />
+                    ) : onHold ? (
+                      <ClockIcon />
+                    ) : (
+                      <CheckIcon />
+                    )}
+                    <AlertTitle>
+                      {onHold
+                        ? holdLive
+                          ? `On hold until ${formatHoldExpiry(booking.holdExpiresAt!)}`
+                          : `Hold expired ${formatHoldExpiry(booking.holdExpiresAt!)}`
+                        : `Already decided — ${booking.status}`}
+                      {booking.decidedByName ? ` by ${booking.decidedByName}` : ""}
+                    </AlertTitle>
+                    {onHold ? (
+                      <AlertDescription>
+                        {holdLive ? (
+                          <p>
+                            These slots are kept for this event while the coordinator finalises it.
+                            Confirm the hold to commit them, or release it to free them now.
+                          </p>
+                        ) : (
+                          <p>
+                            This hold ran out, so its slots no longer belong to this event and it can
+                            no longer be confirmed or released.
+                          </p>
+                        )}
+                      </AlertDescription>
+                    ) : null}
+                    {booking.rejectionNote ? (
+                      <AlertDescription>
+                        <p>{booking.rejectionNote}</p>
+                        {booking.suggestedAlternativeLocation ? (
+                          <p>Suggested instead: {booking.suggestedAlternativeLocation}</p>
+                        ) : null}
+                      </AlertDescription>
+                    ) : null}
+                  </Alert>
+                  {holdLive ? <HoldResolutionForm bookingId={booking.id} /> : null}
+                </div>
               ) : (
                 <DecisionForm
                   bookingId={booking.id}

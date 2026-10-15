@@ -1,4 +1,10 @@
-import type { BookingId, BookingStatus, DecidedBooking, SlotOnDate } from "../../domain/booking";
+import type {
+  BookingId,
+  BookingStatus,
+  DecidedBooking,
+  ResolvedHold,
+  SlotOnDate,
+} from "../../domain/booking";
 import type { UserAccountId } from "../../domain/user-account";
 import type { VenueId } from "../../domain/venue";
 
@@ -63,4 +69,10 @@ export interface BookingReviewRepository {
    * case could not see is refused with the domain's own errors.
    */
   decide(decided: DecidedBooking): Promise<void>;
+  /**
+   * SPM-219: records a hold confirmed or released. The store restates the rule
+   * at its own boundary -- still a live hold -- so a hold that expired or was
+   * decided while the page was open is refused with `HoldNotLiveError`.
+   */
+  resolveHold(resolved: ResolvedHold): Promise<void>;
 }

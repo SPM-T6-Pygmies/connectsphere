@@ -82,6 +82,7 @@ import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
+import { ViewVenueCalendarUseCase } from "@/core/use-cases/view-venue-calendar";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
 import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue";
 import { MarkEquipmentLineUnfulfilledUseCase } from "@/core/use-cases/mark-equipment-line-unfulfilled";
@@ -606,6 +607,7 @@ export async function buildReviewBookingRequests(): Promise<ReviewBookingRequest
   return new ReviewBookingRequestsUseCase({
     reviews: new SupabaseBookingReviewRepository(client),
     venues: new SupabaseVenueCatalogue(client),
+    clock: systemClock,
   });
 }
 
@@ -827,6 +829,18 @@ export async function buildSearchVenues(): Promise<SearchVenuesUseCase> {
   return new SearchVenuesUseCase({
     venues: new SupabaseVenueCatalogue(client),
     availability: new SupabaseVenueAvailability(client),
+    clock: systemClock,
+    timeZone: "Asia/Singapore",
+  });
+}
+
+/** SPM-43: a week of one venue's calendar, read live from bookings and blocks. */
+export async function buildViewVenueCalendar(): Promise<ViewVenueCalendarUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewVenueCalendarUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    bookings: new SupabaseBookingRepository(client),
+    blocks: new SupabaseVenueUnavailabilityRepository(client),
     clock: systemClock,
     timeZone: "Asia/Singapore",
   });
