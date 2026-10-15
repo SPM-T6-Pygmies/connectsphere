@@ -4,6 +4,7 @@ import {
   BookingRoomLayoutNotChangeableError,
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
+  HoldNotLiveError,
   InvalidBookingDateError,
   NoBookingSlotsError,
   RoomLayoutRequiredError,
@@ -362,5 +363,50 @@ export function decideBooking(
     decidedBy,
     rejectionNote: reason,
     suggestedAlternative: decision.suggestedAlternative,
+  };
+}
+
+/** A booking as Venue Staff resolve its hold: its status and when the hold lapses. */
+export interface BookingForHoldResolution {
+  readonly id: BookingId;
+  readonly status: BookingStatus;
+  readonly holdExpiresAt: Date | null;
+}
+
+/** SPM-219: how Venue Staff end a live hold. */
+export type HoldResolution = "confirm" | "release";
+
+/** The outcome of resolving a hold, ready for the store to record. */
+export interface ResolvedHold {
+  readonly id: BookingId;
+  readonly status: "Confirmed" | "Released";
+  readonly resolvedBy: UserAccountId;
+}
+
+/**
+ * SPM-219: Venue Staff confirm or release a live hold.
+ *
+ * Confirming commits the held slots to the event and releasing frees them at
+ * once, for another hold or booking. Either needs the hold to be live now:
+ * still a Tentative Hold, and not past its expiry, by the same test
+ * `holdsSlot` uses to keep the slot. An expired hold is refused even if its
+ * status has not been moved on yet (SPM-253 does that), and so is a booking
+ * that was never held. Confirming needs no clash check: the hold already owns
+ * the slots, and the one-per-slot rule would refuse any second claim on them.
+ */
+export function resolveHold(
+  booking: BookingForHoldResolution,
+  resolution: HoldResolution,
+  resolvedBy: UserAccountId,
+  now: Date,
+): ResolvedHold {
+  if (booking.status !== "Tentative Hold" || !holdsSlot(booking, now)) {
+    throw new HoldNotLiveError();
+  }
+
+  return {
+    id: booking.id,
+    status: resolution === "confirm" ? "Confirmed" : "Released",
+    resolvedBy,
   };
 }

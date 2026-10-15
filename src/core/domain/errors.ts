@@ -431,6 +431,19 @@ export class BookingNotDecidableError extends DomainError {
 }
 
 /**
+ * SPM-219: a hold can only be confirmed or released while it is live -- still a
+ * Tentative Hold, and not past its expiry. One that expired, was released or
+ * was already confirmed, including while the page was open, is refused.
+ */
+export class HoldNotLiveError extends DomainError {
+  readonly code = "hold_not_live";
+
+  constructor() {
+    super("This hold has expired or already been decided, so it can no longer be confirmed or released.");
+  }
+}
+
+/**
  * SPM-50: only an event in `Planning` can be confirmed -- `Blocked`,
  * `Confirmed`, `Completed` and `Cancelled` all refuse, each for its own
  * reason the ticket and schema leave undefined beyond "not Planning".
