@@ -76,7 +76,9 @@ registration for it; signed out.
   the on-screen confirmation
 - It ends with a `http://localhost:3000/registrations/<reference>` link
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
+
+**Screenshots:** [step3-email-received](../screenshots/2026-10-15_TC-REGEMAIL-001_step3-email-received.jpg)
 
 ---
 
@@ -93,7 +95,9 @@ registration for it; signed out.
 - A **Withdraw my registration** button is shown. Withdrawing itself is
   TC-REGWD-002.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
+
+**Screenshots:** [step1-emailed-link-opens-registration](../screenshots/2026-10-15_TC-REGEMAIL-002_step1-emailed-link-opens-registration.png)
 
 ---
 
@@ -111,7 +115,9 @@ registration for it; signed out.
   registration."
 - No **Save this link** box and no `/registrations/…` link on the page
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
+
+**Screenshots:** [step1-confirmation-check-your-email](../screenshots/2026-10-15_TC-REGEMAIL-003_step1-confirmation-check-your-email.png)
 
 ---
 
@@ -130,7 +136,9 @@ event, as after TC-REGEMAIL-001.
   for this event."
 - No new email arrives
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail
+
+**Screenshots:** [step2-already-registered](../screenshots/2026-10-15_TC-REGEMAIL-004_step2-already-registered.png)
 
 ---
 
