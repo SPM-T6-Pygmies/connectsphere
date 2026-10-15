@@ -179,8 +179,9 @@ export interface VenueBookingDecidedNotice {
   readonly venueLocation: string;
   /** Sorted by date, then by slot within the day, as the booking stores them. */
   readonly slots: readonly SlotOnDate[];
-  readonly outcome: "Confirmed" | "Rejected";
-  /** Null when approved. */
+  /** Released: Venue Staff gave up a hold on the event's behalf (SPM-219). */
+  readonly outcome: "Confirmed" | "Rejected" | "Released";
+  /** Null unless rejected. */
   readonly reason: string | null;
   readonly suggestedAlternativeLocation: string | null;
 }

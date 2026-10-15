@@ -177,3 +177,61 @@ describe("SupabaseVenueUnavailabilityRepository (SPM-268)", () => {
     ]);
   });
 });
+
+describe("SupabaseVenueUnavailabilityRepository.blockedBetween (SPM-154)", () => {
+  it("reads one venue's blocks for the range, each with its reason and any note", async () => {
+    const { client, calls } = fakeClient({
+      venue_blocked_slots: {
+        data: [
+          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Renovation", reason_note: null },
+          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Other", reason_note: "Film shoot" },
+        ],
+        error: null,
+      },
+    });
+
+    const blocks = await new SupabaseVenueUnavailabilityRepository(client).blockedBetween(
+      venueId("5"),
+      "2026-11-02",
+      "2026-11-08",
+    );
+
+    expect(calls).toEqual([
+      {
+        name: "venue_blocked_slots",
+        args: { p_venue_id: 5, p_from: "2026-11-02", p_to: "2026-11-08" },
+      },
+    ]);
+    expect(blocks).toEqual([
+      { date: "2026-11-02", slot: "AM", reason: "Renovation", note: null },
+      { date: "2026-11-02", slot: "AM", reason: "Other", note: "Film shoot" },
+    ]);
+  });
+
+  it("throws on a failed read rather than showing an unblocked calendar", async () => {
+    const { client } = fakeClient({
+      venue_blocked_slots: { data: null, error: { message: "permission denied" } },
+    });
+
+    await expect(
+      new SupabaseVenueUnavailabilityRepository(client).blockedBetween(
+        venueId("5"),
+        "2026-11-02",
+        "2026-11-08",
+      ),
+    ).rejects.toThrow("permission denied");
+  });
+
+  it("reads nothing for a venue id this store never issued", async () => {
+    const { client, calls } = fakeClient({});
+
+    expect(
+      await new SupabaseVenueUnavailabilityRepository(client).blockedBetween(
+        venueId("venue-1"),
+        "2026-11-02",
+        "2026-11-08",
+      ),
+    ).toEqual([]);
+    expect(calls).toEqual([]);
+  });
+});

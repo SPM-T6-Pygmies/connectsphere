@@ -36,4 +36,12 @@ describe("decideBookingRequestSchema (SPM-22)", () => {
       decideBookingRequestSchema.parse({ bookingId: "7", decision: "hold", note: "", alternative: "" }),
     ).toEqual({ bookingId: "7", decision: "hold", note: "", alternative: null });
   });
+
+  it("reads confirming and releasing a hold, with the note and suggestion blank (SPM-219)", () => {
+    for (const decision of ["confirm", "release"] as const) {
+      expect(
+        decideBookingRequestSchema.parse({ bookingId: "7", decision, note: "", alternative: "" }),
+      ).toEqual({ bookingId: "7", decision, note: "", alternative: null });
+    }
+  });
 });
