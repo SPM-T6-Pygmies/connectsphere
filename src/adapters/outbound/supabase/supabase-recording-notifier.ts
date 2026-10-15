@@ -17,6 +17,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -55,6 +56,11 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.recordAndDeliver(clarificationRequestedRow(notice), () =>
       this.inner.clarificationRequested(notice),
     );
+  }
+
+  // Not recorded yet (SPM-164).
+  organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    return this.inner.organiserMessagePosted(notice);
   }
 
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {

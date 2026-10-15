@@ -17,6 +17,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -66,6 +67,11 @@ export class NovuNotifier implements Notifier {
 
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     return this.trigger(CLARIFICATION_REQUESTED_WORKFLOW_ID, notice);
+  }
+
+  // No Novu workflow for organiser messages yet (SPM-164).
+  organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    return this.logging.organiserMessagePosted(notice);
   }
 
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
