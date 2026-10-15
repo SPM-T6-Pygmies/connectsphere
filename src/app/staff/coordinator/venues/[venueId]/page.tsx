@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -89,7 +89,7 @@ export default async function VenueCalendarPage({
 }: PageProps<"/staff/coordinator/venues/[venueId]">) {
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const { venueId } = await params;
