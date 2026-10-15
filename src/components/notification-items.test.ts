@@ -165,3 +165,18 @@ describe("notificationItem (SPM-62)", () => {
     expect(item.href).toBe("/staff/coordinator/6/venue-booking?booking=31")
   })
 })
+
+describe("notificationItem (SPM-164)", () => {
+  it("AC3: opens the request from the coordinator's inbox and names it an organiser message", () => {
+    const item = notificationItem(
+      "coordinator",
+      notification({
+        redirect: { url: "/staff/coordinator/10" },
+        tags: ["organiser-message-posted"],
+      }),
+    )
+
+    expect(item.href).toBe("/staff/coordinator/notifications/10")
+    expect(item.status).toBe("Organiser message")
+  })
+})

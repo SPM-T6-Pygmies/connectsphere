@@ -4,6 +4,7 @@ import {
   coordinatorAssignedRow,
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
+  organiserMessagePostedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
   venueBookingDecidedRow,
@@ -58,9 +59,10 @@ export class SupabaseRecordingNotifier implements Notifier {
     );
   }
 
-  // Not recorded yet (SPM-164).
   organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
-    return this.inner.organiserMessagePosted(notice);
+    return this.recordAndDeliver(organiserMessagePostedRow(notice), () =>
+      this.inner.organiserMessagePosted(notice),
+    );
   }
 
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {

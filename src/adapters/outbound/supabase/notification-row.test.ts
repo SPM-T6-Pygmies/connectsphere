@@ -5,6 +5,7 @@ import {
   coordinatorAssignedRow,
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
+  organiserMessagePostedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
   venueBookingDecidedRow,
@@ -184,6 +185,24 @@ describe("venueBookingDecidedRow (SPM-62)", () => {
       related_booking_id: "31",
       message_content:
         "Grand Ballroom approved for Harbour Lights Gala\nVenue Staff confirmed Grand Ballroom for Fri, 20 Nov 2026 (PM). The venue is secured.",
+    });
+  });
+});
+
+describe("organiserMessagePostedRow (SPM-164)", () => {
+  it("records the organiser-message notice as Pending against the coordinator and the request", () => {
+    expect(
+      organiserMessagePostedRow({
+        recipientUserAccountId: "5",
+        eventRequestId: "42",
+        eventName: "Founders' Day",
+        message: "Captions only.",
+      }),
+    ).toMatchObject({
+      recipient_user_account_id: "5",
+      trigger_scenario: "organiser-message-posted",
+      status: "Pending",
+      related_event_request_id: "42",
     });
   });
 });

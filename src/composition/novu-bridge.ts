@@ -4,6 +4,7 @@ import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clari
 import { coordinatorAssigned } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
+import { organiserMessagePosted } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
 import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { safetyCheckRecorded } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
 import { venueBookingDecided } from "@/adapters/outbound/novu/workflows/venue-booking-decided";
@@ -29,6 +30,7 @@ function handlers(): Bridge {
       coordinatorAssigned,
       organiserCoordinatorAssigned,
       clarificationRequested,
+      organiserMessagePosted,
       eventRequestDecided,
       safetyCheckReady,
       safetyCheckRecorded,
