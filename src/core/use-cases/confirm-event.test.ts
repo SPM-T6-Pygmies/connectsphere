@@ -5,14 +5,17 @@ import {
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
+import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
 import {
   EventNotConfirmableError,
   EventNotFoundError,
   EventNotReadyForConfirmationError,
+  SafetyCheckNotApprovedError,
 } from "@/core/domain/errors";
 import { eventId } from "@/core/domain/event";
 import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
+import type { SafetyCheckEntry } from "@/core/ports/outbound/safety-check-repository";
 
 import { ConfirmEventUseCase } from "./confirm-event";
 
@@ -39,6 +42,20 @@ function seedEvent(
   };
 }
 
+function check(overrides: Partial<SafetyCheckEntry> = {}): SafetyCheckEntry {
+  return {
+    outcome: "Approved",
+    comments: null,
+    checkedByName: "Test Safety Officer",
+    checkedAt: "2026-10-06T09:30:00.000Z",
+    resubmittedAt: null,
+    ...overrides,
+  };
+}
+
+const APPROVED = check();
+const REJECTED = check({ outcome: "Rejected", comments: "Widen the fire exit route." });
+
 /** Facts for event-1, every arrangement incomplete unless overridden. */
 function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
   return {
@@ -53,9 +70,11 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
   };
 }
 
+/** `checks` is every event's safety-check history, newest first -- one approval unless given. */
 function buildUseCase(
   events: readonly SeedCoordinatorEvent[],
   readiness: readonly ReadinessFacts[] = [],
+  checks: readonly SafetyCheckEntry[] = [APPROVED],
 ) {
   const eventsRepo = new InMemoryCoordinatorEventRepository(events);
   const readinessRepo = new InMemoryEventReadinessRepository(
@@ -68,9 +87,15 @@ function buildUseCase(
         ),
       ),
     );
+  const safetyChecks = safetyCheckStore(
+    events.map((event) =>
+      safetyCheckReview({ coordinatorUserAccountId: event.assignedCoordinatorUserAccountId, checks }),
+    ),
+  );
   const useCase = new ConfirmEventUseCase({
     events: eventsRepo,
     readiness: readinessRepo,
+    safetyChecks,
   });
   return { useCase, eventsRepo };
 }
@@ -170,5 +195,46 @@ describe("ConfirmEventUseCase (SPM-50)", () => {
     await expect(
       useCase.execute({ id: "missing", userAccountId: COORDINATOR }),
     ).rejects.toBeInstanceOf(EventNotFoundError);
+  });
+});
+
+describe("ConfirmEventUseCase (SPM-264)", () => {
+  const ready = () => [seedFacts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall" })];
+
+  it.each([
+    ["no safety check yet", []],
+    ["a rejection", [REJECTED]],
+    ["a rejection resubmitted for a fresh check", [{ ...REJECTED, resubmittedAt: "2026-10-07T09:00:00.000Z" }]],
+  ] as const)(
+    "AC7: refuses an event with every arrangement complete but %s, and stores nothing",
+    async (_label, checks) => {
+      const { useCase, eventsRepo } = buildUseCase([seedEvent()], ready(), checks);
+
+      await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toThrow(
+        new SafetyCheckNotApprovedError(),
+      );
+      expect(eventsRepo.all()).toEqual([expect.objectContaining({ status: "Planning" })]);
+    },
+  );
+
+  it("AC4/AC5: confirms once the latest check is Approved, even after an earlier rejection", async () => {
+    const { useCase, eventsRepo } = buildUseCase([seedEvent()], ready(), [
+      APPROVED,
+      { ...REJECTED, resubmittedAt: "2026-10-05T09:00:00.000Z" },
+    ]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).resolves.toEqual({
+      eventId: "event-1",
+      status: "Confirmed",
+    });
+    expect(eventsRepo.all()).toEqual([expect.objectContaining({ status: "Confirmed" })]);
+  });
+
+  it("names the incomplete arrangements first when the safety check is outstanding too", async () => {
+    const { useCase } = buildUseCase([seedEvent()], [seedFacts({ essentialTypes: ["venue"] })], []);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toBeInstanceOf(
+      EventNotReadyForConfirmationError,
+    );
   });
 });

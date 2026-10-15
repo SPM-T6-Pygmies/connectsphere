@@ -47,6 +47,7 @@ import type { EventReadinessRepository } from "@/core/ports/outbound/event-readi
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
+import type { SafetyCheckRepository } from "@/core/ports/outbound/safety-check-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
@@ -488,6 +489,7 @@ async function coordinatorAdapters(): Promise<{
   clientOrganisations: ClientOrganisationRepository;
   userAccounts: UserAccountRepository;
   equipment: EquipmentRequirementRepository;
+  safetyChecks: SafetyCheckRepository;
 }> {
   const client = await createSupabaseServerClient();
   return {
@@ -497,6 +499,7 @@ async function coordinatorAdapters(): Promise<{
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
     equipment: new SupabaseEquipmentRequirementRepository(client),
+    safetyChecks: new SupabaseSafetyCheckRepository(client),
   };
 }
 
@@ -679,7 +682,7 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
 
 /** SPM-50: one event and its confirmation readiness, to the coordinator it is assigned to. */
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
-  const { events, readiness, clientOrganisations, userAccounts } = await coordinatorAdapters();
+  const { events, readiness, clientOrganisations, userAccounts, safetyChecks } = await coordinatorAdapters();
 
   return new ViewCoordinatorEventUseCase({
     events,
@@ -687,14 +690,15 @@ export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventU
     clientOrganisations,
     userAccounts,
     clock: systemClock,
+    safetyChecks,
   });
 }
 
-/** SPM-50: the assigned coordinator confirms an event once nothing essential is left incomplete. */
+/** SPM-50, SPM-264: the assigned coordinator confirms an event once nothing essential is left incomplete and its safety check is Approved. */
 export async function buildConfirmEvent(): Promise<ConfirmEventUseCase> {
-  const { events, readiness } = await coordinatorAdapters();
+  const { events, readiness, safetyChecks } = await coordinatorAdapters();
 
-  return new ConfirmEventUseCase({ events, readiness });
+  return new ConfirmEventUseCase({ events, readiness, safetyChecks });
 }
 
 /** SPM-51: the assigned coordinator marks a Confirmed event completed once it has ended. */
