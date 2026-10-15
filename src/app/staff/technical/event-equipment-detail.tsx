@@ -1,6 +1,9 @@
+import { ArrowRightIcon } from "lucide-react";
+import Link from "next/link";
 import { forbidden, notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { buildViewEventEquipmentForTechnicalSupport, getCurrentTechnicalSupport } from "@/composition/container";
@@ -115,7 +118,20 @@ export async function EventEquipmentDetail({ id, origin = "queue" }: { id: strin
       <PageHeader
         title={event.name}
         description={event.preferredDate ?? "No date yet"}
-        actions={<StatusBadge status={event.status} />}
+        actions={
+          <>
+            <StatusBadge status={event.status} />
+            {/* SPM-64 AC6: from the inbox, one click onto the event under its own queue. */}
+            {origin === "inbox" ? (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/staff/technical/${id}`}>
+                  Open event
+                  <ArrowRightIcon />
+                </Link>
+              </Button>
+            ) : null}
+          </>
+        }
       />
 
       <Card>

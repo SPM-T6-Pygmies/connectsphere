@@ -65,6 +65,19 @@ export function equipmentQueueOf(
   return lines.some((line) => attentionReason(line) !== null) ? "needsReview" : "reviewed";
 }
 
+/**
+ * SPM-65 AC1-2: whether a decision left an event that had lines needing
+ * Technical Support's attention with none -- the moment its coordinator is
+ * told the outcome.
+ */
+export function finishesReview(
+  before: readonly EquipmentRequirement[],
+  after: readonly EquipmentRequirement[],
+): boolean {
+  const waiting = (line: EquipmentRequirement) => attentionReason(line) !== null;
+  return before.some(waiting) && !after.some(waiting);
+}
+
 /** Units of one equipment type another event has reserved, and when that event runs. */
 export interface EquipmentHold {
   readonly eventStatus: CoordinatorEventStatus;

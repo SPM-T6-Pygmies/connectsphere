@@ -110,6 +110,59 @@ export interface VenueBookingRequestedNotice {
 }
 
 /**
+ * What a Technical Support Staff member is told when a coordinator changes an
+ * equipment line (SPM-64). Every member gets their own copy: staff are not
+ * scoped to particular events (#66).
+ */
+export interface EquipmentNeedsAttentionNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly eventName: string;
+  /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
+  readonly preferredDate: string | null;
+  readonly equipmentType: string;
+  /** What the coordinator did to the line (AC1). */
+  readonly change: "added" | "edited" | "deleted" | "removalRequested" | "removalWithdrawn";
+  /** What the line requests now -- for a deleted line, what it requested. */
+  readonly quantityRequested: number;
+  /** For an edit that changed the quantity, what it was just before; null otherwise. */
+  readonly quantityWas: number | null;
+  /**
+   * Why the line needs their attention now, as the Needs review page marks it
+   * (SPM-273 AC3); null when it needs nothing -- deleted, or back to what they
+   * decided (AC2).
+   */
+  readonly attention: "new" | "changed" | "removalRequested" | null;
+}
+
+/** One line of an event Technical Support have finished deciding on (SPM-65 AC3). */
+export interface EquipmentLineOutcome {
+  readonly equipmentType: string;
+  readonly quantityRequested: number;
+  readonly outcome: "reserved" | "unfulfilled";
+  readonly quantityReserved: number;
+  /** Who reserved it or marked it unfulfilled; null for a line decided before that was recorded. */
+  readonly decidedByName: string | null;
+  /** Technical Support's reason for an unfulfilled line; null for a reserved one. */
+  readonly comment: string | null;
+}
+
+/**
+ * What an event's assigned Event Coordinator is told when Technical Support's
+ * decision leaves nothing on the event needing their attention (SPM-65): one
+ * notice, listing every line's outcome.
+ */
+export interface EquipmentDecidedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly eventName: string;
+  /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
+  readonly preferredDate: string | null;
+  /** Every equipment line on the event, by type. */
+  readonly lines: readonly EquipmentLineOutcome[];
+}
+
+/**
  * What an event's assigned Event Coordinator is told when Venue Staff decide
  * one of its booking requests (SPM-62). An event can hold several bookings,
  * so the notice names the venue it concerns. A rejection carries the stored
@@ -149,5 +202,7 @@ export interface Notifier {
   safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void>;
   safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void>;
   venueBookingRequested(notice: VenueBookingRequestedNotice): Promise<void>;
+  equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void>;
+  equipmentDecided(notice: EquipmentDecidedNotice): Promise<void>;
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
 }
