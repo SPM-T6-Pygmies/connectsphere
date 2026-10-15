@@ -176,7 +176,12 @@ export async function buildViewEventForRegistration(): Promise<ViewEventForRegis
 export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
-  return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
+  return new RegisterForEventUseCase({
+    events,
+    registrations,
+    clock: systemClock,
+    notifier: recordedNotifier(),
+  });
 }
 
 export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> {

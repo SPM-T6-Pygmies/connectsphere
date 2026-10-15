@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { InMemoryEventCatalogue } from "@/adapters/outbound/in-memory/in-memory-event-catalogue";
 import { InMemoryRegistrationRepository } from "@/adapters/outbound/in-memory/in-memory-registration-repository";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { attendeeEmail, attendeeName } from "@/core/domain/attendee";
 import { eventId, type Event } from "@/core/domain/event";
 import {
@@ -219,6 +220,7 @@ describe("WithdrawRegistrationUseCase (SPM-28)", () => {
         events,
         registrations,
         clock: new FixedClock(NOW),
+        notifier: new RecordingNotifier(),
       });
 
       // The event is full, so a new attendee is refused.
@@ -241,6 +243,7 @@ describe("WithdrawRegistrationUseCase (SPM-28)", () => {
         events,
         registrations,
         clock: new FixedClock(NOW),
+        notifier: new RecordingNotifier(),
       });
 
       await withdraw.execute({ reference: REFERENCE });

@@ -187,6 +187,26 @@ export interface VenueBookingDecidedNotice {
 }
 
 /**
+ * What an Attendee is told once their registration is recorded (SPM-87): the
+ * event, as the on-screen confirmation shows it, and the reference that is
+ * their only way back to the registration.
+ *
+ * Addressed by email rather than user account: an Attendee has no account.
+ * No link either -- where the registration page lives is the adapter's
+ * business, not the core's.
+ */
+export interface RegistrationConfirmedNotice {
+  readonly registrationId: string;
+  readonly recipientEmail: string;
+  readonly attendeeName: string;
+  readonly eventName: string;
+  /** ISO instant the first slot starts, as `AvailableEvent` gives it. */
+  readonly startsAt: string;
+  readonly slots: readonly SlotOnDate[];
+  readonly venueName: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -205,4 +225,5 @@ export interface Notifier {
   equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void>;
   equipmentDecided(notice: EquipmentDecidedNotice): Promise<void>;
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
+  registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

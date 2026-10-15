@@ -7,6 +7,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -84,6 +85,12 @@ export class LoggingNotifier implements Notifier {
   async venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told booking ${notice.bookingId} was ${notice.outcome}`,
+    );
+  }
+
+  async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    console.info(
+      `[notifier] registration ${notice.registrationId} confirmed to ${notice.recipientEmail}`,
     );
   }
 }

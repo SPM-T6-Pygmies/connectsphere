@@ -21,6 +21,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -102,6 +103,11 @@ export class NovuNotifier implements Notifier {
 
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     return this.trigger(VENUE_BOOKING_DECIDED_WORKFLOW_ID, notice);
+  }
+
+  // The Novu email lands with SPM-305.
+  registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    return this.logging.registrationConfirmed(notice);
   }
 
   private async trigger(
