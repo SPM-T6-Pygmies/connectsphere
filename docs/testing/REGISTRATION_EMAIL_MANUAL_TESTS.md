@@ -17,10 +17,9 @@ them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
-**Only one inbox works for now.** Until Resend is connected as the Novu email
-provider (SPM-308), Novu's built-in test provider delivers only to the Novu
-account owner, `isaiah.chia.2023@smu.edu.sg`. Register with that address.
-Any other address registers fine but gets no email.
+**Any inbox works.** Novu sends through Resend (SPM-308), so the email reaches
+whatever address you register with. The steps use
+`isaiah.chia.2023@smu.edu.sg`; substitute your own throughout.
 
 ---
 
@@ -32,7 +31,7 @@ Any other address registers fine but gets no email.
   [`EVENT_REGISTRATION_MANUAL_TESTS.md`](EVENT_REGISTRATION_MANUAL_TESTS.md)
 - `pnpm dev:local`, with `NOVU_BRIDGE_URL` set in `.env.local` (see the README's
   Notifications section). Without it, the notice is only logged.
-- Access to the `isaiah.chia.2023@smu.edu.sg` inbox
+- An inbox you can read
 - A private/incognito window, so no staff session is involved
 
 ### A Confirmed event that is open for registration
@@ -78,7 +77,7 @@ registration for it; signed out.
 
 **Status:** [x] Pass [ ] Fail
 
-**Screenshots:** [step3-email-received](../screenshots/2026-10-15_TC-REGEMAIL-001_step3-email-received.jpg)
+**Screenshots:** [step3-email-received](../screenshots/2026-10-15_TC-REGEMAIL-001_step3-email-received.jpg) · [step3-email-received-via-resend](../screenshots/2026-10-15_TC-REGEMAIL-001_step3-email-received-via-resend.jpg)
 
 ---
 
