@@ -1,11 +1,12 @@
-# Notifications Manual Tests (SPM-57)
+# Notifications Manual Tests (SPM-57, SPM-164)
 
 ## Overview
 
 Browser checks for the staff notification inbox: a coordinator learning of
 their assignment (SPM-57), the inbox fed from Novu (SPM-174), triaging
-notifications with read/unread and archive (SPM-179), and per-type channel
-preferences (SPM-180). They cover what the unit tests cannot: that Novu really
+notifications with read/unread and archive (SPM-179), per-type channel
+preferences (SPM-180), and a coordinator learning that the organiser posted on
+their request (SPM-164). They cover what the unit tests cannot: that Novu really
 delivers to the right inbox, that the list, dots and counts follow Novu's state
 live, and that preferences persist in Novu.
 
@@ -15,7 +16,7 @@ redirect, and the workflow's locked preference. Delivery and server logs
 (`[notifier] ...` lines, `notification` table rows, Novu's Activity Feed) are
 not user-facing and are not cases here.
 
-These cases are registered as `TC-NOTIFY-001`–`TC-NOTIFY-012` in
+These cases are registered as `TC-NOTIFY-001`–`TC-NOTIFY-013` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table — CI records it in
@@ -50,6 +51,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | `lead@test.com` | Event Coordinator Lead | assigns coordinators at `/staff/lead/<id>` |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) | `/staff/coordinator/notifications` |
 | `coordinator2@test.com` | Event Coordinator (Test Coordinator 2) | `/staff/coordinator/notifications` |
+| `organiser@test.com` | Event Organiser | posts on their requests at `/staff/requester/<id>`, for TC-NOTIFY-013 |
 
 ### Creating an assignment notification
 
@@ -328,6 +330,33 @@ signed in as an Event Coordinator.
 **Expected Result:**
 - "Coordinator assigned" is listed, marked "Always on" with a lock, and its
   switch is disabled
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-NOTIFY-013: The coordinator is told what the organiser wrote (SPM-164 AC1–AC3)
+
+The unit tests (tagged `SPM-164`) cover who is notified, the wording and the
+redirect. This case checks that Novu really delivers the notice to the assigned
+coordinator's inbox and that opening it shows the message on the request.
+
+**Preconditions:** Vendor Appreciation Day is Returned and assigned to Test
+Coordinator (fresh seed); `coordinator@test.com`'s inbox has nothing unread.
+Use two browsers, or sign out between steps.
+
+**Steps:**
+1. Sign in as `organiser@test.com`, open **Vendor Appreciation Day** and post
+   `The courtyard holds 60 seated; we can drop to 50 if needed.`
+2. Sign in as `coordinator@test.com` and open `/staff/coordinator/notifications`.
+3. Click the new notification.
+
+**Expected Result:**
+- One new unread notification, badged "Organiser message", reading
+  "Vendor Appreciation Day has a message from the organiser" and quoting the
+  message from step 1
+- Clicking it opens Vendor Appreciation Day beside the list, and the message
+  from step 1 is shown in its thread
 
 **Status:** [ ] Pass [ ] Fail
 
