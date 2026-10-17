@@ -56,3 +56,57 @@ describe("NovuNotifier (SPM-178)", () => {
     expect(trigger).toHaveBeenCalledWith(expect.objectContaining({ to: "sam-2" }));
   });
 });
+
+describe("NovuNotifier registration email (SPM-305)", () => {
+  const notice = {
+    registrationId: "r1",
+    recipientEmail: "ada@example.com",
+    attendeeName: "Ada Lovelace",
+    eventName: "Pygmies Product Summit",
+    startsAt: "2026-09-30T23:00:00.000Z",
+    slots: [{ date: "2026-10-01", slot: "AM" as const }],
+    venueName: null,
+  };
+
+  function novuThatAccepts() {
+    const trigger = vi.fn().mockResolvedValue({ result: { acknowledged: true, status: "processed" } });
+    return { novu: { trigger } as unknown as Novu, trigger };
+  }
+
+  it("AC1: emails the attendee an absolute link to their registration", async () => {
+    const { novu, trigger } = novuThatAccepts();
+
+    await new NovuNotifier(novu, undefined, "", "https://connectsphere.example").registrationConfirmed(
+      notice,
+    );
+
+    expect(trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowId: "registration-confirmed",
+        to: { subscriberId: "registration-r1", email: "ada@example.com", firstName: "Ada Lovelace" },
+        payload: { ...notice, registrationUrl: "https://connectsphere.example/registrations/r1" },
+      }),
+    );
+  });
+
+  it("keeps a developer's attendee subscribers apart locally", async () => {
+    const { novu, trigger } = novuThatAccepts();
+
+    await new NovuNotifier(novu, "https://tunnel.novu.sh/api/novu", "sam-").registrationConfirmed(notice);
+
+    expect(trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: expect.objectContaining({ subscriberId: "sam-registration-r1" }),
+        payload: expect.objectContaining({ registrationUrl: "http://localhost:3000/registrations/r1" }),
+      }),
+    );
+  });
+
+  it("throws when Novu does not process it, for the recording decorator to log", async () => {
+    const trigger = vi.fn().mockResolvedValue({ result: { acknowledged: true, status: "error" } });
+
+    await expect(
+      new NovuNotifier({ trigger } as unknown as Novu).registrationConfirmed(notice),
+    ).rejects.toThrow(/registration-confirmed/);
+  });
+});

@@ -176,7 +176,12 @@ export async function buildViewEventForRegistration(): Promise<ViewEventForRegis
 export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
-  return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
+  return new RegisterForEventUseCase({
+    events,
+    registrations,
+    clock: systemClock,
+    notifier: recordedNotifier(),
+  });
 }
 
 export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> {
@@ -300,9 +305,18 @@ function recordedNotifier(): Notifier {
   const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
   const delivering =
     secretKey && novuCanRun
-      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix(), appBaseUrl())
       : new LoggingNotifier();
   return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
+}
+
+/**
+ * Where links in emails point (SPM-87). Vercel sets the production domain on
+ * every deployment; anywhere else is a developer's own machine.
+ */
+function appBaseUrl(): string {
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return production ? `https://${production}` : "http://localhost:3000";
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {

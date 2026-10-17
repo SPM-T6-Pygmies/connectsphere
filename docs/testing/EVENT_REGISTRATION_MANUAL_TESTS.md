@@ -4,7 +4,7 @@
 
 Browser checks for the attendee side of an event: finding an event that is open
 for registration, registering for it, and withdrawing that registration later
-from the link the confirmation hands over. Attendees have no account, so every
+from the link the attendee is emailed (SPM-87). Attendees have no account, so every
 case here runs signed out, on the public `/events` and `/registrations/*` pages.
 
 The rules themselves (open window, capacity, one live registration per email,
@@ -21,6 +21,15 @@ them, tick the boxes below **and** report each in the PR description's
 
 All six were backfilled on 2026-10-04 from the checks reported in PR #8 and
 PR #9. Each case covers only what its PR showed or said was checked.
+
+**Retired (SPM-87):** TC-REGWD-001 followed the link the confirmation panel
+showed under **Save this link**. The link is now emailed instead and the panel
+no longer shows it (SPM-306). The case is kept as `Retired` in the registry with
+its original wording and recorded passes, and is replaced by:
+
+| Retired | Replaced by |
+| --- | --- |
+| TC-REGWD-001 | TC-REGEMAIL-002 ([`REGISTRATION_EMAIL_MANUAL_TESTS.md`](REGISTRATION_EMAIL_MANUAL_TESTS.md)) |
 
 ---
 
@@ -157,37 +166,13 @@ still in the form).
 
 ---
 
-### TC-REGWD-001: The confirmation hands over a link that opens the registration
-
-Origin: Backfilled 2026-10-04 from PR #9 ("register, follow the link from the
-confirmation", checked manually against the seeded in-memory adapters).
-
-**Preconditions:** As TC-REG-002, with an email not yet registered for this
-event.
-
-**Steps:**
-1. On the event page, enter a name and an unused email and click **Register**.
-2. In the confirmation, under **Save this link**, click the
-   `/registrations/<reference>` link.
-
-**Expected Result:**
-- The confirmation includes a **Save this link** box with a
-  `/registrations/<reference>` link
-- The link opens **Your registration**, reading "Registered as <name>
-  (<email>)." and showing the event, with a **Withdraw my registration**
-  button
-
-**Status:** [ ] Pass [ ] Fail
-
----
-
 ### TC-REGWD-002: Withdrawing shows a confirmation naming the event (SPM-86)
 
 Origin: Backfilled 2026-10-04 from PR #9 ("withdraw, see the confirmation name
 the event", checked manually against the seeded in-memory adapters).
 
-**Preconditions:** On **Your registration** for a live registration, as at the
-end of TC-REGWD-001.
+**Preconditions:** On **Your registration** for a live registration, opened from
+the emailed link as in TC-REGEMAIL-002.
 
 **Steps:**
 1. Click **Withdraw my registration**.

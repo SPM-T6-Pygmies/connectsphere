@@ -7,6 +7,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -25,6 +26,7 @@ export class RecordingNotifier implements Notifier {
   readonly equipmentNeedingAttention: EquipmentNeedsAttentionNotice[] = [];
   readonly equipmentDecisions: EquipmentDecidedNotice[] = [];
   readonly bookingsDecided: VenueBookingDecidedNotice[] = [];
+  readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
     this.sent.push(connection);
@@ -68,5 +70,9 @@ export class RecordingNotifier implements Notifier {
 
   async venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     this.bookingsDecided.push(notice);
+  }
+
+  async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    this.registrationsConfirmed.push(notice);
   }
 }

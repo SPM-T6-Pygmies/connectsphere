@@ -9,6 +9,7 @@ import {
 import { blocksNewRegistration, registerAttendee } from "../domain/registration";
 import type { Clock } from "../ports/outbound/clock";
 import type { EventCatalogue } from "../ports/outbound/event-catalogue";
+import type { Notifier } from "../ports/outbound/notifier";
 import type { RegistrationRepository } from "../ports/outbound/registration-repository";
 import { toAvailableEvent, type AvailableEvent } from "./available-event";
 
@@ -33,6 +34,7 @@ export interface RegisterForEventDeps {
   readonly events: EventCatalogue;
   readonly registrations: RegistrationRepository;
   readonly clock: Clock;
+  readonly notifier: Pick<Notifier, "registrationConfirmed">;
 }
 
 /**
@@ -50,7 +52,7 @@ export class RegisterForEventUseCase {
   constructor(private readonly deps: RegisterForEventDeps) {}
 
   async execute(command: RegisterForEventCommand): Promise<RegisterForEventResult> {
-    const { events, registrations, clock } = this.deps;
+    const { events, registrations, clock, notifier } = this.deps;
 
     // The smart constructors run before any I/O, so a blank name costs nothing.
     const id = eventId(command.eventId);
@@ -87,10 +89,24 @@ export class RegisterForEventUseCase {
 
     await registrations.save(registration);
 
+    const available = toAvailableEvent(event);
+
+    // SPM-87: the emailed link is the attendee's only way back to this
+    // registration once they close the page.
+    await notifier.registrationConfirmed({
+      registrationId: registration.id,
+      recipientEmail: registration.attendeeEmail,
+      attendeeName: registration.attendeeName,
+      eventName: available.name,
+      startsAt: available.startsAt,
+      slots: available.slots,
+      venueName: available.venueName,
+    });
+
     return {
       registrationId: registration.id,
       registeredAt: registration.registeredAt.toISOString(),
-      event: toAvailableEvent(event),
+      event: available,
     };
   }
 }

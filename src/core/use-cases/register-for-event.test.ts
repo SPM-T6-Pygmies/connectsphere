@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryEventCatalogue } from "@/adapters/outbound/in-memory/in-memory-event-catalogue";
 import { InMemoryRegistrationRepository } from "@/adapters/outbound/in-memory/in-memory-registration-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { attendeeEmail, attendeeName } from "@/core/domain/attendee";
 import { eventId, type Event } from "@/core/domain/event";
 import {
@@ -59,12 +60,14 @@ function buildUseCase(
   const registrations = new InMemoryRegistrationRepository(
     options.registrations ?? [],
   );
+  const notifier = new RecordingNotifier();
   const useCase = new RegisterForEventUseCase({
     events: new InMemoryEventCatalogue(options.events ?? [event(SUMMIT)]),
     registrations,
     clock: new FixedClock(NOW),
+    notifier,
   });
-  return { useCase, registrations };
+  return { useCase, registrations, notifier };
 }
 
 describe("RegisterForEventUseCase (SPM-24)", () => {
@@ -328,5 +331,79 @@ describe("RegisterForEventUseCase (SPM-25)", () => {
     await useCase.execute({ eventId: SUMMIT, ...ADA });
 
     expect(registrations.all()).toHaveLength(1);
+  });
+});
+
+describe("RegisterForEventUseCase notifies the attendee (SPM-304)", () => {
+  it("AC1/AC2: sends the attendee their reference and the event's name, date, time and venue", async () => {
+    const { useCase, notifier } = buildUseCase();
+
+    await useCase.execute({ eventId: SUMMIT, fullName: "  Ada Lovelace ", email: " ADA@Example.com " });
+
+    expect(notifier.registrationsConfirmed).toEqual([
+      {
+        registrationId: "registration-1",
+        recipientEmail: "ada@example.com",
+        attendeeName: "Ada Lovelace",
+        eventName: "Pygmies Product Summit",
+        startsAt: "2026-09-30T23:00:00.000Z",
+        slots: [
+          { date: "2026-10-01", slot: "AM" },
+          { date: "2026-10-01", slot: "PM" },
+        ],
+        venueName: "Hall A, 81 Victoria Street",
+      },
+    ]);
+  });
+
+  it("sends nothing for an unknown event", async () => {
+    const { useCase, notifier } = buildUseCase();
+
+    await expect(useCase.execute({ eventId: "nope", ...ADA })).rejects.toBeInstanceOf(EventNotFoundError);
+    expect(notifier.registrationsConfirmed).toEqual([]);
+  });
+
+  it("sends nothing once the registration window has closed", async () => {
+    const { useCase, notifier } = buildUseCase({
+      events: [event(SUMMIT, { registrationClosesAt: new Date("2026-09-06T00:00:00.000Z") })],
+    });
+
+    await expect(useCase.execute({ eventId: SUMMIT, ...ADA })).rejects.toBeInstanceOf(
+      EventNotOpenForRegistrationError,
+    );
+    expect(notifier.registrationsConfirmed).toEqual([]);
+  });
+
+  it("sends nothing for a duplicate registration", async () => {
+    const { useCase, notifier } = buildUseCase({ registrations: [existingRegistration()] });
+
+    await expect(useCase.execute({ eventId: SUMMIT, ...ADA })).rejects.toBeInstanceOf(
+      DuplicateRegistrationError,
+    );
+    expect(notifier.registrationsConfirmed).toEqual([]);
+  });
+
+  it("sends nothing when places taken equals capacity", async () => {
+    const { useCase, notifier } = buildUseCase({
+      registrations: [
+        existingRegistration({ id: registrationId("r1"), attendeeEmail: attendeeEmail("a@x.com") }),
+        existingRegistration({ id: registrationId("r2"), attendeeEmail: attendeeEmail("b@x.com") }),
+      ],
+    });
+
+    await expect(useCase.execute({ eventId: SUMMIT, ...ADA })).rejects.toBeInstanceOf(EventFullError);
+    expect(notifier.registrationsConfirmed).toEqual([]);
+  });
+
+  it("sends for the last place, one below capacity", async () => {
+    const { useCase, notifier } = buildUseCase({
+      registrations: [
+        existingRegistration({ id: registrationId("r1"), attendeeEmail: attendeeEmail("a@x.com") }),
+      ],
+    });
+
+    await useCase.execute({ eventId: SUMMIT, ...ADA });
+
+    expect(notifier.registrationsConfirmed).toHaveLength(1);
   });
 });
