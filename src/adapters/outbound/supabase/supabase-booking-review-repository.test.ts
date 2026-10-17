@@ -220,3 +220,31 @@ describe("SupabaseBookingReviewRepository, confirming or releasing a hold (SPM-2
     );
   });
 });
+
+describe("SupabaseBookingReviewRepository, lapsed holds (SPM-253)", () => {
+  it("marks lapsed holds Expired before it lists or opens a booking (AC1)", async () => {
+    const { client, calls } = fakeClient({ venue_staff_bookings: { data: [BOOKING_ROW], error: null } });
+    const repository = new SupabaseBookingReviewRepository(client);
+
+    await repository.list(userAccountId("4"), "archive");
+    await repository.find(userAccountId("4"), "12" as BookingId);
+
+    expect(calls.map((call) => call.name)).toEqual([
+      "expire_lapsed_holds",
+      "venue_staff_bookings",
+      "expire_lapsed_holds",
+      "venue_staff_bookings",
+    ]);
+  });
+
+  it("reads nothing when the sweep itself fails (AC1)", async () => {
+    const { client, calls } = fakeClient({
+      expire_lapsed_holds: { data: null, error: { code: "XX000", message: "boom" } },
+    });
+
+    await expect(new SupabaseBookingReviewRepository(client).list(userAccountId("4"), "decided")).rejects.toThrow(
+      "Failed to expire lapsed holds: boom",
+    );
+    expect(calls.map((call) => call.name)).toEqual(["expire_lapsed_holds"]);
+  });
+});

@@ -28,6 +28,7 @@ import {
 } from "./booking-review-mapper";
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
+import { expireLapsedHolds } from "./expire-lapsed-holds";
 import { SupabaseBookingRepository } from "./supabase-booking-repository";
 
 // SQLSTATEs raised by venue_staff_decide_booking (see its migration).
@@ -145,6 +146,8 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
       return [];
     }
 
+    // SPM-253: a hold that ran out is marked Expired before it is listed.
+    await expireLapsedHolds(this.client);
     const { data, error } = await this.client.rpc("venue_staff_bookings", {
       p_staff_user_account_id: key,
       p_section: section,
