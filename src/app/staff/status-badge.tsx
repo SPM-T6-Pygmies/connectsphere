@@ -30,6 +30,7 @@ const VARIANTS: Record<string, Variant> = {
   Requested: "warning",
   "Tentative Hold": "warning",
   Released: "outline",
+  Expired: "outline",
   // Equipment
   Reserved: "success",
   "Partially Reserved": "warning",

@@ -102,6 +102,8 @@ export async function BookingDetail({
   const eventSlots = formatSlotsOnDates(event.slots);
   const slots = booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
   const onHold = booking.status === "Tentative Hold" && booking.holdExpiresAt !== null;
+  // SPM-253: a hold that ran out and was marked Expired. Its expiry stays on record.
+  const expired = booking.status === "Expired" && booking.holdExpiresAt !== null;
   // SPM-219: only a hold still running can be confirmed or released.
   const { holdLive } = detail;
 
@@ -178,8 +180,9 @@ export async function BookingDetail({
               <CardTitle>Decision</CardTitle>
               <CardDescription>
                 Approving confirms this booking and holds the venue for the slots above. Holding
-                keeps the slots for {DEFAULT_HOLD_HOURS} hours while the coordinator finalises the
-                event, then frees them. Nothing else can take them in the meantime.
+                keeps the slots for up to {DEFAULT_HOLD_HOURS} hours, or until the first of them
+                starts if that comes sooner, while the coordinator finalises the event, then frees
+                them. Nothing else can take them in the meantime.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -188,7 +191,7 @@ export async function BookingDetail({
                   <Alert variant={booking.status === "Rejected" ? "destructive" : "default"}>
                     {booking.status === "Rejected" ? (
                       <AlertTriangleIcon />
-                    ) : onHold ? (
+                    ) : onHold || expired ? (
                       <ClockIcon />
                     ) : (
                       <CheckIcon />
@@ -198,12 +201,14 @@ export async function BookingDetail({
                         ? holdLive
                           ? `On hold until ${formatHoldExpiry(booking.holdExpiresAt!)}`
                           : `Hold expired ${formatHoldExpiry(booking.holdExpiresAt!)}`
-                        : `Already decided — ${booking.status}`}
-                      {booking.decidedByName ? ` by ${booking.decidedByName}` : ""}
+                        : expired
+                          ? `Hold expired ${formatHoldExpiry(booking.holdExpiresAt!)}`
+                          : `Already decided — ${booking.status}`}
+                      {booking.decidedByName && !expired ? ` by ${booking.decidedByName}` : ""}
                     </AlertTitle>
-                    {onHold ? (
+                    {onHold || expired ? (
                       <AlertDescription>
-                        {holdLive ? (
+                        {onHold && holdLive ? (
                           <p>
                             These slots are kept for this event while the coordinator finalises it.
                             Confirm the hold to commit them, or release it to free them now.
