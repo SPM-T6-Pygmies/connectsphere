@@ -6,6 +6,7 @@ import {
   chooseRoomLayout,
   decideBooking,
   DEFAULT_HOLD_HOURS,
+  holdsSlot,
   requestVenueBooking,
   resolveHold,
   type BookingForDecision,
@@ -21,6 +22,7 @@ import {
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   HoldNotLiveError,
+  HoldSlotStartedError,
   InvalidBookingDateError,
   NoBookingSlotsError,
   RoomLayoutRequiredError,
@@ -600,10 +602,92 @@ describe("resolveHold confirming or releasing a hold (SPM-219)", () => {
   });
 
   it("only a hold can be confirmed or released, whatever else the booking is (AC4)", () => {
-    for (const status of ["Requested", "Confirmed", "Rejected", "Released", "Cancelled"] as const) {
+    for (const status of ["Requested", "Confirmed", "Rejected", "Released", "Cancelled", "Expired"] as const) {
       for (const resolution of ["confirm", "release"] as const) {
         expect(() => resolveHold({ ...live, status }, resolution, staff, NOW)).toThrow(HoldNotLiveError);
       }
     }
+  });
+});
+
+describe("decideBooking capping a hold at its slot (SPM-253)", () => {
+  const staff = userAccountId("staff-1");
+  const hold = { kind: "hold" } as const;
+  const waitingOn = (...slots: SlotOnDate[]): BookingForDecision => ({
+    id: "booking-1" as BookingId,
+    venueId: venueId("v1"),
+    status: "Requested",
+    slots,
+  });
+  // NOW is 2026-10-01 09:00 in Singapore. AM starts at 07:00, PM at 13:00.
+  const SEVENTY_TWO_HOURS = DEFAULT_HOLD_HOURS * 60 * 60 * 1000;
+
+  it("expires at the slot's start when that is sooner than 72 hours (AC7)", () => {
+    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), hold, staff, [], NOW);
+
+    expect(decided.holdExpiresAt).toEqual(new Date("2026-10-02T07:00:00+08:00"));
+  });
+
+  it("keeps the 72-hour default when the slot starts later than that (AC7)", () => {
+    const decided = decideBooking(waitingOn({ date: "2026-10-22", slot: "AM" }), hold, staff, [], NOW);
+
+    expect(decided.holdExpiresAt!.getTime() - NOW.getTime()).toBe(SEVENTY_TWO_HOURS);
+  });
+
+  it("is capped at the slot's start when the slot starts exactly 72 hours out (AC7 boundary)", () => {
+    // 2026-10-04 09:00 is exactly 72 hours after NOW; no slot starts then, so use a PM-before and an AM-after.
+    const justBefore = decideBooking(waitingOn({ date: "2026-10-04", slot: "AM" }), hold, staff, [], NOW);
+    const justAfter = decideBooking(waitingOn({ date: "2026-10-04", slot: "PM" }), hold, staff, [], NOW);
+
+    expect(justBefore.holdExpiresAt).toEqual(new Date("2026-10-04T07:00:00+08:00"));
+    expect(justAfter.holdExpiresAt).toEqual(new Date("2026-10-04T09:00:00+08:00"));
+  });
+
+  it("takes the earliest slot when the booking holds several (AC7)", () => {
+    const decided = decideBooking(
+      waitingOn({ date: "2026-10-03", slot: "PM" }, { date: "2026-10-02", slot: "PM" }),
+      hold,
+      staff,
+      [],
+      NOW,
+    );
+
+    expect(decided.holdExpiresAt).toEqual(new Date("2026-10-02T13:00:00+08:00"));
+  });
+
+  it("refuses a hold on a slot that has started, or starts this instant (AC7)", () => {
+    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "AM" }), hold, staff, [], NOW)).toThrow(
+      HoldSlotStartedError,
+    );
+    const startsNow = new Date("2026-10-01T13:00:00+08:00");
+    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "PM" }), hold, staff, [], startsNow)).toThrow(
+      HoldSlotStartedError,
+    );
+  });
+
+  it("refuses the whole hold when any one of its slots has started (AC7)", () => {
+    expect(() =>
+      decideBooking(
+        waitingOn({ date: "2026-10-01", slot: "AM" }, { date: "2026-10-05", slot: "AM" }),
+        hold,
+        staff,
+        [],
+        NOW,
+      ),
+    ).toThrow(HoldSlotStartedError);
+  });
+
+  it("does not cap or refuse an approval: only a hold lapses (AC7)", () => {
+    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), { kind: "approve" }, staff, [], NOW);
+
+    expect(decided.status).toBe("Confirmed");
+    expect(decided.holdExpiresAt).toBeUndefined();
+  });
+});
+
+describe("holdsSlot with an Expired booking (SPM-253)", () => {
+  it("an Expired booking holds nothing, whatever its stored expiry says (AC2, AC4)", () => {
+    expect(holdsSlot({ status: "Expired", holdExpiresAt: AFTER_NOW }, NOW)).toBe(false);
+    expect(holdsSlot({ status: "Expired", holdExpiresAt: null }, NOW)).toBe(false);
   });
 });
