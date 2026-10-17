@@ -1,7 +1,7 @@
 -- Seeds venue unavailability blocks (SPM-21) so the Venue Staff page, the
 -- coordinator's venue search and the booking refusal can be tried in the app:
 --
---   Main Hall   Renovation   five days of AM, starting 14 days from today
+--   Main Hall   Renovation   five days of AM, starting 14 days from today in Singapore
 --   Main Hall   Maintenance  all three slots on the middle day of that week,
 --                            so one slot (AM) is covered by two blocks
 --   Studio      Safety       one PM slot, already lifted
@@ -23,7 +23,7 @@ declare
   v_main_hall bigint;
   v_studio    bigint;
   v_block     bigint;
-  v_start     date := current_date + 14;
+  v_start     date := (now() at time zone 'Asia/Singapore')::date + 14;
 begin
   select user_account_id into v_staff
     from public.user_account where name = 'Test Venue Staff' and client_organisation_id is null;
