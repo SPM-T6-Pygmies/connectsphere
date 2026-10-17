@@ -36,7 +36,8 @@ export type BookingStatus =
   | "Confirmed"
   | "Rejected"
   | "Released"
-  | "Cancelled";
+  | "Cancelled"
+  | "Expired";
 
 /** `booking_slot_value_chk` -- venues book in three fixed slots (#50). */
 export type BookingSlot = "AM" | "PM" | "Night";
