@@ -68,6 +68,12 @@ export const PEOPLE = {
     department: "Technical Support",
     clientOrganisation: null,
   },
+  safetyOfficerSam: {
+    id: "safety-sam",
+    name: "Sam Lim",
+    department: "Event Safety",
+    clientOrganisation: null,
+  },
 } as const satisfies Record<string, Person>;
 
 /** Who the demo role switcher is acting as, per role. */
@@ -77,6 +83,7 @@ export const ACTING_AS: Record<string, Person> = {
   coordinator: PEOPLE.coordinatorAmara,
   venue: PEOPLE.venueMei,
   technical: PEOPLE.technicalRavi,
+  safety: PEOPLE.safetyOfficerSam,
 };
 
 // --- Venues ----------------------------------------------------------------
