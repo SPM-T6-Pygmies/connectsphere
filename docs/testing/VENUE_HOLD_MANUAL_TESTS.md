@@ -1,9 +1,9 @@
-# Venue Hold Manual Tests (SPM-218, SPM-219)
+# Venue Hold Manual Tests (SPM-218, SPM-219, SPM-253, SPM-254)
 
 ## Overview
 
 Browser checks for **SPM-218: Place a tentative hold on a venue slot**, **SPM-219: Confirm or
-release a tentative hold** and **SPM-253: Expire an unconfirmed hold**. Venue
+release a tentative hold**, **SPM-253: Expire an unconfirmed hold** and **SPM-254: Warn the coordinator of hold expiry**. Venue
 Staff place a hold on a booking request while the Event Coordinator is
 finalising the event. The hold keeps the request's slots from everyone else for
 72 hours (`DEFAULT_HOLD_HOURS`), or until its slot starts if that is sooner, and then lapses to
@@ -12,7 +12,7 @@ are unit-tested (`decideBooking placing a hold (SPM-218)` and the use case, mapp
 repository tests tagged SPM-218) and the database function was proven on a scratch
 Postgres; these cases check the pages end to end against Supabase.
 
-These cases are registered as `TC-VHOLD-001`–`TC-VHOLD-011` in
+These cases are registered as `TC-VHOLD-001`–`TC-VHOLD-013` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). Report what you ran in the
 PR description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not edit that file.
@@ -430,3 +430,64 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Screenshots:** [step2-hold-capped-at-slot-start](../screenshots/2026-10-17_TC-VHOLD-011_step2-hold-capped-at-slot-start.png) · [step5-started-slot-refused](../screenshots/2026-10-17_TC-VHOLD-011_step5-started-slot-refused.png)
 
+---
+
+### TC-VHOLD-012: The coordinator is told when a hold expires (SPM-254 AC1, AC2)
+
+**What this tests:** When a hold runs out unconfirmed, the event's coordinator gets one Inbox notice saying so. It names the venue, the held slot and when the hold expired, and says the venue is no longer held. There is no timer: the notice goes out after the next staff page loads, whoever loads it. The setup's live PM hold on *Holds Test Event* is the example.
+
+**Preconditions:** The fixture from Setup. The app runs with Novu reachable (`NOVU_BRIDGE_URL` set to a `novu dev` tunnel); without it the notice is only recorded, so steps 3 and 4 cannot be checked. Signed in as `venue@test.com` in one window and `coordinator@test.com` in another.
+
+**Steps:**
+1. Make the PM hold lapse:
+   ```sql
+   update booking set hold_expires_at = now() - interval '1 minute'
+   where status = 'Tentative Hold'
+     and event_id = (select event_id from event where name = 'Holds Test Event');
+   ```
+2. As `venue@test.com`, open **Decided**.
+3. As `coordinator@test.com`, open the Inbox.
+4. Click the notice.
+5. Read the database:
+   ```sql
+   select n.recipient_user_account_id, n.status, n.message_content, b.expiry_notified_at
+   from notification n join booking b on b.booking_id = n.related_booking_id
+   where n.trigger_scenario = 'hold-expired'
+     and b.event_id = (select event_id from event where name = 'Holds Test Event');
+   ```
+
+**Expected Result:**
+- Step 2: the page loads as usual; the PM hold is no longer listed under **Decided**.
+- Step 3: one notice, "Main Hall hold expired for Holds Test Event", reading "The hold on Main Hall for <day H> (PM) expired at <today, time> without being confirmed. The venue is no longer held; send a new request if you still need it." (AC1, AC2).
+- Step 4: it opens the event.
+- Step 5: one row per expired hold of the event, addressed to the Test Coordinator, `Sent`, with `expiry_notified_at` set (AC1).
+
+**Status:** [ ] Pass [ ] Fail
+
+**Screenshots:**
+
+---
+
+### TC-VHOLD-013: Each expired hold is told once (SPM-254 AC3)
+
+**What this tests:** However many staff pages load after a hold expires, and whoever loads them, the coordinator hears about it once. A hold that had already expired before this feature shipped is never announced.
+
+**Preconditions:** After TC-VHOLD-012. Signed in as `venue@test.com` and `coordinator@test.com`.
+
+**Steps:**
+1. As `venue@test.com`, open **Decided**, **Archive** and **Requests**, and reload each.
+2. As `coordinator@test.com`, open any two pages and reload them.
+3. Read the database:
+   ```sql
+   select related_booking_id, count(*) from notification
+   where trigger_scenario = 'hold-expired' group by related_booking_id;
+   ```
+4. Open the coordinator's Inbox.
+
+**Expected Result:**
+- Step 3: every booking has exactly **1** row (AC3).
+- Step 4: no new hold-expired notice since TC-VHOLD-012 (AC3).
+
+**Status:** [ ] Pass [ ] Fail
+
+**Screenshots:**

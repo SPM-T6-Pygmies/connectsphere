@@ -712,6 +712,11 @@
       "parent": "SPM-45",
       "status": "In Progress"
     },
+    "SPM-254": {
+      "title": "Warn the coordinator of hold expiry",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-255": {
       "title": "Review an unassigned request",
       "parent": null,
