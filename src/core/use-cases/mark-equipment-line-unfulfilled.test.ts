@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { InMemoryEquipmentNoticeDirectory } from "@/adapters/outbound/in-memory/in-memory-equipment-notice-directory";
 import { InMemoryTechnicalEquipmentRepository } from "@/adapters/outbound/in-memory/in-memory-technical-equipment-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { equipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
 import {
@@ -12,8 +14,10 @@ import { eventId } from "@/core/domain/event";
 import { userAccountId } from "@/core/domain/user-account";
 import type { EventEquipmentStock } from "@/core/ports/outbound/technical-equipment-repository";
 
+import { EquipmentOutcomeAnnouncer } from "./announce-equipment-outcome";
 import { ListEquipmentQueueUseCase } from "./list-equipment-queue";
 import { MarkEquipmentLineUnfulfilledUseCase } from "./mark-equipment-line-unfulfilled";
+import { ReserveEquipmentLineUseCase } from "./reserve-equipment-line";
 
 const SUPPORT = "support-1";
 
@@ -46,16 +50,22 @@ function setup(preferredDate: string | null = "2026-11-15") {
       { line: newLine("item-lectern", 1), equipmentType: "Lectern", owned: 3, outOfService: 0, otherHolds: [], decidedByName: null },
     ],
   };
-  const equipment = new InMemoryTechnicalEquipmentRepository([seed]);
+  const equipment = new InMemoryTechnicalEquipmentRepository([seed], { [SUPPORT]: "Test Support Staff" });
+  const notifier = new RecordingNotifier();
+  const outcome = new EquipmentOutcomeAnnouncer({
+    equipment,
+    directory: new InMemoryEquipmentNoticeDirectory([], { A: "coordinator-1" }),
+    notifier,
+  });
   const mark = (item: string, comment = "only 3 available") =>
-    new MarkEquipmentLineUnfulfilledUseCase({ equipment }).execute({
+    new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome }).execute({
       eventId: "A",
       equipmentItemId: item,
       userAccountId: SUPPORT,
       comment,
     });
   const stored = async () => (await equipment.eventEquipment(userAccountId(SUPPORT), eventId("A")))?.lines ?? [];
-  return { equipment, mark, stored };
+  return { equipment, notifier, mark, stored };
 }
 
 describe("MarkEquipmentLineUnfulfilledUseCase (SPM-274)", () => {
@@ -111,5 +121,59 @@ describe("MarkEquipmentLineUnfulfilledUseCase (SPM-274)", () => {
     const { mark } = setup(null);
 
     await expect(mark("item-projector")).rejects.toThrow(EventDateRequiredForEquipmentError);
+  });
+});
+
+describe("MarkEquipmentLineUnfulfilledUseCase telling the coordinator (SPM-65)", () => {
+  it("AC3: one notice lists every line, reserved or unfulfilled, with the comment and who decided", async () => {
+    const { equipment, notifier, mark } = setup();
+    const outcome = new EquipmentOutcomeAnnouncer({
+      equipment,
+      directory: new InMemoryEquipmentNoticeDirectory([], { A: "coordinator-1" }),
+      notifier,
+    });
+    await new ReserveEquipmentLineUseCase({ equipment, outcome }).execute({
+      eventId: "A",
+      equipmentItemId: "item-lectern",
+      userAccountId: SUPPORT,
+    });
+    expect(notifier.equipmentDecisions).toEqual([]);
+
+    await mark("item-projector");
+
+    expect(notifier.equipmentDecisions).toEqual([
+      {
+        recipientUserAccountId: "coordinator-1",
+        eventId: "A",
+        eventName: "Event A",
+        preferredDate: "2026-11-15",
+        lines: [
+          {
+            equipmentType: "Projector",
+            quantityRequested: 5,
+            outcome: "unfulfilled",
+            quantityReserved: 0,
+            decidedByName: "Test Support Staff",
+            comment: "only 3 available",
+          },
+          {
+            equipmentType: "Lectern",
+            quantityRequested: 1,
+            outcome: "reserved",
+            quantityReserved: 1,
+            decidedByName: "Test Support Staff",
+            comment: null,
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("AC2: marking while another line still needs attention tells no one", async () => {
+    const { notifier, mark } = setup();
+
+    await mark("item-projector");
+
+    expect(notifier.equipmentDecisions).toEqual([]);
   });
 });

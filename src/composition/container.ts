@@ -17,6 +17,7 @@ import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supaba
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
+import { SupabaseEquipmentNoticeDirectory } from "@/adapters/outbound/supabase/supabase-equipment-notice-directory";
 import { SupabaseVenueStaffDirectory } from "@/adapters/outbound/supabase/supabase-venue-staff-directory";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
 import { SupabaseEventCatalogue } from "@/adapters/outbound/supabase/supabase-event-catalogue";
@@ -46,6 +47,7 @@ import type { EventReadinessRepository } from "@/core/ports/outbound/event-readi
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
+import type { SafetyCheckRepository } from "@/core/ports/outbound/safety-check-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 import { AssignEventCoordinatorUseCase } from "@/core/use-cases/assign-event-coordinator";
@@ -57,6 +59,8 @@ import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
+import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
+import { EquipmentOutcomeAnnouncer } from "@/core/use-cases/announce-equipment-outcome";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
@@ -81,6 +85,7 @@ import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
+import { ViewVenueCalendarUseCase } from "@/core/use-cases/view-venue-calendar";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
 import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue";
 import { MarkEquipmentLineUnfulfilledUseCase } from "@/core/use-cases/mark-equipment-line-unfulfilled";
@@ -171,7 +176,12 @@ export async function buildViewEventForRegistration(): Promise<ViewEventForRegis
 export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
-  return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
+  return new RegisterForEventUseCase({
+    events,
+    registrations,
+    clock: systemClock,
+    notifier: recordedNotifier(),
+  });
 }
 
 export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> {
@@ -295,9 +305,18 @@ function recordedNotifier(): Notifier {
   const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
   const delivering =
     secretKey && novuCanRun
-      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix(), appBaseUrl())
       : new LoggingNotifier();
   return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
+}
+
+/**
+ * Where links in emails point (SPM-87). Vercel sets the production domain on
+ * every deployment; anywhere else is a developer's own machine.
+ */
+function appBaseUrl(): string {
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return production ? `https://${production}` : "http://localhost:3000";
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
@@ -407,18 +426,31 @@ export async function buildViewEventEquipmentForTechnicalSupport(): Promise<View
   });
 }
 
+/**
+ * SPM-65: tells the event's coordinator the outcome once Technical Support
+ * finish its equipment. The lines are read as the reviewer; the coordinator
+ * with the admin client, since Technical Support may not read assignments.
+ */
+function equipmentOutcomeAnnouncer(equipment: SupabaseTechnicalEquipmentRepository): EquipmentOutcomeAnnouncer {
+  return new EquipmentOutcomeAnnouncer({
+    equipment,
+    directory: new SupabaseEquipmentNoticeDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-274 AC1: reserve a line's full quantity. */
 export async function buildReserveEquipmentLine(): Promise<ReserveEquipmentLineUseCase> {
-  const client = await createSupabaseServerClient();
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
-  return new ReserveEquipmentLineUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+  return new ReserveEquipmentLineUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /** SPM-274 AC3: mark a line unfulfilled, with why. */
 export async function buildMarkEquipmentLineUnfulfilled(): Promise<MarkEquipmentLineUnfulfilledUseCase> {
-  const client = await createSupabaseServerClient();
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
-  return new MarkEquipmentLineUnfulfilledUseCase({ equipment: new SupabaseTechnicalEquipmentRepository(client) });
+  return new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /**
@@ -472,6 +504,7 @@ async function coordinatorAdapters(): Promise<{
   clientOrganisations: ClientOrganisationRepository;
   userAccounts: UserAccountRepository;
   equipment: EquipmentRequirementRepository;
+  safetyChecks: SafetyCheckRepository;
 }> {
   const client = await createSupabaseServerClient();
   return {
@@ -481,6 +514,7 @@ async function coordinatorAdapters(): Promise<{
     clientOrganisations: new SupabaseClientOrganisationRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
     equipment: new SupabaseEquipmentRequirementRepository(client),
+    safetyChecks: new SupabaseSafetyCheckRepository(client),
   };
 }
 
@@ -620,6 +654,18 @@ function safetyCheckAnnouncer(): SafetyCheckEntryAnnouncer {
   });
 }
 
+/**
+ * SPM-64: tells every Technical Support Staff member of each change a
+ * coordinator makes to a line. Reads with the admin client: the coordinator
+ * may not list staff accounts themselves.
+ */
+function equipmentAttentionAnnouncer(): EquipmentAttentionAnnouncer {
+  return new EquipmentAttentionAnnouncer({
+    directory: new SupabaseEquipmentNoticeDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-261: an event's safety checks, for its assigned coordinator. */
 export async function buildViewEventSafetyChecks(): Promise<ViewEventSafetyChecksUseCase> {
   const client = await createSupabaseServerClient();
@@ -651,7 +697,7 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
 
 /** SPM-50: one event and its confirmation readiness, to the coordinator it is assigned to. */
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
-  const { events, readiness, clientOrganisations, userAccounts } = await coordinatorAdapters();
+  const { events, readiness, clientOrganisations, userAccounts, safetyChecks } = await coordinatorAdapters();
 
   return new ViewCoordinatorEventUseCase({
     events,
@@ -659,14 +705,15 @@ export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventU
     clientOrganisations,
     userAccounts,
     clock: systemClock,
+    safetyChecks,
   });
 }
 
-/** SPM-50: the assigned coordinator confirms an event once nothing essential is left incomplete. */
+/** SPM-50, SPM-264: the assigned coordinator confirms an event once nothing essential is left incomplete and its safety check is Approved. */
 export async function buildConfirmEvent(): Promise<ConfirmEventUseCase> {
-  const { events, readiness } = await coordinatorAdapters();
+  const { events, readiness, safetyChecks } = await coordinatorAdapters();
 
-  return new ConfirmEventUseCase({ events, readiness });
+  return new ConfirmEventUseCase({ events, readiness, safetyChecks });
 }
 
 /** SPM-51: the assigned coordinator marks a Confirmed event completed once it has ended. */
@@ -687,28 +734,43 @@ export async function buildViewEventEquipment(): Promise<ViewEventEquipmentUseCa
 export async function buildRecordEquipmentRequirement(): Promise<RecordEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new RecordEquipmentRequirementUseCase({ events, equipment });
+  return new RecordEquipmentRequirementUseCase({ events, equipment, attention: equipmentAttentionAnnouncer() });
 }
 
 /** SPM-41 AC7-9: the assigned coordinator changes a line's quantity or technical requirements. */
 export async function buildEditEquipmentRequirement(): Promise<EditEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new EditEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new EditEquipmentRequirementUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-41 AC10-11: the assigned coordinator removes a line. */
 export async function buildRemoveEquipmentRequirement(): Promise<RemoveEquipmentRequirementUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new RemoveEquipmentRequirementUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new RemoveEquipmentRequirementUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-41 AC17: the assigned coordinator takes back a removal Technical Support have not yet acted on. */
 export async function buildUndoEquipmentRemoval(): Promise<UndoEquipmentRemovalUseCase> {
   const { events, equipment } = await coordinatorAdapters();
 
-  return new UndoEquipmentRemovalUseCase({ events, equipment, safetyCheck: safetyCheckAnnouncer() });
+  return new UndoEquipmentRemovalUseCase({
+    events,
+    equipment,
+    safetyCheck: safetyCheckAnnouncer(),
+    attention: equipmentAttentionAnnouncer(),
+  });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */
@@ -825,6 +887,18 @@ export async function buildSearchVenues(): Promise<SearchVenuesUseCase> {
   return new SearchVenuesUseCase({
     venues: new SupabaseVenueCatalogue(client),
     availability: new SupabaseVenueAvailability(client),
+    clock: systemClock,
+    timeZone: "Asia/Singapore",
+  });
+}
+
+/** SPM-43: a week of one venue's calendar, read live from bookings and blocks. */
+export async function buildViewVenueCalendar(): Promise<ViewVenueCalendarUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewVenueCalendarUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    bookings: new SupabaseBookingRepository(client),
+    blocks: new SupabaseVenueUnavailabilityRepository(client),
     clock: systemClock,
     timeZone: "Asia/Singapore",
   });

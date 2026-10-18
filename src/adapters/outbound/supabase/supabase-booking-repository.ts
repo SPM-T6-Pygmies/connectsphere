@@ -35,6 +35,7 @@ import {
 } from "./booking-mapper";
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
+import { expireLapsedHolds } from "./expire-lapsed-holds";
 
 // SQLSTATEs raised by coordinator_submit_booking_request (see its migration).
 const EVENT_NOT_FOUND = "CS020";
@@ -84,6 +85,8 @@ export class SupabaseBookingRepository implements BookingRepository {
       return [];
     }
 
+    // SPM-253: a hold that ran out is marked Expired before it is listed.
+    await expireLapsedHolds(this.client);
     const { data, error } = await this.client.rpc("coordinator_event_bookings", {
       p_coordinator_user_account_id: coordinator,
       p_event_id: event,

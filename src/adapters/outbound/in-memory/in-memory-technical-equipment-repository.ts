@@ -23,11 +23,16 @@ import type {
  * here is held against every other event, as in the real store (SPM-274 AC5).
  * It does not check who is reading or writing: that is the real store's
  * re-check, and the page's Technical Support context already gates the lists.
+ * A decision is credited to its reviewer by `names`, as the real store reads
+ * the decider's name back (SPM-274).
  */
 export class InMemoryTechnicalEquipmentRepository implements TechnicalEquipmentRepository {
   private readonly events: EventEquipmentStock[];
 
-  constructor(seed: readonly EventEquipmentStock[] = []) {
+  constructor(
+    seed: readonly EventEquipmentStock[] = [],
+    private readonly names: Readonly<Record<string, string>> = {},
+  ) {
     this.events = [...seed];
   }
 
@@ -48,7 +53,7 @@ export class InMemoryTechnicalEquipmentRepository implements TechnicalEquipmentR
     };
   }
 
-  async reserve(_reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void> {
+  async reserve(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void> {
     const { entry, stock } = this.awaitingLine(eventId, line);
     const available = unitsAvailable(
       stock.owned,
@@ -59,12 +64,12 @@ export class InMemoryTechnicalEquipmentRepository implements TechnicalEquipmentR
     if (available !== null && available < line.quantityReserved) {
       throw new NotEnoughEquipmentAvailableError(available, line.quantityReserved);
     }
-    this.replace(eventId, line);
+    this.replace(eventId, line, reviewer);
   }
 
-  async markUnfulfilled(_reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void> {
+  async markUnfulfilled(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void> {
     this.awaitingLine(eventId, line);
-    this.replace(eventId, line);
+    this.replace(eventId, line, reviewer);
   }
 
   /** The stored line `line` decides on, if it still awaits that decision as it was read. */
@@ -101,12 +106,15 @@ export class InMemoryTechnicalEquipmentRepository implements TechnicalEquipmentR
     );
   }
 
-  private replace(eventId: EventId, line: EquipmentRequirement): void {
+  private replace(eventId: EventId, line: EquipmentRequirement, decidedBy: UserAccountId): void {
     const index = this.events.findIndex((candidate) => candidate.event.id === eventId);
     const entry = this.events[index];
+    const decidedByName = this.names[decidedBy] ?? null;
     this.events[index] = {
       ...entry,
-      lines: entry.lines.map((stock) => (stock.line.equipmentItemId === line.equipmentItemId ? { ...stock, line } : stock)),
+      lines: entry.lines.map((stock) =>
+        stock.line.equipmentItemId === line.equipmentItemId ? { ...stock, line, decidedByName } : stock,
+      ),
     };
   }
 }

@@ -8,10 +8,12 @@ import {
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
+import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventId } from "@/core/domain/event";
 import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
+import type { SafetyCheckEntry } from "@/core/ports/outbound/safety-check-repository";
 
 import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
 
@@ -57,6 +59,20 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
   };
 }
 
+function check(overrides: Partial<SafetyCheckEntry> = {}): SafetyCheckEntry {
+  return {
+    outcome: "Approved",
+    comments: null,
+    checkedByName: "Test Safety Officer",
+    checkedAt: "2026-10-06T09:30:00.000Z",
+    resubmittedAt: null,
+    ...overrides,
+  };
+}
+
+const APPROVED = check();
+const REJECTED = check({ outcome: "Rejected", comments: "Widen the fire exit route." });
+
 /** The morning after event-1's 14 Oct PM slot. */
 const AFTER_END = new Date("2026-10-15T09:00:00+08:00");
 
@@ -64,6 +80,8 @@ function buildUseCase(
   events: readonly SeedCoordinatorEvent[],
   readiness: readonly ReadinessFacts[] = [],
   now: Date = AFTER_END,
+  /** Every event's safety-check history, newest first -- one approval unless given. */
+  checks: readonly SafetyCheckEntry[] = [APPROVED],
 ) {
   return new ViewCoordinatorEventUseCase({
     events: new InMemoryCoordinatorEventRepository(events),
@@ -80,6 +98,11 @@ function buildUseCase(
     clientOrganisations: new InMemoryClientOrganisationRepository(ORG_NAMES),
     userAccounts: new InMemoryUserAccountRepository({ names: ORGANISER_NAMES }),
     clock: new FixedClock(now),
+    safetyChecks: safetyCheckStore(
+      events.map((event) =>
+        safetyCheckReview({ coordinatorUserAccountId: event.assignedCoordinatorUserAccountId, checks }),
+      ),
+    ),
   });
 }
 
@@ -127,7 +150,7 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
       userAccountId: COORDINATOR,
     });
 
-    expect(result?.confirmation).toBe("blocked-by-arrangements");
+    expect(result?.confirmation).toBe("blocked");
     expect(result?.blockingArrangements).toEqual(["venue"]);
   });
 
@@ -173,6 +196,46 @@ describe("ViewCoordinatorEventUseCase (SPM-50)", () => {
     await expect(
       useCase.execute({ id: "missing", userAccountId: COORDINATOR }),
     ).resolves.toBeNull();
+  });
+});
+
+describe("ViewCoordinatorEventUseCase safety check (SPM-264)", () => {
+  const ready = () => [seedFacts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall" })];
+
+  it.each([
+    ["AC1", "no check yet", [], "no-check"],
+    ["AC2", "a rejection not yet resubmitted", [REJECTED], "rejected"],
+    ["AC3", "a rejection resubmitted", [{ ...REJECTED, resubmittedAt: "2026-10-07T09:00:00.000Z" }], "awaiting-recheck"],
+  ] as const)("%s: reports %s as blocking confirmation", async (_ac, _label, checks, blocker) => {
+    const useCase = buildUseCase([seedEvent()], ready(), AFTER_END, checks);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.confirmation).toBe("blocked");
+    expect(result?.safetyCheckBlocker).toBe(blocker);
+    expect(result?.blockingArrangements).toEqual([]);
+  });
+
+  it("AC4/AC5: reports ready once the latest check is Approved, even after an earlier rejection", async () => {
+    const useCase = buildUseCase([seedEvent()], ready(), AFTER_END, [
+      APPROVED,
+      { ...REJECTED, resubmittedAt: "2026-10-05T09:00:00.000Z" },
+    ]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.confirmation).toBe("ready");
+    expect(result?.safetyCheckBlocker).toBeNull();
+  });
+
+  it("AC6: reports both the incomplete arrangement and the safety check", async () => {
+    const useCase = buildUseCase([seedEvent()], [seedFacts({ essentialTypes: ["venue"] })], AFTER_END, []);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.confirmation).toBe("blocked");
+    expect(result?.blockingArrangements).toEqual(["venue"]);
+    expect(result?.safetyCheckBlocker).toBe("no-check");
   });
 });
 

@@ -18,7 +18,7 @@ export function RegistrationForm({ event }: { event: AvailableEvent }) {
   const [state, formAction, pending] = useActionState(registerForEventAction, INITIAL);
 
   if (state.status === "registered") {
-    return <Confirmation event={state.event} registrationId={state.registrationId} />;
+    return <Confirmation event={state.event} email={state.email} />;
   }
 
   // React resets an uncontrolled form once its action settles, so a refused
@@ -76,15 +76,10 @@ export function RegistrationForm({ event }: { event: AvailableEvent }) {
 
 /**
  * SPM-82: name, date, time and venue, read back from what the server recorded
- * rather than echoed from the form.
+ * rather than echoed from the form. The link to the registration is emailed
+ * rather than shown (SPM-87).
  */
-function Confirmation({
-  event,
-  registrationId,
-}: {
-  event: AvailableEvent;
-  registrationId: string;
-}) {
+function Confirmation({ event, email }: { event: AvailableEvent; email: string }) {
   return (
     <div className="space-y-4" role="status">
       <div className="flex items-center gap-2">
@@ -114,17 +109,11 @@ function Confirmation({
       </div>
 
       <div className="space-y-2 rounded-xl border border-dashed p-4">
-        <p className="text-sm font-medium">Save this link</p>
+        <p className="text-sm font-medium">Check your email</p>
         <p className="text-muted-foreground text-sm">
-          It is how you check or withdraw this registration, and it is the only copy &mdash; we
-          cannot send it to you again yet.
+          We&rsquo;ve emailed a link to <span className="text-foreground font-medium break-all">{email}</span>.
+          Use it to check or withdraw this registration.
         </p>
-        <Link
-          href={`/registrations/${registrationId}`}
-          className="block text-sm font-medium break-all underline underline-offset-4"
-        >
-          /registrations/{registrationId}
-        </Link>
       </div>
 
       <Button asChild variant="outline">

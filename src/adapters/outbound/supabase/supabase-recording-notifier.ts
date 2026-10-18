@@ -2,6 +2,8 @@ import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import {
   clarificationRequestedRow,
   coordinatorAssignedRow,
+  equipmentDecidedRow,
+  equipmentNeedsAttentionRow,
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
@@ -14,11 +16,14 @@ import {
 import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
+  EquipmentDecidedNotice,
+  EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -91,10 +96,33 @@ export class SupabaseRecordingNotifier implements Notifier {
     );
   }
 
+  equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void> {
+    return this.recordAndDeliver(equipmentNeedsAttentionRow(notice), () =>
+      this.inner.equipmentNeedsAttention(notice),
+    );
+  }
+
+  equipmentDecided(notice: EquipmentDecidedNotice): Promise<void> {
+    return this.recordAndDeliver(equipmentDecidedRow(notice), () => this.inner.equipmentDecided(notice));
+  }
+
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     return this.recordAndDeliver(venueBookingDecidedRow(notice), () =>
       this.inner.venueBookingDecided(notice),
     );
+  }
+
+  /**
+   * Delivered but not recorded: a `notification` row needs a recipient user
+   * account, and an Attendee has none (SPM-87). Still never throws -- the
+   * registration it confirms is already saved.
+   */
+  async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    try {
+      await this.inner.registrationConfirmed(notice);
+    } catch (error) {
+      console.error("[SupabaseRecordingNotifier] Delivery failed:", error);
+    }
   }
 
   /** Record the row Pending, deliver, then mark it Sent or Failed. */

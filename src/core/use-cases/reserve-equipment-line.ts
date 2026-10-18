@@ -1,6 +1,8 @@
 import { reserveEquipmentLine } from "../domain/equipment-review";
-import { userAccountId } from "../domain/user-account";
+import { eventId } from "../domain/event";
+import { userAccountId, type UserAccountId } from "../domain/user-account";
 import type { TechnicalEquipmentRepository } from "../ports/outbound/technical-equipment-repository";
+import type { EquipmentOutcomeAnnouncer } from "./announce-equipment-outcome";
 import { lineToDecide, type EquipmentLineDecisionResult } from "./equipment-line-decision";
 
 export interface ReserveEquipmentLineCommand {
@@ -12,6 +14,8 @@ export interface ReserveEquipmentLineCommand {
 
 export interface ReserveEquipmentLineDeps {
   readonly equipment: TechnicalEquipmentRepository;
+  /** SPM-65: this decision can finish the event's equipment. */
+  readonly outcome: Pick<EquipmentOutcomeAnnouncer, "around">;
 }
 
 /**
@@ -24,8 +28,15 @@ export class ReserveEquipmentLineUseCase {
   constructor(private readonly deps: ReserveEquipmentLineDeps) {}
 
   async execute(command: ReserveEquipmentLineCommand): Promise<EquipmentLineDecisionResult> {
-    const { equipment } = this.deps;
     const reviewer = userAccountId(command.userAccountId);
+    return this.deps.outcome.around(reviewer, eventId(command.eventId), () => this.decide(reviewer, command));
+  }
+
+  private async decide(
+    reviewer: UserAccountId,
+    command: ReserveEquipmentLineCommand,
+  ): Promise<EquipmentLineDecisionResult> {
+    const { equipment } = this.deps;
 
     const { event, target } = await lineToDecide(equipment, reviewer, command);
     const reserved = reserveEquipmentLine(event, target, reviewer);

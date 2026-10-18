@@ -5,6 +5,7 @@ import {
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   HoldNotLiveError,
+  HoldSlotStartedError,
   InvalidBookingDateError,
   NoBookingSlotsError,
   RoomLayoutRequiredError,
@@ -54,7 +55,9 @@ export type BookingStatus =
   | "Confirmed"
   | "Rejected"
   | "Released"
-  | "Cancelled";
+  | "Cancelled"
+  /** SPM-253: a Tentative Hold that ran out unconfirmed. Not Released, which a person does. */
+  | "Expired";
 
 export type BookingId = Brand<string, "BookingId">;
 
@@ -275,6 +278,21 @@ export function requestVenueBooking(input: {
   };
 }
 
+/**
+ * SPM-253: when a hold placed `now` on `slots` lapses -- `DEFAULT_HOLD_HOURS`
+ * later, or when the earliest of its slots starts if that comes first, since a
+ * hold that outlives its slot means nothing. A slot that has started, or starts
+ * this instant, refuses the whole hold.
+ */
+function holdExpiry(slots: readonly SlotOnDate[], now: Date): Date {
+  const earliestStart = Math.min(...slots.map((slot) => slotStartsAt(slot).getTime()));
+  if (earliestStart <= now.getTime()) {
+    throw new HoldSlotStartedError();
+  }
+
+  return new Date(Math.min(now.getTime() + DEFAULT_HOLD_HOURS * 60 * 60 * 1000, earliestStart));
+}
+
 /** A booking as Venue Staff decide it: what the decision rules need, nothing more. */
 export interface BookingForDecision {
   readonly id: BookingId;
@@ -341,7 +359,7 @@ export function decideBooking(
         decidedBy,
         rejectionNote: null,
         suggestedAlternative: null,
-        holdExpiresAt: new Date(now.getTime() + DEFAULT_HOLD_HOURS * 60 * 60 * 1000),
+        holdExpiresAt: holdExpiry(booking.slots, now),
       };
     }
     return {
@@ -390,7 +408,7 @@ export interface ResolvedHold {
  * once, for another hold or booking. Either needs the hold to be live now:
  * still a Tentative Hold, and not past its expiry, by the same test
  * `holdsSlot` uses to keep the slot. An expired hold is refused even if its
- * status has not been moved on yet (SPM-253 does that), and so is a booking
+ * status has not been moved on yet (a read marks it Expired, SPM-253), and so is a booking
  * that was never held. Confirming needs no clash check: the hold already owns
  * the slots, and the one-per-slot rule would refuse any second claim on them.
  */

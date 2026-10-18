@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   clarificationRequestedRow,
   coordinatorAssignedRow,
+  equipmentDecidedRow,
+  equipmentNeedsAttentionRow,
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
@@ -158,6 +160,62 @@ describe("venueBookingRequestedRow (SPM-61)", () => {
       related_booking_id: "31",
       message_content:
         "Grand Ballroom requested for Harbour Lights Gala\nRequested for Fri, 20 Nov 2026 (PM). Approve or reject it.",
+    });
+  });
+});
+
+describe("equipmentNeedsAttentionRow (SPM-64)", () => {
+  it("AC1: records the notice as Pending against its Technical Support Staff member and the event", () => {
+    expect(
+      equipmentNeedsAttentionRow({
+        recipientUserAccountId: "5",
+        eventId: "12",
+        eventName: "Tech Summit Keynote",
+        preferredDate: "2026-11-15",
+        equipmentType: "Projector",
+        change: "added",
+        quantityRequested: 4,
+        quantityWas: null,
+        attention: "new",
+      }),
+    ).toEqual({
+      recipient_user_account_id: "5",
+      trigger_scenario: "equipment-needs-attention",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "12",
+      message_content: "Projector requested for Tech Summit Keynote\n4 requested. Event date: Sun, 15 Nov 2026.",
+    });
+  });
+});
+
+describe("equipmentDecidedRow (SPM-65)", () => {
+  it("AC1: records the notice as Pending against the coordinator and the event", () => {
+    expect(
+      equipmentDecidedRow({
+        recipientUserAccountId: "3",
+        eventId: "12",
+        eventName: "Design Sprint Demo",
+        preferredDate: null,
+        lines: [
+          {
+            equipmentType: "Projector",
+            quantityRequested: 4,
+            outcome: "reserved",
+            quantityReserved: 4,
+            decidedByName: "Test Support Staff",
+            comment: null,
+          },
+        ],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "equipment-decided",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "12",
+      message_content:
+        "Equipment reserved for Design Sprint Demo\nProjector: 4 reserved by Test Support Staff. No event date set yet.",
     });
   });
 });

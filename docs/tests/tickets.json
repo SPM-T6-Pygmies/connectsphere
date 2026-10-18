@@ -167,6 +167,16 @@
       "parent": "SPM-47",
       "status": "In Progress"
     },
+    "SPM-64": {
+      "title": "Notify technical support of an equipment requirement",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-65": {
+      "title": "Notify the coordinator of the equipment outcome",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-73": {
       "title": "Notify an attendee of a waiting-list status change",
       "parent": null,
@@ -216,6 +226,11 @@
       "title": "Show withdrawal confirmation",
       "parent": "SPM-28",
       "status": "Done"
+    },
+    "SPM-87": {
+      "title": "Email the attendee their registration link",
+      "parent": null,
+      "status": "In Progress"
     },
     "SPM-88": {
       "title": "finalise all fields needed in a request (optional vs mandatory)",
@@ -742,6 +757,11 @@
       "parent": "SPM-47",
       "status": "In Progress"
     },
+    "SPM-264": {
+      "title": "Block confirmation until the safety check is approved",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-265": {
       "title": "Venue block rules in the domain",
       "parent": "SPM-21",
@@ -795,6 +815,26 @@
     "SPM-285": {
       "title": "Split the coordinator event page into tabs",
       "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-304": {
+      "title": "Notify the attendee when they register",
+      "parent": "SPM-87",
+      "status": "In Progress"
+    },
+    "SPM-305": {
+      "title": "Email the registration link through Novu",
+      "parent": "SPM-87",
+      "status": "In Progress"
+    },
+    "SPM-306": {
+      "title": "Point the confirmation panel at the email",
+      "parent": "SPM-87",
+      "status": "In Progress"
+    },
+    "SPM-307": {
+      "title": "Manual test cases and registry for the registration email",
+      "parent": "SPM-87",
       "status": "In Progress"
     }
   }

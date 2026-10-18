@@ -2,9 +2,12 @@ import { serve } from "@novu/framework/next";
 
 import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clarification-requested";
 import { coordinatorAssigned } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
+import { equipmentDecided } from "@/adapters/outbound/novu/workflows/equipment-decided";
+import { equipmentNeedsAttention } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
 import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { organiserMessagePosted } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
+import { registrationConfirmed } from "@/adapters/outbound/novu/workflows/registration-confirmed";
 import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { safetyCheckRecorded } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
 import { venueBookingDecided } from "@/adapters/outbound/novu/workflows/venue-booking-decided";
@@ -35,7 +38,10 @@ function handlers(): Bridge {
       safetyCheckReady,
       safetyCheckRecorded,
       venueBookingRequested,
+      equipmentNeedsAttention,
+      equipmentDecided,
       venueBookingDecided,
+      registrationConfirmed,
     ],
   });
   return bridge;

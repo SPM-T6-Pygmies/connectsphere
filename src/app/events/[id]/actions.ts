@@ -9,7 +9,7 @@ import type { AvailableEvent } from "@/core/use-cases/available-event";
 
 export type RegistrationState =
   | { status: "idle" }
-  | { status: "registered"; registrationId: string; event: AvailableEvent }
+  | { status: "registered"; email: string; event: AvailableEvent }
   | {
       status: "error";
       message: string;
@@ -45,7 +45,7 @@ export async function registerForEventAction(
     const registerForEvent = await buildRegisterForEvent();
     const result = await registerForEvent.execute(parsed.data);
 
-    return { status: "registered", registrationId: result.registrationId, event: result.event };
+    return { status: "registered", email: parsed.data.email, event: result.event };
   } catch (error) {
     // A refused registration -- full, closed, already registered -- is an
     // expected outcome and becomes a message the attendee can act on. Anything

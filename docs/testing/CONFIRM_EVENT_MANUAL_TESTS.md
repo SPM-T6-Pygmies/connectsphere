@@ -1,4 +1,4 @@
-# Confirm Event Manual Tests (SPM-50)
+# Confirm Event Manual Tests (SPM-50, SPM-264)
 
 ## Overview
 
@@ -7,12 +7,19 @@ Browser checks for the Event Coordinator confirming an event at
 arrangement is incomplete, and the page names which one and why. Only venue,
 programme and registration are evaluated today.
 
-The readiness rules (`assessReadiness`, `blockingArrangements`, `confirmEvent`)
-are unit-tested, tagged `SPM-50`. These cases cover what the unit tests cannot:
-that the page shows the blocker, that confirming works end to end, and that
-the route is closed to anyone signed out.
+SPM-264 adds a second gate: the event's **latest safety check must be
+Approved**. With no check yet, a rejection, or a rejection resubmitted for a
+fresh check, the Confirmation card says so and Confirm event stays disabled,
+and `coordinator_confirm_event` refuses the event too (SQLSTATE `CS055`).
 
-These cases are registered as `TC-CONFIRM-001`–`TC-CONFIRM-003` in
+The readiness rules (`assessReadiness`, `blockingArrangements`, `confirmEvent`)
+are unit-tested, tagged `SPM-50`, and the safety rule (`safetyCheckBlocker`,
+`confirmEvent`, `ConfirmEventUseCase`, `ViewCoordinatorEventUseCase`) is tagged
+`SPM-264`. These cases cover what the unit tests cannot: that the page shows
+each blocker, that confirming works end to end, that the database refuses an
+unapproved event, and that the route is closed to anyone signed out.
+
+These cases are registered as `TC-CONFIRM-001`–`TC-CONFIRM-008` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table. CI records it in
@@ -42,6 +49,7 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 | Account | Role |
 | --- | --- |
 | `coordinator@test.com` | Event Coordinator (Test Coordinator) |
+| `safety@test.com` | Safety Officer (Test Safety Officer) |
 
 ### An event with essential arrangements
 
@@ -82,6 +90,47 @@ No real event has essential-arrangement rows yet (SPM-144), so set one up:
           programme_agenda = null
     where event_id = <event>;
    ```
+4. Record an Approved safety check on it, so only the arrangements gate is in
+   play for TC-CONFIRM-001–003 (SPM-264):
+   ```sql
+   insert into safety_check (event_id, outcome, checked_by_user_account_id)
+   values (<event>, 'Approved',
+           (select user_account_id from user_account where name = 'Test Safety Officer'));
+   ```
+
+### An event awaiting its safety check (TC-CONFIRM-004–007)
+
+A second event, assigned to Test Coordinator, with a Confirmed venue booking
+and no equipment, so it is on the Safety Officer's Awaiting check list. Its
+programme is essential and unwritten, so it starts blocked twice over. Run it
+after the reset; a second run changes nothing.
+
+```sql
+do $$
+declare
+  v_org       bigint := (select client_organisation_id from client_organisation where name = 'Test Organisation');
+  v_organiser bigint := (select user_account_id from user_account where name = 'Test Organiser');
+  v_venue     bigint := (select user_account_id from user_account where name = 'Test Venue Staff');
+  v_coord     bigint := (select user_account_id from user_account where name = 'Test Coordinator');
+  v_annex     bigint;
+  v_event     bigint;
+begin
+  if exists (select 1 from event where name = 'Riverside Safety Gate Fair') then
+    raise notice 'Safety gate fixture already loaded';
+    return;
+  end if;
+
+  insert into venue (location) values ('Riverside Annex') returning venue_id into v_annex;
+  insert into event (name, status, preferred_date, assigned_coordinator_user_account_id,
+                     owning_organiser_user_account_id, client_organisation_id)
+  values ('Riverside Safety Gate Fair', 'Planning', '2026-12-01', v_coord, v_organiser, v_org)
+  returning event_id into v_event;
+  insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
+  values (v_annex, v_event, v_organiser, v_venue, 'Confirmed');
+  insert into event_essential_arrangement (event_id, arrangement_type) values (v_event, 'programme');
+end;
+$$;
+```
 
 ---
 
@@ -151,5 +200,138 @@ the new route redirects to `/auth/login`, matching `/staff/coordinator/events`).
 
 **Expected Result:**
 - The browser lands on `/auth/login`; nothing of the event is shown
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-CONFIRM-004: With no safety check yet, both blockers are shown and Confirm is disabled
+
+SPM-264 AC1, AC6.
+
+**Preconditions:** Safety gate fixture loaded; signed in as `coordinator@test.com`.
+
+**Steps:**
+1. Open **Riverside Safety Gate Fair** from `/staff/coordinator/events`.
+2. Read the **Confirmation** card.
+
+**Expected Result:**
+- The card shows "Cannot confirm -- 1 essential arrangement incomplete" listing
+  "Programme — No agenda has been written yet."
+- Below it, "Cannot confirm -- safety check not approved" with "No safety
+  check yet."
+- **Confirm event** is disabled
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-CONFIRM-005: After a rejection, the card says to make the changes and resubmit
+
+SPM-264 AC2.
+
+**Preconditions:** As left by TC-CONFIRM-004.
+
+**Steps:**
+1. Write the fair's programme, so only the safety check is left:
+   ```sql
+   update event set programme_agenda = 'Stalls, then a riverside concert.'
+    where name = 'Riverside Safety Gate Fair';
+   ```
+2. As `safety@test.com`, open the fair from `/staff/safety`, enter
+   `Mark the riverside edge with barriers.` in **Comments** and click **Reject**.
+3. As `coordinator@test.com`, reload the fair's page and read the
+   **Confirmation** card.
+
+**Expected Result:**
+- Only one alert: "Cannot confirm -- safety check not approved" with
+  "Rejected. Make the changes and resubmit it for a safety check."
+- **Confirm event** is disabled
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-CONFIRM-006: Once resubmitted, the card says it awaits a fresh check
+
+SPM-264 AC3.
+
+**Preconditions:** As left by TC-CONFIRM-005; signed in as `coordinator@test.com`.
+
+**Steps:**
+1. On the fair's page, open the **Safety** tab and click **Resubmit for safety
+   check**.
+2. Reload the page and read the **Confirmation** card.
+
+**Expected Result:**
+- "Cannot confirm -- safety check not approved" with "Resubmitted; awaiting a
+  fresh safety check."
+- **Confirm event** is disabled
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-CONFIRM-007: An approval after the rejection lets the event be confirmed
+
+SPM-264 AC4, AC5.
+
+**Preconditions:** As left by TC-CONFIRM-006.
+
+**Steps:**
+1. As `safety@test.com`, open the fair from `/staff/safety` and click
+   **Approve**.
+2. As `coordinator@test.com`, reload the fair's page. The **Safety** tab lists
+   the Approved check above the earlier Rejected one.
+3. Read the **Confirmation** card, then click **Confirm event**.
+
+**Expected Result:**
+- Before clicking: the card reads "Ready to confirm" and no safety alert is shown
+- After clicking: the status badge reads **Confirmed** and the card reads
+  "Already confirmed"
+
+**Status:** [ ] Pass [ ] Fail
+
+---
+
+### TC-CONFIRM-008: The database refuses to confirm an event without an approved check
+
+SPM-264 AC7. The page never offers this, so the request is made in SQL, as a
+stale tab or crafted post would reach it.
+
+**Preconditions:** Local Supabase reset; no fixture needed.
+
+**Steps:**
+1. Run, in the Studio SQL editor (it rolls itself back):
+   ```sql
+   begin;
+   do $$
+   declare
+     v_coord bigint := (select user_account_id from user_account where name = 'Test Coordinator');
+     v_event bigint;
+     v_status text;
+   begin
+     insert into event (name, status, assigned_coordinator_user_account_id,
+                        owning_organiser_user_account_id, client_organisation_id)
+     values ('Unchecked Event', 'Planning', v_coord,
+             (select user_account_id from user_account where name = 'Test Organiser'),
+             (select client_organisation_id from client_organisation where name = 'Test Organisation'))
+     returning event_id into v_event;
+     begin
+       perform public.coordinator_confirm_event(v_event, v_coord);
+       raise notice 'Confirmed -- the gate did not hold';
+     exception when others then
+       raise notice 'Refused: % %', sqlstate, sqlerrm;
+     end;
+     select status into v_status from event where event_id = v_event;
+     raise notice 'Status now: %', v_status;
+   end;
+   $$;
+   rollback;
+   ```
+
+**Expected Result:**
+- `Refused: CS055 Event <id> has no Approved safety check`
+- `Status now: Planning`
 
 **Status:** [ ] Pass [ ] Fail

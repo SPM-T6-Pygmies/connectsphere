@@ -145,3 +145,21 @@ export function canResubmitForSafetyCheck(
     eventStatus === "Planning" && latest !== null && latest.outcome === "Rejected" && latest.resubmittedAt === null
   );
 }
+
+/**
+ * SPM-264: why the safety check still stands in the way of confirming the
+ * event -- no check yet (AC1), a rejection not yet resubmitted (AC2), or a
+ * resubmission awaiting a fresh check (AC3).
+ */
+export type SafetyCheckBlocker = "no-check" | "rejected" | "awaiting-recheck";
+
+/** SPM-264: what blocks confirmation on the safety side, or null once the latest check is Approved (AC4, AC5). */
+export function safetyCheckBlocker(latest: LatestSafetyCheck | null): SafetyCheckBlocker | null {
+  if (latest === null) {
+    return "no-check";
+  }
+  if (latest.outcome === "Approved") {
+    return null;
+  }
+  return latest.resubmittedAt === null ? "rejected" : "awaiting-recheck";
+}

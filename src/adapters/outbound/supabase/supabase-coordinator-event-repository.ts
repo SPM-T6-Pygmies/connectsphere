@@ -10,6 +10,7 @@ import {
   EventNotYetEndedError,
   EventRegistrationLockedError,
   InvalidRegistrationSettingsError,
+  SafetyCheckNotApprovedError,
 } from "@/core/domain/errors";
 import type { RegistrationSettings } from "@/core/domain/event-registration-settings";
 import {
@@ -49,6 +50,7 @@ interface ClientOrganisationNameRow {
 const NOT_FOUND_OR_NOT_ASSIGNED = "CS020";
 const NOT_CONFIRMABLE = "CS021";
 const NOT_READY = "CS022";
+const SAFETY_CHECK_NOT_APPROVED = "CS055";
 
 /** SQLSTATEs `coordinator_set_event_required_facilities` comes back with. See its migration. */
 const FACILITIES_EVENT_NOT_FOUND = "CS029";
@@ -274,7 +276,8 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
 
   /**
    * SPM-50: goes through `coordinator_confirm_event`, which re-checks the
-   * assignment, status and readiness under a row lock, and -- in the same
+   * assignment, status, readiness and (SPM-264) the latest safety check
+   * under a row lock, and -- in the same
    * transaction -- writes the audit record. Its SQLSTATEs come back as the
    * domain's own errors, so losing a race to a concurrent change reads
    * exactly like losing it a moment earlier, rather than a 500.
@@ -302,6 +305,9 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
       }
       if (error.code === NOT_READY) {
         throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event, confirmedBy));
+      }
+      if (error.code === SAFETY_CHECK_NOT_APPROVED) {
+        throw new SafetyCheckNotApprovedError();
       }
       throw new Error(`Failed to confirm event: ${error.message}`, { cause: error });
     }

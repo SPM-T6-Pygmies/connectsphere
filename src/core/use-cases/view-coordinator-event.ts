@@ -9,6 +9,7 @@ import {
   type ConfirmationState,
   type EventReadiness,
 } from "../domain/event-readiness";
+import { safetyCheckBlocker, type SafetyCheckBlocker } from "../domain/safety-check";
 import { userAccountId } from "../domain/user-account";
 import type { Clock } from "../ports/outbound/clock";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
@@ -17,6 +18,7 @@ import type {
   CoordinatorEventRepository,
 } from "../ports/outbound/coordinator-event-repository";
 import type { EventReadinessRepository } from "../ports/outbound/event-readiness-repository";
+import type { SafetyCheckRepository } from "../ports/outbound/safety-check-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
 export interface ViewCoordinatorEventCommand {
@@ -32,8 +34,10 @@ export interface ViewCoordinatorEventResult {
   readonly owningOrganiserName: string;
   readonly readiness: EventReadiness;
   readonly confirmation: ConfirmationState;
-  /** What blocks confirmation right now -- empty unless `confirmation` is `blocked-by-arrangements`. */
+  /** The essential arrangements still incomplete. Empty when none are. */
   readonly blockingArrangements: readonly ArrangementType[];
+  /** SPM-264: why the safety check blocks confirmation, or null once the latest check is Approved. */
+  readonly safetyCheckBlocker: SafetyCheckBlocker | null;
   /** SPM-51: whether the event can be marked completed now -- Confirmed, and its last slot over. */
   readonly canComplete: boolean;
 }
@@ -44,6 +48,8 @@ export interface ViewCoordinatorEventDeps {
   readonly clientOrganisations: ClientOrganisationRepository;
   readonly userAccounts: UserAccountRepository;
   readonly clock: Clock;
+  /** SPM-264: the event's safety checks, newest first. */
+  readonly safetyChecks: Pick<SafetyCheckRepository, "history">;
 }
 
 /**
@@ -71,17 +77,19 @@ export class ViewCoordinatorEventUseCase {
       return null;
     }
 
-    const [details, facts, organisationNames, organiserNames] = await Promise.all([
+    const [details, facts, history, organisationNames, organiserNames] = await Promise.all([
       this.deps.events.findAssigned(caller, id),
       this.deps.readiness.factsFor(caller, id),
+      this.deps.safetyChecks.history(caller, id),
       this.deps.clientOrganisations.findNamesByIds([event.clientOrganisationId]),
       this.deps.userAccounts.findNamesByIds([event.owningOrganiserUserAccountId]),
     ]);
 
-    if (details === null || facts === null) {
+    if (details === null || facts === null || history === null) {
       return null;
     }
     const readiness = assessReadiness(facts);
+    const latestSafetyCheck = history.checks[0] ?? null;
 
     return {
       event,
@@ -89,8 +97,9 @@ export class ViewCoordinatorEventUseCase {
       clientOrganisationName: organisationNames.get(event.clientOrganisationId) ?? "",
       owningOrganiserName: organiserNames.get(event.owningOrganiserUserAccountId) ?? "",
       readiness,
-      confirmation: confirmationState(event, readiness),
+      confirmation: confirmationState(event, readiness, latestSafetyCheck),
       blockingArrangements: blockingArrangements(readiness),
+      safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
     };
   }

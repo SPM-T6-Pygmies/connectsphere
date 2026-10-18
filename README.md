@@ -125,6 +125,13 @@ notifications too — they point at request ids the reset reuses:
 pnpm novu:clear   # deletes your own local subscribers and their notifications
 ```
 
+Attendees get one email, the registration confirmation, which is sent to
+whatever address they register with. Its link points at the production domain
+on a deployment, using the `VERCEL_PROJECT_PRODUCTION_URL` that Vercel sets
+automatically, and at `http://localhost:3000` locally. Novu sends it through
+Resend, from `connectsphere@notify.isaidchia.com` (SPM-308), so any address
+receives it, in local runs too.
+
 Production syncs itself: `.github/workflows/novu-sync.yml` runs after every
 successful Vercel Production deployment. To sync by hand, run the workflow from
 the Actions tab, or:

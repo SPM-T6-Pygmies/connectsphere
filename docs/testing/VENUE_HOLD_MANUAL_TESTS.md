@@ -2,23 +2,23 @@
 
 ## Overview
 
-Browser checks for **SPM-218: Place a tentative hold on a venue slot** and **SPM-219: Confirm or
-release a tentative hold**. Venue
+Browser checks for **SPM-218: Place a tentative hold on a venue slot**, **SPM-219: Confirm or
+release a tentative hold** and **SPM-253: Expire an unconfirmed hold**. Venue
 Staff place a hold on a booking request while the Event Coordinator is
 finalising the event. The hold keeps the request's slots from everyone else for
-72 hours (`DEFAULT_HOLD_HOURS`), and then lapses (SPM-253). The rules behind it
+72 hours (`DEFAULT_HOLD_HOURS`), or until its slot starts if that is sooner, and then lapses to
+**Expired** (SPM-253). The rules behind it
 are unit-tested (`decideBooking placing a hold (SPM-218)` and the use case, mapper and
 repository tests tagged SPM-218) and the database function was proven on a scratch
 Postgres; these cases check the pages end to end against Supabase.
 
-These cases are registered as `TC-VHOLD-001`–`TC-VHOLD-009` in
+These cases are registered as `TC-VHOLD-001`–`TC-VHOLD-011` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). Report what you ran in the
 PR description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not edit that file.
 The ticked boxes and screenshots below are the working record for this run.
 
-A hold lapsing on its own is SPM-253, so no case waits out a hold: TC-VHOLD-008 sets an
-expiry in the past with SQL instead. A held booking is listed under **Decided**,
+No case waits out a hold: TC-VHOLD-008 and 010 set an expiry in the past with SQL instead. A held booking is listed under **Decided**,
 beside Confirmed ones; the list filters did not change.
 
 ## Setup
@@ -98,7 +98,7 @@ The cases read the database with SQL. Run a query with
 
 ### Order
 
-Run the cases in order, TC-VHOLD-001 to 009: TC-VHOLD-002 and 005 start from the hold TC-VHOLD-001
+Run the cases in order, TC-VHOLD-001 to 011: TC-VHOLD-002 and 005 start from the hold TC-VHOLD-001
 placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-002 placed, TC-VHOLD-008 uses booking C, and TC-VHOLD-009 uses booking D, held in TC-VHOLD-004. Each case changes the data, so to run any of them again go back to step 1.
 
 ---
@@ -134,7 +134,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 5: `Tentative Hold`, about 72 hours left (between 71 and 73), decided by Test Venue Staff, and
   one audit row, `hold` (AC1).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-decision-card-with-hold](../screenshots/2026-10-13_TC-VHOLD-001_step1-decision-card-with-hold.png) · [step2-on-hold-card](../screenshots/2026-10-13_TC-VHOLD-001_step2-on-hold-card.png) · [step3-decided-list](../screenshots/2026-10-13_TC-VHOLD-001_step3-decided-list.png) · [step4-coordinator-row](../screenshots/2026-10-13_TC-VHOLD-001_step4-coordinator-row.png)
 
@@ -161,7 +161,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Booking B was **Requested** beside booking A when A was held: a request still waiting
   blocks nothing, so it did not stop the hold (AC2).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-search-lists-harbour-room](../screenshots/2026-10-13_TC-VHOLD-002_step1-search-lists-harbour-room.png) · [step3-search-without-harbour-room](../screenshots/2026-10-13_TC-VHOLD-002_step3-search-without-harbour-room.png) · [step4-second-hold-refused](../screenshots/2026-10-13_TC-VHOLD-002_step4-second-hold-refused.png) · [step5-other-slot-unaffected](../screenshots/2026-10-13_TC-VHOLD-002_step5-other-slot-unaffected.png)
 
@@ -187,7 +187,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 2: refused with "The venue is unavailable for <T + 6> AM" (AC2).
 - Step 3: both are `Requested` with no expiry, and no audit rows (AC2).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-clash-with-confirmed](../screenshots/2026-10-13_TC-VHOLD-003_step1-clash-with-confirmed.png) · [step2-blocked-slot](../screenshots/2026-10-13_TC-VHOLD-003_step2-blocked-slot.png)
 
@@ -195,7 +195,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-004: An expired hold does not block, and a live one does (AC2)
 
-**What this tests:** Only a hold that is still running blocks a slot. Main Hall has two holds on day H: the morning one ran out an hour ago (expired), the afternoon one has 30 days left (live). A new hold over the live PM one (booking E) must be refused. A new hold over the expired AM one (booking D) must be accepted, and the old expired hold is then marked Released, with an audit record, so the slot is free again.
+**What this tests:** Only a hold that is still running blocks a slot. Main Hall has two holds on day H: the morning one ran out an hour ago (expired), the afternoon one has 30 days left (live). A new hold over the live PM one (booking E) must be refused. A new hold over the expired AM one (booking D) must be accepted, and the old expired hold is then marked Expired, with an audit record, so the slot is free again.
 
 **Preconditions:** The fixture from Setup, with the two holds from the setup (AM expired, PM live). Signed in as `venue@test.com`.
 
@@ -207,15 +207,15 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
    select b.booking_id, b.status from booking b join booking_slot bs using (booking_id)
     where b.venue_id = (select venue_id from venue where location = 'Main Hall') and bs.slot_date = (now() at time zone 'Asia/Singapore')::date + 21
     order by bs.slot, b.booking_id;
-   select entity_id, action from audit_record where action = 'release expired hold';
+   select entity_id, action from audit_record where action = 'expire hold';
    ```
 
 **Expected Result:**
 - Step 1: refused, naming that date and PM; booking E stays **Requested**.
 - Step 2: accepted: booking D reads "On hold until …" (AC2).
-- Step 3: the expired hold on the AM slot is now `Released`, with a `release expired hold` audit row; the live PM hold is unchanged and booking D is `Tentative Hold` (AC2).
+- Step 3: the expired hold on the AM slot is now `Expired`, with an `expire hold` audit row; the live PM hold is unchanged and booking D is `Tentative Hold` (AC2).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-live-hold-refuses](../screenshots/2026-10-13_TC-VHOLD-004_step1-live-hold-refuses.png) · [step2-expired-hold-does-not-block](../screenshots/2026-10-13_TC-VHOLD-004_step2-expired-hold-does-not-block.png)
 
@@ -235,7 +235,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 1: the access-denied screen with a 403 (SPM-16), and none of the booking's details; nothing changes (AC4).
 - Step 2: neither the held booking nor the Confirmed one offers **Place hold**, **Approve booking** or **Reject** (AC1). The held booking offers only **Confirm hold** and **Release hold**; the Confirmed one offers no button.
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-coordinator-denied](../screenshots/2026-10-13_TC-VHOLD-005_step1-coordinator-denied.png) · [step2-confirmed-booking-no-buttons](../screenshots/2026-10-13_TC-VHOLD-005_step2-confirmed-booking-no-buttons.png) · [step2-held-booking-confirm-release-only](../screenshots/2026-10-14_TC-VHOLD-005_step2-held-booking-confirm-release-only.png)
 
@@ -268,7 +268,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 5: the Studio row reads **Confirmed**, with no "On hold until" line (AC1).
 - Step 6: `Confirmed` with an empty expiry; two audit rows, `hold` then `confirm hold`, the second by Test Venue Staff (AC3); one `Sent` notification for the coordinator, reading "Studio approved for Founders' Gala Dinner", the same as for an approval (AC5).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-hold-offers-confirm-and-release](../screenshots/2026-10-14_TC-VHOLD-006_step1-hold-offers-confirm-and-release.png) · [step2-confirmed](../screenshots/2026-10-14_TC-VHOLD-006_step2-confirmed.png) · [step5-coordinator-row-confirmed](../screenshots/2026-10-14_TC-VHOLD-006_step5-coordinator-row-confirmed.png)
 
@@ -300,7 +300,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 5: accepted. Booking G2 reads "On hold until …", because the released slot was free at once (AC2).
 - Step 6: `Released`; two audit rows, `hold` then `release hold` (AC3); one `Sent` notification for the coordinator, reading "UAT-44 Harbour Room hold released for Founders' Gala Dinner" (AC6).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-released](../screenshots/2026-10-14_TC-VHOLD-007_step1-released.png) · [step3-search-lists-harbour-room-again](../screenshots/2026-10-14_TC-VHOLD-007_step3-search-lists-harbour-room-again.png) · [step5-new-hold-accepted](../screenshots/2026-10-14_TC-VHOLD-007_step5-new-hold-accepted.png)
 
@@ -330,12 +330,12 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 3: refused with "This hold has expired or already been decided, so it can no longer be confirmed or released."; the booking is not confirmed (AC4).
-- Step 4: the card reads "Hold expired <day, time>" and offers **no** Confirm hold or Release hold (AC4).
+- Step 4: the card reads "Hold expired <day, time>", the badge reads **Expired**, and no Confirm hold or Release hold is offered (AC4).
 - Step 5: booking A, already decided, offers no Confirm hold or Release hold (AC4).
 - Step 6: booking B, still waiting, offers Approve, Place hold and Reject, and no Confirm hold or Release hold (AC4).
-- Step 7: booking C is still `Tentative Hold` and has one audit row, `hold`: the refused confirmation wrote nothing (AC4).
+- Step 7: booking C is `Expired` (it was marked when you reloaded in step 4) and has two audit rows, `hold` then `expire hold`: the refused confirmation wrote nothing (AC4).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step3-refused-after-expiry](../screenshots/2026-10-14_TC-VHOLD-008_step3-refused-after-expiry.png) · [step4-hold-expired](../screenshots/2026-10-14_TC-VHOLD-008_step4-hold-expired.png) · [step5-confirmed-offers-neither](../screenshots/2026-10-14_TC-VHOLD-008_step5-confirmed-offers-neither.png)
 
@@ -364,7 +364,69 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 4: accepted: the card reads "Already decided — Released by Test Venue Staff" (AC7).
 - Step 5: `Released`; the audit rows are `hold` then `release hold`, with no `confirm hold`: the refused confirmation wrote nothing (AC7).
 
-**Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step3-confirm-refused-over-block](../screenshots/2026-10-14_TC-VHOLD-009_step3-confirm-refused-over-block.png) · [step4-released-over-block](../screenshots/2026-10-14_TC-VHOLD-009_step4-released-over-block.png)
+
+---
+
+### TC-VHOLD-010: A hold that ran out reads Expired and moves to Archive (AC1, AC2, AC4, AC5, AC6)
+
+**What this tests:** When a hold runs out unconfirmed it stops being a hold. It reads **Expired** (not Tentative Hold), moves from **Decided** to **Archive**, and is never shown as Confirmed. Its slots are free at once for someone else. Its expiry stays on record, and exactly one audit row says it **expired** (not that a person released it). There is no timer, so a hold is marked the next time it is read. Booking C, whose hold ran out in TC-VHOLD-008, is the example.
+
+**Preconditions:** After TC-VHOLD-008: booking C's hold has an expiry in the past and was marked when its page was reloaded. Signed in as `venue@test.com`.
+
+**Steps:**
+1. Open **Decided**.
+2. Open **Archive**, then open booking C.
+3. Reload booking C's page twice.
+4. As `coordinator@test.com`, open the Founders' Gala Dinner, choose **Request a venue**, and read the Studio row for T + 1 PM.
+5. As the coordinator, request **Studio** on T + 1, **PM** again from the same page. This is a new request; call it booking C2. As `venue@test.com`, open booking C2 and click **Place hold**.
+6. Read the database:
+   ```sql
+   select status, hold_expires_at from booking where booking_id = <booking C>;
+   select action, actor_user_account_id from audit_record where entity_type = 'booking' and entity_id = <booking C> order by audit_record_id;
+   ```
+
+**Expected Result:**
+- Step 1: booking C is not listed in **Decided** (AC6).
+- Step 2: booking C is listed in **Archive**; the card reads "Hold expired <day, time>", the badge reads **Expired**, and no buttons are offered (AC1, AC6).
+- Step 3: nothing changes.
+- Step 4: the row reads **Expired**, with no "On hold until" line, and is not shown as Confirmed (AC4, AC6).
+- Step 5: the new request is accepted and its hold is accepted: booking C2 reads "On hold until …", because the expired hold freed the slot (AC2).
+- Step 6: `Expired`, with the expiry still set to the moment it ran out; the audit rows are `hold` then `expire hold`, **one** `expire hold` however many times it was read, with no actor because time did it (AC5).
+
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-expired-in-archive](../screenshots/2026-10-17_TC-VHOLD-010_step2-expired-in-archive.png) · [step4-coordinator-row-expired](../screenshots/2026-10-17_TC-VHOLD-010_step4-coordinator-row-expired.png) · [step5-new-hold-accepted](../screenshots/2026-10-17_TC-VHOLD-010_step5-new-hold-accepted.png)
+
+---
+
+### TC-VHOLD-011: A hold is capped at its slot's start (AC7)
+
+**What this tests:** A hold lasts 72 hours or until its slot starts, whichever comes first, because a hold that outlives its slot means nothing. So a hold on a slot that starts tomorrow at 1 pm expires at 1 pm tomorrow, not 72 hours from now, and a hold on a slot that has already started is refused.
+
+**Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
+
+**Steps:**
+1. As `coordinator@test.com`, open the Founders' Gala Dinner, choose **Request a venue**, and request **Studio** for **tomorrow** (Singapore date), **PM**. Call it booking Z.
+2. As `venue@test.com`, open booking Z and click **Place hold**.
+3. Read the database:
+   ```sql
+   select hold_expires_at at time zone 'Asia/Singapore' from booking where booking_id = <booking Z>;
+   ```
+4. Make a slot that has already started: set booking E's slot to yesterday.
+   ```sql
+   update booking_slot set slot_date = (now() at time zone 'Asia/Singapore')::date - 1 where booking_id = <booking E>;
+   ```
+5. Open booking E and click **Place hold**.
+
+**Expected Result:**
+- Step 2: accepted: the card reads "On hold until <tomorrow>, 1:00 pm" (AC7).
+- Step 3: tomorrow at 13:00:00, the PM slot's start, and not 72 hours from now (AC7).
+- Step 5: refused with "A hold can't be placed on a slot that has already started."; booking E stays **Requested** and has no audit row (AC7).
+
+**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-hold-capped-at-slot-start](../screenshots/2026-10-17_TC-VHOLD-011_step2-hold-capped-at-slot-start.png) · [step5-started-slot-refused](../screenshots/2026-10-17_TC-VHOLD-011_step5-started-slot-refused.png)
 

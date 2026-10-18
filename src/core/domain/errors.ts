@@ -444,6 +444,19 @@ export class HoldNotLiveError extends DomainError {
 }
 
 /**
+ * SPM-253: a hold lasts until it expires or its slot starts, whichever is
+ * first, so one placed on a slot that has already started would be over before
+ * it began. The whole hold is refused if any of its slots has started.
+ */
+export class HoldSlotStartedError extends DomainError {
+  readonly code = "hold_slot_started";
+
+  constructor() {
+    super("A hold can't be placed on a slot that has already started.");
+  }
+}
+
+/**
  * SPM-50: only an event in `Planning` can be confirmed -- `Blocked`,
  * `Confirmed`, `Completed` and `Cancelled` all refuse, each for its own
  * reason the ticket and schema leave undefined beyond "not Planning".
@@ -901,6 +914,15 @@ export class SafetyCheckNotResubmittableError extends DomainError {
   }
 }
 
+/** SPM-264 AC7: an event is confirmed only once its latest safety check is Approved. */
+export class SafetyCheckNotApprovedError extends DomainError {
+  readonly code = "safety_check_not_approved";
+
+  constructor() {
+    super("This event cannot be confirmed: its safety check is not approved.");
+  }
+}
+
 /** SPM-260 AC3: a rejection says what must change. */
 export class SafetyCheckCommentsRequiredError extends DomainError {
   readonly code = "safety_check_comments_required";
@@ -1086,6 +1108,15 @@ export class EventRegistrationLockedError extends DomainError {
 /** SPM-25: registration settings that break one of their rules. */
 export class InvalidRegistrationSettingsError extends DomainError {
   readonly code = "invalid_registration_settings";
+
+  constructor(reason: string) {
+    super(reason);
+  }
+}
+
+/** SPM-43: a calendar range that cannot be shown -- not real dates, backwards, or too long. */
+export class InvalidCalendarRangeError extends DomainError {
+  readonly code = "invalid_calendar_range";
 
   constructor(reason: string) {
     super(reason);

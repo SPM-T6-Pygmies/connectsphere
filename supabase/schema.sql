@@ -291,7 +291,7 @@ create table booking (
   created_at                    timestamptz not null default now(),
   updated_at                    timestamptz not null default now(),
   constraint booking_status_chk
-    check (status in ('Requested', 'Tentative Hold', 'Confirmed', 'Rejected', 'Released', 'Cancelled')),
+    check (status in ('Requested', 'Tentative Hold', 'Confirmed', 'Rejected', 'Released', 'Cancelled', 'Expired')),
   constraint booking_scope_chk
     check (event_id is not null or session_id is not null),
   constraint booking_decider_chk

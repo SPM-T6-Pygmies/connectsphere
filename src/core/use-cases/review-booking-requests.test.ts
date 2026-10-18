@@ -47,12 +47,20 @@ function booking(status: BookingStatus, holdExpiresAt: string | null): BookingFo
   };
 }
 
+function lists(rows: BookingForReview[]) {
+  return new ReviewBookingRequestsUseCase({
+    reviews: new InMemoryBookingReviewRepository(rows, [STAFF]),
+    venues: new InMemoryVenueCatalogue(),
+    clock: new FixedClock(NOW),
+  });
+}
+
 function open(row: BookingForReview, staff = STAFF) {
   return new ReviewBookingRequestsUseCase({
     reviews: new InMemoryBookingReviewRepository([row], [STAFF]),
     venues: new InMemoryVenueCatalogue(),
     clock: new FixedClock(NOW),
-  }).open(staff, "b1");
+  }).open(staff, row.id);
 }
 
 describe("ReviewBookingRequestsUseCase telling whether a hold can still be resolved (SPM-219)", () => {
@@ -76,5 +84,21 @@ describe("ReviewBookingRequestsUseCase telling whether a hold can still be resol
     await expect(open(booking("Tentative Hold", "2026-10-03T09:00:00.000Z"), "someone-else")).rejects.toBeInstanceOf(
       BookingNotFoundError,
     );
+  });
+});
+
+describe("ReviewBookingRequestsUseCase filing an Expired hold (SPM-253)", () => {
+  const expired = { ...booking("Expired", "2026-10-01T00:59:59.000Z"), id: "b2" as BookingId };
+  const live = booking("Tentative Hold", "2026-10-03T09:00:00.000Z");
+
+  it("an Expired hold is listed under Archive and not under Decided (AC6)", async () => {
+    const useCase = lists([live, expired]);
+
+    expect((await useCase.list(STAFF, "archive")).map((row) => row.id)).toEqual(["b2"]);
+    expect((await useCase.list(STAFF, "decided")).map((row) => row.id)).toEqual(["b1"]);
+  });
+
+  it("an Expired booking is never live, so it can be neither confirmed nor released (AC4)", async () => {
+    expect((await open(expired)).holdLive).toBe(false);
   });
 });

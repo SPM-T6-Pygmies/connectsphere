@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { InMemoryEquipmentNoticeDirectory } from "@/adapters/outbound/in-memory/in-memory-equipment-notice-directory";
 import { InMemoryTechnicalEquipmentRepository } from "@/adapters/outbound/in-memory/in-memory-technical-equipment-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { equipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
@@ -9,6 +11,7 @@ import { eventId } from "@/core/domain/event";
 import { userAccountId } from "@/core/domain/user-account";
 import type { EventEquipmentStock } from "@/core/ports/outbound/technical-equipment-repository";
 
+import { EquipmentOutcomeAnnouncer } from "./announce-equipment-outcome";
 import { ListEquipmentQueueUseCase } from "./list-equipment-queue";
 import { ReserveEquipmentLineUseCase } from "./reserve-equipment-line";
 import { ViewEventEquipmentForTechnicalSupportUseCase } from "./view-event-equipment-for-technical-support";
@@ -50,17 +53,27 @@ function event(
   };
 }
 
+/** Every seeded event belongs to coordinator-1; reviewers are named as the real store would read them back. */
 function setup(seed: readonly EventEquipmentStock[]) {
-  const equipment = new InMemoryTechnicalEquipmentRepository(seed);
+  const equipment = new InMemoryTechnicalEquipmentRepository(seed, {
+    [SUPPORT]: "Test Support Staff",
+    [OTHER_SUPPORT]: "Test Support Staff 2",
+  });
+  const notifier = new RecordingNotifier();
+  const outcome = new EquipmentOutcomeAnnouncer({
+    equipment,
+    directory: new InMemoryEquipmentNoticeDirectory([], Object.fromEntries(seed.map(({ event }) => [event.id, "coordinator-1"]))),
+    notifier,
+  });
   const reserve = (id: string, by = SUPPORT, item = "item-projector") =>
-    new ReserveEquipmentLineUseCase({ equipment }).execute({ eventId: id, equipmentItemId: item, userAccountId: by });
+    new ReserveEquipmentLineUseCase({ equipment, outcome }).execute({ eventId: id, equipmentItemId: item, userAccountId: by });
   const view = (id: string) =>
     new ViewEventEquipmentForTechnicalSupportUseCase({ equipment }).execute({ eventId: id, userAccountId: SUPPORT });
   const needsReview = async () =>
     (await new ListEquipmentQueueUseCase({ equipment }).execute({ userAccountId: SUPPORT, queue: "needsReview" })).events.map(
       (entry) => entry.eventId,
     );
-  return { equipment, reserve, view, needsReview };
+  return { equipment, notifier, reserve, view, needsReview };
 }
 
 describe("ReserveEquipmentLineUseCase (SPM-274)", () => {
@@ -165,5 +178,72 @@ describe("ReserveEquipmentLineUseCase (SPM-275)", () => {
     await reserve("day after");
 
     expect(await reserve("B")).toMatchObject({ state: "Reserved", quantityReserved: 4 });
+  });
+});
+
+describe("ReserveEquipmentLineUseCase telling the coordinator (SPM-65)", () => {
+  const lectern = (quantityRequested: number) => projector(quantityRequested, { equipmentItemId: equipmentItemId("item-lectern") });
+
+  it("AC1: reserving the last line needing attention tells the assigned coordinator every line's outcome", async () => {
+    const { reserve, notifier } = setup([event("A", "2026-11-15", [projector(4), lectern(1)])]);
+    await reserve("A");
+
+    await reserve("A", OTHER_SUPPORT, "item-lectern");
+
+    expect(notifier.equipmentDecisions).toEqual([
+      {
+        recipientUserAccountId: "coordinator-1",
+        eventId: "A",
+        eventName: "Event A",
+        preferredDate: "2026-11-15",
+        lines: [
+          {
+            equipmentType: "Projector",
+            quantityRequested: 4,
+            outcome: "reserved",
+            quantityReserved: 4,
+            decidedByName: "Test Support Staff",
+            comment: null,
+          },
+          {
+            equipmentType: "Lectern",
+            quantityRequested: 1,
+            outcome: "reserved",
+            quantityReserved: 1,
+            decidedByName: "Test Support Staff 2",
+            comment: null,
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("AC2: reserving while another line still needs attention tells no one", async () => {
+    const { reserve, notifier } = setup([event("A", "2026-11-15", [projector(4), lectern(1)])]);
+
+    await reserve("A");
+
+    expect(notifier.equipmentDecisions).toEqual([]);
+  });
+
+  it("AC2: a refused reservation tells no one", async () => {
+    const { reserve, notifier } = setup([event("A", "2026-11-15", [projector(11)])]);
+
+    await expect(reserve("A")).rejects.toThrow(NotEnoughEquipmentAvailableError);
+    expect(notifier.equipmentDecisions).toEqual([]);
+  });
+
+  it("AC4: an event with no assigned coordinator tells no one", async () => {
+    const equipment = new InMemoryTechnicalEquipmentRepository([event("A", "2026-11-15", [projector(4)])]);
+    const notifier = new RecordingNotifier();
+    const outcome = new EquipmentOutcomeAnnouncer({ equipment, directory: new InMemoryEquipmentNoticeDirectory(), notifier });
+
+    await new ReserveEquipmentLineUseCase({ equipment, outcome }).execute({
+      eventId: "A",
+      equipmentItemId: "item-projector",
+      userAccountId: SUPPORT,
+    });
+
+    expect(notifier.equipmentDecisions).toEqual([]);
   });
 });

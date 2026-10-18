@@ -19,7 +19,7 @@ import type {
 const SECTION_STATUSES: Readonly<Record<BookingReviewSection, readonly string[]>> = {
   requests: ["Requested"],
   decided: ["Tentative Hold", "Confirmed"],
-  archive: ["Rejected", "Released", "Cancelled"],
+  archive: ["Rejected", "Released", "Cancelled", "Expired"],
 };
 
 /** Venue Staff's bookings held in memory, for tests and local wiring. */

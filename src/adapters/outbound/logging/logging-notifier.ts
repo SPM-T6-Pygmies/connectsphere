@@ -1,11 +1,14 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
   ClarificationRequestedNotice,
+  EquipmentDecidedNotice,
+  EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -74,9 +77,27 @@ export class LoggingNotifier implements Notifier {
     );
   }
 
+  async equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void> {
+    console.info(
+      `[notifier] technical support ${notice.recipientUserAccountId} told event ${notice.eventId}'s ${notice.equipmentType} line was ${notice.change}`,
+    );
+  }
+
+  async equipmentDecided(notice: EquipmentDecidedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told event ${notice.eventId}'s equipment is decided`,
+    );
+  }
+
   async venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told booking ${notice.bookingId} was ${notice.outcome}`,
+    );
+  }
+
+  async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    console.info(
+      `[notifier] registration ${notice.registrationId} confirmed to ${notice.recipientEmail}`,
     );
   }
 }
