@@ -464,7 +464,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [ ] Pass [ ] Fail
 
-**Screenshots:**
+**Screenshots:** [step2-holds-gone-from-decided](../screenshots/2026-10-18_TC-VHOLD-012_step2-holds-gone-from-decided.png)
 
 ---
 
