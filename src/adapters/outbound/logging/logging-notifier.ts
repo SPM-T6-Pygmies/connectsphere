@@ -5,6 +5,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
@@ -92,6 +93,12 @@ export class LoggingNotifier implements Notifier {
   async venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told booking ${notice.bookingId} was ${notice.outcome}`,
+    );
+  }
+
+  async holdExpired(notice: HoldExpiredNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told the hold on booking ${notice.bookingId} expired`,
     );
   }
 

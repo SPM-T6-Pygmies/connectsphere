@@ -6,6 +6,7 @@ import {
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
   eventRequestDecidedRow,
+  holdExpiredRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
   safetyCheckReadyRow,
@@ -243,6 +244,31 @@ describe("venueBookingDecidedRow (SPM-62)", () => {
       related_booking_id: "31",
       message_content:
         "Grand Ballroom approved for Harbour Lights Gala\nVenue Staff confirmed Grand Ballroom for Fri, 20 Nov 2026 (PM). The venue is secured.",
+    });
+  });
+});
+
+describe("holdExpiredRow (SPM-254)", () => {
+  it("records the notice as Pending against the coordinator and the booking", () => {
+    expect(
+      holdExpiredRow({
+        recipientUserAccountId: "3",
+        bookingId: "31",
+        eventId: "8",
+        eventRequestId: "6",
+        eventName: "Harbour Lights Gala",
+        venueLocation: "Grand Ballroom",
+        slots: [{ date: "2026-11-20", slot: "PM" }],
+        holdExpiresAt: "2026-11-18T05:00:00.000Z",
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "hold-expired",
+      channel: "in_app",
+      status: "Pending",
+      related_booking_id: "31",
+      message_content:
+        "Grand Ballroom hold expired for Harbour Lights Gala\nThe hold on Grand Ballroom for Fri, 20 Nov 2026 (PM) expired at Wed, 18 Nov, 1:00 pm without being confirmed. The venue is no longer held; send a new request if you still need it.",
     });
   });
 });

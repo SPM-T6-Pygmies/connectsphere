@@ -5,6 +5,7 @@ import { coordinatorAssigned } from "@/adapters/outbound/novu/workflows/coordina
 import { equipmentDecided } from "@/adapters/outbound/novu/workflows/equipment-decided";
 import { equipmentNeedsAttention } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
 import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-request-decided";
+import { holdExpired } from "@/adapters/outbound/novu/workflows/hold-expired";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { organiserMessagePosted } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
 import { registrationConfirmed } from "@/adapters/outbound/novu/workflows/registration-confirmed";
@@ -41,6 +42,7 @@ function handlers(): Bridge {
       equipmentNeedsAttention,
       equipmentDecided,
       venueBookingDecided,
+      holdExpired,
       registrationConfirmed,
     ],
   });

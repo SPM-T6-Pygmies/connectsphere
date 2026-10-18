@@ -7,6 +7,7 @@ import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workf
 import { EQUIPMENT_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-decided";
 import { EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
 import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
+import { HOLD_EXPIRED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/hold-expired";
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { ORGANISER_MESSAGE_POSTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
 import { REGISTRATION_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/registration-confirmed";
@@ -21,6 +22,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
@@ -112,6 +114,10 @@ export class NovuNotifier implements Notifier {
 
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     return this.trigger(VENUE_BOOKING_DECIDED_WORKFLOW_ID, notice);
+  }
+
+  holdExpired(notice: HoldExpiredNotice): Promise<void> {
+    return this.trigger(HOLD_EXPIRED_WORKFLOW_ID, notice);
   }
 
   /**
