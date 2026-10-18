@@ -8,6 +8,7 @@ import { EQUIPMENT_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflow
 import { EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
 import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
+import { ORGANISER_MESSAGE_POSTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
 import { REGISTRATION_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/registration-confirmed";
 import { SAFETY_CHECK_READY_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { SAFETY_CHECK_RECORDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
@@ -22,6 +23,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
@@ -74,6 +76,10 @@ export class NovuNotifier implements Notifier {
 
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     return this.trigger(CLARIFICATION_REQUESTED_WORKFLOW_ID, notice);
+  }
+
+  organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    return this.trigger(ORGANISER_MESSAGE_POSTED_WORKFLOW_ID, notice);
   }
 
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {

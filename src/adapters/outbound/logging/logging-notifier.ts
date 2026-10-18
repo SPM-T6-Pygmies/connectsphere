@@ -7,6 +7,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
@@ -43,6 +44,12 @@ export class LoggingNotifier implements Notifier {
   async clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} asked to clarify event request ${notice.eventRequestId}`,
+    );
+  }
+
+  async organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told the organiser posted on event request ${notice.eventRequestId}`,
     );
   }
 

@@ -6,6 +6,7 @@ import {
 } from "@/adapters/outbound/in-memory/event-request-fixture";
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import {
   ClarificationMessageRequiredError,
@@ -14,6 +15,7 @@ import {
   EventRequestNotFoundError,
 } from "@/core/domain/errors";
 import {
+  assignEventCoordinator,
   eventRequestAccessFor,
   eventRequestId,
   type EventRequest,
@@ -27,6 +29,7 @@ const ORG_B = clientOrganisationId("org-b");
 const ORGANISER = userAccountId("organiser-1");
 const COLLEAGUE = userAccountId("organiser-2");
 const COORDINATOR = userAccountId("coordinator-1");
+const NEW_COORDINATOR = userAccountId("coordinator-2");
 
 function request(overrides: Partial<EventRequest> = {}): EventRequest {
   return eventRequestFixture({
@@ -42,8 +45,13 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
 function buildUseCase(seed: readonly EventRequest[]) {
   const clarificationThread = new InMemoryClarificationThreadRepository();
   const eventRequests = new InMemoryEventRequestRepository(seed, clarificationThread);
-  const useCase = new PostClarificationMessageUseCase({ eventRequests, clarificationThread });
-  return { useCase, eventRequests, clarificationThread };
+  const notifier = new RecordingNotifier();
+  const useCase = new PostClarificationMessageUseCase({
+    eventRequests,
+    clarificationThread,
+    notifier,
+  });
+  return { useCase, eventRequests, clarificationThread, notifier };
 }
 
 /** The Coordinator's question, so a reply has something to hang off. */
@@ -296,3 +304,143 @@ describe("PostClarificationMessageUseCase once the request is decided (SPM-33)",
   );
 });
 
+describe("PostClarificationMessageUseCase (SPM-164)", () => {
+  it("AC1, AC2: notifies the assigned coordinator of a reply on a Returned request, quoting it", async () => {
+    const { useCase, notifier, question } = await withQuestion([request()]);
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: ORGANISER,
+      organisationId: ORG_A,
+      body: "  Captions only, no interpretation.  ",
+      parentId: question.id,
+    });
+
+    expect(notifier.organiserMessages).toEqual([
+      {
+        recipientUserAccountId: COORDINATOR,
+        eventRequestId: "request-1",
+        eventName: "Founders' Day",
+        message: "Captions only, no interpretation.",
+      },
+    ]);
+  });
+
+  it("AC1: notifies for a new message on an Under Review request", async () => {
+    const { useCase, notifier } = buildUseCase([request({ status: "Under Review" })]);
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: ORGANISER,
+      organisationId: ORG_A,
+      body: "We can move it a week if that helps.",
+      parentId: null,
+    });
+
+    expect(notifier.organiserMessages).toMatchObject([
+      { recipientUserAccountId: COORDINATOR, message: "We can move it a week if that helps." },
+    ]);
+  });
+
+  it("AC1: sends one notification for each message", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    for (const body of ["Captions only.", "Actually, also a hearing loop."]) {
+      await useCase.execute({
+        id: "request-1",
+        userAccountId: ORGANISER,
+        organisationId: ORG_A,
+        body,
+        parentId: null,
+      });
+    }
+
+    expect(notifier.organiserMessages.map((notice) => notice.message)).toEqual([
+      "Captions only.",
+      "Actually, also a hearing loop.",
+    ]);
+  });
+
+  it("AC4: notifies the coordinator assigned now, not the one before", async () => {
+    const { useCase, eventRequests, notifier } = buildUseCase([request()]);
+    const before = await eventRequests.findById(eventRequestId("request-1"));
+    await eventRequests.assignEventCoordinator(assignEventCoordinator(before!, NEW_COORDINATOR));
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: ORGANISER,
+      organisationId: ORG_A,
+      body: "Answering.",
+      parentId: null,
+    });
+
+    expect(notifier.organiserMessages).toMatchObject([
+      { recipientUserAccountId: NEW_COORDINATOR },
+    ]);
+  });
+
+  it("AC5: saves the message and notifies no one when no coordinator is assigned", async () => {
+    const { useCase, clarificationThread, notifier } = buildUseCase([
+      request({ status: "Submitted", assignedCoordinatorUserAccountId: null }),
+    ]);
+
+    await useCase.execute({
+      id: "request-1",
+      userAccountId: ORGANISER,
+      organisationId: ORG_A,
+      body: "Is anyone looking at this yet?",
+      parentId: null,
+    });
+
+    expect(clarificationThread.all()).toMatchObject([{ body: "Is anyone looking at this yet?" }]);
+    expect(notifier.organiserMessages).toEqual([]);
+  });
+
+  it("AC6: sends nothing for a blank message", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: ORGANISER,
+        organisationId: ORG_A,
+        body: "   ",
+        parentId: null,
+      }),
+    ).rejects.toBeInstanceOf(ClarificationMessageRequiredError);
+    expect(notifier.organiserMessages).toEqual([]);
+  });
+
+  it.each(["Draft", "Approved", "Rejected", "Withdrawn"] as const)(
+    "AC6: sends nothing for a message on a request that is %s",
+    async (status) => {
+      const { useCase, notifier } = buildUseCase([request({ status })]);
+
+      await expect(
+        useCase.execute({
+          id: "request-1",
+          userAccountId: ORGANISER,
+          organisationId: ORG_A,
+          body: "One more thing.",
+          parentId: null,
+        }),
+      ).rejects.toBeInstanceOf(ClarificationThreadClosedError);
+      expect(notifier.organiserMessages).toEqual([]);
+    },
+  );
+
+  it("sends nothing when someone other than the responsible organiser posts", async () => {
+    const { useCase, notifier } = buildUseCase([request()]);
+
+    await expect(
+      useCase.execute({
+        id: "request-1",
+        userAccountId: COLLEAGUE,
+        organisationId: ORG_A,
+        body: "Chiming in.",
+        parentId: null,
+      }),
+    ).rejects.toBeInstanceOf(EventRequestNotFoundError);
+    expect(notifier.organiserMessages).toEqual([]);
+  });
+});

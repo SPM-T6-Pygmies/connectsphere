@@ -7,6 +7,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
@@ -19,6 +20,7 @@ export class RecordingNotifier implements Notifier {
   readonly coordinatorAssignments: EventCoordinatorAssignedNotice[] = [];
   readonly organiserCoordinatorAssignments: OrganiserCoordinatorAssignedNotice[] = [];
   readonly clarificationRequests: ClarificationRequestedNotice[] = [];
+  readonly organiserMessages: OrganiserMessagePostedNotice[] = [];
   readonly decisions: EventRequestDecidedNotice[] = [];
   readonly safetyChecksReady: SafetyCheckReadyNotice[] = [];
   readonly safetyChecksRecorded: SafetyCheckRecordedNotice[] = [];
@@ -42,6 +44,10 @@ export class RecordingNotifier implements Notifier {
 
   async clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     this.clarificationRequests.push(notice);
+  }
+
+  async organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    this.organiserMessages.push(notice);
   }
 
   async eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {

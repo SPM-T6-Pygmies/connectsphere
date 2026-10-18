@@ -6,6 +6,7 @@ import {
   equipmentNeedsAttentionRow,
   eventRequestDecidedRow,
   organiserCoordinatorAssignedRow,
+  organiserMessagePostedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
   venueBookingDecidedRow,
@@ -21,6 +22,7 @@ import type {
   EventRequestDecidedNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
@@ -59,6 +61,12 @@ export class SupabaseRecordingNotifier implements Notifier {
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     return this.recordAndDeliver(clarificationRequestedRow(notice), () =>
       this.inner.clarificationRequested(notice),
+    );
+  }
+
+  organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    return this.recordAndDeliver(organiserMessagePostedRow(notice), () =>
+      this.inner.organiserMessagePosted(notice),
     );
   }
 
