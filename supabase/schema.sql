@@ -284,7 +284,10 @@ create table booking (
   suggested_alternative_venue_id bigint references venue (venue_id) on delete set null,
     -- informal suggestion only, not a counter-offer object (#45)
   hold_expires_at               timestamptz,
-  room_layout_id                bigint,
+  expiry_notified_at            timestamptz,
+    -- added 2026-10-18 (SPM-254): when the coordinator was told the hold expired;
+    -- null until then, so the notice goes out once.
+  room_layout_id               bigint,
     -- added 2026-09-28 (SPM-104, #112): the layout the booking assumes, as one
     -- the venue supports -- see booking_venue_layout_fkey. Null only when the
     -- venue has no layouts on record.
