@@ -117,8 +117,10 @@ needs. This table says what that is.
 **Only** means: load nothing else after the reset. The other seeds add venues or
 events that change what these screens list.
 
-Documents not listed (the safety checks, for example) build their data with SQL
-written in the document.
+Documents not listed build their data with SQL written in the document. The
+safety check documents are among them, but `seed-safety-check` (after the reset
+and `seed-venues`) loads the same kind of events in one command, and is what the
+Safety Officer demo runs on.
 
 ---
 
@@ -153,6 +155,7 @@ local subscribers and notifications stay behind otherwise.
 | `seed-equipment` | The 6 equipment types, and the *Founders' Gala Dinner* event with 2 lines | `seed-coordinator-view` | Yes | `seed`, `verify` (9 rows), `teardown` |
 | `seed-equipment-review` | 9 events across both coordinators, for Technical Support's three lists | The base logins | Yes | `seed`, `verify` (26 rows), `teardown` |
 | `seed-equipment-reserve` | 4 events whose lines are all New, for reserving | The base logins | Yes | `seed`, `verify` (14 rows), `teardown` |
+| `seed-safety-check` | 8 Planning events for the Safety Officer: 4 on the Awaiting check list, 4 one change away from it, with their bookings and lines | The base logins, `seed-venues` | Yes | `seed`, `verify` (29 rows), `teardown` |
 | `seed-venue-unavailability` | 3 venue blocks on Main Hall and Studio | `seed-venues` | Yes | `seed`, `verify` (5 rows), `refusals`, `checks`, `teardown` |
 | `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, 21 days from today (one expired, one live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset | `seed`, `fixture`, `teardown` |
 | `apply-ssot` | Nothing: corrects venue and equipment data already there | A database that already has data | Yes | `verify` (31 rows), `apply` |
