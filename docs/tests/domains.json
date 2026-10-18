@@ -9,7 +9,7 @@
   },
   {
     "domain": "Notifications",
-    "match": ["notification", "novu"]
+    "match": ["notification", "novu", "expired-hold"]
   },
   {
     "domain": "Event Staffing",
