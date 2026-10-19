@@ -8,7 +8,7 @@
 --   Flag Test: Tech Summit         Test Coordinator     Main Hall        F, PM       Confirmed
 --                                                       Studio           F, PM       Confirmed
 --   Flag Test: Offsite Day         Test Coordinator     Main Hall        F + 4, PM   Confirmed
---   Flag Test: Second Event        Test Coordinator     Main Hall        F, PM       Requested
+--   Flag Test: Second Event        Test Coordinator     Rooftop Terrace  F, PM       Requested
 --   Flag Test: Hold Event          Test Coordinator     Studio           F + 2, PM   Tentative Hold, live
 --                                                       Studio           F + 3, PM   Tentative Hold, expired an hour ago
 --   Flag Test: Workshop            Test Coordinator 2   Main Hall        F, AM       Confirmed
@@ -41,8 +41,8 @@ begin
      or not exists (select 1 from public.user_account where name = 'Test Coordinator 2' and client_organisation_id is null) then
     raise exception 'The test accounts are missing' using hint = 'Run supabase db reset first.';
   end if;
-  if (select count(*) from public.venue where location in ('Main Hall', 'Studio')) < 2 then
-    raise exception 'Main Hall or Studio is missing' using hint = 'Run seed-venues first.';
+  if (select count(*) from public.venue where location in ('Main Hall', 'Studio', 'Rooftop Terrace')) < 3 then
+    raise exception 'Main Hall, Studio or Rooftop Terrace is missing' using hint = 'Run seed-venues first.';
   end if;
 
   -- Earlier runs' events go, and their bookings with them, by cascade.
@@ -54,7 +54,7 @@ begin
       ('Flag Test: Tech Summit',  'Test Coordinator',   'Main Hall', f,     'PM',    'Confirmed',      null::interval),
       ('Flag Test: Tech Summit',  'Test Coordinator',   'Studio',    f,     'PM',    'Confirmed',      null),
       ('Flag Test: Offsite Day',  'Test Coordinator',   'Main Hall', f + 4, 'PM',    'Confirmed',      null),
-      ('Flag Test: Second Event', 'Test Coordinator',   'Main Hall', f,     'PM',    'Requested',      null),
+      ('Flag Test: Second Event', 'Test Coordinator',   'Rooftop Terrace', f, 'PM',    'Requested',      null),
       ('Flag Test: Hold Event',   'Test Coordinator',   'Studio',    f + 2, 'PM',    'Tentative Hold', interval '20 days'),
       ('Flag Test: Hold Event',   'Test Coordinator',   'Studio',    f + 3, 'PM',    'Tentative Hold', interval '-1 hour'),
       ('Flag Test: Workshop',     'Test Coordinator 2', 'Main Hall', f,     'AM',    'Confirmed',      null),

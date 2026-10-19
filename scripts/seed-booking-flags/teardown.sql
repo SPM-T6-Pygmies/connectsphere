@@ -1,5 +1,5 @@
 -- Undoes the booking-flags seed (seed.sql in this directory): deletes every "Flag Test:"
--- event (its bookings go with it, by cascade) and every block on Main Hall or Studio that
+-- event (its bookings go with it, by cascade) and every block on Main Hall, Studio or Rooftop Terrace that
 -- touches 27 to 38 days from today (the days the cases use), together with the audit rows
 -- those blocks wrote. Blocks on other venues or other days are left alone.
 --
@@ -12,7 +12,7 @@ with doomed as (
   from public.venue_unavailability u
   join public.venue_unavailability_slot us on us.venue_unavailability_id = u.venue_unavailability_id
   join public.venue v on v.venue_id = u.venue_id
-  where v.location in ('Main Hall', 'Studio')
+  where v.location in ('Main Hall', 'Studio', 'Rooftop Terrace')
     and us.slot_date between (now() at time zone 'Asia/Singapore')::date + 27
                          and (now() at time zone 'Asia/Singapore')::date + 38
 ),

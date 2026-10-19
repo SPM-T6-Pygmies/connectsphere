@@ -1,4 +1,4 @@
--- Lists the blocks on Main Hall and Studio that touch 27 to 38 days from today (the days the
+-- Lists the blocks on Main Hall, Studio and Rooftop Terrace that touch 27 to 38 days from today (the days the
 -- booking-flags cases use),
 -- so a case can name the block it is looking at. Empty before TC-VFLAG-001. Read-only.
 --
@@ -13,7 +13,7 @@ select v.location as venue,
 from public.venue_unavailability u
 join public.venue v on v.venue_id = u.venue_id
 join public.venue_unavailability_slot us on us.venue_unavailability_id = u.venue_unavailability_id
-where v.location in ('Main Hall', 'Studio')
+where v.location in ('Main Hall', 'Studio', 'Rooftop Terrace')
   and us.slot_date between (now() at time zone 'Asia/Singapore')::date + 27
                        and (now() at time zone 'Asia/Singapore')::date + 38
 group by v.location, u.venue_unavailability_id, u.reason_category, u.lifted_at
