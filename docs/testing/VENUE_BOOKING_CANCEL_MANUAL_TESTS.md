@@ -41,37 +41,40 @@ Do every step, in this order.
    supabase start
    supabase db reset
    ```
-   Wait for `Finished supabase db reset`, then about 15 seconds.
-2. Load the same data as the venue hold cases ([VENUE_HOLD_MANUAL_TESTS.md](VENUE_HOLD_MANUAL_TESTS.md#setup), steps 2 to 4):
+   Wait for `Finished supabase db reset`, then about 15 seconds. If the next step fails with
+   `relation "public.event" does not exist`, it was not ready yet: wait and run it again.
+2. Load the baseline ([Set up your database](../../scripts/README.md#1-set-up-your-database), Step 2),
+   then the bookings these cases cancel:
    ```bash
    supabase db query --file scripts/seed-coordinator-view/seed.sql --local
    supabase db query --file scripts/seed-venues/seed.sql --local
    supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
    supabase db query --file scripts/seed-equipment/seed.sql --local
-   supabase db query --file scripts/seed-booking-holds/seed.sql --local
-   supabase db query --file scripts/seed-booking-holds/fixture.sql --local
+   supabase db query --file scripts/seed-booking-cancel/seed.sql --local
    ```
-3. Have Venue Staff confirm booking **G**, the UAT-44 Harbour Room request, so there is a Confirmed
-   booking on a slot the venue offers:
+3. Check it loaded. Every row must read `ok = true`:
    ```bash
-   supabase db query --local "update booking set status = 'Confirmed', decided_by_user_account_id = (select ua.user_account_id from user_account ua join auth.users u on u.id = ua.auth_user_id where u.email = 'venue@test.com') where booking_id = (select max(b.booking_id) from booking b join venue v on v.venue_id = b.venue_id where v.location = 'UAT-44 Harbour Room' and b.status = 'Requested')"
+   supabase db query --file scripts/seed-booking-cancel/verify.sql --local
    ```
-4. List the Founders' Gala Dinner's bookings. There must be **9 rows**:
-   ```bash
-   supabase db query --local "select b.booking_id, v.location, bs.slot_date, bs.slot, b.status from booking b join venue v on v.venue_id = b.venue_id join booking_slot bs on bs.booking_id = b.booking_id where b.event_id = (select event_id from event where name = 'Founders'' Gala Dinner') order by b.booking_id"
-   ```
-   In id order they are **A, B, C, X, Y, D, E, F, G**. The cases use these:
-
-   | Booking | Venue | Day, slot | Status |
-   | --- | --- | --- | --- |
-   | A | Studio | T, AM | Requested |
-   | X | Main Hall | T + 2, Night | Confirmed |
-   | G | UAT-44 Harbour Room | T + 3, AM | Confirmed (setup step 3) |
-
-   **T** is 14 days from today, Singapore time.
-5. Start the app with `pnpm dev:local` and sign in at <http://localhost:3000/auth/login> as
+4. Start the app with `pnpm dev:local` and sign in at <http://localhost:3000/auth/login> as
    `coordinator@test.com` (password `TestPass123!`). The booking page is **My events** →
    **Founders' Gala Dinner** → **Request a venue**.
+
+To run the cases again, reset the bookings with `teardown.sql` and then `seed.sql` from
+`scripts/seed-booking-cancel/`.
+
+### The bookings
+
+All five are on the Founders' Gala Dinner. **C** is 10 days from today, Singapore time. The UAT-44
+venues are the ones that offer slots, so their calendar shows a freed slot as **Available**.
+
+| Booking | Venue | Day, slot | Status | Used in |
+| --- | --- | --- | --- | --- |
+| P | UAT-44 Harbour Room | C, AM | Confirmed | cancelled in TC-VCANCEL-001 |
+| Q | UAT-44 Harbour Room | C, Night | Confirmed | kept in 002, cancelled from two tabs in 005 |
+| R | UAT-44 Garden Hall | C, AM | Requested | cancelled in 003 |
+| S | UAT-44 Garden Hall | C, PM | Tentative Hold | cancelled in 003 |
+| U | UAT-44 Harbour Room | C + 1, AM | Rejected | offers no button, 003 |
 
 ---
 
@@ -80,27 +83,27 @@ Do every step, in this order.
 **What this tests:** Cancelling a Confirmed booking makes it **Released**, and the venue calendar
 shows its slot **Available** straight away, so another coordinator can book it.
 
-**Preconditions:** Setup done. Booking G is Confirmed. Signed in as `coordinator@test.com`.
+**Preconditions:** Setup done. Booking P is Confirmed. Signed in as `coordinator@test.com`.
 
 **Steps:**
-1. Open **Find a venue** → **UAT-44 Harbour Room** → its calendar, on the week holding T + 3. Note the AM cell on T + 3.
-2. Open the Founders' Gala Dinner's **Request a venue** page. On booking G's row, click **Cancel booking**.
+1. Open **Find a venue** → **UAT-44 Harbour Room** → its calendar, on the week holding C. Note the AM cell on C.
+2. Open the Founders' Gala Dinner's **Request a venue** page. On booking P's row, click **Cancel booking**.
 3. Click **Yes, cancel booking**.
 4. Open the Harbour Room calendar again, on the same week.
 5. Read the database:
    ```sql
-   select status from booking where booking_id = <booking G>;
-   select actor_user_account_id, field_changed, old_value, new_value from audit_record where entity_type = 'booking' and entity_id = <booking G>;
+   select status from booking where booking_id = <booking P>;
+   select actor_user_account_id, field_changed, old_value, new_value from audit_record where entity_type = 'booking' and entity_id = <booking P>;
    ```
 
 **Expected Result:**
-- Step 1: T + 3 AM reads **Confirmed**.
+- Step 1: C AM reads **Confirmed**.
 - Step 2: the row asks "Release UAT-44 Harbour Room for this event? This cannot be undone." with **Yes, cancel booking** and **Keep booking**.
 - Step 3: a toast reads "Booking at UAT-44 Harbour Room cancelled. Its slots are free again." The row's badge reads **Released**, and it no longer offers **Cancel booking**.
-- Step 4: T + 3 AM reads **Available**.
+- Step 4: C AM reads **Available**.
 - Step 5: `Released`; one audit row by the coordinator, `status`, `Confirmed` → `Released`.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase, data from seed-booking-cancel
 
 **Screenshots:** [step1-calendar-confirmed](../screenshots/2026-10-19_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2-asks-before-cancelling](../screenshots/2026-10-19_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step3-released](../screenshots/2026-10-19_TC-VCANCEL-001_step3-released.png) · [step4-calendar-available](../screenshots/2026-10-19_TC-VCANCEL-001_step4-calendar-available.png)
 
@@ -111,41 +114,42 @@ shows its slot **Available** straight away, so another coordinator can book it.
 **What this tests:** A cancellation cannot be undone, so the first click only asks. Backing out
 leaves the booking as it was.
 
-**Preconditions:** Setup done. Booking X is Confirmed. Signed in as `coordinator@test.com`.
+**Preconditions:** Setup done. Booking Q is Confirmed. Signed in as `coordinator@test.com`.
 
 **Steps:**
-1. On the **Request a venue** page, on booking X's row, click **Cancel booking**.
+1. On the **Request a venue** page, on booking Q's row, click **Cancel booking**.
 2. Click **Keep booking**.
 3. Reload the page.
 
 **Expected Result:**
 - Step 2: the question closes and **Cancel booking** shows again. No toast.
-- Step 3: booking X still reads **Confirmed**.
+- Step 3: booking Q still reads **Confirmed**.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase, data from seed-booking-cancel
 
 **Screenshots:** [step3-still-confirmed](../screenshots/2026-10-19_TC-VCANCEL-002_step3-still-confirmed.png)
 
 ---
 
-### TC-VCANCEL-003: Cancel at any stage: a pending request (AC1)
+### TC-VCANCEL-003: Cancel at any stage: a pending request and a hold (AC1)
 
 **What this tests:** The coordinator can cancel a booking Venue Staff have not answered yet, not
 only a Confirmed one. Bookings that hold nothing offer no button.
 
-**Preconditions:** Setup done. Booking A is Requested. Signed in as `coordinator@test.com`.
+**Preconditions:** After TC-VCANCEL-001. Booking R is Requested and booking S is on a Tentative Hold. Signed in as `coordinator@test.com`.
 
 **Steps:**
 1. On the **Request a venue** page, look at which rows offer **Cancel booking**.
-2. On booking A's row, click **Cancel booking**, then **Yes, cancel booking**.
+2. On booking R's row, click **Cancel booking**, then **Yes, cancel booking**.
+3. Do the same on booking S's row.
 
 **Expected Result:**
-- Step 1: every Requested and Confirmed row offers **Cancel booking**. A Released row (after TC-VCANCEL-001) does not.
-- Step 2: the toast names Studio. Booking A reads **Released** and offers no button.
+- Step 1: Q, R and S offer **Cancel booking**. P (Released in TC-VCANCEL-001) and U (Rejected) do not.
+- Steps 2 and 3: each toast names UAT-44 Garden Hall. R and S read **Released** and offer no button.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase, data from seed-booking-cancel
 
-**Screenshots:** [step2-pending-request-released](../screenshots/2026-10-19_TC-VCANCEL-003_step2-pending-request-released.png)
+**Screenshots:** [step3-request-and-hold-released](../screenshots/2026-10-19_TC-VCANCEL-003_step3-request-and-hold-released.png)
 
 ---
 
@@ -163,7 +167,7 @@ one.
 **Expected Result:**
 - Step 1: access is refused (the 403 page). No booking and no **Cancel booking** button is shown.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase, data from seed-booking-cancel
 
 **Screenshots:** [step1-refused](../screenshots/2026-10-19_TC-VCANCEL-004_step1-refused.png)
 
@@ -174,18 +178,18 @@ one.
 **What this tests:** If the booking moved on while the page was open, the click is refused and
 nothing changes. The database re-checks the status under a lock.
 
-**Preconditions:** Setup done. Booking X is Confirmed. Signed in as `coordinator@test.com`, with the
+**Preconditions:** Setup done. Booking Q is Confirmed. Signed in as `coordinator@test.com`, with the
 **Request a venue** page open in **two tabs**.
 
 **Steps:**
-1. In tab 1, cancel booking X.
-2. In tab 2, without reloading, click **Cancel booking** on booking X, then **Yes, cancel booking**.
+1. In tab 1, cancel booking Q.
+2. In tab 2, without reloading, click **Cancel booking** on booking Q, then **Yes, cancel booking**.
 3. Reload tab 2.
 
 **Expected Result:**
 - Step 2: the row shows "This booking no longer holds its slots, so there is nothing to cancel." No toast.
-- Step 3: booking X reads **Released**, with one audit row only.
+- Step 3: booking Q reads **Released**, with one audit row only.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase, data from seed-booking-cancel
 
 **Screenshots:** [step2-refused](../screenshots/2026-10-19_TC-VCANCEL-005_step2-refused.png)
