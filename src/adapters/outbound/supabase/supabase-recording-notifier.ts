@@ -5,6 +5,7 @@ import {
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
   eventRequestDecidedRow,
+  holdExpiredRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
   safetyCheckReadyRow,
@@ -20,6 +21,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
@@ -110,6 +112,10 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.recordAndDeliver(venueBookingDecidedRow(notice), () =>
       this.inner.venueBookingDecided(notice),
     );
+  }
+
+  holdExpired(notice: HoldExpiredNotice): Promise<void> {
+    return this.recordAndDeliver(holdExpiredRow(notice), () => this.inner.holdExpired(notice));
   }
 
   /**

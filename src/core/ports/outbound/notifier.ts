@@ -199,6 +199,25 @@ export interface VenueBookingDecidedNotice {
 }
 
 /**
+ * What an event's assigned Event Coordinator is told when a tentative hold on
+ * one of its venues expires unconfirmed (SPM-254): the venue is no longer
+ * held. Names the venue, the held slots and when the hold lapsed (AC2).
+ */
+export interface HoldExpiredNotice {
+  readonly recipientUserAccountId: string;
+  readonly bookingId: string;
+  readonly eventId: string;
+  /** The approved request the coordinator books venues from; null if the event has none. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  readonly venueLocation: string;
+  /** Sorted by date, then by slot within the day, as the booking stores them. */
+  readonly slots: readonly SlotOnDate[];
+  /** ISO instant the hold lapsed. */
+  readonly holdExpiresAt: string;
+}
+
+/**
  * What an Attendee is told once their registration is recorded (SPM-87): the
  * event, as the on-screen confirmation shows it, and the reference that is
  * their only way back to the registration.
@@ -238,5 +257,6 @@ export interface Notifier {
   equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void>;
   equipmentDecided(notice: EquipmentDecidedNotice): Promise<void>;
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
+  holdExpired(notice: HoldExpiredNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

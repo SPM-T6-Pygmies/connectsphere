@@ -6,6 +6,7 @@ import { clarificationRequestedMessage } from "@/adapters/outbound/notification-
 import { equipmentDecidedMessage } from "@/adapters/outbound/notification-content/equipment-decided";
 import { equipmentNeedsAttentionMessage } from "@/adapters/outbound/notification-content/equipment-needs-attention";
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
+import { holdExpiredMessage } from "@/adapters/outbound/notification-content/hold-expired";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import { organiserMessagePostedMessage } from "@/adapters/outbound/notification-content/organiser-message-posted";
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
@@ -18,6 +19,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  HoldExpiredNotice,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
   SafetyCheckReadyNotice,
@@ -171,6 +173,19 @@ export function venueBookingDecidedRow(notice: VenueBookingDecidedNotice): Notif
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: "venue-booking-decided",
+    channel: "in_app",
+    status: "Pending",
+    related_booking_id: notice.bookingId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a coordinator a hold on their event's venue expired (SPM-254). */
+export function holdExpiredRow(notice: HoldExpiredNotice): NotificationRow {
+  const { subject, body } = holdExpiredMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "hold-expired",
     channel: "in_app",
     status: "Pending",
     related_booking_id: notice.bookingId,
