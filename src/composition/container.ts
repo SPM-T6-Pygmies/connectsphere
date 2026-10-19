@@ -28,6 +28,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
 import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
+import { SupabaseBookingFlagRepository } from "@/adapters/outbound/supabase/supabase-booking-flag-repository";
 import { SupabaseVenueUnavailabilityRepository } from "@/adapters/outbound/supabase/supabase-venue-unavailability-repository";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
@@ -48,6 +49,7 @@ import type { EventReadinessRepository } from "@/core/ports/outbound/event-readi
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
+import type { BookingFlagRepository } from "@/core/ports/outbound/booking-flag-repository";
 import type { SafetyCheckRepository } from "@/core/ports/outbound/safety-check-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
@@ -507,6 +509,7 @@ async function coordinatorAdapters(): Promise<{
   userAccounts: UserAccountRepository;
   equipment: EquipmentRequirementRepository;
   safetyChecks: SafetyCheckRepository;
+  bookingFlags: BookingFlagRepository;
 }> {
   const client = await createSupabaseServerClient();
   return {
@@ -517,6 +520,7 @@ async function coordinatorAdapters(): Promise<{
     userAccounts: new SupabaseUserAccountRepository(client),
     equipment: new SupabaseEquipmentRequirementRepository(client),
     safetyChecks: new SupabaseSafetyCheckRepository(client),
+    bookingFlags: new SupabaseBookingFlagRepository(client),
   };
 }
 
@@ -711,7 +715,8 @@ export function buildNotifyExpiredHolds(): NotifyExpiredHoldsUseCase {
 
 /** SPM-50: one event and its confirmation readiness, to the coordinator it is assigned to. */
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
-  const { events, readiness, clientOrganisations, userAccounts, safetyChecks } = await coordinatorAdapters();
+  const { events, readiness, clientOrganisations, userAccounts, safetyChecks, bookingFlags } =
+    await coordinatorAdapters();
 
   return new ViewCoordinatorEventUseCase({
     events,
@@ -720,6 +725,7 @@ export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventU
     userAccounts,
     clock: systemClock,
     safetyChecks,
+    flags: bookingFlags,
   });
 }
 
