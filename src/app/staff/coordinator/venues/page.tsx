@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 import { venueSearchSchema } from "@/adapters/inbound/venue-search-schema";
 import {
@@ -90,7 +90,7 @@ export default async function VenueSearchPage({
 }: PageProps<"/staff/coordinator/venues">) {
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    notFound();
+    forbidden();
   }
 
   const params = await searchParams;
