@@ -52,6 +52,13 @@ export interface EquipmentRequirement {
    * lines reserved before decisions were recorded.
    */
   readonly decision: EquipmentLineDecision | null;
+  /**
+   * SPM-109: whether the event cannot go ahead without this line. The assigned
+   * coordinator marks it once agreed with Technical Support, so the mark
+   * records their joint decision (AC2). Judged per line (AC3); false until
+   * marked (AC4).
+   */
+  readonly essential: boolean;
 }
 
 export type EquipmentLineState = "Requested" | "Reserved" | "Under review" | "Unfulfilled";
@@ -122,6 +129,19 @@ export function recheckReason(line: EquipmentRequirement): RecheckReason | null 
   return line.removalRequested ? "removalRequested" : "changed";
 }
 
+/**
+ * SPM-318, SPM-259: Technical Support hold everything the line asks for and
+ * nothing on it waits for them -- what confirmation and the safety-check list
+ * both need of a line. A line under review is not, even with its units still
+ * held: the coordinator has changed it, or asked for its removal, since.
+ * `coordinator_confirm_event` restates this in SQL -- change both together.
+ */
+export function isReservedInFull(
+  line: Pick<EquipmentRequirement, "state" | "quantityRequested" | "quantityReserved">,
+): boolean {
+  return line.state === "Reserved" && line.quantityReserved >= line.quantityRequested;
+}
+
 /** Whether Technical Support have reserved any equipment against this line yet. */
 export function isReserved(line: EquipmentRequirement): boolean {
   return line.quantityReserved > 0;
@@ -148,6 +168,7 @@ export function recordEquipmentRequirement(
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
   };
 }
 
@@ -244,6 +265,20 @@ export function undoEquipmentRemoval(
     return { ...withdrawn, state: "Reserved", reviewBaseline: null };
   }
   return withdrawn;
+}
+
+/**
+ * SPM-109 AC1-AC2: the coordinator marks a line essential or not, as agreed
+ * with Technical Support. Like any other change to the lines, only while the
+ * event is still editable (SPM-41 AC13).
+ */
+export function markEquipmentLineEssential(
+  event: CoordinatorEvent,
+  line: EquipmentRequirement,
+  essential: boolean,
+): EquipmentRequirement {
+  assertEditable(event);
+  return { ...line, essential };
 }
 
 function baselineOf(line: EquipmentRequirement): EquipmentReviewBaseline {

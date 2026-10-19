@@ -1,6 +1,6 @@
 import type { BookingStatus } from "./booking";
 import type { CoordinatorEventStatus } from "./coordinator-event";
-import type { EquipmentRequirement } from "./equipment-requirement";
+import { isReservedInFull, type EquipmentRequirement } from "./equipment-requirement";
 import { EventNotAwaitingSafetyCheckError, SafetyCheckCommentsRequiredError } from "./errors";
 import type { EventId } from "./event";
 import type { UserAccountId } from "./user-account";
@@ -35,11 +35,6 @@ export interface SafetyCheckCandidate {
 /** A booking still in play. A rejected, released or cancelled one says nothing about the venue any more. */
 function isLive(booking: SafetyCheckBooking): boolean {
   return booking.status === "Requested" || booking.status === "Tentative Hold" || booking.status === "Confirmed";
-}
-
-/** Reserved, and for at least as many as the line asks for -- a partial reservation is not confirmed. */
-function isReservedInFull(line: SafetyCheckEquipmentLine): boolean {
-  return line.state === "Reserved" && line.quantityReserved >= line.quantityRequested;
 }
 
 /**

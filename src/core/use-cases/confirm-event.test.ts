@@ -7,6 +7,7 @@ import {
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
 import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
 import {
+  EssentialEquipmentNotReservedError,
   EventNotConfirmableError,
   EventNotFoundError,
   EventNotReadyForConfirmationError,
@@ -66,6 +67,7 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationEnabled: false,
     registrationOpenDate: null,
     registrationCloseDate: null,
+    essentialEquipment: [],
     ...overrides,
   };
 }
@@ -236,5 +238,28 @@ describe("ConfirmEventUseCase (SPM-264)", () => {
     await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toBeInstanceOf(
       EventNotReadyForConfirmationError,
     );
+  });
+});
+
+describe("ConfirmEventUseCase (SPM-318)", () => {
+  const unreserved = { equipmentType: "Wireless microphone", state: "Requested", quantityRequested: 4, quantityReserved: 0 } as const;
+
+  it("AC1: refuses while an essential line is not reserved in full, and leaves the event in Planning", async () => {
+    const { useCase, eventsRepo } = buildUseCase([seedEvent()], [seedFacts({ essentialEquipment: [unreserved] })]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toThrow(
+      new EssentialEquipmentNotReservedError(["Wireless microphone"]),
+    );
+    expect(eventsRepo.all()).toEqual([expect.objectContaining({ status: "Planning" })]);
+  });
+
+  it("AC3: confirms once every essential line is reserved in full", async () => {
+    const reserved = { ...unreserved, state: "Reserved", quantityReserved: 4 } as const;
+    const { useCase } = buildUseCase([seedEvent()], [seedFacts({ essentialEquipment: [reserved] })]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).resolves.toEqual({
+      eventId: "event-1",
+      status: "Confirmed",
+    });
   });
 });

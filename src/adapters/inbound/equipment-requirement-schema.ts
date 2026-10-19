@@ -36,6 +36,14 @@ export const editEquipmentRequirementSchema = addEquipmentRequirementSchema;
 /** Removing a line, and undoing the removal of one, name only the line. */
 export const equipmentLineSchema = z.object({ eventId, equipmentItemId });
 
+/** SPM-109: marking a line essential or not. The toggle posts `on` when switched on, nothing when off. */
+export const equipmentLineEssentialSchema = equipmentLineSchema.extend({
+  essential: z
+    .enum(["", "on"], { message: "Essential must be on or off." })
+    .transform((value) => value === "on"),
+});
+
 export type AddEquipmentRequirementInput = z.infer<typeof addEquipmentRequirementSchema>;
 export type EditEquipmentRequirementInput = z.infer<typeof editEquipmentRequirementSchema>;
 export type EquipmentLineInput = z.infer<typeof equipmentLineSchema>;
+export type EquipmentLineEssentialInput = z.infer<typeof equipmentLineEssentialSchema>;

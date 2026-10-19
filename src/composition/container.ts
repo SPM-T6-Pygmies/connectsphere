@@ -96,6 +96,7 @@ import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equip
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
 import { ReserveEquipmentLineUseCase } from "@/core/use-cases/reserve-equipment-line";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
+import { MarkEquipmentLineEssentialUseCase } from "@/core/use-cases/mark-equipment-line-essential";
 import { ViewEventEquipmentUseCase } from "@/core/use-cases/view-event-equipment";
 import { ViewEventEquipmentForTechnicalSupportUseCase } from "@/core/use-cases/view-event-equipment-for-technical-support";
 import { ViewEventForRegistrationUseCase } from "@/core/use-cases/view-event-for-registration";
@@ -785,6 +786,13 @@ export async function buildUndoEquipmentRemoval(): Promise<UndoEquipmentRemovalU
     safetyCheck: safetyCheckAnnouncer(),
     attention: equipmentAttentionAnnouncer(),
   });
+}
+
+/** SPM-109 AC1-AC2: the assigned coordinator marks a line essential, as agreed with Technical Support. */
+export async function buildMarkEquipmentLineEssential(): Promise<MarkEquipmentLineEssentialUseCase> {
+  const { events, equipment } = await coordinatorAdapters();
+
+  return new MarkEquipmentLineEssentialUseCase({ events, equipment });
 }
 
 /** SPM-39 AC5: reassigns an event request's responsible Organiser. */

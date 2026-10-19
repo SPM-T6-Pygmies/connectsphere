@@ -86,6 +86,19 @@ export class SupabaseEquipmentRequirementRepository implements EquipmentRequirem
     }
   }
 
+  async markEssential(eventId: EventId, line: EquipmentRequirement, actor: UserAccountId): Promise<void> {
+    const keys = this.keys(eventId, line.equipmentItemId, actor);
+
+    const { error } = await this.client.rpc("coordinator_set_equipment_line_essential", {
+      ...keys,
+      p_essential: line.essential,
+    });
+
+    if (error) {
+      throw this.failure("mark", error, eventId, line.equipmentItemId);
+    }
+  }
+
   async delete(eventId: EventId, equipmentItemId: EquipmentItemId, actor: UserAccountId): Promise<void> {
     const keys = this.keys(eventId, equipmentItemId, actor);
 

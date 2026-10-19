@@ -23,6 +23,7 @@ function reserved(item = "item-projector"): EquipmentRequirement {
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
   };
 }
 

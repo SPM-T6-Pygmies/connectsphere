@@ -463,6 +463,7 @@ create table equipment_reservation_line (
   reviewed_technical_requirements text,
   decided_by_user_account_id bigint references user_account (user_account_id) on delete restrict,
   decision_comment         text,
+  essential                boolean not null default false,
     -- added 2026-09-28 (SPM-183, SPM-41 AC5/AC8/AC11): the coordinator's notes
     -- for Technical Support, and when a reserved line's removal was requested.
     -- line_state added 2026-10-03: Requested (nothing reserved), Reserved, or
@@ -478,6 +479,9 @@ create table equipment_reservation_line (
     -- Unfulfilled (too few free, nothing reserved), and why not. A changed
     -- Unfulfilled line goes Under review with nothing reserved, so Under review
     -- no longer implies units held. fulfilment_status stays unused.
+    -- essential added 2026-10-19 (SPM-109): the assigned coordinator marks a
+    -- line essential once agreed with Technical Support. Unmarked lines are
+    -- not essential.
   unique (equipment_reservation_id, equipment_item_id),
   constraint equipment_reservation_line_fulfilment_chk
     check (fulfilment_status in ('Pending', 'Fulfilled', 'Partially Fulfilled', 'Unfulfilled')),
