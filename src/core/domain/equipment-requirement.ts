@@ -129,6 +129,18 @@ export function recheckReason(line: EquipmentRequirement): RecheckReason | null 
   return line.removalRequested ? "removalRequested" : "changed";
 }
 
+/**
+ * SPM-318: Technical Support hold everything the line asks for and nothing on
+ * it waits for them. A line under review is not, even with its units still
+ * held: the coordinator has changed it, or asked for its removal, since.
+ * `coordinator_confirm_event` restates this in SQL -- change both together.
+ */
+export function isReservedInFull(
+  line: Pick<EquipmentRequirement, "state" | "quantityRequested" | "quantityReserved">,
+): boolean {
+  return line.state === "Reserved" && line.quantityReserved >= line.quantityRequested;
+}
+
 /** Whether Technical Support have reserved any equipment against this line yet. */
 export function isReserved(line: EquipmentRequirement): boolean {
   return line.quantityReserved > 0;

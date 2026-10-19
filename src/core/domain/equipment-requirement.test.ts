@@ -9,6 +9,7 @@ import { equipmentItemId } from "./equipment-item";
 import {
   editEquipmentRequirement,
   equipmentRequirementsEditable,
+  isReservedInFull,
   markEquipmentLineEssential,
   recheckReason,
   recordEquipmentRequirement,
@@ -658,5 +659,26 @@ describe("marking a line essential (SPM-109)", () => {
     expect(() => markEquipmentLineEssential(event({ status }), line(), true)).toThrow(
       EquipmentRequirementsLockedError,
     );
+  });
+});
+
+describe("isReservedInFull (SPM-318)", () => {
+  it("AC3: is true for a Reserved line holding exactly what it asks for", () => {
+    expect(isReservedInFull(reserved({ quantityRequested: 2, quantityReserved: 2 }))).toBe(true);
+  });
+
+  it("AC1: is false for a Reserved line one unit short", () => {
+    expect(isReservedInFull(reserved({ quantityRequested: 2, quantityReserved: 1 }))).toBe(false);
+  });
+
+  it.each(["Requested", "Unfulfilled"] as const)("AC1: is false for a %s line, with nothing reserved", (state) => {
+    expect(isReservedInFull(line({ state, quantityReserved: 0 }))).toBe(false);
+  });
+
+  it("AC1: is false for a line under review, even with its units still held", () => {
+    expect(isReservedInFull(line({ state: "Under review", quantityRequested: 2, quantityReserved: 2 }))).toBe(false);
+    expect(
+      isReservedInFull(line({ state: "Under review", quantityRequested: 2, quantityReserved: 2, removalRequested: true })),
+    ).toBe(false);
   });
 });

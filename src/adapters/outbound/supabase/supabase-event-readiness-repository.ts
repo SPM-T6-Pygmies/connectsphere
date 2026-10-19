@@ -1,4 +1,5 @@
 import type { EventId } from "@/core/domain/event";
+import type { EquipmentLineState } from "@/core/domain/equipment-requirement";
 import type { ArrangementType, ReadinessFacts } from "@/core/domain/event-readiness";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { EventReadinessRepository } from "@/core/ports/outbound/event-readiness-repository";
@@ -15,6 +16,15 @@ export interface EventReadinessRow {
   /** Postgres `date`: `YYYY-MM-DD`. */
   registration_open_date: string | null;
   registration_close_date: string | null;
+  /** SPM-318: the event's essential equipment lines. */
+  essential_equipment: EssentialEquipmentRow[] | null;
+}
+
+interface EssentialEquipmentRow {
+  equipment_type: string;
+  line_state: EquipmentLineState;
+  quantity_requested: number;
+  quantity_reserved: number;
 }
 
 export function toReadinessFacts(eventId: EventId, row: EventReadinessRow): ReadinessFacts {
@@ -26,6 +36,12 @@ export function toReadinessFacts(eventId: EventId, row: EventReadinessRow): Read
     registrationEnabled: row.registration_enabled ?? false,
     registrationOpenDate: row.registration_open_date,
     registrationCloseDate: row.registration_close_date,
+    essentialEquipment: (row.essential_equipment ?? []).map((line) => ({
+      equipmentType: line.equipment_type,
+      state: line.line_state,
+      quantityRequested: line.quantity_requested,
+      quantityReserved: line.quantity_reserved,
+    })),
   };
 }
 

@@ -1,6 +1,7 @@
 import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
 import {
   CoordinatorEventNotFoundError,
+  EssentialEquipmentNotReservedError,
   EventDetailsLockedError,
   EventFacilitiesLockedError,
   EventNotCompletableError,
@@ -51,6 +52,7 @@ const NOT_FOUND_OR_NOT_ASSIGNED = "CS020";
 const NOT_CONFIRMABLE = "CS021";
 const NOT_READY = "CS022";
 const SAFETY_CHECK_NOT_APPROVED = "CS055";
+const ESSENTIAL_EQUIPMENT_NOT_RESERVED = "CS047";
 
 /** SQLSTATEs `coordinator_set_event_required_facilities` comes back with. See its migration. */
 const FACILITIES_EVENT_NOT_FOUND = "CS029";
@@ -305,6 +307,10 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
       }
       if (error.code === NOT_READY) {
         throw new EventNotReadyForConfirmationError(await this.blockingArrangements(event, confirmedBy));
+      }
+      if (error.code === ESSENTIAL_EQUIPMENT_NOT_RESERVED) {
+        // DETAIL is a JSON array of the blocking lines' types, read under the row lock.
+        throw new EssentialEquipmentNotReservedError(JSON.parse(error.details || "[]") as string[]);
       }
       if (error.code === SAFETY_CHECK_NOT_APPROVED) {
         throw new SafetyCheckNotApprovedError();

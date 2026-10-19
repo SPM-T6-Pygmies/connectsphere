@@ -504,6 +504,18 @@ export class EventNotReadyForConfirmationError extends DomainError {
   }
 }
 
+/** SPM-318 AC1: an essential equipment line is not reserved in full. Names each such line by its type. */
+export class EssentialEquipmentNotReservedError extends DomainError {
+  readonly code = "essential_equipment_not_reserved";
+
+  constructor(readonly equipmentTypes: readonly string[]) {
+    super(
+      `This event cannot be confirmed: essential equipment ${equipmentTypes.join(", ")} ` +
+        `${equipmentTypes.length === 1 ? "is" : "are"} not reserved in full.`,
+    );
+  }
+}
+
 /**
  * SPM-33 AC3: a clarification request must say what needs clarifying -- by the
  * same rule that makes a rejection state its reason.

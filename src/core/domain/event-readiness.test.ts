@@ -7,6 +7,7 @@ import type {
 } from "./coordinator-event";
 import { eventId } from "./event";
 import {
+  EssentialEquipmentNotReservedError,
   EventNotConfirmableError,
   EventNotReadyForConfirmationError,
   SafetyCheckNotApprovedError,
@@ -14,10 +15,12 @@ import {
 import {
   assessReadiness,
   blockingArrangements,
+  blockingEquipment,
   canConfirm,
   confirmationState,
   confirmEvent,
   type ArrangementReadiness,
+  type EquipmentLineReadiness,
   type EventReadiness,
   type ReadinessFacts,
 } from "./event-readiness";
@@ -49,8 +52,9 @@ function event(overrides: Partial<CoordinatorEvent> = {}): CoordinatorEvent {
 
 function readiness(
   essentialArrangements: readonly ArrangementReadiness[],
+  essentialEquipment: readonly EquipmentLineReadiness[] = [],
 ): EventReadiness {
-  return { eventId: EVENT_ID, essentialArrangements };
+  return { eventId: EVENT_ID, essentialArrangements, essentialEquipment };
 }
 
 function facts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
@@ -62,6 +66,7 @@ function facts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationEnabled: false,
     registrationOpenDate: null,
     registrationCloseDate: null,
+    essentialEquipment: [],
     ...overrides,
   };
 }
@@ -437,5 +442,69 @@ describe("confirmEvent (SPM-264)", () => {
     expect(new SafetyCheckNotApprovedError().message).toBe(
       "This event cannot be confirmed: its safety check is not approved.",
     );
+  });
+});
+
+describe("essential equipment and confirmation (SPM-318)", () => {
+  const projector = { equipmentType: "Projector", state: "Reserved", quantityRequested: 2, quantityReserved: 2 } as const;
+  const microphone = { equipmentType: "Wireless microphone", state: "Requested", quantityRequested: 4, quantityReserved: 0 } as const;
+
+  const shortByOne = { ...projector, quantityReserved: 1 };
+
+  it("assesses each essential line as reserved in full or not", () => {
+    expect(assessReadiness(facts({ essentialEquipment: [projector, microphone] })).essentialEquipment).toEqual([
+      { equipmentType: "Projector", reservedInFull: true },
+      { equipmentType: "Wireless microphone", reservedInFull: false },
+    ]);
+  });
+
+  it("AC1: names each essential line not reserved in full", () => {
+    const assessed = assessReadiness(facts({ essentialEquipment: [shortByOne, microphone] }));
+
+    expect(blockingEquipment(assessed)).toEqual(["Projector", "Wireless microphone"]);
+  });
+
+  it("AC1: refuses an essential line one unit short, naming it", () => {
+    const assessed = assessReadiness(facts({ essentialEquipment: [shortByOne] }));
+
+    expect(confirmationState(event(), assessed, APPROVED)).toBe("blocked");
+    expect(canConfirm(event(), assessed, APPROVED)).toBe(false);
+    expect(() => confirmEvent(event(), assessed, APPROVED)).toThrow(new EssentialEquipmentNotReservedError(["Projector"]));
+  });
+
+  it("AC1: says which lines block, one or several", () => {
+    expect(new EssentialEquipmentNotReservedError(["Projector"]).message).toBe(
+      "This event cannot be confirmed: essential equipment Projector is not reserved in full.",
+    );
+    expect(new EssentialEquipmentNotReservedError(["Projector", "PA speaker"]).message).toBe(
+      "This event cannot be confirmed: essential equipment Projector, PA speaker are not reserved in full.",
+    );
+  });
+
+  it("AC2: lets non-essential gaps through -- only essential lines are assessed at all", () => {
+    const assessed = assessReadiness(facts({ essentialEquipment: [] }));
+
+    expect(blockingEquipment(assessed)).toEqual([]);
+    expect(confirmEvent(event(), assessed, APPROVED).status).toBe("Confirmed");
+  });
+
+  it("AC3: confirms once every essential line is reserved in full", () => {
+    const assessed = assessReadiness(facts({ essentialEquipment: [projector] }));
+
+    expect(confirmationState(event(), assessed, APPROVED)).toBe("ready");
+    expect(confirmEvent(event(), assessed, APPROVED).status).toBe("Confirmed");
+  });
+
+  it("AC3: still refuses on the safety check once the essential lines are done", () => {
+    const assessed = assessReadiness(facts({ essentialEquipment: [projector] }));
+
+    expect(confirmationState(event(), assessed, null)).toBe("blocked");
+    expect(() => confirmEvent(event(), assessed, null)).toThrow(SafetyCheckNotApprovedError);
+  });
+
+  it("AC3: still refuses on an incomplete arrangement once the essential lines are done", () => {
+    const assessed = assessReadiness(facts({ essentialTypes: ["venue"], essentialEquipment: [projector] }));
+
+    expect(() => confirmEvent(event(), assessed, APPROVED)).toThrow(EventNotReadyForConfirmationError);
   });
 });
