@@ -841,6 +841,11 @@
       "title": "Manual test cases and registry for the registration email",
       "parent": "SPM-87",
       "status": "In Progress"
+    },
+    "SPM-318": {
+      "title": "Block confirmation on an unfulfilled essential line",
+      "parent": null,
+      "status": "Todo"
     }
   }
 }
