@@ -1,9 +1,12 @@
-import { holdsSlot, slotEndsAt, slotStartsAt, type BookingStatus, type SlotOnDate } from "./booking";
+import { holdsSlot, SLOT_HOURS, slotEndsAt, slotStartsAt, type BookingStatus, type SlotOnDate } from "./booking";
 import type { VenueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
 /** The reason code for a booking flagged because a block covers it (SPM-313). */
 export const VENUE_UNAVAILABLE_FLAG = "venue-unavailable";
+
+/** `booking_review_flag_reason_chk`: SPM-105 and SPM-309 add the other two. */
+export type FlagReasonCode = typeof VENUE_UNAVAILABLE_FLAG | "venue-attributes" | "event-change";
 
 export interface TimeWindow {
   readonly startsAt: Date;
@@ -55,31 +58,39 @@ function overlappedSlots(booking: FlaggableBooking, block: VenueUnavailabilityEn
   });
 }
 
-function hhmm(date: Date): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Singapore",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(date);
+/** `YYYY-MM-DD HH:MM` in Singapore, as the database writes it into a flag's reason. */
+function singaporeMinute(iso: string): string {
+  const parts = new Map(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Singapore",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date(iso))
+      .map(({ type, value }) => [type, value]),
+  );
+  return `${parts.get("year")}-${parts.get("month")}-${parts.get("day")} ${parts.get("hour")}:${parts.get("minute")}`;
 }
 
 /**
- * What the coordinator reads: the block's date and times, its reason, and, once
+ * What the coordinator reads: the block's reason, its day and hours, and, once
  * Venue Staff lift it, that it was lifted and when. Lifting never clears the
- * flag, so the reason has to say it.
+ * flag, so the reason has to say it. `venue_staff_record_unavailability` and
+ * `venue_staff_lift_unavailability` write the same text.
  */
 export function blockFlagDetail(
   block: VenueUnavailabilityEntry,
   overlapping: readonly SlotOnDate[],
 ): string {
   const spans = overlapping
-    .map((slot) => {
-      const { startsAt, endsAt } = bookingWindow(slot);
-      return `${slot.date} ${hhmm(startsAt)} to ${hhmm(endsAt)}`;
-    })
+    .map(({ date, slot }) => `${date} ${SLOT_HOURS[slot].start} to ${SLOT_HOURS[slot].end}`)
     .join(", ");
-  const lifted = block.status === "Lifted" && block.liftedAt !== null ? `, block lifted ${block.liftedAt}` : "";
+  const lifted =
+    block.status === "Lifted" && block.liftedAt !== null ? `, block lifted ${singaporeMinute(block.liftedAt)}` : "";
   return `${block.reason}: ${spans}${lifted}`;
 }
 

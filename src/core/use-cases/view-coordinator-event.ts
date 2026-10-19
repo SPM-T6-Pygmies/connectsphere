@@ -11,6 +11,7 @@ import {
 } from "../domain/event-readiness";
 import { safetyCheckBlocker, type SafetyCheckBlocker } from "../domain/safety-check";
 import { userAccountId } from "../domain/user-account";
+import type { BookingFlagRepository, EventBookingFlag } from "../ports/outbound/booking-flag-repository";
 import type { Clock } from "../ports/outbound/clock";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type {
@@ -40,6 +41,8 @@ export interface ViewCoordinatorEventResult {
   readonly safetyCheckBlocker: SafetyCheckBlocker | null;
   /** SPM-51: whether the event can be marked completed now -- Confirmed, and its last slot over. */
   readonly canComplete: boolean;
+  /** SPM-313 AC4: each open reason one of the event's venue bookings is flagged for, oldest first. */
+  readonly flaggedBookings: readonly EventBookingFlag[];
 }
 
 export interface ViewCoordinatorEventDeps {
@@ -50,6 +53,8 @@ export interface ViewCoordinatorEventDeps {
   readonly clock: Clock;
   /** SPM-264: the event's safety checks, newest first. */
   readonly safetyChecks: Pick<SafetyCheckRepository, "history">;
+  /** SPM-313: the review flags on the event's venue bookings. */
+  readonly flags: BookingFlagRepository;
 }
 
 /**
@@ -77,12 +82,13 @@ export class ViewCoordinatorEventUseCase {
       return null;
     }
 
-    const [details, facts, history, organisationNames, organiserNames] = await Promise.all([
+    const [details, facts, history, organisationNames, organiserNames, flaggedBookings] = await Promise.all([
       this.deps.events.findAssigned(caller, id),
       this.deps.readiness.factsFor(caller, id),
       this.deps.safetyChecks.history(caller, id),
       this.deps.clientOrganisations.findNamesByIds([event.clientOrganisationId]),
       this.deps.userAccounts.findNamesByIds([event.owningOrganiserUserAccountId]),
+      this.deps.flags.openForEvent(caller, id),
     ]);
 
     if (details === null || facts === null || history === null) {
@@ -101,6 +107,7 @@ export class ViewCoordinatorEventUseCase {
       blockingArrangements: blockingArrangements(readiness),
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
+      flaggedBookings,
     };
   }
 }

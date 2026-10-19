@@ -135,11 +135,17 @@ describe("bookingsToFlagForBlock (SPM-313)", () => {
 });
 
 describe("blockFlagDetail (SPM-313)", () => {
+  it("AC1: gives the Night slot's hours as the slot table does, ending at 24:00", () => {
+    expect(blockFlagDetail(block(), [{ date: "2026-11-06", slot: "Night" }])).toBe(
+      "Maintenance: 2026-11-06 19:00 to 24:00",
+    );
+  });
+
   it("AC6: says the block was lifted, and when, once it is lifted", () => {
     const lifted = block({ status: "Lifted", liftedAt: "2026-10-21T01:00:00.000Z" });
 
     expect(blockFlagDetail(lifted, [{ date: "2026-11-06", slot: "PM" }])).toBe(
-      "Maintenance: 2026-11-06 13:00 to 18:00, block lifted 2026-10-21T01:00:00.000Z",
+      "Maintenance: 2026-11-06 13:00 to 18:00, block lifted 2026-10-21 09:00",
     );
   });
 });
