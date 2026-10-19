@@ -130,8 +130,9 @@ export function recheckReason(line: EquipmentRequirement): RecheckReason | null 
 }
 
 /**
- * SPM-318: Technical Support hold everything the line asks for and nothing on
- * it waits for them. A line under review is not, even with its units still
+ * SPM-318, SPM-259: Technical Support hold everything the line asks for and
+ * nothing on it waits for them -- what confirmation and the safety-check list
+ * both need of a line. A line under review is not, even with its units still
  * held: the coordinator has changed it, or asked for its removal, since.
  * `coordinator_confirm_event` restates this in SQL -- change both together.
  */
