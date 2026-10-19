@@ -41,6 +41,8 @@ export interface TechnicalSupportEquipmentLine {
   readonly canDecide: boolean;
   /** SPM-274: who last reserved it or marked it unfulfilled, and why not; null while nobody has. */
   readonly decision: { readonly byName: string | null; readonly comment: string | null } | null;
+  /** SPM-109 AC2: the coordinator marked it essential, as agreed with Technical Support. */
+  readonly essential: boolean;
 }
 
 export interface ViewEventEquipmentForTechnicalSupportResult {
@@ -97,6 +99,7 @@ export class ViewEventEquipmentForTechnicalSupportUseCase {
         state: line.state,
         canDecide: awaitsDecision(event.status, line),
         decision: line.decision === null ? null : { byName: decidedByName, comment: line.decision.comment },
+        essential: line.essential,
       })),
     };
   }

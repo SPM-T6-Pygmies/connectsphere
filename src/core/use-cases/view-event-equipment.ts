@@ -23,6 +23,8 @@ export interface EquipmentLineView {
   readonly unfulfilled: boolean;
   /** SPM-274 AC1, AC3: who last reserved the line or marked it unfulfilled, and why not; null while nobody has. */
   readonly decision: { readonly byName: string | null; readonly comment: string | null } | null;
+  /** SPM-109: the coordinator marked it essential, as agreed with Technical Support. */
+  readonly essential: boolean;
 }
 
 export interface ViewEventEquipmentResult {
@@ -79,6 +81,7 @@ export class ViewEventEquipmentUseCase {
           line.decision === null
             ? null
             : { byName: current.deciderNames?.[line.decision.by] ?? null, comment: line.decision.comment },
+        essential: line.essential,
       })),
       catalogue,
     };

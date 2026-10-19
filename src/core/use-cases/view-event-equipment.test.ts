@@ -39,6 +39,7 @@ describe("ViewEventEquipmentUseCase (SPM-184)", () => {
           removalRequested: false,
           unfulfilled: false,
           decision: null,
+          essential: false,
         },
         {
           equipmentItemId: MICROPHONE,
@@ -51,6 +52,7 @@ describe("ViewEventEquipmentUseCase (SPM-184)", () => {
           removalRequested: false,
           unfulfilled: false,
           decision: null,
+          essential: false,
         },
       ],
       catalogue: CATALOGUE,
@@ -136,5 +138,23 @@ describe("ViewEventEquipmentUseCase (SPM-274)", () => {
     });
 
     expect(await viewLine(changed)).toMatchObject({ unfulfilled: false, underReview: true, reserved: false });
+  });
+});
+
+describe("ViewEventEquipmentUseCase (SPM-109)", () => {
+  it("AC1: shows which lines the coordinator marked essential", async () => {
+    const deps = buildEquipmentDeps([seedEvent()], {
+      "event-1": {
+        reservation: { id: "reservation-10", reviewerUserAccountId: REVIEWER },
+        lines: [line({ equipmentItemId: PROJECTOR, essential: true }), line({ equipmentItemId: MICROPHONE })],
+      },
+    });
+
+    const result = await view(deps).execute({ eventId: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.lines.map(({ equipmentItemId, essential }) => ({ equipmentItemId, essential }))).toEqual([
+      { equipmentItemId: PROJECTOR, essential: true },
+      { equipmentItemId: MICROPHONE, essential: false },
+    ]);
   });
 });

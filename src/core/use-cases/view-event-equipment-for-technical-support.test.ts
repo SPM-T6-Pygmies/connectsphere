@@ -91,6 +91,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
         state: "Reserved",
         canDecide: false,
         decision: null,
+        essential: false,
       },
       {
         equipmentItemId: "item-microphone",
@@ -104,6 +105,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
         state: "Requested",
         canDecide: true,
         decision: null,
+        essential: false,
       },
     ]);
   });
@@ -250,5 +252,21 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-275)", () => {
     ]);
 
     expect(result?.lines[0]?.available).toBe(5);
+  });
+});
+
+describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-109)", () => {
+  it("AC2: shows Technical Support which lines the coordinator marked essential", async () => {
+    const result = await view([
+      event([
+        stock({ line: line({ essential: true }) }),
+        stock({ line: line({ equipmentItemId: equipmentItemId("item-microphone") }), equipmentType: "Wireless microphone" }),
+      ]),
+    ]);
+
+    expect(result?.lines.map(({ equipmentType, essential }) => ({ equipmentType, essential }))).toEqual([
+      { equipmentType: "Projector", essential: true },
+      { equipmentType: "Wireless microphone", essential: false },
+    ]);
   });
 });

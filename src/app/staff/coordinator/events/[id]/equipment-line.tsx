@@ -1,17 +1,19 @@
 "use client";
 
 import { CircleAlert, TriangleAlert } from "lucide-react";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
 import {
   editEquipmentRequirementAction,
+  markEquipmentLineEssentialAction,
   removeEquipmentRequirementAction,
   undoEquipmentRemovalAction,
   type EquipmentFormState,
@@ -32,6 +34,8 @@ export interface EquipmentLineData {
   readonly unfulfilled: boolean;
   /** SPM-274 AC1, AC3: who reserved the line or marked it unfulfilled, and why not. */
   readonly decision: { readonly byName: string | null; readonly comment: string | null } | null;
+  /** SPM-109. */
+  readonly essential: boolean;
 }
 
 type Mode = "view" | "editing" | "removing";
@@ -46,6 +50,9 @@ type Mode = "view" | "editing" | "removing";
  *
  * SPM-274: a reserved line names who reserved it (AC1); an unfulfilled one
  * says why it could not be met and who said so (AC3).
+ *
+ * SPM-109: the coordinator marks the line essential once they and Technical
+ * Support agree it is; on a read-only event the mark is only shown.
  */
 export function EquipmentLine({
   eventId,
@@ -66,6 +73,7 @@ export function EquipmentLine({
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{line.equipmentType}</span>
+            {line.essential && !editable ? <Badge variant="secondary">Essential</Badge> : null}
             {line.reserved ? <Badge variant="success">Reserved</Badge> : null}
             {line.unfulfilled ? <Badge variant="destructive">Unfulfilled</Badge> : null}
             {line.underReview ? <Badge variant="warning">Needs re-check</Badge> : null}
@@ -86,6 +94,7 @@ export function EquipmentLine({
           {line.technicalRequirements ? (
             <p className="text-sm break-words">{line.technicalRequirements}</p>
           ) : null}
+          {editable && mode === "view" ? <EssentialToggle eventId={eventId} line={line} /> : null}
         </div>
 
         {editable && mode === "view" ? (
@@ -247,6 +256,37 @@ function RemoveForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+/**
+ * SPM-109 AC1-AC2: saves as soon as it is switched. How the coordinator and
+ * Technical Support agree happens outside the system; this records the outcome.
+ */
+function EssentialToggle({ eventId, line }: { eventId: string; line: EquipmentLineData }) {
+  const [state, formAction, pending] = useActionState(markEquipmentLineEssentialAction, INITIAL);
+  const switchId = `essential-${line.equipmentItemId}`;
+
+  const mark = (essential: boolean) => {
+    const formData = new FormData();
+    formData.set("eventId", eventId);
+    formData.set("equipmentItemId", line.equipmentItemId);
+    formData.set("essential", essential ? "on" : "");
+    startTransition(() => formAction(formData));
+  };
+
+  return (
+    <div className="space-y-2 pt-1">
+      <div className="flex items-center gap-2">
+        <Switch id={switchId} size="sm" checked={line.essential} onCheckedChange={mark} disabled={pending} />
+        <Label htmlFor={switchId} className="text-sm font-normal">
+          Essential
+        </Label>
+        <span className="text-muted-foreground text-xs">Mark once agreed with Technical Support</span>
+      </div>
+
+      {state.status === "error" ? <ErrorAlert message={state.message} /> : null}
+    </div>
   );
 }
 
