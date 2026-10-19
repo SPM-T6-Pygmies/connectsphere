@@ -9,6 +9,7 @@ import { equipmentItemId } from "./equipment-item";
 import {
   editEquipmentRequirement,
   equipmentRequirementsEditable,
+  markEquipmentLineEssential,
   recheckReason,
   recordEquipmentRequirement,
   removeEquipmentRequirement,
@@ -71,6 +72,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
     ...overrides,
   };
   // A line under review always remembers what it was reviewed as; default to its own values.
@@ -118,6 +120,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
       reviewBaseline: null,
       removalRequested: false,
       decision: null,
+      essential: false,
     });
   });
 
@@ -626,5 +629,34 @@ describe("editing a line marked unfulfilled (SPM-274)", () => {
   it("AC3: nothing is held against an unfulfilled line, so removing it deletes it", () => {
     expect(removeEquipmentRequirement(event(), unfulfilled())).toEqual({ kind: "deleted" });
     expect(removeEquipmentRequirement(event(), change(unfulfilled(), 3).line)).toEqual({ kind: "deleted" });
+  });
+});
+
+describe("marking a line essential (SPM-109)", () => {
+  it("AC4: a newly recorded line is not essential", () => {
+    expect(recordEquipmentRequirement(event(), [], newRequirement()).essential).toBe(false);
+  });
+
+  it("AC1: marks a line essential, and back to not essential", () => {
+    const marked = markEquipmentLineEssential(event(), line(), true);
+
+    expect(marked.essential).toBe(true);
+    expect(markEquipmentLineEssential(event(), marked, false).essential).toBe(false);
+  });
+
+  it("AC1: changes nothing else about the line, so Technical Support have nothing to re-check", () => {
+    const before = reserved({ decision: { by: userAccountId("support-1"), comment: null } });
+
+    expect(markEquipmentLineEssential(event(), before, true)).toEqual({ ...before, essential: true });
+  });
+
+  it.each(EDITABLE)("marks a line on a %s event", (status) => {
+    expect(markEquipmentLineEssential(event({ status }), line(), true).essential).toBe(true);
+  });
+
+  it.each(LOCKED)("refuses to mark a line on a %s event", (status) => {
+    expect(() => markEquipmentLineEssential(event({ status }), line(), true)).toThrow(
+      EquipmentRequirementsLockedError,
+    );
   });
 });

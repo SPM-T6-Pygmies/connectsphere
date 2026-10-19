@@ -27,6 +27,7 @@ const changedProjector: TechnicalEquipmentLineRow = {
   decided_by_user_account_id: null,
   decided_by_name: null,
   decision_comment: null,
+  essential: false,
 };
 
 const newMicrophone: TechnicalEquipmentLineRow = {
@@ -41,6 +42,7 @@ const newMicrophone: TechnicalEquipmentLineRow = {
   decided_by_user_account_id: null,
   decided_by_name: null,
   decision_comment: null,
+  essential: false,
 };
 
 const event = { event_id: 7, event_name: "Founders' Gala Dinner", status: "Planning" as const, preferred_date: "2026-11-15" };
@@ -59,6 +61,7 @@ describe("technical equipment mapper (SPM-273)", () => {
           reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
           removalRequested: false,
           decision: null,
+          essential: false,
         },
         {
           equipmentItemId: "2",
@@ -69,6 +72,7 @@ describe("technical equipment mapper (SPM-273)", () => {
           reviewBaseline: null,
           removalRequested: false,
           decision: null,
+          essential: false,
         },
       ],
     });
@@ -170,5 +174,13 @@ describe("technical equipment mapper (SPM-274)", () => {
 
   it("AC1: reads CS043 as a line the event does not have", () => {
     expect(toTechnicalEquipmentError({ code: "CS043" }, line)).toBeInstanceOf(EquipmentRequirementNotFoundError);
+  });
+});
+
+describe("technical equipment mapper (SPM-109)", () => {
+  it("AC2: maps whether each line is marked essential, for Technical Support to see", () => {
+    const mapped = toEventWithEquipment({ ...event, lines: [{ ...changedProjector, essential: true }, newMicrophone] });
+
+    expect(mapped.lines.map((line) => line.essential)).toEqual([true, false]);
   });
 });

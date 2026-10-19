@@ -30,6 +30,7 @@ function projector(quantityRequested: number, overrides: Partial<EquipmentRequir
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
     ...overrides,
   };
 }

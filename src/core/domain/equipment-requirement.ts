@@ -52,6 +52,13 @@ export interface EquipmentRequirement {
    * lines reserved before decisions were recorded.
    */
   readonly decision: EquipmentLineDecision | null;
+  /**
+   * SPM-109: whether the event cannot go ahead without this line. The assigned
+   * coordinator marks it once agreed with Technical Support, so the mark
+   * records their joint decision (AC2). Judged per line (AC3); false until
+   * marked (AC4).
+   */
+  readonly essential: boolean;
 }
 
 export type EquipmentLineState = "Requested" | "Reserved" | "Under review" | "Unfulfilled";
@@ -148,6 +155,7 @@ export function recordEquipmentRequirement(
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
   };
 }
 
@@ -244,6 +252,20 @@ export function undoEquipmentRemoval(
     return { ...withdrawn, state: "Reserved", reviewBaseline: null };
   }
   return withdrawn;
+}
+
+/**
+ * SPM-109 AC1-AC2: the coordinator marks a line essential or not, as agreed
+ * with Technical Support. Like any other change to the lines, only while the
+ * event is still editable (SPM-41 AC13).
+ */
+export function markEquipmentLineEssential(
+  event: CoordinatorEvent,
+  line: EquipmentRequirement,
+  essential: boolean,
+): EquipmentRequirement {
+  assertEditable(event);
+  return { ...line, essential };
 }
 
 function baselineOf(line: EquipmentRequirement): EquipmentReviewBaseline {
