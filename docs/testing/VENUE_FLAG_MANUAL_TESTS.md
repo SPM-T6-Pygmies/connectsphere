@@ -16,8 +16,7 @@ description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not edit that file. The
 ticked boxes and screenshots below are the working record for this run.
 
-**Not runnable until the flag is built.** Every case reads the flag on the coordinator's event page
-(subtask SPM-447) or in the database (SPM-444, SPM-445). Until then each case is `Not run`.
+The flag shows on the coordinator's event page, under the **Venue** tab, in a **Flagged for review** section. Only flagged bookings are listed there, so a booking with no flag is simply not shown.
 
 ## The people and places
 
@@ -30,6 +29,7 @@ Every case is told as a story. Read the names like this:
 | **Priya**, another coordinator | Test Coordinator 2 | `coordinator2@test.com` |
 | **Hall A** | Main Hall | |
 | **Hall C** | Studio | |
+| **Rooftop** | Rooftop Terrace | |
 
 The password for all three is `TestPass123!`. Slots are AM 07:00 to 12:00, PM 13:00 to 18:00 and
 Night 19:00 to 24:00, Singapore time.
@@ -93,7 +93,7 @@ To see which blocks the cases have recorded so far:
 | --- | --- | --- | --- | --- | --- |
 | Flag Test: Tech Summit | Dana | Hall A | F, PM | Confirmed | 001, 005, 006, 007, 008, 009 |
 | Flag Test: Tech Summit | Dana | Hall C | F, PM | Confirmed | 009 (its second venue) |
-| Flag Test: Second Event | Dana | Hall A | F, PM | Requested | 003 |
+| Flag Test: Second Event | Dana | Rooftop | F, PM | Requested | 003 |
 | Flag Test: Offsite Day | Dana | Hall A | F + 4, PM | Confirmed | 007 |
 | Flag Test: Hold Event | Dana | Hall C | F + 2, PM | Tentative Hold, live | 002 |
 | Flag Test: Hold Event | Dana | Hall C | F + 3, PM | Tentative Hold, expired an hour ago | 002 |
@@ -104,8 +104,9 @@ To see which blocks the cases have recorded so far:
 ### Order
 
 Run the cases in order, 001 to 009. Each case adds blocks that the next ones read: 001 records the
-first block on Hall A, 004 and 005 read the result without recording anything, 007 stacks a second
-block over the first and 008 lifts the first. To run any case again, use the teardown and seed
+first block on Hall A, 002 and 003 add blocks at Hall C and Rooftop, 004, 005, 006 and 009 read the
+result without recording anything, 007 stacks a second block over the first on Hall A and 008 lifts
+the first. To run any case again, use the teardown and seed
 commands above.
 
 ---
@@ -117,24 +118,25 @@ commands above.
 **What this tests:** The moment Venue Staff block a venue over a booking, the coordinator who owns
 that booking must be able to find out. Sam blocks Hall A for the PM slot on F. Dana's Tech Summit is
 Confirmed there. Dana should open Tech Summit and see a flag saying the venue is unavailable, with
-the block's day, the hours and when it was flagged. Sam should see the same booking in the list of
-bookings the block sits over, as he already does today (SPM-21).
+the reason, the day, the hours and when it was flagged, while the booking still reads Confirmed. Sam
+should see the booking in the list of bookings the block overlaps, as he already does today (SPM-21),
+and not the other events booked around it.
 
 **Preconditions:** The fixture from Setup. Signed in as Sam (`venue@test.com`), then Dana.
 
 **Steps:**
-1. As Sam open **Unavailability**. Choose **Hall A** (Main Hall), start and end date **F**, slot **PM**, reason **Maintenance**, and save.
-2. Read the list of bookings the block sits over.
-3. Sign in as Dana (`coordinator@test.com`). Open **Events**, then *Flag Test: Tech Summit*.
-4. Read the venue bookings on the event page.
+1. As Sam open **Unavailability**. Choose **Hall A** (Main Hall), start and end date **F**, slot **PM**, reason **Maintenance**, and click **Mark unavailable**.
+2. Read **Bookings this block overlaps**.
+3. Sign in as Dana (`coordinator@test.com`). Open **My events**, then *Flag Test: Tech Summit*, then the **Venue** tab.
+4. Read **Flagged for review**.
 
 **Expected Result:**
-- Step 2: the list names *Flag Test: Tech Summit*, Hall A, F PM, and also *Flag Test: Second Event* (Requested). It does not list the Workshop, the Gala or the Quiz.
-- Step 4: the Hall A booking shows a flag: "Venue unavailable", "Maintenance: F 13:00 to 18:00" and the time it was flagged (about now). Its badge still reads **Confirmed**.
+- Step 2: the list names *Flag Test: Tech Summit*, F PM, Confirmed. It does not name the Workshop, the Gala, the Quiz or the Second Event.
+- Step 4: Hall A, F PM, with the **Confirmed** badge, and one reason: "Venue unavailable · Maintenance: F 13:00 to 18:00 · flagged <today, about now>" (AC1).
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step2-sam-affected-list](../screenshots/2026-10-19_TC-VFLAG-001_step2-sam-affected-list.png) · [step4-dana-flag](../screenshots/2026-10-19_TC-VFLAG-001_step4-dana-flag.png)
 
 ---
 
@@ -143,49 +145,62 @@ bookings the block sits over, as he already does today (SPM-21).
 **What this tests:** A Tentative Hold keeps a slot for the coordinator, so a block over it matters. A
 hold that has already run out keeps nothing, so a block over it matters to nobody. Dana's Hold Event
 has two holds at Hall C: F + 2 is live and F + 3 ran out an hour ago. Sam blocks Hall C for both
-days. Dana should see the live hold flagged and the lapsed one show **Expired** with no flag. This
-also proves the lapsed hold is marked Expired before the block is checked, so a stale hold cannot be
-flagged.
+days. Dana should see only the live hold in her flagged list, still "On hold until …". The lapsed one
+should be marked **Expired** before the block is checked, so a stale hold cannot be flagged.
 
 **Preconditions:** The fixture from Setup. Signed in as Sam, then Dana.
 
 **Steps:**
 1. As Sam open **Unavailability**. Choose **Hall C** (Studio), start date **F + 2**, end date **F + 3**, slot **PM**, reason **Safety**, and save.
-2. Sign in as Dana. Open *Flag Test: Hold Event* and read its venue bookings.
+2. As Dana open *Flag Test: Hold Event*, then the **Venue** tab, and read **Flagged for review**.
+3. Read the two holds' status:
+   ```sql
+   select bs.slot_date, b.status from booking b join booking_slot bs using (booking_id)
+     join event e on e.event_id = b.event_id where e.name = 'Flag Test: Hold Event' order by bs.slot_date;
+   ```
 
 **Expected Result:**
-- Step 2: the F + 2 hold shows **Tentative Hold**, "On hold until …", and a flag "Venue unavailable". The F + 3 booking shows **Expired** and no flag.
+- Step 2: one booking, Hall C on F + 2, **Tentative Hold**, "On hold until …", with the reason "Safety: F + 2 13:00 to 18:00". Nothing is listed for F + 3.
+- Step 3: F + 2 `Tentative Hold`, F + 3 `Expired`.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step2-dana-holds](../screenshots/2026-10-19_TC-VFLAG-002_step2-dana-holds.png)
 
 ---
 
 ### TC-VFLAG-003: A Requested booking is not flagged (AC1)
 
 **What this tests:** A Requested booking is a request Venue Staff have not answered yet, and Venue
-Staff cannot approve one over a block. So Dana's Second Event, Requested for Hall A on F PM, is not
-flagged. Sam is stopped when he tries to approve it, and rejecting it is what tells Dana. The
-refusal is not new; this proves flagging leaves Requested bookings to it.
+Staff cannot approve one over a block. Dana's Second Event is Requested for Rooftop on F PM. Sam
+blocks Rooftop for that slot. Dana's event should show no flag. When Sam tries to approve the
+request he is stopped, and rejecting it is what tells Dana. The refusal is not new; this proves
+flagging leaves Requested bookings to it.
 
-**Preconditions:** After TC-VFLAG-001: the Hall A block on F PM is in force. Signed in as Sam, then Dana.
+**Preconditions:** The fixture from Setup. Signed in as Sam, then Dana.
 
 **Steps:**
-1. As Dana open *Flag Test: Second Event*. Read its venue booking.
-2. As Sam open **Requests** and the Hall A request for F PM from *Flag Test: Second Event*. Click **Approve booking**.
-3. Click **Reject**, write a note and confirm.
-4. As Dana open the Inbox.
+1. As Sam open **Unavailability**. Choose **Rooftop Terrace**, start and end date **F**, slot **PM**, reason **Renovation**, and save. Read **Bookings this block overlaps**.
+2. As Dana open *Flag Test: Second Event* and its **Venue** tab.
+3. As Sam open **Requests** and the Rooftop Terrace request for F PM (*Flag Test: Second Event*). Click **Approve booking**.
+4. Write a note and click **Reject**.
+5. Read the notification:
+   ```sql
+   select status, message_content from notification
+    where trigger_scenario = 'venue-booking-decided'
+      and related_booking_id = (select b.booking_id from booking b join event e using (event_id) where e.name = 'Flag Test: Second Event');
+   ```
 
 **Expected Result:**
-- Step 1: the booking shows **Requested** and no flag.
-- Step 2: the approval is refused: "Venue … is blocked for F PM". The booking is still Requested.
-- Step 3: the booking becomes **Rejected**.
-- Step 4: Dana has a notice that the request was rejected, with Sam's note.
+- Step 1: the list names *Flag Test: Second Event*, F PM, Requested.
+- Step 2: no **Flagged for review** section.
+- Step 3: the approval is refused: "The venue is unavailable for F PM. Choose other slots or another venue." The booking is still **Requested**.
+- Step 4: the booking is **Rejected**.
+- Step 5: one `Sent` notice for Dana, "Rooftop Terrace rejected for Flag Test: Second Event", with Sam's note as the reason.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step1-sam-affected-list](../screenshots/2026-10-19_TC-VFLAG-003_step1-sam-affected-list.png) · [step2-dana-second-event](../screenshots/2026-10-19_TC-VFLAG-003_step2-dana-second-event.png) · [step3-sam-approval-refused](../screenshots/2026-10-19_TC-VFLAG-003_step3-sam-approval-refused.png) · [step4-sam-rejected](../screenshots/2026-10-19_TC-VFLAG-003_step4-sam-rejected.png)
 
 ---
 
@@ -200,14 +215,14 @@ it, or onto the next day.
 **Preconditions:** After TC-VFLAG-001. Nothing new to record. Signed in as Priya (`coordinator2@test.com`).
 
 **Steps:**
-1. As Priya open *Flag Test: Workshop*, *Flag Test: Gala* and *Flag Test: Quiz* in turn. Read each one's venue booking.
+1. As Priya open **My events**, then *Flag Test: Workshop*, *Flag Test: Gala* and *Flag Test: Quiz* in turn. On each open the **Venue** tab.
 
 **Expected Result:**
-- All three show **Confirmed** and no flag.
+- None shows a **Flagged for review** section.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step1-priya-workshop](../screenshots/2026-10-19_TC-VFLAG-004_step1-priya-workshop.png) · [step1-priya-gala](../screenshots/2026-10-19_TC-VFLAG-004_step1-priya-gala.png) · [step1-priya-quiz](../screenshots/2026-10-19_TC-VFLAG-004_step1-priya-quiz.png)
 
 **A boundary the browser cannot reach:** slots always leave a one-hour gap, so a booking that only
 *touches* a block cannot be made with slots. The unit tests cover it with times (a block 13:00 to
@@ -218,16 +233,15 @@ it, or onto the next day.
 ### TC-VFLAG-005: A flagged booking keeps its status and its event (AC3)
 
 **What this tests:** A flag is a marker, not an action. After TC-VFLAG-001 Tech Summit is flagged.
-Dana should still see it Confirmed, the event should not be cancelled, and everything she entered
-about the event should still be readable. Without this check a flag could quietly turn into a
+Dana should still see the event in **Planning**, not cancelled, with its name and date as seeded, and
+the flagged booking should still read Confirmed. Without this check a flag could quietly turn into a
 cancellation.
 
 **Preconditions:** After TC-VFLAG-001. Signed in as Dana.
 
 **Steps:**
-1. Open *Flag Test: Tech Summit*. Read the event's status and details.
-2. Open its venue booking tab and read the Hall A booking.
-3. Read the database:
+1. Open *Flag Test: Tech Summit*. Read its header and status, then the **Venue** tab.
+2. Read the database:
    ```sql
    select b.status, e.status as event_status, e.name, e.preferred_date
      from booking b join event e on e.event_id = b.event_id
@@ -235,13 +249,12 @@ cancellation.
    ```
 
 **Expected Result:**
-- Step 1: the event is not cancelled, and its name and date are as seeded.
-- Step 2: the Hall A booking is **Confirmed**, flagged.
-- Step 3: both bookings `Confirmed`, the event status unchanged (`Planning`).
+- Step 1: the header reads *Flag Test: Tech Summit* with the **Planning** badge, and the flagged Hall A booking shows **Confirmed**.
+- Step 2: both bookings `Confirmed`, the event `Planning`, its date F.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step1-dana-event-and-venue-tab](../screenshots/2026-10-19_TC-VFLAG-005_step1-dana-event-and-venue-tab.png)
 
 ---
 
@@ -255,16 +268,16 @@ flag.
 **Preconditions:** After TC-VFLAG-001. The Tech Summit event id from Setup step 4.
 
 **Steps:**
-1. As Dana open *Flag Test: Tech Summit* and read the flag.
-2. Sign in as Priya. Open `http://localhost:3000/staff/coordinator/<Tech Summit event id>`.
+1. As Dana open *Flag Test: Tech Summit* and its **Venue** tab, and read the flag.
+2. Sign in as Priya. Open `http://localhost:3000/staff/coordinator/events/<Tech Summit event id>`.
 
 **Expected Result:**
 - Step 1: the flag is listed with its reason and when it was flagged.
-- Step 2: the access-denied screen. No event details and no flag are shown.
+- Step 2: the access-denied screen (403). No event details and no flag are shown.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step2-priya-denied](../screenshots/2026-10-19_TC-VFLAG-006_step2-priya-denied.png)
 
 ---
 
@@ -273,26 +286,26 @@ flag.
 **What this tests:** Blocks can stack. Sam records a second block, an equipment failure from F to
 F + 8 on the PM slot, over the first block on F PM. Tech Summit now sits under both, so Dana should
 see **two** reasons on it, one per block. The Quiz (F + 1 PM) and Dana's Offsite Day (F + 4 PM) sit
-under the second block only, so each shows **one** reason. The Workshop, the Gala and the Second Event
-are still not flagged.
+under the second block only, so each shows **one** reason.
 
 **Preconditions:** After TC-VFLAG-001. Signed in as Sam, then Dana, then Priya.
 
 **Steps:**
 1. As Sam open **Unavailability**. Choose **Hall A**, start date **F**, end date **F + 8**, slot **PM**, reason **Equipment failure**, and save.
-2. As Dana open *Flag Test: Tech Summit* and *Flag Test: Offsite Day*. Read their flags.
-3. As Priya open *Flag Test: Quiz*, *Flag Test: Workshop* and *Flag Test: Gala*. Read their flags.
+2. As Dana open *Flag Test: Tech Summit* and *Flag Test: Offsite Day*, each on its **Venue** tab. Read their flags.
+3. As Priya open *Flag Test: Quiz*, *Flag Test: Workshop* and *Flag Test: Gala* on their **Venue** tabs.
 
 **Expected Result:**
 - Step 2, Tech Summit: two reasons, "Maintenance: F 13:00 to 18:00" and "Equipment failure: F 13:00 to 18:00". Offsite Day: one reason, "Equipment failure: F + 4 13:00 to 18:00".
 - Step 3: the Quiz shows one reason, "Equipment failure: F + 1 13:00 to 18:00". The Workshop and the Gala show none.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step2-dana-two-reasons](../screenshots/2026-10-19_TC-VFLAG-007_step2-dana-two-reasons.png) · [step2-dana-offsite](../screenshots/2026-10-19_TC-VFLAG-007_step2-dana-offsite.png) · [step3-priya-quiz](../screenshots/2026-10-19_TC-VFLAG-007_step3-priya-quiz.png)
 
 **Saving the same block twice** adding no second reason cannot be reached from the page. It is proven
-on scratch Postgres (SPM-445), with two staff saving overlapping blocks at once.
+by `scripts/seed-booking-flags/checks.sql`, which also checks two blocks over one booking in the
+database.
 
 ---
 
@@ -306,33 +319,41 @@ Equipment failure reason unchanged. Tech Summit stays Confirmed.
 **Preconditions:** After TC-VFLAG-007. Signed in as Sam, then Dana.
 
 **Steps:**
-1. As Sam open **Unavailability**, find the Hall A **Maintenance** block and click **Lift**.
-2. As Dana open *Flag Test: Tech Summit* and read its flag.
+1. As Sam open **Unavailability**, find the Hall A **Maintenance** block that is In force and click **Lift**.
+2. As Dana open *Flag Test: Tech Summit* and its **Venue** tab, and read its flag.
 
 **Expected Result:**
-- Step 2: both reasons are still listed. The Maintenance reason reads "… block lifted <time>". The Equipment failure reason is as before. The booking is still **Confirmed**.
+- Step 2: both reasons are still listed. The Maintenance reason reads "Maintenance: F 13:00 to 18:00, block lifted <today, time>". The Equipment failure reason is as before. The booking still shows **Confirmed**.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step2-dana-after-lift](../screenshots/2026-10-19_TC-VFLAG-008_step2-dana-after-lift.png)
 
 ---
 
 ### TC-VFLAG-009: Only the blocked venue's booking is flagged (AC7)
 
 **What this tests:** Tech Summit has two venue bookings on F PM: Hall A and Hall C. The blocks so far
-cover Hall A only. Dana should see the Hall A booking flagged and the Hall C booking clean. A flag
-belongs to a booking, not to the event, so an event with several venues does not turn flagged all over
-because one of them is blocked.
+cover Hall A only. Dana should see Hall A in her flagged list and not Hall C. A flag belongs to a
+booking, not to the event, so an event with several venues does not turn flagged all over because one
+of them is blocked.
 
 **Preconditions:** After TC-VFLAG-001. Signed in as Dana.
 
 **Steps:**
-1. Open *Flag Test: Tech Summit* and read both venue bookings.
+1. Open *Flag Test: Tech Summit* and its **Venue** tab. Read **Flagged for review**.
+2. Read the flags by SQL:
+   ```sql
+   select v.location, count(f.*) as flags
+     from booking b join event e using (event_id) join venue v on v.venue_id = b.venue_id
+     left join booking_review_flag f on f.booking_id = b.booking_id and f.cleared_at is null
+    where e.name = 'Flag Test: Tech Summit' group by v.location order by v.location;
+   ```
 
 **Expected Result:**
-- Hall A: **Confirmed**, flagged. Hall C: **Confirmed**, no flag.
+- Step 1: Hall A is listed, Hall C is not.
+- Step 2: Main Hall has flags, Studio has `0`.
 
-**Status:** [ ] Pass [ ] Fail — not run
+**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** none yet
+**Screenshots:** [step1-dana-two-venues](../screenshots/2026-10-19_TC-VFLAG-009_step1-dana-two-venues.png)
