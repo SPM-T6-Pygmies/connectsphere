@@ -55,6 +55,9 @@ export interface EquipmentRequirementRepository {
    */
   update(eventId: EventId, line: EquipmentRequirement, actor: UserAccountId): Promise<void>;
 
+  /** Stores whether the line for `line.equipmentItemId` is essential (SPM-109). */
+  markEssential(eventId: EventId, line: EquipmentRequirement, actor: UserAccountId): Promise<void>;
+
   /** Deletes the line outright -- only ever for an unreserved line (AC10). */
   delete(eventId: EventId, equipmentItemId: EquipmentItemId, actor: UserAccountId): Promise<void>;
 }
