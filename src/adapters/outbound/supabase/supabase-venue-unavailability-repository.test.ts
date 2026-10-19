@@ -159,7 +159,8 @@ describe("SupabaseVenueUnavailabilityRepository (SPM-268)", () => {
   });
 
   it("AC11: maps the affected bookings (event, date, slot)", async () => {
-    const { client } = fakeClient({
+    const { client, calls } = fakeClient({
+      expire_lapsed_holds: { data: 0, error: null },
       venue_staff_unavailability_affected: {
         data: [{ booking_id: 1, event_name: "Gala", status: "Confirmed", date: "2026-10-19", slot: "PM" }],
         error: null,
@@ -175,6 +176,8 @@ describe("SupabaseVenueUnavailabilityRepository (SPM-268)", () => {
     expect(affected).toEqual([
       { bookingId: "1", eventName: "Gala", status: "Confirmed", date: "2026-10-19", slot: "PM" },
     ]);
+    // SPM-253 AC1: a hold that ran out is marked Expired before the list is read.
+    expect(calls.map((call) => call.name)).toEqual(["expire_lapsed_holds", "venue_staff_unavailability_affected"]);
   });
 });
 

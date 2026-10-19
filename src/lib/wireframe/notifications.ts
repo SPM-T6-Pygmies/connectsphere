@@ -8,6 +8,7 @@ export type NotificationTrigger =
   | "Request submitted"
   | "Coordinator assigned"
   | "Clarification requested"
+  | "Organiser message"
   | "Request decided"
   | "Ready for safety check"
   | "Safety check outcome"

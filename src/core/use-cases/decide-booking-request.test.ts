@@ -15,6 +15,7 @@ import {
   BookingNotFoundError,
   DecisionReasonRequiredError,
   HoldNotLiveError,
+  HoldSlotStartedError,
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "../domain/errors";
@@ -312,6 +313,26 @@ describe("DecideBookingRequestUseCase placing a hold (SPM-218)", () => {
       holdExpiresAt: "2026-10-04T01:00:00.000Z",
     });
     expect(reviews.all()[0]?.status).toBe("Tentative Hold");
+  });
+
+  it("caps the hold at its slot's start when that is sooner than 72 hours (SPM-253 AC7)", async () => {
+    const tomorrowAm = { ...booking("b1", "Requested"), slots: [{ date: "2026-10-02", slot: "AM" as const }] };
+    const { useCase } = build([tomorrowAm]);
+
+    const result = await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" });
+
+    expect(result.holdExpiresAt).toBe("2026-10-01T23:00:00.000Z");
+  });
+
+  it("refuses a hold on a slot that has already started, and leaves the request waiting (SPM-253 AC7)", async () => {
+    const startedAm = { ...booking("b1", "Requested"), slots: [{ date: "2026-10-01", slot: "AM" as const }] };
+    const { useCase, reviews, notifier } = build([startedAm]);
+
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" }),
+    ).rejects.toBeInstanceOf(HoldSlotStartedError);
+    expect(reviews.all()[0]?.status).toBe("Requested");
+    expect(notifier.bookingsDecided).toEqual([]);
   });
 
   it("refuses a slot another booking holds, and leaves the request waiting (AC2)", async () => {

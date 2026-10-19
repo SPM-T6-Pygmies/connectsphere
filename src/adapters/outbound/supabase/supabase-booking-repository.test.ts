@@ -86,3 +86,13 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
     expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
   });
 });
+
+describe("SupabaseBookingRepository, lapsed holds (SPM-253)", () => {
+  it("marks lapsed holds Expired before it lists an event's bookings for its coordinator (AC1)", async () => {
+    const { client, calls } = fakeClient({ coordinator_event_bookings: { data: [], error: null } });
+
+    await new SupabaseBookingRepository(client).listForEvent(userAccountId("2"), "1");
+
+    expect(calls.map((call) => call.name)).toEqual(["expire_lapsed_holds", "coordinator_event_bookings"]);
+  });
+});

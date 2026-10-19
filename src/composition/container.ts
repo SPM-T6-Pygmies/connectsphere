@@ -17,6 +17,7 @@ import { SupabaseTechnicalEquipmentRepository } from "@/adapters/outbound/supaba
 import { SupabaseSafetyCheckCandidateRepository } from "@/adapters/outbound/supabase/supabase-safety-check-candidate-repository";
 import { SupabaseSafetyCheckRepository } from "@/adapters/outbound/supabase/supabase-safety-check-repository";
 import { SupabaseSafetyCheckWatch } from "@/adapters/outbound/supabase/supabase-safety-check-watch";
+import { SupabaseExpiredHoldNotices } from "@/adapters/outbound/supabase/supabase-expired-hold-notices";
 import { SupabaseEquipmentNoticeDirectory } from "@/adapters/outbound/supabase/supabase-equipment-notice-directory";
 import { SupabaseVenueStaffDirectory } from "@/adapters/outbound/supabase/supabase-venue-staff-directory";
 import { SupabaseEquipmentRequirementRepository } from "@/adapters/outbound/supabase/supabase-equipment-requirement-repository";
@@ -63,6 +64,7 @@ import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment
 import { EquipmentOutcomeAnnouncer } from "@/core/use-cases/announce-equipment-outcome";
 import { SafetyCheckEntryAnnouncer } from "@/core/use-cases/announce-safety-check-entry";
 import { DecideBookingRequestUseCase } from "@/core/use-cases/decide-booking-request";
+import { NotifyExpiredHoldsUseCase } from "@/core/use-cases/notify-expired-holds";
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
 import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
@@ -176,7 +178,12 @@ export async function buildViewEventForRegistration(): Promise<ViewEventForRegis
 export async function buildRegisterForEvent(): Promise<RegisterForEventUseCase> {
   const { events, registrations } = await attendeeAdapters();
 
-  return new RegisterForEventUseCase({ events, registrations, clock: systemClock });
+  return new RegisterForEventUseCase({
+    events,
+    registrations,
+    clock: systemClock,
+    notifier: recordedNotifier(),
+  });
 }
 
 export async function buildViewRegistration(): Promise<ViewRegistrationUseCase> {
@@ -300,9 +307,18 @@ function recordedNotifier(): Notifier {
   const novuCanRun = process.env.NODE_ENV === "production" || bridgeUrl !== undefined;
   const delivering =
     secretKey && novuCanRun
-      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix())
+      ? new NovuNotifier(new Novu({ secretKey }), bridgeUrl, novuSubscriberPrefix(), appBaseUrl())
       : new LoggingNotifier();
   return new SupabaseRecordingNotifier(createSupabaseAdminClient(), delivering);
+}
+
+/**
+ * Where links in emails point (SPM-87). Vercel sets the production domain on
+ * every deployment; anywhere else is a developer's own machine.
+ */
+function appBaseUrl(): string {
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return production ? `https://${production}` : "http://localhost:3000";
 }
 
 export async function buildWithdrawRegistration(): Promise<WithdrawRegistrationUseCase> {
@@ -347,12 +363,13 @@ export async function buildResolveClarificationThread(): Promise<ResolveClarific
   });
 }
 
-/** SPM-33 AC4-AC5: the responsible Organiser answers on the thread. Appends, and nothing else. */
+/** SPM-33 AC4-AC5: the responsible Organiser answers on the thread; SPM-164 tells the Coordinator. */
 export async function buildPostClarificationMessage(): Promise<PostClarificationMessageUseCase> {
   const client = await createSupabaseServerClient();
   return new PostClarificationMessageUseCase({
     eventRequests: new SupabaseEventRequestRepository(client),
     clarificationThread: new SupabaseClarificationThreadRepository(client),
+    notifier: recordedNotifier(),
   });
 }
 
@@ -676,6 +693,18 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
     bookings: new SupabaseBookingRepository(client),
     safetyCheck: safetyCheckAnnouncer(),
     clock: systemClock,
+    notifier: recordedNotifier(),
+  });
+}
+
+/**
+ * SPM-254: tells coordinators their unconfirmed holds expired. Claims with the
+ * admin client, because the staff member whose page triggered the sweep may
+ * not read other people's events.
+ */
+export function buildNotifyExpiredHolds(): NotifyExpiredHoldsUseCase {
+  return new NotifyExpiredHoldsUseCase({
+    holds: new SupabaseExpiredHoldNotices(createSupabaseAdminClient()),
     notifier: recordedNotifier(),
   });
 }

@@ -5,6 +5,7 @@ import type { SafetyCheckCandidateRepository } from "@/core/ports/outbound/safet
 
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
+import { expireLapsedHolds } from "./expire-lapsed-holds";
 import {
   toSafetyCheckCandidate,
   toSafetyCheckCandidateError,
@@ -27,6 +28,10 @@ export class SupabaseSafetyCheckCandidateRepository implements SafetyCheckCandid
       throw new NotSafetyOfficerError();
     }
 
+    // SPM-253: a hold that ran out is no longer a booking still in play, so mark it
+    // Expired before the events are listed; left as a Tentative Hold it would stop an
+    // event whose other bookings are all Confirmed from reaching the Safety Officer.
+    await expireLapsedHolds(this.client);
     const { data, error } = await this.client.rpc("safety_officer_safety_check_candidates", {
       p_user_account_id: key,
     });

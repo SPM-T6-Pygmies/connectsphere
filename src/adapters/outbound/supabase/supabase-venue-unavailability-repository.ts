@@ -20,6 +20,7 @@ import type {
 
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
+import { expireLapsedHolds } from "./expire-lapsed-holds";
 import {
   toAffectedBooking,
   toCalendarBlock,
@@ -116,6 +117,8 @@ export class SupabaseVenueUnavailabilityRepository implements VenueUnavailabilit
       return [];
     }
 
+    // SPM-253: a hold that ran out is not an affected booking, so mark it Expired first.
+    await expireLapsedHolds(this.client);
     const { data, error } = await this.client.rpc("venue_staff_unavailability_affected", {
       p_staff_user_account_id: staff,
       p_venue_id: venueKey,

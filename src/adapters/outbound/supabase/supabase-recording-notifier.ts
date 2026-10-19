@@ -5,7 +5,9 @@ import {
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
   eventRequestDecidedRow,
+  holdExpiredRow,
   organiserCoordinatorAssignedRow,
+  organiserMessagePostedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
   venueBookingDecidedRow,
@@ -19,8 +21,11 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -58,6 +63,12 @@ export class SupabaseRecordingNotifier implements Notifier {
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     return this.recordAndDeliver(clarificationRequestedRow(notice), () =>
       this.inner.clarificationRequested(notice),
+    );
+  }
+
+  organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    return this.recordAndDeliver(organiserMessagePostedRow(notice), () =>
+      this.inner.organiserMessagePosted(notice),
     );
   }
 
@@ -101,6 +112,23 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.recordAndDeliver(venueBookingDecidedRow(notice), () =>
       this.inner.venueBookingDecided(notice),
     );
+  }
+
+  holdExpired(notice: HoldExpiredNotice): Promise<void> {
+    return this.recordAndDeliver(holdExpiredRow(notice), () => this.inner.holdExpired(notice));
+  }
+
+  /**
+   * Delivered but not recorded: a `notification` row needs a recipient user
+   * account, and an Attendee has none (SPM-87). Still never throws -- the
+   * registration it confirms is already saved.
+   */
+  async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    try {
+      await this.inner.registrationConfirmed(notice);
+    } catch (error) {
+      console.error("[SupabaseRecordingNotifier] Delivery failed:", error);
+    }
   }
 
   /** Record the row Pending, deliver, then mark it Sent or Failed. */

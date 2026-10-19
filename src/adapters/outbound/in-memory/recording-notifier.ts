@@ -5,8 +5,11 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -18,6 +21,7 @@ export class RecordingNotifier implements Notifier {
   readonly coordinatorAssignments: EventCoordinatorAssignedNotice[] = [];
   readonly organiserCoordinatorAssignments: OrganiserCoordinatorAssignedNotice[] = [];
   readonly clarificationRequests: ClarificationRequestedNotice[] = [];
+  readonly organiserMessages: OrganiserMessagePostedNotice[] = [];
   readonly decisions: EventRequestDecidedNotice[] = [];
   readonly safetyChecksReady: SafetyCheckReadyNotice[] = [];
   readonly safetyChecksRecorded: SafetyCheckRecordedNotice[] = [];
@@ -25,6 +29,8 @@ export class RecordingNotifier implements Notifier {
   readonly equipmentNeedingAttention: EquipmentNeedsAttentionNotice[] = [];
   readonly equipmentDecisions: EquipmentDecidedNotice[] = [];
   readonly bookingsDecided: VenueBookingDecidedNotice[] = [];
+  readonly holdsExpired: HoldExpiredNotice[] = [];
+  readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
     this.sent.push(connection);
@@ -40,6 +46,10 @@ export class RecordingNotifier implements Notifier {
 
   async clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     this.clarificationRequests.push(notice);
+  }
+
+  async organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    this.organiserMessages.push(notice);
   }
 
   async eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void> {
@@ -68,5 +78,13 @@ export class RecordingNotifier implements Notifier {
 
   async venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     this.bookingsDecided.push(notice);
+  }
+
+  async holdExpired(notice: HoldExpiredNotice): Promise<void> {
+    this.holdsExpired.push(notice);
+  }
+
+  async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    this.registrationsConfirmed.push(notice);
   }
 }

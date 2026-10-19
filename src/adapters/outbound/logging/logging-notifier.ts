@@ -5,8 +5,11 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
+  OrganiserMessagePostedNotice,
+  RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingDecidedNotice,
@@ -42,6 +45,12 @@ export class LoggingNotifier implements Notifier {
   async clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} asked to clarify event request ${notice.eventRequestId}`,
+    );
+  }
+
+  async organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told the organiser posted on event request ${notice.eventRequestId}`,
     );
   }
 
@@ -84,6 +93,18 @@ export class LoggingNotifier implements Notifier {
   async venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told booking ${notice.bookingId} was ${notice.outcome}`,
+    );
+  }
+
+  async holdExpired(notice: HoldExpiredNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told the hold on booking ${notice.bookingId} expired`,
+    );
+  }
+
+  async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    console.info(
+      `[notifier] registration ${notice.registrationId} confirmed to ${notice.recipientEmail}`,
     );
   }
 }

@@ -1,6 +1,7 @@
 import { ArrowLeftIcon } from "lucide-react"
 import Link from "next/link"
 import { forbidden } from "next/navigation"
+import { after } from "next/server"
 import type { CSSProperties, ReactNode } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
@@ -27,6 +28,7 @@ import {
   buildViewArchivedEventRequests,
   buildViewAssignedEventRequests,
   buildListEquipmentQueue,
+  buildNotifyExpiredHolds,
   buildReviewBookingRequests,
   buildViewAssignedEvents,
   buildViewMyEventRequests,
@@ -323,6 +325,17 @@ export async function StaffShell({
   if (member === null || !member.workspaces.includes(role)) {
     forbidden()
   }
+
+  // SPM-254: with no scheduler, any staff page view is the moment to tell
+  // coordinators their unconfirmed holds have expired. This runs after the
+  // response, so it never slows the page, and a failure never breaks it.
+  after(async () => {
+    try {
+      await buildNotifyExpiredHolds().execute()
+    } catch (error) {
+      console.error("[staff-shell] expired hold sweep failed", error)
+    }
+  })
 
   const queueItems = await getRespectiveQueueItems(
     role,

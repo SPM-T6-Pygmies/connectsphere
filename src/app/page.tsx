@@ -5,6 +5,7 @@ import {
   InboxIcon,
   MapPinIcon,
   ProjectorIcon,
+  ShieldCheckIcon,
   UsersIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -54,6 +55,12 @@ const ROLE_CARDS: ReadonlyArray<{
     step: "Step 8",
     icon: ProjectorIcon,
     does: "Reviews equipment lines and reserves what is available, line by line.",
+  },
+  {
+    role: "safety",
+    step: "Step 9",
+    icon: ShieldCheckIcon,
+    does: "Reviews events whose venue and equipment are in place, then approves them or rejects them with what must change.",
   },
 ];
 

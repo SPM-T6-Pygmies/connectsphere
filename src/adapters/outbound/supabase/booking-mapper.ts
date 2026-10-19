@@ -34,7 +34,7 @@ export interface EventBookingRow {
   suggested_alternative_location: string | null;
 }
 
-/** Exactly the six values `booking_status_chk` allows. */
+/** Exactly the seven values `booking_status_chk` allows. */
 const STATUSES: readonly BookingStatus[] = [
   "Requested",
   "Tentative Hold",
@@ -42,6 +42,7 @@ const STATUSES: readonly BookingStatus[] = [
   "Rejected",
   "Released",
   "Cancelled",
+  "Expired",
 ];
 
 // Data crossing inward is untrusted too, even from our own database.

@@ -51,6 +51,18 @@ export interface ClarificationRequestedNotice {
 }
 
 /**
+ * What an event request's assigned Event Coordinator is told when its Event
+ * Organiser posts on the clarification thread, as a reply or a new message
+ * (SPM-164). `message` is the post as stored, so the notification quotes it.
+ */
+export interface OrganiserMessagePostedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventRequestId: string;
+  readonly eventName: string;
+  readonly message: string;
+}
+
+/**
  * What an Event Organiser is told when the assigned coordinator approves or
  * rejects their request (SPM-60). `decisionRecord` is the coordinator's reason
  * for a rejection, or their optional note on an approval.
@@ -187,6 +199,45 @@ export interface VenueBookingDecidedNotice {
 }
 
 /**
+ * What an event's assigned Event Coordinator is told when a tentative hold on
+ * one of its venues expires unconfirmed (SPM-254): the venue is no longer
+ * held. Names the venue, the held slots and when the hold lapsed (AC2).
+ */
+export interface HoldExpiredNotice {
+  readonly recipientUserAccountId: string;
+  readonly bookingId: string;
+  readonly eventId: string;
+  /** The approved request the coordinator books venues from; null if the event has none. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  readonly venueLocation: string;
+  /** Sorted by date, then by slot within the day, as the booking stores them. */
+  readonly slots: readonly SlotOnDate[];
+  /** ISO instant the hold lapsed. */
+  readonly holdExpiresAt: string;
+}
+
+/**
+ * What an Attendee is told once their registration is recorded (SPM-87): the
+ * event, as the on-screen confirmation shows it, and the reference that is
+ * their only way back to the registration.
+ *
+ * Addressed by email rather than user account: an Attendee has no account.
+ * No link either -- where the registration page lives is the adapter's
+ * business, not the core's.
+ */
+export interface RegistrationConfirmedNotice {
+  readonly registrationId: string;
+  readonly recipientEmail: string;
+  readonly attendeeName: string;
+  readonly eventName: string;
+  /** ISO instant the first slot starts, as `AvailableEvent` gives it. */
+  readonly startsAt: string;
+  readonly slots: readonly SlotOnDate[];
+  readonly venueName: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -198,6 +249,7 @@ export interface Notifier {
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void>;
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void>;
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void>;
+  organiserMessagePosted(notice: OrganiserMessagePostedNotice): Promise<void>;
   eventRequestDecided(notice: EventRequestDecidedNotice): Promise<void>;
   safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void>;
   safetyCheckRecorded(notice: SafetyCheckRecordedNotice): Promise<void>;
@@ -205,4 +257,6 @@ export interface Notifier {
   equipmentNeedsAttention(notice: EquipmentNeedsAttentionNotice): Promise<void>;
   equipmentDecided(notice: EquipmentDecidedNotice): Promise<void>;
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
+  holdExpired(notice: HoldExpiredNotice): Promise<void>;
+  registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }
