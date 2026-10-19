@@ -841,6 +841,11 @@
       "title": "Manual test cases and registry for the registration email",
       "parent": "SPM-87",
       "status": "In Progress"
+    },
+    "SPM-313": {
+      "title": "Flag bookings when a venue is marked unavailable",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }
