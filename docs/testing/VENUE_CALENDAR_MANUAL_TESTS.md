@@ -11,7 +11,7 @@ block recorded by Venue Staff shows on the Coordinator's next load.
 A Coordinator opens a venue from **Find a venue** and sees one week, AM/PM/Night per
 day, Singapore time. Each slot reads **Available**, **Confirmed**, **Held** (with when
 it lapses), **Blocked** (with the reason Venue Staff gave, and the note under Other) or
-**Not offered**.
+**Closed** (the venue is closed for some of the slot's hours, SPM-320).
 Previous week, This week and Next week move the week.
 
 The cases are specified in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as
@@ -55,11 +55,11 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 **D** is 14 days after today in Singapore.
 
-| Venue | Slots offered | On the calendar |
+| Venue | Opening hours | On the calendar |
 | --- | --- | --- |
-| UAT-44 Harbour Room | AM, PM, Night | Confirmed booking on D PM |
-| UAT-44 Garden Hall | AM, PM | Rejected booking on D AM (frees the slot) |
-| Main Hall | none recorded | Renovation block on AM for D to D+4; Maintenance block on all three slots of D+2; holds on D+7 (AM expired, PM lapsing in 30 days) |
+| UAT-44 Harbour Room | 07:00–24:00 | Confirmed booking on D PM |
+| UAT-44 Garden Hall | 07:00–18:00 | Rejected booking on D AM (frees the slot) |
+| Main Hall | 07:00–24:00 | Renovation block on AM for D to D+4; Maintenance block on all three slots of D+2; holds on D+7 (AM expired, PM lapsing in 30 days) |
 
 ---
 
@@ -75,20 +75,19 @@ Signed in as `coordinator@test.com`.
 
 **Expected:** Harbour Room shows **Confirmed** on D PM and **Available** in every other
 slot of the week. Garden Hall shows **Available** on D AM (the rejected booking does
-not count) and **Not offered** in every Night slot.
+not count) and **Closed** in every Night slot, since it closes at 18:00.
 
-- [x] Pass
+- [x] Pass (re-run 20/10/2026 for SPM-320)
 
-**Screenshots:** [step1-search-results-link](../screenshots/2026-10-15_TC-VCAL-001_step1-search-results-link.png) · [step2-harbour-room-confirmed](../screenshots/2026-10-15_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-not-offered](../screenshots/2026-10-15_TC-VCAL-001_step3-garden-hall-not-offered.png)
+**Screenshots:** [step1-search-results-link](../screenshots/2026-10-15_TC-VCAL-001_step1-search-results-link.png) · [step2-harbour-room-confirmed](../screenshots/2026-10-20_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-night-closed](../screenshots/2026-10-20_TC-VCAL-001_step3-garden-hall-night-closed.png)
 
 ### TC-VCAL-002: Blocked slots give their reason (AC2)
 
 1. From the search, open **Main Hall** and move to the week with D.
 
-**Expected:** a note says the venue has no bookable slots recorded, and the grid still
-shows. AM on D to D+4 reads **Blocked** with *Renovation*, except D+2 AM, which reads
-*Renovation, Maintenance*. D+2 PM and Night read **Blocked** with *Maintenance*. Every
-other slot reads **Not offered**.
+**Expected:** AM on D to D+4 reads **Blocked** with *Renovation*, except D+2 AM, which
+reads *Renovation, Maintenance*. D+2 PM and Night read **Blocked** with *Maintenance*.
+Every other slot reads **Available**: Main Hall is open 07:00–24:00.
 
 > **Seed timing.** `seed-venue-unavailability` dates its blocks from the UTC day, so a
 > run between midnight and 08:00 Singapore time puts them one day earlier than D. The
@@ -97,7 +96,9 @@ other slot reads **Not offered**.
 
 - [x] Pass
 
-**Screenshots:** [step1-main-hall-block-reasons](../screenshots/2026-10-15_TC-VCAL-002_step1-main-hall-block-reasons.png)
+Re-run 20/10/2026 for SPM-320: Pass.
+
+**Screenshots:** [step1-main-hall-block-reasons](../screenshots/2026-10-20_TC-VCAL-002_step1-main-hall-block-reasons.png)
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
@@ -105,11 +106,11 @@ other slot reads **Not offered**.
 
 **Expected:** D+7 PM reads **Held** with *Until* and a date about 30 days after the seed
 ran, worded as on the Venue Staff decision page (e.g. *Until Thu, 5 Nov, 12:00 pm*). D+7
-AM reads **Not offered**, not Held: its hold has expired.
+AM reads **Available**, not Held: its hold has expired.
 
-- [x] Pass
+- [x] Pass (re-run 20/10/2026 for SPM-320; the hold read *Until Thu, 19 Nov, 3:50 pm*)
 
-**Screenshots:** [step1-main-hall-held](../screenshots/2026-10-15_TC-VCAL-003_step1-main-hall-held.png)
+**Screenshots:** [step1-main-hall-hold-lapses](../screenshots/2026-10-20_TC-VCAL-003_step1-main-hall-hold-lapses.png)
 
 ### TC-VCAL-004: The calendar reads live, with no refresh step (AC3)
 

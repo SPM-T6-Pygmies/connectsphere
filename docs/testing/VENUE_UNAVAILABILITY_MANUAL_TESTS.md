@@ -64,7 +64,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 | Venue | Where it comes from | Used for |
 | --- | --- | --- |
-| Studio, Rooftop Terrace | `seed-venues` | Blocks and booking requests. They have no slots or booking horizon recorded, so venue search never lists them |
+| Studio, Rooftop Terrace | `seed-venues` | Blocks and booking requests. They have no booking horizon recorded, so venue search never lists them |
 | UAT-44 Harbour Room | `seed-venue-search-uat` | A Confirmed booking, *UAT-44 Booked Harbour*, on **D** PM |
 | UAT-44 Garden Hall | `seed-venue-search-uat` | The venue venue search lists, for TC-VBLOCK-005 |
 

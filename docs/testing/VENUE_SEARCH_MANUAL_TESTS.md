@@ -48,10 +48,10 @@ window) are retired: they tested inputs that no longer exist.
 
 Seeded venues (from `scripts/seed-venue-search-uat/seed.sql`):
 
-| Venue | Slots | Layouts | Facilities / Accessibility | Bookings |
+| Venue | Opening hours | Layouts | Facilities / Accessibility | Bookings |
 | --- | --- | --- | --- | --- |
-| UAT-44 Harbour Room | AM, PM, Night | Theatre 200, Boardroom 20 | Wi-Fi, Video-conferencing / Step-free access, Hearing loop | Confirmed on D PM |
-| UAT-44 Garden Hall | AM, PM | Banquet 150, Classroom 80 | Catering area / Lift access | Rejected on D AM |
+| UAT-44 Harbour Room | 07:00–24:00 | Theatre 200, Boardroom 20 | Wi-Fi, Video-conferencing / Step-free access, Hearing loop | Confirmed on D PM |
+| UAT-44 Garden Hall | 07:00–18:00 | Banquet 150, Classroom 80 | Catering area / Lift access | Rejected on D AM |
 
 Both have a 60-day booking horizon; Harbour Room's venue capacity is 250,
 Garden Hall's 500.
@@ -132,19 +132,19 @@ with that seed loaded as well, step 2 lists it.
 
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-61-days-ahead](../screenshots/2026-10-09_TC-VSEARCH-007_step1-61-days-ahead.png)
 
-### TC-VSEARCH-012 A venue that does not offer a chosen slot is excluded
+### TC-VSEARCH-012 A venue closed for a chosen slot is excluded
 
 **Steps**
 1. Enter **Date** D, tick **Night**. Click **Search**.
 2. Open the page again. Enter **Date** D, tick **AM** and **Night**. Click **Search**.
 
 **Expected Result**
-- [x] Step 1: Harbour Room is listed. Garden Hall is not; the summary says it
-      does not offer every slot chosen (Night).
-- [x] Step 2: the same. A venue must offer *every* chosen slot, so Garden Hall's
-      AM does not let it in.
+- [x] Step 1: Harbour Room is listed. Garden Hall, which closes at 18:00, is
+      not; the summary says it is closed for part of a slot chosen (Night).
+- [x] Step 2: the same. A venue must be open for *every* chosen slot, so Garden
+      Hall's AM does not let it in.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-night](../screenshots/2026-10-09_TC-VSEARCH-012_step1-night.png) · [step2-am-and-night](../screenshots/2026-10-09_TC-VSEARCH-012_step2-am-and-night.png)
+**Run:** Pass, 20/10/2026, headless Chrome via Playwright for joyceetran (SPM-320). Screenshots: [step1-night](../screenshots/2026-10-20_TC-VSEARCH-012_step1-night.png) · [step2-am-and-night](../screenshots/2026-10-20_TC-VSEARCH-012_step2-am-and-night.png)
 
 ### TC-VSEARCH-009 Attribute and date filters combine into a candidate list
 
