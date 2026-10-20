@@ -11,6 +11,7 @@ import {
   organiserMessagePostedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
+  venueBookingCancelledRow,
   venueBookingDecidedRow,
   venueBookingRequestedRow,
 } from "./notification-row";
@@ -287,6 +288,29 @@ describe("organiserMessagePostedRow (SPM-164)", () => {
       trigger_scenario: "organiser-message-posted",
       status: "Pending",
       related_event_request_id: "42",
+    });
+  });
+});
+
+describe("venueBookingCancelledRow (SPM-63)", () => {
+  it("AC1: records the notice as Pending against the Venue Staff member and the booking", () => {
+    expect(
+      venueBookingCancelledRow({
+        recipientUserAccountId: "5",
+        bookingId: "31",
+        venueId: "2",
+        venueLocation: "Grand Ballroom",
+        eventName: "Harbour Lights Gala",
+        slots: [{ date: "2026-11-20", slot: "PM" }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "5",
+      trigger_scenario: "venue-booking-cancelled",
+      channel: "in_app",
+      status: "Pending",
+      related_booking_id: "31",
+      message_content:
+        "Grand Ballroom booking cancelled for Harbour Lights Gala\nThe coordinator cancelled the confirmed booking of Grand Ballroom for Fri, 20 Nov 2026 (13:00–18:00). It is now Released, and that time is free to book again.",
     });
   });
 });

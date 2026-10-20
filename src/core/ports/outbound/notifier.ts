@@ -218,6 +218,23 @@ export interface HoldExpiredNotice {
 }
 
 /**
+ * What a Venue Staff member is told when a coordinator cancels a confirmed
+ * booking (SPM-63), so nobody prepares the venue for an event that is not
+ * happening. Every Venue Staff member gets their own copy: staff are not
+ * scoped to particular venues (#66).
+ */
+export interface VenueBookingCancelledNotice {
+  readonly recipientUserAccountId: string;
+  readonly bookingId: string;
+  /** Where the notice opens the venue's calendar (AC4). */
+  readonly venueId: string;
+  readonly venueLocation: string;
+  readonly eventName: string;
+  /** The slots released, sorted by date, then by slot within the day. */
+  readonly slots: readonly SlotOnDate[];
+}
+
+/**
  * What an Attendee is told once their registration is recorded (SPM-87): the
  * event, as the on-screen confirmation shows it, and the reference that is
  * their only way back to the registration.
@@ -258,5 +275,6 @@ export interface Notifier {
   equipmentDecided(notice: EquipmentDecidedNotice): Promise<void>;
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
   holdExpired(notice: HoldExpiredNotice): Promise<void>;
+  venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }
