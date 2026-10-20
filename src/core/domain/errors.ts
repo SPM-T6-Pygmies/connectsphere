@@ -1069,6 +1069,24 @@ export class VenueSlotBlockedError extends DomainError {
   }
 }
 
+/**
+ * SPM-320 AC3 (SPM-334): a request asks for time the venue is closed. Names
+ * each closed period, as `HH:MM`, on the date it falls.
+ */
+export class VenueClosedError extends DomainError {
+  readonly code = "venue_closed";
+
+  constructor(
+    readonly periods: ReadonlyArray<{ readonly date: string; readonly start: string; readonly end: string }>,
+  ) {
+    super(
+      `The venue is closed ${periods
+        .map(({ date, start, end }) => `${start}–${end} on ${date}`)
+        .join(", ")}. Choose times when it is open or another venue.`,
+    );
+  }
+}
+
 /** SPM-49: a Completed or Cancelled event's details are read-only. */
 export class EventDetailsLockedError extends DomainError {
   readonly code = "event_details_locked";

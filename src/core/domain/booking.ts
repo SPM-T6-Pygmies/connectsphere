@@ -10,9 +10,11 @@ import {
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
+  VenueClosedError,
   VenueSlotUnavailableError,
 } from "./errors";
-import { toMinutes, type TimeRange } from "./time-of-day";
+import { closedPeriods } from "./opening-hours";
+import { fromMinutes, toMinutes, type TimeRange } from "./time-of-day";
 import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
 
@@ -268,6 +270,19 @@ export function requestVenueBooking(input: {
       throw new DuplicateBookingSlotError(slot.date, slot.slot);
     }
     seen.add(key);
+  }
+
+  // SPM-320 AC3: a slot booking is read as its slot's hours until bookings
+  // move to times (SPM-324), so it is refused if any of them is closed.
+  const closed = [...input.slots].sort(compareSlots).flatMap(({ date, slot }) =>
+    closedPeriods(input.venue.openingHours, slotRange(slot)).map(({ start, end }) => ({
+      date,
+      start: fromMinutes(start),
+      end: fromMinutes(end),
+    })),
+  );
+  if (closed.length > 0) {
+    throw new VenueClosedError(closed);
   }
 
   const roomLayout = chooseRoomLayout(input.venue, input.roomLayout);

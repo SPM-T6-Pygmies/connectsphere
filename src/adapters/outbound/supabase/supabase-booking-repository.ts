@@ -1,5 +1,6 @@
 import {
   clashingSlots,
+  SLOT_HOURS,
   type BookingId,
   type BookingRequest,
   type OccupiedSlot,
@@ -13,6 +14,7 @@ import {
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
+  VenueClosedError,
   VenueNotFoundError,
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
@@ -46,6 +48,8 @@ const SLOTS_INVALID = "CS024";
 const SLOT_TAKEN = "CS025";
 // Raised by the booking_slot trigger when a Venue Staff block covers a requested slot (SPM-21).
 const SLOT_BLOCKED = "CS028";
+// Raised by the booking_slot trigger when the venue is closed for part of a requested slot (SPM-320).
+const SLOT_CLOSED = "CS075";
 
 // SQLSTATEs raised by coordinator_change_booking_room_layout (CS022 and CS023 are shared).
 const BOOKING_NOT_FOUND = "CS026";
@@ -135,6 +139,8 @@ export class SupabaseBookingRepository implements BookingRepository {
           throw new VenueSlotBlockedError(
             await this.blockedOf(request.venueId, request.slots, error.message),
           );
+        case SLOT_CLOSED:
+          throw new VenueClosedError(closedOf(request, error.details));
         default:
           throw new Error(`Failed to submit the booking request: ${error.message}`, {
             cause: error,
@@ -232,4 +238,23 @@ export class SupabaseBookingRepository implements BookingRepository {
       ? []
       : [{ date: fromMessage[1], slot: toSlot(fromMessage[2]) }];
   }
+}
+
+type ClosedPeriod = VenueClosedError["periods"][number];
+
+/**
+ * The closed periods the trigger names in its DETAIL. The domain refuses
+ * these before the call, so reaching here means the hours changed in between;
+ * if the detail cannot be read, every requested slot is named whole.
+ */
+function closedOf(request: BookingRequest, details: string | undefined): readonly ClosedPeriod[] {
+  try {
+    const periods: unknown = JSON.parse(details ?? "");
+    if (Array.isArray(periods) && periods.length > 0) {
+      return periods.map(({ date, start, end }: ClosedPeriod) => ({ date, start, end }));
+    }
+  } catch {
+    // Fall through to the whole slots.
+  }
+  return request.slots.map(({ date, slot }) => ({ date, ...SLOT_HOURS[slot] }));
 }

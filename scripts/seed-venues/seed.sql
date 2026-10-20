@@ -9,6 +9,10 @@
 --   Rooftop Terrace      two layouts  -- the coordinator must choose one
 -- No seeded venue has zero layouts.
 --
+-- Each venue opens 07:00-12:00, 13:00-18:00 and 19:00-24:00 (SPM-320), the
+-- hours of the three slots, so every slot can be requested. A venue that
+-- already has opening hours keeps them.
+--
 -- Facilities, accessibility and layouts follow the Connectsphere Data Single
 -- Source of Truth (SPM-277).
 --
@@ -56,6 +60,11 @@ begin
         v.setup_minutes, v.turnaround_minutes
       )
       returning venue_id into v_venue_id;
+    end if;
+
+    if not exists (select 1 from public.venue_opening_window where venue_id = v_venue_id) then
+      insert into public.venue_opening_window (venue_id, start_time, end_time)
+      values (v_venue_id, '07:00', '12:00'), (v_venue_id, '13:00', '18:00'), (v_venue_id, '19:00', '24:00');
     end if;
   end loop;
 

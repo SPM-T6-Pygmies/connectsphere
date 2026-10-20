@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
 
 import type { BookingRequest } from "@/core/domain/booking";
-import { VenueSlotBlockedError } from "@/core/domain/errors";
+import { VenueClosedError, VenueSlotBlockedError } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 
 import type { SupabaseServerClient } from "./client";
 import { SupabaseBookingRepository } from "./supabase-booking-repository";
 
-type RpcResult = { data: unknown; error: { code?: string; message: string } | null };
+type RpcResult = {
+  data: unknown;
+  error: { code?: string; message: string; details?: string } | null;
+};
 
 function fakeClient(answers: Record<string, RpcResult>) {
   const calls: Array<{ name: string; args: unknown }> = [];
@@ -94,5 +97,44 @@ describe("SupabaseBookingRepository, lapsed holds (SPM-253)", () => {
     await new SupabaseBookingRepository(client).listForEvent(userAccountId("2"), "1");
 
     expect(calls.map((call) => call.name)).toEqual(["expire_lapsed_holds", "coordinator_event_bookings"]);
+  });
+});
+
+describe("SupabaseBookingRepository, closed time (SPM-334)", () => {
+  it("maps the closed-time trigger's code to a closed-venue error naming the closed time", async () => {
+    const { client } = fakeClient({
+      coordinator_submit_booking_request: {
+        data: null,
+        error: {
+          code: "CS075",
+          message: "Venue 5 is closed for part of 2026-10-22 AM",
+          details: '[{"end": "12:00", "date": "2026-10-22", "start": "11:00"}]',
+        },
+      },
+    });
+
+    const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenueClosedError);
+    expect((error as VenueClosedError).periods).toEqual([
+      { date: "2026-10-22", start: "11:00", end: "12:00" },
+    ]);
+  });
+
+  it("names every requested slot whole when the trigger's detail cannot be read", async () => {
+    const { client } = fakeClient({
+      coordinator_submit_booking_request: {
+        data: null,
+        error: { code: "CS075", message: "Venue 5 is closed for part of 2026-10-22 AM" },
+      },
+    });
+
+    const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
+
+    expect((error as VenueClosedError).periods).toEqual([
+      { date: "2026-10-22", start: "07:00", end: "12:00" },
+      { date: "2026-10-22", start: "13:00", end: "18:00" },
+      { date: "2026-10-23", start: "07:00", end: "12:00" },
+    ]);
   });
 });

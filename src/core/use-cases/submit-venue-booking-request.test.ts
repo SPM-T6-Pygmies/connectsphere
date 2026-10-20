@@ -15,6 +15,7 @@ import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notif
 import {
   CoordinatorEventNotFoundError,
   RoomLayoutRequiredError,
+  VenueClosedError,
   VenueNotFoundError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
@@ -341,6 +342,34 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
 
     expect(result.status).toBe("Requested");
     expect(bookings.all()).toHaveLength(1);
+    expect(notifier.bookingRequests).toEqual([]);
+  });
+});
+
+describe("SubmitVenueBookingRequestUseCase over closed time (SPM-334)", () => {
+  it("refuses a slot the venue is closed for part of, saving and telling no one", async () => {
+    const bookings = new InMemoryBookingRepository([]);
+    const notifier = new RecordingNotifier();
+    const morningsOnly: Venue = { ...HALL, openingHours: [{ start: "07:00", end: "11:00" }] };
+    const useCase = new SubmitVenueBookingRequestUseCase({
+      events: new InMemoryCoordinatorEventRepository([EVENT]),
+      venues: new InMemoryVenueCatalogue([morningsOnly]),
+      bookings,
+      venueStaff: new InMemoryVenueStaffDirectory(["venue-staff-1"]),
+      notifier,
+      clock: new FixedClock(NOW),
+    });
+
+    await expect(
+      useCase.execute({
+        eventId: "event-1",
+        userAccountId: COORDINATOR,
+        venueId: "venue-hall",
+        roomLayout: "Banquet",
+        slots: [{ date: "2026-10-05", slot: "AM" }],
+      }),
+    ).rejects.toThrow(new VenueClosedError([{ date: "2026-10-05", start: "11:00", end: "12:00" }]));
+    expect(bookings.all()).toEqual([]);
     expect(notifier.bookingRequests).toEqual([]);
   });
 });

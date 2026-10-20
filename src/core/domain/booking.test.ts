@@ -27,8 +27,10 @@ import {
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
+  VenueClosedError,
   VenueSlotUnavailableError,
 } from "./errors";
+import type { OpeningWindow } from "./opening-hours";
 import { userAccountId } from "./user-account";
 import { venueId, type Venue } from "./venue";
 
@@ -213,6 +215,94 @@ describe("requestVenueBooking (SPM-46)", () => {
     expect(() => request([{ date: "2026-10-05", slot: "AM" }], [], null)).toThrow(
       RoomLayoutRequiredError,
     );
+  });
+});
+
+describe("requestVenueBooking over closed time (SPM-334)", () => {
+  const DATE = "2026-11-02";
+
+  function requestAt(openingHours: readonly OpeningWindow[], slots: readonly SlotOnDate[]) {
+    return requestVenueBooking({
+      eventId: "event-1",
+      venue: { ...venue(), openingHours },
+      roomLayout: THEATRE,
+      slots,
+      requestedBy: userAccountId("coordinator-1"),
+      occupied: [],
+      now: NOW,
+    });
+  }
+
+  /** The closed periods a refusal names. */
+  function refusedFor(openingHours: readonly OpeningWindow[], slots: readonly SlotOnDate[]) {
+    try {
+      requestAt(openingHours, slots);
+    } catch (error) {
+      if (error instanceof VenueClosedError) return error;
+      throw error;
+    }
+    throw new Error("expected the request to be refused");
+  }
+
+  it("accepts a slot the venue is open for exactly", () => {
+    expect(requestAt([{ start: "07:00", end: "12:00" }], [{ date: DATE, slot: "AM" }]).status).toBe(
+      "Requested",
+    );
+  });
+
+  it("accepts Night at a venue open until 24:00", () => {
+    expect(requestAt([{ start: "19:00", end: "24:00" }], [{ date: DATE, slot: "Night" }]).status).toBe(
+      "Requested",
+    );
+  });
+
+  it("accepts a slot covered by two touching windows", () => {
+    const touching = [
+      { start: "07:00", end: "09:30" },
+      { start: "09:30", end: "12:00" },
+    ];
+    expect(requestAt(touching, [{ date: DATE, slot: "AM" }]).status).toBe("Requested");
+  });
+
+  it("refuses a slot the venue closes 15 minutes early for, naming the closed time", () => {
+    const error = refusedFor([{ start: "07:00", end: "11:45" }], [{ date: DATE, slot: "AM" }]);
+
+    expect(error.periods).toEqual([{ date: DATE, start: "11:45", end: "12:00" }]);
+    expect(error.message).toBe(
+      "The venue is closed 11:45–12:00 on 2026-11-02. Choose times when it is open or another venue.",
+    );
+  });
+
+  it("refuses a slot that falls wholly in the closed gap of an AM and Night venue", () => {
+    const amAndNight = [
+      { start: "07:00", end: "12:00" },
+      { start: "19:00", end: "24:00" },
+    ];
+
+    expect(refusedFor(amAndNight, [{ date: DATE, slot: "PM" }]).periods).toEqual([
+      { date: DATE, start: "13:00", end: "18:00" },
+    ]);
+  });
+
+  it("names every closed period across the slots asked for, by date", () => {
+    const error = refusedFor(
+      [{ start: "08:00", end: "12:00" }],
+      [
+        { date: "2026-11-03", slot: "AM" },
+        { date: DATE, slot: "AM" },
+      ],
+    );
+
+    expect(error.periods).toEqual([
+      { date: DATE, start: "07:00", end: "08:00" },
+      { date: "2026-11-03", start: "07:00", end: "08:00" },
+    ]);
+  });
+
+  it("refuses any slot at a venue with no opening hours", () => {
+    expect(refusedFor([], [{ date: DATE, slot: "AM" }]).periods).toEqual([
+      { date: DATE, start: "07:00", end: "12:00" },
+    ]);
   });
 });
 
