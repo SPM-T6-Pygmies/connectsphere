@@ -27,6 +27,11 @@
       "parent": null,
       "status": "Backlog"
     },
+    "SPM-20": {
+      "title": "Cancel Venue Booking and Free Up Availability",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-22": {
       "title": "Review and Decide on Venue Booking Requests",
       "parent": null,
