@@ -1,5 +1,6 @@
 import { CheckIcon } from "lucide-react";
 
+import { EventTimes } from "@/app/events/event-times";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -8,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type {
   ClarificationMessageView,
   EventRequestView,
@@ -72,6 +74,7 @@ export function SubmittedRequestDetail({
   organiserName,
   canDiscuss,
   assignedCoordinatorName,
+  eventTimes,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -83,6 +86,8 @@ export function SubmittedRequestDetail({
   canDiscuss: boolean;
   /** Null until Operations assigns a coordinator. */
   assignedCoordinatorName: string | null;
+  /** SPM-326 AC6: when the event runs, once the request is approved; null before. */
+  eventTimes: readonly TimeRangeOnDate[] | null;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -116,6 +121,9 @@ export function SubmittedRequestDetail({
                 fields={[
                   { label: "Preferred date", value: details.preferredDate },
                   { label: "Preferred slots", value: preferredSlots },
+                  ...(eventTimes === null
+                    ? []
+                    : [{ label: "Event times", value: <EventTimes times={eventTimes} nameEveryDay /> }]),
                   { label: "Expected attendance", value: details.expectedAttendance },
                   { label: "Room layout", value: details.roomLayoutPreferences },
                   { label: "Description", value: details.description },
