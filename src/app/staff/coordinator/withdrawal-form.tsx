@@ -2,6 +2,7 @@
 
 import { CircleAlert } from "lucide-react";
 import { useActionState, useState } from "react";
+import { toast } from "sonner";
 
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,24 @@ const INITIAL: WithdrawEventRequestState = { status: "idle" };
  * (#103). Kept apart from the approve/reject form, and behind a confirmation
  * step, because a withdrawal is final and is not the Coordinator's decision.
  * On success the page re-renders without this form.
+ *
+ * That re-render unmounts the form, so the confirmation is a toast fired from
+ * the action rather than a message read from state afterwards -- and firing it
+ * as soon as the action returns is also what tells the Coordinator the
+ * withdrawal was recorded on the occasions the re-render is slow to arrive
+ * (SPM-245), instead of leaving them watching "Withdrawing…".
  */
 export function WithdrawalForm({ eventRequestId }: { eventRequestId: string }) {
-  const [state, formAction, pending] = useActionState(withdrawEventRequestAction, INITIAL);
+  const [state, formAction, pending] = useActionState(
+    async (previous: WithdrawEventRequestState, formData: FormData) => {
+      const next = await withdrawEventRequestAction(previous, formData);
+      if (next.status === "withdrawn") {
+        toast.success("Withdrawal recorded. The request has moved to the Archive.");
+      }
+      return next;
+    },
+    INITIAL,
+  );
   const [confirming, setConfirming] = useState(false);
 
   if (!confirming) {
