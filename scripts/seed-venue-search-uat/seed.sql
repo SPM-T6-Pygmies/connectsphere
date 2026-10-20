@@ -82,7 +82,9 @@ begin
     insert into public.event (name, owning_organiser_user_account_id, client_organisation_id, status)
     values ('UAT-44 Booked Harbour', v_organiser, v_organisation, 'Planning')
     returning event_id into v_event;
-    insert into public.event_slot (event_id, slot_date, slot_code) values (v_event, v_day, 'PM');
+    -- PM's hours as 15-minute slots (SPM-326).
+    insert into public.event_slot (event_id, slot_date, slot_code)
+    select v_event, v_day, n::text from generate_series(52, 71) as n;
     insert into public.booking (venue_id, event_id, requested_by_user_account_id,
       decided_by_user_account_id, status)
     values (v_harbour, v_event, v_coordinator, v_coordinator, 'Confirmed')
@@ -94,7 +96,9 @@ begin
     insert into public.event (name, owning_organiser_user_account_id, client_organisation_id, status)
     values ('UAT-44 Rejected Garden', v_organiser, v_organisation, 'Planning')
     returning event_id into v_event;
-    insert into public.event_slot (event_id, slot_date, slot_code) values (v_event, v_day, 'AM');
+    -- AM's hours as 15-minute slots (SPM-326).
+    insert into public.event_slot (event_id, slot_date, slot_code)
+    select v_event, v_day, n::text from generate_series(28, 47) as n;
     insert into public.booking (venue_id, event_id, requested_by_user_account_id,
       decided_by_user_account_id, status)
     values (v_garden, v_event, v_coordinator, v_coordinator, 'Rejected')
