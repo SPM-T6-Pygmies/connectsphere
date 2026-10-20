@@ -1120,6 +1120,15 @@ export class EventNotCompletableError extends DomainError {
   }
 }
 
+/** SPM-55: only a Planning, Blocked or Confirmed event can be cancelled. */
+export class EventNotCancellableError extends DomainError {
+  readonly code = "event_not_cancellable";
+
+  constructor(readonly status: string) {
+    super(`An event with status ${status} cannot be cancelled.`);
+  }
+}
+
 /** SPM-51: an event can be marked completed only once its last timeslot has ended. */
 export class EventNotYetEndedError extends DomainError {
   readonly code = "event_not_yet_ended";

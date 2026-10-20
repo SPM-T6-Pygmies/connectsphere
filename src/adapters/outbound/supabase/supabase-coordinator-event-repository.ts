@@ -4,6 +4,7 @@ import {
   EssentialEquipmentNotReservedError,
   EventDetailsLockedError,
   EventFacilitiesLockedError,
+  EventNotCancellableError,
   EventNotCompletableError,
   EventNotConfirmableError,
   EventNotFoundError,
@@ -71,6 +72,10 @@ const REGISTRATION_INVALID = "CS069";
 const COMPLETE_EVENT_NOT_FOUND = "CS070";
 const COMPLETE_NOT_COMPLETABLE = "CS071";
 const COMPLETE_NOT_ENDED = "CS072";
+
+/** SQLSTATEs `coordinator_cancel_event` comes back with. See its migration. */
+const CANCEL_EVENT_NOT_FOUND = "CS070";
+const CANCEL_NOT_CANCELLABLE = "CS076";
 
 /**
  * Reached through `coordinator_events`, not the table -- the table's own
@@ -348,6 +353,34 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
         throw new EventNotYetEndedError();
       }
       throw new Error(`Failed to complete the event: ${error.message}`, { cause: error });
+    }
+  }
+
+  /**
+   * SPM-55: goes through `coordinator_cancel_event`, which re-checks the
+   * assignment and status under a row lock, releases the event's bookings
+   * under each venue's lock, and audits every change in the same transaction.
+   */
+  async cancelEvent(coordinatorId: UserAccountId, eventId: string): Promise<void> {
+    const eventKey = toKey(eventId);
+    const coordinatorKey = toKey(coordinatorId);
+    if (eventKey === null || coordinatorKey === null) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+
+    const { error } = await this.client.rpc("coordinator_cancel_event", {
+      p_coordinator_user_account_id: coordinatorKey,
+      p_event_id: eventKey,
+    });
+
+    if (error) {
+      if (error.code === CANCEL_EVENT_NOT_FOUND) {
+        throw new CoordinatorEventNotFoundError(eventId);
+      }
+      if (error.code === CANCEL_NOT_CANCELLABLE) {
+        throw new EventNotCancellableError(error.details || "unknown");
+      }
+      throw new Error(`Failed to cancel the event: ${error.message}`, { cause: error });
     }
   }
 
