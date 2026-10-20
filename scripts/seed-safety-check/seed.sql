@@ -10,8 +10,9 @@
 --   Winter Lantern Ball   2            Yes           another coordinator's event
 --   Harbour Dawn Run      none         Yes           an outcome with nobody to tell
 --   Lakeside Tech Expo    1            No            a booking still on a Tentative Hold
---   Charity Book Fair     1            No            one unreserved projector line: the coordinator
---                                                    removing it puts the event on the list
+--   Charity Book Fair     1            No            one unreserved projector line, marked essential:
+--                                                    the coordinator removing it, or marking it not
+--                                                    essential (SPM-319), puts the event on the list
 --   Spring Lantern Walk   1            No            two Requested bookings: Venue Staff approving
 --                                                    both puts it on the list
 --   Rooftop Jazz Night    1            No            one Confirmed booking, one Requested: Venue
@@ -142,16 +143,19 @@ begin
       returning equipment_reservation_id into v_reservation;
 
       -- requested, reserved: a line is Reserved once the whole quantity is.
+      -- essential: only an essential line keeps an event off the list (SPM-319),
+      -- so the projector is marked, or the book fair would be listed already.
       insert into public.equipment_reservation_line (
-        equipment_reservation_id, equipment_item_id, quantity_requested, quantity_reserved, line_state
+        equipment_reservation_id, equipment_item_id, quantity_requested, quantity_reserved, line_state,
+        essential
       )
       select v_reservation, i.equipment_item_id, l.requested, l.reserved,
-             case when l.reserved = 0 then 'Requested' else 'Reserved' end
+             case when l.reserved = 0 then 'Requested' else 'Reserved' end, l.essential
       from (values
-        ('Marina Bay Gala',   'Wireless microphone',  4,  4),
-        ('Marina Bay Gala',   'Crowd barrier',       10, 10),
-        ('Charity Book Fair', 'Projector',            2,  0)
-      ) as l(event, type, requested, reserved)
+        ('Marina Bay Gala',   'Wireless microphone',  4,  4, false),
+        ('Marina Bay Gala',   'Crowd barrier',       10, 10, false),
+        ('Charity Book Fair', 'Projector',            2,  0, true)
+      ) as l(event, type, requested, reserved, essential)
       join public.equipment_item i on i.type = l.type
       where l.event = v_event.name;
     end if;
