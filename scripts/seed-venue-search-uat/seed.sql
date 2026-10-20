@@ -10,11 +10,11 @@
 -- D below is the booking day: 14 days after today in Singapore, so it is
 -- inside both venues' 60-day booking horizon whenever the cases are run.
 --
---   UAT-44 Harbour Room  slots AM, PM, Night; horizon 60, venue capacity 250
+--   UAT-44 Harbour Room  open 07:00-24:00; horizon 60, venue capacity 250
 --                        Theatre 200, Boardroom 20
 --                        Wi-Fi, Video-conferencing / Step-free access, Hearing loop
 --                        Confirmed booking on D, PM
---   UAT-44 Garden Hall   slots AM, PM; horizon 60, venue capacity 500
+--   UAT-44 Garden Hall   open 07:00-18:00; horizon 60, venue capacity 500
 --                        Banquet 150, Classroom 80
 --                        Catering area / Lift access
 --                        Rejected booking on D, AM (must not block)
@@ -56,7 +56,7 @@ begin
     values ('UAT-44 Harbour Room', 250, 'Wi-Fi, Video-conferencing', 'Step-free access, Hearing loop', 60)
     returning venue_id into v_harbour;
     insert into public.venue_opening_window (venue_id, start_time, end_time)
-    values (v_harbour, '07:00', '12:00'), (v_harbour, '13:00', '18:00'), (v_harbour, '19:00', '24:00');
+    values (v_harbour, '07:00', '24:00');
     insert into public.venue_supported_layout (venue_id, room_layout_id, capacity)
     select v_harbour, room_layout_id, c.capacity
     from (values ('Theatre', 200), ('Boardroom', 20)) c(name, capacity)
@@ -70,7 +70,7 @@ begin
     values ('UAT-44 Garden Hall', 500, 'Catering area', 'Lift access', 60)
     returning venue_id into v_garden;
     insert into public.venue_opening_window (venue_id, start_time, end_time)
-    values (v_garden, '07:00', '12:00'), (v_garden, '13:00', '18:00');
+    values (v_garden, '07:00', '18:00');
     insert into public.venue_supported_layout (venue_id, room_layout_id, capacity)
     select v_garden, room_layout_id, c.capacity
     from (values ('Banquet', 150), ('Classroom', 80)) c(name, capacity)

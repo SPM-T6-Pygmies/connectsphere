@@ -9,9 +9,10 @@
 --   Rooftop Terrace      two layouts  -- the coordinator must choose one
 -- No seeded venue has zero layouts.
 --
--- Each venue opens 07:00-12:00, 13:00-18:00 and 19:00-24:00 (SPM-320), the
--- hours of the three slots, so every slot can be requested. A venue that
--- already has opening hours keeps them.
+-- Each venue opens in one continuous window (SPM-320). Every one opens at
+-- 07:00, because bookings are still slot-based (SPM-324) and the booking seeds
+-- and manual cases request AM at all four; Main Hall stays open until 24:00
+-- for its Night bookings. A venue that already has opening hours keeps them.
 --
 -- Facilities, accessibility and layouts follow the Connectsphere Data Single
 -- Source of Truth (SPM-277).
@@ -42,11 +43,11 @@ begin
   for v in
     select *
     from (values
-      ('Main Hall',        300, 'Wi-Fi, Catering area',           'Step-free access, Hearing loop', 120, 120),
-      ('Seminar Room 2-1',  40, 'Wi-Fi, Video-conferencing',      'Lift access',                     30,  30),
-      ('Studio',            60, 'Wi-Fi, Video-conferencing',      'Step-free access',                60,  60),
-      ('Rooftop Terrace',  150, 'Catering area',                  'Lift access',                     90,  90)
-    ) as t (location, capacity, facilities, accessibility, setup_minutes, turnaround_minutes)
+      ('Main Hall',        300, 'Wi-Fi, Catering area',           'Step-free access, Hearing loop', 120, 120, '07:00', '24:00'),
+      ('Seminar Room 2-1',  40, 'Wi-Fi, Video-conferencing',      'Lift access',                     30,  30, '07:00', '21:30'),
+      ('Studio',            60, 'Wi-Fi, Video-conferencing',      'Step-free access',                60,  60, '07:00', '18:15'),
+      ('Rooftop Terrace',  150, 'Catering area',                  'Lift access',                     90,  90, '07:00', '22:00')
+    ) as t (location, capacity, facilities, accessibility, setup_minutes, turnaround_minutes, opens, closes)
   loop
     select venue_id into v_venue_id from public.venue where location = v.location;
 
@@ -64,7 +65,7 @@ begin
 
     if not exists (select 1 from public.venue_opening_window where venue_id = v_venue_id) then
       insert into public.venue_opening_window (venue_id, start_time, end_time)
-      values (v_venue_id, '07:00', '12:00'), (v_venue_id, '13:00', '18:00'), (v_venue_id, '19:00', '24:00');
+      values (v_venue_id, v.opens::time, v.closes::time);
     end if;
   end loop;
 
