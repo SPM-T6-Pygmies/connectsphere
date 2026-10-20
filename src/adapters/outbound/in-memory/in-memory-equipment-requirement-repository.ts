@@ -50,6 +50,17 @@ export class InMemoryEquipmentRequirementRepository implements EquipmentRequirem
     });
   }
 
+  /** Stores only the mark, as the real store does. */
+  async markEssential(eventId: EventId, line: EquipmentRequirement): Promise<void> {
+    const current = this.equipmentOf(eventId);
+    this.events.set(eventId, {
+      ...current,
+      lines: current.lines.map((existing) =>
+        existing.equipmentItemId === line.equipmentItemId ? { ...existing, essential: line.essential } : existing,
+      ),
+    });
+  }
+
   async delete(eventId: EventId, equipmentItemId: EquipmentItemId): Promise<void> {
     const current = this.equipmentOf(eventId);
     this.events.set(eventId, {

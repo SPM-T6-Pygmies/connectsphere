@@ -5,10 +5,12 @@ import { revalidatePath } from "next/cache";
 import {
   addEquipmentRequirementSchema,
   editEquipmentRequirementSchema,
+  equipmentLineEssentialSchema,
   equipmentLineSchema,
 } from "@/adapters/inbound/equipment-requirement-schema";
 import {
   buildEditEquipmentRequirement,
+  buildMarkEquipmentLineEssential,
   buildRecordEquipmentRequirement,
   buildRemoveEquipmentRequirement,
   buildUndoEquipmentRemoval,
@@ -164,6 +166,33 @@ export async function undoEquipmentRemovalAction(
     const coordinator = await actingCoordinator(parsed.data.eventId);
     const undoEquipmentRemoval = await buildUndoEquipmentRemoval();
     await undoEquipmentRemoval.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    return refusal(error);
+  }
+
+  refresh();
+  return { status: "saved" };
+}
+
+/** SPM-109 AC1-AC2: mark a line essential, or not, once agreed with Technical Support. */
+export async function markEquipmentLineEssentialAction(
+  _previous: EquipmentFormState,
+  formData: FormData,
+): Promise<EquipmentFormState> {
+  const parsed = equipmentLineEssentialSchema.safeParse({
+    eventId: String(formData.get("eventId") ?? ""),
+    equipmentItemId: String(formData.get("equipmentItemId") ?? ""),
+    essential: String(formData.get("essential") ?? ""),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0].message };
+  }
+
+  try {
+    const coordinator = await actingCoordinator(parsed.data.eventId);
+    const markEquipmentLineEssential = await buildMarkEquipmentLineEssential();
+    await markEquipmentLineEssential.execute({ ...parsed.data, ...coordinator });
   } catch (error) {
     return refusal(error);
   }

@@ -31,6 +31,7 @@ function newLine(item: string, quantityRequested: number): EquipmentRequirement 
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
   };
 }
 

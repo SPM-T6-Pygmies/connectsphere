@@ -41,6 +41,8 @@ export interface EventEquipmentRow {
   decided_by_user_account_id: number | null;
   decided_by_name: string | null;
   decision_comment: string | null;
+  /** SPM-109: whether the coordinator marked the line essential. */
+  essential: boolean | null;
 }
 
 /** What Technical Support last had reserved against: present exactly while a line is Under review. */
@@ -85,6 +87,7 @@ export function toEventEquipment(rows: readonly EventEquipmentRow[]): EventEquip
                 row.decided_by_user_account_id === null
                   ? null
                   : { by: userAccountId(String(row.decided_by_user_account_id)), comment: row.decision_comment },
+              essential: row.essential ?? false,
             },
           ],
     ),

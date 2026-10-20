@@ -62,6 +62,7 @@ export function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRe
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
     ...overrides,
   };
   // A line under review always remembers what it was reviewed as; default to its own values.

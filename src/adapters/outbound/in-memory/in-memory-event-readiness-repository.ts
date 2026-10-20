@@ -28,6 +28,7 @@ export class InMemoryEventReadinessRepository implements EventReadinessRepositor
         registrationEnabled: false,
         registrationOpenDate: null,
         registrationCloseDate: null,
+        essentialEquipment: [],
       }
     );
   }

@@ -298,7 +298,7 @@
       "status": "Backlog"
     },
     "SPM-109": {
-      "title": "Mark an equipment requirement as essential",
+      "title": "Mark an equipment line as essential",
       "parent": null,
       "status": "Backlog"
     },
@@ -846,6 +846,11 @@
       "title": "Flag bookings when a venue is marked unavailable",
       "parent": null,
       "status": "In Progress"
+    },
+    "SPM-318": {
+      "title": "Block confirmation on an unfulfilled essential line",
+      "parent": null,
+      "status": "Todo"
     }
   }
 }

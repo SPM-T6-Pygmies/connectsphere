@@ -57,6 +57,7 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationEnabled: false,
     registrationOpenDate: null,
     registrationCloseDate: null,
+    essentialEquipment: [],
     ...overrides,
   };
 }
@@ -371,5 +372,30 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
     await expect(
       useCase.execute({ id: "event-1", userAccountId: OTHER_COORDINATOR }),
     ).resolves.toBeNull();
+  });
+});
+
+describe("ViewCoordinatorEventUseCase essential equipment (SPM-318)", () => {
+  const line = (equipmentType: string, quantityReserved: number) =>
+    ({ equipmentType, state: quantityReserved > 0 ? "Reserved" : "Requested", quantityRequested: 2, quantityReserved }) as const;
+
+  it("AC1: names each essential line blocking confirmation", async () => {
+    const useCase = buildUseCase(
+      [seedEvent()],
+      [seedFacts({ essentialEquipment: [line("Projector", 2), line("PA speaker", 0)] })],
+    );
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.confirmation).toBe("blocked");
+    expect(result?.blockingEquipment).toEqual(["PA speaker"]);
+  });
+
+  it("AC2: says nothing about equipment when no essential line is short", async () => {
+    const useCase = buildUseCase([seedEvent()], [seedFacts({ essentialEquipment: [line("Projector", 2)] })]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.blockingEquipment).toEqual([]);
   });
 });

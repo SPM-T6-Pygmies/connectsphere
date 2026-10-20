@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   addEquipmentRequirementSchema,
   editEquipmentRequirementSchema,
+  equipmentLineEssentialSchema,
   equipmentLineSchema,
 } from "./equipment-requirement-schema";
 
@@ -108,5 +109,21 @@ describe("equipmentLineSchema (SPM-186)", () => {
     const parsed = equipmentLineSchema.safeParse({ eventId: " ", equipmentItemId: "item-projector" });
 
     expect(parsed.success).toBe(false);
+  });
+});
+
+describe("equipmentLineEssentialSchema (SPM-109)", () => {
+  const form = { eventId: "event-1", equipmentItemId: "item-projector" };
+
+  it("AC1: reads a switched-on toggle as essential", () => {
+    expect(equipmentLineEssentialSchema.parse({ ...form, essential: "on" }).essential).toBe(true);
+  });
+
+  it("AC1: reads a switched-off toggle as not essential", () => {
+    expect(equipmentLineEssentialSchema.parse({ ...form, essential: "" }).essential).toBe(false);
+  });
+
+  it("rejects anything else", () => {
+    expect(equipmentLineEssentialSchema.safeParse({ ...form, essential: "maybe" }).success).toBe(false);
   });
 });

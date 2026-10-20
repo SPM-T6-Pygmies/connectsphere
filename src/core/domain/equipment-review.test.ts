@@ -45,6 +45,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     reviewBaseline: null,
     removalRequested: false,
     decision: null,
+    essential: false,
     ...overrides,
   };
 }

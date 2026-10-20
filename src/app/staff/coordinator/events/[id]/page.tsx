@@ -91,6 +91,7 @@ export default async function CoordinatorEventPage({
     readiness,
     confirmation,
     blockingArrangements,
+    blockingEquipment,
     safetyCheckBlocker,
     canComplete,
     flaggedBookings,
@@ -158,6 +159,24 @@ export default async function CoordinatorEventPage({
                             <li key={arrangement.type}>
                               <span className="font-medium">{ARRANGEMENT_LABELS[arrangement.type]}</span> —{" "}
                               {arrangement.detail}
+                            </li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {blockingEquipment.length > 0 ? (
+                    <Alert variant="destructive">
+                      <AlertTriangleIcon />
+                      <AlertTitle>
+                        Cannot confirm -- {blockingEquipment.length} essential equipment line
+                        {blockingEquipment.length === 1 ? "" : "s"} not reserved in full
+                      </AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-4">
+                          {blockingEquipment.map((equipmentType) => (
+                            <li key={equipmentType}>
+                              <span className="font-medium">{equipmentType}</span>
                             </li>
                           ))}
                         </ul>

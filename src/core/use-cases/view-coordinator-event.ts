@@ -4,6 +4,7 @@ import { canComplete } from "../domain/event-completion";
 import {
   assessReadiness,
   blockingArrangements,
+  blockingEquipment,
   confirmationState,
   type ArrangementType,
   type ConfirmationState,
@@ -37,6 +38,8 @@ export interface ViewCoordinatorEventResult {
   readonly confirmation: ConfirmationState;
   /** The essential arrangements still incomplete. Empty when none are. */
   readonly blockingArrangements: readonly ArrangementType[];
+  /** SPM-318 AC1: the essential equipment lines not reserved in full, by type. Empty when none are. */
+  readonly blockingEquipment: readonly string[];
   /** SPM-264: why the safety check blocks confirmation, or null once the latest check is Approved. */
   readonly safetyCheckBlocker: SafetyCheckBlocker | null;
   /** SPM-51: whether the event can be marked completed now -- Confirmed, and its last slot over. */
@@ -105,6 +108,7 @@ export class ViewCoordinatorEventUseCase {
       readiness,
       confirmation: confirmationState(event, readiness, latestSafetyCheck),
       blockingArrangements: blockingArrangements(readiness),
+      blockingEquipment: blockingEquipment(readiness),
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
       flaggedBookings,
