@@ -347,6 +347,22 @@ create table venue_slot (
   primary key (venue_id, slot_code)
 );
 
+-- SPM-320: when a venue can be booked, the same every day. 24:00 is a valid end.
+-- Overlapping windows are refused by venue_catalogue_write_opening_hours.
+create table venue_opening_window (
+  venue_opening_window_id bigint generated always as identity primary key,
+  venue_id   bigint not null references venue (venue_id) on delete cascade,
+  start_time time   not null,
+  end_time   time   not null,
+  constraint venue_opening_window_order_chk check (end_time > start_time),
+  constraint venue_opening_window_grid_chk check (
+    extract(second from start_time) = 0
+    and extract(second from end_time) = 0
+    and extract(minute from start_time)::integer % 15 = 0
+    and extract(minute from end_time)::integer % 15 = 0
+  )
+);
+
 create table event_request_slot (
   event_request_id bigint not null references event_request (event_request_id) on delete cascade,
   slot_date        date   not null,

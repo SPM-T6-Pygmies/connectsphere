@@ -42,7 +42,7 @@ function venue(layouts: readonly string[] = [THEATRE, CLASSROOM]): Venue {
     location: "Harbour Hall",
     facilities: null,
     accessibility: null,
-    slots: [],
+    openingHours: [{ start: "00:00", end: "24:00" }],
     capacity: null,
     bookingHorizonDays: null,
     layouts: layouts.map((name) => ({ name, capacity: 100 })),

@@ -24,7 +24,7 @@ function venue(overrides: Partial<Venue> = {}): Venue {
     location: "Marina Bay Hall",
     facilities: "Wi-Fi, Catering area",
     accessibility: "Step-free access, Lift access",
-    slots: ["AM", "PM"],
+    openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }],
     capacity: 300,
     bookingHorizonDays: 30,
     layouts: [
@@ -178,10 +178,10 @@ describe("isOpenFor (SPM-44)", () => {
     expect(openFor(["AM"], [], "2026-12-02")).toBe(false);
   });
 
-  it("is not open when the venue has no slots or horizon recorded", () => {
+  it("is not open when the venue has no opening hours or horizon recorded", () => {
     const window = { date: "2026-11-02", slots: ["AM"] as const };
 
-    expect(isOpenFor(venue({ slots: [] }), window, [], TODAY, SG)).toBe(false);
+    expect(isOpenFor(venue({ openingHours: [] }), window, [], TODAY, SG)).toBe(false);
     expect(isOpenFor(venue({ bookingHorizonDays: null }), window, [], TODAY, SG)).toBe(false);
   });
 
@@ -257,7 +257,7 @@ describe("venue search (SPM-44)", () => {
     ["capacity", criteria({ layout: "Boardroom", attendance: 100 })],
     ["facilities", criteria({ facilities: ["Video-conferencing"] })],
     ["accessibility", criteria({ accessibility: ["Hearing loop"] })],
-    ["slotNotOffered", criteria({ window: { date: "2026-11-02", slots: ["Night"] } })],
+    ["slotClosed", criteria({ window: { date: "2026-11-02", slots: ["Night"] } })],
     ["beyondHorizon", criteria({ window: { date: "2026-12-02", slots: ["AM"] } })],
     ["booked", criteria({ window: { date: "2026-11-02", slots: ["PM"] } })],
   ] as const)("names %s as the reason a venue was left out", (reason, search) => {
@@ -266,12 +266,21 @@ describe("venue search (SPM-44)", () => {
     expect(excluded).toEqual([{ reason, count: 1 }]);
   });
 
-  it("names missing slots as the reason when a window is searched", () => {
+  it("names missing opening hours as the reason when a window is searched", () => {
     const search = criteria({ window: { date: "2026-11-02", slots: ["AM"] } });
 
     expect(
-      searchVenues([venue({ slots: [] })], search, [], TODAY, SG).excluded,
-    ).toEqual([{ reason: "slotsUnknown", count: 1 }]);
+      searchVenues([venue({ openingHours: [] })], search, [], TODAY, SG).excluded,
+    ).toEqual([{ reason: "hoursUnknown", count: 1 }]);
+  });
+
+  it("leaves out a venue open for only part of a slot searched", () => {
+    const search = criteria({ window: { date: "2026-11-02", slots: ["AM"] } });
+    const partly = venue({ openingHours: [{ start: "07:00", end: "11:00" }] });
+
+    expect(searchVenues([partly], search, [], TODAY, SG).excluded).toEqual([
+      { reason: "slotClosed", count: 1 },
+    ]);
   });
 
   it("counts a venue once, under the first filter it fails", () => {

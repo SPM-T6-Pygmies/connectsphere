@@ -15,7 +15,7 @@ const HALL: Venue = {
   capacity: 300,
   facilities: "Stage",
   accessibility: "Step-free",
-  slots: [],
+  openingHours: [{ start: "00:00", end: "24:00" }],
   bookingHorizonDays: null,
   layouts: [{ name: "Theatre", capacity: 300 }],
 };
@@ -100,7 +100,7 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
     capacity: 60,
     facilities: "Wi-Fi, Video-conferencing",
     accessibility: "Step-free access",
-    slots: [],
+    openingHours: [{ start: "00:00", end: "24:00" }],
     bookingHorizonDays: null,
     layouts: [{ name: "Theatre", capacity: 60 }],
   };
@@ -110,7 +110,7 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
     capacity: 150,
     facilities: "Catering area",
     accessibility: "Lift access",
-    slots: [],
+    openingHours: [{ start: "00:00", end: "24:00" }],
     bookingHorizonDays: null,
     layouts: [
       { name: "Banquet", capacity: 120 },

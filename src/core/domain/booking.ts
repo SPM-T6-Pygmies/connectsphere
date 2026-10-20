@@ -12,6 +12,7 @@ import {
   UnsupportedRoomLayoutError,
   VenueSlotUnavailableError,
 } from "./errors";
+import { toMinutes, type TimeRange } from "./time-of-day";
 import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
 
@@ -42,6 +43,14 @@ export function slotStartsAt({ date, slot }: SlotOnDate): Date {
 /** The instant `slot` ends on its date, on the same +08:00 footing as `slotStartsAt`. */
 export function slotEndsAt({ date, slot }: SlotOnDate): Date {
   return new Date(`${date}T${SLOT_HOURS[slot].end}:00+08:00`);
+}
+
+/**
+ * `slot`'s hours as a time of day, so a slot booking can be compared with
+ * opening hours until bookings move to times (SPM-320, SPM-324).
+ */
+export function slotRange(slot: BookingSlot): TimeRange {
+  return { start: toMinutes(SLOT_HOURS[slot].start) ?? 0, end: toMinutes(SLOT_HOURS[slot].end) ?? 0 };
 }
 
 export function isBookingSlot(raw: string): raw is BookingSlot {

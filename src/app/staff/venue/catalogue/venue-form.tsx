@@ -15,21 +15,27 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOOKING_SLOTS } from "@/core/domain/booking";
+import { END_OF_DAY, fromMinutes, GRID_MINUTES } from "@/core/domain/time-of-day";
 import { exceedsVenueCapacity, STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
 import {
   ACCESSIBILITY_OPTIONS,
   FACILITY_OPTIONS,
-  formatOptionList,
 } from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
-import { slotLabel } from "../../slot-label";
 import type { VenueFormState } from "./actions";
 
 const INITIAL: VenueFormState = { status: "idle" };
 
 type LayoutRow = { key: number; name: string; capacity: string };
+type WindowRow = { key: number; start: string; end: string };
+
+/** Every quarter hour a window may open at (00:00–23:45) or close at (00:15–24:00). */
+const QUARTER_HOURS = Array.from({ length: END_OF_DAY / GRID_MINUTES + 1 }, (_, i) =>
+  fromMinutes(i * GRID_MINUTES),
+);
+const OPENS_AT = QUARTER_HOURS.slice(0, -1);
+const CLOSES_AT = QUARTER_HOURS.slice(1);
 
 function isFilled(value: string): boolean {
   return value.trim().length > 0;
@@ -77,7 +83,12 @@ export function VenueForm({
   const [capacity, setCapacity] = useState(venue?.capacity?.toString() ?? "");
   const [facilities, setFacilities] = useState(venue?.facilities ?? "");
   const [accessibility, setAccessibility] = useState(venue?.accessibility ?? "");
-  const [slots, setSlots] = useState(formatOptionList(venue?.slots ?? []));
+  const [nextWindowKey, setNextWindowKey] = useState(() => (venue?.openingHours.length ?? 0) + 1);
+  const [windows, setWindows] = useState<WindowRow[]>(() =>
+    venue && venue.openingHours.length > 0
+      ? venue.openingHours.map((window, index) => ({ key: index, ...window }))
+      : [{ key: 0, start: "", end: "" }],
+  );
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
   const [nextKey, setNextKey] = useState(() => (venue?.layouts.length ?? 0) + 1);
   const [layouts, setLayouts] = useState<LayoutRow[]>(() =>
@@ -97,7 +108,9 @@ export function VenueForm({
   );
 
   const readyToSubmit =
-    [location, capacity, facilities, accessibility, slots, horizon].every(isFilled) &&
+    [location, capacity, facilities, accessibility, horizon].every(isFilled) &&
+    windows.length > 0 &&
+    windows.every((window) => isFilled(window.start) && isFilled(window.end)) &&
     layouts.length > 0 &&
     layouts.every(
       (layout) =>
@@ -105,6 +118,19 @@ export function VenueForm({
         isFilled(layout.capacity) &&
         layoutCapacityError(layout.capacity, capacity) === undefined,
     );
+
+  function updateWindow(key: number, patch: Partial<WindowRow>) {
+    setWindows((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  }
+
+  function addWindow() {
+    setWindows((current) => [...current, { key: nextWindowKey, start: "", end: "" }]);
+    setNextWindowKey((current) => current + 1);
+  }
+
+  function removeWindow(key: number) {
+    setWindows((current) => current.filter((row) => row.key !== key));
+  }
 
   function updateLayout(key: number, patch: Partial<LayoutRow>) {
     setLayouts((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
@@ -211,23 +237,74 @@ export function VenueForm({
           <CardTitle>Availability</CardTitle>
           <CardDescription>When the venue can be booked.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <Field
-            id="slots"
-            label="Slots"
-            required
-            hint="The parts of the day the venue can be booked in."
-            error={errors?.slots}
-            className="sm:col-span-2"
-          >
-            <OptionCheckboxes
-              name="slots"
-              options={BOOKING_SLOTS}
-              value={slots}
-              onChange={setSlots}
-              label={slotLabel}
-            />
-          </Field>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <p className="text-sm font-medium">
+              Opening hours<span className="text-destructive" aria-label="required">*</span>
+            </p>
+            <p className="text-muted-foreground text-xs">
+              The same hours apply every day, Singapore time. Add a window for each period the venue is
+              open.
+            </p>
+            {windows.map((row, index) => (
+              <div key={row.key} className="grid items-start gap-4 sm:grid-cols-[1fr_1fr_auto]">
+                <Field
+                  id={`openingStart-${row.key}`}
+                  label="Opens"
+                  required
+                  error={errors?.[`openingHours.${index}.start`]}
+                >
+                  <OptionSelect
+                    id={`openingStart-${row.key}`}
+                    name="openingStart"
+                    options={OPENS_AT}
+                    blank="Select a time"
+                    required
+                    aria-invalid={errors?.[`openingHours.${index}.start`] !== undefined}
+                    value={row.start}
+                    onChange={(start) => updateWindow(row.key, { start })}
+                  />
+                </Field>
+                <Field
+                  id={`openingEnd-${row.key}`}
+                  label="Closes"
+                  required
+                  error={errors?.[`openingHours.${index}.end`]}
+                >
+                  <OptionSelect
+                    id={`openingEnd-${row.key}`}
+                    name="openingEnd"
+                    options={CLOSES_AT}
+                    blank="Select a time"
+                    required
+                    aria-invalid={errors?.[`openingHours.${index}.end`] !== undefined}
+                    value={row.end}
+                    onChange={(end) => updateWindow(row.key, { end })}
+                  />
+                </Field>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="sm:mt-[1.625rem]"
+                  aria-label={`Remove opening window ${index + 1}`}
+                  disabled={windows.length === 1}
+                  onClick={() => removeWindow(row.key)}
+                >
+                  <Trash2Icon className="size-4" />
+                </Button>
+              </div>
+            ))}
+
+            {errors?.openingHours ? (
+              <p className="text-destructive text-xs">{errors.openingHours}</p>
+            ) : null}
+
+            <Button type="button" variant="outline" onClick={addWindow}>
+              <PlusIcon className="size-4" />
+              Add opening window
+            </Button>
+          </div>
           <Field
             id="bookingHorizonDays"
             label="Booking horizon (days)"
