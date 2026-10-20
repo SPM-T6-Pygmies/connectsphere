@@ -30,6 +30,7 @@ const projector: EventEquipmentRow = {
   decided_by_user_account_id: null,
   decided_by_name: null,
   decision_comment: null,
+  essential: false,
 };
 
 describe("equipment requirement mapper (SPM-185)", () => {
@@ -64,6 +65,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
           removalRequested: false,
           decision: null,
+          essential: false,
         },
         {
           equipmentItemId: "2",
@@ -74,6 +76,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           reviewBaseline: null,
           removalRequested: false,
           decision: null,
+          essential: false,
         },
       ],
     });
@@ -96,6 +99,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
           decided_by_user_account_id: null,
           decided_by_name: null,
           decision_comment: null,
+          essential: null,
         },
       ]),
     ).toEqual({ reservation: { id: "10", reviewerUserAccountId: null }, lines: [] });
@@ -159,5 +163,16 @@ describe("equipment requirement mapper (SPM-274)", () => {
 
     expect(mapped.lines[0]?.decision).toEqual({ by: "5", comment: null });
     expect(mapped.deciderNames).toEqual({ "5": "Test Support Staff" });
+  });
+});
+
+describe("equipment requirement mapper (SPM-109)", () => {
+  it("AC1: maps whether each line is marked essential", () => {
+    const mapped = toEventEquipment([
+      { ...projector, essential: true },
+      { ...projector, equipment_item_id: 2, essential: false },
+    ]);
+
+    expect(mapped.lines.map((line) => line.essential)).toEqual([true, false]);
   });
 });

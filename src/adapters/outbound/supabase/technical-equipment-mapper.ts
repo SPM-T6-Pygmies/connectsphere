@@ -33,6 +33,8 @@ export interface TechnicalEquipmentLineRow {
   decided_by_user_account_id: number | null;
   decided_by_name: string | null;
   decision_comment: string | null;
+  /** SPM-109: whether the coordinator marked the line essential. */
+  essential: boolean;
 }
 
 /** A line of `technical_support_event_equipment`, with its type's stock and other events' holds. */
@@ -82,6 +84,7 @@ function toLine(row: TechnicalEquipmentLineRow): EquipmentRequirement {
       row.decided_by_user_account_id === null
         ? null
         : { by: userAccountId(String(row.decided_by_user_account_id)), comment: row.decision_comment },
+    essential: row.essential,
   };
 }
 

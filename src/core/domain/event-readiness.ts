@@ -1,6 +1,12 @@
 import type { CoordinatorEvent } from "./coordinator-event";
+import { isReservedInFull, type EquipmentRequirement } from "./equipment-requirement";
 import type { EventId } from "./event";
-import { EventNotConfirmableError, EventNotReadyForConfirmationError, SafetyCheckNotApprovedError } from "./errors";
+import {
+  EssentialEquipmentNotReservedError,
+  EventNotConfirmableError,
+  EventNotReadyForConfirmationError,
+  SafetyCheckNotApprovedError,
+} from "./errors";
 import { safetyCheckBlocker, type LatestSafetyCheck } from "./safety-check";
 
 /** Mirrors `event_essential_arrangement_type_chk` (`supabase/schema.sql`), one member per allowed value. */
@@ -30,6 +36,19 @@ export interface ArrangementReadiness {
 export interface EventReadiness {
   readonly eventId: EventId;
   readonly essentialArrangements: readonly ArrangementReadiness[];
+  /** SPM-318: each equipment line marked essential (SPM-109), and whether it is reserved in full. */
+  readonly essentialEquipment: readonly EquipmentLineReadiness[];
+}
+
+export interface EquipmentLineReadiness {
+  readonly equipmentType: string;
+  readonly reservedInFull: boolean;
+}
+
+/** SPM-318: what the store knows about one essential equipment line. */
+export interface EssentialEquipmentFacts
+  extends Pick<EquipmentRequirement, "state" | "quantityRequested" | "quantityReserved"> {
+  readonly equipmentType: string;
 }
 
 /**
@@ -47,13 +66,15 @@ export interface ReadinessFacts {
   /** ISO calendar dates, `YYYY-MM-DD`. */
   readonly registrationOpenDate: string | null;
   readonly registrationCloseDate: string | null;
+  /** SPM-318: the event's equipment lines marked essential. A line not marked never enters, as above. */
+  readonly essentialEquipment: readonly EssentialEquipmentFacts[];
 }
 
 /**
- * The arrangements SPM-50 can judge automatically. Equipment, technical
- * support and other have no completeness signal yet (SPM-144 decides
- * essentiality at all; equipment's own completeness is SPM-109's), so they
- * neither block nor pass confirmation.
+ * The arrangements SPM-50 can judge automatically. Technical support and
+ * other have no completeness signal yet, so they neither block nor pass
+ * confirmation. Equipment is judged per line instead, by `essentialEquipment`
+ * (SPM-109, SPM-318), so the `equipment` type is not evaluated either.
  */
 const EVALUATED: readonly ArrangementType[] = ["venue", "programme", "registration"];
 
@@ -111,6 +132,10 @@ export function assessReadiness(facts: ReadinessFacts): EventReadiness {
     essentialArrangements: EVALUATED.filter((type) => facts.essentialTypes.includes(type)).map(
       (type) => assessArrangement(type, facts),
     ),
+    essentialEquipment: facts.essentialEquipment.map((line) => ({
+      equipmentType: line.equipmentType,
+      reservedInFull: isReservedInFull(line),
+    })),
   };
 }
 
@@ -121,13 +146,21 @@ export function blockingArrangements(readiness: EventReadiness): readonly Arrang
     .map((arrangement) => arrangement.type);
 }
 
+/** SPM-318 AC1: the essential equipment lines not reserved in full, by type. A non-essential line never appears (AC2). */
+export function blockingEquipment(readiness: EventReadiness): readonly string[] {
+  return readiness.essentialEquipment.filter((line) => !line.reservedInFull).map((line) => line.equipmentType);
+}
+
 /**
  * Where an event stands on confirmation, and why -- so a screen can say why
  * it cannot be confirmed instead of deciding that from the status itself.
  */
 export type ConfirmationState =
   | "ready"
-  /** Planning, with an essential arrangement incomplete and/or the safety check not Approved (SPM-264). */
+  /**
+   * Planning, with an essential arrangement incomplete, an essential equipment
+   * line not reserved in full (SPM-318) and/or the safety check not Approved (SPM-264).
+   */
   | "blocked"
   /** Confirmed or Completed: there is nothing left to confirm. */
   | "already-confirmed"
@@ -146,12 +179,18 @@ export function confirmationState(
   if (event.status !== "Planning") {
     return "not-in-planning";
   }
-  return blockingArrangements(readiness).length > 0 || safetyCheckBlocker(latestSafetyCheck) !== null
+  return blockingArrangements(readiness).length > 0 ||
+    blockingEquipment(readiness).length > 0 ||
+    safetyCheckBlocker(latestSafetyCheck) !== null
     ? "blocked"
     : "ready";
 }
 
-/** Whether the event may be confirmed right now: `Planning`, nothing essential incomplete, and its latest safety check Approved. */
+/**
+ * Whether the event may be confirmed right now: `Planning`, nothing essential
+ * incomplete, every essential equipment line reserved in full, and its latest
+ * safety check Approved.
+ */
 export function canConfirm(
   event: CoordinatorEvent,
   readiness: EventReadiness,
@@ -162,11 +201,13 @@ export function canConfirm(
 
 /**
  * SPM-50: confirms the event once every essential arrangement is complete.
+ * SPM-318: and once every essential equipment line is reserved in full.
  * SPM-264: and once its latest safety check is Approved.
  *
  * The invariant itself, not just a use-case-level check -- callers cannot
  * reach `Confirmed` any other way than through this function agreeing to it.
- * `coordinator_confirm_event` restates the safety rule under its row lock.
+ * `coordinator_confirm_event` restates the equipment and safety rules under
+ * its row lock.
  */
 export function confirmEvent(
   event: CoordinatorEvent,
@@ -180,6 +221,11 @@ export function confirmEvent(
   const blocking = blockingArrangements(readiness);
   if (blocking.length > 0) {
     throw new EventNotReadyForConfirmationError(blocking);
+  }
+
+  const equipment = blockingEquipment(readiness);
+  if (equipment.length > 0) {
+    throw new EssentialEquipmentNotReservedError(equipment);
   }
 
   if (safetyCheckBlocker(latestSafetyCheck) !== null) {

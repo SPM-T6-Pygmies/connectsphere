@@ -56,7 +56,15 @@ function EquipmentRow({ eventId, line }: { eventId: string; line: TechnicalSuppo
 
   return (
     <TableRow>
-      <TableCell className="font-medium">{line.equipmentType}</TableCell>
+      <TableCell className="font-medium">
+        {line.equipmentType}
+        {/* SPM-109 AC2: the coordinator sets the mark once agreed with Technical Support; here it is only shown. */}
+        {line.essential ? (
+          <Badge variant="secondary" className="ml-2">
+            Essential
+          </Badge>
+        ) : null}
+      </TableCell>
       <TableCell>
         {line.quantityRequested}
         {quantityChanged ? <Was>{`was ${was.quantityRequested}`}</Was> : null}
