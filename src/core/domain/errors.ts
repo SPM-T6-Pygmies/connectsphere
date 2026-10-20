@@ -394,6 +394,15 @@ export class BookingNotCancellableError extends DomainError {
   }
 }
 
+/** SPM-55 AC6: a cancelled event takes no new venue booking requests. */
+export class CancelledEventBookingError extends DomainError {
+  readonly code = "cancelled_event_booking";
+
+  constructor() {
+    super("This event is cancelled, so no venue can be requested for it.");
+  }
+}
+
 /**
  * SPM-104: the layout is the coordinator's to change only while the request
  * is still pending. Once Venue Staff have answered it, the answer was given
