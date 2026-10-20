@@ -5,6 +5,8 @@ import {
   InMemoryBookingRepository,
   type StoredBooking,
 } from "@/adapters/outbound/in-memory/in-memory-booking-repository";
+import { InMemoryVenueStaffDirectory } from "@/adapters/outbound/in-memory/in-memory-venue-staff-directory";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
@@ -20,6 +22,7 @@ import { CancelVenueBookingUseCase } from "./cancel-venue-booking";
 import { ViewVenueCalendarUseCase } from "./view-venue-calendar";
 
 const COORDINATOR = "coordinator-1";
+const VENUE_STAFF = ["staff-1", "staff-2"];
 const NOW = new Date("2026-11-01T09:00:00+08:00");
 
 const HALL: Venue = {
@@ -53,6 +56,7 @@ function build(
   eventStatus: CoordinatorEventStatus = "Planning",
 ) {
   const bookings = new InMemoryBookingRepository(seed);
+  const notifier = new RecordingNotifier();
   const useCase = new CancelVenueBookingUseCase({
     events: new InMemoryCoordinatorEventRepository([
       {
@@ -70,6 +74,8 @@ function build(
       },
     ]),
     bookings,
+    venueStaff: new InMemoryVenueStaffDirectory(VENUE_STAFF),
+    notifier,
   });
   const clock = new FixedClock(NOW);
   const calendar = new ViewVenueCalendarUseCase({
@@ -79,7 +85,7 @@ function build(
     clock,
     timeZone: "Asia/Singapore",
   });
-  return { useCase, bookings, calendar };
+  return { useCase, bookings, calendar, notifier };
 }
 
 const command = (overrides: Record<string, unknown> = {}) => ({
@@ -148,5 +154,62 @@ describe("CancelVenueBookingUseCase (SPM-20)", () => {
       useCase.execute(command({ userAccountId: "coordinator-2" })),
     ).rejects.toThrow(CoordinatorEventNotFoundError);
     expect(bookings.all()[0].status).toBe("Confirmed");
+  });
+});
+
+describe("CancelVenueBookingUseCase notifying Venue Staff (SPM-63)", () => {
+  it("AC1: tells every Venue Staff member when a Confirmed booking is cancelled", async () => {
+    const { useCase, notifier } = build();
+
+    await useCase.execute(command());
+
+    expect(notifier.bookingsCancelled.map((n) => n.recipientUserAccountId)).toEqual(VENUE_STAFF);
+  });
+
+  it("AC3, AC4: names the venue, the event and the released slots, and which venue's calendar to open", async () => {
+    const { useCase, notifier } = build([
+      booking({
+        slots: [
+          { date: "2026-11-03", slot: "AM" },
+          { date: "2026-11-04", slot: "Night" },
+        ],
+      }),
+    ]);
+
+    await useCase.execute(command());
+
+    expect(notifier.bookingsCancelled[0]).toEqual({
+      recipientUserAccountId: "staff-1",
+      bookingId: "booking-1",
+      venueId: HALL.id,
+      venueLocation: "Main Hall",
+      eventName: "Annual Conference",
+      slots: [
+        { date: "2026-11-03", slot: "AM" },
+        { date: "2026-11-04", slot: "Night" },
+      ],
+    });
+  });
+
+  it.each(["Requested", "Tentative Hold"] as const)(
+    "AC2: tells nobody when a %s booking is cancelled",
+    async (status) => {
+      const { useCase, notifier, bookings } = build([booking({ status })]);
+
+      await useCase.execute(command());
+
+      expect(bookings.all()[0].status).toBe("Released");
+      expect(notifier.bookingsCancelled).toEqual([]);
+    },
+  );
+
+  it("AC2: tells nobody when the cancellation is refused", async () => {
+    const { useCase, notifier } = build([booking({ status: "Released" })]);
+
+    await expect(useCase.execute(command())).rejects.toThrow(BookingNotCancellableError);
+    await expect(
+      useCase.execute(command({ userAccountId: "coordinator-2" })),
+    ).rejects.toThrow(CoordinatorEventNotFoundError);
+    expect(notifier.bookingsCancelled).toEqual([]);
   });
 });

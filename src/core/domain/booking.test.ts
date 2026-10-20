@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   bookingCancellable,
   cancelBooking,
+  cancellationNotifiesVenueStaff,
   checkLayoutCapacity,
   chooseLayoutChange,
   chooseRoomLayout,
@@ -715,5 +716,16 @@ describe("cancelBooking (SPM-20)", () => {
       expect(bookingCancellable(status)).toBe(false);
       expect(() => cancelBooking({ status })).toThrow(BookingNotCancellableError);
     }
+  });
+});
+
+describe("cancellationNotifiesVenueStaff (SPM-63)", () => {
+  it("AC1: Venue Staff hear when a Confirmed booking is cancelled", () => {
+    expect(cancellationNotifiesVenueStaff("Confirmed")).toBe(true);
+  });
+
+  it("AC2: not when a pending request or a hold is cancelled, which they were not preparing for", () => {
+    expect(cancellationNotifiesVenueStaff("Requested")).toBe(false);
+    expect(cancellationNotifiesVenueStaff("Tentative Hold")).toBe(false);
   });
 });

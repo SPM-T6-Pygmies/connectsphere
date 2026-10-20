@@ -609,9 +609,17 @@ export async function buildChangeBookingRoomLayout(): Promise<ChangeBookingRoomL
   return new ChangeBookingRoomLayoutUseCase(await venueBookingAdapters());
 }
 
-/** SPM-20: the assigned coordinator cancels a venue booking, freeing its slots. */
+/**
+ * SPM-20: the assigned coordinator cancels a venue booking, freeing its slots.
+ * SPM-63: Venue Staff are told of a confirmed one, read with the admin client
+ * since the coordinator may not list staff accounts themselves.
+ */
 export async function buildCancelVenueBooking(): Promise<CancelVenueBookingUseCase> {
-  return new CancelVenueBookingUseCase(await venueBookingAdapters());
+  return new CancelVenueBookingUseCase({
+    ...(await venueBookingAdapters()),
+    venueStaff: new SupabaseVenueStaffDirectory(createSupabaseAdminClient()),
+    notifier: recordedNotifier(),
+  });
 }
 
 /** SPM-247: the assigned coordinator records the facilities an event needs. */
