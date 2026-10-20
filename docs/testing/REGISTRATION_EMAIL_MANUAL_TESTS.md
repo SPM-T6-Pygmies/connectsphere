@@ -70,8 +70,8 @@ registration for it; signed out.
 **Expected Result:**
 - Within a minute an email arrives with the subject "You're registered:
   TC-REG test event"
-- It greets "Hi Isaiah Chia," and gives the event's date, its time "AM (7:00 am
-  – 12:00 pm), PM (1:00 pm – 6:00 pm)" and the venue **Main Hall**, the same as
+- It greets "Hi Isaiah Chia," and gives the event's date, its time "7:00 am –
+  12:00 pm, 1:00 pm – 6:00 pm (GMT+8)" and the venue **Main Hall**, the same as
   the on-screen confirmation
 - It ends with a `http://localhost:3000/registrations/<reference>` link
 
