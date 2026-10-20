@@ -11,6 +11,11 @@ const subscribe = () => () => {};
 const viewerTimeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone;
 const venueTimeZone = () => VENUE_TIME_ZONE;
 
+/** The viewer's timezone once hydrated; venue time on the server and in the first render. */
+export function useViewerTimeZone(): string {
+  return useSyncExternalStore(subscribe, viewerTimeZone, venueTimeZone);
+}
+
 /**
  * An event's start and end times in the viewer's timezone (SPM-326).
  *
@@ -26,6 +31,6 @@ export function EventTimes({
   times: readonly TimeRangeOnDate[];
   nameEveryDay?: boolean;
 }) {
-  const timeZone = useSyncExternalStore(subscribe, viewerTimeZone, venueTimeZone);
+  const timeZone = useViewerTimeZone();
   return <>{times.length === 0 ? "—" : eventTimes(times, timeZone, nameEveryDay)}</>;
 }

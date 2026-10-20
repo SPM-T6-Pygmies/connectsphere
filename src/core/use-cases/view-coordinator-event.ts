@@ -1,6 +1,6 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
-import { canComplete } from "../domain/event-completion";
+import { canComplete, eventEndsAt } from "../domain/event-completion";
 import {
   assessReadiness,
   blockingArrangements,
@@ -41,8 +41,10 @@ export interface ViewCoordinatorEventResult {
   readonly blockingEquipment: readonly string[];
   /** SPM-264: why the safety check blocks confirmation, or null once the latest check is Approved. */
   readonly safetyCheckBlocker: SafetyCheckBlocker | null;
-  /** SPM-51: whether the event can be marked completed now -- Confirmed, and its last slot over. */
+  /** SPM-51: whether the event can be marked completed now -- Confirmed, and its latest end time passed. */
   readonly canComplete: boolean;
+  /** SPM-326 AC3: the ISO instant its latest end time passes, or null while it has no times. */
+  readonly endsAt: string | null;
 }
 
 export interface ViewCoordinatorEventDeps {
@@ -105,6 +107,7 @@ export class ViewCoordinatorEventUseCase {
       blockingEquipment: blockingEquipment(readiness),
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
+      endsAt: eventEndsAt(details)?.toISOString() ?? null,
     };
   }
 }

@@ -94,6 +94,7 @@ export default async function CoordinatorEventPage({
     blockingEquipment,
     safetyCheckBlocker,
     canComplete,
+    endsAt,
   } = result;
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
 
@@ -205,6 +206,7 @@ export default async function CoordinatorEventPage({
                 <CompleteForm
                   eventId={event.id}
                   canComplete={canComplete}
+                  endsAt={endsAt}
                   operationalNotes={details.operationalNotes}
                 />
               ) : null}

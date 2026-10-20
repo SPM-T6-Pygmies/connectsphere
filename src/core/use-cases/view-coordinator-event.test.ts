@@ -319,3 +319,29 @@ describe("ViewCoordinatorEventUseCase essential equipment (SPM-318)", () => {
     expect(result?.blockingEquipment).toEqual([]);
   });
 });
+
+describe("ViewCoordinatorEventUseCase end time (SPM-326)", () => {
+  it("AC3: gives the instant the event's latest end time passes", async () => {
+    const useCase = buildUseCase([
+      seedEvent({
+        status: "Confirmed",
+        times: [
+          { date: "2026-10-14", start: "07:00", end: "12:00" },
+          { date: "2026-10-14", start: "13:00", end: "18:15" },
+        ],
+      }),
+    ]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.endsAt).toBe(new Date("2026-10-14T18:15:00+08:00").toISOString());
+  });
+
+  it("AC3: has no end time for an event with no times", async () => {
+    const useCase = buildUseCase([seedEvent({ status: "Confirmed", times: [] })]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.endsAt).toBeNull();
+  });
+});
