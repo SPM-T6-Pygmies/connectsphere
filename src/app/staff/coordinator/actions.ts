@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { cancelEventSchema } from "@/adapters/inbound/cancel-event-schema";
 import { completeEventSchema } from "@/adapters/inbound/complete-event-schema";
 import { confirmEventSchema } from "@/adapters/inbound/confirm-event-schema";
 import { decideEventRequestSchema } from "@/adapters/inbound/decide-event-request-schema";
@@ -15,6 +16,7 @@ import { setEventRegistrationSchema } from "@/adapters/inbound/set-event-registr
 import { updateEventDetailsSchema } from "@/adapters/inbound/update-event-details-schema";
 import { withdrawEventRequestSchema } from "@/adapters/inbound/withdraw-event-request-schema";
 import {
+  buildCancelEvent,
   buildCompleteEvent,
   buildConfirmEvent,
   buildDecideEventRequest,
@@ -345,6 +347,47 @@ export async function completeEventAction(
   revalidatePath("/staff/coordinator", "layout");
 
   return { status: "completed" };
+}
+
+export type CancelEventState = { status: "idle" } | { status: "cancelled" } | { status: "error"; message: string };
+
+/**
+ * SPM-55: the assigned Event Coordinator cancels an event before it is over,
+ * giving back every venue booking and hold it has.
+ *
+ * The page offers this only while the event can still be cancelled -- this
+ * action's own check is defence against a stale page. On success the page
+ * re-renders as Cancelled, without the button.
+ */
+export async function cancelEventAction(
+  _previous: CancelEventState,
+  formData: FormData,
+): Promise<CancelEventState> {
+  const parsed = cancelEventSchema.safeParse({ id: String(formData.get("id") ?? "") });
+
+  if (!parsed.success) {
+    return { status: "error", message: "The event is missing." };
+  }
+
+  try {
+    // Same not-found-shaped scoping as confirming and completing the event (#91).
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new CoordinatorEventNotFoundError(parsed.data.id);
+    }
+
+    const cancelEvent = await buildCancelEvent();
+    await cancelEvent.execute({ ...parsed.data, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath("/staff/coordinator", "layout");
+
+  return { status: "cancelled" };
 }
 
 export type ResubmitForSafetyCheckState = { status: "idle" } | { status: "error"; message: string };
