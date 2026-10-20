@@ -111,6 +111,7 @@ needs. This table says what that is.
 | Venue hold | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-holds`, then `seed-booking-holds/fixture.sql` (its Setup lists every command) |
 | Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
 | Venue booking cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel` |
+| Safety check essential lines | `seed-venues`, `seed-safety-check` (its `verify` must read 29 rows `ok = true`) |
 | **Equipment review** | `seed-equipment-review` **only** |
 | **Equipment reserve** | `seed-equipment-reserve` **only** |
 | **Venue search** | `seed-venue-search-uat` **only** |

@@ -1,4 +1,4 @@
--- Seeds the Safety Officer's workflow (SPM-258 to SPM-263): eight Planning
+-- Seeds the Safety Officer's workflow (SPM-258 to SPM-263, SPM-319): eight Planning
 -- events, each in the state a safety check case or the demo needs, with the
 -- venue bookings and equipment lines that decide whether the event is on the
 -- Awaiting check list.
