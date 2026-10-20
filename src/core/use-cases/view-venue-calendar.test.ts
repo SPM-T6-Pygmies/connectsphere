@@ -23,7 +23,7 @@ const HALL: Venue = {
   location: "Harbour Hall",
   facilities: null,
   accessibility: null,
-  slots: ["AM", "PM", "Night"],
+  openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }, { start: "19:00", end: "24:00" }],
   capacity: 200,
   bookingHorizonDays: 90,
   layouts: [],

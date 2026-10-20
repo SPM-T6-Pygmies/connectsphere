@@ -68,7 +68,7 @@ export class ViewVenueCalendarUseCase {
       venue,
       from,
       to,
-      days: deriveVenueCalendar({ days, offeredSlots: venue.slots, occupied, blocked, now }),
+      days: deriveVenueCalendar({ days, openingHours: venue.openingHours, occupied, blocked, now }),
     };
   }
 }
