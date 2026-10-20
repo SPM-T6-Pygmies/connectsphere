@@ -21,8 +21,9 @@ function booking(overrides: Partial<SafetyCheckBooking> = {}): SafetyCheckBookin
   return { status: "Confirmed", venueName: "Grand Ballroom", ...overrides };
 }
 
+/** Essential unless a case says otherwise, so the SPM-259 cases keep testing a line that counts. */
 function line(overrides: Partial<SafetyCheckEquipmentLine> = {}): SafetyCheckEquipmentLine {
-  return { state: "Reserved", quantityRequested: 2, quantityReserved: 2, ...overrides };
+  return { state: "Reserved", quantityRequested: 2, quantityReserved: 2, essential: true, ...overrides };
 }
 
 function candidate(overrides: Partial<SafetyCheckCandidate> = {}): SafetyCheckCandidate {
@@ -110,6 +111,73 @@ describe("awaitsSafetyCheck (SPM-259)", () => {
       expect(awaitsSafetyCheck({ ...ready, event: { ...ready.event, status } })).toBe(false);
     },
   );
+});
+
+describe("awaitsSafetyCheck with essential lines (SPM-319)", () => {
+  const optional = (overrides: Partial<SafetyCheckEquipmentLine> = {}) => line({ essential: false, ...overrides });
+
+  it.each<[string, Partial<SafetyCheckEquipmentLine>]>([
+    ["not reserved yet", { state: "Requested", quantityReserved: 0 }],
+    ["under review", { state: "Under review", quantityReserved: 0 }],
+    ["reserved in part", { quantityRequested: 3, quantityReserved: 2 }],
+    ["unfulfilled", { state: "Unfulfilled", quantityReserved: 0 }],
+  ])("AC1: lists an event whose only gap is a non-essential line %s", (_gap, gap) => {
+    expect(awaitsSafetyCheck(candidate({ equipmentLines: [line(), optional(gap)] }))).toBe(true);
+  });
+
+  it("AC1: still needs SPM-259's venue rule: a non-essential gap does not list an event with a booking on hold", () => {
+    expect(
+      awaitsSafetyCheck(
+        candidate({
+          bookings: [booking(), booking({ status: "Tentative Hold" })],
+          equipmentLines: [line(), optional({ state: "Requested", quantityReserved: 0 })],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("AC2: leaves out an event with one essential line not reserved, beside essential lines that are", () => {
+    expect(
+      awaitsSafetyCheck(
+        candidate({ equipmentLines: [line(), line({ state: "Requested", quantityReserved: 0 }), optional()] }),
+      ),
+    ).toBe(false);
+  });
+
+  it.each([
+    { reserved: 2, listed: false },
+    { reserved: 3, listed: true },
+    { reserved: 4, listed: true },
+  ])("AC2: an essential line with 3 requested and $reserved reserved lists the event: $listed", ({ reserved, listed }) => {
+    expect(
+      awaitsSafetyCheck(
+        candidate({ equipmentLines: [line({ quantityRequested: 3, quantityReserved: reserved })] }),
+      ),
+    ).toBe(listed);
+  });
+
+  it("AC3: an unmarked line counts as non-essential, so an event with no essential line is listed whatever its equipment", () => {
+    expect(
+      awaitsSafetyCheck(
+        candidate({
+          equipmentLines: [
+            optional({ state: "Requested", quantityReserved: 0 }),
+            optional({ state: "Under review", quantityReserved: 0 }),
+          ],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("AC3: marking the only unreserved line non-essential puts the event on the list (SPM-262 sees it enter)", () => {
+    const gap = { state: "Requested", quantityReserved: 0 } as const;
+    expect(
+      entersSafetyCheck(
+        candidate({ equipmentLines: [line(), line(gap)] }),
+        candidate({ equipmentLines: [line(), optional(gap)] }),
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("confirmedVenues (SPM-259)", () => {

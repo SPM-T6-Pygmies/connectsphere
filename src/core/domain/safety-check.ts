@@ -13,7 +13,7 @@ export interface SafetyCheckBooking {
 
 export type SafetyCheckEquipmentLine = Pick<
   EquipmentRequirement,
-  "state" | "quantityRequested" | "quantityReserved"
+  "state" | "quantityRequested" | "quantityReserved" | "essential"
 >;
 
 /** What the store knows about an event, before any judgement about whether it awaits a safety check. */
@@ -40,10 +40,14 @@ function isLive(booking: SafetyCheckBooking): boolean {
 /**
  * SPM-259: whether an event is waiting for the Safety Officer. It is when it
  * is still Planning (AC4), has at least one live venue booking and every live
- * one is Confirmed, and every equipment line is reserved in full (AC1, AC3).
- * No equipment lines means nothing to reserve, so the venue alone decides (AC2).
- * Once an outcome is recorded it leaves the list (SPM-260 AC6); sending it back
- * for a fresh check is SPM-261's.
+ * one is Confirmed, and every essential equipment line is reserved in full
+ * (AC1, AC3). No equipment lines means nothing to reserve, so the venue alone
+ * decides (AC2). Once an outcome is recorded it leaves the list (SPM-260 AC6);
+ * sending it back for a fresh check is SPM-261's.
+ *
+ * SPM-319: a non-essential line never holds the event back (AC1, AC2). A line
+ * nobody has marked is non-essential, as SPM-109 stores it (AC3), so an event
+ * with no essential line goes on the list on its venue alone.
  */
 export function awaitsSafetyCheck(candidate: SafetyCheckCandidate): boolean {
   const live = candidate.bookings.filter(isLive);
@@ -52,7 +56,7 @@ export function awaitsSafetyCheck(candidate: SafetyCheckCandidate): boolean {
     candidate.event.status === "Planning" &&
     live.length > 0 &&
     live.every((booking) => booking.status === "Confirmed") &&
-    candidate.equipmentLines.every(isReservedInFull)
+    candidate.equipmentLines.filter((line) => line.essential).every(isReservedInFull)
   );
 }
 
