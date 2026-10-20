@@ -742,6 +742,7 @@ export type VenueField =
   | "facilities"
   | "accessibility"
   | "slots"
+  | "openingHours"
   | "capacity"
   | "bookingHorizonDays"
   | "layouts";
