@@ -244,7 +244,7 @@ create table venue (
   capacity               integer check (capacity is null or capacity >= 0),
   facilities             text,
   accessibility          text,
-    -- the slots it can be booked in are venue_slot rows (10b)
+    -- when it can be booked are venue_opening_window rows (SPM-320)
   setup_time_minutes     integer check (setup_time_minutes is null or setup_time_minutes >= 0),
   turnaround_time_minutes integer check (turnaround_time_minutes is null or turnaround_time_minutes >= 0),
   booking_horizon_days   integer check (booking_horizon_days is null or booking_horizon_days >= 0),
@@ -340,12 +340,6 @@ create table slot (
   constraint slot_time_order_chk check (end_time > start_time)
 );
 -- Seeded: AM 07:00-12:00, PM 13:00-18:00, Night 19:00-24:00 (2026-10-15).
-
-create table venue_slot (
-  venue_id  bigint not null references venue (venue_id) on delete cascade,
-  slot_code text   not null references slot (slot_code) on delete restrict,
-  primary key (venue_id, slot_code)
-);
 
 -- SPM-320: when a venue can be booked, the same every day. 24:00 is a valid end.
 -- Overlapping windows are refused by venue_catalogue_write_opening_hours.
