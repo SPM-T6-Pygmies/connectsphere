@@ -1,5 +1,6 @@
 import type { BookingSlot, SlotOnDate } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
 /**
@@ -231,9 +232,9 @@ export interface RegistrationConfirmedNotice {
   readonly recipientEmail: string;
   readonly attendeeName: string;
   readonly eventName: string;
-  /** ISO instant the first slot starts, as `AvailableEvent` gives it. */
+  /** ISO instant the event first starts, as `AvailableEvent` gives it. */
   readonly startsAt: string;
-  readonly slots: readonly SlotOnDate[];
+  readonly times: readonly TimeRangeOnDate[];
   readonly venueName: string | null;
 }
 

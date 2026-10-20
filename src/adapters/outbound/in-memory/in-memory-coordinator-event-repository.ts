@@ -35,7 +35,7 @@ function toDetails(event: SeedCoordinatorEvent): CoordinatorEventDetails {
     name: event.name,
     status: event.status,
     preferredDate: event.preferredDate,
-    slots: event.slots ?? [],
+    times: event.times ?? [],
     expectedAttendance: event.expectedAttendance ?? null,
     venueRequirements: event.venueRequirements ?? null,
     roomLayoutPreference: event.roomLayoutPreference ?? null,

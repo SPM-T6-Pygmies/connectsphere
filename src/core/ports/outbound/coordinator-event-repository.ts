@@ -1,6 +1,6 @@
-import type { SlotOnDate } from "../../domain/booking";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "../../domain/coordinator-event";
 import type { OrdinaryEventChanges } from "../../domain/event-details-edit";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { RegistrationSettings } from "../../domain/event-registration-settings";
 import type { UserAccountId } from "../../domain/user-account";
 
@@ -30,8 +30,8 @@ export interface CoordinatorEventDetails {
   readonly status: CoordinatorEventStatus;
   /** ISO calendar date, `YYYY-MM-DD`. */
   readonly preferredDate: string | null;
-  /** The event's slots, in date then day order. Empty until it has any. */
-  readonly slots: readonly SlotOnDate[];
+  /** The event's start and end times, in date then start order. Empty until it has any. */
+  readonly times: readonly TimeRangeOnDate[];
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreference: string | null;

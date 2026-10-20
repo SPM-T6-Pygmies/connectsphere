@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EventTimes } from "@/app/events/event-times";
 import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
 import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
 import type { VenueSuitability } from "@/core/domain/venue-suitability";
@@ -29,7 +30,6 @@ import type {
 
 import { EmptyState, FieldList } from "../../../field-list";
 import { formatHoldExpiry } from "../../../hold-expiry";
-import { formatSlotsOnDates } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
@@ -280,7 +280,7 @@ export default async function VenueBookingPage({
                 columns={1}
                 fields={[
                   { label: "Preferred date", value: event.preferredDate },
-                  { label: "Slots", value: formatSlotsOnDates(event.slots) },
+                  { label: "Times", value: <EventTimes times={event.times} nameEveryDay /> },
                   { label: "Expected attendance", value: event.expectedAttendance },
                   { label: "Layout preference", value: event.roomLayoutPreference },
                   { label: "Venue requirements", value: event.venueRequirements },

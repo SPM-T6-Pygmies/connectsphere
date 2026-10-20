@@ -13,9 +13,9 @@ import {
 function event(overrides: Partial<CompletableEvent> = {}): CompletableEvent {
   return {
     status: "Confirmed",
-    slots: [
-      { date: "2026-10-14", slot: "AM" },
-      { date: "2026-10-15", slot: "Night" },
+    times: [
+      { date: "2026-10-14", start: "07:00", end: "12:00" },
+      { date: "2026-10-15", start: "19:00", end: "24:00" },
     ],
     operationalNotes: null,
     ...overrides,
@@ -36,10 +36,10 @@ describe("event completion (SPM-51)", () => {
       expect(
         eventEndsAt(
           event({
-            slots: [
-              { date: "2026-10-15", slot: "PM" },
-              { date: "2026-10-15", slot: "Night" },
-              { date: "2026-10-14", slot: "Night" },
+            times: [
+              { date: "2026-10-15", start: "13:00", end: "18:00" },
+              { date: "2026-10-15", start: "19:00", end: "24:00" },
+              { date: "2026-10-14", start: "19:00", end: "24:00" },
             ],
           }),
         ),
@@ -47,7 +47,7 @@ describe("event completion (SPM-51)", () => {
     });
 
     it("is unknown for an event with no slots", () => {
-      expect(eventEndsAt(event({ slots: [] }))).toBeNull();
+      expect(eventEndsAt(event({ times: [] }))).toBeNull();
     });
   });
 
@@ -74,7 +74,7 @@ describe("event completion (SPM-51)", () => {
     });
 
     it("refuses an event with no slots, whose end is unknown", () => {
-      expect(() => completeEvent(event({ slots: [] }), JUST_AFTER)).toThrow(EventNotYetEndedError);
+      expect(() => completeEvent(event({ times: [] }), JUST_AFTER)).toThrow(EventNotYetEndedError);
     });
 
     it.each<CoordinatorEventStatus>(["Planning", "Blocked", "Completed", "Cancelled"])(
@@ -136,7 +136,22 @@ describe("event completion (SPM-51)", () => {
     });
 
     it("is false for a Confirmed event with no slots", () => {
-      expect(canComplete(event({ slots: [] }), JUST_AFTER)).toBe(false);
+      expect(canComplete(event({ times: [] }), JUST_AFTER)).toBe(false);
     });
+  });
+});
+
+describe("event completion on start and end times (SPM-326)", () => {
+  const quarterPast = event({ times: [{ date: "2026-10-14", start: "09:00", end: "10:15" }] });
+  const ENDS = new Date("2026-10-14T10:15:00+08:00");
+
+  it("AC3: ends at the latest end time, to the quarter hour", () => {
+    expect(eventEndsAt(quarterPast)).toEqual(ENDS);
+  });
+
+  it("AC3: refuses just before that end time, and allows it exactly at and after", () => {
+    expect(canComplete(quarterPast, new Date(ENDS.getTime() - 1))).toBe(false);
+    expect(canComplete(quarterPast, ENDS)).toBe(true);
+    expect(canComplete(quarterPast, new Date(ENDS.getTime() + 1))).toBe(true);
   });
 });

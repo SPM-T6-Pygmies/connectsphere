@@ -55,22 +55,22 @@ describe("booking review mapper (SPM-22)", () => {
     });
   });
 
-  it("reads the event's own slots apart from the slots the booking holds", () => {
+  it("reads the event's own times apart from the slots the booking holds", () => {
     const review = toBookingForReview({
       ...row,
       event: {
         ...row.event,
         slots: [
-          { date: "2026-10-22", slot: "AM" },
-          { date: "2026-10-23", slot: "Night" },
+          { date: "2026-10-22", start: "07:00:00", end: "07:15:00" },
+          { date: "2026-10-23", start: "19:00:00", end: "19:15:00" },
         ],
       },
     });
 
     expect(review.slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
-    expect(review.event.slots).toEqual([
-      { date: "2026-10-22", slot: "AM" },
-      { date: "2026-10-23", slot: "Night" },
+    expect(review.event.times).toEqual([
+      { date: "2026-10-22", start: "07:00", end: "07:15" },
+      { date: "2026-10-23", start: "19:00", end: "19:15" },
     ]);
   });
 

@@ -177,7 +177,10 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
         preferred_date: "2026-11-20",
         assigned_coordinator_user_account_id: 2,
         client_organisation_id: 1,
-        event_slots: [{ date: "2026-11-20", slot: "AM" }],
+        event_slots: [
+          { date: "2026-11-20", start: "07:00:00", end: "07:15:00" },
+          { date: "2026-11-20", start: "07:15:00", end: "07:30:00" },
+        ],
         expected_attendance: 120,
         venue_requirements: "Stage",
         room_layout_preference: "Theatre",
@@ -199,7 +202,7 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       name: "Roadmap Conference",
       status: "Planning",
       preferredDate: "2026-11-20",
-      slots: [{ date: "2026-11-20", slot: "AM" }],
+      times: [{ date: "2026-11-20", start: "07:00", end: "07:30" }],
       expectedAttendance: 120,
       venueRequirements: "Stage",
       roomLayoutPreference: "Theatre",
@@ -270,6 +273,6 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
       registration_close_date: null,
     });
 
-    expect(details.slots).toEqual([]);
+    expect(details.times).toEqual([]);
   });
 });

@@ -31,7 +31,7 @@ function buildUseCase() {
         preferredDate: "2026-10-05",
         status: "Planning",
         assignedCoordinatorUserAccountId: "coordinator-1",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
         expectedAttendance: 120,
         venueRequirements: "Stage and projector",
         description: null,
@@ -77,7 +77,7 @@ describe("ViewVenueBookingOptionsUseCase (SPM-46)", () => {
     expect(result?.event).toMatchObject({
       id: "event-1",
       preferredDate: "2026-10-05",
-      slots: [{ date: "2026-10-05", slot: "AM" }],
+      times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       expectedAttendance: 120,
       venueRequirements: "Stage and projector",
     });
