@@ -851,6 +851,11 @@
       "title": "Block confirmation on an unfulfilled essential line",
       "parent": null,
       "status": "Todo"
+    },
+    "SPM-319": {
+      "title": "Admit events with only non-essential gaps to the safety check",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }
