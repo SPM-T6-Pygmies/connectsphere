@@ -2,7 +2,7 @@
 
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -143,7 +143,18 @@ export function VenueForm({
   }
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      // Submitted by hand, not through `action`: React resets a form after its
+      // action runs, which blanks every select (a layout, an opening time)
+      // while the state behind it keeps the value, so a refused save would
+      // show fields emptied that are not.
+      onSubmit={(event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => formAction(formData));
+      }}
+      className="space-y-6"
+    >
       {venue ? <input type="hidden" name="venueId" value={venue.id} /> : null}
 
       {state.status === "error" ? (
