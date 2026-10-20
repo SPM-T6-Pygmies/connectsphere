@@ -408,6 +408,19 @@ export class VenueSlotUnavailableError extends DomainError {
   }
 }
 
+/** SPM-334: a requested slot includes time the venue is closed (SPM-320 AC3). */
+export class VenueClosedError extends DomainError {
+  readonly code = "venue_closed";
+
+  constructor(readonly closed: ReadonlyArray<{ readonly date: string; readonly time: string }>) {
+    super(
+      `The venue is closed ${closed
+        .map(({ date, time }) => `${date} ${time}`)
+        .join(", ")}. Choose times within its opening hours or another venue.`,
+    );
+  }
+}
+
 /** SPM-22: no such booking, or one Venue Staff may not see. */
 export class BookingNotFoundError extends DomainError {
   readonly code = "booking_not_found";
