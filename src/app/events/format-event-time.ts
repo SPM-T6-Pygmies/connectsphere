@@ -1,11 +1,12 @@
 import { rangeEndsAt, rangeStartsAt, type TimeRangeOnDate } from "@/core/domain/event-times";
 
 /**
- * Every date an Attendee reads, rendered in Singapore time.
+ * Every date an Attendee reads, rendered in Singapore time, and the event's
+ * start and end times, rendered in the viewer's (`eventTimes`, SPM-326).
  *
- * ConnectSphere's venues are all in Singapore and the system serves no other
- * timezone (#36), but that is a presentation fact. The core hands out plain
- * ISO instants; this module is the only place that decides how they read.
+ * ConnectSphere's venues are all in Singapore (#36), but that is a
+ * presentation fact. The core hands out plain ISO instants and venue-time
+ * ranges; this module is the only place that decides how they read.
  */
 const TIME_ZONE = "Asia/Singapore";
 
