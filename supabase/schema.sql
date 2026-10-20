@@ -365,14 +365,18 @@ create table event_slot (
   event_id  bigint not null references event (event_id) on delete cascade,
   slot_date date   not null,
   slot_code text   not null references slot (slot_code) on delete restrict,
-  primary key (event_id, slot_date, slot_code)
+  primary key (event_id, slot_date, slot_code),
+  constraint event_slot_fifteen_minute_chk check (slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
+-- 15-minute codes only (SPM-326, 2026-10-20): AM, PM and Night rows became the
+-- codes they cover. Screens join touching slots back into start and end times.
 
 create table session_slot (
   session_id bigint not null references session (session_id) on delete cascade,
   slot_date  date   not null,
   slot_code  text   not null references slot (slot_code) on delete restrict,
-  primary key (session_id, slot_date, slot_code)
+  primary key (session_id, slot_date, slot_code),
+  constraint session_slot_fifteen_minute_chk check (slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
 
 -- ---------------------------------------------------------------------------
