@@ -125,7 +125,7 @@ describe("awaitsSafetyCheck with essential lines (SPM-319)", () => {
     expect(awaitsSafetyCheck(candidate({ equipmentLines: [line(), optional(gap)] }))).toBe(true);
   });
 
-  it("AC1: still needs SPM-259's venue rule: a non-essential gap does not list an event with a booking on hold", () => {
+  it("AC1: still needs the venue rule: a non-essential gap does not list an event with a booking on hold", () => {
     expect(
       awaitsSafetyCheck(
         candidate({
@@ -169,7 +169,7 @@ describe("awaitsSafetyCheck with essential lines (SPM-319)", () => {
     ).toBe(true);
   });
 
-  it("AC3: marking the only unreserved line non-essential puts the event on the list (SPM-262 sees it enter)", () => {
+  it("AC3: marking the only unreserved line non-essential puts the event on the list, as the safety watch sees it", () => {
     const gap = { state: "Requested", quantityReserved: 0 } as const;
     expect(
       entersSafetyCheck(
