@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bookingCancellable,
+  cancelBooking,
   checkLayoutCapacity,
   chooseLayoutChange,
   chooseRoomLayout,
@@ -17,6 +19,7 @@ import {
   type SlotOnDate,
 } from "./booking";
 import {
+  BookingNotCancellableError,
   BookingNotDecidableError,
   BookingRoomLayoutNotChangeableError,
   DecisionReasonRequiredError,
@@ -747,5 +750,28 @@ describe("holdsSlot with an Expired booking (SPM-253)", () => {
   it("an Expired booking holds nothing, whatever its stored expiry says (AC2, AC4)", () => {
     expect(holdsSlot({ status: "Expired", holdExpiresAt: AFTER_NOW }, NOW)).toBe(false);
     expect(holdsSlot({ status: "Expired", holdExpiresAt: null }, NOW)).toBe(false);
+  });
+});
+
+describe("cancelBooking (SPM-20)", () => {
+  it("a Confirmed booking becomes Released, and its slots stop being held (AC2)", () => {
+    const status = cancelBooking({ status: "Confirmed" });
+
+    expect(status).toBe("Released");
+    expect(holdsSlot({ status, holdExpiresAt: null }, NOW)).toBe(false);
+  });
+
+  it("can cancel at any stage: a pending request or a hold is Released too (AC1)", () => {
+    expect(bookingCancellable("Requested")).toBe(true);
+    expect(cancelBooking({ status: "Requested" })).toBe("Released");
+    expect(bookingCancellable("Tentative Hold")).toBe(true);
+    expect(cancelBooking({ status: "Tentative Hold" })).toBe("Released");
+  });
+
+  it("refuses a booking that already holds nothing", () => {
+    for (const status of ["Rejected", "Released", "Cancelled", "Expired"] as const) {
+      expect(bookingCancellable(status)).toBe(false);
+      expect(() => cancelBooking({ status })).toThrow(BookingNotCancellableError);
+    }
   });
 });

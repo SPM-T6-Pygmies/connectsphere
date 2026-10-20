@@ -1,5 +1,11 @@
-import type { BookingId, BookingRequest, OccupiedSlot } from "@/core/domain/booking";
 import {
+  bookingCancellable,
+  type BookingId,
+  type BookingRequest,
+  type OccupiedSlot,
+} from "@/core/domain/booking";
+import {
+  BookingNotCancellableError,
   BookingNotFoundError,
   BookingRoomLayoutNotChangeableError,
   VenueSlotBlockedError,
@@ -125,6 +131,18 @@ export class InMemoryBookingRepository implements BookingRepository {
       throw new BookingRoomLayoutNotChangeableError(booking.status);
     }
     this.rows[index] = { ...booking, roomLayoutName: roomLayout };
+  }
+
+  async cancel(_coordinatorId: UserAccountId, bookingId: string): Promise<void> {
+    const index = this.rows.findIndex((booking) => booking.id === bookingId);
+    if (index === -1) {
+      throw new BookingNotFoundError(bookingId);
+    }
+    const booking = this.rows[index];
+    if (!bookingCancellable(booking.status)) {
+      throw new BookingNotCancellableError(booking.status);
+    }
+    this.rows[index] = { ...booking, status: "Released" };
   }
 
   /** Test helper: everything stored, submitted rows included. */
