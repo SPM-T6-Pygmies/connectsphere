@@ -336,10 +336,16 @@ create table slot (
   slot_code  text primary key,
   start_time time not null,
   end_time   time not null,
-  constraint slot_code_chk check (slot_code in ('AM', 'PM', 'Night')),
+  constraint slot_code_chk check (
+    slot_code in ('AM', 'PM', 'Night')
+    or slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$'
+  ),
   constraint slot_time_order_chk check (end_time > start_time)
 );
--- Seeded: AM 07:00-12:00, PM 13:00-18:00, Night 19:00-24:00 (2026-10-15).
+-- Seeded: AM 07:00-12:00, PM 13:00-18:00, Night 19:00-24:00 (2026-10-15),
+-- and the 15-minute grid: '0' (00:00-00:15) to '95' (23:45-24:00)
+-- (SPM-331, 2026-10-20). The slot tables move from AM/PM/Night to the
+-- 15-minute codes one story at a time; SPM-328 then drops the three codes.
 
 create table venue_slot (
   venue_id  bigint not null references venue (venue_id) on delete cascade,
