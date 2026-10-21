@@ -106,4 +106,12 @@ export interface CoordinatorEventRepository {
    * the completion and any notes change against the coordinator.
    */
   completeEvent(coordinatorId: UserAccountId, eventId: string, notes: string | null): Promise<void>;
+
+  /**
+   * SPM-55: marks the event Cancelled and, in the same transaction, gives back everything it
+   * holds at a venue: Confirmed bookings and live holds are Released, lapsed holds Expired, and
+   * pending requests Cancelled. The caller has already decided the event can be cancelled; this
+   * re-checks the assignment and status, and audits each change against the coordinator.
+   */
+  cancelEvent(coordinatorId: UserAccountId, eventId: string): Promise<void>;
 }

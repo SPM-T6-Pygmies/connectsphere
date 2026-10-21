@@ -69,7 +69,7 @@ export interface AuditedEventChange {
   readonly newValue: string | null;
 }
 
-/** One audited action on an event, as `coordinator_complete_event` writes it to `audit_record`. */
+/** One audited action on an event, as `coordinator_complete_event` and `coordinator_cancel_event` write it to `audit_record`. */
 export interface AuditedEventAction {
   readonly actorUserAccountId: string;
   readonly eventId: string;
@@ -252,7 +252,23 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
     };
   }
 
-  /** Test-only window on the actions `completeEvent` audited. */
+  /**
+   * Stores the Cancelled status and audits the cancellation against the coordinator. The
+   * status check the database restates is the domain's, already made. The event's bookings
+   * live in another store, so releasing them is not modelled in memory.
+   */
+  async cancelEvent(coordinatorId: UserAccountId, eventId: string): Promise<void> {
+    const index = this.rows.findIndex(
+      (row) => row.id === eventId && row.assignedCoordinatorUserAccountId === coordinatorId,
+    );
+    if (index === -1) {
+      throw new CoordinatorEventNotFoundError(eventId);
+    }
+    this.activity.push({ actorUserAccountId: coordinatorId, eventId, action: "cancelled" });
+    this.rows[index] = { ...this.rows[index], status: "Cancelled" };
+  }
+
+  /** Test-only window on the actions `completeEvent` and `cancelEvent` audited. */
   activityTrail(): readonly AuditedEventAction[] {
     return [...this.activity];
   }

@@ -1,5 +1,6 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
+import { canCancel } from "../domain/event-cancellation";
 import { canComplete, eventEndsAt } from "../domain/event-completion";
 import {
   assessReadiness,
@@ -45,6 +46,8 @@ export interface ViewCoordinatorEventResult {
   readonly canComplete: boolean;
   /** SPM-326 AC3: the ISO instant its latest end time passes, or null while it has no times. */
   readonly endsAt: string | null;
+  /** SPM-55: whether the event can still be cancelled -- any stage before it is over. */
+  readonly canCancel: boolean;
 }
 
 export interface ViewCoordinatorEventDeps {
@@ -108,6 +111,7 @@ export class ViewCoordinatorEventUseCase {
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
       endsAt: eventEndsAt(details)?.toISOString() ?? null,
+      canCancel: canCancel(details),
     };
   }
 }
