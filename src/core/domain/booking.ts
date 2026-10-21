@@ -1,5 +1,6 @@
 import type { Brand } from "./brand";
 import {
+  BookingNotCancellableError,
   BookingNotDecidableError,
   BookingRoomLayoutNotChangeableError,
   DecisionReasonRequiredError,
@@ -427,4 +428,27 @@ export function resolveHold(
     status: resolution === "confirm" ? "Confirmed" : "Released",
     resolvedBy,
   };
+}
+
+/**
+ * SPM-20: whether the assigned coordinator can still cancel a booking -- one
+ * that holds its slots, or may yet: a pending request, a hold or a confirmed
+ * booking. A rejected, released, cancelled or expired one holds nothing, so
+ * there is nothing left to free.
+ */
+export function bookingCancellable(status: BookingStatus): boolean {
+  return status === "Requested" || status === "Tentative Hold" || status === "Confirmed";
+}
+
+/**
+ * SPM-20: the assigned Event Coordinator cancels a booking, at any stage of
+ * the event (AC1). It becomes Released, which frees its slots at once, since
+ * `holdsSlot` counts only a live hold or a confirmed booking (AC2). Whether the
+ * coordinator is the event's is the use case's check, not this rule's.
+ */
+export function cancelBooking(booking: { readonly status: BookingStatus }): "Released" {
+  if (!bookingCancellable(booking.status)) {
+    throw new BookingNotCancellableError(booking.status);
+  }
+  return "Released";
 }

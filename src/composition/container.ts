@@ -60,6 +60,7 @@ import { SetEventRegistrationUseCase } from "@/core/use-cases/set-event-registra
 import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-required-facilities";
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
+import { CancelVenueBookingUseCase } from "@/core/use-cases/cancel-venue-booking";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
@@ -610,6 +611,11 @@ export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBooki
 /** SPM-104: the assigned coordinator moves a pending booking request to another layout. */
 export async function buildChangeBookingRoomLayout(): Promise<ChangeBookingRoomLayoutUseCase> {
   return new ChangeBookingRoomLayoutUseCase(await venueBookingAdapters());
+}
+
+/** SPM-20: the assigned coordinator cancels a venue booking, freeing its slots. */
+export async function buildCancelVenueBooking(): Promise<CancelVenueBookingUseCase> {
+  return new CancelVenueBookingUseCase(await venueBookingAdapters());
 }
 
 /** SPM-247: the assigned coordinator records the facilities an event needs. */

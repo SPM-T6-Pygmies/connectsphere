@@ -30,7 +30,7 @@ export interface EventBookingSummary {
 /**
  * Driven port: venue bookings and the slots they sit on.
  *
- * `submit` and `changeRoomLayout` are the only writes. The store restates the request's rules at its
+ * `submit`, `changeRoomLayout` and `cancel` are the only writes. The store restates the request's rules at its
  * own boundary, so a race the use case could not see is still refused.
  */
 export interface BookingRepository {
@@ -49,4 +49,9 @@ export interface BookingRepository {
     bookingId: string,
     roomLayout: string | null,
   ): Promise<void>;
+  /**
+   * SPM-20: release a booking on one of the coordinator's events, freeing its
+   * slots. The store restates `cancelBooking`'s rule at its own boundary.
+   */
+  cancel(coordinatorId: UserAccountId, bookingId: string): Promise<void>;
 }

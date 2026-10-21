@@ -6,6 +6,7 @@ import {
   type SlotOnDate,
 } from "@/core/domain/booking";
 import {
+  BookingNotCancellableError,
   BookingNotFoundError,
   BookingRoomLayoutNotChangeableError,
   CoordinatorEventNotFoundError,
@@ -50,6 +51,9 @@ const SLOT_BLOCKED = "CS028";
 // SQLSTATEs raised by coordinator_change_booking_room_layout (CS022 and CS023 are shared).
 const BOOKING_NOT_FOUND = "CS026";
 const BOOKING_NOT_PENDING = "CS027";
+
+// Raised by coordinator_cancel_booking (CS026 is shared).
+const BOOKING_NOT_CANCELLABLE = "CS075";
 
 /**
  * Reached through `security definer` functions, not the tables: `booking`
@@ -183,6 +187,37 @@ export class SupabaseBookingRepository implements BookingRepository {
               cause: error,
             },
           );
+      }
+    }
+  }
+
+  /**
+   * SPM-20: the function re-checks that the booking is on one of the
+   * coordinator's events and still holds its slots, under the same lock on the
+   * venue a request and a decision take, and writes the audit record in the
+   * same transaction.
+   */
+  async cancel(coordinatorId: UserAccountId, bookingId: string): Promise<void> {
+    const coordinator = toKey(coordinatorId);
+    const booking = toKey(bookingId);
+    if (coordinator === null || booking === null) {
+      // No row this store issued has an id like that.
+      throw new BookingNotFoundError(bookingId);
+    }
+
+    const { error } = await this.client.rpc("coordinator_cancel_booking", {
+      p_coordinator_user_account_id: coordinator,
+      p_booking_id: booking,
+    });
+    if (error) {
+      switch (error.code) {
+        case BOOKING_NOT_FOUND:
+          throw new BookingNotFoundError(bookingId);
+        case BOOKING_NOT_CANCELLABLE:
+          // The use case read the status a moment ago; it moved since.
+          throw new BookingNotCancellableError("decided");
+        default:
+          throw new Error(`Failed to cancel the booking: ${error.message}`, { cause: error });
       }
     }
   }

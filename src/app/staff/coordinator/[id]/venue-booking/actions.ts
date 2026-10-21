@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
+import { cancelVenueBookingSchema } from "@/adapters/inbound/cancel-venue-booking-schema";
 import { changeBookingRoomLayoutSchema } from "@/adapters/inbound/change-booking-room-layout-schema";
 import { setEventRequiredFacilitiesSchema } from "@/adapters/inbound/set-event-required-facilities-schema";
 import { submitVenueBookingRequestSchema } from "@/adapters/inbound/submit-venue-booking-request-schema";
 import {
+  buildCancelVenueBooking,
   buildChangeBookingRoomLayout,
   buildSetEventRequiredFacilities,
   buildSubmitVenueBookingRequest,
@@ -168,4 +170,52 @@ export async function setEventRequiredFacilitiesAction(
   revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
 
   return { status: "saved" };
+}
+
+export type CancelVenueBookingState =
+  | { status: "idle" }
+  | { status: "cancelled"; bookingId: string; venueLocation: string }
+  | { status: "error"; message: string };
+
+/**
+ * SPM-20: the assigned Event Coordinator cancels a venue booking, freeing its
+ * slots. As with the other actions here, who is asking comes from
+ * `getCurrentCoordinator()` on the server, never from the form, and a broken
+ * business rule comes back as a message.
+ */
+export async function cancelVenueBookingAction(
+  _previous: CancelVenueBookingState,
+  formData: FormData,
+): Promise<CancelVenueBookingState> {
+  const parsed = cancelVenueBookingSchema.safeParse({
+    eventId: String(formData.get("eventId") ?? ""),
+    eventRequestId: String(formData.get("eventRequestId") ?? ""),
+    bookingId: String(formData.get("bookingId") ?? ""),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the booking." };
+  }
+
+  const { eventRequestId, ...command } = parsed.data;
+
+  let cancelled: { bookingId: string; venueLocation: string };
+  try {
+    const coordinator = await getCurrentCoordinator();
+    if (coordinator === null) {
+      throw new CoordinatorEventNotFoundError(command.eventId);
+    }
+
+    const cancelVenueBooking = await buildCancelVenueBooking();
+    cancelled = await cancelVenueBooking.execute({ ...command, ...coordinator });
+  } catch (error) {
+    if (error instanceof DomainError) {
+      return { status: "error", message: error.message };
+    }
+    throw error;
+  }
+
+  revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
+
+  return { status: "cancelled", ...cancelled };
 }

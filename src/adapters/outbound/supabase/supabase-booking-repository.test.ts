@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import type { BookingRequest } from "@/core/domain/booking";
-import { VenueSlotBlockedError } from "@/core/domain/errors";
+import {
+  BookingNotCancellableError,
+  BookingNotFoundError,
+  VenueSlotBlockedError,
+} from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 
@@ -94,5 +98,49 @@ describe("SupabaseBookingRepository, lapsed holds (SPM-253)", () => {
     await new SupabaseBookingRepository(client).listForEvent(userAccountId("2"), "1");
 
     expect(calls.map((call) => call.name)).toEqual(["expire_lapsed_holds", "coordinator_event_bookings"]);
+  });
+});
+
+describe("SupabaseBookingRepository, cancelling a booking (SPM-20)", () => {
+  it("asks the database to cancel the booking for this coordinator", async () => {
+    const { client, calls } = fakeClient({ coordinator_cancel_booking: { data: null, error: null } });
+
+    await new SupabaseBookingRepository(client).cancel(userAccountId("2"), "12");
+
+    expect(calls).toEqual([
+      {
+        name: "coordinator_cancel_booking",
+        args: { p_coordinator_user_account_id: 2, p_booking_id: 12 },
+      },
+    ]);
+  });
+
+  it("reads a booking that is not on the coordinator's events as not found (AC1)", async () => {
+    const { client } = fakeClient({
+      coordinator_cancel_booking: { data: null, error: { code: "CS026", message: "No booking" } },
+    });
+
+    await expect(
+      new SupabaseBookingRepository(client).cancel(userAccountId("2"), "12"),
+    ).rejects.toBeInstanceOf(BookingNotFoundError);
+  });
+
+  it("reads a booking that moved on in the meantime as no longer cancellable", async () => {
+    const { client } = fakeClient({
+      coordinator_cancel_booking: { data: null, error: { code: "CS075", message: "Released" } },
+    });
+
+    await expect(
+      new SupabaseBookingRepository(client).cancel(userAccountId("2"), "12"),
+    ).rejects.toBeInstanceOf(BookingNotCancellableError);
+  });
+
+  it("never calls the database with an id it could not have issued", async () => {
+    const { client, calls } = fakeClient({});
+
+    await expect(
+      new SupabaseBookingRepository(client).cancel(userAccountId("2"), "booking"),
+    ).rejects.toBeInstanceOf(BookingNotFoundError);
+    expect(calls).toEqual([]);
   });
 });

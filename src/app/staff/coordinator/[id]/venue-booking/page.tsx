@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
+import { bookingCancellable } from "@/core/domain/booking";
 import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
 import type { VenueSuitability } from "@/core/domain/venue-suitability";
 import type {
@@ -33,6 +34,7 @@ import { formatSlotsOnDates } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
+import { CancelBookingForm } from "./cancel-booking-form";
 import { SuitabilityChecklist } from "../../../suitability-checklist";
 import { ChangeLayoutForm } from "./change-layout-form";
 import { FacilitiesNeededForm } from "./facilities-needed-form";
@@ -127,8 +129,18 @@ function BookingsTable({
                   />
                 )}
               </TableCell>
-              <TableCell>
-                <StatusBadge status={booking.status} />
+              <TableCell className="whitespace-normal">
+                <div className="space-y-2">
+                  <StatusBadge status={booking.status} />
+                  {bookingCancellable(booking.status) ? (
+                    <CancelBookingForm
+                      eventId={event.id}
+                      eventRequestId={eventRequestId}
+                      bookingId={booking.id}
+                      venueLocation={booking.venueLocation}
+                    />
+                  ) : null}
+                </div>
               </TableCell>
               <TableCell className="text-xs whitespace-normal">
                 <VenueStaffAnswer booking={booking} eventRequestId={eventRequestId} />
