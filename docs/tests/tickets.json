@@ -896,6 +896,11 @@
       "title": "Test and verify opening hours against AC1–AC5",
       "parent": "SPM-320",
       "status": "In Progress"
+    },
+    "SPM-459": {
+      "title": "Move venue booking into the coordinator event page's Venue tab",
+      "parent": null,
+      "status": "In Progress"
     }
   }
 }
