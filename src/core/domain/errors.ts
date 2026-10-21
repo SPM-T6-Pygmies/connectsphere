@@ -269,6 +269,21 @@ export class PreferredDateNotInFutureError extends DomainError {
   }
 }
 
+/**
+ * SPM-327 AC1: a preferred start or end time that is not on the 15-minute
+ * grid, or an end that is not after the start. `field` is the one to point at.
+ */
+export class InvalidPreferredTimeError extends DomainError {
+  readonly code = "invalid_preferred_time";
+
+  constructor(
+    readonly field: "preferredStartTime" | "preferredEndTime",
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 export class InvalidCredentialsError extends DomainError {
   readonly code = "invalid_credentials";
 
@@ -1142,12 +1157,12 @@ export class EventNotCancellableError extends DomainError {
   }
 }
 
-/** SPM-51: an event can be marked completed only once its last timeslot has ended. */
+/** SPM-51, SPM-326 AC3: an event can be marked completed only once its latest end time has passed. */
 export class EventNotYetEndedError extends DomainError {
   readonly code = "event_not_yet_ended";
 
   constructor() {
-    super("This event can be marked completed only after its last timeslot ends.");
+    super("This event can be marked completed only after its latest end time.");
   }
 }
 

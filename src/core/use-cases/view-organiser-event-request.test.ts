@@ -188,3 +188,29 @@ describe("ViewOrganiserEventRequestUseCase assigned coordinator", () => {
     expect(result?.assignedCoordinatorName).toBeNull();
   });
 });
+
+describe("ViewOrganiserEventRequestUseCase event times (SPM-326)", () => {
+  it("AC6: shows the Organiser each date's start and end time once the request is an event", async () => {
+    const useCase = buildUseCase([request({ status: "Approved" })]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.eventTimes).toEqual([{ date: "2026-11-04", start: "09:00", end: "17:00" }]);
+  });
+
+  it("has no event times while the request is still being decided", async () => {
+    const useCase = buildUseCase([request({ status: "Submitted" })]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.eventTimes).toBeNull();
+  });
+});

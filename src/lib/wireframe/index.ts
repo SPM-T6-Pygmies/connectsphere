@@ -6,7 +6,7 @@
  * real use cases, these are the call sites that change.
  */
 
-import { ACTING_AS, EVENTS, VENUES } from "./fixtures";
+import { ACTING_AS, EVENTS } from "./fixtures";
 import { ACTIVITY } from "./activity";
 import type { NotificationTrigger } from "./notifications";
 import type {
@@ -211,41 +211,6 @@ export function blockingArrangements(
   return event.arrangements.filter(
     (arrangement) => arrangement.essential && !arrangement.complete,
   );
-}
-
-export function canConfirm(event: EventRecord): boolean {
-  return (
-    event.status !== "Confirmed" &&
-    event.status !== "Completed" &&
-    event.status !== "Cancelled" &&
-    blockingArrangements(event).length === 0
-  );
-}
-
-/**
- * Whether registration settings are editable.
- *
- * Registration sits downstream of confirmation (brief s5 step 11), so the
- * panel stays locked until the event is Confirmed. Mirrors the first clause of
- * `isOpenForRegistration` in the core domain.
- */
-export function registrationUnlocked(event: EventRecord): boolean {
-  return event.status === "Confirmed";
-}
-
-export function liveRegistrations(event: EventRecord): number {
-  return event.registrations.filter(
-    (registration) => registration.status === "Registered",
-  ).length;
-}
-
-/** Venues that could plausibly host the event, for the coordinator's Venue tab. */
-export function candidateVenues(event: EventRecord) {
-  const needed = event.request.expectedAttendance ?? 0;
-  return VENUES.map((venue) => ({
-    venue,
-    sufficientCapacity: (venue.capacity ?? 0) >= needed,
-  }));
 }
 
 // --- Sidebar list pane -----------------------------------------------------

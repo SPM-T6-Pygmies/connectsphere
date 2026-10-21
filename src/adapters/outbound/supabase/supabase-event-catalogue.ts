@@ -4,7 +4,7 @@ import type { EventCatalogue } from "@/core/ports/outbound/event-catalogue";
 import type { SupabaseServerClient } from "./client";
 import {
   EVENT_COLUMNS,
-  slotsByEvent,
+  timesByEvent,
   toDomain,
   toKey,
   type EventRow,
@@ -71,10 +71,10 @@ export class SupabaseEventCatalogue implements EventCatalogue {
       throw new Error(`Failed to read event slots: ${error.message}`, { cause: error });
     }
 
-    const slots = slotsByEvent((data ?? []) as unknown as EventSlotRow[]);
+    const times = timesByEvent((data ?? []) as unknown as EventSlotRow[]);
     return rows.flatMap((row) => {
-      const eventSlots = slots.get(row.event_id);
-      return eventSlots === undefined ? [] : [toDomain(row, eventSlots)];
+      const eventTimes = times.get(row.event_id);
+      return eventTimes === undefined ? [] : [toDomain(row, eventTimes)];
     });
   }
 }

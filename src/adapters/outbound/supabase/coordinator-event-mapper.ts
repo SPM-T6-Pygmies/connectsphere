@@ -1,6 +1,6 @@
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 
-import { toDate, toSlot } from "./booking-mapper";
+import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import type { OrdinaryEventChanges, OrdinaryEventField } from "@/core/domain/event-details-edit";
@@ -32,7 +32,7 @@ export interface CoordinatorEventDetailsRow extends CoordinatorEventRow {
    * The `event_slots(event)` computed field, selected with `EVENT_SLOTS_SELECT`.
    * Absent when the query did not ask for it.
    */
-  event_slots?: ReadonlyArray<{ date: string; slot: string }> | null;
+  event_slots?: readonly EventSlotTimeRow[] | null;
   expected_attendance: number | null;
   venue_requirements: string | null;
   room_layout_preference: string | null;
@@ -103,10 +103,7 @@ export function toCoordinatorEventDetails(row: CoordinatorEventDetailsRow): Coor
     name: row.name,
     status: toStatus(row.status),
     preferredDate: row.preferred_date,
-    slots: (row.event_slots ?? []).map((slot) => ({
-      date: toDate(slot.date),
-      slot: toSlot(slot.slot),
-    })),
+    times: toEventTimes(row.event_slots ?? []),
     expectedAttendance: row.expected_attendance,
     venueRequirements: row.venue_requirements,
     roomLayoutPreference: row.room_layout_preference,

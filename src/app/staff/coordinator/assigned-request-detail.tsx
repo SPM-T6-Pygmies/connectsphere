@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { EventTimes } from "@/app/events/event-times";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,9 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type {
-  CoordinatorRequestState,
-  CoordinatorSection,
+import {
+  preferredTimeRange,
+  type CoordinatorRequestState,
+  type CoordinatorSection,
 } from "@/core/domain/event-request";
 import type {
   ClarificationMessageView,
@@ -102,8 +104,7 @@ export function AssignedRequestDetail({
   // returnable, so the same requests carry both sets of controls.
   const undecided = state === "awaiting-decision" || state === "with-organiser";
 
-  const preferredSlots =
-    details.preferredSlots.length > 0 ? details.preferredSlots.join(", ") : null;
+  const preferredTime = preferredTimeRange(details);
 
   return (
     <StaffShell
@@ -133,7 +134,10 @@ export function AssignedRequestDetail({
               <FieldList
                 fields={[
                   { label: "Preferred date", value: details.preferredDate },
-                  { label: "Preferred slots", value: preferredSlots },
+                  {
+                    label: "Preferred time",
+                    value: preferredTime === null ? null : <EventTimes times={[preferredTime]} />,
+                  },
                   { label: "Expected attendance", value: details.expectedAttendance },
                   { label: "Room layout", value: details.roomLayoutPreferences },
                   { label: "Description", value: details.description },

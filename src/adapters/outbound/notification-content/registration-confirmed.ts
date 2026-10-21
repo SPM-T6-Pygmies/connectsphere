@@ -1,11 +1,12 @@
-import { SLOT_HOURS, type SlotOnDate } from "@/core/domain/booking";
+import { rangeEndsAt, rangeStartsAt, type TimeRangeOnDate } from "@/core/domain/event-times";
 import type { RegistrationConfirmedNotice } from "@/core/ports/outbound/notifier";
 
 import type { NotificationMessage } from "./coordinator-assigned";
 
 // Mirrors `src/app/events/format-event-time.ts`, which an outbound adapter may
-// not import, so the email reads the date and time exactly as the on-screen
-// confirmation does (SPM-87 AC2).
+// not import, so the email reads the date and time as the on-screen
+// confirmation does (SPM-87 AC2). An email has no viewer timezone to follow,
+// so it stays in venue time and names the zone (SPM-326).
 const TIME_ZONE = "Asia/Singapore";
 const fullDateFormat = new Intl.DateTimeFormat("en-SG", {
   timeZone: TIME_ZONE,
@@ -22,16 +23,16 @@ const timeFormat = new Intl.DateTimeFormat("en-SG", {
   hour12: true,
 });
 
-function slotTimes(slots: readonly SlotOnDate[]): string {
-  const multiDay = slots.some((slot) => slot.date !== slots[0].date);
-  return slots
-    .map(({ date, slot }) => {
-      const { start, end } = SLOT_HOURS[slot];
-      const startsAt = new Date(`${date}T${start}:00+08:00`);
-      const hours = `${slot} (${timeFormat.format(startsAt)} – ${timeFormat.format(new Date(`${date}T${end}:00+08:00`))})`;
+function eventTimes(times: readonly TimeRangeOnDate[]): string {
+  const multiDay = times.some((range) => range.date !== times[0].date);
+  const ranges = times
+    .map((range) => {
+      const startsAt = rangeStartsAt(range);
+      const hours = `${timeFormat.format(startsAt)} – ${timeFormat.format(rangeEndsAt(range))}`;
       return multiDay ? `${dayMonthFormat.format(startsAt)} ${hours}` : hours;
     })
     .join(", ");
+  return `${ranges} (GMT+8)`;
 }
 
 // Event and attendee names are typed by people, and the body is HTML.
@@ -59,7 +60,7 @@ export function registrationConfirmedEmail(
     `<p>You're registered for <strong>${escapeHtml(notice.eventName)}</strong>.</p>`,
     "<p>",
     `Date: ${escapeHtml(fullDateFormat.format(new Date(notice.startsAt)))}<br>`,
-    `Time: ${escapeHtml(slotTimes(notice.slots))}<br>`,
+    `Time: ${escapeHtml(eventTimes(notice.times))}<br>`,
     `Venue: ${escapeHtml(notice.venueName ?? "Venue to be confirmed")}`,
     "</p>",
     "<p>Use this link to check or withdraw your registration:<br>",

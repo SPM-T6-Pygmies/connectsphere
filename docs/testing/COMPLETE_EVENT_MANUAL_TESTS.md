@@ -7,9 +7,10 @@ as Completed from the **Confirmation** card of
 `/staff/coordinator/events/<id>`, with operational notes recorded at the same
 time.
 
-- Only a **Confirmed** event can be completed, and only once its **last
-  timeslot has ended** (Singapore time). An event with no timeslots cannot be
-  completed.
+- Only a **Confirmed** event can be completed, and only once its **latest
+  end time has passed** (SPM-326). An event with no times cannot be completed.
+- Times are stored as 15-minute slots: `event_slot.slot_code` `'0'`–`'95'`,
+  where `'52'`–`'71'` is 1:00 pm–6:00 pm.
 - The notes are written to the event's internal (operational) notes. Blank
   notes keep the ones already there.
 - Auto-completion 7 days after the event is out of scope.
@@ -66,8 +67,8 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
      join event_request r on r.event_request_id = e.event_request_id
     where r.event_name = 'Operations Roadmap Conference';
    ```
-3. Confirm it, give it a note, and move its only timeslot to yesterday
-   afternoon so it has ended:
+3. Confirm it, give it a note, and move its times to yesterday afternoon
+   (1:00 pm–6:00 pm) so it has ended:
    ```sql
    update event
       set status = 'Confirmed',
@@ -76,7 +77,7 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
    delete from event_slot where event_id = <event>;
    insert into event_slot (event_id, slot_date, slot_code)
-   values (<event>, current_date - 1, 'PM');
+   select <event>, current_date - 1, n::text from generate_series(52, 71) as n;
    ```
 
 ---
@@ -113,12 +114,12 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ### TC-COMPLETE-002: Before the event ends, Mark completed is disabled
 
-**Preconditions:** Event set up as above, then move its timeslot to tomorrow:
+**Preconditions:** Event set up as above, then move its times to tomorrow:
 ```sql
 update event set status = 'Confirmed' where event_id = <event>;
 delete from event_slot where event_id = <event>;
 insert into event_slot (event_id, slot_date, slot_code)
-values (<event>, current_date + 1, 'PM');
+select <event>, current_date + 1, n::text from generate_series(52, 71) as n;
 ```
 
 **Steps:**
@@ -126,10 +127,10 @@ values (<event>, current_date + 1, 'PM');
 
 **Expected Result:**
 - "Already confirmed", with **Mark completed** disabled and "Available after
-  the event ends." under it
+  <tomorrow's date>, 6:00 pm." under it, in the browser's timezone
 - Clicking the button opens nothing
 
-Afterwards, put the timeslot back to `current_date - 1`.
+Afterwards, put the times back to `current_date - 1`.
 
 **Status:** [x] Pass [ ] Fail
 

@@ -30,7 +30,8 @@ describe("NovuNotifier (SPM-178)", () => {
     eventName: "Quarterly Partner Forum",
     clientOrganisationName: null,
     preferredDate: null,
-    preferredSlots: [],
+    preferredStartTime: null,
+    preferredEndTime: null,
   };
 
   function novuThatAccepts() {
@@ -64,7 +65,7 @@ describe("NovuNotifier registration email (SPM-305)", () => {
     attendeeName: "Ada Lovelace",
     eventName: "Pygmies Product Summit",
     startsAt: "2026-09-30T23:00:00.000Z",
-    slots: [{ date: "2026-10-01", slot: "AM" as const }],
+    times: [{ date: "2026-10-01", start: "07:00", end: "12:00" }],
     venueName: null,
   };
 

@@ -15,6 +15,7 @@ import type {
   EventRequestId,
   NewEventRequest,
 } from "@/core/domain/event-request";
+import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   EventRequestRepository,
@@ -22,8 +23,9 @@ import type {
 } from "@/core/ports/outbound/event-request-repository";
 
 import type { SupabaseServerClient } from "./client";
+import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
 import {
-  PREFERRED_SLOTS_SELECT,
+  PREFERRED_TIME_SELECT,
   toAssignEventCoordinatorArgs,
   toDecideArgs,
   toDeleteArgs,
@@ -73,7 +75,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
   async listAll(): Promise<readonly EventRequest[]> {
     const { data, error } = await this.client
       .rpc("operations_event_requests")
-      .select(PREFERRED_SLOTS_SELECT);
+      .select(PREFERRED_TIME_SELECT);
 
     if (error) {
       throw new Error(`Failed to list all event requests: ${error.message}`, { cause: error });
@@ -93,7 +95,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     const { data, error } = await this.client
       .rpc("organiser_event_requests", { p_client_organisation_id: key })
-      .select(PREFERRED_SLOTS_SELECT);
+      .select(PREFERRED_TIME_SELECT);
 
     if (error) {
       throw new Error(`Failed to list event requests: ${error.message}`, { cause: error });
@@ -139,7 +141,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     const { data, error } = await this.client
       .rpc("coordinator_event_requests", { p_coordinator_user_account_id: key })
-      .select(PREFERRED_SLOTS_SELECT);
+      .select(PREFERRED_TIME_SELECT);
 
     if (error) {
       throw new Error(`Failed to list assigned event requests: ${error.message}`, { cause: error });
@@ -157,7 +159,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     const { data, error } = await this.client
       .rpc("organiser_event_request", { p_event_request_id: key })
-      .select(PREFERRED_SLOTS_SELECT)
+      .select(PREFERRED_TIME_SELECT)
       .single();
 
     if (error) {
@@ -173,6 +175,24 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
     return row && row.event_request_id !== null ? toDomain(row) : null;
   }
 
+  async findEventTimes(id: EventRequestId): Promise<readonly TimeRangeOnDate[] | null> {
+    const key = toKey(id);
+    if (key === null) {
+      return null;
+    }
+
+    const { data, error } = await this.client.rpc("organiser_event_request_times", {
+      p_event_request_id: key,
+    });
+
+    if (error) {
+      throw new Error(`Failed to read the event's times: ${error.message}`, { cause: error });
+    }
+
+    // Null until the request is approved and has an event.
+    return data === null ? null : toEventTimes(data as unknown as EventSlotTimeRow[]);
+  }
+
   /**
    * Inserts and reads the stored row straight back.
    *
@@ -183,7 +203,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
   async create(request: NewEventRequest): Promise<EventRequest> {
     const { data, error } = await this.client
       .rpc("organiser_submit_event_request", toSubmitArgs(request))
-      .select(PREFERRED_SLOTS_SELECT)
+      .select(PREFERRED_TIME_SELECT)
       .single();
 
     if (error) {

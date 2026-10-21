@@ -24,7 +24,8 @@ describe("coordinatorAssignedRow (SPM-177)", () => {
         eventName: "Founders' Day",
         clientOrganisationName: "Acme Holdings",
         preferredDate: "2026-11-04",
-        preferredSlots: [],
+        preferredStartTime: null,
+        preferredEndTime: null,
       }),
     ).toEqual({
       recipient_user_account_id: "7",

@@ -1,5 +1,6 @@
-import type { BookingSlot, SlotOnDate } from "../../domain/booking";
+import type { SlotOnDate } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
 /**
@@ -21,7 +22,9 @@ export interface EventCoordinatorAssignedNotice {
   readonly eventName: string;
   readonly clientOrganisationName: string | null;
   readonly preferredDate: string | null;
-  readonly preferredSlots: readonly BookingSlot[];
+  /** `HH:MM`, venue time (SPM-327); null when the request has no time yet. */
+  readonly preferredStartTime: string | null;
+  readonly preferredEndTime: string | null;
 }
 
 /**
@@ -231,9 +234,9 @@ export interface RegistrationConfirmedNotice {
   readonly recipientEmail: string;
   readonly attendeeName: string;
   readonly eventName: string;
-  /** ISO instant the first slot starts, as `AvailableEvent` gives it. */
+  /** ISO instant the event first starts, as `AvailableEvent` gives it. */
   readonly startsAt: string;
-  readonly slots: readonly SlotOnDate[];
+  readonly times: readonly TimeRangeOnDate[];
   readonly venueName: string | null;
 }
 

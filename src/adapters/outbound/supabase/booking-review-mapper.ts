@@ -4,6 +4,7 @@ import type { BookingForReview } from "@/core/ports/outbound/booking-review-repo
 
 import { toDate, toSlot, toStatus } from "./booking-mapper";
 import { toKey } from "./coordinator-event-mapper";
+import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
 
 /** One booking in the JSON `venue_staff_bookings()` returns. */
 export interface BookingReviewRow {
@@ -28,7 +29,7 @@ export interface BookingReviewRow {
     organisation_name: string | null;
     category: string | null;
     preferred_date: string | null;
-    slots: ReadonlyArray<{ date: string; slot: string }>;
+    slots: readonly EventSlotTimeRow[];
     expected_attendance: number | null;
     room_layout_preference: string | null;
     accessibility_requirements: string | null;
@@ -64,7 +65,7 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
       organisationName: row.event.organisation_name,
       category: row.event.category,
       preferredDate: row.event.preferred_date === null ? null : toDate(row.event.preferred_date),
-      slots: row.event.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
+      times: toEventTimes(row.event.slots),
       expectedAttendance: row.event.expected_attendance,
       roomLayoutPreference: row.event.room_layout_preference,
       accessibilityRequirements: row.event.accessibility_requirements,

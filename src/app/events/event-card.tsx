@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import type { AvailableEvent } from "@/core/use-cases/available-event";
 
-import { slotTimes } from "./format-event-time";
+import { EventTimes } from "./event-times";
 
 /**
  * One event in the list. The whole row is the link, so the tap target on a
@@ -22,7 +22,9 @@ export function EventCard({ event }: { event: AvailableEvent }) {
           <div className="flex items-center gap-1.5">
             <dt className="sr-only">Time</dt>
             <Clock aria-hidden className="size-3.5 shrink-0" />
-            <dd>{slotTimes(event.slots)}</dd>
+            <dd>
+              <EventTimes times={event.times} />
+            </dd>
           </div>
           {event.venueName ? (
             <div className="flex items-center gap-1.5">
