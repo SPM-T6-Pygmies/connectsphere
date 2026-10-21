@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { EventTimes } from "@/app/events/event-times";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -19,15 +20,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { BOOKING_SLOTS } from "@/core/domain/booking";
-import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
+import { MANDATORY_SUBMISSION_FIELDS, preferredTimeRange } from "@/core/domain/event-request";
+import { GRID_MINUTES, timeOfDay } from "@/core/domain/event-times";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
 import { PageHeader } from "../../page-header";
-import { slotLabel } from "../../slot-label";
 import {
   discardEventRequestDraftAction,
   saveEventRequestDraftAction,
@@ -50,6 +50,13 @@ const DISCARD_INITIAL: DiscardDraftState = { status: "idle" };
  * array changes in the domain and these markers follow.
  */
 const MANDATORY = new Set<string>(MANDATORY_SUBMISSION_FIELDS);
+
+/**
+ * The 15-minute grid (SPM-327 AC1): a start from 00:00 to 23:45 and an end from
+ * 00:15 to 24:00. Offering only these keeps a time off the grid out of the form.
+ */
+const START_TIMES = Array.from({ length: 96 }, (_, slot) => timeOfDay(slot * GRID_MINUTES));
+const END_TIMES = Array.from({ length: 96 }, (_, slot) => timeOfDay((slot + 1) * GRID_MINUTES));
 
 function isMandatory(field: FormField): boolean {
   return MANDATORY.has(field);
@@ -233,7 +240,8 @@ export function NewRequestForm({
             <CardHeader>
               <CardTitle>When and how many</CardTitle>
               <CardDescription>
-                Tell us your preferred date and the slots you need on it (Singapore time).
+                Tell us your preferred date and when the event starts and ends on it, in
+                venue time (GMT+8).
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -243,29 +251,50 @@ export function NewRequestForm({
                   value={values.preferredDate}
                   onChange={(date) => {
                     set("preferredDate", date);
-                    // A slot is stored against the date, so it cannot outlive it.
-                    if (date === "") set("preferredSlots", "");
+                    // The times are stored against the date, so they cannot outlive it.
+                    if (date === "") {
+                      set("preferredStartTime", "");
+                      set("preferredEndTime", "");
+                    }
                   }}
                   aria-invalid={errors?.preferredDate !== undefined}
                 />
                 <input type="hidden" name="preferredDate" value={values.preferredDate} />
               </Field>
-              <Field
-                id="preferredSlots"
-                label="Preferred slots"
-                required
-                hint={values.preferredDate === "" ? "Choose the date first." : undefined}
-                errors={errors?.preferredSlots}
-              >
-                <OptionCheckboxes
-                  name="preferredSlots"
-                  options={BOOKING_SLOTS}
-                  value={values.preferredSlots}
-                  onChange={(slots) => set("preferredSlots", slots)}
-                  label={slotLabel}
-                  disabled={values.preferredDate === ""}
-                />
-              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field
+                  id="preferredStartTime"
+                  label="Start time (GMT+8)"
+                  required
+                  errors={errors?.preferredStartTime}
+                >
+                  <OptionSelect
+                    id="preferredStartTime"
+                    name="preferredStartTime"
+                    options={START_TIMES}
+                    blank="--:--"
+                    aria-invalid={errors?.preferredStartTime !== undefined}
+                    value={values.preferredStartTime}
+                    onChange={(value) => set("preferredStartTime", value)}
+                  />
+                </Field>
+                <Field
+                  id="preferredEndTime"
+                  label="End time (GMT+8)"
+                  required
+                  errors={errors?.preferredEndTime}
+                >
+                  <OptionSelect
+                    id="preferredEndTime"
+                    name="preferredEndTime"
+                    options={END_TIMES}
+                    blank="--:--"
+                    aria-invalid={errors?.preferredEndTime !== undefined}
+                    value={values.preferredEndTime}
+                    onChange={(value) => set("preferredEndTime", value)}
+                  />
+                </Field>
+              </div>
               <Field
                 id="expectedAttendance"
                 label="Expected attendance"
@@ -565,7 +594,7 @@ function Acknowledgement({ result }: { result: SubmitEventRequestResult }) {
               value={`${formatInstantDate(result.submittedAt)}, ${formatInstantTime(result.submittedAt)}`}
             />
             <Recorded
-              label="Preferred date & slots"
+              label="Preferred date & time"
               value={preferredWhen(result.summary)}
               className="sm:col-span-2"
             />
@@ -586,7 +615,7 @@ function Recorded({
   className,
 }: {
   label: string;
-  value: string | null;
+  value: React.ReactNode;
   className?: string;
 }) {
   return (
@@ -617,11 +646,16 @@ function formatInstantTime(iso: string): string {
     .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
-/** One line: the calendar date the Organiser asked for, and the slots on it. */
-function preferredWhen(summary: SubmitEventRequestResult["summary"]): string | null {
-  if (!summary.preferredDate || summary.preferredSlots.length === 0) {
+/** One line: the calendar date the Organiser asked for, and the time on it in theirs. */
+function preferredWhen(summary: SubmitEventRequestResult["summary"]): React.ReactNode {
+  const range = preferredTimeRange(summary);
+  if (range === null) {
     return null;
   }
 
-  return `${formatCalendarDate(summary.preferredDate)}, ${summary.preferredSlots.join(", ")}`;
+  return (
+    <>
+      {formatCalendarDate(range.date)}, <EventTimes times={[range]} />
+    </>
+  );
 }

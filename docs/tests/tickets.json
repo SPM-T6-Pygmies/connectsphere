@@ -861,6 +861,11 @@
       "title": "Run events on start and end times",
       "parent": "SPM-276",
       "status": "Todo"
+    },
+    "SPM-327": {
+      "title": "Request an event with a preferred start and end time",
+      "parent": "SPM-276",
+      "status": "Todo"
     }
   }
 }

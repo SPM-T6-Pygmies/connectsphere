@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { preferredTimeRange } from "@/core/domain/event-request";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type {
   ClarificationMessageView,
@@ -92,8 +93,7 @@ export function SubmittedRequestDetail({
 }) {
   const { details } = eventRequest;
 
-  const preferredSlots =
-    details.preferredSlots.length > 0 ? details.preferredSlots.join(", ") : null;
+  const preferredTime = preferredTimeRange(details);
 
   return (
     <StaffShell
@@ -120,7 +120,10 @@ export function SubmittedRequestDetail({
               <FieldList
                 fields={[
                   { label: "Preferred date", value: details.preferredDate },
-                  { label: "Preferred slots", value: preferredSlots },
+                  {
+                    label: "Preferred time",
+                    value: preferredTime === null ? null : <EventTimes times={[preferredTime]} />,
+                  },
                   ...(eventTimes === null
                     ? []
                     : [{ label: "Event times", value: <EventTimes times={eventTimes} nameEveryDay /> }]),

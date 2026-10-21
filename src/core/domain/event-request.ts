@@ -1,4 +1,3 @@
-import { BOOKING_SLOTS, type BookingSlot } from "./booking";
 import type { Brand } from "./brand";
 import type { ClientOrganisationId } from "./client-organisation";
 import {
@@ -11,8 +10,10 @@ import {
   EventRequestNotWithdrawableError,
   IncompleteEventRequestError,
   InvalidEventRequestIdError,
+  InvalidPreferredTimeError,
   PreferredDateNotInFutureError,
 } from "./errors";
+import { END_OF_DAY, GRID_MINUTES, minutesOfDay, type TimeRangeOnDate } from "./event-times";
 import type { UserAccountId } from "./user-account";
 
 export type EventRequestId = Brand<string, "EventRequestId">;
@@ -36,9 +37,9 @@ export type EventRequestStatus =
  *
  * `preferredDate` is a string, not an instant, on purpose: the organiser is
  * stating a calendar preference, and a bare calendar date has no timezone to
- * hold an opinion about. `preferredSlots` are the day slots wanted on that
- * date (AM, PM, Night, Singapore time), stored one row each in
- * `event_request_slot` -- so a slot cannot be recorded without the date.
+ * hold an opinion about. `preferredStartTime` and `preferredEndTime` are one
+ * span on that date, in venue time (SPM-327); the store keeps it as the
+ * 15-minute slots it covers, so a time cannot be recorded without the date.
  *
  * `categoryType` is deliberately absent: the brief lists it under Event, not
  * Event Request, and `event_request` has no column for it. Adding it is a
@@ -50,8 +51,10 @@ export interface EventRequestDetails {
   readonly purpose: string | null;
   /** ISO calendar date, `YYYY-MM-DD`. */
   readonly preferredDate: string | null;
-  /** The slots wanted on `preferredDate`, in `BOOKING_SLOTS` order. Empty when none chosen yet. */
-  readonly preferredSlots: readonly BookingSlot[];
+  /** `HH:MM` on the 15-minute grid, venue time (GMT+8). */
+  readonly preferredStartTime: string | null;
+  /** `HH:MM` on the 15-minute grid, after the start; `24:00` is midnight at the end of the day. */
+  readonly preferredEndTime: string | null;
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreferences: string | null;
@@ -121,7 +124,8 @@ export function eventRequestId(raw: string): EventRequestId {
 export const MANDATORY_SUBMISSION_FIELDS = [
   "eventName",
   "preferredDate",
-  "preferredSlots",
+  "preferredStartTime",
+  "preferredEndTime",
   "expectedAttendance",
 ] as const satisfies ReadonlyArray<keyof EventRequestDetails>;
 
@@ -153,17 +157,51 @@ function isNotInTheFuture(preferredDate: string, now: Date, organiserTimeZone: s
 }
 
 /**
- * The details with their slots in day order, each once -- and refused if they
- * name slots with no date to hold them on, which the store cannot record.
+ * SPM-327 AC1: the preferred time, when there is one, is a single span on the
+ * preferred date and on the 15-minute grid, ending after it starts.
+ *
+ * Neither time is fine (a draft need not have them yet). Anything else must be
+ * a whole span the store can keep: it holds the time as the 15-minute slots
+ * between start and end on the date, so half a span, or a span with no date,
+ * has nowhere to go.
  */
-function withSlotsOnDate(details: EventRequestDetails): EventRequestDetails {
-  if (details.preferredSlots.length > 0 && isBlank(details.preferredDate)) {
+function assertPreferredTime(details: EventRequestDetails): void {
+  const { preferredDate, preferredStartTime: start, preferredEndTime: end } = details;
+  if (start === null && end === null) {
+    return;
+  }
+  if (isBlank(preferredDate)) {
     throw new IncompleteEventRequestError(["preferredDate"]);
   }
-  return {
-    ...details,
-    preferredSlots: BOOKING_SLOTS.filter((slot) => details.preferredSlots.includes(slot)),
-  };
+  if (start === null || end === null) {
+    throw new IncompleteEventRequestError([start === null ? "preferredStartTime" : "preferredEndTime"]);
+  }
+
+  const from = minutesOfDay(start);
+  if (from === null || from >= END_OF_DAY || from % GRID_MINUTES !== 0) {
+    throw new InvalidPreferredTimeError(
+      "preferredStartTime",
+      "Choose a start time on the quarter hour, from 00:00 to 23:45.",
+    );
+  }
+  const to = minutesOfDay(end);
+  if (to === null || to % GRID_MINUTES !== 0) {
+    throw new InvalidPreferredTimeError(
+      "preferredEndTime",
+      "Choose an end time on the quarter hour, up to 24:00.",
+    );
+  }
+  if (to <= from) {
+    throw new InvalidPreferredTimeError("preferredEndTime", "The end time must be after the start time.");
+  }
+}
+
+/** The preferred time as one range on the preferred date, or null while any part of it is missing. */
+export function preferredTimeRange(
+  details: Pick<EventRequestDetails, "preferredDate" | "preferredStartTime" | "preferredEndTime">,
+): TimeRangeOnDate | null {
+  const { preferredDate: date, preferredStartTime: start, preferredEndTime: end } = details;
+  return date === null || start === null || end === null ? null : { date, start, end };
 }
 
 /**
@@ -211,7 +249,9 @@ export function submitEventRequest(params: {
     throw new PreferredDateNotInFutureError(preferredDate);
   }
 
-  return { ...rest, details: withSlotsOnDate(rest.details), status: "Submitted" };
+  assertPreferredTime(rest.details);
+
+  return { ...rest, status: "Submitted" };
 }
 
 /**
@@ -222,7 +262,8 @@ export function submitEventRequest(params: {
  * which exists so an Organiser can save incomplete progress and come back to
  * it. The rules that still hold are the store's own: a request needs a name
  * (`event_name not null`) to be addressable in "My requests" at all, and a
- * slot needs the date it falls on (`event_request_slot.slot_date not null`).
+ * preferred time must be a whole span on a date, since it is stored as the
+ * slots it covers (`event_request_slot.slot_date not null`, SPM-327 AC2).
  */
 export function saveEventRequestDraft(params: {
   details: EventRequestDetails;
@@ -233,8 +274,10 @@ export function saveEventRequestDraft(params: {
     throw new IncompleteEventRequestError(["eventName"]);
   }
 
+  assertPreferredTime(params.details);
+
   return {
-    details: withSlotsOnDate(params.details),
+    details: params.details,
     clientOrganisationId: params.clientOrganisationId,
     responsibleOrganiserId: params.responsibleOrganiserId,
     status: "Draft",

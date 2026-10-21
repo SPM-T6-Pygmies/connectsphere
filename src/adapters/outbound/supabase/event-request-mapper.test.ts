@@ -26,7 +26,7 @@ describe("event request mapper", () => {
       description: "Client briefing",
       purpose: "Share the annual plan",
       preferred_date: "2026-12-10",
-      preferred_slots: ["AM", "PM"],
+      preferred_slots: ["36", "37", "38", "39"],
       expected_attendance: 240,
       venue_requirements: "Main hall",
       room_layout_preferences: "Theatre",
@@ -58,7 +58,8 @@ describe("event request mapper", () => {
         description: "Client briefing",
         purpose: "Share the annual plan",
         preferredDate: "2026-12-10",
-        preferredSlots: ["AM", "PM"],
+        preferredStartTime: "09:00",
+        preferredEndTime: "10:00",
         expectedAttendance: 240,
         venueRequirements: "Main hall",
         roomLayoutPreferences: "Theatre",
@@ -217,7 +218,7 @@ describe("toWithdrawArgs (SPM-168)", () => {
   });
 });
 
-describe("event request preferred slots", () => {
+describe("event request preferred time (SPM-327)", () => {
   const row: EventRequestRow = {
     event_request_id: 5,
     event_name: "Founders' Day",
@@ -241,24 +242,70 @@ describe("event request preferred slots", () => {
     updated_at: "2026-09-01T00:00:00.000Z",
   };
 
-  it("reads a row whose query did not select preferred_slots as having none", () => {
-    expect(toDomain(row).details.preferredSlots).toEqual([]);
+  it("reads a row whose query did not select preferred_slots as having no time", () => {
+    expect(toDomain(row).details).toMatchObject({ preferredStartTime: null, preferredEndTime: null });
   });
 
-  it("refuses a slot code the slot table should never hold", () => {
-    expect(() => toDomain({ ...row, preferred_slots: ["Evening"] })).toThrow(/Unknown slot/);
+  it("reads one slot as its own quarter hour", () => {
+    expect(toDomain({ ...row, preferred_slots: ["0"] }).details).toMatchObject({
+      preferredStartTime: "00:00",
+      preferredEndTime: "00:15",
+    });
   });
 
-  it("sends the slots, and no start or end time, when submitting and saving", () => {
+  it("reads the last slot of the day as ending at 24:00", () => {
+    expect(toDomain({ ...row, preferred_slots: ["94", "95"] }).details).toMatchObject({
+      preferredStartTime: "23:30",
+      preferredEndTime: "24:00",
+    });
+  });
+
+  it.each(["AM", "Night", "96", "-1"])("refuses %s, which is not a 15-minute slot", (code) => {
+    expect(() => toDomain({ ...row, preferred_slots: [code] })).toThrow(/Unknown slot/);
+  });
+
+  it("sends the slots from start up to end when submitting and saving", () => {
     const request = eventRequestFixture({
       id: eventRequestId("5"),
-      details: eventRequestDetails({ preferredSlots: ["PM", "Night"] }),
+      details: eventRequestDetails({ preferredStartTime: "09:15", preferredEndTime: "10:00" }),
     });
 
     for (const args of [toSubmitArgs(request), toSaveArgs(request)]) {
-      expect(args).toMatchObject({ p_preferred_date: "2026-11-04", p_preferred_slots: ["PM", "Night"] });
-      expect(args).not.toHaveProperty("p_preferred_start_time");
-      expect(args).not.toHaveProperty("p_preferred_end_time");
+      expect(args).toMatchObject({
+        p_preferred_date: "2026-11-04",
+        p_preferred_slots: ["37", "38", "39"],
+      });
     }
+  });
+
+  it("sends slots up to 95 for a span ending at 24:00", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("5"),
+      details: eventRequestDetails({ preferredStartTime: "23:15", preferredEndTime: "24:00" }),
+    });
+
+    expect(toSubmitArgs(request)).toMatchObject({ p_preferred_slots: ["93", "94", "95"] });
+  });
+
+  it("sends no slots for a draft with no time", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("5"),
+      details: eventRequestDetails({ preferredStartTime: null, preferredEndTime: null }),
+    });
+
+    expect(toSaveArgs(request)).toMatchObject({ p_preferred_slots: [] });
+  });
+
+  it("reads back what it sends", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("5"),
+      details: eventRequestDetails({ preferredStartTime: "07:00", preferredEndTime: "24:00" }),
+    });
+    const sent = toSubmitArgs(request).p_preferred_slots as string[];
+
+    expect(toDomain({ ...row, preferred_slots: sent }).details).toMatchObject({
+      preferredStartTime: "07:00",
+      preferredEndTime: "24:00",
+    });
   });
 });

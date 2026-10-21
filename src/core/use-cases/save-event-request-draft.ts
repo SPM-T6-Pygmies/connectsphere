@@ -1,4 +1,3 @@
-import type { BookingSlot } from "../domain/booking";
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
   eventRequestAccessFor,
@@ -28,7 +27,8 @@ export interface SaveEventRequestDraftCommand {
   readonly description: string | null;
   readonly purpose: string | null;
   readonly preferredDate: string | null;
-  readonly preferredSlots: readonly BookingSlot[];
+  readonly preferredStartTime: string | null;
+  readonly preferredEndTime: string | null;
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreferences: string | null;
@@ -53,7 +53,8 @@ function detailsOf(command: SaveEventRequestDraftCommand): EventRequestDetails {
     description: command.description,
     purpose: command.purpose,
     preferredDate: command.preferredDate,
-    preferredSlots: command.preferredSlots,
+    preferredStartTime: command.preferredStartTime,
+    preferredEndTime: command.preferredEndTime,
     expectedAttendance: command.expectedAttendance,
     venueRequirements: command.venueRequirements,
     roomLayoutPreferences: command.roomLayoutPreferences,
