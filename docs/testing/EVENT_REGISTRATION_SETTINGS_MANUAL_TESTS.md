@@ -61,9 +61,9 @@ Attendees have no account; they register by name and email, signed out.
 
 1. Sign in as `coordinator@test.com`, open **Operations Roadmap Conference**
    from `/staff/coordinator` and click **Approve**. This opens its event in
-   `Planning`. The seeded request has no timeslots, so the event has none.
+   `Planning`. The seeded request has no slots, so the event has no times.
 2. Find the event's ID, call it `<event>`, confirm it with registration off
-   and no window, and give it a morning slot on its preferred date so the
+   and no window, and give it a morning (7:00 am–12:00 pm) on its preferred date so the
    Attendee pages show a time:
    ```sql
    select e.event_id
@@ -78,8 +78,9 @@ Attendees have no account; they register by name and email, signed out.
           registration_close_date = null
     where event_id = <event>;
 
+   -- 15-minute slots '28'-'47' are 7:00 am-12:00 pm (SPM-326).
    insert into event_slot (event_id, slot_date, slot_code)
-   values (<event>, date '2026-11-25', 'AM');
+   select <event>, date '2026-11-25', n::text from generate_series(28, 47) as n;
    ```
 
 ---

@@ -1,5 +1,6 @@
 import { forbidden } from "next/navigation";
 
+import { EventTimes } from "@/app/events/event-times";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   buildViewAllEventCoordinators,
@@ -64,6 +65,7 @@ export default async function LeadEventPage({ params }: PageProps<"/staff/lead/e
               <FieldList
                 fields={[
                   { label: "Date", value: event.preferredDate },
+                  { label: "Times", value: <EventTimes times={event.times} nameEveryDay /> },
                   { label: "Coordinator", value: coordinatorName },
                 ]}
               />

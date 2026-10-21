@@ -36,7 +36,7 @@ function booking(status: BookingStatus, holdExpiresAt: string | null): BookingFo
       organisationName: null,
       category: null,
       preferredDate: null,
-      slots: [],
+      times: [],
       expectedAttendance: null,
       roomLayoutPreference: null,
       accessibilityRequirements: null,

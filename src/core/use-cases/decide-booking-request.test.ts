@@ -58,7 +58,7 @@ function booking(
       organisationName: null,
       category: null,
       preferredDate: null,
-      slots: [],
+      times: [],
       expectedAttendance: null,
       roomLayoutPreference: null,
       accessibilityRequirements: null,

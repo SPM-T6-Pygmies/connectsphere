@@ -1,11 +1,12 @@
-import { SLOT_HOURS, type SlotOnDate } from "@/core/domain/booking";
+import { rangeEndsAt, rangeStartsAt, type TimeRangeOnDate } from "@/core/domain/event-times";
 
 /**
- * Every date an Attendee reads, rendered in Singapore time.
+ * Every date an Attendee reads, rendered in Singapore time, and the event's
+ * start and end times, rendered in the viewer's (`eventTimes`, SPM-326).
  *
- * ConnectSphere's venues are all in Singapore and the system serves no other
- * timezone (#36), but that is a presentation fact. The core hands out plain
- * ISO instants; this module is the only place that decides how they read.
+ * ConnectSphere's venues are all in Singapore (#36), but that is a
+ * presentation fact. The core hands out plain ISO instants and venue-time
+ * ranges; this module is the only place that decides how they read.
  */
 const TIME_ZONE = "Asia/Singapore";
 
@@ -45,26 +46,43 @@ export function timeOfDay(iso: string): string {
   return timeFormat.format(new Date(iso));
 }
 
+/** The zone events are entered in and emails name: every venue is in Singapore (#36). */
+export const VENUE_TIME_ZONE = TIME_ZONE;
+
 /**
- * When the event runs, slot by slot with each slot's hours, e.g.
- * "AM (7:00 am – 12:00 pm), Night (6:00 pm – 10:00 pm)". Not one range from
- * first start to last end: that would claim the slots in between. An event on
- * more than one day names the day before each slot.
+ * When the event runs, range by range, e.g. "7:00 am – 12:00 pm, 1:00 pm –
+ * 6:00 pm" (SPM-326). Not one range from first start to last end: that would
+ * claim the gap in between. An event on more than one day names the day
+ * before each range.
+ *
+ * `timeZone` is the viewer's (SPM-326 design decision): Singapore by default,
+ * which is what the server renders, and named after the times anywhere else
+ * so a reader abroad knows the times are their own. `nameEveryDay` puts the
+ * day before each range even on a one-day event, for staff screens that list
+ * an event's dates rather than sit under a date heading.
  */
-export function slotTimes(slots: readonly SlotOnDate[]): string {
-  const multiDay = slots.some((slot) => slot.date !== slots[0].date);
-  return slots
-    .map(({ date, slot }) => {
-      const { start, end } = SLOT_HOURS[slot];
-      const hours = `${slot} (${timeOfDay(singaporeInstant(date, start))} – ${timeOfDay(singaporeInstant(date, end))})`;
-      return multiDay ? `${dayAndMonth(singaporeInstant(date, start))} ${hours}` : hours;
+export function eventTimes(
+  times: readonly TimeRangeOnDate[],
+  timeZone: string = TIME_ZONE,
+  nameEveryDay = false,
+): string {
+  const time = new Intl.DateTimeFormat("en-SG", { timeZone, hour: "numeric", minute: "2-digit", hour12: true });
+  const day = new Intl.DateTimeFormat("en-SG", { timeZone, day: "numeric", month: "short" });
+  const days = times.map((range) => day.format(rangeStartsAt(range)));
+  const multiDay = nameEveryDay || days.some((label) => label !== days[0]);
+  const ranges = times
+    .map((range, index) => {
+      const hours = `${time.format(rangeStartsAt(range))} – ${time.format(rangeEndsAt(range))}`;
+      return multiDay ? `${days[index]} ${hours}` : hours;
     })
     .join(", ");
-}
-
-/** `HH:MM` on a calendar date in Singapore, as an ISO instant. */
-function singaporeInstant(date: string, time: string): string {
-  return `${date}T${time}:00+08:00`;
+  if (timeZone === TIME_ZONE) {
+    return ranges;
+  }
+  const zone = new Intl.DateTimeFormat("en-SG", { timeZone, timeZoneName: "short" })
+    .formatToParts(times.length > 0 ? rangeStartsAt(times[0]) : new Date())
+    .find((part) => part.type === "timeZoneName")?.value;
+  return zone === undefined ? ranges : `${ranges} (${zone})`;
 }
 
 /**

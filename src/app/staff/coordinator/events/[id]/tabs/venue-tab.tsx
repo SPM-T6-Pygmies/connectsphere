@@ -1,10 +1,10 @@
+import { EventTimes } from "@/app/events/event-times";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
 import type { ViewCoordinatorEventResult } from "@/core/use-cases/view-coordinator-event";
 import type { ViewVenueBookingOptionsResult } from "@/core/use-cases/view-venue-booking-options";
 
 import { FieldList } from "../../../../field-list";
-import { formatSlotsOnDates } from "../../../../slot-label";
 import { BookingRequestForm } from "../venue-booking/booking-request-form";
 import { BookingsTable } from "../venue-booking/bookings-table";
 import { FacilitiesNeededForm } from "../venue-booking/facilities-needed-form";
@@ -52,7 +52,7 @@ export function VenueTab({
           <FieldList
             fields={[
               { label: "Preferred date", value: event.preferredDate },
-              { label: "Slots", value: formatSlotsOnDates(event.slots) },
+              { label: "Times", value: <EventTimes times={event.times} nameEveryDay /> },
               { label: "Expected attendance", value: event.expectedAttendance },
               { label: "Layout preference", value: event.roomLayoutPreference },
               { label: "Venue requirements", value: event.venueRequirements },

@@ -13,9 +13,9 @@ function notice(overrides: Partial<RegistrationConfirmedNotice> = {}): Registrat
     attendeeName: "Ada Lovelace",
     eventName: "Pygmies Product Summit",
     startsAt: "2026-09-30T23:00:00.000Z",
-    slots: [
-      { date: "2026-10-01", slot: "AM" },
-      { date: "2026-10-01", slot: "PM" },
+    times: [
+      { date: "2026-10-01", start: "07:00", end: "12:00" },
+      { date: "2026-10-01", start: "13:00", end: "18:00" },
     ],
     venueName: "Hall A, 81 Victoria Street",
     ...overrides,
@@ -33,8 +33,14 @@ describe("registrationConfirmedEmail (SPM-305)", () => {
     const { body } = registrationConfirmedEmail(notice(), URL);
 
     expect(body).toContain("Date: Thursday, 1 October 2026");
-    expect(body).toContain("Time: AM (7:00 am – 12:00 pm), PM (1:00 pm – 6:00 pm)");
     expect(body).toContain("Venue: Hall A, 81 Victoria Street");
+  });
+
+  it("SPM-326 AC2: gives each start and end time, naming the GMT+8 zone, with no slot labels", () => {
+    const { body } = registrationConfirmedEmail(notice(), URL);
+
+    expect(body).toContain("Time: 7:00 am – 12:00 pm, 1:00 pm – 6:00 pm (GMT+8)");
+    expect(body).not.toMatch(/\b(AM|PM|Night)\b/);
   });
 
   it("AC1: links to the registration", () => {
@@ -47,18 +53,18 @@ describe("registrationConfirmedEmail (SPM-305)", () => {
     );
   });
 
-  it("names the day before each slot of an event on more than one day", () => {
+  it("SPM-326: names the day before each time of an event on more than one day", () => {
     const { body } = registrationConfirmedEmail(
       notice({
-        slots: [
-          { date: "2026-10-01", slot: "Night" },
-          { date: "2026-10-02", slot: "AM" },
+        times: [
+          { date: "2026-10-01", start: "19:00", end: "24:00" },
+          { date: "2026-10-02", start: "07:00", end: "12:00" },
         ],
       }),
       URL,
     );
 
-    expect(body).toContain("Time: 1 Oct Night (7:00 pm – 12:00 am), 2 Oct AM (7:00 am – 12:00 pm)");
+    expect(body).toContain("Time: 1 Oct 7:00 pm – 12:00 am, 2 Oct 7:00 am – 12:00 pm (GMT+8)");
   });
 
   it("escapes names typed by people, since the body is HTML", () => {

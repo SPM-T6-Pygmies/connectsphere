@@ -1,7 +1,7 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
 import { canCancel } from "../domain/event-cancellation";
-import { canComplete } from "../domain/event-completion";
+import { canComplete, eventEndsAt } from "../domain/event-completion";
 import {
   assessReadiness,
   blockingArrangements,
@@ -43,10 +43,12 @@ export interface ViewCoordinatorEventResult {
   readonly blockingEquipment: readonly string[];
   /** SPM-264: why the safety check blocks confirmation, or null once the latest check is Approved. */
   readonly safetyCheckBlocker: SafetyCheckBlocker | null;
-  /** SPM-51: whether the event can be marked completed now -- Confirmed, and its last slot over. */
+  /** SPM-51: whether the event can be marked completed now -- Confirmed, and its latest end time passed. */
   readonly canComplete: boolean;
   /** SPM-313 AC4: each open reason one of the event's venue bookings is flagged for, oldest first. */
   readonly flaggedBookings: readonly EventBookingFlag[];
+  /** SPM-326 AC3: the ISO instant its latest end time passes, or null while it has no times. */
+  readonly endsAt: string | null;
   /** SPM-55: whether the event can still be cancelled -- any stage before it is over. */
   readonly canCancel: boolean;
 }
@@ -115,6 +117,7 @@ export class ViewCoordinatorEventUseCase {
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
       flaggedBookings,
+      endsAt: eventEndsAt(details)?.toISOString() ?? null,
       canCancel: canCancel(details),
     };
   }
