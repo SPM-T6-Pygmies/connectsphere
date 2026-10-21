@@ -253,23 +253,23 @@ export function NewRequestForm({
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <Field id="preferredDate" label="Preferred date" required errors={errors?.preferredDate}>
-                <DatePicker
-                  id="preferredDate"
-                  value={values.preferredDate}
-                  onChange={(date) => {
-                    set("preferredDate", date);
-                    // The times are stored against the date, so they cannot outlive it.
-                    if (date === "") {
-                      set("preferredStartTime", "");
-                      set("preferredEndTime", "");
-                    }
-                  }}
-                  aria-invalid={errors?.preferredDate !== undefined}
-                />
-                <input type="hidden" name="preferredDate" value={values.preferredDate} />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
+                <Field id="preferredDate" label="Preferred date" required errors={errors?.preferredDate}>
+                  <DatePicker
+                    id="preferredDate"
+                    value={values.preferredDate}
+                    onChange={(date) => {
+                      set("preferredDate", date);
+                      // The times are stored against the date, so they cannot outlive it.
+                      if (date === "") {
+                        set("preferredStartTime", "");
+                        set("preferredEndTime", "");
+                      }
+                    }}
+                    aria-invalid={errors?.preferredDate !== undefined}
+                  />
+                  <input type="hidden" name="preferredDate" value={values.preferredDate} />
+                </Field>
                 <Field
                   id="preferredStartTime"
                   label="Start time (GMT+8)"
