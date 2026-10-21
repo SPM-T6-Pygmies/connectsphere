@@ -99,7 +99,7 @@ them, tick the boxes below **and** report each in the PR description's
 - [x] Step 2: the venue still has `13:00–18:00` and `19:00–24:00`.
 
 **Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
-Screenshots, retaken 21/10/2026 on the same build: [step1-overlap-refused](../screenshots/2026-10-21_TC-VHOURS-003_step1-overlap-refused.png)
+Screenshots, retaken 21/10/2026 on the same build: [step1-overlap-refused](../screenshots/2026-10-21_SPM-320_TC-VHOURS-003_step1-overlap-refused.png)
 
 ### TC-VHOURS-004 A request over closed time is refused
 
@@ -122,7 +122,7 @@ yet.
 **Clean up:** `delete from booking where event_id = (select event_id from event where name = 'Founders'' Gala Dinner') and status = 'Requested';`
 
 **Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
-Screenshots, retaken 21/10/2026 on the same build: [step1-closed-time-refused](../screenshots/2026-10-21_TC-VHOURS-004_step1-closed-time-refused.png)
+Screenshots, retaken 21/10/2026 on the same build: [step1-closed-time-refused](../screenshots/2026-10-21_SPM-320_TC-VHOURS-004_step1-closed-time-refused.png)
 
 ### TC-VHOURS-005 AM, PM and Night convert to the slots they cover
 
@@ -186,4 +186,4 @@ The search filter itself still picks AM, PM or Night: it moves to times in
 SPM-322.
 
 **Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
-Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hours](../screenshots/2026-10-21_TC-VHOURS-006_step1-catalogue-opening-hours.png)
+Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hours](../screenshots/2026-10-21_SPM-320_TC-VHOURS-006_step1-catalogue-opening-hours.png)
