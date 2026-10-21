@@ -383,6 +383,18 @@ export class UnsupportedRoomLayoutError extends DomainError {
 }
 
 /**
+ * SPM-20: only a booking that holds, or may yet hold, a slot can be cancelled.
+ * A rejected, released, cancelled or expired one already holds nothing.
+ */
+export class BookingNotCancellableError extends DomainError {
+  readonly code = "booking_not_cancellable";
+
+  constructor(readonly status: string) {
+    super("This booking no longer holds its slots, so there is nothing to cancel.");
+  }
+}
+
+/**
  * SPM-104: the layout is the coordinator's to change only while the request
  * is still pending. Once Venue Staff have answered it, the answer was given
  * for the layout then on record.
