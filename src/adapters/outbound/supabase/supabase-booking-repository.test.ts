@@ -4,6 +4,7 @@ import type { BookingRequest } from "@/core/domain/booking";
 import {
   BookingNotCancellableError,
   BookingNotFoundError,
+  CancelledEventBookingError,
   VenueSlotBlockedError,
 } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
@@ -88,6 +89,21 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
     const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
 
     expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
+  });
+});
+
+describe("SupabaseBookingRepository, a cancelled event (SPM-55)", () => {
+  it("AC6: reads an event cancelled since the use case looked as cancelled", async () => {
+    const { client } = fakeClient({
+      coordinator_submit_booking_request: {
+        data: null,
+        error: { code: "CS077", message: "Event 1 is cancelled" },
+      },
+    });
+
+    await expect(new SupabaseBookingRepository(client).submit(REQUEST)).rejects.toBeInstanceOf(
+      CancelledEventBookingError,
+    );
   });
 });
 

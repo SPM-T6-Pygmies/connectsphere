@@ -142,6 +142,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-55": {
+      "title": "Cancel an event",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-57": {
       "title": "Notify a coordinator of their assignment to an event",
       "parent": null,
@@ -852,10 +857,50 @@
       "parent": "SPM-87",
       "status": "In Progress"
     },
+    "SPM-313": {
+      "title": "Flag bookings when a venue is marked unavailable",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-318": {
       "title": "Block confirmation on an unfulfilled essential line",
       "parent": null,
       "status": "Todo"
+    },
+    "SPM-320": {
+      "title": "Set a venue's opening hours in 15-minute periods",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-331": {
+      "title": "Store opening hours as 15-minute slots and convert existing venue slots",
+      "parent": "SPM-320",
+      "status": "In Progress"
+    },
+    "SPM-332": {
+      "title": "Validate opening windows on save",
+      "parent": "SPM-320",
+      "status": "In Progress"
+    },
+    "SPM-333": {
+      "title": "Add opening-hours editor to the venue create and edit form",
+      "parent": "SPM-320",
+      "status": "In Progress"
+    },
+    "SPM-334": {
+      "title": "Refuse booking requests that include closed time",
+      "parent": "SPM-320",
+      "status": "In Progress"
+    },
+    "SPM-335": {
+      "title": "Show opening hours as times in the venue catalogue",
+      "parent": "SPM-320",
+      "status": "In Progress"
+    },
+    "SPM-336": {
+      "title": "Test and verify opening hours against AC1–AC5",
+      "parent": "SPM-320",
+      "status": "In Progress"
     }
   }
 }

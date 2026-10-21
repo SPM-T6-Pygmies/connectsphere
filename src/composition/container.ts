@@ -28,6 +28,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
 import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
+import { SupabaseBookingFlagRepository } from "@/adapters/outbound/supabase/supabase-booking-flag-repository";
 import { SupabaseVenueUnavailabilityRepository } from "@/adapters/outbound/supabase/supabase-venue-unavailability-repository";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
 import { SupabaseAuthAdapter } from "@/adapters/outbound/supabase/supabase-auth-adapter";
@@ -48,6 +49,7 @@ import type { EventReadinessRepository } from "@/core/ports/outbound/event-readi
 import type { EventRequestRepository } from "@/core/ports/outbound/event-request-repository";
 import type { Notifier } from "@/core/ports/outbound/notifier";
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
+import type { BookingFlagRepository } from "@/core/ports/outbound/booking-flag-repository";
 import type { SafetyCheckRepository } from "@/core/ports/outbound/safety-check-repository";
 import type { UserAccountRepository } from "@/core/ports/outbound/user-account-repository";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
@@ -59,6 +61,7 @@ import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-re
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { CancelVenueBookingUseCase } from "@/core/use-cases/cancel-venue-booking";
+import { CancelEventUseCase } from "@/core/use-cases/cancel-event";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
@@ -509,6 +512,7 @@ async function coordinatorAdapters(): Promise<{
   userAccounts: UserAccountRepository;
   equipment: EquipmentRequirementRepository;
   safetyChecks: SafetyCheckRepository;
+  bookingFlags: BookingFlagRepository;
 }> {
   const client = await createSupabaseServerClient();
   return {
@@ -519,6 +523,7 @@ async function coordinatorAdapters(): Promise<{
     userAccounts: new SupabaseUserAccountRepository(client),
     equipment: new SupabaseEquipmentRequirementRepository(client),
     safetyChecks: new SupabaseSafetyCheckRepository(client),
+    bookingFlags: new SupabaseBookingFlagRepository(client),
   };
 }
 
@@ -587,7 +592,12 @@ async function venueBookingAdapters(): Promise<{
 
 /** SPM-46: the coordinator's booking page -- the event, the venues, the bookings so far. */
 export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOptionsUseCase> {
-  return new ViewVenueBookingOptionsUseCase(await venueBookingAdapters());
+  const client = await createSupabaseServerClient();
+  return new ViewVenueBookingOptionsUseCase({
+    ...(await venueBookingAdapters()),
+    // SPM-313: the page flags a booking its venue was blocked over.
+    flags: new SupabaseBookingFlagRepository(client),
+  });
 }
 
 /**
@@ -726,7 +736,8 @@ export function buildNotifyExpiredHolds(): NotifyExpiredHoldsUseCase {
 
 /** SPM-50: one event and its confirmation readiness, to the coordinator it is assigned to. */
 export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventUseCase> {
-  const { events, readiness, clientOrganisations, userAccounts, safetyChecks } = await coordinatorAdapters();
+  const { events, readiness, clientOrganisations, userAccounts, safetyChecks, bookingFlags } =
+    await coordinatorAdapters();
 
   return new ViewCoordinatorEventUseCase({
     events,
@@ -735,6 +746,7 @@ export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventU
     userAccounts,
     clock: systemClock,
     safetyChecks,
+    flags: bookingFlags,
   });
 }
 
@@ -750,6 +762,13 @@ export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
   const { events } = await coordinatorAdapters();
 
   return new CompleteEventUseCase({ events, clock: systemClock });
+}
+
+/** SPM-55: the assigned coordinator cancels an event before it is over, giving back the venues it holds. */
+export async function buildCancelEvent(): Promise<CancelEventUseCase> {
+  const { events } = await coordinatorAdapters();
+
+  return new CancelEventUseCase({ events });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */

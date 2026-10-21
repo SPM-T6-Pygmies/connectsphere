@@ -9,6 +9,7 @@ import {
   BookingNotCancellableError,
   BookingNotFoundError,
   BookingRoomLayoutNotChangeableError,
+  CancelledEventBookingError,
   CoordinatorEventNotFoundError,
   InvalidBookingDateError,
   NoBookingSlotsError,
@@ -47,6 +48,8 @@ const SLOTS_INVALID = "CS024";
 const SLOT_TAKEN = "CS025";
 // Raised by the booking_slot trigger when a Venue Staff block covers a requested slot (SPM-21).
 const SLOT_BLOCKED = "CS028";
+// The event was cancelled (SPM-55 AC6).
+const EVENT_CANCELLED = "CS077";
 
 // SQLSTATEs raised by coordinator_change_booking_room_layout (CS022 and CS023 are shared).
 const BOOKING_NOT_FOUND = "CS026";
@@ -121,6 +124,9 @@ export class SupabaseBookingRepository implements BookingRepository {
       switch (error.code) {
         case EVENT_NOT_FOUND:
           throw new CoordinatorEventNotFoundError(request.eventId);
+        case EVENT_CANCELLED:
+          // Cancelled since the use case read it.
+          throw new CancelledEventBookingError();
         case VENUE_NOT_FOUND:
           throw new VenueNotFoundError();
         case LAYOUT_REQUIRED:

@@ -2,7 +2,7 @@
 
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -15,21 +15,24 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOOKING_SLOTS } from "@/core/domain/booking";
 import { exceedsVenueCapacity, STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
 import {
   ACCESSIBILITY_OPTIONS,
   FACILITY_OPTIONS,
-  formatOptionList,
 } from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
-import { slotLabel } from "../../slot-label";
 import type { VenueFormState } from "./actions";
 
 const INITIAL: VenueFormState = { status: "idle" };
 
 type LayoutRow = { key: number; name: string; capacity: string };
+type WindowRow = { key: number; start: string; end: string };
+
+/** Hours 00–24; only a closing time may be 24, and only as 24:00. */
+const HOURS = Array.from({ length: 25 }, (_, hour) => String(hour).padStart(2, "0"));
+/** The 15-minute grid (#128). */
+const MINUTES = ["00", "15", "30", "45"] as const;
 
 function isFilled(value: string): boolean {
   return value.trim().length > 0;
@@ -77,7 +80,12 @@ export function VenueForm({
   const [capacity, setCapacity] = useState(venue?.capacity?.toString() ?? "");
   const [facilities, setFacilities] = useState(venue?.facilities ?? "");
   const [accessibility, setAccessibility] = useState(venue?.accessibility ?? "");
-  const [slots, setSlots] = useState(formatOptionList(venue?.slots ?? []));
+  const [nextWindowKey, setNextWindowKey] = useState(() => (venue?.openingHours.length ?? 0) + 1);
+  const [windows, setWindows] = useState<WindowRow[]>(() =>
+    venue && venue.openingHours.length > 0
+      ? venue.openingHours.map((window, index) => ({ key: index, ...window }))
+      : [{ key: 0, start: "", end: "" }],
+  );
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
   const [nextKey, setNextKey] = useState(() => (venue?.layouts.length ?? 0) + 1);
   const [layouts, setLayouts] = useState<LayoutRow[]>(() =>
@@ -97,7 +105,9 @@ export function VenueForm({
   );
 
   const readyToSubmit =
-    [location, capacity, facilities, accessibility, slots, horizon].every(isFilled) &&
+    [location, capacity, facilities, accessibility, horizon].every(isFilled) &&
+    windows.length > 0 &&
+    windows.every((window) => isFilled(window.start) && isFilled(window.end)) &&
     layouts.length > 0 &&
     layouts.every(
       (layout) =>
@@ -105,6 +115,19 @@ export function VenueForm({
         isFilled(layout.capacity) &&
         layoutCapacityError(layout.capacity, capacity) === undefined,
     );
+
+  function updateWindow(key: number, patch: Partial<WindowRow>) {
+    setWindows((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
+  }
+
+  function addWindow() {
+    setWindows((current) => [...current, { key: nextWindowKey, start: "", end: "" }]);
+    setNextWindowKey((current) => current + 1);
+  }
+
+  function removeWindow(key: number) {
+    setWindows((current) => current.filter((row) => row.key !== key));
+  }
 
   function updateLayout(key: number, patch: Partial<LayoutRow>) {
     setLayouts((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
@@ -120,7 +143,18 @@ export function VenueForm({
   }
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      // Submitted by hand, not through `action`: React resets a form after its
+      // action runs, which blanks every select (a layout, an opening time)
+      // while the state behind it keeps the value, so a refused save would
+      // show fields emptied that are not.
+      onSubmit={(event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => formAction(formData));
+      }}
+      className="space-y-6"
+    >
       {venue ? <input type="hidden" name="venueId" value={venue.id} /> : null}
 
       {state.status === "error" ? (
@@ -211,23 +245,71 @@ export function VenueForm({
           <CardTitle>Availability</CardTitle>
           <CardDescription>When the venue can be booked.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <Field
-            id="slots"
-            label="Slots"
-            required
-            hint="The parts of the day the venue can be booked in."
-            error={errors?.slots}
-            className="sm:col-span-2"
-          >
-            <OptionCheckboxes
-              name="slots"
-              options={BOOKING_SLOTS}
-              value={slots}
-              onChange={setSlots}
-              label={slotLabel}
-            />
-          </Field>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <p className="text-sm font-medium">
+              Opening hours<span className="text-destructive" aria-label="required">*</span>
+            </p>
+            <p className="text-muted-foreground text-xs">
+              The same hours apply every day, Singapore time. Add a window for each period the venue is
+              open.
+            </p>
+            {windows.map((row, index) => (
+              <div key={row.key} className="grid items-start gap-4 sm:grid-cols-[1fr_1fr_auto]">
+                <Field
+                  id={`openingStart-${row.key}`}
+                  label="Opens"
+                  required
+                  error={errors?.[`openingHours.${index}.start`]}
+                >
+                  <TimePicker
+                    id={`openingStart-${row.key}`}
+                    name="openingStart"
+                    label="Opens"
+                    invalid={errors?.[`openingHours.${index}.start`] !== undefined}
+                    value={row.start}
+                    onChange={(start) => updateWindow(row.key, { start })}
+                  />
+                </Field>
+                <Field
+                  id={`openingEnd-${row.key}`}
+                  label="Closes"
+                  required
+                  error={errors?.[`openingHours.${index}.end`]}
+                >
+                  <TimePicker
+                    id={`openingEnd-${row.key}`}
+                    name="openingEnd"
+                    label="Closes"
+                    endOfDay
+                    invalid={errors?.[`openingHours.${index}.end`] !== undefined}
+                    value={row.end}
+                    onChange={(end) => updateWindow(row.key, { end })}
+                  />
+                </Field>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="sm:mt-[1.625rem]"
+                  aria-label={`Remove opening window ${index + 1}`}
+                  disabled={windows.length === 1}
+                  onClick={() => removeWindow(row.key)}
+                >
+                  <Trash2Icon className="size-4" />
+                </Button>
+              </div>
+            ))}
+
+            {errors?.openingHours ? (
+              <p className="text-destructive text-xs">{errors.openingHours}</p>
+            ) : null}
+
+            <Button type="button" variant="outline" onClick={addWindow}>
+              <PlusIcon className="size-4" />
+              Add opening window
+            </Button>
+          </div>
           <Field
             id="bookingHorizonDays"
             label="Booking horizon (days)"
@@ -330,6 +412,83 @@ export function VenueForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+const SELECT_CLASS =
+  "border-input aria-invalid:border-destructive h-8 w-full rounded-lg border bg-transparent px-2.5 text-base disabled:opacity-50 md:text-sm";
+
+/**
+ * SPM-333: a time on the 15-minute grid, picked as an hour and then a minute,
+ * and posted as one `HH:MM` field. Picking an hour fills the minute with 00;
+ * 24 is offered only with `endOfDay`, and only as 24:00. Whether the window
+ * makes sense is `defineVenue`'s call.
+ */
+function TimePicker({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  endOfDay = false,
+  invalid,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  /** `HH:MM`, or empty until an hour is picked. */
+  value: string;
+  onChange: (value: string) => void;
+  endOfDay?: boolean;
+  invalid?: boolean;
+}) {
+  const [hour = "", minute = ""] = value === "" ? [] : value.split(":");
+  const hours = endOfDay ? HOURS : HOURS.slice(0, -1);
+  const minutes = hour === "24" ? ["00"] : MINUTES;
+
+  function pick(nextHour: string, nextMinute: string) {
+    if (nextHour === "") {
+      onChange("");
+      return;
+    }
+    onChange(`${nextHour}:${nextHour === "24" ? "00" : nextMinute || "00"}`);
+  }
+
+  return (
+    <div className="flex gap-2">
+      <input type="hidden" name={name} value={value} />
+      <select
+        id={id}
+        aria-label={`${label} hour`}
+        aria-invalid={invalid}
+        required
+        value={hour}
+        onChange={(event) => pick(event.target.value, minute)}
+        className={SELECT_CLASS}
+      >
+        <option value="">Hour</option>
+        {hours.map((h) => (
+          <option key={h} value={h}>
+            {h}
+          </option>
+        ))}
+      </select>
+      <select
+        aria-label={`${label} minute`}
+        aria-invalid={invalid}
+        disabled={hour === ""}
+        value={minute}
+        onChange={(event) => pick(hour, event.target.value)}
+        className={SELECT_CLASS}
+      >
+        {hour === "" ? <option value="">Min</option> : null}
+        {minutes.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 

@@ -18,7 +18,7 @@ function venue(id: string, overrides: Partial<Venue> = {}): Venue {
     location: `Hall ${id}`,
     facilities: "Wi-Fi, Catering area",
     accessibility: "Step-free access",
-    slots: ["AM", "PM"],
+    openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }],
     capacity: 300,
     bookingHorizonDays: 60,
     layouts: [{ name: "Theatre", capacity: 120 }],
@@ -71,7 +71,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
     const useCase = build([
       venue("a"),
       venue("b", { layouts: [{ name: "Theatre", capacity: 80 }] }),
-      venue("c", { slots: ["AM"] }),
+      venue("c", { openingHours: [{ start: "07:00", end: "12:00" }] }),
     ]);
 
     const result = await useCase.execute(

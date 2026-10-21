@@ -1,6 +1,6 @@
-import { BOOKING_SLOTS, isBookingSlot, type BookingSlot } from "./booking";
 import type { Brand } from "./brand";
 import { InvalidVenueError, InvalidVenueIdError, type VenueField } from "./errors";
+import { defineOpeningHours, type OpeningWindow } from "./opening-hours";
 import {
   ACCESSIBILITY_OPTIONS,
   FACILITY_OPTIONS,
@@ -35,8 +35,11 @@ export interface VenueDetails {
   readonly location: string;
   readonly facilities: string | null;
   readonly accessibility: string | null;
-  /** The day slots the venue can be booked in, in `BOOKING_SLOTS` order. */
-  readonly slots: readonly BookingSlot[];
+  /**
+   * When the venue can be booked, the same every day, earliest first
+   * (SPM-320). A venue converted with no slots has none, and is never open.
+   */
+  readonly openingHours: readonly OpeningWindow[];
   /**
    * The venue-level headline capacity, kept exactly as supplied. It is not
    * derived from the layouts, but no layout may seat more than it (SPM-106).
@@ -90,17 +93,7 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     "accessibility",
   );
 
-  if (input.slots.length === 0) {
-    throw new InvalidVenueError("Select at least one slot the venue can be booked in.", "slots");
-  }
-  const unknownSlots = input.slots.filter((slot) => !isBookingSlot(slot));
-  if (unknownSlots.length > 0) {
-    throw new InvalidVenueError(
-      `${unknownSlots.join(", ")} is not a slot -- choose from ${BOOKING_SLOTS.join(", ")}.`,
-      "slots",
-    );
-  }
-  const slots = BOOKING_SLOTS.filter((slot) => input.slots.includes(slot));
+  const openingHours = defineOpeningHours(input.openingHours);
 
   if (input.capacity === null) {
     throw new InvalidVenueError("Enter the venue capacity.", "capacity");
@@ -158,7 +151,7 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     location,
     facilities,
     accessibility,
-    slots,
+    openingHours,
     capacity: input.capacity,
     bookingHorizonDays: input.bookingHorizonDays,
     layouts,

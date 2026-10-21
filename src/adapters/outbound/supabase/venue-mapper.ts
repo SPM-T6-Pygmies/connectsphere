@@ -1,4 +1,3 @@
-import type { BookingSlot } from "@/core/domain/booking";
 import { venueId, type Venue, type VenueDetails } from "@/core/domain/venue";
 
 /** One venue as `public.venue_catalogue()` returns it. */
@@ -7,8 +6,8 @@ export interface VenueRow {
   location: string;
   facilities: string | null;
   accessibility: string | null;
-  /** `venue_slot` codes, in the order the day runs. */
-  slots: BookingSlot[];
+  /** `venue_slot` joined into windows as `HH:MM`, earliest first (SPM-320). */
+  opening_hours: { start: string; end: string }[];
   capacity: number | null;
   booking_horizon_days: number | null;
   layouts: { name: string; capacity: number }[];
@@ -20,7 +19,7 @@ export function toVenue(row: VenueRow): Venue {
     location: row.location,
     facilities: row.facilities,
     accessibility: row.accessibility,
-    slots: [...row.slots],
+    openingHours: row.opening_hours.map(({ start, end }) => ({ start, end })),
     capacity: row.capacity,
     bookingHorizonDays: row.booking_horizon_days,
     layouts: row.layouts.map(({ name, capacity }) => ({ name, capacity })),
@@ -33,7 +32,7 @@ export function toVenueArgument(details: VenueDetails) {
     location: details.location,
     facilities: details.facilities,
     accessibility: details.accessibility,
-    slots: [...details.slots],
+    opening_hours: details.openingHours.map(({ start, end }) => ({ start, end })),
     capacity: details.capacity,
     booking_horizon_days: details.bookingHorizonDays,
     layouts: details.layouts.map(({ name, capacity }) => ({ name, capacity })),
