@@ -5,7 +5,6 @@ import type { FlagReasonCode } from "@/core/domain/booking-review-flag";
 import type { EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 
 import { formatHoldExpiry } from "../../../../hold-expiry";
-import { formatSlotsOnDates } from "../../../../slot-label";
 import { StatusBadge } from "../../../../status-badge";
 
 /** What the coordinator reads before the detail. SPM-105 and SPM-309 raise the other two. */
@@ -57,7 +56,7 @@ export function FlaggedBookings({ flags }: { flags: readonly EventBookingFlag[] 
           <FlagIcon aria-hidden />
           <AlertTitle className="flex flex-wrap items-center gap-2">
             <span>{first.venueLocation}</span>
-            <span className="text-muted-foreground font-normal">{formatSlotsOnDates(first.slots)}</span>
+            <span className="text-muted-foreground font-normal">{first.bookedFor}</span>
             <StatusBadge status={first.status} />
             {first.holdExpiresAt === null ? null : (
               <span className="text-muted-foreground font-normal">

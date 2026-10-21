@@ -388,4 +388,41 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
     expect(await unavailability.openForEvent(userAccountId("coordinator-2"), "event-1")).toEqual([]);
     expect(await unavailability.openForEvent(userAccountId(COORDINATOR), "event-2")).toEqual([]);
   });
+
+  it("AC4: shows no flag on a booking that has since been cancelled, and keeps it on its sibling", async () => {
+    const { record, unavailability } = build([
+      seeded({ id: "hall-a" }),
+      seeded({ id: "hall-b", slots: [{ date: "2026-10-13", slot: "PM" }] }),
+    ]);
+    await record.execute(block(PM_ON_13));
+
+    unavailability.endBooking("hall-a", "Released");
+
+    const flags = await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1");
+    expect(flags.map((flag) => flag.bookingId)).toEqual(["hall-b"]);
+  });
+
+  it("AC1: no longer hands back a booking that has since been cancelled as flagged by the block", async () => {
+    const { record, unavailability } = build([seeded({ id: "booking-1" })]);
+    const { entry } = await record.execute(block(PM_ON_13));
+
+    unavailability.endBooking("booking-1", "Released");
+
+    expect(await unavailability.flaggedBookings(userAccountId("staff-1"), entry.id)).toEqual([]);
+  });
+
+  it("AC4: stops showing a held booking's flag once its hold has run out", async () => {
+    const hold = seeded({
+      id: "hold-1",
+      status: "Tentative Hold",
+      holdExpiresAt: new Date("2026-10-08T12:00:00+08:00"),
+    });
+    const { record, unavailability } = build([hold]);
+    await record.execute(block(PM_ON_13));
+    expect(await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1")).toHaveLength(1);
+
+    unavailability.endBooking("hold-1", "Expired");
+
+    expect(await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1")).toEqual([]);
+  });
 });

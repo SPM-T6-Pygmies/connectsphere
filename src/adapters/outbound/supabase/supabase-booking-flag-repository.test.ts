@@ -27,7 +27,7 @@ const FLAG_ROW = {
   venue_location: "Main Hall",
   status: "Confirmed",
   hold_expires_at: null,
-  slots: [{ date: "2026-11-16", slot: "PM" }],
+  booked_for: "2026-11-16 13:00 to 18:00",
   reason_code: "venue-unavailable",
   detail: "Maintenance: 2026-11-16 13:00 to 18:00",
   flagged_at: "2026-10-20T02:15:00Z",
@@ -46,7 +46,7 @@ describe("SupabaseBookingFlagRepository (SPM-313)", () => {
         venueLocation: "Main Hall",
         status: "Confirmed",
         holdExpiresAt: null,
-        slots: [{ date: "2026-11-16", slot: "PM" }],
+        bookedFor: "2026-11-16 13:00 to 18:00",
         reasonCode: "venue-unavailable",
         detail: "Maintenance: 2026-11-16 13:00 to 18:00",
         flaggedAt: "2026-10-20T02:15:00Z",
@@ -78,8 +78,8 @@ describe("SupabaseBookingFlagRepository (SPM-313)", () => {
     expect(() => toEventBookingFlag({ ...FLAG_ROW, status: "Nonsense" })).toThrow(/Unknown booking status/);
   });
 
-  it("maps a booking with no slots recorded to an empty list", () => {
-    expect(toEventBookingFlag({ ...FLAG_ROW, slots: null }).slots).toEqual([]);
+  it("maps a booking with no times recorded to an empty text", () => {
+    expect(toEventBookingFlag({ ...FLAG_ROW, booked_for: null }).bookedFor).toBe("");
   });
 });
 

@@ -1,4 +1,4 @@
-import type { BookingId, BookingStatus, SlotOnDate } from "../../domain/booking";
+import type { BookingId, BookingStatus } from "../../domain/booking";
 import type { FlagReasonCode } from "../../domain/booking-review-flag";
 import type { UserAccountId } from "../../domain/user-account";
 
@@ -14,7 +14,8 @@ export interface EventBookingFlag {
   readonly status: BookingStatus;
   /** ISO instant a Tentative Hold lapses; null for any other status. */
   readonly holdExpiresAt: string | null;
-  readonly slots: readonly SlotOnDate[];
+  /** The day and hours it is booked for, e.g. `2026-11-16 13:00 to 18:00`, whatever slot grid it is stored on. */
+  readonly bookedFor: string;
   readonly reasonCode: FlagReasonCode;
   /** The reason as the coordinator reads it. */
   readonly detail: string;

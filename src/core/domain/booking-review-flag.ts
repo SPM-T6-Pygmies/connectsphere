@@ -1,4 +1,4 @@
-import { holdsSlot, SLOT_HOURS, slotEndsAt, slotStartsAt, type BookingStatus, type SlotOnDate } from "./booking";
+import { holdsSlot, SLOT_HOURS, type BookingSlot, type BookingStatus } from "./booking";
 import type { VenueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
@@ -8,24 +8,87 @@ export const VENUE_UNAVAILABLE_FLAG = "venue-unavailable";
 /** `booking_review_flag_reason_chk`: SPM-105 and SPM-309 add the other two. */
 export type FlagReasonCode = typeof VENUE_UNAVAILABLE_FLAG | "venue-attributes" | "event-change";
 
+/**
+ * A slot code on a date. The code is any the `slot` table holds: AM, PM and Night while
+ * bookings and blocks are still on them, or the 15-minute codes '0' to '95' they are
+ * moving to (SPM-276, SPM-331). Nothing here assumes which, so the flag survives the move.
+ */
+export interface SlotCodeOnDate {
+  readonly date: string;
+  readonly slot: string;
+}
+
 export interface TimeWindow {
   readonly startsAt: Date;
   readonly endsAt: Date;
 }
 
+const DAY_MINUTES = 24 * 60;
+const FIFTEEN = 15;
+
+/** The `slot` table's hours for one code, in minutes from midnight; 24:00 is 1440. */
+function slotMinutes(code: string): { start: number; end: number } {
+  if (code in SLOT_HOURS) {
+    const { start, end } = SLOT_HOURS[code as BookingSlot];
+    return { start: toMinutes(start), end: toMinutes(end) };
+  }
+  const n = Number(code);
+  if (Number.isInteger(n) && String(n) === code && n >= 0 && n <= 95) {
+    return { start: n * FIFTEEN, end: (n + 1) * FIFTEEN };
+  }
+  throw new Error(`Unknown slot code "${code}"`);
+}
+
+function toMinutes(hhmm: string): number {
+  const [hours, minutes] = hhmm.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function hhmm(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
 /**
  * The time a booked slot takes from its venue. Everything that asks "does this
  * booking clash with that?" goes through here, so the setup and turnaround
- * padding of SPM-23 widens it in one place. Until then it is the slot's own
- * hours, as the booking was made.
+ * padding of SPM-23 widens it in one place. Until then it is the slot's own hours.
  */
-export function bookingWindow(slot: SlotOnDate): TimeWindow {
-  return { startsAt: slotStartsAt(slot), endsAt: slotEndsAt(slot) };
+export function bookingWindow({ date, slot }: SlotCodeOnDate): TimeWindow {
+  const { start, end } = slotMinutes(slot);
+  const midnight = Date.parse(`${date}T00:00:00+08:00`);
+  return { startsAt: new Date(midnight + start * 60_000), endsAt: new Date(midnight + end * 60_000) };
 }
 
 /** Half-open: a window ending exactly when another starts does not overlap it. */
 export function windowsOverlap(a: TimeWindow, b: TimeWindow): boolean {
   return a.startsAt < b.endsAt && b.startsAt < a.endsAt;
+}
+
+/**
+ * Slots as the day and hours a person reads, with slots that run into each other joined:
+ * a booking of twenty 15-minute slots reads `2026-11-16 13:00 to 18:00`, the same as one
+ * PM slot. `merge_time_spans` in the database writes the same text.
+ */
+export function timeSpans(slots: readonly SlotCodeOnDate[]): string {
+  const byDate = new Map<string, Array<{ start: number; end: number }>>();
+  for (const { date, slot } of slots) {
+    byDate.set(date, [...(byDate.get(date) ?? []), slotMinutes(slot)]);
+  }
+  return [...byDate.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .flatMap(([date, spans]) => {
+      const merged: Array<{ start: number; end: number }> = [];
+      for (const span of [...spans].sort((a, b) => a.start - b.start)) {
+        const last = merged[merged.length - 1];
+        if (last !== undefined && span.start <= last.end) {
+          last.end = Math.max(last.end, span.end);
+        } else {
+          merged.push({ ...span });
+        }
+      }
+      return merged.map(({ start, end }) => `${date} ${hhmm(start)} to ${hhmm(Math.min(end, DAY_MINUTES))}`);
+    })
+    .join(", ");
 }
 
 /** A booking as the flagging rule sees it. */
@@ -34,8 +97,13 @@ export interface FlaggableBooking {
   readonly venueId: VenueId;
   readonly status: BookingStatus;
   readonly holdExpiresAt: Date | null;
-  readonly slots: readonly SlotOnDate[];
+  readonly slots: readonly SlotCodeOnDate[];
 }
+
+/** The parts of a block the rule reads. A recorded block is one; so is a block on 15-minute codes. */
+export type FlaggingBlock = Pick<VenueUnavailabilityEntry, "id" | "venueId" | "reason" | "status" | "liftedAt"> & {
+  readonly slots: readonly SlotCodeOnDate[];
+};
 
 export interface BlockFlagReason {
   readonly code: typeof VENUE_UNAVAILABLE_FLAG;
@@ -49,12 +117,12 @@ export interface BookingToFlag {
   readonly reason: BlockFlagReason;
 }
 
-/** The booked slots a block's slots overlap, in the order the booking lists them. */
-function overlappedSlots(booking: FlaggableBooking, block: VenueUnavailabilityEntry): readonly SlotOnDate[] {
-  const blocked = block.slots.map(bookingWindow);
-  return booking.slots.filter((slot) => {
+/** The block's own slots that share time with the booking: the time the coordinator is told is lost. */
+function blockedSlotsOver(bookedSlots: readonly SlotCodeOnDate[], block: FlaggingBlock): readonly SlotCodeOnDate[] {
+  const booked = bookedSlots.map(bookingWindow);
+  return block.slots.filter((slot) => {
     const window = bookingWindow(slot);
-    return blocked.some((blockWindow) => windowsOverlap(window, blockWindow));
+    return booked.some((bookedWindow) => windowsOverlap(window, bookedWindow));
   });
 }
 
@@ -77,21 +145,16 @@ function singaporeMinute(iso: string): string {
 }
 
 /**
- * What the coordinator reads: the block's reason, its day and hours, and, once
- * Venue Staff lift it, that it was lifted and when. Lifting never clears the
- * flag, so the reason has to say it. `venue_staff_record_unavailability` and
- * `venue_staff_lift_unavailability` write the same text.
+ * What the coordinator reads: the block's reason and the block's own day and hours that
+ * clash with the booking, and, once Venue Staff lift it, that it was lifted and when.
+ * Lifting never clears the flag, so the reason has to say it.
+ * `venue_staff_record_unavailability` and `venue_staff_lift_unavailability` write the same text.
  */
-export function blockFlagDetail(
-  block: VenueUnavailabilityEntry,
-  overlapping: readonly SlotOnDate[],
-): string {
-  const spans = overlapping
-    .map(({ date, slot }) => `${date} ${SLOT_HOURS[slot].start} to ${SLOT_HOURS[slot].end}`)
-    .join(", ");
+export function blockFlagDetail(block: FlaggingBlock, bookedSlots: readonly SlotCodeOnDate[]): string {
+  const clash = blockedSlotsOver(bookedSlots, block);
   const lifted =
     block.status === "Lifted" && block.liftedAt !== null ? `, block lifted ${singaporeMinute(block.liftedAt)}` : "";
-  return `${block.reason}: ${spans}${lifted}`;
+  return `${block.reason}: ${timeSpans(clash)}${lifted}`;
 }
 
 /**
@@ -104,7 +167,7 @@ export function blockFlagDetail(
  * one (AC7).
  */
 export function bookingsToFlagForBlock(
-  block: VenueUnavailabilityEntry,
+  block: FlaggingBlock,
   bookings: readonly FlaggableBooking[],
   now: Date,
 ): readonly BookingToFlag[] {
@@ -116,8 +179,7 @@ export function bookingsToFlagForBlock(
     if (booking.venueId !== block.venueId || !holdsSlot(booking, now)) {
       continue;
     }
-    const overlapping = overlappedSlots(booking, block);
-    if (overlapping.length === 0) {
+    if (blockedSlotsOver(booking.slots, block).length === 0) {
       continue;
     }
     flagged.push({
@@ -125,7 +187,7 @@ export function bookingsToFlagForBlock(
       reason: {
         code: VENUE_UNAVAILABLE_FLAG,
         sourceBlockId: block.id,
-        detail: blockFlagDetail(block, overlapping),
+        detail: blockFlagDetail(block, booking.slots),
       },
     });
   }

@@ -3,7 +3,7 @@ import type { FlagReasonCode } from "@/core/domain/booking-review-flag";
 import type { EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 import type { FlaggedBooking } from "@/core/ports/outbound/venue-unavailability-repository";
 
-import { toDate, toSlot, toStatus } from "./booking-mapper";
+import { toStatus } from "./booking-mapper";
 
 /** One element of `coordinator_event_flags`' array. */
 export interface EventBookingFlagRow {
@@ -12,7 +12,7 @@ export interface EventBookingFlagRow {
   venue_location: string;
   status: string;
   hold_expires_at: string | null;
-  slots: ReadonlyArray<{ date: string; slot: string }> | null;
+  booked_for: string | null;
   reason_code: string;
   detail: string;
   flagged_at: string;
@@ -46,7 +46,7 @@ export function toEventBookingFlag(row: EventBookingFlagRow): EventBookingFlag {
     venueLocation: row.venue_location,
     status: toStatus(row.status),
     holdExpiresAt: row.hold_expires_at,
-    slots: (row.slots ?? []).map(({ date, slot }) => ({ date: toDate(date), slot: toSlot(slot) })),
+    bookedFor: row.booked_for ?? "",
     reasonCode: toReasonCode(row.reason_code),
     detail: row.detail,
     flaggedAt: row.flagged_at,

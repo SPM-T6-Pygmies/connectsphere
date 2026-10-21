@@ -1,7 +1,8 @@
-import type { BookingId, BookingSlot, BookingStatus, SlotOnDate } from "@/core/domain/booking";
+import { holdsSlot, type BookingId, type BookingSlot, type BookingStatus, type SlotOnDate } from "@/core/domain/booking";
 import {
   blockFlagDetail,
   bookingsToFlagForBlock,
+  timeSpans,
   type FlagReasonCode,
 } from "@/core/domain/booking-review-flag";
 import {
@@ -45,7 +46,6 @@ interface StoredFlag {
   readonly booking: SeededBooking;
   readonly reasonCode: FlagReasonCode;
   readonly blockId: string;
-  readonly overlapping: readonly SlotOnDate[];
   detail: string;
   readonly flaggedAt: string;
 }
@@ -62,6 +62,8 @@ export class InMemoryVenueUnavailabilityRepository
 {
   private readonly rows: VenueUnavailabilityEntry[] = [];
   private readonly flags: StoredFlag[] = [];
+  /** SPM-313: a booking's status once something has ended it (cancelled, released, expired). */
+  private readonly endedAs = new Map<string, BookingStatus>();
   private sequence = 0;
 
   constructor(
@@ -73,6 +75,19 @@ export class InMemoryVenueUnavailabilityRepository
 
   private nameOf(staff: UserAccountId): string {
     return this.staffNames.get(staff) ?? staff;
+  }
+
+  /** Test helper: something outside this store ended the booking, as cancelling does. */
+  endBooking(bookingId: string, status: BookingStatus): void {
+    this.endedAs.set(bookingId, status);
+  }
+
+  /** A flag on a booking that no longer holds its slot has nothing left to review, so it is not shown. */
+  private stillHolds(booking: SeededBooking): boolean {
+    return holdsSlot(
+      { status: this.endedAs.get(booking.id) ?? booking.status, holdExpiresAt: booking.holdExpiresAt ?? null },
+      this.clock.now(),
+    );
   }
 
   async record(block: VenueUnavailabilityBlock, actor: UserAccountId): Promise<VenueUnavailabilityEntry> {
@@ -104,18 +119,15 @@ export class InMemoryVenueUnavailabilityRepository
     }));
     for (const { bookingId } of bookingsToFlagForBlock(entry, flaggable, now)) {
       const booking = this.bookings.find((candidate) => candidate.id === bookingId);
-      const covered = new Set(entry.slots.map(({ date, slot }) => `${date}|${slot}`));
       if (booking === undefined) {
         continue;
       }
-      const overlapping = booking.slots.filter(({ date, slot }) => covered.has(`${date}|${slot}`));
       this.flags.push({
         id: `flag-${this.flags.length + 1}`,
         booking,
         reasonCode: "venue-unavailable",
         blockId: entry.id,
-        overlapping,
-        detail: blockFlagDetail(entry, overlapping),
+        detail: blockFlagDetail(entry, booking.slots),
         flaggedAt: now.toISOString(),
       });
     }
@@ -145,13 +157,13 @@ export class InMemoryVenueUnavailabilityRepository
     };
     // SPM-313 AC6: the flags stay; each reason says the block was lifted.
     for (const flag of this.flags.filter((candidate) => candidate.blockId === lift.id)) {
-      flag.detail = blockFlagDetail(this.rows[index], flag.overlapping);
+      flag.detail = blockFlagDetail(this.rows[index], flag.booking.slots);
     }
   }
 
   async flaggedBookings(_reader: UserAccountId, blockId: string): Promise<readonly FlaggedBooking[]> {
     return this.flags
-      .filter((flag) => flag.blockId === blockId)
+      .filter((flag) => flag.blockId === blockId && this.stillHolds(flag.booking))
       .map(({ booking, detail }) => ({
         bookingId: booking.id as BookingId,
         eventId: booking.eventId ?? "",
@@ -165,7 +177,10 @@ export class InMemoryVenueUnavailabilityRepository
   async openForEvent(coordinatorId: UserAccountId, eventId: string): Promise<readonly EventBookingFlag[]> {
     return this.flags
       .filter(
-        ({ booking }) => booking.eventId === eventId && booking.coordinatorUserAccountId === coordinatorId,
+        ({ booking }) =>
+          booking.eventId === eventId &&
+          booking.coordinatorUserAccountId === coordinatorId &&
+          this.stillHolds(booking),
       )
       .map((flag) => ({
         flagId: flag.id,
@@ -173,7 +188,7 @@ export class InMemoryVenueUnavailabilityRepository
         venueLocation: this.venueLocations.get(flag.booking.venueId) ?? flag.booking.venueId,
         status: flag.booking.status,
         holdExpiresAt: flag.booking.holdExpiresAt?.toISOString() ?? null,
-        slots: flag.booking.slots,
+        bookedFor: timeSpans(flag.booking.slots),
         reasonCode: flag.reasonCode,
         detail: flag.detail,
         flaggedAt: flag.flaggedAt,

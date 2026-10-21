@@ -4,7 +4,9 @@ import {
   blockFlagDetail,
   bookingsToFlagForBlock,
   bookingWindow,
+  timeSpans,
   windowsOverlap,
+  type FlaggingBlock,
   VENUE_UNAVAILABLE_FLAG,
   type FlaggableBooking,
 } from "./booking-review-flag";
@@ -136,7 +138,9 @@ describe("bookingsToFlagForBlock (SPM-313)", () => {
 
 describe("blockFlagDetail (SPM-313)", () => {
   it("AC1: gives the Night slot's hours as the slot table does, ending at 24:00", () => {
-    expect(blockFlagDetail(block(), [{ date: "2026-11-06", slot: "Night" }])).toBe(
+    const night = block({ slots: [{ date: "2026-11-06", slot: "Night" }] });
+
+    expect(blockFlagDetail(night, [{ date: "2026-11-06", slot: "Night" }])).toBe(
       "Maintenance: 2026-11-06 19:00 to 24:00",
     );
   });
@@ -167,5 +171,101 @@ describe("windowsOverlap (SPM-313)", () => {
 
   it("a booking window is the slot's own hours until padding is defined (SPM-23)", () => {
     expect(bookingWindow({ date: "2026-11-06", slot: "PM" })).toEqual(at("13:00", "18:00"));
+  });
+});
+
+/** Slot codes '52' to '71' are the PM slot's twenty 15-minute slots, 13:00 to 18:00 (SPM-331). */
+const PM_IN_QUARTERS = Array.from({ length: 20 }, (_, i) => ({ date: "2026-11-06", slot: String(52 + i) }));
+
+function quarterBlock(...codes: string[]): FlaggingBlock {
+  return {
+    id: "9",
+    venueId: HALL_A,
+    reason: "Maintenance",
+    status: "In force",
+    liftedAt: null,
+    slots: codes.map((slot) => ({ date: "2026-11-06", slot })),
+  };
+}
+
+describe("flagging on the 15-minute grid (SPM-313, SPM-331)", () => {
+  it("AC1: flags a booking of twenty 15-minute slots for a block inside it, naming the block's own time", () => {
+    const [flagged] = bookingsToFlagForBlock(
+      quarterBlock("60", "61"),
+      [booking({ slots: PM_IN_QUARTERS })],
+      NOW,
+    );
+
+    expect(flagged?.reason.detail).toBe("Maintenance: 2026-11-06 15:00 to 15:30");
+  });
+
+  it("AC1: flags a booking still on the PM slot for a block on 15-minute slots inside it", () => {
+    const [flagged] = bookingsToFlagForBlock(quarterBlock("60"), [booking()], NOW);
+
+    expect(flagged?.reason.detail).toBe("Maintenance: 2026-11-06 15:00 to 15:15");
+  });
+
+  it("AC1: flags a booking on 15-minute slots for a block still on the PM slot", () => {
+    const [flagged] = bookingsToFlagForBlock(
+      block(),
+      [booking({ slots: [{ date: "2026-11-06", slot: "60" }] })],
+      NOW,
+    );
+
+    expect(flagged?.reason.detail).toBe("Maintenance: 2026-11-06 13:00 to 18:00");
+  });
+
+  it("AC2: leaves a booking alone when the block starts the moment it ends, or ends the moment it starts", () => {
+    expect(bookingsToFlagForBlock(quarterBlock("72"), [booking({ slots: PM_IN_QUARTERS })], NOW)).toEqual([]);
+    expect(bookingsToFlagForBlock(quarterBlock("51"), [booking({ slots: PM_IN_QUARTERS })], NOW)).toEqual([]);
+  });
+
+  it("AC2: leaves a booking alone when the block is on another date's slot of the same code", () => {
+    const otherDay = { ...quarterBlock("60"), slots: [{ date: "2026-11-07", slot: "60" }] };
+
+    expect(bookingsToFlagForBlock(otherDay, [booking({ slots: PM_IN_QUARTERS })], NOW)).toEqual([]);
+  });
+
+  it("AC6: says a block on 15-minute slots was lifted, and when", () => {
+    const lifted = { ...quarterBlock("60"), status: "Lifted" as const, liftedAt: "2026-10-21T01:00:00.000Z" };
+
+    expect(blockFlagDetail(lifted, PM_IN_QUARTERS)).toBe(
+      "Maintenance: 2026-11-06 15:00 to 15:15, block lifted 2026-10-21 09:00",
+    );
+  });
+});
+
+describe("timeSpans (SPM-313, SPM-331)", () => {
+  it("reads twenty 15-minute slots as one span, the same as the PM slot", () => {
+    expect(timeSpans(PM_IN_QUARTERS)).toBe("2026-11-06 13:00 to 18:00");
+    expect(timeSpans([{ date: "2026-11-06", slot: "PM" }])).toBe("2026-11-06 13:00 to 18:00");
+  });
+
+  it("keeps separate spans apart, in date and time order", () => {
+    expect(
+      timeSpans([
+        { date: "2026-11-07", slot: "AM" },
+        { date: "2026-11-06", slot: "Night" },
+        { date: "2026-11-06", slot: "AM" },
+      ]),
+    ).toBe("2026-11-06 07:00 to 12:00, 2026-11-06 19:00 to 24:00, 2026-11-07 07:00 to 12:00");
+  });
+
+  it("joins slots that run into each other and counts a slot inside another once", () => {
+    expect(
+      timeSpans([
+        { date: "2026-11-06", slot: "PM" },
+        { date: "2026-11-06", slot: "60" },
+        { date: "2026-11-06", slot: "72" },
+      ]),
+    ).toBe("2026-11-06 13:00 to 18:15");
+  });
+
+  it("ends the last slot of the day at 24:00", () => {
+    expect(timeSpans([{ date: "2026-11-06", slot: "95" }])).toBe("2026-11-06 23:45 to 24:00");
+  });
+
+  it("refuses a slot code the slot table does not have", () => {
+    expect(() => timeSpans([{ date: "2026-11-06", slot: "96" }])).toThrow(/Unknown slot code/);
   });
 });
