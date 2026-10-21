@@ -26,7 +26,7 @@ describe("holdExpiredInApp (SPM-254)", () => {
     });
   });
 
-  it("opens the booking the same way when the event has no source request (SPM-459)", () => {
+  it("opens the booking the same way when the event has no source request", () => {
     expect(holdExpiredInApp(notice({ eventRequestId: null })).redirect.url).toBe(
       "/staff/coordinator/events/8?tab=venue&booking=31",
     );

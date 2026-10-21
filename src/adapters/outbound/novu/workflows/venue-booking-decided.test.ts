@@ -28,7 +28,7 @@ describe("venueBookingDecidedInApp (SPM-62)", () => {
     });
   });
 
-  it("AC3: opens the booking the same way when the event has no source request (SPM-459)", () => {
+  it("AC3: opens the booking the same way when the event has no source request", () => {
     expect(venueBookingDecidedInApp(notice({ eventRequestId: null })).redirect.url).toBe(
       "/staff/coordinator/events/8?tab=venue&booking=31",
     );

@@ -27,7 +27,7 @@ function find(eventRequestId: string, userAccountId: string) {
   }).execute({ eventRequestId, userAccountId });
 }
 
-describe("FindAssignedEventByRequestUseCase (SPM-459)", () => {
+describe("FindAssignedEventByRequestUseCase (SPM-62)", () => {
   it("finds the event opened from the request, for its assigned coordinator", async () => {
     await expect(find("request-1", "coordinator-1")).resolves.toBe("event-1");
   });

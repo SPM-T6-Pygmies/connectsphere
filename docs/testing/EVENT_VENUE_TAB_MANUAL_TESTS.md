@@ -9,10 +9,14 @@ keyed by the event's request. Now the tab holds that whole workspace, reached
 by the event's id, and the old URL redirects to it.
 
 The booking read keyed by event, and the request-to-event lookup the redirect
-uses, are unit-tested (`ViewVenueBookingOptionsUseCase by event (SPM-459)`,
-`FindAssignedEventByRequestUseCase (SPM-459)`), and so are the notification
+uses, are unit-tested (`ViewVenueBookingOptionsUseCase by event (SPM-46)`,
+`FindAssignedEventByRequestUseCase (SPM-62)`), and so are the notification
 links. These cases cover what the unit tests cannot: the tab itself, the
 redirect, the links into the tab, and a save leaving the tab open.
+
+SPM-459 moved existing behaviour rather than adding acceptance criteria, so
+each case is evidence for the original ticket's AC it re-checks in the new
+place, named under its heading.
 
 These cases are registered as `TC-VTAB-001`–`TC-VTAB-007` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
@@ -64,6 +68,8 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ### TC-VTAB-001: The Venue tab holds the whole booking workspace
 
+SPM-46 AC1.
+
 **Preconditions:** Signed in as `coordinator@test.com`.
 
 **Steps:**
@@ -86,6 +92,8 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ### TC-VTAB-002: An event with no source request can be booked too
 
+SPM-46 AC1.
+
 **Preconditions:** As TC-VTAB-001.
 
 **Steps:**
@@ -102,6 +110,8 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ### TC-VTAB-003: An old booking link opens the booking on the Venue tab
 
+SPM-62 AC3.
+
 **Preconditions:** As TC-VTAB-001. This is the URL a booking-decided or
 hold-expired notice sent before SPM-459 opens.
 
@@ -117,6 +127,8 @@ hold-expired notice sent before SPM-459 opens.
 ---
 
 ### TC-VTAB-004: A suggested venue starts a fresh request on the Venue tab
+
+SPM-62 AC3.
 
 **Preconditions:** As TC-VTAB-001, with the suggestion from Setup.
 
@@ -137,6 +149,8 @@ hold-expired notice sent before SPM-459 opens.
 
 ### TC-VTAB-005: Someone else's event looks the same as a missing one
 
+SPM-45 AC9.
+
 **Preconditions:** As TC-VTAB-001.
 
 **Steps:**
@@ -152,6 +166,8 @@ hold-expired notice sent before SPM-459 opens.
 ---
 
 ### TC-VTAB-006: The links into venue booking open the Venue tab
+
+SPM-46 AC1.
 
 **Preconditions:** As TC-VTAB-001.
 
@@ -171,6 +187,8 @@ hold-expired notice sent before SPM-459 opens.
 ---
 
 ### TC-VTAB-007: Saving from the tab refreshes it and leaves it open
+
+SPM-45 AC2.
 
 **Preconditions:** As TC-VTAB-001.
 

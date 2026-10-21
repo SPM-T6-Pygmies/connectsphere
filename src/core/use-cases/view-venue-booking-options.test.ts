@@ -96,7 +96,7 @@ describe("ViewVenueBookingOptionsUseCase (SPM-46)", () => {
   });
 });
 
-describe("ViewVenueBookingOptionsUseCase by event (SPM-459)", () => {
+describe("ViewVenueBookingOptionsUseCase by event (SPM-46)", () => {
   it("reaches an event with no source request, by the event's own id", async () => {
     const result = await new ViewVenueBookingOptionsUseCase({
       flags: new InMemoryVenueUnavailabilityRepository(new FixedClock(new Date("2026-10-01T00:00:00Z"))),
