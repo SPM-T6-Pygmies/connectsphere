@@ -11,7 +11,7 @@ const valid = {
   location: " Marina Bay Hall ",
   facilities: "Wi-Fi",
   accessibility: "Step-free",
-  slots: ["AM", "PM"],
+  openingHours: [{ start: "07:00", end: "12:00" }, { start: "19:00", end: "24:00" }],
   capacity: "300",
   bookingHorizonDays: "180",
   layouts: [
@@ -27,12 +27,12 @@ function errorsFor(input: unknown) {
 }
 
 describe("createVenueSchema (SPM-146)", () => {
-  it("parses a filled-in form: trimmed text, slots as given, numeric capacities", () => {
+  it("parses a filled-in form: trimmed text, opening hours as given, numeric capacities", () => {
     expect(createVenueSchema.parse(valid)).toEqual({
       location: "Marina Bay Hall",
       facilities: "Wi-Fi",
       accessibility: "Step-free",
-      slots: ["AM", "PM"],
+      openingHours: [{ start: "07:00", end: "12:00" }, { start: "19:00", end: "24:00" }],
       capacity: 300,
       bookingHorizonDays: 180,
       layouts: [
@@ -48,7 +48,7 @@ describe("createVenueSchema (SPM-146)", () => {
         location: "",
         facilities: "",
         accessibility: "",
-        slots: [],
+        openingHours: [],
         capacity: "",
         bookingHorizonDays: "",
         layouts: [],
@@ -61,7 +61,7 @@ describe("createVenueSchema (SPM-146)", () => {
         "facilities",
         "layouts",
         "location",
-        "slots",
+        "openingHours",
       ]);
     });
 
@@ -87,11 +87,6 @@ describe("createVenueSchema (SPM-146)", () => {
     });
   });
 
-  it("refuses a slot that is not AM, PM or Night, flagging slots", () => {
-    expect(errorsFor({ ...valid, slots: ["AM", "Evening"] })).toEqual({
-      "slots.1": "Choose AM, PM or Night.",
-    });
-  });
 
   it("refuses a capacity that is not a whole number", () => {
     expect(errorsFor({ ...valid, layouts: [{ name: "Theatre", capacity: "12.5" }] })).toEqual({
@@ -102,6 +97,37 @@ describe("createVenueSchema (SPM-146)", () => {
 
   it("refuses a booking horizon that is not a whole number", () => {
     expect(errorsFor({ ...valid, bookingHorizonDays: "2.5" }).bookingHorizonDays).toBeDefined();
+  });
+});
+
+describe("opening hours on the venue form (SPM-333)", () => {
+  it("flags a window left without a start or end on that row", () => {
+    expect(errorsFor({ ...valid, openingHours: [valid.openingHours[0], { start: "", end: "24:00" }] })).toEqual({
+      "openingHours.1.start": "Choose when this window opens.",
+    });
+  });
+
+  it("refuses a time that is not HH:MM", () => {
+    expect(errorsFor({ ...valid, openingHours: [{ start: "7am", end: "12:00" }] })).toEqual({
+      "openingHours.0.start": "Enter the time as HH:MM, such as 07:00.",
+    });
+  });
+
+  it("pairs each openingStart with the openingEnd in the same position", () => {
+    const formData = new FormData();
+    formData.append("openingStart", "07:00");
+    formData.append("openingEnd", "12:00");
+    formData.append("openingStart", "19:00");
+    formData.append("openingEnd", "24:00");
+
+    expect(venueFormValues(formData).openingHours).toEqual([
+      { start: "07:00", end: "12:00" },
+      { start: "19:00", end: "24:00" },
+    ]);
+  });
+
+  it("reads no windows when none were posted", () => {
+    expect(venueFormValues(new FormData()).openingHours).toEqual([]);
   });
 });
 
@@ -127,10 +153,4 @@ describe("venueFormValues (SPM-146)", () => {
     ]);
   });
 
-  it("reads the comma-separated slots field as a list", () => {
-    const formData = new FormData();
-    formData.set("slots", "AM, Night");
-
-    expect(venueFormValues(formData).slots).toEqual(["AM", "Night"]);
-  });
 });

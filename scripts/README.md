@@ -112,6 +112,7 @@ needs. This table says what that is.
 | Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
 | Venue flag | `seed-coordinator-view`, `seed-venues`, `seed-booking-flags` (its Setup lists every command) |
 | Venue booking cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel` |
+| Event cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel`, `seed-event-cancel` |
 | **Equipment review** | `seed-equipment-review` **only** |
 | **Equipment reserve** | `seed-equipment-reserve` **only** |
 | **Venue search** | `seed-venue-search-uat` **only** |
@@ -162,6 +163,7 @@ local subscribers and notifications stay behind otherwise.
 | `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, 21 days from today (one expired, one live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset | `seed`, `fixture`, `teardown` |
 | `seed-booking-flags` | 7 *Flag Test:* events with 9 bookings on Main Hall, Studio and Rooftop Terrace, 28 days from today (Confirmed, Requested, a live and an expired hold), for the venue flag cases to block | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events | `seed`, `show` (9 rows), `blocks`, `checks` (39 checks), `teardown` (also removes the blocks the cases recorded) |
 | `seed-booking-cancel` | 5 bookings on the *Founders' Gala Dinner* at the two UAT-44 venues, 10 days from today: two Confirmed, one Requested, one Tentative Hold, one Rejected | `seed-equipment`, `seed-venue-search-uat` | Yes | `seed`, `verify` (7 rows), `teardown` |
+| `seed-event-cancel` | A lapsed Tentative Hold on the *Founders' Gala Dinner* at UAT-44 Garden Hall, 10 days from today, beside `seed-booking-cancel`'s five. `teardown` also puts the event back in Planning | `seed-booking-cancel` | Yes | `seed`, `verify` (2 rows), `teardown` |
 | `apply-ssot` | Nothing: corrects venue and equipment data already there | A database that already has data | Yes | `verify` (31 rows), `apply` |
 
 "Safe to re-run" means it inserts only what is missing, so a row you have since

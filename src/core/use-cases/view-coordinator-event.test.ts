@@ -11,6 +11,7 @@ import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
+import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
@@ -373,6 +374,30 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
       useCase.execute({ id: "event-1", userAccountId: OTHER_COORDINATOR }),
     ).resolves.toBeNull();
   });
+});
+
+describe("ViewCoordinatorEventUseCase cancellation (SPM-55)", () => {
+  it.each<CoordinatorEventStatus>(["Planning", "Blocked", "Confirmed"])(
+    "AC2: offers cancelling a %s event",
+    async (status) => {
+      const useCase = buildUseCase([seedEvent({ status })]);
+
+      const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+      expect(result?.canCancel).toBe(true);
+    },
+  );
+
+  it.each<CoordinatorEventStatus>(["Completed", "Cancelled"])(
+    "AC2: does not offer cancelling a %s event",
+    async (status) => {
+      const useCase = buildUseCase([seedEvent({ status })]);
+
+      const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+      expect(result?.canCancel).toBe(false);
+    },
+  );
 });
 
 describe("ViewCoordinatorEventUseCase essential equipment (SPM-318)", () => {

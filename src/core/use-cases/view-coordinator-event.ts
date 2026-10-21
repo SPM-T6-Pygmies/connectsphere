@@ -1,5 +1,6 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
+import { canCancel } from "../domain/event-cancellation";
 import { canComplete } from "../domain/event-completion";
 import {
   assessReadiness,
@@ -46,6 +47,8 @@ export interface ViewCoordinatorEventResult {
   readonly canComplete: boolean;
   /** SPM-313 AC4: each open reason one of the event's venue bookings is flagged for, oldest first. */
   readonly flaggedBookings: readonly EventBookingFlag[];
+  /** SPM-55: whether the event can still be cancelled -- any stage before it is over. */
+  readonly canCancel: boolean;
 }
 
 export interface ViewCoordinatorEventDeps {
@@ -112,6 +115,7 @@ export class ViewCoordinatorEventUseCase {
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
       flaggedBookings,
+      canCancel: canCancel(details),
     };
   }
 }

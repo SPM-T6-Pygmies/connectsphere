@@ -21,6 +21,7 @@ import { detailCrumbs } from "../../../detail-origin";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { ARRANGEMENT_LABELS } from "./arrangement-labels";
+import { CancelEventForm } from "./cancel-event-form";
 import { CompleteForm } from "./complete-form";
 import { ConfirmForm } from "./confirm-form";
 import { EquipmentSection } from "./equipment-section";
@@ -95,6 +96,7 @@ export default async function CoordinatorEventPage({
     safetyCheckBlocker,
     canComplete,
     flaggedBookings,
+    canCancel,
   } = result;
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
 
@@ -211,6 +213,20 @@ export default async function CoordinatorEventPage({
               ) : null}
             </CardContent>
           </Card>
+
+          {canCancel ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Cancellation</CardTitle>
+                <CardDescription>
+                  Cancelling gives back every venue booking and hold, so they are free for other events.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CancelEventForm eventId={event.id} eventName={event.name} />
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       </div>
     </StaffShell>
