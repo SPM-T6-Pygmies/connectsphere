@@ -70,6 +70,7 @@ export class SubmitVenueBookingRequestUseCase {
 
     const request = requestVenueBooking({
       eventId: event.id,
+      eventStatus: event.status,
       venue,
       roomLayout: command.roomLayout,
       slots: command.slots,

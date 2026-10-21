@@ -142,6 +142,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-55": {
+      "title": "Cancel an event",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-57": {
       "title": "Notify a coordinator of their assignment to an event",
       "parent": null,

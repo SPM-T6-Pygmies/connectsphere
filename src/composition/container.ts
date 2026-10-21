@@ -59,6 +59,7 @@ import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-re
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { CancelVenueBookingUseCase } from "@/core/use-cases/cancel-venue-booking";
+import { CancelEventUseCase } from "@/core/use-cases/cancel-event";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
 import { EquipmentAttentionAnnouncer } from "@/core/use-cases/announce-equipment-attention";
@@ -742,6 +743,13 @@ export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
   const { events } = await coordinatorAdapters();
 
   return new CompleteEventUseCase({ events, clock: systemClock });
+}
+
+/** SPM-55: the assigned coordinator cancels an event before it is over, giving back the venues it holds. */
+export async function buildCancelEvent(): Promise<CancelEventUseCase> {
+  const { events } = await coordinatorAdapters();
+
+  return new CancelEventUseCase({ events });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */

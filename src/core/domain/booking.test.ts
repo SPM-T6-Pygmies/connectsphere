@@ -22,6 +22,7 @@ import {
   BookingNotCancellableError,
   BookingNotDecidableError,
   BookingRoomLayoutNotChangeableError,
+  CancelledEventBookingError,
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   HoldNotLiveError,
@@ -33,6 +34,7 @@ import {
   VenueClosedError,
   VenueSlotUnavailableError,
 } from "./errors";
+import type { CoordinatorEventStatus } from "./coordinator-event";
 import type { OpeningWindow } from "./opening-hours";
 import { userAccountId } from "./user-account";
 import { venueId, type Venue } from "./venue";
@@ -72,9 +74,11 @@ function request(
   slots: readonly SlotOnDate[],
   existing: readonly OccupiedSlot[] = [],
   layout: string | null = THEATRE,
+  eventStatus: CoordinatorEventStatus = "Planning",
 ) {
   return requestVenueBooking({
     eventId: "event-1",
+    eventStatus,
     venue: venue(),
     roomLayout: layout,
     slots,
@@ -231,6 +235,7 @@ describe("requestVenueBooking over closed time (SPM-334)", () => {
   function requestAt(openingHours: readonly OpeningWindow[], slots: readonly SlotOnDate[]) {
     return requestVenueBooking({
       eventId: "event-1",
+      eventStatus: "Planning",
       venue: { ...venue(), openingHours },
       roomLayout: THEATRE,
       slots,
@@ -275,6 +280,23 @@ describe("requestVenueBooking over closed time (SPM-334)", () => {
       "The venue is closed 2026-10-05 07:00–12:00.",
     );
   });
+});
+
+describe("requestVenueBooking on a cancelled event (SPM-55)", () => {
+  it("refuses a Cancelled event (AC6)", () => {
+    expect(() => request([{ date: "2026-10-05", slot: "AM" }], [], THEATRE, "Cancelled")).toThrow(
+      CancelledEventBookingError,
+    );
+  });
+
+  it.each<CoordinatorEventStatus>(["Planning", "Blocked", "Confirmed", "Completed"])(
+    "still takes a request for a %s event (AC6)",
+    (status) => {
+      expect(request([{ date: "2026-10-05", slot: "AM" }], [], THEATRE, status).status).toBe(
+        "Requested",
+      );
+    },
+  );
 });
 
 describe("chooseRoomLayout (SPM-104)", () => {

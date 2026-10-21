@@ -1,8 +1,10 @@
 import type { Brand } from "./brand";
+import type { CoordinatorEventStatus } from "./coordinator-event";
 import {
   BookingNotCancellableError,
   BookingNotDecidableError,
   BookingRoomLayoutNotChangeableError,
+  CancelledEventBookingError,
   DecisionReasonRequiredError,
   DuplicateBookingSlotError,
   HoldNotLiveError,
@@ -250,9 +252,14 @@ export function clashingSlots(
  * with a live hold or confirmed booking refuses the request outright (#35,
  * #41); clashing with another pending request, or a hold that expired before
  * `now`, does not.
+ *
+ * SPM-55 AC6: a Cancelled event takes no new requests, whatever else it asks
+ * for. `coordinator_submit_booking_request` restates this under a lock on the
+ * event, so a request racing the cancellation is refused too.
  */
 export function requestVenueBooking(input: {
   readonly eventId: string;
+  readonly eventStatus: CoordinatorEventStatus;
   readonly venue: Venue;
   readonly roomLayout: string | null;
   readonly slots: readonly SlotOnDate[];
@@ -260,6 +267,10 @@ export function requestVenueBooking(input: {
   readonly occupied: readonly OccupiedSlot[];
   readonly now: Date;
 }): BookingRequest {
+  if (input.eventStatus === "Cancelled") {
+    throw new CancelledEventBookingError();
+  }
+
   if (input.slots.length === 0) {
     throw new NoBookingSlotsError();
   }

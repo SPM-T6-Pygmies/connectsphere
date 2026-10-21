@@ -1,5 +1,6 @@
 import type { CoordinatorEvent } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
+import { canCancel } from "../domain/event-cancellation";
 import { canComplete } from "../domain/event-completion";
 import {
   assessReadiness,
@@ -43,6 +44,8 @@ export interface ViewCoordinatorEventResult {
   readonly safetyCheckBlocker: SafetyCheckBlocker | null;
   /** SPM-51: whether the event can be marked completed now -- Confirmed, and its last slot over. */
   readonly canComplete: boolean;
+  /** SPM-55: whether the event can still be cancelled -- any stage before it is over. */
+  readonly canCancel: boolean;
 }
 
 export interface ViewCoordinatorEventDeps {
@@ -105,6 +108,7 @@ export class ViewCoordinatorEventUseCase {
       blockingEquipment: blockingEquipment(readiness),
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
+      canCancel: canCancel(details),
     };
   }
 }
