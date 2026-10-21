@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 import { formatOptionList, parseOptionList } from "@/core/domain/venue-options";
 
 /**
@@ -74,26 +72,8 @@ export function OptionSelect({
   required?: boolean;
   "aria-invalid"?: boolean;
 }) {
-  const ref = useRef<HTMLSelectElement>(null);
-
-  // React resets a form once its action returns, and a controlled <select>
-  // does not get its value back the way an <input> does: a refused submit
-  // would blank the choice the error is about. The browser fires `reset`
-  // before clearing the fields, so put the value back just after.
-  useEffect(() => {
-    const select = ref.current;
-    const form = select?.form;
-    if (!select || !form) {
-      return;
-    }
-    const restore = () => setTimeout(() => (select.value = value));
-    form.addEventListener("reset", restore);
-    return () => form.removeEventListener("reset", restore);
-  }, [value]);
-
   return (
     <select
-      ref={ref}
       id={id}
       name={name}
       required={required}
