@@ -25,7 +25,7 @@
 -- same transaction, under the venue's lock, so a booking confirmed a moment earlier
 -- is flagged and one confirmed a moment later is refused by the block itself. A
 -- Requested booking is not flagged: Venue Staff cannot approve it over the block
--- (CS028). A lifted block never clears a flag; its reason says it was lifted.
+-- (CS028). A lifted block never clears a flag; the page is told it was lifted, from the block.
 --
 -- An overlap is by time: the booking's slot and the block's slot, on the same date at
 -- the same venue, share some time (the domain rule in booking-review-flag.ts says the
@@ -178,8 +178,8 @@ begin
 end;
 $$;
 
--- Lifting a block: as before, and each reason it gave says so. The flags stay open:
--- the coordinator decides what happens next (SPM-310, SPM-251).
+-- Lifting a block: as before. Flags stay open: the coordinator decides what happens next
+-- (SPM-310, SPM-251). The read below tells the page the block was lifted, from the block.
 create or replace function public.venue_staff_lift_unavailability(
   p_staff_user_account_id bigint,
   p_unavailability_id bigint
@@ -220,13 +220,6 @@ begin
   set lifted_by_user_account_id = p_staff_user_account_id,
       lifted_at = v_now
   where venue_unavailability_id = p_unavailability_id;
-
-  update public.booking_review_flag
-  set detail = detail || ', block lifted '
-        || to_char(v_now at time zone 'Asia/Singapore', 'YYYY-MM-DD HH24:MI')
-  where reason_code = 'venue-unavailable'
-    and source_ref = p_unavailability_id::text
-    and cleared_at is null;
 end;
 $$;
 
@@ -297,6 +290,13 @@ as $$
       ),
       'reason_code', f.reason_code,
       'detail', f.detail,
+      -- When the block behind a venue-unavailable reason was lifted; null while it is in force.
+      'source_lifted_at', (
+        select u.lifted_at
+        from public.venue_unavailability u
+        where f.reason_code = 'venue-unavailable'
+          and u.venue_unavailability_id = f.source_ref::bigint
+      ),
       'flagged_at', f.flagged_at
     )
     order by b.booking_id, f.flagged_at, f.booking_review_flag_id

@@ -3,7 +3,7 @@
 -- Writes nothing that survives: it ends in an error, which rolls everything back, and
 -- the error message is the result.
 --
---   ok: all 39 checks held            every check passed (37 on a slot table without SPM-331's
+--   ok: all 40 checks held            every check passed (38 on a slot table without SPM-331's
 --                                     15-minute codes, which add two overlap-by-time checks)
 --   FAILED: <checks that did not hold>
 --
@@ -171,13 +171,19 @@ begin
   v_checks := v_checks + 1;
   select detail into v_text from public.booking_review_flag
     where booking_id = v_tech_hall_a and source_ref = v_block1::text;
-  if v_text !~ ('^Maintenance: ' || f || ' 13:00 to 18:00, block lifted \d{4}-\d{2}-\d{2} \d{2}:\d{2}$') then
-    v_failed := v_failed || 'AC6 the lifted block''s reason says it was lifted and when'; end if;
+  if v_text is distinct from 'Maintenance: ' || f || ' 13:00 to 18:00' then
+    v_failed := v_failed || 'AC6 a lift leaves the reason text as it was'; end if;
+  v_checks := v_checks + 1;
+  select count(*) into v_n
+    from jsonb_array_elements(public.coordinator_event_flags(v_dana, v_tech_event)) x
+    where (x ->> 'booking_id')::bigint = v_tech_hall_a
+      and ((x ->> 'detail') like 'Maintenance:%') = ((x ->> 'source_lifted_at') is not null);
+  if v_n <> 2 then v_failed := v_failed || 'AC6 the read says the lifted block was lifted, and the other block was not'; end if;
   v_checks := v_checks + 1;
   select detail into v_text from public.booking_review_flag
     where booking_id = v_tech_hall_a and source_ref = v_block2::text;
   if v_text is distinct from 'Equipment failure: ' || f || ' 13:00 to 18:00' then
-    v_failed := v_failed || 'AC6 the other block''s reason is unchanged'; end if;
+    v_failed := v_failed || 'AC6 the other block''s reason text is unchanged'; end if;
   v_checks := v_checks + 1;
   select count(*) into v_n from public.booking where booking_id = v_tech_hall_a and status = 'Confirmed';
   if v_n <> 1 then v_failed := v_failed || 'AC6 the booking is still Confirmed'; end if;
