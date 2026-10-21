@@ -134,6 +134,7 @@ Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: 
       has at least one window.
 
 **Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+Screenshots, retaken 21/10/2026 on the same build: [step3-opening-windows-after-reload](../screenshots/2026-10-21_TC-VCAT-004_step3-opening-windows-after-reload.png)
 Earlier run on slots: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-edits-before-save](../screenshots/2026-10-09_TC-VCAT-004_step2-edits-before-save.png) · [step3-after-reload](../screenshots/2026-10-09_TC-VCAT-004_step3-after-reload.png) · [step4-save-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-004_step4-save-disabled-no-slot.png)
 
 ### TC-VCAT-005 Any Venue Staff can maintain any venue
