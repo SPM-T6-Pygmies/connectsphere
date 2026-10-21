@@ -1,4 +1,5 @@
 import { holdsSlot, SLOT_HOURS, type BookingSlot, type BookingStatus } from "./booking";
+import { NoFlagToClearError } from "./errors";
 import type { VenueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
@@ -171,4 +172,20 @@ export function bookingsToFlagForBlock(
     });
   }
   return flagged;
+}
+
+/**
+ * SPM-310 AC1, AC4, AC6: the open reasons the coordinator clears when they decide a flagged
+ * booking still fits. Clearing is per booking, so it takes every reason on it and none on the
+ * event's other bookings. A booking with none open has nothing to clear.
+ */
+export function flagsToClear<F extends { readonly bookingId: string }>(
+  openFlags: readonly F[],
+  bookingId: string,
+): readonly F[] {
+  const clearing = openFlags.filter((flag) => flag.bookingId === bookingId);
+  if (clearing.length === 0) {
+    throw new NoFlagToClearError(bookingId);
+  }
+  return clearing;
 }
