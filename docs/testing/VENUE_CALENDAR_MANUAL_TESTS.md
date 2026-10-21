@@ -55,11 +55,11 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 **D** is 14 days after today in Singapore.
 
-| Venue | Slots offered | On the calendar |
+| Venue | Opening hours | On the calendar |
 | --- | --- | --- |
-| UAT-44 Harbour Room | AM, PM, Night | Confirmed booking on D PM |
-| UAT-44 Garden Hall | AM, PM | Rejected booking on D AM (frees the slot) |
-| Main Hall | none recorded | Renovation block on AM for D to D+4; Maintenance block on all three slots of D+2; holds on D+7 (AM expired, PM lapsing in 30 days) |
+| UAT-44 Harbour Room | open 07:00–12:00, 13:00–18:00, 19:00–24:00 | Confirmed booking on D PM |
+| UAT-44 Garden Hall | open 07:00–12:00, 13:00–18:00 | Rejected booking on D AM (frees the slot) |
+| Main Hall | open 07:00–12:00, 13:00–18:00, 19:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on D+7 (AM expired, PM lapsing in 30 days) |
 
 ---
 
@@ -116,7 +116,7 @@ AM reads **Not offered**, not Held: its hold has expired.
 Two browser sessions (one in a private window): Coordinator and Venue Staff.
 
 1. As the Coordinator, open UAT-44 Harbour Room's calendar on the week with D.
-2. As Venue Staff, block **UAT-44 Harbour Room** for **AM** on **D+1**, reason **Safety**.
+2. As Venue Staff, block **UAT-44 Harbour Room** from **07:00** to **12:00** on **D+1**, reason **Safety**.
 3. As the Coordinator, reload the page.
 4. As Venue Staff, lift that block. As the Coordinator, press **Next week**, then **Previous week**.
 
@@ -145,7 +145,7 @@ Step 3 shows the not-found page.
 
 Two browser sessions, as in TC-VCAL-004.
 
-1. As Venue Staff, block **UAT-44 Harbour Room** for **PM** on **D+2**, reason **Other**, note
+1. As Venue Staff, block **UAT-44 Harbour Room** from **13:00** to **18:00** on **D+2**, reason **Other**, note
    *Terrace closed for resurfacing*.
 2. As the Coordinator, open UAT-44 Harbour Room's calendar on the week with D.
 3. As Venue Staff, lift the block.

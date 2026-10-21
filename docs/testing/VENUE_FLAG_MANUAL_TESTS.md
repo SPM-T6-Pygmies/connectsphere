@@ -141,7 +141,7 @@ and not the other events booked around it.
 **Preconditions:** The fixture from Setup. Signed in as Venue Staff (`venue@test.com`), then the Coordinator.
 
 **Steps:**
-1. As Venue Staff open **Unavailability**. Choose **Main Hall**, start and end date **F**, slot **PM**, reason **Maintenance**, and click **Mark unavailable**.
+1. As Venue Staff open **Unavailability**. Choose **Main Hall**, start and end date **F**, start time **13:00**, end time **18:00**, reason **Maintenance**, and click **Mark unavailable**.
 2. Read **Bookings this block overlaps**.
 3. Sign in as the Coordinator (`coordinator@test.com`). Open **My events**, then *Flag Test: Tech Summit*, then the **Venue** tab.
 4. Read **Flagged for review**.
@@ -167,7 +167,7 @@ should be marked **Expired** before the block is checked, so a stale hold cannot
 **Preconditions:** The fixture from Setup. Signed in as Venue Staff, then the Coordinator.
 
 **Steps:**
-1. As Venue Staff open **Unavailability**. Choose **Studio**, start date **F + 2**, end date **F + 3**, slot **PM**, reason **Safety**, and save.
+1. As Venue Staff open **Unavailability**. Choose **Studio**, start date **F + 2**, end date **F + 3**, start time **13:00**, end time **18:00**, reason **Safety**, and save.
 2. As the Coordinator open *Flag Test: Hold Event*, then the **Venue** tab, and read **Flagged for review**.
 3. Read the two holds' status:
    ```sql
@@ -196,7 +196,7 @@ flagging leaves Requested bookings to it.
 **Preconditions:** The fixture from Setup. Signed in as Venue Staff, then the Coordinator.
 
 **Steps:**
-1. As Venue Staff open **Unavailability**. Choose **Rooftop Terrace**, start and end date **F**, slot **PM**, reason **Renovation**, and save. Read **Bookings this block overlaps**.
+1. As Venue Staff open **Unavailability**. Choose **Rooftop Terrace**, start and end date **F**, start time **13:00**, end time **18:00**, reason **Renovation**, and save. Read **Bookings this block overlaps**.
 2. As the Coordinator open *Flag Test: Second Event* and its **Venue** tab.
 3. As Venue Staff open **Requests** and the Rooftop Terrace request for F PM (*Flag Test: Second Event*). Click **Approve booking**.
 4. Write a note and click **Reject**.
@@ -210,7 +210,7 @@ flagging leaves Requested bookings to it.
 **Expected Result:**
 - Step 1: the list names *Flag Test: Second Event*, F PM, Requested.
 - Step 2: no **Flagged for review** section.
-- Step 3: the approval is refused: "The venue is unavailable for F PM. Choose other slots or another venue." The booking is still **Requested**.
+- Step 3: the approval is refused: "The venue is unavailable F 13:00 to 18:00. Choose other times or another venue." The booking is still **Requested**.
 - Step 4: the booking is **Rejected**.
 - Step 5: one `Sent` notice for the Coordinator, "Rooftop Terrace rejected for Flag Test: Second Event", with Venue Staff's note as the reason.
 
@@ -229,7 +229,7 @@ them flagged. This is the check that a block on one slot does not leak onto the 
 it, or onto the next day.
 
 **Preconditions:** After TC-VFLAG-001. Nothing new to record. Run `blocks.sql`: it must list **one**
-block, Main Hall on F, PM only. If it lists more (a block ticking AM or Night, or one on another
+block, Main Hall on F, 13:00 to 18:00 only. If it lists more (a block over other hours, or one on another
 day), that block is what flags the neighbours: run the teardown and seed commands and start again at
 001. Signed in as Coordinator 2 (`coordinator2@test.com`).
 
@@ -243,9 +243,12 @@ day), that block is what flags the neighbours: run the teardown and seed command
 
 **Screenshots:** [step1-coordinator-2-workshop](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-workshop.png) · [step1-coordinator-2-gala](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-gala.png) · [step1-coordinator-2-quiz](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-quiz.png)
 
-**A boundary the browser cannot reach:** slots always leave a one-hour gap, so a booking that only
-*touches* a block cannot be made with slots. The unit tests cover it with times (a block 13:00 to
-15:00 and a booking starting 15:00 do not overlap; 15:15 does). It becomes a case after SPM-321.
+**A boundary the browser still cannot reach:** a booking that only *touches* a block needs a block
+that starts or ends exactly where AM, PM or Night does, and the seeded venues are closed for the hour on
+either side of the PM slot (12:00 to 13:00 and 18:00 to 19:00), so the form will not record one. The unit
+tests cover it with times (a block 13:00 to 15:00 and a booking starting 15:00 do not overlap; 15:15 does),
+and `scripts/seed-booking-flags/checks.sql` covers it in the database by opening Main Hall for the lunch
+hour for the length of the check.
 
 ---
 
@@ -310,7 +313,7 @@ under the second block only, so each shows **one** reason.
 **Preconditions:** After TC-VFLAG-001. Signed in as Venue Staff, then the Coordinator, then Coordinator 2.
 
 **Steps:**
-1. As Venue Staff open **Unavailability**. Choose **Main Hall**, start date **F**, end date **F + 8**, slot **PM**, reason **Equipment failure**, and save.
+1. As Venue Staff open **Unavailability**. Choose **Main Hall**, start date **F**, end date **F + 8**, start time **13:00**, end time **18:00**, reason **Equipment failure**, and save.
 2. As the Coordinator open *Flag Test: Tech Summit* and *Flag Test: Offsite Day*, each on its **Venue** tab. Read their flags.
 3. As Coordinator 2 open *Flag Test: Quiz*, *Flag Test: Workshop* and *Flag Test: Gala* on their **Venue** tabs.
 
@@ -385,7 +388,7 @@ of them is blocked.
 **What this tests:** A flag is there so a live booking gets looked at, and the Coordinator manages their bookings
 on **Request a venue**, so the flag has to show there. When the booking stops existing the flag has
 nothing left to say, and it must not hang about: it would keep showing, and it would stop the event
-being confirmed. Venue Staff blocks the UAT-44 Harbour Room for two slots on C, and the Founders' Gala Dinner
+being confirmed. Venue Staff blocks the UAT-44 Harbour Room for the morning and for the night on C (two blocks), and the Founders' Gala Dinner
 has a Confirmed booking in each (P in the morning, Q at night). On **Request a venue** both rows should
 carry an amber **Flagged** badge, and opening one shows the reasons. The Coordinator then cancels P with the
 **Cancel booking** button from SPM-20. P's flag should go, from that page and from the Venue tab, and be
@@ -395,7 +398,7 @@ closed as "booking ended" in the database, while Q's flag stays.
 from today (the day the SPM-20 seed books).
 
 **Steps:**
-1. As Venue Staff open **Unavailability**. Choose **UAT-44 Harbour Room**, start and end date **C**, slots **AM** and **Night**, reason **Renovation**, and save.
+1. As Venue Staff open **Unavailability**. Choose **UAT-44 Harbour Room**, start and end date **C**, start time **07:00**, end time **12:00**, reason **Renovation**, and save. Record a second block the same way for **19:00** to **24:00** (a block is one range of times, so the morning and the night are two blocks).
 2. As the Coordinator open **My events**, *Founders' Gala Dinner*, the **Venue** tab, and read **Flagged for review**.
 3. Open **Manage venue booking** (Request a venue). On the Harbour Room rows for C AM (P) and C Night (Q), read the Status column, then hover over, or click, the **Flagged** badge on Q.
 4. On P's row click **Cancel booking**, then **Yes, cancel booking**. Read the Status column of both rows again.
