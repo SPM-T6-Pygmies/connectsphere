@@ -11,7 +11,11 @@
 --   source_ref    what caused it: the block's id, the attribute, the accepted field
 --   detail        the text the coordinator reads, e.g.
 --                 'Maintenance: 2026-11-16 13:00 to 18:00'
---   cleared_*     empty while the flag is open. Clearing keeps the row as history.
+--   cleared_*     empty while the flag is open. Clearing keeps the row as history:
+--                 coordinator   the coordinator cleared it (SPM-310)
+--                 replaced      its booking was replaced by a confirmed re-request (SPM-251)
+--                 booking-ended its booking stopped holding its venue (cancelled, released,
+--                               rejected, expired); a trigger below closes it, nobody clears it
 --
 -- A booking is flagged while at least one of its rows is open, and there is at most
 -- one open row per booking, reason code and source: saving the same block twice, or
@@ -23,9 +27,16 @@
 -- Requested booking is not flagged: Venue Staff cannot approve it over the block
 -- (CS028). A lifted block never clears a flag; its reason says it was lifted.
 --
--- Slots are still the unit (SPM-321 moves blocks to times). An overlap is the same
--- venue, date and slot, which is what the domain rule (booking-review-flag.ts) means
--- with slots as hours.
+-- An overlap is by time: the booking's slot and the block's slot, on the same date at
+-- the same venue, share some time (the domain rule in booking-review-flag.ts says the
+-- same). Reading times from the slot table means it keeps working whichever grid a
+-- booking or a block is on while SPM-276 moves them from AM/PM/Night to 15 minutes.
+--
+-- A flag ends with its booking. When a booking stops holding its venue (cancelled,
+-- released, rejected, or its hold expires) the trigger below closes its open flags as
+-- 'booking-ended', so no function that ends a booking has to know flags exist. The two reads
+-- also ignore a flag on a booking that no longer holds, which covers a hold that has run
+-- out but has not been marked Expired yet.
 --
 -- The functions below are the only way in or out of the table (row level security
 -- is on and has no policies).
@@ -45,7 +56,7 @@ create table public.booking_review_flag (
   constraint booking_review_flag_reason_chk
     check (reason_code in ('venue-unavailable', 'venue-attributes', 'event-change')),
   constraint booking_review_flag_cleared_how_chk
-    check (cleared_how is null or cleared_how in ('coordinator', 'replaced')),
+    check (cleared_how is null or cleared_how in ('coordinator', 'replaced', 'booking-ended')),
   constraint booking_review_flag_cleared_chk
     check ((cleared_at is null) = (cleared_how is null)
            and (cleared_by_user_account_id is null or cleared_at is not null))
@@ -58,6 +69,37 @@ create unique index booking_review_flag_open_uidx
 create index booking_review_flag_booking_idx on public.booking_review_flag (booking_id);
 
 alter table public.booking_review_flag enable row level security;
+
+-- Day-and-hours text for a list of spans, with spans that run into each other joined:
+-- twenty 15-minute slots read `2026-11-16 13:00 to 18:00`, the same as one PM slot.
+-- p_spans is an array of {date, start, end}. The domain's `timeSpans` writes the same text.
+create or replace function public.merge_time_spans(p_spans jsonb)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  with s as (
+    select (x ->> 'date')::date as d, (x ->> 'start')::time as st, (x ->> 'end')::time as en
+    from jsonb_array_elements(p_spans) x
+  ),
+  l as (
+    select d, st, en,
+           max(en) over (partition by d order by st, en rows between unbounded preceding and 1 preceding) as prev_en
+    from s
+  ),
+  r as (
+    select d, st, en,
+           sum(case when prev_en is not null and st <= prev_en then 0 else 1 end)
+             over (partition by d order by st, en) as run
+    from l
+  ),
+  m as (select d, min(st) as st, max(en) as en from r group by d, run)
+  select string_agg(
+           to_char(d, 'YYYY-MM-DD') || ' ' || to_char(st, 'HH24:MI') || ' to ' || to_char(en, 'HH24:MI'),
+           ', ' order by d, st)
+  from m
+$$;
 
 -- Recording a block: the same function as before, now taking the venue's lock and
 -- flagging what the block sits over.
@@ -104,24 +146,32 @@ begin
   -- A hold that has run out holds nothing, so it is marked Expired before the check.
   perform public.expire_lapsed_holds(p_venue_id);
 
+  -- Overlap is by time, not by slot code, so it holds while bookings and blocks sit on
+  -- different grids (AM/PM/Night on one side, the 15-minute codes of SPM-331 on the other).
+  -- Half-open: a block that only touches a booking does not overlap it. The reason names
+  -- the block's own hours that clash with the booking, joined where they run into each other.
+  with hits as (
+    select distinct b.booking_id, us.slot_date, bl.start_time, bl.end_time
+    from public.booking b
+    join public.booking_slot bs on bs.booking_id = b.booking_id
+    join public.slot sl on sl.slot_code = bs.slot
+    join public.venue_unavailability_slot us
+      on us.venue_unavailability_id = v_id
+     and us.slot_date = bs.slot_date
+    join public.slot bl on bl.slot_code = us.slot
+     and bl.start_time < sl.end_time
+     and sl.start_time < bl.end_time
+    where b.venue_id = p_venue_id
+      and public.booking_holds_slot(b.status, b.hold_expires_at)
+  )
   insert into public.booking_review_flag (booking_id, reason_code, source_ref, detail)
-  select b.booking_id,
+  select booking_id,
          'venue-unavailable',
          v_id::text,
-         p_reason || ': ' || string_agg(
-           to_char(bs.slot_date, 'YYYY-MM-DD') || ' '
-             || to_char(sl.start_time, 'HH24:MI') || ' to ' || to_char(sl.end_time, 'HH24:MI'),
-           ', ' order by bs.slot_date, sl.start_time)
-  from public.booking b
-  join public.booking_slot bs on bs.booking_id = b.booking_id
-  join public.venue_unavailability_slot us
-    on us.venue_unavailability_id = v_id
-   and us.slot_date = bs.slot_date
-   and us.slot = bs.slot
-  join public.slot sl on sl.slot_code = bs.slot
-  where b.venue_id = p_venue_id
-    and public.booking_holds_slot(b.status, b.hold_expires_at)
-  group by b.booking_id
+         p_reason || ': ' || public.merge_time_spans(jsonb_agg(
+           jsonb_build_object('date', slot_date, 'start', start_time, 'end', end_time)))
+  from hits
+  group by booking_id
   on conflict (booking_id, reason_code, source_ref) where cleared_at is null do nothing;
 
   return v_id;
@@ -209,6 +259,7 @@ as $$
   where f.reason_code = 'venue-unavailable'
     and f.source_ref = p_unavailability_id::text
     and f.cleared_at is null
+    and public.booking_holds_slot(b.status, b.hold_expires_at)
     and exists (
           select 1
           from public.user_account_role uar
@@ -237,9 +288,9 @@ as $$
       'venue_location', v.location,
       'status', b.status,
       'hold_expires_at', b.hold_expires_at,
-      'slots', (
-        select jsonb_agg(jsonb_build_object('date', bs.slot_date, 'slot', bs.slot)
-                         order by bs.slot_date, sl.start_time)
+      'booked_for', (
+        select public.merge_time_spans(jsonb_agg(
+                 jsonb_build_object('date', bs.slot_date, 'start', sl.start_time, 'end', sl.end_time)))
         from public.booking_slot bs
         join public.slot sl on sl.slot_code = bs.slot
         where bs.booking_id = b.booking_id
@@ -256,8 +307,35 @@ as $$
   join public.venue v on v.venue_id = b.venue_id
   where e.event_id = p_event_id
     and e.assigned_coordinator_user_account_id = p_coordinator_user_account_id
-    and f.cleared_at is null;
+    and f.cleared_at is null
+    -- A booking that no longer holds its slot (cancelled, released, expired) has nothing
+    -- left to review, so its flag is not shown, whatever it still says in the table.
+    and public.booking_holds_slot(b.status, b.hold_expires_at);
 $$;
+
+-- A flag ends with its booking: when a booking stops holding its venue, its open flags close.
+create or replace function public.booking_review_flag_close_ended()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.booking_review_flag
+  set cleared_at = now(),
+      cleared_how = 'booking-ended'
+  where booking_id = new.booking_id
+    and cleared_at is null;
+  return new;
+end;
+$$;
+
+create trigger booking_review_flag_close_ended_trg
+  after update of status on public.booking
+  for each row
+  when (new.status is distinct from old.status
+        and new.status not in ('Confirmed', 'Tentative Hold'))
+  execute function public.booking_review_flag_close_ended();
 
 revoke execute on function public.venue_staff_block_flagged_bookings(bigint, bigint) from public;
 grant execute on function public.venue_staff_block_flagged_bookings(bigint, bigint) to anon, authenticated;

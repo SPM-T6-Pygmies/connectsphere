@@ -3,7 +3,8 @@
 -- Writes nothing that survives: it ends in an error, which rolls everything back, and
 -- the error message is the result.
 --
---   ok: all 30 checks held            every check passed
+--   ok: all 39 checks held            every check passed (37 on a slot table without SPM-331's
+--                                     15-minute codes, which add two overlap-by-time checks)
 --   FAILED: <checks that did not hold>
 --
 -- Run against a local stack that has the base seed, seed-venues and seed-booking-flags:
@@ -210,6 +211,63 @@ begin
   v_checks := v_checks + 1;
   if public.venue_staff_block_flagged_bookings(v_dana, v_block1) <> '[]'::jsonb then
     v_failed := v_failed || 'a coordinator cannot read a block''s flagged bookings'; end if;
+
+  -- 9b. A flag ends with its booking: cancelling it (-> Released) closes its flags as
+  --     'booking-ended', and it drops out of what the coordinator reads.
+  v_checks := v_checks + 1;
+  select event_id into v_tech_event from public.booking where booking_id = v_offsite;
+  if jsonb_array_length(public.coordinator_event_flags(v_dana, v_tech_event)) <> 1 then
+    v_failed := v_failed || 'AC4 Offsite Day shows its flag while the booking is Confirmed'; end if;
+  update public.booking set status = 'Released' where booking_id = v_offsite;
+  v_checks := v_checks + 1;
+  select count(*) into v_n from public.booking_review_flag
+    where booking_id = v_offsite and cleared_how = 'booking-ended' and cleared_at is not null
+      and cleared_by_user_account_id is null;
+  if v_n <> 1 then v_failed := v_failed || 'AC8 cancelling a booking closes its flag as booking-ended'; end if;
+  v_checks := v_checks + 1;
+  if public.coordinator_event_flags(v_dana, v_tech_event) <> '[]'::jsonb then
+    v_failed := v_failed || 'AC8 a Released booking''s flag is not shown'; end if;
+  v_checks := v_checks + 1;
+  select count(*) into v_n from public.booking_review_flag where booking_id = v_tech_hall_a and cleared_at is null;
+  if v_n <> 2 then v_failed := v_failed || 'AC8 the event''s other booking keeps its flags'; end if;
+  select event_id into v_tech_event from public.event where name = 'Flag Test: Tech Summit';
+  -- A live hold that expires closes its flag too.
+  v_checks := v_checks + 1;
+  update public.booking set status = 'Expired' where booking_id = v_live_hold;
+  select count(*) into v_n from public.booking_review_flag
+    where booking_id = v_live_hold and cleared_how = 'booking-ended';
+  if v_n <> 1 then v_failed := v_failed || 'AC8 a hold that expires closes its flag'; end if;
+  -- A flag the coordinator already cleared is not overwritten when the booking ends later.
+  v_checks := v_checks + 1;
+  update public.booking_review_flag set cleared_at = now(), cleared_by_user_account_id = v_dana, cleared_how = 'coordinator'
+    where booking_id = v_quiz and cleared_at is null;
+  update public.booking set status = 'Released' where booking_id = v_quiz;
+  select count(*) into v_n from public.booking_review_flag where booking_id = v_quiz and cleared_how = 'coordinator';
+  if v_n <> 1 then v_failed := v_failed || 'AC8 a flag already cleared by the coordinator is left as it was'; end if;
+
+  -- 9c. Overlap is by time, not by slot code, and the reason is the block's own hours: a block on
+  --     the 15-minute codes of SPM-331 flags a booking made on AM/PM/Night when it shares time
+  --     with it, joined where the codes run into each other, and not when it only touches.
+  --     Skipped until the slot table has those codes.
+  if exists (select 1 from public.slot where slot_code = '48') then
+    v_checks := v_checks + 1;
+    v_block3 := public.venue_staff_record_unavailability(
+      v_staff, v_main, 'Safety', null,
+      jsonb_build_array(jsonb_build_object('date', f, 'slot', '48')));     -- 12:00-12:15, AM ends at 12:00
+    select count(*) into v_n from public.booking_review_flag where booking_id = v_workshop and source_ref = v_block3::text;
+    if v_n <> 0 then v_failed := v_failed || 'a 15-minute block that only touches the AM slot flags nothing'; end if;
+    v_checks := v_checks + 1;
+    v_block3 := public.venue_staff_record_unavailability(
+      v_staff, v_main, 'Safety', null,
+      jsonb_build_array(jsonb_build_object('date', f, 'slot', '46'), jsonb_build_object('date', f, 'slot', '47')));
+    select detail into v_text from public.booking_review_flag where booking_id = v_workshop and source_ref = v_block3::text;
+    if v_text is distinct from 'Safety: ' || f || ' 11:30 to 12:00' then
+      v_failed := v_failed || 'two 15-minute slots inside the AM slot flag the AM booking, naming the block''s 11:30 to 12:00'; end if;
+  end if;
+  v_checks := v_checks + 1;
+  if public.merge_time_spans('[{"date":"2026-11-06","start":"13:00","end":"13:15"},{"date":"2026-11-06","start":"13:15","end":"18:00"},{"date":"2026-11-07","start":"07:00","end":"12:00"}]'::jsonb)
+     is distinct from '2026-11-06 13:00 to 18:00, 2026-11-07 07:00 to 12:00' then
+    v_failed := v_failed || 'slots that run into each other read as one span'; end if;
 
   -- 10. Only Venue Staff can record a block.
   v_checks := v_checks + 1;
