@@ -46,7 +46,7 @@ interface StoredFlag {
   readonly booking: SeededBooking;
   readonly reasonCode: FlagReasonCode;
   readonly blockId: string;
-  detail: string;
+  readonly detail: string;
   readonly flaggedAt: string;
 }
 
@@ -155,10 +155,7 @@ export class InMemoryVenueUnavailabilityRepository
       liftedByName: this.nameOf(lift.liftedBy),
       liftedAt: lift.liftedAt.toISOString(),
     };
-    // SPM-313 AC6: the flags stay; each reason says the block was lifted.
-    for (const flag of this.flags.filter((candidate) => candidate.blockId === lift.id)) {
-      flag.detail = blockFlagDetail(this.rows[index], flag.booking.slots);
-    }
+    // SPM-313 AC6: the flags stay open; `openForEvent` says the block was lifted, from the block.
   }
 
   async flaggedBookings(_reader: UserAccountId, blockId: string): Promise<readonly FlaggedBooking[]> {
@@ -192,6 +189,7 @@ export class InMemoryVenueUnavailabilityRepository
         reasonCode: flag.reasonCode,
         detail: flag.detail,
         flaggedAt: flag.flaggedAt,
+        sourceLiftedAt: this.rows.find((row) => row.id === flag.blockId)?.liftedAt ?? null,
       }));
   }
 

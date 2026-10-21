@@ -101,7 +101,7 @@ export interface FlaggableBooking {
 }
 
 /** The parts of a block the rule reads. A recorded block is one; so is a block on 15-minute codes. */
-export type FlaggingBlock = Pick<VenueUnavailabilityEntry, "id" | "venueId" | "reason" | "status" | "liftedAt"> & {
+export type FlaggingBlock = Pick<VenueUnavailabilityEntry, "id" | "venueId" | "reason" | "status"> & {
   readonly slots: readonly SlotCodeOnDate[];
 };
 
@@ -126,35 +126,14 @@ function blockedSlotsOver(bookedSlots: readonly SlotCodeOnDate[], block: Flaggin
   });
 }
 
-/** `YYYY-MM-DD HH:MM` in Singapore, as the database writes it into a flag's reason. */
-function singaporeMinute(iso: string): string {
-  const parts = new Map(
-    new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Asia/Singapore",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    })
-      .formatToParts(new Date(iso))
-      .map(({ type, value }) => [type, value]),
-  );
-  return `${parts.get("year")}-${parts.get("month")}-${parts.get("day")} ${parts.get("hour")}:${parts.get("minute")}`;
-}
-
 /**
  * What the coordinator reads: the block's reason and the block's own day and hours that
- * clash with the booking, and, once Venue Staff lift it, that it was lifted and when.
- * Lifting never clears the flag, so the reason has to say it.
- * `venue_staff_record_unavailability` and `venue_staff_lift_unavailability` write the same text.
+ * clash with the booking. Whether the block has since been lifted is not part of the text:
+ * the page shows it from the block itself, so it can stand out. `venue_staff_record_unavailability`
+ * writes the same text.
  */
 export function blockFlagDetail(block: FlaggingBlock, bookedSlots: readonly SlotCodeOnDate[]): string {
-  const clash = blockedSlotsOver(bookedSlots, block);
-  const lifted =
-    block.status === "Lifted" && block.liftedAt !== null ? `, block lifted ${singaporeMinute(block.liftedAt)}` : "";
-  return `${block.reason}: ${timeSpans(clash)}${lifted}`;
+  return `${block.reason}: ${timeSpans(blockedSlotsOver(bookedSlots, block))}`;
 }
 
 /**

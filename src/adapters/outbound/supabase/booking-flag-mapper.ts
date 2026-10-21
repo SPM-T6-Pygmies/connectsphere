@@ -16,6 +16,7 @@ export interface EventBookingFlagRow {
   reason_code: string;
   detail: string;
   flagged_at: string;
+  source_lifted_at: string | null;
 }
 
 /** One element of `venue_staff_block_flagged_bookings`' array. */
@@ -50,6 +51,7 @@ export function toEventBookingFlag(row: EventBookingFlagRow): EventBookingFlag {
     reasonCode: toReasonCode(row.reason_code),
     detail: row.detail,
     flaggedAt: row.flagged_at,
+    sourceLiftedAt: row.source_lifted_at ?? null,
   };
 }
 

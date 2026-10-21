@@ -145,11 +145,11 @@ describe("blockFlagDetail (SPM-313)", () => {
     );
   });
 
-  it("AC6: says the block was lifted, and when, once it is lifted", () => {
+  it("AC6: leaves a lift out of the text: the page shows it from the block, so it can stand out", () => {
     const lifted = block({ status: "Lifted", liftedAt: "2026-10-21T01:00:00.000Z" });
 
     expect(blockFlagDetail(lifted, [{ date: "2026-11-06", slot: "PM" }])).toBe(
-      "Maintenance: 2026-11-06 13:00 to 18:00, block lifted 2026-10-21 09:00",
+      "Maintenance: 2026-11-06 13:00 to 18:00",
     );
   });
 });
@@ -183,7 +183,6 @@ function quarterBlock(...codes: string[]): FlaggingBlock {
     venueId: HALL_A,
     reason: "Maintenance",
     status: "In force",
-    liftedAt: null,
     slots: codes.map((slot) => ({ date: "2026-11-06", slot })),
   };
 }
@@ -226,13 +225,6 @@ describe("flagging on the 15-minute grid (SPM-313, SPM-331)", () => {
     expect(bookingsToFlagForBlock(otherDay, [booking({ slots: PM_IN_QUARTERS })], NOW)).toEqual([]);
   });
 
-  it("AC6: says a block on 15-minute slots was lifted, and when", () => {
-    const lifted = { ...quarterBlock("60"), status: "Lifted" as const, liftedAt: "2026-10-21T01:00:00.000Z" };
-
-    expect(blockFlagDetail(lifted, PM_IN_QUARTERS)).toBe(
-      "Maintenance: 2026-11-06 15:00 to 15:15, block lifted 2026-10-21 09:00",
-    );
-  });
 });
 
 describe("timeSpans (SPM-313, SPM-331)", () => {

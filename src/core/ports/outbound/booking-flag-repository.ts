@@ -21,6 +21,11 @@ export interface EventBookingFlag {
   readonly detail: string;
   /** ISO instant. */
   readonly flaggedAt: string;
+  /**
+   * ISO instant the block behind this reason was lifted, or null while it is in force (or for a
+   * reason that is not a block). A lift never clears the flag: this is how the page says so.
+   */
+  readonly sourceLiftedAt: string | null;
 }
 
 /** Driven port: the review flags on an event's venue bookings (SPM-313). */

@@ -1,18 +1,11 @@
 import { FlagIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { FlagReasonCode } from "@/core/domain/booking-review-flag";
 import type { EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 
 import { formatHoldExpiry } from "../../../../hold-expiry";
+import { FlagReasons } from "../../../flag-reasons";
 import { StatusBadge } from "../../../../status-badge";
-
-/** What the coordinator reads before the detail. SPM-105 and SPM-309 raise the other two. */
-const REASON_LABELS: Readonly<Record<FlagReasonCode, string>> = {
-  "venue-unavailable": "Venue unavailable",
-  "venue-attributes": "Venue changed",
-  "event-change": "Event changed",
-};
 
 /** One booking and every open reason it is flagged for, in the order they were raised. */
 function groupByBooking(flags: readonly EventBookingFlag[]): ReadonlyArray<readonly EventBookingFlag[]> {
@@ -21,14 +14,6 @@ function groupByBooking(flags: readonly EventBookingFlag[]): ReadonlyArray<reado
     groups.set(flag.bookingId, [...(groups.get(flag.bookingId) ?? []), flag]);
   }
   return [...groups.values()];
-}
-
-function flaggedAt(iso: string): string {
-  return new Intl.DateTimeFormat("en-SG", {
-    timeZone: "Asia/Singapore",
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
 }
 
 /**
@@ -65,16 +50,7 @@ export function FlaggedBookings({ flags }: { flags: readonly EventBookingFlag[] 
             )}
           </AlertTitle>
           <AlertDescription>
-            <ul className="list-disc space-y-1 pl-4">
-              {[first, ...rest].map((flag) => (
-                <li key={flag.flagId}>
-                  <span className="font-medium">{REASON_LABELS[flag.reasonCode]}</span>
-                  {" · "}
-                  {flag.detail}
-                  <span className="text-muted-foreground"> · flagged {flaggedAt(flag.flaggedAt)}</span>
-                </li>
-              ))}
-            </ul>
+            <FlagReasons flags={[first, ...rest]} />
           </AlertDescription>
         </Alert>
       ))}

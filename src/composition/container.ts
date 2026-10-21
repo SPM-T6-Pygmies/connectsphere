@@ -592,7 +592,12 @@ async function venueBookingAdapters(): Promise<{
 
 /** SPM-46: the coordinator's booking page -- the event, the venues, the bookings so far. */
 export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOptionsUseCase> {
-  return new ViewVenueBookingOptionsUseCase(await venueBookingAdapters());
+  const client = await createSupabaseServerClient();
+  return new ViewVenueBookingOptionsUseCase({
+    ...(await venueBookingAdapters()),
+    // SPM-313: the page flags a booking its venue was blocked over.
+    flags: new SupabaseBookingFlagRepository(client),
+  });
 }
 
 /**

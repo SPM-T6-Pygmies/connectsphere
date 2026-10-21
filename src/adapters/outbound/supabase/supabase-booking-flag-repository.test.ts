@@ -31,6 +31,7 @@ const FLAG_ROW = {
   reason_code: "venue-unavailable",
   detail: "Maintenance: 2026-11-16 13:00 to 18:00",
   flagged_at: "2026-10-20T02:15:00Z",
+  source_lifted_at: null,
 };
 
 describe("SupabaseBookingFlagRepository (SPM-313)", () => {
@@ -50,6 +51,7 @@ describe("SupabaseBookingFlagRepository (SPM-313)", () => {
         reasonCode: "venue-unavailable",
         detail: "Maintenance: 2026-11-16 13:00 to 18:00",
         flaggedAt: "2026-10-20T02:15:00Z",
+        sourceLiftedAt: null,
       },
     ]);
     expect(calls).toEqual([
@@ -76,6 +78,13 @@ describe("SupabaseBookingFlagRepository (SPM-313)", () => {
   it("refuses a reason code or status the domain does not know", () => {
     expect(() => toEventBookingFlag({ ...FLAG_ROW, reason_code: "something-else" })).toThrow(/Unknown flag reason/);
     expect(() => toEventBookingFlag({ ...FLAG_ROW, status: "Nonsense" })).toThrow(/Unknown booking status/);
+  });
+
+  it("AC6: carries the time the block behind a reason was lifted, so the page can say so", () => {
+    const lifted = toEventBookingFlag({ ...FLAG_ROW, source_lifted_at: "2026-10-21T01:00:00Z" });
+
+    expect(lifted.sourceLiftedAt).toBe("2026-10-21T01:00:00Z");
+    expect(lifted.detail).toBe("Maintenance: 2026-11-16 13:00 to 18:00");
   });
 
   it("maps a booking with no times recorded to an empty text", () => {

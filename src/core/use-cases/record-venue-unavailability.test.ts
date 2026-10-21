@@ -344,19 +344,18 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
     ]);
   });
 
-  it("AC6: keeps the flag when the block is lifted, and says so in its reason", async () => {
+  it("AC6: keeps the flag when the block is lifted, and tells the page when it was lifted", async () => {
     const { record, lift, unavailability } = build([seeded({ id: "booking-1" })]);
     const { entry } = await record.execute(block({ ...PM_ON_13, reason: "Maintenance" }));
 
     await lift.execute({ roles: STAFF, userAccountId: "staff-2", unavailabilityId: entry.id });
 
     const flags = await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1");
-    expect(flags.map((flag) => flag.detail)).toEqual([
-      "Maintenance: 2026-10-13 13:00 to 18:00, block lifted 2026-10-05 12:00",
-    ]);
+    expect(flags.map((flag) => flag.detail)).toEqual(["Maintenance: 2026-10-13 13:00 to 18:00"]);
+    expect(flags.map((flag) => flag.sourceLiftedAt)).toEqual([NOW.toISOString()]);
   });
 
-  it("AC6: leaves the other block's reason as it was when one block is lifted", async () => {
+  it("AC6: marks only the lifted block's reason as lifted when a booking has two", async () => {
     const { record, lift, unavailability } = build([seeded({ id: "booking-1" })]);
     const first = await record.execute(block({ ...PM_ON_13, reason: "Renovation" }));
     await record.execute(block({ ...PM_ON_13, reason: "Equipment failure" }));
@@ -364,9 +363,9 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
     await lift.execute({ roles: STAFF, userAccountId: "staff-1", unavailabilityId: first.entry.id });
 
     const flags = await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1");
-    expect(flags.map((flag) => flag.detail)).toEqual([
-      "Renovation: 2026-10-13 13:00 to 18:00, block lifted 2026-10-05 12:00",
-      "Equipment failure: 2026-10-13 13:00 to 18:00",
+    expect(flags.map((flag) => [flag.detail, flag.sourceLiftedAt])).toEqual([
+      ["Renovation: 2026-10-13 13:00 to 18:00", NOW.toISOString()],
+      ["Equipment failure: 2026-10-13 13:00 to 18:00", null],
     ]);
   });
 

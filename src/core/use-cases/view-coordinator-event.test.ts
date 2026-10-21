@@ -347,6 +347,7 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
         reasonCode: "venue-unavailable",
         detail: "Maintenance: 2026-11-06 13:00 to 18:00",
         flaggedAt: AFTER_END.toISOString(),
+        sourceLiftedAt: null,
       },
     ]);
   });
