@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { FACILITY_OPTIONS } from "@/core/domain/venue-options";
 
-import { OptionCheckboxes } from "../../../option-fields";
+import { OptionCheckboxes } from "../../../../option-fields";
 import {
   setEventRequiredFacilitiesAction,
   type SetEventRequiredFacilitiesState,
@@ -21,11 +21,9 @@ const INITIAL: SetEventRequiredFacilitiesState = { status: "idle" };
  */
 export function FacilitiesNeededForm({
   eventId,
-  eventRequestId,
   saved,
 }: {
   eventId: string;
-  eventRequestId: string;
   /** What is stored now, as the facility list's own text; empty when none is needed. */
   saved: string;
 }) {
@@ -44,7 +42,6 @@ export function FacilitiesNeededForm({
   return (
     <form action={formAction} className="space-y-3">
       <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <OptionCheckboxes
         name="facilities"
         options={FACILITY_OPTIONS}

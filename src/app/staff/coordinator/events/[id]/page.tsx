@@ -13,6 +13,7 @@ import {
   buildViewCoordinatorEvent,
   buildViewEventEquipment,
   buildViewEventSafetyChecks,
+  buildViewVenueBookingOptions,
   getCurrentCoordinator,
 } from "@/composition/container";
 import type { SafetyCheckBlocker } from "@/core/domain/safety-check";
@@ -49,14 +50,16 @@ const SAFETY_CHECK_BLOCKERS: Record<SafetyCheckBlocker, string> = {
  * deciding essentiality for the rest).
  *
  * SPM-285: split into tabs, one per area, with the Confirm gate beside every
- * tab since it is about the whole event.
+ * tab since it is about the whole event. SPM-459: the Venue tab holds the
+ * venue booking workspace; `?booking=` and `?venue=` open it on a booking or a
+ * suggested venue.
  */
 export default async function CoordinatorEventPage({
   params,
   searchParams,
 }: PageProps<"/staff/coordinator/events/[id]">) {
   const { id } = await params;
-  const { tab } = await searchParams;
+  const { tab, booking: openedBookingId, venue: requestedVenueId } = await searchParams;
   const initialTab: EventTab = EVENT_TABS.find((candidate) => candidate === tab) ?? "event";
 
   // An event that is not theirs, or does not exist, gets the same access-denied
@@ -81,6 +84,12 @@ export default async function CoordinatorEventPage({
   const viewEventSafetyChecks = await buildViewEventSafetyChecks();
   const safetyChecks = await viewEventSafetyChecks.execute({ eventId: id, ...coordinator });
   if (safetyChecks === null) {
+    forbidden();
+  }
+
+  const viewVenueBookingOptions = await buildViewVenueBookingOptions();
+  const venueBooking = await viewVenueBookingOptions.execute({ eventId: id, ...coordinator });
+  if (venueBooking === null) {
     forbidden();
   }
 
@@ -113,12 +122,22 @@ export default async function CoordinatorEventPage({
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        {/* min-w-0: a grid item otherwise grows to its widest content, and the
+            Venue tab's bookings table would push the whole page past a phone's width. */}
+        <div className="min-w-0 lg:col-span-2">
           <EventTabs
             initialTab={initialTab}
             panels={{
               event: <EventDetailsTab event={event} details={details} readiness={readiness} />,
-              venue: <VenueTab details={details} readiness={readiness} flaggedBookings={flaggedBookings} />,
+              venue: (
+                <VenueTab
+                  readiness={readiness}
+                  flaggedBookings={flaggedBookings}
+                  booking={venueBooking}
+                  openedBookingId={typeof openedBookingId === "string" ? openedBookingId : undefined}
+                  requestedVenueId={typeof requestedVenueId === "string" ? requestedVenueId : undefined}
+                />
+              ),
               equipment: <EquipmentSection equipment={equipment} />,
               safety: <SafetyCheckCard eventId={event.id} view={safetyChecks} />,
               registration: <RegistrationTab event={event} details={details} readiness={readiness} />,

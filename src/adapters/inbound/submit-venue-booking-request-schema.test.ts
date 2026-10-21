@@ -4,7 +4,6 @@ import { submitVenueBookingRequestSchema } from "./submit-venue-booking-request-
 
 const VALID = {
   eventId: "7",
-  eventRequestId: "3",
   venueId: "2",
   roomLayout: "5",
   slots: ["2026-10-05|AM", "2026-10-05|Night"],
