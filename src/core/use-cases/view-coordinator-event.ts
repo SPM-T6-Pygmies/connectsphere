@@ -13,6 +13,7 @@ import {
 } from "../domain/event-readiness";
 import { safetyCheckBlocker, type SafetyCheckBlocker } from "../domain/safety-check";
 import { userAccountId } from "../domain/user-account";
+import type { BookingFlagRepository, EventBookingFlag } from "../ports/outbound/booking-flag-repository";
 import type { Clock } from "../ports/outbound/clock";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type {
@@ -46,6 +47,8 @@ export interface ViewCoordinatorEventResult {
   readonly canComplete: boolean;
   /** SPM-326 AC3: the ISO instant its latest end time passes, or null while it has no times. */
   readonly endsAt: string | null;
+  /** SPM-313 AC4: each open reason one of the event's venue bookings is flagged for, oldest first. */
+  readonly flaggedBookings: readonly EventBookingFlag[];
   /** SPM-55: whether the event can still be cancelled -- any stage before it is over. */
   readonly canCancel: boolean;
 }
@@ -58,6 +61,8 @@ export interface ViewCoordinatorEventDeps {
   readonly clock: Clock;
   /** SPM-264: the event's safety checks, newest first. */
   readonly safetyChecks: Pick<SafetyCheckRepository, "history">;
+  /** SPM-313: the review flags on the event's venue bookings. */
+  readonly flags: BookingFlagRepository;
 }
 
 /**
@@ -85,12 +90,13 @@ export class ViewCoordinatorEventUseCase {
       return null;
     }
 
-    const [details, facts, history, organisationNames, organiserNames] = await Promise.all([
+    const [details, facts, history, organisationNames, organiserNames, flaggedBookings] = await Promise.all([
       this.deps.events.findAssigned(caller, id),
       this.deps.readiness.factsFor(caller, id),
       this.deps.safetyChecks.history(caller, id),
       this.deps.clientOrganisations.findNamesByIds([event.clientOrganisationId]),
       this.deps.userAccounts.findNamesByIds([event.owningOrganiserUserAccountId]),
+      this.deps.flags.openForEvent(caller, id),
     ]);
 
     if (details === null || facts === null || history === null) {
@@ -111,6 +117,7 @@ export class ViewCoordinatorEventUseCase {
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
       endsAt: eventEndsAt(details)?.toISOString() ?? null,
+      flaggedBookings,
       canCancel: canCancel(details),
     };
   }

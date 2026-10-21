@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { InMemoryBookingRepository } from "@/adapters/outbound/in-memory/in-memory-booking-repository";
 import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
+import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
+import { userAccountId } from "@/core/domain/user-account";
 import { venueId, type Venue } from "@/core/domain/venue";
 import type { BookingStatus } from "@/core/domain/booking";
 import type { SeedCoordinatorEvent } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
@@ -15,13 +18,14 @@ const HALL: Venue = {
   capacity: 300,
   facilities: "Stage",
   accessibility: "Step-free",
-  slots: [],
+  openingHours: [{ start: "00:00", end: "24:00" }],
   bookingHorizonDays: null,
   layouts: [{ name: "Theatre", capacity: 300 }],
 };
 
 function buildUseCase() {
   return new ViewVenueBookingOptionsUseCase({
+    flags: new InMemoryVenueUnavailabilityRepository(new FixedClock(new Date("2026-10-01T00:00:00Z"))),
     events: new InMemoryCoordinatorEventRepository([
       {
         id: "event-1",
@@ -100,7 +104,7 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
     capacity: 60,
     facilities: "Wi-Fi, Video-conferencing",
     accessibility: "Step-free access",
-    slots: [],
+    openingHours: [{ start: "00:00", end: "24:00" }],
     bookingHorizonDays: null,
     layouts: [{ name: "Theatre", capacity: 60 }],
   };
@@ -110,7 +114,7 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
     capacity: 150,
     facilities: "Catering area",
     accessibility: "Lift access",
-    slots: [],
+    openingHours: [{ start: "00:00", end: "24:00" }],
     bookingHorizonDays: null,
     layouts: [
       { name: "Banquet", capacity: 120 },
@@ -153,8 +157,14 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
     };
   }
 
-  function run(seed: SeedCoordinatorEvent, bookings: ReturnType<typeof booking>[] = [], userAccountId = "coordinator-1") {
+  function run(
+    seed: SeedCoordinatorEvent,
+    bookings: ReturnType<typeof booking>[] = [],
+    userAccountId = "coordinator-1",
+    flags = new InMemoryVenueUnavailabilityRepository(new FixedClock(new Date("2026-10-01T00:00:00Z"))),
+  ) {
     return new ViewVenueBookingOptionsUseCase({
+      flags,
       events: new InMemoryCoordinatorEventRepository([seed]),
       venues: new InMemoryVenueCatalogue([STUDIO, ROOFTOP, BARE]),
       bookings: new InMemoryBookingRepository(bookings),
@@ -229,5 +239,40 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
 
   it("returns nothing, not even verdicts, to a coordinator the event is not assigned to (AC9)", async () => {
     await expect(run(event(), [booking("b-1", "Requested", STUDIO, "Theatre")], "coordinator-2")).resolves.toBeNull();
+  });
+
+  it("SPM-313 AC4: hands back each open flag on the event's bookings, to match to a row by booking id", async () => {
+    const flags = new InMemoryVenueUnavailabilityRepository(
+      new FixedClock(new Date("2026-10-01T00:00:00Z")),
+      new Map([[STUDIO.id, "Studio"]]),
+      new Map(),
+      [
+        {
+          id: "b-1",
+          venueId: STUDIO.id,
+          eventName: "Annual Conference",
+          status: "Confirmed",
+          slots: [{ date: "2026-10-05", slot: "AM" }],
+          eventId: "event-1",
+          coordinatorUserAccountId: "coordinator-1",
+        },
+      ],
+    );
+    await flags.record(
+      { venueId: STUDIO.id, startDate: "2026-10-05", endDate: "2026-10-05", slots: [{ date: "2026-10-05", slot: "AM" }], reason: "Maintenance", note: null },
+      userAccountId("staff-1"),
+    );
+
+    const result = await run(event(), [booking("b-1", "Confirmed", STUDIO, "Theatre")], "coordinator-1", flags);
+
+    expect(result?.flaggedBookings.map((flag) => [flag.bookingId, flag.detail])).toEqual([
+      ["b-1", "Maintenance: 2026-10-05 07:00 to 12:00"],
+    ]);
+  });
+
+  it("SPM-313 AC4: hands back no flags for an event nothing has flagged", async () => {
+    const result = await run(event(), [booking("b-1", "Confirmed", STUDIO, "Theatre")]);
+
+    expect(result?.flaggedBookings).toEqual([]);
   });
 });

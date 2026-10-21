@@ -244,7 +244,7 @@ create table venue (
   capacity               integer check (capacity is null or capacity >= 0),
   facilities             text,
   accessibility          text,
-    -- the slots it can be booked in are venue_slot rows (10b)
+    -- its opening hours are venue_slot rows, one per open 15-minute slot (SPM-320)
   setup_time_minutes     integer check (setup_time_minutes is null or setup_time_minutes >= 0),
   turnaround_time_minutes integer check (turnaround_time_minutes is null or turnaround_time_minutes >= 0),
   booking_horizon_days   integer check (booking_horizon_days is null or booking_horizon_days >= 0),
@@ -347,6 +347,8 @@ create table slot (
 -- (SPM-331, 2026-10-20). The slot tables move from AM/PM/Night to the
 -- 15-minute codes one story at a time; SPM-328 then drops the three codes.
 
+-- A venue's opening hours, the same every day: one row per open 15-minute
+-- slot ('0'-'95'), joined into windows for display (SPM-320).
 create table venue_slot (
   venue_id  bigint not null references venue (venue_id) on delete cascade,
   slot_code text   not null references slot (slot_code) on delete restrict,

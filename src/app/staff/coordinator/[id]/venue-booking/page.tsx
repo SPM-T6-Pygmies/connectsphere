@@ -23,6 +23,7 @@ import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/compositi
 import { bookingCancellable } from "@/core/domain/booking";
 import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
 import type { VenueSuitability } from "@/core/domain/venue-suitability";
+import type { EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 import type {
   CoordinatorEventDetails,
   EventBookingSummary,
@@ -37,6 +38,7 @@ import { BookingRequestForm } from "./booking-request-form";
 import { CancelBookingForm } from "./cancel-booking-form";
 import { SuitabilityChecklist } from "../../../suitability-checklist";
 import { ChangeLayoutForm } from "./change-layout-form";
+import { FlaggedBadge } from "./flagged-badge";
 import { FacilitiesNeededForm } from "./facilities-needed-form";
 
 export const metadata = { title: "Request a venue | ConnectSphere" };
@@ -48,7 +50,10 @@ function BookingsTable({
   eventRequestId,
   suitability,
   openedBookingId,
+  flags,
 }: {
+  /** SPM-313: the event's open flags; a booking with some shows a Flagged badge. */
+  flags: readonly EventBookingFlag[];
   bookings: readonly EventBookingSummary[];
   venues: readonly Venue[];
   event: CoordinatorEventDetails;
@@ -132,6 +137,11 @@ function BookingsTable({
               <TableCell className="whitespace-normal">
                 <div className="space-y-2">
                   <StatusBadge status={booking.status} />
+                  {flags.some((flag) => flag.bookingId === booking.id) ? (
+                    <div>
+                      <FlaggedBadge flags={flags.filter((flag) => flag.bookingId === booking.id)} />
+                    </div>
+                  ) : null}
                   {bookingCancellable(booking.status) ? (
                     <CancelBookingForm
                       eventId={event.id}
@@ -213,7 +223,7 @@ export default async function VenueBookingPage({
     forbidden();
   }
 
-  const { event, venues, bookings, venueSuitability, bookingSuitability } = result;
+  const { event, venues, bookings, venueSuitability, bookingSuitability, flaggedBookings } = result;
   // SPM-62 AC3: "Request <venue>" on a rejected booking starts a fresh request
   // for it; a venue id that is not one on offer is ignored.
   const initialVenueId = venues.find((venue) => venue.id === requestedVenueId)?.id;
@@ -267,6 +277,7 @@ export default async function VenueBookingPage({
             </CardHeader>
             <CardContent>
               <BookingsTable
+                flags={flaggedBookings}
                 bookings={bookings}
                 venues={venues}
                 event={event}

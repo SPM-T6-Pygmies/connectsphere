@@ -11,6 +11,7 @@ import type { Clock } from "../ports/outbound/clock";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 import type {
   AffectedBooking,
+  FlaggedBooking,
   VenueUnavailabilityRepository,
 } from "../ports/outbound/venue-unavailability-repository";
 
@@ -31,6 +32,12 @@ export interface RecordVenueUnavailabilityResult {
   readonly entry: VenueUnavailabilityEntry;
   /** The bookings the block sits over. They are left exactly as they were (AC10). */
   readonly affectedBookings: readonly AffectedBooking[];
+  /**
+   * SPM-313: the Confirmed bookings and live holds the block flagged, one entry each, with
+   * the coordinator to tell. Recording flagged them in the same transaction (AC1); a
+   * Requested booking is not among them.
+   */
+  readonly flaggedBookings: readonly FlaggedBooking[];
 }
 
 export interface RecordVenueUnavailabilityDeps {
@@ -42,7 +49,10 @@ export interface RecordVenueUnavailabilityDeps {
 /**
  * SPM-21 AC1-AC8, AC10, AC11, AC19: Venue Staff block a venue for a date range
  * and some slots, with a reason. Over days that already have bookings is fine:
- * those bookings are listed back, not touched.
+ * those bookings are listed back, and not changed.
+ *
+ * SPM-313: the store flags the Confirmed bookings and live holds the block overlaps as it
+ * records the block, so this reads them back for whoever tells their coordinators.
  */
 export class RecordVenueUnavailabilityUseCase {
   constructor(private readonly deps: RecordVenueUnavailabilityDeps) {}
@@ -74,6 +84,7 @@ export class RecordVenueUnavailabilityUseCase {
 
     const entry = await unavailability.record(block, staff);
     const affectedBookings = await unavailability.affectedBookings(staff, id, block.slots);
-    return { entry, affectedBookings };
+    const flaggedBookings = await unavailability.flaggedBookings(staff, entry.id);
+    return { entry, affectedBookings, flaggedBookings };
   }
 }

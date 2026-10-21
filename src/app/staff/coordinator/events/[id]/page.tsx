@@ -96,6 +96,7 @@ export default async function CoordinatorEventPage({
     safetyCheckBlocker,
     canComplete,
     endsAt,
+    flaggedBookings,
     canCancel,
   } = result;
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);
@@ -118,7 +119,7 @@ export default async function CoordinatorEventPage({
             initialTab={initialTab}
             panels={{
               event: <EventDetailsTab event={event} details={details} readiness={readiness} />,
-              venue: <VenueTab details={details} readiness={readiness} />,
+              venue: <VenueTab details={details} readiness={readiness} flaggedBookings={flaggedBookings} />,
               equipment: <EquipmentSection equipment={equipment} />,
               safety: <SafetyCheckCard eventId={event.id} view={safetyChecks} />,
               registration: <RegistrationTab event={event} details={details} readiness={readiness} />,

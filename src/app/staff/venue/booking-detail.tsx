@@ -14,6 +14,7 @@ import { EventTimes } from "@/app/events/event-times";
 import { buildReviewBookingRequests, getCurrentVenueStaff } from "@/composition/container";
 import { DEFAULT_HOLD_HOURS } from "@/core/domain/booking";
 import { BookingNotFoundError } from "@/core/domain/errors";
+import { formatOpeningHours } from "@/core/domain/opening-hours";
 import type { BookingReviewDetail } from "@/core/use-cases/review-booking-requests";
 
 import { FieldList } from "../field-list";
@@ -142,8 +143,8 @@ export async function BookingDetail({
                     fields={[
                       { label: "Capacity", value: venue.capacity },
                       {
-                        label: "Slots",
-                        value: venue.slots.length > 0 ? venue.slots.join(", ") : null,
+                        label: "Opening hours",
+                        value: formatOpeningHours(venue.openingHours) || null,
                       },
                       { label: "Facilities", value: venue.facilities },
                       { label: "Accessibility", value: venue.accessibility },

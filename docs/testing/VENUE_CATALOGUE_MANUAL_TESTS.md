@@ -1,13 +1,15 @@
 # Venue Catalogue Manual Tests (SPM-42)
 
 ## Overview
-Manual browser tests for Venue Staff maintaining the venue catalogue (SPM-42),
-on slot-based timing: a venue offers some of the three day slots (AM
-07:00–12:00, PM 13:00–18:00, Night 19:00–24:00, Singapore time) instead of
-opening and closing hours.
-
-SPM-42 AC1 still says "operating hours". Slots replace them, so these cases
-check the slot form of the rule. The search cases for SPM-44 are in
+Manual browser tests for Venue Staff maintaining the venue catalogue (SPM-42).
+Since SPM-320 a venue has **opening hours**: one or more windows a day on the
+15-minute grid, Singapore time, the same every day. The AM/PM/Night "slots
+offered" are gone, so SPM-42 is back to its original "operating hours".
+TC-VCAT-001, -002 and -004 were rewritten for the opening-hours picker on
+20/10/2026 and re-run; the rules for the windows themselves (AC1–AC5 of
+SPM-320) are in
+[`VENUE_OPENING_HOURS_MANUAL_TESTS.md`](VENUE_OPENING_HOURS_MANUAL_TESTS.md).
+The search cases for SPM-44 are in
 [`VENUE_SEARCH_MANUAL_TESTS.md`](VENUE_SEARCH_MANUAL_TESTS.md).
 
 These cases are registered in
@@ -18,7 +20,7 @@ them, tick the boxes below **and** report each in the PR description's
 
 | Case | Ticket | AC |
 | --- | --- | --- |
-| TC-VCAT-001 | SPM-42 | AC1 — fixed lists and slots on the venue form |
+| TC-VCAT-001 | SPM-42 | AC1 — fixed lists and opening hours on the venue form |
 | TC-VCAT-002 | SPM-42 | AC1 — create a venue |
 | TC-VCAT-003 | SPM-42 | AC2 — layouts, each with its own capacity |
 | TC-VCAT-004 | SPM-42 | AC3 — update a venue, including a layout's capacity |
@@ -35,7 +37,8 @@ TC-EVREQ in [`EVENT_REQUEST_MANUAL_TESTS.md`](EVENT_REQUEST_MANUAL_TESTS.md).
 
 ### Prerequisites
 - Local Supabase stack: `supabase db reset` (applies every migration, including
-  the `20261006*` slot migrations, and seeds the test accounts)
+  `20261020010000_venue_opening_hours_fifteen_minute_slots`, and seeds the test
+  accounts)
 - Running: `pnpm dev:local`
 
 ### Test Accounts (password `TestPass123!`)
@@ -48,15 +51,15 @@ TC-EVREQ in [`EVENT_REQUEST_MANUAL_TESTS.md`](EVENT_REQUEST_MANUAL_TESTS.md).
 **Shared Pre-Conditions:** log in as `venue@test.com` and open the venue
 catalogue (`/staff/venue/catalogue`).
 
-### TC-VCAT-001 The venue form offers fixed lists and slots
+### TC-VCAT-001 The venue form offers fixed lists and opening hours
 
 **Steps**
 1. Click **Add venue**.
-2. Look at **Facilities**, **Accessibility**, **Slots** and the **Layout**
-   dropdown under **Room layouts**.
+2. Look at **Facilities**, **Accessibility**, **Opening hours** and the
+   **Layout** dropdown under **Room layouts**.
 3. Fill **Location**, **Capacity** and **Booking horizon (days)**, tick one
    facility and one accessibility feature, and add one layout with a capacity,
-   but tick no slot.
+   but leave the opening window's times unset.
 
 **Expected Result**
 - [x] **Facilities** offers exactly Wi-Fi, Breakout rooms, Catering area and
@@ -64,13 +67,13 @@ catalogue (`/staff/venue/catalogue`).
       free-text box. Projector and PA system are equipment, not facilities.
 - [x] **Accessibility** offers exactly Step-free access, Hearing loop,
       Accessible toilets, Lift access and Wheelchair seating, the same way.
-- [ ] **Slots** offers `AM (7:00 AM – 12:00 PM)`, `PM (1:00 PM – 6:00 PM)` and
-      `Night (7:00 PM – 12:00 AM)`. There are no opening or closing time fields.
-- [x] After step 3, **Add venue** is still disabled; ticking one slot enables it.
+- [x] **Opening hours** shows one window with **Opens** and **Closes**, each an
+      hour and a minute picker, and an **Add opening window** button. No AM, PM
+      or Night appears anywhere on the form.
+- [x] After step 3, **Add venue** is still disabled; setting the window's
+      opening and closing times enables it.
 
-**Run:** Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-form-lists-and-slots](../screenshots/2026-10-09_TC-VCAT-001_step2-form-lists-and-slots.png) · [step3-add-venue-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-001_step3-add-venue-disabled-no-slot.png) · [step3-add-venue-enabled-after-a-slot](../screenshots/2026-10-09_TC-VCAT-001_step3-add-venue-enabled-after-a-slot.png)
-The slot hours changed after this run (PM 13:00–18:00, Night 19:00–24:00), so
-the **Slots** check needs re-running.
+**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VCAT-002 Create a venue
 
@@ -78,17 +81,19 @@ the **Slots** check needs re-running.
 1. Click **Add venue**. Enter **Location** `UAT-42 Lecture Hall`, **Capacity**
    `250`, **Booking horizon (days)** `90`.
 2. Tick **Wi-Fi** and **Video-conferencing**; **Hearing loop** and **Lift
-   access**; slots **AM** and **PM**.
+   access**. Set the opening window to `07`:`00`–`12`:`00`, click **Add opening
+   window** and set the second to `13`:`00`–`18`:`00`.
 3. Set the layout to **Theatre**, capacity `200`. Click **Add venue**.
 
 **Expected Result**
 - [x] The catalogue lists `UAT-42 Lecture Hall` with capacity 250, **Layouts
-      (capacity)** showing Theatre 200, **Slots** `AM, PM`, and facilities
-      Wi-Fi and Video-conferencing.
+      (capacity)** showing Theatre 200, **Opening hours** `07:00–12:00,
+      13:00–18:00`, and facilities Wi-Fi and Video-conferencing.
 - [x] Opening it shows every value entered, including both accessibility
-      features and the two ticked slots.
+      features and both opening windows.
 
-**Run:** Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-form-filled](../screenshots/2026-10-09_TC-VCAT-002_step2-form-filled.png) · [step3-catalogue-row](../screenshots/2026-10-09_TC-VCAT-002_step3-catalogue-row.png) · [step3-venue-opened](../screenshots/2026-10-09_TC-VCAT-002_step3-venue-opened.png)
+**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../screenshots/2026-10-09_TC-VCAT-002_step3-catalogue-row.png)).
 
 ### TC-VCAT-003 Layouts each carry their own capacity
 
@@ -107,24 +112,30 @@ the **Slots** check needs re-running.
 - [x] After step 4, the save is refused with "The Theatre layout is listed more
       than once." and the venue still has one Theatre at 200.
 
-**Run:** Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step3-two-layouts-in-catalogue](../screenshots/2026-10-09_TC-VCAT-003_step3-two-layouts-in-catalogue.png) · [step4-duplicate-theatre-refused](../screenshots/2026-10-09_TC-VCAT-003_step4-duplicate-theatre-refused.png)
+**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step3-two-layouts-in-catalogue](../screenshots/2026-10-09_TC-VCAT-003_step3-two-layouts-in-catalogue.png) · [step4-duplicate-theatre-refused](../screenshots/2026-10-09_TC-VCAT-003_step4-duplicate-theatre-refused.png)
 
 ### TC-VCAT-004 Update a venue, including a layout's capacity
 
 **Steps**
 1. Open `UAT-42 Lecture Hall`.
-2. Untick **Video-conferencing**, tick **Catering area**, untick **AM**, tick
-   **Night**, and change **Classroom** to `100`. Click **Save venue**.
+2. Untick **Video-conferencing**, tick **Catering area**, remove the
+   `07:00–12:00` window, click **Add opening window** and set it to
+   `19`:`00`–`24`:`00`, and change **Classroom** to `100`. Click **Save venue**.
 3. Reload the page.
-4. Untick every slot.
+4. Remove opening windows until one is left, and try to remove that one.
 
 **Expected Result**
 - [x] "Venue saved." appears.
-- [x] After the reload: Wi-Fi and Catering area ticked, Video-conferencing not; slots **PM**
-      and **Night**; Classroom 100. The catalogue row shows **Slots** `PM, Night`.
-- [x] Step 4: **Save venue** is disabled while no slot is ticked.
+- [x] After the reload: Wi-Fi and Catering area ticked, Video-conferencing not;
+      opening windows `13:00–18:00` and `19:00–24:00`; Classroom 100. The
+      catalogue row shows **Opening hours** `13:00–18:00, 19:00–24:00`.
+- [x] Step 4: the last window's remove button is disabled, so a venue always
+      has at least one window.
 
-**Run:** Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-edits-before-save](../screenshots/2026-10-09_TC-VCAT-004_step2-edits-before-save.png) · [step3-after-reload](../screenshots/2026-10-09_TC-VCAT-004_step3-after-reload.png) · [step4-save-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-004_step4-save-disabled-no-slot.png)
+**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+Screenshots, retaken 21/10/2026 on the same build: [step3-opening-windows-after-reload](../screenshots/2026-10-21_SPM-320_TC-VCAT-004_step3-opening-windows-after-reload.png)
+Earlier run on slots: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-edits-before-save](../screenshots/2026-10-09_TC-VCAT-004_step2-edits-before-save.png) · [step3-after-reload](../screenshots/2026-10-09_TC-VCAT-004_step3-after-reload.png) · [step4-save-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-004_step4-save-disabled-no-slot.png)
 
 ### TC-VCAT-005 Any Venue Staff can maintain any venue
 
@@ -157,7 +168,9 @@ with v as (
          ('UAT-277 Partly Legacy Hall', 100, 'Projector, Wi-Fi', 'Step-free access', 60)
   returning venue_id
 ), s as (
-  insert into venue_slot (venue_id, slot_code) select venue_id, 'AM' from v
+  -- open 07:00-12:00: the 15-minute slots '28' to '47' (SPM-320)
+  insert into venue_slot (venue_id, slot_code)
+  select venue_id, n::text from v, generate_series(28, 47) n
 ), l as (
   insert into venue_supported_layout (venue_id, room_layout_id, capacity)
   select v.venue_id, r.room_layout_id, 50 from v, room_layout r where r.name = 'Theatre'

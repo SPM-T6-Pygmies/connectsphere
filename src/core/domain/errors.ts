@@ -429,6 +429,19 @@ export class VenueSlotUnavailableError extends DomainError {
   }
 }
 
+/** SPM-334: a requested slot includes time the venue is closed (SPM-320 AC3). */
+export class VenueClosedError extends DomainError {
+  readonly code = "venue_closed";
+
+  constructor(readonly closed: ReadonlyArray<{ readonly date: string; readonly time: string }>) {
+    super(
+      `The venue is closed ${closed
+        .map(({ date, time }) => `${date} ${time}`)
+        .join(", ")}. Choose times within its opening hours or another venue.`,
+    );
+  }
+}
+
 /** SPM-22: no such booking, or one Venue Staff may not see. */
 export class BookingNotFoundError extends DomainError {
   readonly code = "booking_not_found";
@@ -743,7 +756,7 @@ export class InvalidVenueIdError extends DomainError {
 
 /**
  * SPM-42: a venue record the catalogue would not accept -- a missing location,
- * a layout with no capacity, no slot to book it in. The reason is written
+ * a layout with no capacity, no opening hours (SPM-320). The reason is written
  * for the person filling in the form, so it can be shown as it is.
  */
 export class InvalidVenueError extends DomainError {
@@ -762,7 +775,7 @@ export type VenueField =
   | "location"
   | "facilities"
   | "accessibility"
-  | "slots"
+  | "openingHours"
   | "capacity"
   | "bookingHorizonDays"
   | "layouts";
