@@ -18,7 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
+import {
+  buildFindAssignedEventByRequest,
+  buildViewVenueBookingOptions,
+  getCurrentCoordinator,
+} from "@/composition/container";
 import { bookingCancellable } from "@/core/domain/booking";
 import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
 import type { VenueSuitability } from "@/core/domain/venue-suitability";
@@ -217,8 +221,14 @@ export default async function VenueBookingPage({
     forbidden();
   }
 
+  const findAssignedEventByRequest = await buildFindAssignedEventByRequest();
+  const eventId = await findAssignedEventByRequest.execute({ eventRequestId: id, ...coordinator });
+  if (eventId === null) {
+    forbidden();
+  }
+
   const viewVenueBookingOptions = await buildViewVenueBookingOptions();
-  const result = await viewVenueBookingOptions.execute({ eventRequestId: id, ...coordinator });
+  const result = await viewVenueBookingOptions.execute({ eventId, ...coordinator });
   if (result === null) {
     forbidden();
   }
