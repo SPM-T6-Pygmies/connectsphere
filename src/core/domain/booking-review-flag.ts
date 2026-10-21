@@ -10,8 +10,6 @@ export const VENUE_UNAVAILABLE_FLAG = "venue-unavailable";
 /** `booking_review_flag_reason_chk`: SPM-105 and SPM-309 add the other two. */
 export type FlagReasonCode = typeof VENUE_UNAVAILABLE_FLAG | "venue-attributes" | "event-change";
 
-export type { SlotCodeOnDate };
-
 export interface TimeWindow {
   readonly startsAt: Date;
   readonly endsAt: Date;
