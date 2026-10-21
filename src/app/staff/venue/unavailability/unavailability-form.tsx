@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -30,9 +30,9 @@ function gridTimes(first: number, last: number): number[] {
 }
 
 /**
- * A time the venue is open at, picked from its 15-minute grid (SPM-321 AC3a). A closed time is
- * listed but cannot be picked, so Venue Staff see why it is missing. `isOpen` is the same
- * `closedPeriods` rule the server applies; the server refuses a closed time regardless.
+ * A time the venue is open at, picked from its 15-minute grid (SPM-321 AC3a). A time that
+ * cannot be picked is listed with the reason, so Venue Staff see why it is missing. `whyNot`
+ * uses the same `closedPeriods` rule the server applies; the server refuses closed time regardless.
  */
 function TimeSelect({
   id,
@@ -40,14 +40,15 @@ function TimeSelect({
   value,
   onChange,
   times,
-  isOpen,
+  whyNot,
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
   times: readonly number[];
-  isOpen: (minutes: number) => boolean;
+  /** Why a time cannot be picked, or null when it can. */
+  whyNot: (minutes: number) => string | null;
 }) {
   return (
     <>
@@ -61,12 +62,15 @@ function TimeSelect({
         className={SELECT_CLASS}
       >
         <option value="">Choose a time</option>
-        {times.map((minutes) => (
-          <option key={minutes} value={fromMinutes(minutes)} disabled={!isOpen(minutes)}>
-            {fromMinutes(minutes)}
-            {isOpen(minutes) ? "" : " (closed)"}
-          </option>
-        ))}
+        {times.map((minutes) => {
+          const why = whyNot(minutes);
+          return (
+            <option key={minutes} value={fromMinutes(minutes)} disabled={why !== null}>
+              {fromMinutes(minutes)}
+              {why === null ? "" : ` (${why})`}
+            </option>
+          );
+        })}
       </select>
     </>
   );
@@ -108,13 +112,20 @@ export function UnavailabilityForm({
 
   const openingHours = venues.find((venue) => venue.id === venueId)?.openingHours ?? [];
   const start = toMinutes(startTime);
-  // A start is open when the venue is open for the quarter hour after it.
-  const startIsOpen = (minutes: number) => closedPeriods(openingHours, { start: minutes, end: minutes + GRID_MINUTES }).length === 0;
-  // An end is open when it is after the start and nothing closed lies between them; with no start yet, when the venue is open just before it.
-  const endIsOpen = (minutes: number) =>
-    start === null
-      ? closedPeriods(openingHours, { start: minutes - GRID_MINUTES, end: minutes }).length === 0
-      : minutes > start && closedPeriods(openingHours, { start, end: minutes }).length === 0;
+  // A start can be picked when the venue is open for the quarter hour after it.
+  const whyNotStart = (minutes: number) =>
+    closedPeriods(openingHours, { start: minutes, end: minutes + GRID_MINUTES }).length === 0 ? null : "closed";
+  // An end can be picked when it is after the start and the venue is open all the way between them;
+  // with no start yet, when the venue is open for the quarter hour before it.
+  const whyNotEnd = (minutes: number) => {
+    if (start === null) {
+      return closedPeriods(openingHours, { start: minutes - GRID_MINUTES, end: minutes }).length === 0 ? null : "closed";
+    }
+    if (minutes <= start) {
+      return "not after the start";
+    }
+    return closedPeriods(openingHours, { start, end: minutes }).length === 0 ? null : "closed in between";
+  };
 
   function chooseVenue(next: string) {
     setVenueId(next);
@@ -124,7 +135,16 @@ export function UnavailabilityForm({
 
   return (
     <div className="space-y-6">
-      <form action={formAction} className="space-y-6">
+      {/* Submitted by hand, not through `action`: React resets a form once its action finishes,
+          which blanks the selects after a refusal while their state still holds the values. */}
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          const data = new FormData(event.currentTarget);
+          startTransition(() => formAction(data));
+        }}
+        className="space-y-6"
+      >
         {state.status === "error" ? (
           <p
             role="alert"
@@ -204,7 +224,7 @@ export function UnavailabilityForm({
                   setEndTime("");
                 }}
                 times={gridTimes(0, END_OF_DAY - GRID_MINUTES)}
-                isOpen={startIsOpen}
+                whyNot={whyNotStart}
               />
             </div>
             <div className="space-y-1.5">
@@ -217,7 +237,7 @@ export function UnavailabilityForm({
                 value={endTime}
                 onChange={setEndTime}
                 times={gridTimes(GRID_MINUTES, END_OF_DAY)}
-                isOpen={endIsOpen}
+                whyNot={whyNotEnd}
               />
             </div>
             <p className="text-muted-foreground text-xs sm:col-span-2">
