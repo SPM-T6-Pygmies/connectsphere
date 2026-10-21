@@ -13,8 +13,11 @@ import {
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
+  VenueClosedError,
   VenueSlotUnavailableError,
 } from "./errors";
+import { closedPeriods } from "./opening-hours";
+import { formatRange, toMinutes, type TimeRange } from "./time-of-day";
 import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
 
@@ -45,6 +48,14 @@ export function slotStartsAt({ date, slot }: SlotOnDate): Date {
 /** The instant `slot` ends on its date, on the same +08:00 footing as `slotStartsAt`. */
 export function slotEndsAt({ date, slot }: SlotOnDate): Date {
   return new Date(`${date}T${SLOT_HOURS[slot].end}:00+08:00`);
+}
+
+/**
+ * `slot`'s hours as a time of day, so a slot booking can be compared with
+ * opening hours until bookings move to times (SPM-320, SPM-324).
+ */
+export function slotRange(slot: BookingSlot): TimeRange {
+  return { start: toMinutes(SLOT_HOURS[slot].start) ?? 0, end: toMinutes(SLOT_HOURS[slot].end) ?? 0 };
 }
 
 export function isBookingSlot(raw: string): raw is BookingSlot {
@@ -234,6 +245,9 @@ export function clashingSlots(
  * SPM-46: an Event Coordinator asks Venue Staff for one venue, on one or more
  * slots across one or more days, for one event.
  *
+ * A slot the venue is closed for, even in part, refuses the request, naming
+ * the closed time (SPM-334).
+ *
  * `occupied` is what the venue already carries on the requested days. A clash
  * with a live hold or confirmed booking refuses the request outright (#35,
  * #41); clashing with another pending request, or a hold that expired before
@@ -274,6 +288,18 @@ export function requestVenueBooking(input: {
   }
 
   const roomLayout = chooseRoomLayout(input.venue, input.roomLayout);
+
+  const closed = [...input.slots]
+    .sort(compareSlots)
+    .flatMap(({ date, slot }) =>
+      closedPeriods(input.venue.openingHours, slotRange(slot)).map((range) => ({
+        date,
+        time: formatRange(range),
+      })),
+    );
+  if (closed.length > 0) {
+    throw new VenueClosedError(closed);
+  }
 
   const clashes = clashingSlots(input.slots, input.occupied, input.now);
   if (clashes.length > 0) {
