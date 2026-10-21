@@ -22,7 +22,7 @@ import {
 } from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
-import { TimePicker } from "../../grid-time-picker";
+import { TimePicker } from "../../time-picker";
 import type { VenueFormState } from "./actions";
 
 const INITIAL: VenueFormState = { status: "idle" };

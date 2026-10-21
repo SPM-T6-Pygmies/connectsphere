@@ -25,9 +25,9 @@ import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
-import { TimePicker } from "../../grid-time-picker";
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
 import { PageHeader } from "../../page-header";
+import { TimePicker } from "../../time-picker";
 import {
   discardEventRequestDraftAction,
   saveEventRequestDraftAction,
