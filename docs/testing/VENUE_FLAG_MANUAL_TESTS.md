@@ -11,7 +11,7 @@ badge with the time. The coordinator clears it (SPM-310) or replaces the booking
 booking: when a booking is cancelled, released, rejected or its hold expires, its flags close.
 
 The rule behind it is unit-tested (`bookingsToFlagForBlock (SPM-313)`); these cases check the pages
-end to end against Supabase. They are registered as `TC-VFLAG-001`–`TC-VFLAG-011` in
+end to end against Supabase. They are registered as `TC-VFLAG-001`–`TC-VFLAG-010` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). Report what you ran in the PR
 description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not edit that file. The
@@ -381,15 +381,16 @@ of them is blocked.
 
 ---
 
-### TC-VFLAG-010: A flag ends with its booking (AC8)
+### TC-VFLAG-010: A flag ends with its booking, and shows on Request a venue (AC4, AC8)
 
-**What this tests:** A flag is there so a live booking gets looked at. When the booking stops
-existing, the flag has nothing left to say, and it must not hang about: it would keep showing on the
-event page, and it would stop the event being confirmed. Sam blocks the UAT-44 Harbour Room for two
-slots on C, and the Founders' Gala Dinner has a Confirmed booking in each (P in the morning, Q at
-night), so Dana sees two flags. Dana then cancels P with the **Cancel booking** button from SPM-20.
-P's flag should go from her Venue tab and be closed as "booking ended" in the database, while Q's
-flag stays.
+**What this tests:** A flag is there so a live booking gets looked at, and Dana manages her bookings
+on **Request a venue**, so the flag has to show there. When the booking stops existing the flag has
+nothing left to say, and it must not hang about: it would keep showing, and it would stop the event
+being confirmed. Sam blocks the UAT-44 Harbour Room for two slots on C, and the Founders' Gala Dinner
+has a Confirmed booking in each (P in the morning, Q at night). On **Request a venue** both rows should
+carry an amber **Flagged** badge, and opening one shows the reasons. Dana then cancels P with the
+**Cancel booking** button from SPM-20. P's flag should go, from that page and from the Venue tab, and be
+closed as "booking ended" in the database, while Q's flag stays.
 
 **Preconditions:** The three extra seeds from Setup. Signed in as Sam, then Dana. **C** is 10 days
 from today (the day the SPM-20 seed books).
@@ -397,9 +398,10 @@ from today (the day the SPM-20 seed books).
 **Steps:**
 1. As Sam open **Unavailability**. Choose **UAT-44 Harbour Room**, start and end date **C**, slots **AM** and **Night**, reason **Renovation**, and save.
 2. As Dana open **My events**, *Founders' Gala Dinner*, the **Venue** tab, and read **Flagged for review**.
-3. Open **Manage venue booking**. On the Harbour Room row for C AM (booking P) click **Cancel booking**, then **Yes, cancel booking**.
-4. Return to the event's **Venue** tab and read **Flagged for review** again.
-5. Read the flags:
+3. Open **Manage venue booking** (Request a venue). On the Harbour Room rows for C AM (P) and C Night (Q), read the Status column, then hover over, or click, the **Flagged** badge on Q.
+4. On P's row click **Cancel booking**, then **Yes, cancel booking**. Read the Status column of both rows again.
+5. Return to the event's **Venue** tab and read **Flagged for review** again.
+6. Read the flags:
    ```sql
    select bs.slot, f.cleared_how, f.cleared_at is not null as closed
      from booking_review_flag f join booking_slot bs using (booking_id)
@@ -409,39 +411,11 @@ from today (the day the SPM-20 seed books).
 
 **Expected Result:**
 - Step 2: two flagged bookings at the Harbour Room, "C 07:00 to 12:00" and "C 19:00 to 24:00", each with the reason "Renovation: C 07:00 to 12:00" or "Renovation: C 19:00 to 24:00".
-- Step 3: the row's badge reads **Released**.
-- Step 4: only the Night booking is listed. The morning one is gone.
-- Step 5: the AM row is closed with `booking-ended`; the Night row is open (`cleared_how` empty, `closed` false).
+- Step 3: both rows show **Confirmed** and an amber **Flagged** badge. Q's card reads "Flagged for review", "Something changed under this booking. It keeps its status and nothing has been cancelled.", then "Venue unavailable", "Renovation: C 19:00 to 24:00" and "Flagged <date, time>".
+- Step 4: P's row reads **Released** and no longer has a badge. Q's row is still **Confirmed** and **Flagged**.
+- Step 5: only the Night booking is listed. The morning one is gone.
+- Step 6: the AM row is closed with `booking-ended`; the Night row is open (`cleared_how` empty, `closed` false).
 
 **Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-dana-two-flags](../screenshots/2026-10-21_TC-VFLAG-010_step2-dana-two-flags.png) · [step3-dana-confirm-cancel](../screenshots/2026-10-21_TC-VFLAG-010_step3-dana-confirm-cancel.png) · [step4-dana-one-flag](../screenshots/2026-10-21_TC-VFLAG-010_step4-dana-one-flag.png)
-
----
-
-### TC-VFLAG-011: The flag shows on Request a venue, and says when a block was lifted (AC4, AC6)
-
-**What this tests:** Dana manages her bookings on **Request a venue**, so a flagged booking has to
-show there too, not only on the event page. After TC-VFLAG-010 the Founders' Gala Dinner has a
-Released morning booking (P) and a Confirmed night booking (Q) that is still flagged. On
-**Request a venue**, Q's row should carry an amber **Flagged** badge beside its status, and P's row
-should not. Opening the badge shows the reasons, the time it was flagged and the note that nothing has
-been cancelled. When Sam then lifts the Harbour Room block, the same card should show an amber **Block
-lifted** badge on that reason, with Q still Confirmed and still flagged.
-
-**Preconditions:** After TC-VFLAG-010. Signed in as Dana, then Sam.
-
-**Steps:**
-1. As Dana open **My events**, *Founders' Gala Dinner*, the **Venue** tab, then **Manage venue booking**.
-2. Read the Status column of the Harbour Room rows for C AM (P) and C Night (Q). Hover over, or click, the **Flagged** badge on Q.
-3. As Sam open **Unavailability**, find the Harbour Room **Renovation** block that is In force and click **Lift**.
-4. As Dana reload **Request a venue** and open the **Flagged** badge on Q again.
-
-**Expected Result:**
-- Step 2: P shows **Released** and no badge. Q shows **Confirmed** and an amber **Flagged** badge. The card reads "Flagged for review", "Something changed under this booking. It keeps its status and nothing has been cancelled.", then "Venue unavailable", "Renovation: C 19:00 to 24:00" and "Flagged <date, time>".
-- Step 4: Q still shows **Confirmed** and **Flagged**. The card's reason now carries an amber "Block lifted · <date, time>" badge and the line "The venue is free again, but the flag stays until you act on it."
-
-**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
-
-**Screenshots:** [step2-dana-flagged-badge-card](../screenshots/2026-10-21_TC-VFLAG-011_step2-dana-flagged-badge-card.png) · [step4-dana-card-after-lift](../screenshots/2026-10-21_TC-VFLAG-011_step4-dana-card-after-lift.png)
-
+**Screenshots:** [step2-dana-two-flags](../screenshots/2026-10-21_TC-VFLAG-010_step2-dana-two-flags.png) · [step3-dana-badge-card](../screenshots/2026-10-21_TC-VFLAG-010_step3-dana-badge-card.png) · [step4-dana-cancelled](../screenshots/2026-10-21_TC-VFLAG-010_step4-dana-cancelled.png) · [step5-dana-one-flag](../screenshots/2026-10-21_TC-VFLAG-010_step5-dana-one-flag.png)
