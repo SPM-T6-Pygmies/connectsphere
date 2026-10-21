@@ -172,13 +172,14 @@ hover it and click **Mark as unread** first).
 
 Run by Claude Code for arinmakk on branch `feat/spm-63-notify-venue-staff-of-cancelled-booking`,
 against `pnpm dev:local` (Next.js 16.3.4, dev mode, Novu Development through a `novu dev` tunnel,
-`NOVU_BRIDGE_URL` set) on local Supabase after `supabase db reset`, the baseline seeds and
-`seed-booking-cancel` (`verify.sql` all ok), in headless Chrome driven by Playwright at 1440 × 900.
-C was Sat, 31 Oct 2026. No page errors were raised.
+`NOVU_BRIDGE_URL` set) on local Supabase with the baseline seeds, after `seed-booking-cancel`'s
+`teardown.sql` and `seed.sql` (`verify.sql` all ok) and `pnpm novu:clear`, in headless Chrome driven by
+Playwright at 1440 × 900. C was Sat, 31 Oct 2026. No page errors were raised. This second run from a
+fresh seed replaces the first one the same day, whose 003 screenshot caught the rows mid-update.
 
 | Case | Result | Observed |
 | --- | --- | --- |
-| TC-VCANCELNOTE-001 | Pass | Booking 3 (P) Released. Rows for accounts 4 and 9 only, both `Sent`, against booking 3. Both inboxes show the unread "UAT-44 Harbour Room booking cancelled for Founders' Gala Dinner", badged Booking cancelled, "…for Sat, 31 Oct 2026 (07:00–12:00). It is now Released, and that time is free to book again." |
+| TC-VCANCELNOTE-001 | Pass | Booking 13 (P) Released. Rows for accounts 4 and 9 only, both `Sent`, against booking 13. Both inboxes show the unread "UAT-44 Harbour Room booking cancelled for Founders' Gala Dinner", badged Booking cancelled, "…for Sat, 31 Oct 2026 (07:00–12:00). It is now Released, and that time is free to book again." |
 | TC-VCANCELNOTE-002 | Pass | Opened `/staff/venue/catalogue/5/calendar?from=2026-10-31`: Sat 31 Oct AM Available, Night Confirmed. The coordinator got 403 on the same URL |
-| TC-VCANCELNOTE-003 | Pass | Bookings 5 (R) and 6 (S) Released; still two `venue-booking-cancelled` rows; no Garden Hall notice |
-| TC-VCANCELNOTE-004 | Pass | Mark as read cleared the dot, 1 unread → 0; still read after reload. A reload fired in the same instant as the click showed it unread again — the inbox marks it read before Novu confirms, so the request was cut off. Waiting for it to finish, as step 2 says, it stayed read |
+| TC-VCANCELNOTE-003 | Pass | Bookings 15 (R) and 16 (S) Released; still two `venue-booking-cancelled` rows; no Garden Hall notice |
+| TC-VCANCELNOTE-004 | Pass | Mark as read cleared the dot, 1 unread → 0; still read after reload. In the first run, a reload in the same instant as the click showed it unread again — the inbox marks it read before Novu confirms, so the request was cut off. Waiting for it to finish, as step 2 says, it stays read |
