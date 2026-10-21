@@ -71,8 +71,8 @@ describe("calendarCell (SPM-155)", () => {
     expect(calendarCell(slot({ status: "blocked", reasons: ["Other"] })).detail).toBe("Other");
   });
 
-  it("shows a slot the venue never offers as Not offered", () => {
-    expect(calendarCell(slot({ status: "notOffered" }))).toMatchObject({ label: "Not offered" });
+  it("shows a slot the venue is closed for as Closed", () => {
+    expect(calendarCell(slot({ status: "closed" }))).toMatchObject({ label: "Closed" });
   });
 });
 

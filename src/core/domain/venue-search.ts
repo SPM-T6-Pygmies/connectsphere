@@ -1,4 +1,5 @@
-import { BOOKING_SLOTS, isBookingSlot, SLOT_HOURS, type BookingSlot } from "./booking";
+import { BOOKING_SLOTS, isBookingSlot, SLOT_HOURS, slotRange, type BookingSlot } from "./booking";
+import { closedPeriods } from "./opening-hours";
 import { InvalidVenueSearchError } from "./errors";
 import { STANDARD_LAYOUTS, type Venue, type VenueId } from "./venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS, parseOptionList } from "./venue-options";
@@ -118,8 +119,8 @@ export const EXCLUSION_REASONS = [
   "capacity",
   "facilities",
   "accessibility",
-  "slotsUnknown",
-  "slotNotOffered",
+  "hoursUnknown",
+  "slotClosed",
   "beyondHorizon",
   "booked",
 ] as const;
@@ -211,10 +212,10 @@ export function isOpenFor(
 }
 
 /**
- * Whether the venue could be booked in every slot searched: it offers each
- * one, the date is within its booking horizon, and no live booking overlaps
- * any of them. A venue missing its slots or horizon cannot be shown to be
- * open, so it is not.
+ * Whether the venue could be booked in every slot searched: it is open for
+ * the whole of each one (SPM-320), the date is within its booking horizon,
+ * and no live booking overlaps any of them. A venue missing its opening hours
+ * or horizon cannot be shown to be open, so it is not.
  */
 function unavailability(
   venue: Venue,
@@ -223,12 +224,12 @@ function unavailability(
   today: string,
   timeZone: string,
 ): ExclusionReason | null {
-  const { slots, bookingHorizonDays } = venue;
-  if (slots.length === 0 || bookingHorizonDays === null) {
-    return "slotsUnknown";
+  const { openingHours, bookingHorizonDays } = venue;
+  if (openingHours.length === 0 || bookingHorizonDays === null) {
+    return "hoursUnknown";
   }
-  if (!window.slots.every((slot) => slots.includes(slot))) {
-    return "slotNotOffered";
+  if (window.slots.some((slot) => closedPeriods(openingHours, slotRange(slot)).length > 0)) {
+    return "slotClosed";
   }
   if (daysBetween(today, window.date) > bookingHorizonDays) {
     return "beyondHorizon";

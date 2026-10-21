@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/table";
 import { buildSearchVenues, getCurrentCoordinator } from "@/composition/container";
 import { InvalidVenueSearchError } from "@/core/domain/errors";
+import { formatOpeningHours } from "@/core/domain/opening-hours";
 import type { ExclusionReason, VenueSearchOutcome } from "@/core/domain/venue-search";
 
-import { formatSlots } from "../../slot-label";
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { VenueSearchForm, type VenueSearchValues } from "./venue-search-form";
 
@@ -37,10 +37,10 @@ function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): s
       return `missing a selected facility (${values.facilities})`;
     case "accessibility":
       return `missing a selected accessibility feature (${values.accessibility})`;
-    case "slotsUnknown":
-      return "no slots or booking horizon recorded";
-    case "slotNotOffered":
-      return `does not offer every slot chosen (${values.slots})`;
+    case "hoursUnknown":
+      return "no opening hours or booking horizon recorded";
+    case "slotClosed":
+      return `closed for part of a slot chosen (${values.slots})`;
     case "beyondHorizon":
       return `cannot be booked as far ahead as ${values.date}`;
     case "booked":
@@ -139,7 +139,7 @@ export default async function VenueSearchPage({
                 <TableRow>
                   <TableHead>Location</TableHead>
                   <TableHead>Layouts (capacity)</TableHead>
-                  <TableHead>Slots</TableHead>
+                  <TableHead>Opening hours</TableHead>
                   <TableHead>Facilities</TableHead>
                   <TableHead>Accessibility</TableHead>
                 </TableRow>
@@ -155,7 +155,7 @@ export default async function VenueSearchPage({
                     <TableCell className="text-muted-foreground">
                       {venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ") || "—"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{formatSlots(venue.slots)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatOpeningHours(venue.openingHours) || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">{venue.facilities ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {venue.accessibility ?? "—"}

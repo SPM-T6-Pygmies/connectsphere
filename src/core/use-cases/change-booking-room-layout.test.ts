@@ -26,7 +26,7 @@ const HALL: Venue = {
   capacity: 999,
   facilities: null,
   accessibility: null,
-  slots: [],
+  openingHours: [{ start: "00:00", end: "24:00" }],
   bookingHorizonDays: null,
   layouts: [
     { name: "Theatre", capacity: 200 },
