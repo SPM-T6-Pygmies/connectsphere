@@ -112,6 +112,7 @@ needs. This table says what that is.
 | Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
 | Venue flag | `seed-coordinator-view`, `seed-venues`, `seed-booking-flags` (its Setup lists every command) |
 | Venue booking cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel` |
+| Venue flag clear | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel`, `seed-booking-flag-clear/blocks.sql` |
 | Event cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel`, `seed-event-cancel` |
 | **Equipment review** | `seed-equipment-review` **only** |
 | **Equipment reserve** | `seed-equipment-reserve` **only** |
@@ -163,6 +164,7 @@ local subscribers and notifications stay behind otherwise.
 | `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, 21 days from today (one expired, one live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset | `seed`, `fixture`, `teardown` |
 | `seed-booking-flags` | 7 *Flag Test:* events with 9 bookings on Main Hall, Studio and Rooftop Terrace, 28 days from today (Confirmed, Requested, a live and an expired hold), for the venue flag cases to block | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events | `seed`, `show` (9 rows), `blocks`, `checks` (40 checks), `clear-checks` (14 checks, SPM-310), `teardown` (also removes the blocks the cases recorded) |
 | `seed-booking-cancel` | 5 bookings on the *Founders' Gala Dinner* at the two UAT-44 venues, 10 days from today: two Confirmed, one Requested, one Tentative Hold, one Rejected | `seed-equipment`, `seed-venue-search-uat` | Yes | `seed`, `verify` (7 rows), `teardown` |
+| `seed-booking-flag-clear` | 3 blocks on UAT-44 Harbour Room, 10 days from today, that flag the *Founders' Gala Dinner*'s two Confirmed bookings there (two reasons on the AM one, one on the Night one), for the flag clear cases | `seed-booking-cancel` | No: run `teardown` first | `blocks`, `reblock` (one more block, TC-VFCLR-004), `flags` (every flag row on the event), `teardown` (removes the blocks and the event's flag rows) |
 | `seed-event-cancel` | A lapsed Tentative Hold on the *Founders' Gala Dinner* at UAT-44 Garden Hall, 10 days from today, beside `seed-booking-cancel`'s five. `teardown` also puts the event back in Planning | `seed-booking-cancel` | Yes | `seed`, `verify` (2 rows), `teardown` |
 | `apply-ssot` | Nothing: corrects venue and equipment data already there | A database that already has data | Yes | `verify` (31 rows), `apply` |
 
