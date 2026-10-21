@@ -29,7 +29,7 @@ run in the PR description's `## Manual test results` table.
 ## Test Environment Setup
 
 1. Reset the local database, which applies
-   `20261020010000_event_slots_fifteen_minute_grid.sql`, then add the sample
+   `20261021000000_event_slots_fifteen_minute_grid.sql`, then add the sample
    requests:
    ```bash
    supabase db reset
