@@ -6,13 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { ViewCoordinatorEventResult } from "@/core/use-cases/view-coordinator-event";
 
 import { ArrangementStatus } from "./arrangement-status";
+import { FlaggedBookings } from "./flagged-bookings";
 
 /**
  * SPM-285: what the event needs from a venue. Booking itself stays on the
  * venue booking page, which is keyed by the source request, so an event with
  * no request gets no link.
  */
-export function VenueTab({ details, readiness }: Pick<ViewCoordinatorEventResult, "details" | "readiness">) {
+export function VenueTab({
+  details,
+  readiness,
+  flaggedBookings,
+}: Pick<ViewCoordinatorEventResult, "details" | "readiness" | "flaggedBookings">) {
   const needs = [
     ["Venue requirements", details.venueRequirements],
     ["Facilities needed", details.requiredFacilities],
@@ -28,6 +33,7 @@ export function VenueTab({ details, readiness }: Pick<ViewCoordinatorEventResult
       </CardHeader>
       <CardContent className="space-y-5">
         <ArrangementStatus readiness={readiness} type="venue" />
+        <FlaggedBookings flags={flaggedBookings} />
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           {needs.map(([label, value]) => (
             <div key={label}>

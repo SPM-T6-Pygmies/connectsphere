@@ -394,6 +394,15 @@ export class BookingNotCancellableError extends DomainError {
   }
 }
 
+/** SPM-55 AC6: a cancelled event takes no new venue booking requests. */
+export class CancelledEventBookingError extends DomainError {
+  readonly code = "cancelled_event_booking";
+
+  constructor() {
+    super("This event is cancelled, so no venue can be requested for it.");
+  }
+}
+
 /**
  * SPM-104: the layout is the coordinator's to change only while the request
  * is still pending. Once Venue Staff have answered it, the answer was given
@@ -416,6 +425,19 @@ export class VenueSlotUnavailableError extends DomainError {
       `The venue is already booked for ${slots
         .map(({ date, slot }) => `${date} ${slot}`)
         .join(", ")}. Choose other slots or another venue.`,
+    );
+  }
+}
+
+/** SPM-334: a requested slot includes time the venue is closed (SPM-320 AC3). */
+export class VenueClosedError extends DomainError {
+  readonly code = "venue_closed";
+
+  constructor(readonly closed: ReadonlyArray<{ readonly date: string; readonly time: string }>) {
+    super(
+      `The venue is closed ${closed
+        .map(({ date, time }) => `${date} ${time}`)
+        .join(", ")}. Choose times within its opening hours or another venue.`,
     );
   }
 }
@@ -734,7 +756,7 @@ export class InvalidVenueIdError extends DomainError {
 
 /**
  * SPM-42: a venue record the catalogue would not accept -- a missing location,
- * a layout with no capacity, no slot to book it in. The reason is written
+ * a layout with no capacity, no opening hours (SPM-320). The reason is written
  * for the person filling in the form, so it can be shown as it is.
  */
 export class InvalidVenueError extends DomainError {
@@ -753,7 +775,7 @@ export type VenueField =
   | "location"
   | "facilities"
   | "accessibility"
-  | "slots"
+  | "openingHours"
   | "capacity"
   | "bookingHorizonDays"
   | "layouts";
@@ -1108,6 +1130,15 @@ export class EventNotCompletableError extends DomainError {
 
   constructor(readonly status: string) {
     super(`An event with status ${status} cannot be marked completed.`);
+  }
+}
+
+/** SPM-55: only a Planning, Blocked or Confirmed event can be cancelled. */
+export class EventNotCancellableError extends DomainError {
+  readonly code = "event_not_cancellable";
+
+  constructor(readonly status: string) {
+    super(`An event with status ${status} cannot be cancelled.`);
   }
 }
 

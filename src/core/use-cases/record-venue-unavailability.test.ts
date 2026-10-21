@@ -12,6 +12,7 @@ import {
   VenueNotFoundError,
   VenueUnavailabilityNotPermittedError,
 } from "../domain/errors";
+import { userAccountId } from "../domain/user-account";
 import { venueId, type Venue } from "../domain/venue";
 import { slotsStillBlocked } from "../domain/venue-unavailability";
 import { LiftVenueUnavailabilityUseCase } from "./lift-venue-unavailability";
@@ -30,7 +31,7 @@ const GRAND_HALL: Venue = {
   location: "Grand Hall",
   facilities: "Wi-Fi",
   accessibility: "Step-free access",
-  slots: ["AM", "PM", "Night"],
+  openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }, { start: "19:00", end: "24:00" }],
   capacity: 300,
   bookingHorizonDays: 180,
   layouts: [{ name: "Theatre", capacity: 200 }],
@@ -251,5 +252,176 @@ describe("LiftVenueUnavailabilityUseCase (SPM-267)", () => {
       lift.execute({ roles: ["Technical Support Staff"], userAccountId: "staff-1", unavailabilityId: entry.id }),
     ).rejects.toBeInstanceOf(VenueUnavailabilityNotPermittedError);
     expect((await list.execute(read)).entries[0].status).toBe("In force");
+  });
+});
+
+describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
+  const OTHER_VENUE = venueId("venue-2");
+  const COORDINATOR = "coordinator-1";
+
+  function seeded(overrides: Partial<SeededBooking> & Pick<SeededBooking, "id">): SeededBooking {
+    return {
+      venueId: GRAND_HALL.id,
+      eventName: "Tech Summit",
+      status: "Confirmed",
+      slots: [{ date: "2026-10-13", slot: "PM" }],
+      eventId: "event-1",
+      coordinatorUserAccountId: COORDINATOR,
+      ...overrides,
+    };
+  }
+
+  const PM_ON_13 = { startDate: "2026-10-13", endDate: "2026-10-13", slots: ["PM"] } as const;
+
+  it("AC1: flags a Confirmed booking the block covers and hands back whom to tell", async () => {
+    const { record } = build([seeded({ id: "booking-1" })]);
+
+    const { flaggedBookings } = await record.execute(block({ ...PM_ON_13, reason: "Maintenance" }));
+
+    expect(flaggedBookings).toEqual([
+      {
+        bookingId: "booking-1",
+        eventId: "event-1",
+        eventName: "Tech Summit",
+        coordinatorUserAccountId: COORDINATOR,
+        venueLocation: "Grand Hall",
+        detail: "Maintenance: 2026-10-13 13:00 to 18:00",
+      },
+    ]);
+  });
+
+  it("AC1: flags a live hold, but not a hold that has run out", async () => {
+    const live = seeded({ id: "live", status: "Tentative Hold", holdExpiresAt: new Date("2026-10-07T12:00:00+08:00") });
+    const lapsed = seeded({ id: "lapsed", status: "Tentative Hold", holdExpiresAt: new Date("2026-10-04T12:00:00+08:00") });
+    const { record } = build([live, lapsed]);
+
+    const { flaggedBookings } = await record.execute(block(PM_ON_13));
+
+    expect(flaggedBookings.map((flagged) => flagged.bookingId)).toEqual(["live"]);
+  });
+
+  it("AC1: lists a Requested booking as affected but does not flag it", async () => {
+    const { record } = build([seeded({ id: "requested", status: "Requested" })]);
+
+    const { affectedBookings, flaggedBookings } = await record.execute(block(PM_ON_13));
+
+    expect(affectedBookings.map((booking) => booking.bookingId)).toEqual(["requested"]);
+    expect(flaggedBookings).toEqual([]);
+  });
+
+  it("AC2: flags nothing for other slots, other days and other venues", async () => {
+    const { record } = build([
+      seeded({ id: "am", slots: [{ date: "2026-10-13", slot: "AM" }] }),
+      seeded({ id: "night", slots: [{ date: "2026-10-13", slot: "Night" }] }),
+      seeded({ id: "next-day", slots: [{ date: "2026-10-14", slot: "PM" }] }),
+      seeded({ id: "elsewhere", venueId: OTHER_VENUE }),
+    ]);
+
+    const { flaggedBookings } = await record.execute(block(PM_ON_13));
+
+    expect(flaggedBookings).toEqual([]);
+  });
+
+  it("AC3: leaves a flagged booking's status and the booking itself as they were", async () => {
+    const booking = seeded({ id: "booking-1" });
+    const { record, unavailability } = build([booking]);
+
+    await record.execute(block(PM_ON_13));
+
+    expect(unavailability.seededBookings()).toEqual([booking]);
+  });
+
+  it("AC5: gives a booking under two blocks two reasons, one per block", async () => {
+    const { record, unavailability } = build([seeded({ id: "booking-1" })]);
+
+    await record.execute(block({ ...PM_ON_13, reason: "Renovation" }));
+    await record.execute(block({ ...PM_ON_13, reason: "Equipment failure" }));
+
+    const flags = await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1");
+    expect(flags.map((flag) => flag.detail)).toEqual([
+      "Renovation: 2026-10-13 13:00 to 18:00",
+      "Equipment failure: 2026-10-13 13:00 to 18:00",
+    ]);
+  });
+
+  it("AC6: keeps the flag when the block is lifted, and tells the page when it was lifted", async () => {
+    const { record, lift, unavailability } = build([seeded({ id: "booking-1" })]);
+    const { entry } = await record.execute(block({ ...PM_ON_13, reason: "Maintenance" }));
+
+    await lift.execute({ roles: STAFF, userAccountId: "staff-2", unavailabilityId: entry.id });
+
+    const flags = await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1");
+    expect(flags.map((flag) => flag.detail)).toEqual(["Maintenance: 2026-10-13 13:00 to 18:00"]);
+    expect(flags.map((flag) => flag.sourceLiftedAt)).toEqual([NOW.toISOString()]);
+  });
+
+  it("AC6: marks only the lifted block's reason as lifted when a booking has two", async () => {
+    const { record, lift, unavailability } = build([seeded({ id: "booking-1" })]);
+    const first = await record.execute(block({ ...PM_ON_13, reason: "Renovation" }));
+    await record.execute(block({ ...PM_ON_13, reason: "Equipment failure" }));
+
+    await lift.execute({ roles: STAFF, userAccountId: "staff-1", unavailabilityId: first.entry.id });
+
+    const flags = await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1");
+    expect(flags.map((flag) => [flag.detail, flag.sourceLiftedAt])).toEqual([
+      ["Renovation: 2026-10-13 13:00 to 18:00", NOW.toISOString()],
+      ["Equipment failure: 2026-10-13 13:00 to 18:00", null],
+    ]);
+  });
+
+  it("AC7: flags only the booking at the blocked venue when an event has several", async () => {
+    const { record } = build([
+      seeded({ id: "hall-a" }),
+      seeded({ id: "hall-c", venueId: OTHER_VENUE }),
+    ]);
+
+    const { flaggedBookings } = await record.execute(block(PM_ON_13));
+
+    expect(flaggedBookings.map((flagged) => flagged.bookingId)).toEqual(["hall-a"]);
+  });
+
+  it("AC4: shows the flag to the event's coordinator and to nobody else", async () => {
+    const { record, unavailability } = build([seeded({ id: "booking-1" })]);
+    await record.execute(block(PM_ON_13));
+
+    expect(await unavailability.openForEvent(userAccountId("coordinator-2"), "event-1")).toEqual([]);
+    expect(await unavailability.openForEvent(userAccountId(COORDINATOR), "event-2")).toEqual([]);
+  });
+
+  it("AC4: shows no flag on a booking that has since been cancelled, and keeps it on its sibling", async () => {
+    const { record, unavailability } = build([
+      seeded({ id: "hall-a" }),
+      seeded({ id: "hall-b", slots: [{ date: "2026-10-13", slot: "PM" }] }),
+    ]);
+    await record.execute(block(PM_ON_13));
+
+    unavailability.endBooking("hall-a", "Released");
+
+    const flags = await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1");
+    expect(flags.map((flag) => flag.bookingId)).toEqual(["hall-b"]);
+  });
+
+  it("AC1: no longer hands back a booking that has since been cancelled as flagged by the block", async () => {
+    const { record, unavailability } = build([seeded({ id: "booking-1" })]);
+    const { entry } = await record.execute(block(PM_ON_13));
+
+    unavailability.endBooking("booking-1", "Released");
+
+    expect(await unavailability.flaggedBookings(userAccountId("staff-1"), entry.id)).toEqual([]);
+  });
+
+  it("AC4: stops showing a held booking's flag once its hold has run out", async () => {
+    const hold = seeded({
+      id: "hold-1",
+      status: "Tentative Hold",
+      holdExpiresAt: new Date("2026-10-08T12:00:00+08:00"),
+    });
+    const { record, unavailability } = build([hold]);
+    await record.execute(block(PM_ON_13));
+    expect(await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1")).toHaveLength(1);
+
+    unavailability.endBooking("hold-1", "Expired");
+
+    expect(await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1")).toEqual([]);
   });
 });

@@ -13,6 +13,7 @@ import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-
 import { InMemoryVenueStaffDirectory } from "@/adapters/outbound/in-memory/in-memory-venue-staff-directory";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import {
+  CancelledEventBookingError,
   CoordinatorEventNotFoundError,
   RoomLayoutRequiredError,
   VenueNotFoundError,
@@ -39,13 +40,15 @@ const EVENT: SeedCoordinatorEvent = {
   owningOrganiserUserAccountId: "organiser-1",
 };
 
+const CANCELLED_EVENT: SeedCoordinatorEvent = { ...EVENT, id: "event-cancelled", status: "Cancelled" };
+
 const HALL: Venue = {
   id: venueId("venue-hall"),
   location: "Main Hall",
   capacity: 300,
   facilities: null,
   accessibility: null,
-  slots: [],
+  openingHours: [{ start: "00:00", end: "24:00" }],
   bookingHorizonDays: null,
   layouts: [
     { name: "Theatre", capacity: 300 },
@@ -59,7 +62,7 @@ const STUDIO: Venue = {
   capacity: 40,
   facilities: null,
   accessibility: null,
-  slots: [],
+  openingHours: [{ start: "00:00", end: "24:00" }],
   bookingHorizonDays: null,
   layouts: [{ name: "Classroom", capacity: 40 }],
 };
@@ -91,7 +94,7 @@ function buildUseCase(
   const bookings = new InMemoryBookingRepository(existing);
   const notifier = new RecordingNotifier();
   const useCase = new SubmitVenueBookingRequestUseCase({
-    events: new InMemoryCoordinatorEventRepository([EVENT]),
+    events: new InMemoryCoordinatorEventRepository([EVENT, CANCELLED_EVENT]),
     venues: new InMemoryVenueCatalogue([HALL, STUDIO]),
     bookings,
     venueStaff: new InMemoryVenueStaffDirectory(venueStaff),
@@ -341,6 +344,24 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
 
     expect(result.status).toBe("Requested");
     expect(bookings.all()).toHaveLength(1);
+    expect(notifier.bookingRequests).toEqual([]);
+  });
+});
+
+describe("SubmitVenueBookingRequestUseCase on a cancelled event (SPM-55)", () => {
+  it("AC6: refuses the request, storing nothing and telling no one", async () => {
+    const { useCase, bookings, notifier } = buildUseCase();
+
+    await expect(
+      useCase.execute({
+        eventId: "event-cancelled",
+        userAccountId: COORDINATOR,
+        venueId: "venue-hall",
+        roomLayout: "Theatre",
+        slots: [{ date: "2026-10-05", slot: "AM" }],
+      }),
+    ).rejects.toThrow(CancelledEventBookingError);
+    expect(bookings.all()).toEqual([]);
     expect(notifier.bookingRequests).toEqual([]);
   });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { BookingSlot, BookingStatus, OccupiedSlot } from "./booking";
 import { InvalidCalendarRangeError } from "./errors";
+import type { OpeningWindow } from "./opening-hours";
 import type { UnavailabilityReason } from "./venue-unavailability";
 import {
   CALENDAR_MAX_DAYS,
@@ -13,7 +14,9 @@ import {
 
 const DAY = "2026-11-02";
 const NOW = new Date("2026-10-13T09:00:00+08:00");
-const ALL_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
+const AM: OpeningWindow = { start: "07:00", end: "12:00" };
+const PM: OpeningWindow = { start: "13:00", end: "18:00" };
+const ALL_HOURS: readonly OpeningWindow[] = [{ start: "00:00", end: "24:00" }];
 
 function occupied(
   slot: BookingSlot,
@@ -32,13 +35,13 @@ function block(
 }
 
 function statuses(input: {
-  offeredSlots?: readonly BookingSlot[];
+  openingHours?: readonly OpeningWindow[];
   occupied?: readonly OccupiedSlot[];
   blocked?: readonly CalendarBlock[];
 }): Record<BookingSlot, CalendarSlotStatus> {
   const [day] = deriveVenueCalendar({
     days: [DAY],
-    offeredSlots: input.offeredSlots ?? ALL_SLOTS,
+    openingHours: input.openingHours ?? ALL_HOURS,
     occupied: input.occupied ?? [],
     blocked: input.blocked ?? [],
     now: NOW,
@@ -57,7 +60,7 @@ describe("deriveVenueCalendar (SPM-152)", () => {
   it("returns one day per date given, each with AM, PM and Night in order", () => {
     const days = deriveVenueCalendar({
       days: ["2026-11-02", "2026-11-03"],
-      offeredSlots: ALL_SLOTS,
+      openingHours: ALL_HOURS,
       occupied: [],
       blocked: [],
       now: NOW,
@@ -78,7 +81,7 @@ describe("deriveVenueCalendar (SPM-152)", () => {
   it("does not carry a booking onto another date", () => {
     const [day] = deriveVenueCalendar({
       days: ["2026-11-03"],
-      offeredSlots: ALL_SLOTS,
+      openingHours: ALL_HOURS,
       occupied: [occupied("PM", "Confirmed")],
       blocked: [],
       now: NOW,
@@ -104,13 +107,17 @@ describe("deriveVenueCalendar (SPM-152)", () => {
     ).toBe("blocked");
   });
 
-  it("shows a slot the venue does not offer as not offered", () => {
-    expect(statuses({ offeredSlots: ["AM", "PM"] }).Night).toBe("notOffered");
+  it("shows a slot outside the opening hours as closed", () => {
+    expect(statuses({ openingHours: [AM, PM] }).Night).toBe("closed");
   });
 
-  it("still shows a booking on a slot the venue no longer offers", () => {
+  it("shows a slot the venue is open for only part of as closed", () => {
+    expect(statuses({ openingHours: [{ start: "07:00", end: "11:00" }] }).AM).toBe("closed");
+  });
+
+  it("still shows a booking on a slot the venue is now closed for", () => {
     expect(
-      statuses({ offeredSlots: ["AM"], occupied: [occupied("PM", "Confirmed")] }).PM,
+      statuses({ openingHours: [AM], occupied: [occupied("PM", "Confirmed")] }).PM,
     ).toBe("booked");
   });
 });
@@ -119,7 +126,7 @@ describe("deriveVenueCalendar holds (SPM-43)", () => {
   function heldSlot(holdExpiresAt: Date | null) {
     const [day] = deriveVenueCalendar({
       days: [DAY],
-      offeredSlots: ALL_SLOTS,
+      openingHours: ALL_HOURS,
       occupied: [occupied("AM", "Tentative Hold", holdExpiresAt)],
       blocked: [],
       now: NOW,
@@ -168,7 +175,7 @@ describe("deriveVenueCalendar block reasons (SPM-153)", () => {
   function slotsFor(blocked: readonly CalendarBlock[]) {
     const [day] = deriveVenueCalendar({
       days: [DAY],
-      offeredSlots: ALL_SLOTS,
+      openingHours: ALL_HOURS,
       occupied: [],
       blocked,
       now: NOW,
@@ -232,7 +239,7 @@ describe("deriveVenueCalendar block notes (SPM-43)", () => {
   function pm(blocked: readonly CalendarBlock[]) {
     const [day] = deriveVenueCalendar({
       days: [DAY],
-      offeredSlots: ALL_SLOTS,
+      openingHours: ALL_HOURS,
       occupied: [],
       blocked,
       now: NOW,

@@ -7,7 +7,7 @@ const studio: Venue = {
   location: "Studio",
   facilities: "Wi-Fi, Video-conferencing",
   accessibility: "Step-free access",
-  slots: ["AM", "PM"],
+  openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }],
   capacity: 60,
   bookingHorizonDays: 60,
   layouts: [{ name: "Theatre", capacity: 60 }],

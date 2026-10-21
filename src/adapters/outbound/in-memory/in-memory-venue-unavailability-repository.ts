@@ -1,4 +1,10 @@
-import type { BookingId, BookingSlot, BookingStatus, SlotOnDate } from "@/core/domain/booking";
+import { holdsSlot, type BookingId, type BookingSlot, type BookingStatus, type SlotOnDate } from "@/core/domain/booking";
+import {
+  blockFlagDetail,
+  bookingsToFlagForBlock,
+  timeSpans,
+  type FlagReasonCode,
+} from "@/core/domain/booking-review-flag";
 import {
   UnavailabilityAlreadyLiftedError,
   VenueUnavailabilityNotFoundError,
@@ -13,9 +19,11 @@ import {
   type VenueUnavailabilityBlock,
   type VenueUnavailabilityEntry,
 } from "@/core/domain/venue-unavailability";
+import type { BookingFlagRepository, EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 import type { Clock } from "@/core/ports/outbound/clock";
 import type {
   AffectedBooking,
+  FlaggedBooking,
   VenueUnavailabilityRepository,
 } from "@/core/ports/outbound/venue-unavailability-repository";
 
@@ -26,13 +34,36 @@ export interface SeededBooking {
   readonly eventName: string;
   readonly status: BookingStatus;
   readonly slots: readonly SlotOnDate[];
+  /** SPM-313: only needed by a case that reads flags. */
+  readonly eventId?: string;
+  readonly coordinatorUserAccountId?: string | null;
+  readonly holdExpiresAt?: Date | null;
+}
+
+/** A flag as stored: the reason, and the slots it names so a lift can restate it. */
+interface StoredFlag {
+  readonly id: string;
+  readonly booking: SeededBooking;
+  readonly reasonCode: FlagReasonCode;
+  readonly blockId: string;
+  readonly detail: string;
+  readonly flaggedAt: string;
 }
 
 const LIVE: readonly BookingStatus[] = ["Requested", "Tentative Hold", "Confirmed"];
 
-/** A `Map`-backed store that obeys the same contract as the Supabase one. */
-export class InMemoryVenueUnavailabilityRepository implements VenueUnavailabilityRepository {
+/**
+ * A `Map`-backed store that obeys the same contract as the Supabase one. It is also the flag
+ * store (SPM-313): recording a block flags the bookings it was seeded with, as the database
+ * function does, so a case sees the flags through `BookingFlagRepository` too.
+ */
+export class InMemoryVenueUnavailabilityRepository
+  implements VenueUnavailabilityRepository, BookingFlagRepository
+{
   private readonly rows: VenueUnavailabilityEntry[] = [];
+  private readonly flags: StoredFlag[] = [];
+  /** SPM-313: a booking's status once something has ended it (cancelled, released, expired). */
+  private readonly endedAs = new Map<string, BookingStatus>();
   private sequence = 0;
 
   constructor(
@@ -44,6 +75,19 @@ export class InMemoryVenueUnavailabilityRepository implements VenueUnavailabilit
 
   private nameOf(staff: UserAccountId): string {
     return this.staffNames.get(staff) ?? staff;
+  }
+
+  /** Test helper: something outside this store ended the booking, as cancelling does. */
+  endBooking(bookingId: string, status: BookingStatus): void {
+    this.endedAs.set(bookingId, status);
+  }
+
+  /** A flag on a booking that no longer holds its slot has nothing left to review, so it is not shown. */
+  private stillHolds(booking: SeededBooking): boolean {
+    return holdsSlot(
+      { status: this.endedAs.get(booking.id) ?? booking.status, holdExpiresAt: booking.holdExpiresAt ?? null },
+      this.clock.now(),
+    );
   }
 
   async record(block: VenueUnavailabilityBlock, actor: UserAccountId): Promise<VenueUnavailabilityEntry> {
@@ -59,7 +103,34 @@ export class InMemoryVenueUnavailabilityRepository implements VenueUnavailabilit
       liftedAt: null,
     };
     this.rows.push(entry);
+    this.flagBookingsFor(entry);
     return entry;
+  }
+
+  /** The rule is the domain's; this stores what it decided, once per block (AC5). */
+  private flagBookingsFor(entry: VenueUnavailabilityEntry): void {
+    const now = this.clock.now();
+    const flaggable = this.bookings.map((booking) => ({
+      id: booking.id,
+      venueId: booking.venueId as VenueId,
+      status: booking.status,
+      holdExpiresAt: booking.holdExpiresAt ?? null,
+      slots: booking.slots,
+    }));
+    for (const { bookingId } of bookingsToFlagForBlock(entry, flaggable, now)) {
+      const booking = this.bookings.find((candidate) => candidate.id === bookingId);
+      if (booking === undefined) {
+        continue;
+      }
+      this.flags.push({
+        id: `flag-${this.flags.length + 1}`,
+        booking,
+        reasonCode: "venue-unavailable",
+        blockId: entry.id,
+        detail: blockFlagDetail(entry, booking.slots),
+        flaggedAt: now.toISOString(),
+      });
+    }
   }
 
   async list(): Promise<readonly VenueUnavailabilityEntry[]> {
@@ -84,6 +155,42 @@ export class InMemoryVenueUnavailabilityRepository implements VenueUnavailabilit
       liftedByName: this.nameOf(lift.liftedBy),
       liftedAt: lift.liftedAt.toISOString(),
     };
+    // SPM-313 AC6: the flags stay open; `openForEvent` says the block was lifted, from the block.
+  }
+
+  async flaggedBookings(_reader: UserAccountId, blockId: string): Promise<readonly FlaggedBooking[]> {
+    return this.flags
+      .filter((flag) => flag.blockId === blockId && this.stillHolds(flag.booking))
+      .map(({ booking, detail }) => ({
+        bookingId: booking.id as BookingId,
+        eventId: booking.eventId ?? "",
+        eventName: booking.eventName,
+        coordinatorUserAccountId: booking.coordinatorUserAccountId ?? null,
+        venueLocation: this.venueLocations.get(booking.venueId) ?? booking.venueId,
+        detail,
+      }));
+  }
+
+  async openForEvent(coordinatorId: UserAccountId, eventId: string): Promise<readonly EventBookingFlag[]> {
+    return this.flags
+      .filter(
+        ({ booking }) =>
+          booking.eventId === eventId &&
+          booking.coordinatorUserAccountId === coordinatorId &&
+          this.stillHolds(booking),
+      )
+      .map((flag) => ({
+        flagId: flag.id,
+        bookingId: flag.booking.id as BookingId,
+        venueLocation: this.venueLocations.get(flag.booking.venueId) ?? flag.booking.venueId,
+        status: flag.booking.status,
+        holdExpiresAt: flag.booking.holdExpiresAt?.toISOString() ?? null,
+        bookedFor: timeSpans(flag.booking.slots),
+        reasonCode: flag.reasonCode,
+        detail: flag.detail,
+        flaggedAt: flag.flaggedAt,
+        sourceLiftedAt: this.rows.find((row) => row.id === flag.blockId)?.liftedAt ?? null,
+      }));
   }
 
   async affectedBookings(
