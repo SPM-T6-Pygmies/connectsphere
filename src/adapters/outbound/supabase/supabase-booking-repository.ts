@@ -16,10 +16,10 @@ import {
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueNotFoundError,
-  VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
-import { slotsOverlapping } from "@/core/domain/slot-grid";
+import { venueSlotBlocked } from "@/core/domain/booking-review-flag";
+import { slotsOverlapping, type SlotCodeOnDate } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
 import type {
@@ -143,9 +143,7 @@ export class SupabaseBookingRepository implements BookingRepository {
         case SLOT_TAKEN:
           throw new VenueSlotUnavailableError(await this.takenOf(request));
         case SLOT_BLOCKED:
-          throw new VenueSlotBlockedError(
-            await this.blockedOf(request.venueId, request.slots, error.message),
-          );
+          throw venueSlotBlocked(await this.blockedOf(request.venueId, request.slots, error.message));
         default:
           throw new Error(`Failed to submit the booking request: ${error.message}`, {
             cause: error,
@@ -239,7 +237,7 @@ export class SupabaseBookingRepository implements BookingRepository {
   }
 
   /**
-   * Which of a booking's slots are blocked, for a message that names them.
+   * The block's slots that overlap a booking's, for a message that names their hours.
    * The trigger stops at the first one; the read says them all. If a lift
    * landed in between and nothing is blocked any more, the database's own
    * message still names the slot it refused. Venue Staff's approval reads it
@@ -249,7 +247,7 @@ export class SupabaseBookingRepository implements BookingRepository {
     venue: VenueId,
     slots: readonly SlotOnDate[],
     refusal: string,
-  ): Promise<SlotOnDate[]> {
+  ): Promise<SlotCodeOnDate[]> {
     const key = toKey(venue);
     const dates = slots.map(({ date }) => date).sort();
     if (key !== null && dates.length > 0) {
@@ -262,9 +260,12 @@ export class SupabaseBookingRepository implements BookingRepository {
       const blocked = ((data ?? []) as unknown as Array<{ date: string; slot: string }>).map(
         ({ date, slot }) => ({ date: date.slice(0, 10), slot }),
       );
-      const named = slotsOverlapping(slots, blocked);
-      if (named.length > 0) {
-        return named;
+      // The block's own slots that reach the request, once each however many blocks hold them.
+      const named = new Map(
+        slotsOverlapping(blocked, slots).map((slot) => [`${slot.date}|${slot.slot}`, slot] as const),
+      );
+      if (named.size > 0) {
+        return [...named.values()];
       }
     }
 

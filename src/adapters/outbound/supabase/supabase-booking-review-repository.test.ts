@@ -77,7 +77,7 @@ const REFUSED_OVER_BLOCK = {
 };
 
 describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () => {
-  it("maps the decide function's CS028 to the blocked-slot domain error, naming the slot", async () => {
+  it("maps the decide function's CS028 to the blocked-slot domain error, naming the blocked hours", async () => {
     const { client } = fakeClient({
       venue_staff_decide_booking: REFUSED_OVER_BLOCK,
       venue_staff_bookings: { data: [BOOKING_ROW], error: null },
@@ -93,7 +93,7 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
 
     expect(error).toBeInstanceOf(VenueSlotBlockedError);
     expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "PM" }]);
-    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 PM");
+    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 13:00 to 18:00");
   });
 
   it("falls back to the slot the function named when a lift landed in between", async () => {

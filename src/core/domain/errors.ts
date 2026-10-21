@@ -1106,19 +1106,19 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
 }
 
 /**
- * SPM-21 AC12: a Venue Staff block covers a slot the request asks for. Unlike a
- * clash with another booking, there is no other venue slot to choose around it
- * and no override.
+ * SPM-21 AC12, SPM-321 AC3: a Venue Staff block shares time with what the request asks for.
+ * `slots` are the block's own slots that overlap it, and `times` says them as a person reads
+ * them (`2026-11-02 09:00 to 11:30`), not as the AM, PM or Night the request used. Unlike a
+ * clash with another booking, there is nothing to choose around it and no override.
  */
 export class VenueSlotBlockedError extends DomainError {
   readonly code = "venue_slot_blocked";
 
-  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
-    super(
-      `The venue is unavailable for ${slots
-        .map(({ date, slot }) => `${date} ${slot}`)
-        .join(", ")}. Choose other slots or another venue.`,
-    );
+  constructor(
+    readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>,
+    times: string,
+  ) {
+    super(`The venue is unavailable ${times}. Choose other times or another venue.`);
   }
 }
 

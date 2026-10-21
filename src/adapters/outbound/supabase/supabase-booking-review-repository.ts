@@ -9,9 +9,9 @@ import {
   BookingNotFoundError,
   DecisionReasonRequiredError,
   HoldNotLiveError,
-  VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
+import { venueSlotBlocked } from "@/core/domain/booking-review-flag";
 import type { UserAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 import type {
@@ -100,7 +100,7 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
       case SLOT_TAKEN:
         throw new VenueSlotUnavailableError(await this.takenBy(decided));
       case SLOT_BLOCKED:
-        throw new VenueSlotBlockedError(await this.blockedBy(decided.id, decided.decidedBy, error.message));
+        throw venueSlotBlocked(await this.blockedBy(decided.id, decided.decidedBy, error.message));
       default:
         throw new Error(`Failed to decide the booking: ${error.message}`, { cause: error });
     }
@@ -130,7 +130,7 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
         throw new HoldNotLiveError();
       case SLOT_BLOCKED:
         // Confirming only: a block recorded after the hold still wins.
-        throw new VenueSlotBlockedError(await this.blockedBy(resolved.id, resolved.resolvedBy, error.message));
+        throw venueSlotBlocked(await this.blockedBy(resolved.id, resolved.resolvedBy, error.message));
       default:
         throw new Error(`Failed to resolve the hold: ${error.message}`, { cause: error });
     }

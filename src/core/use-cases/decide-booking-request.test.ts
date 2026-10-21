@@ -611,7 +611,7 @@ describe("DecideBookingRequestUseCase confirming or releasing a hold (SPM-219)",
   it("a confirmation the store refuses over a block recorded after the hold changes nothing and tells nobody (AC7)", async () => {
     const { useCase, reviews, notifier } = build([held()]);
     reviews.resolveHold = async () => {
-      throw new VenueSlotBlockedError([{ date: "2026-10-22", slot: "AM" }]);
+      throw new VenueSlotBlockedError([{ date: "2026-10-22", slot: "AM" }], "2026-10-22 07:00 to 12:00");
     };
 
     await expect(

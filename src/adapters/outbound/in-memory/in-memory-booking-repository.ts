@@ -8,8 +8,8 @@ import {
   BookingNotCancellableError,
   BookingNotFoundError,
   BookingRoomLayoutNotChangeableError,
-  VenueSlotBlockedError,
 } from "@/core/domain/errors";
+import { venueSlotBlocked } from "@/core/domain/booking-review-flag";
 import { slotsOverlapping } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import { venueId, type VenueId } from "@/core/domain/venue";
@@ -96,9 +96,9 @@ export class InMemoryBookingRepository implements BookingRepository {
     const blocked = this.blocks
       .blockedSlots()
       .filter((slot) => slot.venueId === request.venueId);
-    const refused = slotsOverlapping(request.slots, blocked);
+    const refused = slotsOverlapping(blocked, request.slots);
     if (refused.length > 0) {
-      throw new VenueSlotBlockedError(refused);
+      throw venueSlotBlocked(refused);
     }
 
     const id = `booking-${this.nextId++}`;
