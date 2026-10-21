@@ -5,6 +5,7 @@ import {
   type EventNeeds,
   type VenueSuitability,
 } from "../domain/venue-suitability";
+import type { BookingFlagRepository, EventBookingFlag } from "../ports/outbound/booking-flag-repository";
 import type { BookingRepository, EventBookingSummary } from "../ports/outbound/booking-repository";
 import type {
   CoordinatorEventDetails,
@@ -38,12 +39,16 @@ export interface ViewVenueBookingOptionsResult {
   readonly venueSuitability: readonly VenueLayoutSuitability[];
   /** SPM-45 AC8: a verdict for each booking still in play, by booking id. Over bookings have none. */
   readonly bookingSuitability: Readonly<Record<string, VenueSuitability>>;
+  /** SPM-313: each open reason a booking of this event is flagged for, oldest first. Match them to a row by `bookingId`. */
+  readonly flaggedBookings: readonly EventBookingFlag[];
 }
 
 export interface ViewVenueBookingOptionsDeps {
   readonly events: CoordinatorEventRepository;
   readonly venues: VenueCatalogue;
   readonly bookings: BookingRepository;
+  /** SPM-313: the review flags on the event's venue bookings. */
+  readonly flags: BookingFlagRepository;
 }
 
 /**
@@ -75,9 +80,10 @@ export class ViewVenueBookingOptionsUseCase {
       return null;
     }
 
-    const [venues, bookings] = await Promise.all([
+    const [venues, bookings, flaggedBookings] = await Promise.all([
       this.deps.venues.list(),
       this.deps.bookings.listForEvent(coordinatorId, event.id),
+      this.deps.flags.openForEvent(coordinatorId, event.id),
     ]);
 
     const needs = eventNeeds(event);
@@ -97,7 +103,7 @@ export class ViewVenueBookingOptionsUseCase {
       }
     }
 
-    return { event, venues, bookings, venueSuitability, bookingSuitability };
+    return { event, venues, bookings, venueSuitability, bookingSuitability, flaggedBookings };
   }
 }
 
