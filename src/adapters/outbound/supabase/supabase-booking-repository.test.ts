@@ -80,6 +80,23 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
     });
   });
 
+  it("names the requested AM slot for a block on 15-minute codes 09:00 to 11:30, and not PM (SPM-321)", async () => {
+    const quarters = Array.from({ length: 10 }, (_, i) => ({
+      venue_id: 5,
+      date: "2026-10-22",
+      slot: String(36 + i),
+      reason_category: "Renovation",
+    }));
+    const { client } = fakeClient({
+      coordinator_submit_booking_request: REFUSED_BY_TRIGGER,
+      venue_blocked_slots: { data: quarters, error: null },
+    });
+
+    const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
+
+    expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
+  });
+
   it("AC12: falls back to the slot the trigger named when a lift landed in between", async () => {
     const { client } = fakeClient({
       coordinator_submit_booking_request: REFUSED_BY_TRIGGER,

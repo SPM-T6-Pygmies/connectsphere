@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  InvalidUnavailabilityTimeError,
   UnavailabilityAlreadyLiftedError,
   VenueNotFoundError,
   VenueUnavailabilityNotFoundError,
@@ -236,5 +237,50 @@ describe("SupabaseVenueUnavailabilityRepository.blockedBetween (SPM-154)", () =>
       ),
     ).toEqual([]);
     expect(calls).toEqual([]);
+  });
+});
+
+describe("SupabaseVenueUnavailabilityRepository on 15-minute slots (SPM-321)", () => {
+  it("reads a block's 15-minute slots as they are stored", async () => {
+    const { client } = fakeClient({
+      venue_staff_unavailability: {
+        data: [{ ...ROW, slots: [{ date: "2026-10-19", slot: "36" }, { date: "2026-10-19", slot: "37" }] }],
+        error: null,
+      },
+    });
+
+    const [entry] = await new SupabaseVenueUnavailabilityRepository(client).list(STAFF);
+
+    expect(entry.slots).toEqual([
+      { date: "2026-10-19", slot: "36" },
+      { date: "2026-10-19", slot: "37" },
+    ]);
+  });
+
+  it("fails loudly on a slot code the slot table cannot hold, rather than showing a wrong calendar", async () => {
+    const { client } = fakeClient({
+      venue_blocked_slots: {
+        data: [{ venue_id: 5, date: "2026-11-02", slot: "96", reason_category: "Safety", reason_note: null }],
+        error: null,
+      },
+    });
+
+    await expect(
+      new SupabaseVenueUnavailabilityRepository(client).blockedBetween(venueId("5"), "2026-11-02", "2026-11-08"),
+    ).rejects.toThrow('Unknown slot code "96"');
+  });
+
+  it("maps the database's closed-time refusal to a domain error that tells Venue Staff to reload", async () => {
+    const { client } = fakeClient({
+      venue_staff_record_unavailability: {
+        data: null,
+        error: { code: "CS078", message: "A block can only cover time the venue is open." },
+      },
+    });
+
+    const error = await new SupabaseVenueUnavailabilityRepository(client).record(BLOCK, STAFF).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(InvalidUnavailabilityTimeError);
+    expect((error as Error).message).toContain("Reload the page");
   });
 });

@@ -1,4 +1,5 @@
 import type { BookingId, BookingStatus, SlotOnDate } from "../../domain/booking";
+import type { SlotCodeOnDate } from "../../domain/slot-grid";
 import type { UserAccountId } from "../../domain/user-account";
 import type { CalendarBlock } from "../../domain/venue-calendar";
 import type {
@@ -63,13 +64,13 @@ export interface VenueUnavailabilityRepository {
 
   /**
    * The live bookings (Requested, Tentative Hold, Confirmed) at `venueId` that
-   * sit on any of `slots` -- what a block would leave in place (AC10, AC11).
+   * share time with any of `slots` -- what a block would leave in place (AC10, AC11).
    * Read-only: nothing here changes a booking.
    */
   affectedBookings(
     reader: UserAccountId,
     venueId: VenueId,
-    slots: readonly SlotOnDate[],
+    slots: readonly SlotCodeOnDate[],
   ): Promise<readonly AffectedBooking[]>;
 
   /**

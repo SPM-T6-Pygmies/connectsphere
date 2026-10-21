@@ -15,11 +15,11 @@ import {
   getCurrentVenueStaff,
   getVenueMaintenanceRoles,
 } from "@/composition/container";
-import { BOOKING_SLOTS } from "@/core/domain/booking";
+import { joinSlotCodes } from "@/core/domain/slot-grid";
+import { formatRange } from "@/core/domain/time-of-day";
 import type { VenueUnavailabilityEntry } from "@/core/domain/venue-unavailability";
 
 import { EmptyState } from "../../field-list";
-import { formatSlots } from "../../slot-label";
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { LiftButton } from "./lift-button";
 import { UnavailabilityForm } from "./unavailability-form";
@@ -38,9 +38,11 @@ function dates(entry: VenueUnavailabilityEntry): string {
   return entry.startDate === entry.endDate ? entry.startDate : `${entry.startDate} to ${entry.endDate}`;
 }
 
-function slotsOf(entry: VenueUnavailabilityEntry): string {
-  const used = new Set(entry.slots.map(({ slot }) => slot));
-  return formatSlots(BOOKING_SLOTS.filter((slot) => used.has(slot)));
+/** The hours blocked on each day, e.g. `09:00–11:30`: the same every day of a block. */
+function timesOf(entry: VenueUnavailabilityEntry): string {
+  const first = entry.slots.map(({ date }) => date).sort()[0];
+  const spans = joinSlotCodes(entry.slots.filter(({ date }) => date === first).map(({ slot }) => slot));
+  return spans.length === 0 ? "—" : spans.map(formatRange).join(", ");
 }
 
 export default async function VenueUnavailabilityPage({
@@ -74,7 +76,7 @@ export default async function VenueUnavailabilityPage({
       />
 
       <UnavailabilityForm
-        venues={venues.map(({ id, location }) => ({ id, location }))}
+        venues={venues.map(({ id, location, openingHours }) => ({ id, location, openingHours }))}
         defaultVenueId={defaultVenueId}
       />
 
@@ -88,7 +90,7 @@ export default async function VenueUnavailabilityPage({
               <TableRow>
                 <TableHead>Venue</TableHead>
                 <TableHead>Dates</TableHead>
-                <TableHead>Slots</TableHead>
+                <TableHead>Times</TableHead>
                 <TableHead>Reason</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Recorded</TableHead>
@@ -101,7 +103,7 @@ export default async function VenueUnavailabilityPage({
                 <TableRow key={entry.id}>
                   <TableCell className="font-medium">{entry.venueLocation}</TableCell>
                   <TableCell>{dates(entry)}</TableCell>
-                  <TableCell>{slotsOf(entry)}</TableCell>
+                  <TableCell>{timesOf(entry)}</TableCell>
                   {/* A note can be 500 characters with no spaces: let it wrap rather than push Status and Lift off screen. */}
                   <TableCell className="max-w-64 whitespace-normal [overflow-wrap:anywhere]">
                     {entry.reason}

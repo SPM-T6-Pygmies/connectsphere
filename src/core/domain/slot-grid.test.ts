@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { joinSlotCodes, slotCodeRange, slotCodesFor } from "./slot-grid";
+import { joinSlotCodes, slotCodeRange, slotCodesFor, slotsOverlapping } from "./slot-grid";
 
 const at = (start: string, end: string) => ({
   start: Number(start.slice(0, 2)) * 60 + Number(start.slice(3)),
@@ -68,5 +68,37 @@ describe("joinSlotCodes (SPM-321)", () => {
 
   it("is empty for no slots", () => {
     expect(joinSlotCodes([])).toEqual([]);
+  });
+});
+
+describe("slotsOverlapping (SPM-321)", () => {
+  const blockNineToHalfEleven = slotCodesFor(at("09:00", "11:30")).map((slot) => ({ date: "2026-11-18", slot }));
+
+  it("finds the AM booking slot a 09:00-11:30 block sits inside, and not PM or Night", () => {
+    const requested = [
+      { date: "2026-11-18", slot: "AM" },
+      { date: "2026-11-18", slot: "PM" },
+      { date: "2026-11-18", slot: "Night" },
+    ];
+    expect(slotsOverlapping(requested, blockNineToHalfEleven)).toEqual([{ date: "2026-11-18", slot: "AM" }]);
+  });
+
+  it("does not find a slot that only touches the block: AM ends at 12:00, the block starts at 12:00", () => {
+    const noonToOne = slotCodesFor(at("12:00", "13:00")).map((slot) => ({ date: "2026-11-18", slot }));
+    expect(slotsOverlapping([{ date: "2026-11-18", slot: "AM" }, { date: "2026-11-18", slot: "PM" }], noonToOne)).toEqual([]);
+  });
+
+  it("finds a slot by one quarter hour of overlap: a block 11:45-12:00 reaches the AM slot", () => {
+    const lastQuarter = slotCodesFor(at("11:45", "12:00")).map((slot) => ({ date: "2026-11-18", slot }));
+    expect(slotsOverlapping([{ date: "2026-11-18", slot: "AM" }], lastQuarter)).toHaveLength(1);
+  });
+
+  it("only matches on the same date", () => {
+    expect(slotsOverlapping([{ date: "2026-11-19", slot: "AM" }], blockNineToHalfEleven)).toEqual([]);
+  });
+
+  it("matches a 15-minute booking slot the same way, and keeps the caller's extra fields", () => {
+    const requested = [{ date: "2026-11-18", slot: "41", id: "a" }, { date: "2026-11-18", slot: "46", id: "b" }];
+    expect(slotsOverlapping(requested, blockNineToHalfEleven)).toEqual([requested[0]]);
   });
 });

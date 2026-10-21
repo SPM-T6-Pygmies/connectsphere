@@ -1002,12 +1002,30 @@ export class EquipmentRequirementConflictError extends DomainError {
   }
 }
 
-/** SPM-21 AC3: a block covers at least one slot. */
-export class NoUnavailabilitySlotsError extends DomainError {
-  readonly code = "no_unavailability_slots";
+/** SPM-321 AC3: a block's start and end are times on the 15-minute grid, the end after the start. */
+export class InvalidUnavailabilityTimeError extends DomainError {
+  readonly code = "invalid_unavailability_time";
 
-  constructor() {
-    super("Choose at least one slot to block.");
+  constructor(reason: string) {
+    super(reason);
+  }
+}
+
+/**
+ * SPM-321 AC3a: the block reaches into time the venue is closed. Naming the closed time,
+ * and the hours the venue keeps, tells Venue Staff what to change.
+ */
+export class UnavailabilityOutsideOpeningHoursError extends DomainError {
+  readonly code = "unavailability_outside_opening_hours";
+
+  constructor(
+    readonly closed: readonly string[],
+    readonly openingHours: string,
+  ) {
+    super(
+      `The venue is closed ${closed.join(", ")}, so it cannot be blocked then. ` +
+        `Choose times within its opening hours (${openingHours}).`,
+    );
   }
 }
 
@@ -1023,12 +1041,13 @@ export class UnavailabilityEndsBeforeStartError extends DomainError {
   }
 }
 
-/** SPM-21 AC5: a block that has already ended is refused; one ending today is not. */
+/** SPM-21 AC5: a block that has already ended is refused; one still running today is not. */
 export class UnavailabilityInThePastError extends DomainError {
   readonly code = "unavailability_in_the_past";
 
-  constructor(readonly endDate: string) {
-    super(`A block cannot end in the past (${endDate}).`);
+  /** `endsAt` is the block's last day and end time, e.g. `2026-11-18 11:30`. */
+  constructor(readonly endsAt: string) {
+    super(`A block cannot end in the past (${endsAt}).`);
   }
 }
 

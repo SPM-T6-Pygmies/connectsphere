@@ -19,6 +19,7 @@ import {
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
+import { slotsOverlapping } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
 import type {
@@ -257,12 +258,11 @@ export class SupabaseBookingRepository implements BookingRepository {
         p_from: dates[0],
         p_to: dates[dates.length - 1],
       });
-      const blocked = new Set(
-        ((data ?? []) as unknown as Array<{ date: string; slot: string }>).map(
-          ({ date, slot }) => `${date.slice(0, 10)}|${slot}`,
-        ),
+      // Blocks are on 15-minute slots, bookings still on AM/PM/Night: they meet where their hours do.
+      const blocked = ((data ?? []) as unknown as Array<{ date: string; slot: string }>).map(
+        ({ date, slot }) => ({ date: date.slice(0, 10), slot }),
       );
-      const named = slots.filter(({ date, slot }) => blocked.has(`${date}|${slot}`));
+      const named = slotsOverlapping(slots, blocked);
       if (named.length > 0) {
         return named;
       }

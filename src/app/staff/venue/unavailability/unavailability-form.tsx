@@ -8,11 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BOOKING_SLOTS } from "@/core/domain/booking";
+import { closedPeriods, formatOpeningHours, type OpeningWindow } from "@/core/domain/opening-hours";
+import { END_OF_DAY, fromMinutes, GRID_MINUTES, toMinutes } from "@/core/domain/time-of-day";
 import { UNAVAILABILITY_NOTE_MAX_LENGTH, UNAVAILABILITY_REASONS } from "@/core/domain/venue-unavailability";
 
-import { OptionCheckboxes, OptionSelect } from "../../option-fields";
-import { slotLabel } from "../../slot-label";
+import { OptionSelect } from "../../option-fields";
 import { recordUnavailabilityAction, type RecordUnavailabilityState } from "./actions";
 
 const INITIAL: RecordUnavailabilityState = { status: "idle" };
@@ -21,18 +21,69 @@ function isFilled(value: string): boolean {
   return value.trim().length > 0;
 }
 
+const SELECT_CLASS =
+  "border-input h-8 w-full rounded-lg border bg-transparent px-2.5 text-base disabled:opacity-50 md:text-sm";
+
+/** Every 15-minute time from `first` to `last`, as minutes after midnight. */
+function gridTimes(first: number, last: number): number[] {
+  return Array.from({ length: (last - first) / GRID_MINUTES + 1 }, (_, i) => first + i * GRID_MINUTES);
+}
+
 /**
- * The "Mark unavailable" form (SPM-21). The same ticked slots apply to every
- * day from the start date to the end date. The submit button waits for the
- * fields that are always needed; whether the dates make sense, and whether a
- * note belongs under the reason, are the domain's call and come back as a
+ * A time the venue is open at, picked from its 15-minute grid (SPM-321 AC3a). A closed time is
+ * listed but cannot be picked, so Venue Staff see why it is missing. `isOpen` is the same
+ * `closedPeriods` rule the server applies; the server refuses a closed time regardless.
+ */
+function TimeSelect({
+  id,
+  label,
+  value,
+  onChange,
+  times,
+  isOpen,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  times: readonly number[];
+  isOpen: (minutes: number) => boolean;
+}) {
+  return (
+    <>
+      <input type="hidden" name={id} value={value} />
+      <select
+        id={id}
+        aria-label={label}
+        required
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={SELECT_CLASS}
+      >
+        <option value="">Choose a time</option>
+        {times.map((minutes) => (
+          <option key={minutes} value={fromMinutes(minutes)} disabled={!isOpen(minutes)}>
+            {fromMinutes(minutes)}
+            {isOpen(minutes) ? "" : " (closed)"}
+          </option>
+        ))}
+      </select>
+    </>
+  );
+}
+
+/**
+ * The "Mark unavailable" form (SPM-21, SPM-321). The same start and end time apply to every
+ * day from the start date to the end date, within the chosen venue's opening hours. The
+ * submit button waits for the fields that are always needed; whether the dates make sense,
+ * and whether a note belongs under the reason, are the domain's call and come back as a
  * message. After a save, the bookings the block sits over are listed, read-only.
  */
 export function UnavailabilityForm({
   venues,
   defaultVenueId,
 }: {
-  venues: ReadonlyArray<{ id: string; location: string }>;
+  venues: ReadonlyArray<{ id: string; location: string; openingHours: readonly OpeningWindow[] }>;
   defaultVenueId?: string;
 }) {
   const [state, formAction, pending] = useActionState(recordUnavailabilityAction, INITIAL);
@@ -42,7 +93,8 @@ export function UnavailabilityForm({
   );
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [slots, setSlots] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
 
@@ -52,7 +104,23 @@ export function UnavailabilityForm({
     }
   }, [state]);
 
-  const readyToSubmit = [venueId, startDate, endDate, slots, reason].every(isFilled);
+  const readyToSubmit = [venueId, startDate, endDate, startTime, endTime, reason].every(isFilled);
+
+  const openingHours = venues.find((venue) => venue.id === venueId)?.openingHours ?? [];
+  const start = toMinutes(startTime);
+  // A start is open when the venue is open for the quarter hour after it.
+  const startIsOpen = (minutes: number) => closedPeriods(openingHours, { start: minutes, end: minutes + GRID_MINUTES }).length === 0;
+  // An end is open when it is after the start and nothing closed lies between them; with no start yet, when the venue is open just before it.
+  const endIsOpen = (minutes: number) =>
+    start === null
+      ? closedPeriods(openingHours, { start: minutes - GRID_MINUTES, end: minutes }).length === 0
+      : minutes > start && closedPeriods(openingHours, { start, end: minutes }).length === 0;
+
+  function chooseVenue(next: string) {
+    setVenueId(next);
+    setStartTime("");
+    setEndTime("");
+  }
 
   return (
     <div className="space-y-6">
@@ -70,7 +138,7 @@ export function UnavailabilityForm({
           <CardHeader>
             <CardTitle>Mark unavailable</CardTitle>
             <CardDescription>
-              Coordinators cannot request the ticked slots while the block is in force. Existing
+              Coordinators cannot request these times while the block is in force. Existing
               bookings are not changed.
             </CardDescription>
           </CardHeader>
@@ -84,7 +152,7 @@ export function UnavailabilityForm({
                 name="venueId"
                 required
                 value={venueId}
-                onChange={(event) => setVenueId(event.target.value)}
+                onChange={(event) => chooseVenue(event.target.value)}
                 className="border-input h-8 w-full rounded-lg border bg-transparent px-2.5 text-base md:text-sm"
               >
                 <option value="">Choose a venue</option>
@@ -123,18 +191,40 @@ export function UnavailabilityForm({
               />
             </div>
 
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>
-                Slots, on every day in the range <span className="text-destructive">*</span>
+            <div className="space-y-1.5">
+              <Label htmlFor="startTime">
+                Start time, on every day in the range <span className="text-destructive">*</span>
               </Label>
-              <OptionCheckboxes
-                name="slots"
-                options={BOOKING_SLOTS}
-                value={slots}
-                onChange={setSlots}
-                label={slotLabel}
+              <TimeSelect
+                id="startTime"
+                label="Start time"
+                value={startTime}
+                onChange={(next) => {
+                  setStartTime(next);
+                  setEndTime("");
+                }}
+                times={gridTimes(0, END_OF_DAY - GRID_MINUTES)}
+                isOpen={startIsOpen}
               />
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="endTime">
+                End time <span className="text-destructive">*</span>
+              </Label>
+              <TimeSelect
+                id="endTime"
+                label="End time"
+                value={endTime}
+                onChange={setEndTime}
+                times={gridTimes(GRID_MINUTES, END_OF_DAY)}
+                isOpen={endIsOpen}
+              />
+            </div>
+            <p className="text-muted-foreground text-xs sm:col-span-2">
+              {venueId === ""
+                ? "Choose a venue to see its opening hours."
+                : `Opening hours: ${formatOpeningHours(openingHours)}. A block can only cover time the venue is open.`}
+            </p>
 
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="reason">

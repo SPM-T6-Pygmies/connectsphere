@@ -1,6 +1,8 @@
 import { BOOKING_SLOTS, holdsSlot, isCalendarDate, slotRange, type BookingSlot, type OccupiedSlot, type SlotOnDate } from "./booking";
 import { InvalidCalendarRangeError } from "./errors";
 import { closedPeriods, type OpeningWindow } from "./opening-hours";
+import { slotCodeRange, type SlotCodeOnDate } from "./slot-grid";
+import { overlaps } from "./time-of-day";
 import type { UnavailabilityReason } from "./venue-unavailability";
 
 /**
@@ -40,7 +42,7 @@ export interface CalendarDay {
 }
 
 /** A slot an In force block covers, with the reason and any note Venue Staff recorded. */
-export interface CalendarBlock extends SlotOnDate {
+export interface CalendarBlock extends SlotCodeOnDate {
   readonly reason: UnavailabilityReason;
   /** Only ever set when the reason is Other. */
   readonly note: string | null;
@@ -122,15 +124,23 @@ export function deriveVenueCalendar(input: {
   readonly now: Date;
 }): CalendarDay[] {
   const blocked = new Map<string, { reasons: UnavailabilityReason[]; notes: string[] }>();
+  // A block is on 15-minute slots (SPM-321); a calendar slot is blocked when any of them falls in its hours.
   for (const block of input.blocked) {
-    const why = blocked.get(slotKey(block)) ?? { reasons: [], notes: [] };
-    if (!why.reasons.includes(block.reason)) {
-      why.reasons.push(block.reason);
+    const covered = slotCodeRange(block.slot);
+    for (const slot of BOOKING_SLOTS) {
+      if (!overlaps(covered, slotRange(slot))) {
+        continue;
+      }
+      const key = slotKey({ date: block.date, slot });
+      const why = blocked.get(key) ?? { reasons: [], notes: [] };
+      if (!why.reasons.includes(block.reason)) {
+        why.reasons.push(block.reason);
+      }
+      if (block.note !== null && !why.notes.includes(block.note)) {
+        why.notes.push(block.note);
+      }
+      blocked.set(key, why);
     }
-    if (block.note !== null && !why.notes.includes(block.note)) {
-      why.notes.push(block.note);
-    }
-    blocked.set(slotKey(block), why);
   }
   const holding = new Map<string, OccupiedSlot>();
   for (const occupied of input.occupied) {

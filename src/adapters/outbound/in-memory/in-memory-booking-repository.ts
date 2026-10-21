@@ -10,6 +10,7 @@ import {
   BookingRoomLayoutNotChangeableError,
   VenueSlotBlockedError,
 } from "@/core/domain/errors";
+import { slotsOverlapping } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import { venueId, type VenueId } from "@/core/domain/venue";
 import type { BlockedSlot } from "@/core/domain/venue-unavailability";
@@ -95,9 +96,7 @@ export class InMemoryBookingRepository implements BookingRepository {
     const blocked = this.blocks
       .blockedSlots()
       .filter((slot) => slot.venueId === request.venueId);
-    const refused = request.slots.filter(({ date, slot }) =>
-      blocked.some((b) => b.date === date && b.slot === slot),
-    );
+    const refused = slotsOverlapping(request.slots, blocked);
     if (refused.length > 0) {
       throw new VenueSlotBlockedError(refused);
     }

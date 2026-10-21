@@ -1,6 +1,7 @@
 import type { BookingId } from "@/core/domain/booking";
 import type { CalendarBlock } from "@/core/domain/venue-calendar";
 import { isUnavailabilityReason, type VenueUnavailabilityBlock, type VenueUnavailabilityEntry } from "@/core/domain/venue-unavailability";
+import { slotCodeRange } from "@/core/domain/slot-grid";
 import { venueId } from "@/core/domain/venue";
 import type { AffectedBooking } from "@/core/ports/outbound/venue-unavailability-repository";
 
@@ -41,11 +42,17 @@ export interface BlockedSlotRow {
   reason_note: string | null;
 }
 
+/** A block's slot code: AM/PM/Night or a 15-minute code. A code the `slot` table cannot hold is a fault, not data. */
+function toBlockSlot(raw: string): string {
+  slotCodeRange(raw);
+  return raw;
+}
+
 export function toCalendarBlock(row: BlockedSlotRow): CalendarBlock {
   if (!isUnavailabilityReason(row.reason_category)) {
     throw new Error(`Unknown unavailability reason "${row.reason_category}" in venue_unavailability.`);
   }
-  return { date: toDate(row.date), slot: toSlot(row.slot), reason: row.reason_category, note: row.reason_note };
+  return { date: toDate(row.date), slot: toBlockSlot(row.slot), reason: row.reason_category, note: row.reason_note };
 }
 
 export function toVenueUnavailabilityEntry(row: VenueUnavailabilityRow): VenueUnavailabilityEntry {
@@ -63,7 +70,7 @@ export function toVenueUnavailabilityEntry(row: VenueUnavailabilityRow): VenueUn
     endDate: toDate(row.end_date),
     reason: row.reason_category,
     note: row.reason_note,
-    slots: row.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
+    slots: row.slots.map((slot) => ({ date: toDate(slot.date), slot: toBlockSlot(slot.slot) })),
     status: row.status,
     recordedByName: row.recorded_by_name,
     recordedAt: row.recorded_at,

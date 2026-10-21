@@ -1,5 +1,5 @@
 import { SLOT_HOURS, type BookingSlot } from "./booking";
-import { END_OF_DAY, fromMinutes, GRID_MINUTES, isOnGrid, toMinutes, type TimeRange } from "./time-of-day";
+import { END_OF_DAY, fromMinutes, GRID_MINUTES, isOnGrid, overlaps, toMinutes, type TimeRange } from "./time-of-day";
 
 /**
  * A slot code on a date. The code is any the `slot` table holds: AM, PM and Night while
@@ -61,4 +61,21 @@ export function joinSlotCodes(codes: readonly string[]): TimeRange[] {
     }
   }
   return spans;
+}
+
+/**
+ * The `slots` that share time with any of `others` on the same date. A booking's AM slot
+ * (07:00-12:00) is covered by a block on codes '36' to '45' (09:00-11:30), and a block on
+ * '28' (07:00-07:15) covers it too; a slot that only touches a block (12:00 against an end
+ * of 12:00) is not covered. Order follows `slots`.
+ */
+export function slotsOverlapping<T extends SlotCodeOnDate>(slots: readonly T[], others: readonly SlotCodeOnDate[]): T[] {
+  const byDate = new Map<string, TimeRange[]>();
+  for (const { date, slot } of others) {
+    byDate.set(date, [...(byDate.get(date) ?? []), slotCodeRange(slot)]);
+  }
+  return slots.filter(({ date, slot }) => {
+    const range = slotCodeRange(slot);
+    return (byDate.get(date) ?? []).some((other) => overlaps(range, other));
+  });
 }

@@ -9,6 +9,7 @@ import {
   UnavailabilityAlreadyLiftedError,
   VenueUnavailabilityNotFoundError,
 } from "@/core/domain/errors";
+import { slotsOverlapping, type SlotCodeOnDate } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
 import type { CalendarBlock } from "@/core/domain/venue-calendar";
@@ -196,14 +197,12 @@ export class InMemoryVenueUnavailabilityRepository
   async affectedBookings(
     _reader: UserAccountId,
     venueId: VenueId,
-    slots: readonly SlotOnDate[],
+    slots: readonly SlotCodeOnDate[],
   ): Promise<readonly AffectedBooking[]> {
-    const covered = new Set(slots.map(({ date, slot }) => `${date}|${slot}`));
     return this.bookings
       .filter((booking) => booking.venueId === venueId && LIVE.includes(booking.status))
       .flatMap((booking) =>
-        booking.slots
-          .filter(({ date, slot }) => covered.has(`${date}|${slot}`))
+        slotsOverlapping(booking.slots, slots)
           .map(({ date, slot }) => ({
             bookingId: booking.id as BookingId,
             eventName: booking.eventName,

@@ -1,10 +1,11 @@
-import type { SlotOnDate } from "@/core/domain/booking";
 import {
+  InvalidUnavailabilityTimeError,
   UnavailabilityAlreadyLiftedError,
   VenueNotFoundError,
   VenueUnavailabilityNotFoundError,
   VenueUnavailabilityNotPermittedError,
 } from "@/core/domain/errors";
+import type { SlotCodeOnDate } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { CalendarBlock } from "@/core/domain/venue-calendar";
 import type { VenueId } from "@/core/domain/venue";
@@ -38,6 +39,7 @@ const NOT_VENUE_STAFF = "CS036";
 const NOT_FOUND = "CS037";
 const ALREADY_LIFTED = "CS038";
 const VENUE_NOT_FOUND = "CS039";
+const OUTSIDE_OPENING_HOURS = "CS078";
 
 /**
  * Reached through `security definer` functions, not the tables: they have RLS
@@ -111,7 +113,7 @@ export class SupabaseVenueUnavailabilityRepository implements VenueUnavailabilit
   async affectedBookings(
     reader: UserAccountId,
     venue: VenueId,
-    slots: readonly SlotOnDate[],
+    slots: readonly SlotCodeOnDate[],
   ): Promise<readonly AffectedBooking[]> {
     const staff = toKey(reader);
     const venueKey = toKey(venue);
@@ -199,6 +201,11 @@ function translate(error: { code?: string; message: string }, doing: string): Er
       return new UnavailabilityAlreadyLiftedError();
     case VENUE_NOT_FOUND:
       return new VenueNotFoundError();
+    case OUTSIDE_OPENING_HOURS:
+      // The core checks first and names the time; reaching here means the venue's hours moved in between.
+      return new InvalidUnavailabilityTimeError(
+        "A block can only cover time the venue is open. Reload the page and choose within its current opening hours.",
+      );
     default:
       return new Error(`Failed to ${doing}: ${error.message}`, { cause: error });
   }

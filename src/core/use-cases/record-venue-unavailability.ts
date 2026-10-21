@@ -1,4 +1,3 @@
-import type { BookingSlot } from "../domain/booking";
 import { VenueNotFoundError, VenueUnavailabilityNotPermittedError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import { canMaintainVenues, venueId } from "../domain/venue";
@@ -22,7 +21,8 @@ export interface RecordVenueUnavailabilityCommand {
   readonly venueId: string;
   readonly startDate: string;
   readonly endDate: string;
-  readonly slots: readonly BookingSlot[];
+  readonly startTime: string;
+  readonly endTime: string;
   readonly reason: string;
   readonly note: string | null;
 }
@@ -48,7 +48,7 @@ export interface RecordVenueUnavailabilityDeps {
 
 /**
  * SPM-21 AC1-AC8, AC10, AC11, AC19: Venue Staff block a venue for a date range
- * and some slots, with a reason. Over days that already have bookings is fine:
+ * and a time of day within the venue's opening hours, with a reason. Over days that already have bookings is fine:
  * those bookings are listed back, and not changed.
  *
  * SPM-313: the store flags the Confirmed bookings and live holds the block overlaps as it
@@ -65,7 +65,8 @@ export class RecordVenueUnavailabilityUseCase {
     const staff = userAccountId(command.userAccountId);
     const id = venueId(command.venueId);
 
-    if ((await venues.find(id)) === null) {
+    const venue = await venues.find(id);
+    if (venue === null) {
       throw new VenueNotFoundError();
     }
 
@@ -74,10 +75,12 @@ export class RecordVenueUnavailabilityUseCase {
         venueId: id,
         startDate: command.startDate,
         endDate: command.endDate,
-        slots: command.slots,
+        startTime: command.startTime,
+        endTime: command.endTime,
         reason: command.reason,
         note: command.note,
       },
+      openingHours: venue.openingHours,
       now: clock.now(),
       timeZone: VENUE_TIME_ZONE,
     });
