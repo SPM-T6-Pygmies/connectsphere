@@ -6,18 +6,18 @@ Browser checks for **SPM-313: Flag bookings when a venue is marked unavailable**
 block a venue, every Confirmed booking or live Tentative Hold the block overlaps is **flagged**: a
 review marker with a reason, shown to the event's assigned coordinator beside the booking's status.
 Nothing is cancelled or changed. A Requested booking is not flagged, because Venue Staff cannot
-approve it over a block. A lifted block does not clear a flag: it stays, and its reason records the
-lift. The coordinator clears it (SPM-310) or replaces the booking (SPM-251). A flag ends with its
+approve it over a block. A lifted block does not clear a flag: it stays, and its reason shows an amber **Block lifted**
+badge with the time. The coordinator clears it (SPM-310) or replaces the booking (SPM-251). A flag ends with its
 booking: when a booking is cancelled, released, rejected or its hold expires, its flags close.
 
 The rule behind it is unit-tested (`bookingsToFlagForBlock (SPM-313)`); these cases check the pages
-end to end against Supabase. They are registered as `TC-VFLAG-001`–`TC-VFLAG-010` in
+end to end against Supabase. They are registered as `TC-VFLAG-001`–`TC-VFLAG-011` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). Report what you ran in the PR
 description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not edit that file. The
 ticked boxes and screenshots below are the working record for this run.
 
-The flag shows on the coordinator's event page, under the **Venue** tab, in a **Flagged for review** section. Only flagged bookings are listed there, so a booking with no flag is simply not shown.
+The flag shows in two places: on the coordinator's event page, under the **Venue** tab, in a **Flagged for review** section that lists only flagged bookings; and on **Request a venue**, where a flagged booking's row has an amber **Flagged** badge that opens the reasons on hover, focus or click.
 
 ## The people and places
 
@@ -68,12 +68,19 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
    ```bash
    supabase db query --file scripts/seed-booking-flags/seed.sql --local
    ```
-4. Check it loaded. This lists the bookings and must show **9 rows**; note the *event id* of Tech
-   Summit (cases 006 and 007 open it by address):
+4. Check it loaded. This lists the bookings and must show **9 rows**. `day_label` says which day
+   each is on (F, F + 1 …), so you never work F out by hand. Note the *event id* of Tech Summit
+   (case 006 opens it by address):
    ```bash
    supabase db query --file scripts/seed-booking-flags/show.sql --local
    ```
-5. Start the app: `pnpm dev:local`, then open <http://localhost:3000/auth/login>.
+5. Check no block is left over from an earlier run. This must list **no rows**; if it lists any, run
+   the teardown and seed commands below first. A stray block flags bookings the cases expect to be
+   clean:
+   ```bash
+   supabase db query --file scripts/seed-booking-flags/blocks.sql --local
+   ```
+6. Start the app: `pnpm dev:local`, then open <http://localhost:3000/auth/login>.
 
 Case 010 cancels a booking with SPM-20's button, so it needs that seed as well. Run these three
 after step 3 (case 010 is the only one that uses them):
@@ -222,7 +229,10 @@ Priya's: the Workshop on F AM, the Gala on F Night and the Quiz on F + 1 PM. Pri
 them flagged. This is the check that a block on one slot does not leak onto the slot before or after
 it, or onto the next day.
 
-**Preconditions:** After TC-VFLAG-001. Nothing new to record. Signed in as Priya (`coordinator2@test.com`).
+**Preconditions:** After TC-VFLAG-001. Nothing new to record. Run `blocks.sql`: it must list **one**
+block, Main Hall on F, PM only. If it lists more (a block ticking AM or Night, or one on another
+day), that block is what flags the neighbours: run the teardown and seed commands and start again at
+001. Signed in as Priya (`coordinator2@test.com`).
 
 **Steps:**
 1. As Priya open **My events**, then *Flag Test: Workshop*, *Flag Test: Gala* and *Flag Test: Quiz* in turn. On each open the **Venue** tab.
@@ -253,14 +263,14 @@ cancellation.
 1. Open *Flag Test: Tech Summit*. Read its header and status, then the **Venue** tab.
 2. Read the database:
    ```sql
-   select b.status, e.status as event_status, e.name, e.preferred_date
-     from booking b join event e on e.event_id = b.event_id
-    where e.name = 'Flag Test: Tech Summit' order by b.booking_id;
+   select v.location, b.status, e.status as event_status, e.name, e.preferred_date
+     from booking b join event e on e.event_id = b.event_id join venue v on v.venue_id = b.venue_id
+    where e.name = 'Flag Test: Tech Summit' order by v.location;
    ```
 
 **Expected Result:**
 - Step 1: the header reads *Flag Test: Tech Summit* with the **Planning** badge, and the flagged Hall A booking shows **Confirmed**.
-- Step 2: both bookings `Confirmed`, the event `Planning`, its date F.
+- Step 2: two rows, one for each venue the event is booked at (Main Hall and Studio), both bookings `Confirmed`, the event `Planning`, its date F.
 
 **Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
@@ -319,12 +329,13 @@ database.
 
 ---
 
-### TC-VFLAG-008: Lifting a block keeps the flag and notes the lift (AC6)
+### TC-VFLAG-008: Lifting a block keeps the flag and shows the lift (AC6)
 
 **What this tests:** Lifting a block never undoes a flag; the coordinator decides what happens to it.
 After TC-VFLAG-007 Tech Summit has two reasons. Sam lifts the first block (Maintenance). Dana should
-still see the flag, with the Maintenance reason now saying the block was lifted and when, and the
-Equipment failure reason unchanged. Tech Summit stays Confirmed.
+still see the flag. The Maintenance reason should now carry an amber **Block lifted** badge with the
+time, and a line saying the venue is free again but the flag stays until she acts. The Equipment
+failure reason should have no badge. Tech Summit stays Confirmed.
 
 **Preconditions:** After TC-VFLAG-007. Signed in as Sam, then Dana.
 
@@ -333,7 +344,7 @@ Equipment failure reason unchanged. Tech Summit stays Confirmed.
 2. As Dana open *Flag Test: Tech Summit* and its **Venue** tab, and read its flag.
 
 **Expected Result:**
-- Step 2: both reasons are still listed. The Maintenance reason reads "Maintenance: F 13:00 to 18:00, block lifted <today, time>". The Equipment failure reason is as before. The booking still shows **Confirmed**.
+- Step 2: both reasons are still listed. The Maintenance reason shows an amber badge "Block lifted · <date, time>" and its text, "Maintenance: F 13:00 to 18:00", is unchanged. The Equipment failure reason has no badge. The booking still shows **Confirmed**.
 
 **Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
@@ -405,4 +416,32 @@ from today (the day the SPM-20 seed books).
 **Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step2-dana-two-flags](../screenshots/2026-10-21_TC-VFLAG-010_step2-dana-two-flags.png) · [step3-dana-confirm-cancel](../screenshots/2026-10-21_TC-VFLAG-010_step3-dana-confirm-cancel.png) · [step4-dana-one-flag](../screenshots/2026-10-21_TC-VFLAG-010_step4-dana-one-flag.png)
+
+---
+
+### TC-VFLAG-011: The flag shows on Request a venue, and says when a block was lifted (AC4, AC6)
+
+**What this tests:** Dana manages her bookings on **Request a venue**, so a flagged booking has to
+show there too, not only on the event page. After TC-VFLAG-010 the Founders' Gala Dinner has a
+Released morning booking (P) and a Confirmed night booking (Q) that is still flagged. On
+**Request a venue**, Q's row should carry an amber **Flagged** badge beside its status, and P's row
+should not. Opening the badge shows the reasons, the time it was flagged and the note that nothing has
+been cancelled. When Sam then lifts the Harbour Room block, the same card should show an amber **Block
+lifted** badge on that reason, with Q still Confirmed and still flagged.
+
+**Preconditions:** After TC-VFLAG-010. Signed in as Dana, then Sam.
+
+**Steps:**
+1. As Dana open **My events**, *Founders' Gala Dinner*, the **Venue** tab, then **Manage venue booking**.
+2. Read the Status column of the Harbour Room rows for C AM (P) and C Night (Q). Hover over, or click, the **Flagged** badge on Q.
+3. As Sam open **Unavailability**, find the Harbour Room **Renovation** block that is In force and click **Lift**.
+4. As Dana reload **Request a venue** and open the **Flagged** badge on Q again.
+
+**Expected Result:**
+- Step 2: P shows **Released** and no badge. Q shows **Confirmed** and an amber **Flagged** badge. The card reads "Flagged for review", "Something changed under this booking. It keeps its status and nothing has been cancelled.", then "Venue unavailable", "Renovation: C 19:00 to 24:00" and "Flagged <date, time>".
+- Step 4: Q still shows **Confirmed** and **Flagged**. The card's reason now carries an amber "Block lifted · <date, time>" badge and the line "The venue is free again, but the flag stays until you act on it."
+
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-dana-flagged-badge-card](../screenshots/2026-10-21_TC-VFLAG-011_step2-dana-flagged-badge-card.png) · [step4-dana-card-after-lift](../screenshots/2026-10-21_TC-VFLAG-011_step4-dana-card-after-lift.png)
 
