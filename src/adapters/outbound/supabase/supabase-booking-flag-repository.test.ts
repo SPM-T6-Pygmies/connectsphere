@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import type { BookingId } from "@/core/domain/booking";
+import { BookingNotFoundError, NoFlagToClearError } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 
 import type { SupabaseServerClient } from "./client";
@@ -162,6 +164,62 @@ describe("SupabaseVenueUnavailabilityRepository.flaggedBookings (SPM-313)", () =
 
     await expect(new SupabaseVenueUnavailabilityRepository(client).flaggedBookings(STAFF, "7")).rejects.toThrow(
       /Failed to read the bookings the block flagged: boom/,
+    );
+  });
+});
+
+describe("SupabaseBookingFlagRepository clear (SPM-310)", () => {
+  const BOOKING = "812" as BookingId;
+
+  it("AC1: clears the booking's flags through coordinator_clear_booking_flags", async () => {
+    const { client, calls } = fakeClient({ coordinator_clear_booking_flags: { data: null, error: null } });
+
+    await new SupabaseBookingFlagRepository(client).clear(userAccountId("3"), BOOKING);
+
+    expect(calls).toEqual([
+      { name: "coordinator_clear_booking_flags", args: { p_coordinator_user_account_id: 3, p_booking_id: 812 } },
+    ]);
+  });
+
+  it("AC3: reads CS026 as a booking that is not on one of the coordinator's events", async () => {
+    const { client } = fakeClient({
+      coordinator_clear_booking_flags: { data: null, error: { code: "CS026", message: "no booking" } },
+    });
+
+    await expect(new SupabaseBookingFlagRepository(client).clear(userAccountId("3"), BOOKING)).rejects.toThrow(
+      BookingNotFoundError,
+    );
+  });
+
+  it("AC3: refuses ids this store could not have issued, without asking the database", async () => {
+    const { client, calls } = fakeClient({});
+
+    await expect(new SupabaseBookingFlagRepository(client).clear(userAccountId("abc"), BOOKING)).rejects.toThrow(
+      BookingNotFoundError,
+    );
+    await expect(
+      new SupabaseBookingFlagRepository(client).clear(userAccountId("3"), "x" as BookingId),
+    ).rejects.toThrow(BookingNotFoundError);
+    expect(calls).toEqual([]);
+  });
+
+  it("AC6: reads CS078 as a booking with no open flag left to clear", async () => {
+    const { client } = fakeClient({
+      coordinator_clear_booking_flags: { data: null, error: { code: "CS078", message: "nothing open" } },
+    });
+
+    await expect(new SupabaseBookingFlagRepository(client).clear(userAccountId("3"), BOOKING)).rejects.toThrow(
+      NoFlagToClearError,
+    );
+  });
+
+  it("raises any other database failure", async () => {
+    const { client } = fakeClient({
+      coordinator_clear_booking_flags: { data: null, error: { message: "boom" } },
+    });
+
+    await expect(new SupabaseBookingFlagRepository(client).clear(userAccountId("3"), BOOKING)).rejects.toThrow(
+      /Failed to clear the booking's flag: boom/,
     );
   });
 });
