@@ -3,10 +3,8 @@ import {
   eventRequestId,
   type EventRequest,
   type EventRequestStatus,
-  type EventRequestDetails,
   type NewEventRequest,
 } from "@/core/domain/event-request";
-import { GRID_MINUTES, minutesOfDay, timeOfDay } from "@/core/domain/event-times";
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type { MyEventRequestSummary } from "@/core/ports/outbound/event-request-repository";
 
@@ -25,11 +23,11 @@ export interface EventRequestRow {
   purpose: string | null;
   preferred_date: string | null;
   /**
-   * The `preferred_slots(event_request)` computed field: the request's
-   * `event_request_slot` codes in day order, `'0'`-`'95'` (SPM-327). Present
-   * only when the query selects it (`PREFERRED_SLOTS_SELECT`).
+   * The `preferred_time(event_request)` computed field: the request's one
+   * span as `HH:MM`, or null with none (SPM-327). Present only when the query
+   * selects it (`PREFERRED_TIME_SELECT`).
    */
-  preferred_slots?: string[] | null;
+  preferred_time?: { start: string; end: string } | null;
   expected_attendance: number | null;
   venue_requirements: string | null;
   room_layout_preferences: string | null;
@@ -86,48 +84,8 @@ function toStatus(raw: string): EventRequestStatus {
  * the domain asked for "when was this submitted" and this store answers as
  * well as it can. A dedicated `submitted_at` column would make it exact.
  */
-/** Selects every column plus the `preferred_slots` computed field. */
-export const PREFERRED_SLOTS_SELECT = "*, preferred_slots";
-
-/** Slot `n` starts `n` quarter hours after midnight: `'36'` is 09:00-09:15. */
-function slotIndex(code: string): number {
-  if (!/^\d+$/.test(code) || Number(code) > 95) {
-    throw new Error(`Unknown slot "${code}" in the event_request_slot table.`);
-  }
-  return Number(code);
-}
-
-/**
- * The request's one span, from its first slot's start to its last slot's end
- * (SPM-327). The codes arrive in day order and are always consecutive, since
- * a request is written as a single span.
- */
-function toPreferredTime(
-  raw: readonly string[] | null | undefined,
-): Pick<EventRequestDetails, "preferredStartTime" | "preferredEndTime"> {
-  const slots = (raw ?? []).map(slotIndex);
-  if (slots.length === 0) {
-    return { preferredStartTime: null, preferredEndTime: null };
-  }
-  return {
-    preferredStartTime: timeOfDay(slots[0] * GRID_MINUTES),
-    preferredEndTime: timeOfDay((slots[slots.length - 1] + 1) * GRID_MINUTES),
-  };
-}
-
-/** The slot codes from start up to end, which is how `event_request_slot` keeps a span. */
-function toSlotCodes({ preferredStartTime, preferredEndTime }: EventRequestDetails): string[] {
-  const from = preferredStartTime === null ? null : minutesOfDay(preferredStartTime);
-  const to = preferredEndTime === null ? null : minutesOfDay(preferredEndTime);
-  if (from === null || to === null) {
-    return [];
-  }
-  const codes: string[] = [];
-  for (let at = from; at < to; at += GRID_MINUTES) {
-    codes.push(String(at / GRID_MINUTES));
-  }
-  return codes;
-}
+/** Selects every column plus the `preferred_time` computed field. */
+export const PREFERRED_TIME_SELECT = "*, preferred_time";
 
 function submittedAtOf(row: EventRequestRow): Date | null {
   return row.status === "Draft" ? null : new Date(row.updated_at);
@@ -152,7 +110,8 @@ export function toDomain(row: EventRequestRow): EventRequest {
       description: row.description,
       purpose: row.purpose,
       preferredDate: row.preferred_date,
-      ...toPreferredTime(row.preferred_slots),
+      preferredStartTime: row.preferred_time?.start ?? null,
+      preferredEndTime: row.preferred_time?.end ?? null,
       expectedAttendance: row.expected_attendance,
       venueRequirements: row.venue_requirements,
       roomLayoutPreferences: row.room_layout_preferences,
@@ -189,7 +148,8 @@ export function toSubmitArgs(request: NewEventRequest): Record<string, unknown> 
     p_description: request.details.description,
     p_purpose: request.details.purpose,
     p_preferred_date: request.details.preferredDate,
-    p_preferred_slots: toSlotCodes(request.details),
+    p_preferred_start_time: request.details.preferredStartTime,
+    p_preferred_end_time: request.details.preferredEndTime,
     p_expected_attendance: request.details.expectedAttendance,
     p_venue_requirements: request.details.venueRequirements,
     p_room_layout_preferences: request.details.roomLayoutPreferences,
@@ -331,7 +291,8 @@ export function toSaveArgs(request: EventRequest): Record<string, unknown> | nul
     p_description: request.details.description,
     p_purpose: request.details.purpose,
     p_preferred_date: request.details.preferredDate,
-    p_preferred_slots: toSlotCodes(request.details),
+    p_preferred_start_time: request.details.preferredStartTime,
+    p_preferred_end_time: request.details.preferredEndTime,
     p_expected_attendance: request.details.expectedAttendance,
     p_venue_requirements: request.details.venueRequirements,
     p_room_layout_preferences: request.details.roomLayoutPreferences,

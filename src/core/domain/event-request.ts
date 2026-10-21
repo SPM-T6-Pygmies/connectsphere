@@ -13,7 +13,8 @@ import {
   InvalidPreferredTimeError,
   PreferredDateNotInFutureError,
 } from "./errors";
-import { END_OF_DAY, GRID_MINUTES, minutesOfDay, type TimeRangeOnDate } from "./event-times";
+import type { TimeRangeOnDate } from "./event-times";
+import { END_OF_DAY, isOnGrid, toMinutes } from "./time-of-day";
 import type { UserAccountId } from "./user-account";
 
 export type EventRequestId = Brand<string, "EventRequestId">;
@@ -177,15 +178,15 @@ function assertPreferredTime(details: EventRequestDetails): void {
     throw new IncompleteEventRequestError([start === null ? "preferredStartTime" : "preferredEndTime"]);
   }
 
-  const from = minutesOfDay(start);
-  if (from === null || from >= END_OF_DAY || from % GRID_MINUTES !== 0) {
+  const from = toMinutes(start);
+  if (from === null || from >= END_OF_DAY || !isOnGrid(from)) {
     throw new InvalidPreferredTimeError(
       "preferredStartTime",
       "Choose a start time on the quarter hour, from 00:00 to 23:45.",
     );
   }
-  const to = minutesOfDay(end);
-  if (to === null || to % GRID_MINUTES !== 0) {
+  const to = toMinutes(end);
+  if (to === null || !isOnGrid(to)) {
     throw new InvalidPreferredTimeError(
       "preferredEndTime",
       "Choose an end time on the quarter hour, up to 24:00.",
