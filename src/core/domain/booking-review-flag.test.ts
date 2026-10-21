@@ -13,22 +13,22 @@ import {
 import { venueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
-const HALL_A = venueId("5");
-const HALL_C = venueId("6");
+const MAIN_HALL = venueId("5");
+const STUDIO = venueId("6");
 const NOW = new Date("2026-10-20T10:15:00+08:00");
 
 function block(overrides: Partial<VenueUnavailabilityEntry> = {}): VenueUnavailabilityEntry {
   return {
     id: "7",
-    venueId: HALL_A,
-    venueLocation: "Hall A",
+    venueId: MAIN_HALL,
+    venueLocation: "Main Hall",
     startDate: "2026-11-06",
     endDate: "2026-11-06",
     reason: "Maintenance",
     note: null,
     slots: [{ date: "2026-11-06", slot: "PM" }],
     status: "In force",
-    recordedByName: "Sam",
+    recordedByName: "Test Venue Staff",
     recordedAt: "2026-10-20T02:15:00.000Z",
     liftedByName: null,
     liftedAt: null,
@@ -39,7 +39,7 @@ function block(overrides: Partial<VenueUnavailabilityEntry> = {}): VenueUnavaila
 function booking(overrides: Partial<FlaggableBooking> = {}): FlaggableBooking {
   return {
     id: "812",
-    venueId: HALL_A,
+    venueId: MAIN_HALL,
     status: "Confirmed",
     holdExpiresAt: null,
     slots: [{ date: "2026-11-06", slot: "PM" }],
@@ -83,7 +83,7 @@ describe("bookingsToFlagForBlock (SPM-313)", () => {
       booking({ id: "1", slots: [{ date: "2026-11-06", slot: "AM" }] }),
       booking({ id: "2", slots: [{ date: "2026-11-06", slot: "Night" }] }),
       booking({ id: "3", slots: [{ date: "2026-11-07", slot: "PM" }] }),
-      booking({ id: "4", venueId: HALL_C }),
+      booking({ id: "4", venueId: STUDIO }),
     ];
 
     expect(bookingsToFlagForBlock(block(), others, NOW)).toEqual([]);
@@ -129,8 +129,8 @@ describe("bookingsToFlagForBlock (SPM-313)", () => {
   });
 
   it("AC7: flags only the booking the block covers when an event has several venues", () => {
-    const hallA = booking({ id: "812", venueId: HALL_A });
-    const hallC = booking({ id: "813", venueId: HALL_C });
+    const hallA = booking({ id: "812", venueId: MAIN_HALL });
+    const hallC = booking({ id: "813", venueId: STUDIO });
 
     expect(bookingsToFlagForBlock(block(), [hallA, hallC], NOW).map((f) => f.bookingId)).toEqual(["812"]);
   });
@@ -180,7 +180,7 @@ const PM_IN_QUARTERS = Array.from({ length: 20 }, (_, i) => ({ date: "2026-11-06
 function quarterBlock(...codes: string[]): FlaggingBlock {
   return {
     id: "9",
-    venueId: HALL_A,
+    venueId: MAIN_HALL,
     reason: "Maintenance",
     status: "In force",
     slots: codes.map((slot) => ({ date: "2026-11-06", slot })),

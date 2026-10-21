@@ -313,7 +313,7 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
   async function flaggedStore(): Promise<InMemoryVenueUnavailabilityRepository> {
     const flags = new InMemoryVenueUnavailabilityRepository(
       new FixedClock(AFTER_END),
-      new Map([["venue-1", "Hall A"]]),
+      new Map([["venue-1", "Main Hall"]]),
       new Map(),
       [
         {
@@ -340,7 +340,7 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
       {
         flagId: "flag-1",
         bookingId: "booking-1",
-        venueLocation: "Hall A",
+        venueLocation: "Main Hall",
         status: "Confirmed",
         holdExpiresAt: null,
         bookedFor: "2026-11-06 13:00 to 18:00",
