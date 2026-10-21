@@ -8,14 +8,23 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import type { EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 
 import { FlagReasons } from "../../flag-reasons";
+import { ClearFlagForm } from "./clear-flag-form";
 
 /**
  * SPM-313 AC4: a booking something has changed under shows a "Flagged" badge beside its
  * status. Hovering, focusing or clicking it opens the reasons, so the coordinator reads
- * them in the list they already manage bookings from. Clearing the flag (SPM-310) and
- * asking for another venue (SPM-251) are added to this card by those tickets.
+ * them in the list they already manage bookings from. The card also clears the flag when
+ * the booking still fits (SPM-310); asking for another venue is SPM-251's to add.
  */
-export function FlaggedBadge({ flags }: { flags: readonly EventBookingFlag[] }) {
+export function FlaggedBadge({
+  flags,
+  eventId,
+  eventRequestId,
+}: {
+  flags: readonly EventBookingFlag[];
+  eventId: string;
+  eventRequestId: string;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -48,6 +57,12 @@ export function FlaggedBadge({ flags }: { flags: readonly EventBookingFlag[] }) 
           Something changed under this booking. It keeps its status and nothing has been cancelled.
         </p>
         <FlagReasons flags={flags} />
+        <ClearFlagForm
+          eventId={eventId}
+          eventRequestId={eventRequestId}
+          bookingId={flags[0].bookingId}
+          venueLocation={flags[0].venueLocation}
+        />
       </PopoverContent>
     </Popover>
   );

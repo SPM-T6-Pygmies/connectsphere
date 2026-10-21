@@ -139,7 +139,11 @@ function BookingsTable({
                   <StatusBadge status={booking.status} />
                   {flags.some((flag) => flag.bookingId === booking.id) ? (
                     <div>
-                      <FlaggedBadge flags={flags.filter((flag) => flag.bookingId === booking.id)} />
+                      <FlaggedBadge
+                        flags={flags.filter((flag) => flag.bookingId === booking.id)}
+                        eventId={event.id}
+                        eventRequestId={eventRequestId}
+                      />
                     </div>
                   ) : null}
                   {bookingCancellable(booking.status) ? (
