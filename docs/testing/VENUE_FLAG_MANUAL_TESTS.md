@@ -7,10 +7,11 @@ block a venue, every Confirmed booking or live Tentative Hold the block overlaps
 review marker with a reason, shown to the event's assigned coordinator beside the booking's status.
 Nothing is cancelled or changed. A Requested booking is not flagged, because Venue Staff cannot
 approve it over a block. A lifted block does not clear a flag: it stays, and its reason records the
-lift. The coordinator clears it (SPM-310) or replaces the booking (SPM-251).
+lift. The coordinator clears it (SPM-310) or replaces the booking (SPM-251). A flag ends with its
+booking: when a booking is cancelled, released, rejected or its hold expires, its flags close.
 
 The rule behind it is unit-tested (`bookingsToFlagForBlock (SPM-313)`); these cases check the pages
-end to end against Supabase. They are registered as `TC-VFLAG-001`–`TC-VFLAG-009` in
+end to end against Supabase. They are registered as `TC-VFLAG-001`–`TC-VFLAG-010` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). Report what you ran in the PR
 description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not edit that file. The
@@ -74,6 +75,15 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
    ```
 5. Start the app: `pnpm dev:local`, then open <http://localhost:3000/auth/login>.
 
+Case 010 cancels a booking with SPM-20's button, so it needs that seed as well. Run these three
+after step 3 (case 010 is the only one that uses them):
+
+```bash
+supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
+supabase db query --file scripts/seed-equipment/seed.sql --local
+supabase db query --file scripts/seed-booking-cancel/seed.sql --local
+```
+
 To run the cases again **without** a database reset, remove the blocks the cases recorded and reload
 the fixture:
 
@@ -103,7 +113,7 @@ To see which blocks the cases have recorded so far:
 
 ### Order
 
-Run the cases in order, 001 to 009. Each case adds blocks that the next ones read: 001 records the
+Run the cases in order, 001 to 010. Each case adds blocks that the next ones read: 001 records the
 first block on Hall A, 002 and 003 add blocks at Hall C and Rooftop, 004, 005, 006 and 009 read the
 result without recording anything, 007 stacks a second block over the first on Hall A and 008 lifts
 the first. To run any case again, use the teardown and seed
@@ -134,9 +144,9 @@ and not the other events booked around it.
 - Step 2: the list names *Flag Test: Tech Summit*, F PM, Confirmed. It does not name the Workshop, the Gala, the Quiz or the Second Event.
 - Step 4: Hall A, F PM, with the **Confirmed** badge, and one reason: "Venue unavailable · Maintenance: F 13:00 to 18:00 · flagged <today, about now>" (AC1).
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-sam-affected-list](../screenshots/2026-10-19_TC-VFLAG-001_step2-sam-affected-list.png) · [step4-dana-flag](../screenshots/2026-10-19_TC-VFLAG-001_step4-dana-flag.png)
+**Screenshots:** [step2-sam-affected-list](../screenshots/2026-10-21_TC-VFLAG-001_step2-sam-affected-list.png) · [step4-dana-flag](../screenshots/2026-10-21_TC-VFLAG-001_step4-dana-flag.png)
 
 ---
 
@@ -163,9 +173,9 @@ should be marked **Expired** before the block is checked, so a stale hold cannot
 - Step 2: one booking, Hall C on F + 2, **Tentative Hold**, "On hold until …", with the reason "Safety: F + 2 13:00 to 18:00". Nothing is listed for F + 3.
 - Step 3: F + 2 `Tentative Hold`, F + 3 `Expired`.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-dana-holds](../screenshots/2026-10-19_TC-VFLAG-002_step2-dana-holds.png)
+**Screenshots:** [step2-dana-holds](../screenshots/2026-10-21_TC-VFLAG-002_step2-dana-holds.png)
 
 ---
 
@@ -198,9 +208,9 @@ flagging leaves Requested bookings to it.
 - Step 4: the booking is **Rejected**.
 - Step 5: one `Sent` notice for Dana, "Rooftop Terrace rejected for Flag Test: Second Event", with Sam's note as the reason.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-sam-affected-list](../screenshots/2026-10-19_TC-VFLAG-003_step1-sam-affected-list.png) · [step2-dana-second-event](../screenshots/2026-10-19_TC-VFLAG-003_step2-dana-second-event.png) · [step3-sam-approval-refused](../screenshots/2026-10-19_TC-VFLAG-003_step3-sam-approval-refused.png) · [step4-sam-rejected](../screenshots/2026-10-19_TC-VFLAG-003_step4-sam-rejected.png)
+**Screenshots:** [step1-sam-affected-list](../screenshots/2026-10-21_TC-VFLAG-003_step1-sam-affected-list.png) · [step2-dana-second-event](../screenshots/2026-10-21_TC-VFLAG-003_step2-dana-second-event.png) · [step3-sam-approval-refused](../screenshots/2026-10-21_TC-VFLAG-003_step3-sam-approval-refused.png) · [step4-sam-rejected](../screenshots/2026-10-21_TC-VFLAG-003_step4-sam-rejected.png)
 
 ---
 
@@ -220,9 +230,9 @@ it, or onto the next day.
 **Expected Result:**
 - None shows a **Flagged for review** section.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-priya-workshop](../screenshots/2026-10-19_TC-VFLAG-004_step1-priya-workshop.png) · [step1-priya-gala](../screenshots/2026-10-19_TC-VFLAG-004_step1-priya-gala.png) · [step1-priya-quiz](../screenshots/2026-10-19_TC-VFLAG-004_step1-priya-quiz.png)
+**Screenshots:** [step1-priya-workshop](../screenshots/2026-10-21_TC-VFLAG-004_step1-priya-workshop.png) · [step1-priya-gala](../screenshots/2026-10-21_TC-VFLAG-004_step1-priya-gala.png) · [step1-priya-quiz](../screenshots/2026-10-21_TC-VFLAG-004_step1-priya-quiz.png)
 
 **A boundary the browser cannot reach:** slots always leave a one-hour gap, so a booking that only
 *touches* a block cannot be made with slots. The unit tests cover it with times (a block 13:00 to
@@ -252,9 +262,9 @@ cancellation.
 - Step 1: the header reads *Flag Test: Tech Summit* with the **Planning** badge, and the flagged Hall A booking shows **Confirmed**.
 - Step 2: both bookings `Confirmed`, the event `Planning`, its date F.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-dana-event-and-venue-tab](../screenshots/2026-10-19_TC-VFLAG-005_step1-dana-event-and-venue-tab.png)
+**Screenshots:** [step1-dana-event-and-venue-tab](../screenshots/2026-10-21_TC-VFLAG-005_step1-dana-event-and-venue-tab.png)
 
 ---
 
@@ -275,9 +285,9 @@ flag.
 - Step 1: the flag is listed with its reason and when it was flagged.
 - Step 2: the access-denied screen (403). No event details and no flag are shown.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-priya-denied](../screenshots/2026-10-19_TC-VFLAG-006_step2-priya-denied.png)
+**Screenshots:** [step2-priya-denied](../screenshots/2026-10-21_TC-VFLAG-006_step2-priya-denied.png)
 
 ---
 
@@ -299,9 +309,9 @@ under the second block only, so each shows **one** reason.
 - Step 2, Tech Summit: two reasons, "Maintenance: F 13:00 to 18:00" and "Equipment failure: F 13:00 to 18:00". Offsite Day: one reason, "Equipment failure: F + 4 13:00 to 18:00".
 - Step 3: the Quiz shows one reason, "Equipment failure: F + 1 13:00 to 18:00". The Workshop and the Gala show none.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-dana-two-reasons](../screenshots/2026-10-19_TC-VFLAG-007_step2-dana-two-reasons.png) · [step2-dana-offsite](../screenshots/2026-10-19_TC-VFLAG-007_step2-dana-offsite.png) · [step3-priya-quiz](../screenshots/2026-10-19_TC-VFLAG-007_step3-priya-quiz.png)
+**Screenshots:** [step2-dana-two-reasons](../screenshots/2026-10-21_TC-VFLAG-007_step2-dana-two-reasons.png) · [step2-dana-offsite](../screenshots/2026-10-21_TC-VFLAG-007_step2-dana-offsite.png) · [step3-priya-quiz](../screenshots/2026-10-21_TC-VFLAG-007_step3-priya-quiz.png)
 
 **Saving the same block twice** adding no second reason cannot be reached from the page. It is proven
 by `scripts/seed-booking-flags/checks.sql`, which also checks two blocks over one booking in the
@@ -325,9 +335,9 @@ Equipment failure reason unchanged. Tech Summit stays Confirmed.
 **Expected Result:**
 - Step 2: both reasons are still listed. The Maintenance reason reads "Maintenance: F 13:00 to 18:00, block lifted <today, time>". The Equipment failure reason is as before. The booking still shows **Confirmed**.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-dana-after-lift](../screenshots/2026-10-19_TC-VFLAG-008_step2-dana-after-lift.png)
+**Screenshots:** [step2-dana-after-lift](../screenshots/2026-10-21_TC-VFLAG-008_step2-dana-after-lift.png)
 
 ---
 
@@ -354,6 +364,45 @@ of them is blocked.
 - Step 1: Hall A is listed, Hall C is not.
 - Step 2: Main Hall has flags, Studio has `0`.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-dana-two-venues](../screenshots/2026-10-19_TC-VFLAG-009_step1-dana-two-venues.png)
+**Screenshots:** [step1-dana-two-venues](../screenshots/2026-10-21_TC-VFLAG-009_step1-dana-two-venues.png)
+
+---
+
+### TC-VFLAG-010: A flag ends with its booking (AC8)
+
+**What this tests:** A flag is there so a live booking gets looked at. When the booking stops
+existing, the flag has nothing left to say, and it must not hang about: it would keep showing on the
+event page, and it would stop the event being confirmed. Sam blocks the UAT-44 Harbour Room for two
+slots on C, and the Founders' Gala Dinner has a Confirmed booking in each (P in the morning, Q at
+night), so Dana sees two flags. Dana then cancels P with the **Cancel booking** button from SPM-20.
+P's flag should go from her Venue tab and be closed as "booking ended" in the database, while Q's
+flag stays.
+
+**Preconditions:** The three extra seeds from Setup. Signed in as Sam, then Dana. **C** is 10 days
+from today (the day the SPM-20 seed books).
+
+**Steps:**
+1. As Sam open **Unavailability**. Choose **UAT-44 Harbour Room**, start and end date **C**, slots **AM** and **Night**, reason **Renovation**, and save.
+2. As Dana open **My events**, *Founders' Gala Dinner*, the **Venue** tab, and read **Flagged for review**.
+3. Open **Manage venue booking**. On the Harbour Room row for C AM (booking P) click **Cancel booking**, then **Yes, cancel booking**.
+4. Return to the event's **Venue** tab and read **Flagged for review** again.
+5. Read the flags:
+   ```sql
+   select bs.slot, f.cleared_how, f.cleared_at is not null as closed
+     from booking_review_flag f join booking_slot bs using (booking_id)
+     join booking b on b.booking_id = f.booking_id join event e on e.event_id = b.event_id
+    where e.name = 'Founders'' Gala Dinner' and bs.slot_date = current_date + 10 order by bs.slot;
+   ```
+
+**Expected Result:**
+- Step 2: two flagged bookings at the Harbour Room, "C 07:00 to 12:00" and "C 19:00 to 24:00", each with the reason "Renovation: C 07:00 to 12:00" or "Renovation: C 19:00 to 24:00".
+- Step 3: the row's badge reads **Released**.
+- Step 4: only the Night booking is listed. The morning one is gone.
+- Step 5: the AM row is closed with `booking-ended`; the Night row is open (`cleared_how` empty, `closed` false).
+
+**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
+
+**Screenshots:** [step2-dana-two-flags](../screenshots/2026-10-21_TC-VFLAG-010_step2-dana-two-flags.png) · [step3-dana-confirm-cancel](../screenshots/2026-10-21_TC-VFLAG-010_step3-dana-confirm-cancel.png) · [step4-dana-one-flag](../screenshots/2026-10-21_TC-VFLAG-010_step4-dana-one-flag.png)
+
