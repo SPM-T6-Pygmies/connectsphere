@@ -8,27 +8,6 @@
  * remain two ranges either side of lunch.
  */
 
-/** The booking grid (#128): the smallest span anything is booked or requested in. */
-export const GRID_MINUTES = 15;
-
-/** `24:00`, in minutes: the latest a range may end. */
-export const END_OF_DAY = 24 * 60;
-
-/** Minutes after midnight for `HH:MM`, or null when it is not a time of day. `24:00` is one. */
-export function minutesOfDay(time: string): number | null {
-  const match = /^(\d{2}):(\d{2})$/.exec(time);
-  if (match === null) {
-    return null;
-  }
-  const minutes = Number(match[1]) * 60 + Number(match[2]);
-  return Number(match[2]) < 60 && minutes <= END_OF_DAY ? minutes : null;
-}
-
-/** `HH:MM` for minutes after midnight; 1440 is `24:00`. */
-export function timeOfDay(minutes: number): string {
-  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-}
-
 /** One stretch of time on one calendar day. `date` is `YYYY-MM-DD`, times `HH:MM`, Singapore time (#36). */
 export interface TimeRangeOnDate {
   readonly date: string;

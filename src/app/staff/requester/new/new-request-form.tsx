@@ -3,7 +3,7 @@
 import { CheckCircle2Icon, ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { EventTimes } from "@/app/events/event-times";
@@ -21,11 +21,11 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { MANDATORY_SUBMISSION_FIELDS, preferredTimeRange } from "@/core/domain/event-request";
-import { GRID_MINUTES, timeOfDay } from "@/core/domain/event-times";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
+import { TimePicker } from "../../grid-time-picker";
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
 import { PageHeader } from "../../page-header";
 import {
@@ -50,13 +50,6 @@ const DISCARD_INITIAL: DiscardDraftState = { status: "idle" };
  * array changes in the domain and these markers follow.
  */
 const MANDATORY = new Set<string>(MANDATORY_SUBMISSION_FIELDS);
-
-/**
- * The 15-minute grid (SPM-327 AC1): a start from 00:00 to 23:45 and an end from
- * 00:15 to 24:00. Offering only these keeps a time off the grid out of the form.
- */
-const START_TIMES = Array.from({ length: 96 }, (_, slot) => timeOfDay(slot * GRID_MINUTES));
-const END_TIMES = Array.from({ length: 96 }, (_, slot) => timeOfDay((slot + 1) * GRID_MINUTES));
 
 function isMandatory(field: FormField): boolean {
   return MANDATORY.has(field);
@@ -167,7 +160,22 @@ export function NewRequestForm({
   }
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      // Submitted by hand, not through `action`, as the venue form is
+      // (SPM-320): React resets a form after its action runs, which blanks
+      // every select (a time, a layout) while the state behind it keeps the
+      // value, so a refused submit would show emptied fields that are not.
+      // The pressed button's `data-intent` says which action to run.
+      onSubmit={(event) => {
+        event.preventDefault();
+        const intent = (event.nativeEvent as SubmitEvent).submitter?.dataset.intent;
+        const run =
+          intent === "draft" ? draftFormAction : intent === "discard" ? discardFormAction : formAction;
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => run(formData));
+      }}
+      className="space-y-6"
+    >
       <input type="hidden" name="organiserTimeZone" value={organiserTimeZone} />
       <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <PageHeader
@@ -268,12 +276,11 @@ export function NewRequestForm({
                   required
                   errors={errors?.preferredStartTime}
                 >
-                  <OptionSelect
+                  <TimePicker
                     id="preferredStartTime"
                     name="preferredStartTime"
-                    options={START_TIMES}
-                    blank="--:--"
-                    aria-invalid={errors?.preferredStartTime !== undefined}
+                    label="Start time"
+                    invalid={errors?.preferredStartTime !== undefined}
                     value={values.preferredStartTime}
                     onChange={(value) => set("preferredStartTime", value)}
                   />
@@ -284,12 +291,12 @@ export function NewRequestForm({
                   required
                   errors={errors?.preferredEndTime}
                 >
-                  <OptionSelect
+                  <TimePicker
                     id="preferredEndTime"
                     name="preferredEndTime"
-                    options={END_TIMES}
-                    blank="--:--"
-                    aria-invalid={errors?.preferredEndTime !== undefined}
+                    label="End time"
+                    endOfDay
+                    invalid={errors?.preferredEndTime !== undefined}
                     value={values.preferredEndTime}
                     onChange={(value) => set("preferredEndTime", value)}
                   />
@@ -419,7 +426,7 @@ export function NewRequestForm({
                   <Button
                     variant="destructive"
                     type="submit"
-                    formAction={discardFormAction}
+                    data-intent="discard"
                     formNoValidate
                     disabled={discardPending}
                   >
@@ -435,7 +442,7 @@ export function NewRequestForm({
             <Button
               variant="outline"
               type="submit"
-              formAction={draftFormAction}
+              data-intent="draft"
               formNoValidate
               disabled={draftPending}
             >
