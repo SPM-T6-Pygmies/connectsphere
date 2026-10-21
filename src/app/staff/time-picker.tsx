@@ -18,7 +18,8 @@ const SELECT_CLASS =
  * SPM-333: a time on the 15-minute grid, picked as an hour and then a minute,
  * and posted as one `HH:MM` field. Picking an hour fills the minute with 00;
  * 24 is offered only with `endOfDay`, and only as 24:00. Whether the window
- * makes sense is `defineVenue`'s call.
+ * makes sense is the core's call. `required` is off for a filter that may be
+ * left blank, such as the venue search's times (SPM-322).
  */
 export function TimePicker({
   id,
@@ -27,6 +28,7 @@ export function TimePicker({
   value,
   onChange,
   endOfDay = false,
+  required = true,
   invalid,
 }: {
   id: string;
@@ -36,6 +38,7 @@ export function TimePicker({
   value: string;
   onChange: (value: string) => void;
   endOfDay?: boolean;
+  required?: boolean;
   invalid?: boolean;
 }) {
   const [hour = "", minute = ""] = value === "" ? [] : value.split(":");
@@ -57,7 +60,7 @@ export function TimePicker({
         id={id}
         aria-label={`${label} hour`}
         aria-invalid={invalid}
-        required
+        required={required}
         value={hour}
         onChange={(event) => pick(event.target.value, minute)}
         className={SELECT_CLASS}

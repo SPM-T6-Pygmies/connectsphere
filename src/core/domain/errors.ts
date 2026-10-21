@@ -802,7 +802,8 @@ export type VenueSearchField =
   | "facilities"
   | "accessibility"
   | "date"
-  | "slots";
+  | "start"
+  | "end";
 
 export class VenueNotFoundError extends DomainError {
   readonly code = "venue_not_found";

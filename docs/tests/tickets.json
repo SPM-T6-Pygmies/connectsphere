@@ -867,6 +867,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-322": {
+      "title": "Search venues by start and end time",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-331": {
       "title": "Store opening hours as 15-minute slots and convert existing venue slots",
       "parent": "SPM-320",
