@@ -60,11 +60,12 @@ Seeded venues (from `scripts/seed-venue-search-uat/seed.sql`):
 
 | Venue | Opening hours | Layouts | Facilities / Accessibility | Bookings |
 | --- | --- | --- | --- | --- |
-| UAT-44 Harbour Room | 07:00–12:00, 13:00–18:00, 19:00–24:00 | Theatre 200, Boardroom 20 | Wi-Fi, Video-conferencing / Step-free access, Hearing loop | Confirmed on D 13:00–18:00 (PM) |
-| UAT-44 Garden Hall | 07:00–12:00, 13:00–18:00 | Banquet 150, Classroom 80 | Catering area / Lift access | Rejected on D 07:00–12:00 (AM) |
+| UAT-44 Harbour Room | 07:00–24:00 | Theatre 200, Boardroom 20 | Wi-Fi, Video-conferencing / Step-free access, Hearing loop | Confirmed on D 13:00–18:00 (PM) |
+| UAT-44 Garden Hall | 07:00–18:00 | Banquet 150, Classroom 80 | Catering area / Lift access | Rejected on D 07:00–12:00 (AM) |
 
-The seed still writes opening hours as AM, PM and Night; the SPM-320 migration
-reads them as the windows above.
+The seed writes opening hours as 15-minute slots: Harbour Room once offered AM,
+PM and Night, and Garden Hall AM and PM, joined into one window as they convert
+(SPM-320 AC4).
 
 Both have a 60-day booking horizon; Harbour Room's venue capacity is 250,
 Garden Hall's 500.
@@ -179,34 +180,29 @@ with that seed loaded as well, step 2 lists it.
 
 ## SPM-322 — Search venues by start and end time
 
-**Shared Pre-Conditions:** as for SPM-44. Run 013 to 016 in order: 014 and 015
-change Harbour Room's opening hours and add a block, and 015 puts both back.
+**Shared Pre-Conditions:** as for SPM-44. Run 013 to 016 in order: 015 adds a
+block and lifts it.
 
 ### TC-VSEARCH-013 A venue closed for any part of the time is left out (AC1)
 
 **Steps**
 1. Enter **Date** D, **Start time** 07:00, **End time** 12:00. Click **Search**.
-2. Change the times to 11:45–12:15. Click **Search**.
-3. Change the times to 17:00–19:30. Click **Search**.
+2. Change the times to 06:45–07:15. Click **Search**.
+3. Change the date to D+1 and the times to 17:45–18:15. Click **Search**.
 
 **Expected Result**
-- [x] Step 1: both UAT-44 venues are listed. A time that matches an opening
-      window exactly is open.
-- [x] Step 2: neither is listed. The summary counts them as "closed for part of
-      11:45–12:15": both close for lunch at 12:00.
-- [x] Step 3: neither is listed, under "closed for part of 17:00–19:30". Harbour
-      Room is also booked 13:00–18:00, but a venue is counted once, under the
-      first filter it fails.
-
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-07-00-12-00-both-listed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-013_step1-07-00-12-00-both-listed.png) · [step2-11-45-12-15-closed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-013_step2-11-45-12-15-closed.png) · [step3-17-00-19-30-closed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-013_step3-17-00-19-30-closed.png)
+- [ ] Step 1: both UAT-44 venues are listed. A time that starts as a venue
+      opens is open.
+- [ ] Step 2: neither is listed. The summary counts them as "closed for part of
+      06:45–07:15": both open at 07:00.
+- [ ] Step 3: Garden Hall is not listed, under "closed for part of 17:45–18:15":
+      it closes at 18:00. Harbour Room, open until 24:00 and with nothing booked
+      on D+1, is listed.
 
 ### TC-VSEARCH-014 An overlapping booking leaves a venue out; one that only touches does not (AC1, AC2)
 
-**Pre-Conditions:** as `venue@test.com`, open **UAT-44 Harbour Room** in the
-venue catalogue (`/staff/venue/catalogue`) and set its opening hours to one
-window, **07:00–24:00**. Save. Then sign in as `coordinator@test.com` and open
-**Find a venue**. The Confirmed booking on D 13:00–18:00 now has open time on
-both sides.
+**Pre-Conditions:** Harbour Room is open 07:00–24:00 as seeded, so the Confirmed
+booking on D 13:00–18:00 has open time on both sides.
 
 **Steps**
 1. Enter **Date** D, **Start time** 17:45, **End time** 18:15. Click **Search**.
@@ -227,7 +223,7 @@ both sides.
 
 ### TC-VSEARCH-015 An In force block leaves a venue out until it is lifted (AC1, AC2)
 
-**Pre-Conditions:** TC-VSEARCH-014 has run, so Harbour Room is open 07:00–24:00.
+**Pre-Conditions:** Harbour Room is open 07:00–24:00 as seeded.
 As `venue@test.com`, open **Unavailability**, choose **UAT-44 Harbour Room**,
 From and To D, tick **Night**, Reason **Equipment failure**, and press **Mark
 unavailable**. The block covers 19:00–24:00.
@@ -238,8 +234,6 @@ unavailable**. The block covers 19:00–24:00.
 2. Search D 18:00–19:00.
 3. As `venue@test.com`, press **Lift** on the Harbour Room block. As the
    coordinator, search D 23:45–24:00 again.
-4. Clean-up: as `venue@test.com`, set Harbour Room's opening hours back to
-   07:00–12:00, 13:00–18:00 and 19:00–24:00.
 
 **Expected Result**
 - [x] Step 1: Harbour Room is not listed, under "already booked or blocked for
@@ -247,7 +241,6 @@ unavailable**. The block covers 19:00–24:00.
 - [x] Step 2: Harbour Room is listed. The booking ends at 18:00 and the block
       starts at 19:00, and this time touches both.
 - [x] Step 3: Harbour Room is listed. A lifted block holds nothing.
-- [x] Step 4: the catalogue shows the three windows again.
 
 **Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step2-18-00-19-00-touches-both](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step2-18-00-19-00-touches-both.png) · [step3-after-lift-listed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step3-after-lift-listed.png) · [step4-hours-restored](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step4-hours-restored.png)
 
