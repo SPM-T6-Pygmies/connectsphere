@@ -503,6 +503,16 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
     expect((await list.execute(read)).entries).toHaveLength(4);
   });
 
+  it("lets Venue Staff record the same Other block more than once, with or without the same note", async () => {
+    const { record, list } = build();
+
+    await record.execute(block({ reason: "Other", note: "Film shoot" }));
+    await record.execute(block({ reason: "Other", note: "Film shoot" }));
+    await record.execute(block({ reason: "Other", note: null }));
+
+    expect((await list.execute(read)).entries).toHaveLength(3);
+  });
+
   it("accepts the same block again once the first has been lifted", async () => {
     const { record, lift } = build();
     const { entry } = await record.execute(block());

@@ -9,7 +9,7 @@
 --    that refuse a booking over a block call it: the booking_slot insert trigger, approving
 --    or holding a request, and confirming a hold. Each is its latest definition with only
 --    that check replaced.
--- 3. Recording a block refuses the same block twice (CS079) and time the venue is closed (CS078) -- the backstop for the
+-- 3. Recording a block refuses the same block twice, except Other (CS079) and time the venue is closed (CS078) -- the backstop for the
 --    form and the use case, which refuse it first and name the closed time.
 -- 4. The calendar and list reads order by the slot's start time, not by AM/PM/Night. The calendar
 --    read gives each day's rows block by block, so a calendar slot lists its reasons in the order
@@ -333,15 +333,15 @@ begin
     raise exception 'A block can only cover time the venue is open.' using errcode = 'CS078';
   end if;
 
-  -- The same block twice (same venue, reason, note, days and times) is refused: a double click or a
-  -- stale page must not stack an identical block. The core checks first; this closes the race.
-  if exists (
+  -- The same block twice (same venue, reason, days and times) is refused: a double click or a stale
+  -- page must not stack an identical block. The core checks first; this closes the race. Other is
+  -- exempt: its note is free text nothing reads, so Venue Staff may record several alike.
+  if p_reason <> 'Other' and exists (
     select 1
     from public.venue_unavailability u
     where u.venue_id = p_venue_id
       and u.lifted_at is null
       and u.reason_category = p_reason
-      and u.reason_note is not distinct from p_note
       and array(select s.slot_date::text || '|' || s.slot
                 from public.venue_unavailability_slot s
                 where s.venue_unavailability_id = u.venue_unavailability_id

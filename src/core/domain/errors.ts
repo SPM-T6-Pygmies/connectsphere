@@ -1079,9 +1079,10 @@ export class UnavailabilityNoteTooLongError extends DomainError {
 }
 
 /**
- * SPM-321: the same block is already In force. Same venue, reason, note, days and times is the
- * same block saved twice (a double click, a stale page), so it is refused; an overlapping block
- * with another reason or other times is still allowed (SPM-21 AC19).
+ * SPM-321: the same block is already In force. Same venue, reason, days and times is the same
+ * block saved twice (a double click, a stale page), so it is refused; an overlapping block with
+ * another reason or other times is still allowed (SPM-21 AC19). Other is exempt: its note is free
+ * text we do not read, so two Other blocks are never taken for one.
  */
 export class DuplicateUnavailabilityError extends DomainError {
   readonly code = "duplicate_unavailability";

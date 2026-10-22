@@ -199,14 +199,20 @@ function gridTime(raw: string): number {
 }
 
 /**
- * SPM-321: whether `block` is the same as one already In force: same venue, reason and note, and
- * exactly the same days and times. A lifted block is history and does not count. Overlapping
- * blocks that differ in any of those are different blocks (SPM-21 AC19).
+ * SPM-321: whether `block` is the same as one already In force: same venue and reason, and exactly
+ * the same days and times. A lifted block is history and does not count. Overlapping blocks that
+ * differ in any of those are different blocks (SPM-21 AC19).
+ *
+ * `Other` is never a duplicate. Its note is free text that nothing here reads, so two Other blocks
+ * can be for different things however alike they look; Venue Staff may record as many as they need.
  */
 export function duplicatesInForceBlock(
   block: VenueUnavailabilityBlock,
   entries: readonly VenueUnavailabilityEntry[],
 ): boolean {
+  if (block.reason === "Other") {
+    return false;
+  }
   const key = (slots: readonly SlotCodeOnDate[]) =>
     slots
       .map(({ date, slot }) => `${date}|${slot}`)
@@ -218,7 +224,6 @@ export function duplicatesInForceBlock(
       entry.status === "In force" &&
       entry.venueId === block.venueId &&
       entry.reason === block.reason &&
-      entry.note === block.note &&
       key(entry.slots) === wanted,
   );
 }

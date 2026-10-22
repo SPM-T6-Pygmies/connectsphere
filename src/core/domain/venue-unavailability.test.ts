@@ -303,10 +303,17 @@ describe("duplicatesInForceBlock (SPM-321)", () => {
     expect(duplicatesInForceBlock(block({ venueId: venueId("venue-2") }), [stored()])).toBe(false);
   });
 
-  it("treats Other with a different note as a different block, and with the same note as the same", () => {
+  it("is never true for Other, whatever the note: the note is free text nothing reads", () => {
     const other = stored({ reason: "Other", note: "Film shoot" });
-    expect(duplicatesInForceBlock(block({ reason: "Other", note: "Film shoot" }), [other])).toBe(true);
+    expect(duplicatesInForceBlock(block({ reason: "Other", note: "Film shoot" }), [other])).toBe(false);
     expect(duplicatesInForceBlock(block({ reason: "Other", note: "Fire drill" }), [other])).toBe(false);
+    expect(duplicatesInForceBlock(block({ reason: "Other", note: null }), [stored({ reason: "Other", note: null })])).toBe(false);
+  });
+
+  it("still catches a duplicate of every other reason", () => {
+    for (const reason of ["Maintenance", "Equipment failure", "Renovation", "Safety"]) {
+      expect(duplicatesInForceBlock(block({ reason }), [stored({ reason })])).toBe(true);
+    }
   });
 
   it("is false once the earlier block is lifted: it is history, and the time can be blocked again", () => {
