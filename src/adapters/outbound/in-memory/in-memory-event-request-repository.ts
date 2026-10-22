@@ -13,6 +13,7 @@ import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarif
 import type {
   EventRequestRepository,
   MyEventRequestSummary,
+  OrganiserEventArrangements,
 } from "@/core/ports/outbound/event-request-repository";
 
 export class InMemoryEventRequestRepository implements EventRequestRepository {
@@ -24,10 +25,14 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
    * writes the question to -- the in-memory stand-in for the single
    * transaction `coordinator_return_event_request` performs. Tests that do not
    * exercise a return leave it out.
+   *
+   * `eventArrangements` stands in for the events approved requests became,
+   * keyed by request id (SPM-66); a request missing from it has no event.
    */
   constructor(
     seed: readonly EventRequest[] = [],
     private readonly thread?: ClarificationThreadRepository,
+    private readonly eventArrangements: ReadonlyMap<string, OrganiserEventArrangements> = new Map(),
   ) {
     for (const request of seed) {
       this.rows.set(request.id, request);
@@ -84,6 +89,10 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
       return null;
     }
     return request.details.preferredSlots.map((slot) => ({ date, ...SLOT_HOURS[slot] }));
+  }
+
+  async findEventArrangements(id: EventRequestId): Promise<OrganiserEventArrangements | null> {
+    return this.eventArrangements.get(id) ?? null;
   }
 
   /** Assigns the id the way the real store does -- the caller does not choose it. */
