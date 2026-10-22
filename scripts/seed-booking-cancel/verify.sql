@@ -40,12 +40,12 @@ checks as (
     on a.venue = x.venue and a.slot_date = x.slot_date and a.slot = x.slot
   group by x.booking, x.venue, x.slot_date, x.slot, x.status
   union all
-  -- Opening hours are 15-minute slot codes '0'-'95' (SPM-320): AM is 28-47, Night 76-95.
-  select 'UAT-44 Harbour Room is open 07:00-12:00 and 19:00-24:00',
-         format('%s of 40 slots', count(*) filter (where vs.slot_code in (
-           select generate_series(28, 47)::text union all select generate_series(76, 95)::text))),
-         count(*) filter (where vs.slot_code in (
-           select generate_series(28, 47)::text union all select generate_series(76, 95)::text)) = 40
+  -- Opening hours are 15-minute slot codes '0'-'95' (SPM-320): 07:00-24:00 is 28-95,
+  -- AM, PM and Night joined as they convert (AC4).
+  select 'UAT-44 Harbour Room is open 07:00-24:00',
+         format('%s of 68 slots', count(*) filter (where vs.slot_code in (
+           select generate_series(28, 95)::text))),
+         count(*) filter (where vs.slot_code in (select generate_series(28, 95)::text)) = 68
   from public.venue_slot vs
   join public.venue v on v.venue_id = vs.venue_id
   where v.location = 'UAT-44 Harbour Room'
