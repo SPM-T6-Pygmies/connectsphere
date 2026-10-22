@@ -191,13 +191,15 @@ block and lifts it.
 3. Change the date to D+1 and the times to 17:45–18:15. Click **Search**.
 
 **Expected Result**
-- [ ] Step 1: both UAT-44 venues are listed. A time that starts as a venue
+- [x] Step 1: both UAT-44 venues are listed. A time that starts as a venue
       opens is open.
-- [ ] Step 2: neither is listed. The summary counts them as "closed for part of
+- [x] Step 2: neither is listed. The summary counts them as "closed for part of
       06:45–07:15": both open at 07:00.
-- [ ] Step 3: Garden Hall is not listed, under "closed for part of 17:45–18:15":
+- [x] Step 3: Garden Hall is not listed, under "closed for part of 17:45–18:15":
       it closes at 18:00. Harbour Room, open until 24:00 and with nothing booked
       on D+1, is listed.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step1-07-00-12-00-both-listed](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-013_step1-07-00-12-00-both-listed.png) · [step2-06-45-07-15-closed](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-013_step2-06-45-07-15-closed.png) · [step3-17-45-18-15-garden-closed](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-013_step3-17-45-18-15-garden-closed.png)
 
 ### TC-VSEARCH-014 An overlapping booking leaves a venue out; one that only touches does not (AC1, AC2)
 
@@ -219,7 +221,7 @@ booking on D 13:00–18:00 has open time on both sides.
 - [x] Step 4: Harbour Room is listed. The booking starts at 13:00, when this
       time ends.
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Harbour Room was opened 07:00–24:00 in the catalogue first, as the pre-condition says. Screenshots: [step1-17-45-18-15-overlap](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step1-17-45-18-15-overlap.png) · [step2-13-15-13-30-inside-booking](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step2-13-15-13-30-inside-booking.png) · [step3-18-00-19-00-touches-end](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png) · [step4-12-00-13-00-touches-start](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step4-12-00-13-00-touches-start.png)
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05), on the seeded 07:00–24:00. Step 4 also listed Garden Hall, now open 12:00–13:00. Screenshot: [step3-18-00-19-00-touches-end](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png). Earlier run, 21/10/2026, with Harbour Room opened by hand: [step1](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step1-17-45-18-15-overlap.png) · [step4](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step4-12-00-13-00-touches-start.png)
 
 ### TC-VSEARCH-015 An In force block leaves a venue out until it is lifted (AC1, AC2)
 
@@ -242,7 +244,7 @@ unavailable**. The block covers 19:00–24:00.
       starts at 19:00, and this time touches both.
 - [x] Step 3: Harbour Room is listed. A lifted block holds nothing.
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step2-18-00-19-00-touches-both](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step2-18-00-19-00-touches-both.png) · [step3-after-lift-listed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step3-after-lift-listed.png) · [step4-hours-restored](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step4-hours-restored.png)
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step3-lifted](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-015_step3-lifted.png)
 
 ### TC-VSEARCH-016 A time that cannot be searched is refused, naming the problem (AC3)
 
