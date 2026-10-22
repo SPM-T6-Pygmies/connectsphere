@@ -235,14 +235,13 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
    `scripts/seed-coordinator-view/seed.sql`, `scripts/seed-venues/seed.sql` and
    `scripts/seed-venue-search-uat/seed.sql`. The last prints the booking day **D**
    (14 days from today, Singapore time).
-2. As `venue@test.com`, open **UAT-44 Harbour Room** in the catalogue and set its
-   opening hours to one window, `07:00`–`24:00`.
-3. `pnpm dev:local`, sign in as `coordinator@test.com`, approve an **Under Review**
+2. `pnpm dev:local`, sign in as `coordinator@test.com`, approve an **Under Review**
    request from *My requests* and choose **Request a venue** on its event.
 
 `seed-venue-search-uat` leaves a **Confirmed** booking at **UAT-44 Harbour Room** on
 D `13:00`–`18:00` and a **Rejected** one at **UAT-44 Garden Hall** on D `07:00`–`12:00`,
-both for another event. Garden Hall is open `07:00`–`12:00` and `13:00`–`18:00`.
+both for another event. Harbour Room is open `07:00`–`24:00` and Garden Hall
+`07:00`–`18:00`, as the seed sets them (SPM-320 AC4).
 
 ### TC-VENUE-BOOK-023 Request a venue by start and end time (SPM-348, AC1)
 
