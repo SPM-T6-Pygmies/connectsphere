@@ -3,7 +3,6 @@ import type {
   BookingStatus,
   DecidedBooking,
   ResolvedHold,
-  SlotOnDate,
 } from "../../domain/booking";
 import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { UserAccountId } from "../../domain/user-account";
@@ -42,7 +41,8 @@ export interface BookingForReview {
   readonly venueLocation: string;
   /** Null when the booking predates layout capture, or its venue has no layouts. */
   readonly roomLayoutName: string | null;
-  readonly slots: readonly SlotOnDate[];
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
   readonly requestedByName: string;
   /** ISO instant. */
   readonly requestedAt: string;

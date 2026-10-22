@@ -2,7 +2,7 @@ import type { BookingId, DecidedBooking, ResolvedHold } from "@/core/domain/book
 import { venueId } from "@/core/domain/venue";
 import type { BookingForReview } from "@/core/ports/outbound/booking-review-repository";
 
-import { toDate, toSlot, toStatus } from "./booking-mapper";
+import { toBookingTimes, toDate, toStatus } from "./booking-mapper";
 import { toKey } from "./coordinator-event-mapper";
 import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
 
@@ -13,7 +13,7 @@ export interface BookingReviewRow {
   venue_id: number;
   venue_location: string;
   room_layout_name: string | null;
-  slots: ReadonlyArray<{ date: string; slot: string }>;
+  slots: readonly EventSlotTimeRow[];
   requested_by_name: string;
   requested_at: string;
   decided_by_name: string | null;
@@ -46,7 +46,7 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
     venueId: venueId(String(row.venue_id)),
     venueLocation: row.venue_location,
     roomLayoutName: row.room_layout_name,
-    slots: row.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
+    times: toBookingTimes(row.slots),
     requestedByName: row.requested_by_name,
     requestedAt: row.requested_at,
     decidedByName: row.decided_by_name,

@@ -45,7 +45,7 @@ function booking(overrides: Partial<StoredBooking> = {}): StoredBooking {
     venueLocation: "Main Hall",
     roomLayoutName: null,
     status: "Confirmed",
-    slots: [{ date: "2026-11-03", slot: "AM" }],
+    times: [{ date: "2026-11-03", start: "07:00", end: "12:00" }],
     requestedBy: COORDINATOR,
     requestedAt: "2026-10-28T00:00:00.000Z",
     ...overrides,
@@ -124,7 +124,7 @@ describe("CancelVenueBookingUseCase (SPM-20)", () => {
   it("leaves another booking on the same event as it was", async () => {
     const { useCase, bookings } = build([
       booking(),
-      booking({ id: "booking-2", slots: [{ date: "2026-11-03", slot: "PM" }] }),
+      booking({ id: "booking-2", times: [{ date: "2026-11-03", start: "13:00", end: "18:00" }] }),
     ]);
 
     await useCase.execute(command());

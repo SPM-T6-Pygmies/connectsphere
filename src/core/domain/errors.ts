@@ -342,7 +342,7 @@ export class NoBookingSlotsError extends DomainError {
   readonly code = "no_booking_slots";
 
   constructor() {
-    super("Choose at least one slot to book.");
+    super("Choose at least one date and time to book.");
   }
 }
 
@@ -354,14 +354,40 @@ export class InvalidBookingDateError extends DomainError {
   }
 }
 
-export class DuplicateBookingSlotError extends DomainError {
-  readonly code = "duplicate_booking_slot";
+/** SPM-324 AC1: a requested date is missing its date, start or end time, named so it can be filled in. */
+export class IncompleteBookingTimeError extends DomainError {
+  readonly code = "incomplete_booking_time";
+
+  constructor(
+    readonly missing: "date" | "start" | "end",
+    readonly date: string | null,
+  ) {
+    super(
+      missing === "date"
+        ? "Choose a date for each time you request."
+        : `Choose ${missing === "start" ? "a start" : "an end"} time for ${date}.`,
+    );
+  }
+}
+
+/** SPM-324 AC1: a requested time is off the 15-minute grid, starts at 24:00, or does not end after it starts. */
+export class InvalidBookingTimeError extends DomainError {
+  readonly code = "invalid_booking_time";
 
   constructor(
     readonly date: string,
-    readonly slot: string,
+    message: string,
   ) {
-    super(`${date} ${slot} is requested more than once.`);
+    super(message);
+  }
+}
+
+/** SPM-324: each date takes one start and end time; two windows on one day are two requests. */
+export class DuplicateBookingDateError extends DomainError {
+  readonly code = "duplicate_booking_date";
+
+  constructor(readonly date: string) {
+    super(`${date} is requested more than once. Give each date one start and end time.`);
   }
 }
 
@@ -416,16 +442,22 @@ export class BookingRoomLayoutNotChangeableError extends DomainError {
   }
 }
 
-/** SPM-46: a hold or confirmed booking already has one of the slots -- a hard block (#35, #41). */
+/** A date with a start and end time, as the booking refusals name them. */
+type TimeOnDate = { readonly date: string; readonly start: string; readonly end: string };
+
+function namedTimes(times: ReadonlyArray<TimeOnDate>): string {
+  return times.map(({ date, start, end }) => `${date} ${start}–${end}`).join(", ");
+}
+
+/**
+ * SPM-46: a hold or confirmed booking already has some of the time -- a hard
+ * block (#35, #41). Names the overlapping part (SPM-324 AC2).
+ */
 export class VenueSlotUnavailableError extends DomainError {
   readonly code = "venue_slot_unavailable";
 
-  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
-    super(
-      `The venue is already booked for ${slots
-        .map(({ date, slot }) => `${date} ${slot}`)
-        .join(", ")}. Choose other slots or another venue.`,
-    );
+  constructor(readonly times: ReadonlyArray<TimeOnDate>) {
+    super(`The venue is already booked for ${namedTimes(times)}. Choose other times or another venue.`);
   }
 }
 
@@ -1095,12 +1127,9 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
 export class VenueSlotBlockedError extends DomainError {
   readonly code = "venue_slot_blocked";
 
-  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
-    super(
-      `The venue is unavailable for ${slots
-        .map(({ date, slot }) => `${date} ${slot}`)
-        .join(", ")}. Choose other slots or another venue.`,
-    );
+  /** The blocked part of the booking's times (SPM-324). */
+  constructor(readonly times: ReadonlyArray<TimeOnDate>) {
+    super(`The venue is unavailable for ${namedTimes(times)}. Choose other times or another venue.`);
   }
 }
 

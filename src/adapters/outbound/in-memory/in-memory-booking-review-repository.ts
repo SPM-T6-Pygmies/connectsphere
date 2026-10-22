@@ -1,5 +1,5 @@
 import {
-  clashingSlots,
+  clashingTimes,
   type BookingId,
   type DecidedBooking,
   type ResolvedHold,
@@ -66,9 +66,9 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
       const held = this.rows
         .filter((other) => other.id !== row.id && other.venueId === row.venueId)
         .flatMap((other) =>
-          other.slots.map((slot) => ({ ...slot, status: other.status, holdExpiresAt: null })),
+          other.times.map((time) => ({ ...time, status: other.status, holdExpiresAt: null })),
         );
-      const clashes = clashingSlots(row.slots, held, new Date());
+      const clashes = clashingTimes(row.times, held, new Date());
       if (clashes.length > 0) {
         throw new VenueSlotUnavailableError(clashes);
       }
