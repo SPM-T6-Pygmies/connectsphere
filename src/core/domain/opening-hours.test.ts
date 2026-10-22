@@ -29,20 +29,8 @@ describe("defineOpeningHours (SPM-332)", () => {
     ]);
   });
 
-  it("accepts several windows a day, earliest first", () => {
-    expect(
-      defineOpeningHours([
-        { start: "19:00", end: "24:00" },
-        { start: "07:00", end: "12:00" },
-      ]),
-    ).toEqual([
-      { start: "07:00", end: "12:00" },
-      { start: "19:00", end: "24:00" },
-    ]);
-  });
-
-  it("refuses no windows at all", () => {
-    expect(refusal([])).toBe("Add at least one opening window.");
+  it("refuses no hours at all", () => {
+    expect(refusal([])).toBe("Set the venue's opening and closing time.");
   });
 
   describe("a window ends after it starts", () => {
@@ -95,32 +83,15 @@ describe("defineOpeningHours (SPM-332)", () => {
     });
   });
 
-  describe("windows may not overlap", () => {
-    it("refuses an overlap of 15 minutes, naming both windows", () => {
-      expect(
-        refusal([
-          { start: "07:00", end: "12:00" },
-          { start: "11:45", end: "13:00" },
-        ]),
-      ).toBe("The windows 07:00–12:00 and 11:45–13:00 overlap.");
-    });
-
-    it("refuses a window inside another", () => {
-      expect(
-        refusal([
-          { start: "07:00", end: "18:00" },
-          { start: "09:00", end: "10:00" },
-        ]),
-      ).toMatch(/overlap/);
-    });
-
-    it("accepts windows that touch end-to-start", () => {
-      expect(
-        defineOpeningHours([
-          { start: "07:00", end: "12:00" },
-          { start: "12:00", end: "13:00" },
-        ]),
-      ).toHaveLength(2);
+  describe("opening hours are one continuous block", () => {
+    it.each([
+      ["a gap between them", [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }]],
+      ["touching end-to-start", [{ start: "07:00", end: "12:00" }, { start: "12:00", end: "13:00" }]],
+      ["overlapping", [{ start: "07:00", end: "12:00" }, { start: "11:45", end: "13:00" }]],
+    ])("refuses two windows, %s", (_case, windows) => {
+      expect(refusal(windows)).toBe(
+        "A venue opens once a day: set one opening time and one closing time.",
+      );
     });
   });
 });

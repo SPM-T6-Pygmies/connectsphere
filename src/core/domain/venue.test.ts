@@ -15,7 +15,7 @@ function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
     location: "Level 3, Marina Bay Hall",
     facilities: "Wi-Fi, Catering area",
     accessibility: "Step-free access",
-    openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }, { start: "19:00", end: "24:00" }],
+    openingHours: [{ start: "07:00", end: "24:00" }],
     capacity: 300,
     bookingHorizonDays: 180,
     layouts: [
@@ -123,11 +123,10 @@ describe("defineVenue (SPM-42)", () => {
 });
 
 describe("a venue's opening hours (SPM-332)", () => {
-  it("keeps two windows with a closed gap between them, earliest first", () => {
-    expect(defineVenue(details({ openingHours: [{ start: "19:00", end: "24:00" }, { start: "07:00", end: "12:00" }] })).openingHours).toEqual([
-      { start: "07:00", end: "12:00" },
-      { start: "19:00", end: "24:00" },
-    ]);
+  it("refuses a second window, flagging opening hours", () => {
+    expect(
+      flaggedField(details({ openingHours: [{ start: "07:00", end: "12:00" }, { start: "19:00", end: "24:00" }] })),
+    ).toBe("openingHours");
   });
 
   it("refuses overlapping windows, flagging opening hours", () => {
