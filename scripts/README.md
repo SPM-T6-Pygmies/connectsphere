@@ -178,8 +178,8 @@ Two of the scripts have extra read-only files:
   as well.
 
 Both report **success as an error**: a line reading `ERROR: ok: all refusals held`
-or `ERROR: ok: all 34 checks held` means every check passed (the `supabase db query`
-CLI words it `failed to execute query: error: ok: all 34 checks held`). They raise on
+or `ERROR: ok: all 35 checks held` means every check passed (the `supabase db query`
+CLI words it `failed to execute query: error: ok: all 35 checks held`). They raise on
 purpose, so nothing is saved. A real failure reads `error: FAILED: <the checks that did not hold>`.
 
 ---
