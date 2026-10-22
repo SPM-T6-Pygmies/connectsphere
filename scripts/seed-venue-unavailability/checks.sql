@@ -3,7 +3,7 @@
 -- survives: it ends in an error, which rolls everything back, and the error
 -- message is the result.
 --
---   ok: all 30 checks held            every check passed
+--   ok: all 34 checks held            every check passed
 --   FAILED: <checks that did not hold>
 --
 -- Run against a local stack that has the base seed, seed-venues and
@@ -186,6 +186,34 @@ begin
   v_checks := v_checks + 1;
   if jsonb_array_length(v_json) <> 1 or v_json -> 0 ->> 'event_name' <> 'UAT-44 Booked Harbour' then
     v_failed := array_append(v_failed, 'AC11 the confirmed booking is not listed as affected'); end if;
+
+  -- SPM-321: the same block twice (venue, reason, note, days and times) is refused (CS079); a different
+  -- reason or other times over the same slots is not, and nor is the same block once the first is lifted
+  v_second := public.venue_staff_record_unavailability(v_staff, v_venue, 'Renovation', null,
+    (select jsonb_agg(jsonb_build_object('date', v_day + 30, 'slot', n::text) order by n) from generate_series(36, 39) n));
+  begin
+    perform public.venue_staff_record_unavailability(v_staff, v_venue, 'Renovation', null,
+      (select jsonb_agg(jsonb_build_object('date', v_day + 30, 'slot', n::text) order by n desc) from generate_series(36, 39) n));
+    v_checks := v_checks + 1; v_failed := array_append(v_failed, 'SPM-321 the same block twice was accepted');
+  exception when others then
+    get stacked diagnostics v_code = returned_sqlstate;
+    v_checks := v_checks + 1;
+    if v_code <> 'CS079' then v_failed := array_append(v_failed, ('SPM-321 the same block twice gave ' || v_code)); end if;
+  end;
+  select count(*) into v_n from public.venue_unavailability u
+    join public.venue_unavailability_slot s using (venue_unavailability_id)
+   where u.venue_id = v_venue and s.slot_date = v_day + 30;
+  v_checks := v_checks + 1;
+  if v_n <> 4 then v_failed := array_append(v_failed, ('SPM-321 the refused duplicate left rows behind: ' || v_n)); end if;
+  perform public.venue_staff_record_unavailability(v_staff, v_venue, 'Safety', null,
+    (select jsonb_agg(jsonb_build_object('date', v_day + 30, 'slot', n::text) order by n) from generate_series(36, 39) n));
+  perform public.venue_staff_record_unavailability(v_staff, v_venue, 'Renovation', null,
+    (select jsonb_agg(jsonb_build_object('date', v_day + 30, 'slot', n::text) order by n) from generate_series(36, 38) n));
+  v_checks := v_checks + 1;
+  perform public.venue_staff_lift_unavailability(v_staff, v_second);
+  perform public.venue_staff_record_unavailability(v_staff, v_venue, 'Renovation', null,
+    (select jsonb_agg(jsonb_build_object('date', v_day + 30, 'slot', n::text) order by n) from generate_series(36, 39) n));
+  v_checks := v_checks + 1;
 
   -- SPM-321 AC3a: a block over time the venue is closed is refused (CS078); 12:00-13:00 is the lunch gap
   begin
