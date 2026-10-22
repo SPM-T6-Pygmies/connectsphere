@@ -445,7 +445,9 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
     });
 
     await expect(record.execute(block({ venueId: lateOnly.id }))).rejects.toThrow("closed 09:00–10:00");
-    await expect(record.execute(block({ venueId: GRAND_HALL.id }))).resolves.toBeDefined();
+    const { entry } = await record.execute(block({ venueId: GRAND_HALL.id }));
+    expect(entry).toMatchObject({ venueId: GRAND_HALL.id, status: "In force" });
+    expect(entry.slots).toHaveLength(12);
   });
 
   function seeded(): SeededBooking {
@@ -518,6 +520,9 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
     const { entry } = await record.execute(block());
     await lift.execute({ ...read, unavailabilityId: entry.id });
 
-    await expect(record.execute(block())).resolves.toBeDefined();
+    const second = await record.execute(block());
+
+    expect(second.entry.status).toBe("In force");
+    expect(second.entry.id).not.toBe(entry.id);
   });
 });

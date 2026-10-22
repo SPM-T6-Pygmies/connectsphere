@@ -173,7 +173,8 @@ describe("defineVenueUnavailability by time of day (SPM-321)", () => {
 
   it("AC3: accepts the shortest block, one quarter hour, and the longest open stretch of a day", () => {
     expect(block({ startTime: "07:00", endTime: "07:15" }).slots).toEqual([{ date: "2026-10-12", slot: "28" }]);
-    expect(block({ startTime: "19:00", endTime: "24:00" }).slots).toHaveLength(20);
+    const night = block({ startTime: "19:00", endTime: "24:00" }).slots.map(({ slot }) => slot);
+    expect([night[0], night[night.length - 1], night.length]).toEqual(["76", "95", 20]);
   });
 
   it("AC3: reads 24:00 as the end of the day and refuses it as a start", () => {
@@ -197,6 +198,35 @@ describe("defineVenueUnavailability by time of day (SPM-321)", () => {
     ["09:00", "09:00"],
   ])("AC3: refuses an end that is not after the start (%s to %s)", (startTime, endTime) => {
     expect(() => block({ startTime, endTime })).toThrow("must end after it starts");
+  });
+
+  describe("a block in progress (AC2)", () => {
+    // 11:45 on Monday 5 October 2026 in Singapore: three quarters of an hour into the morning window.
+    const QUARTER_TO_NOON = new Date("2026-10-05T03:45:00Z");
+    const today = (startTime: string, endTime: string) =>
+      defineVenueUnavailability({
+        details: {
+          venueId: venueId("venue-1"),
+          startDate: "2026-10-05",
+          endDate: "2026-10-05",
+          startTime,
+          endTime,
+          reason: "Maintenance",
+          note: null,
+        },
+        openingHours: HOURS,
+        now: QUARTER_TO_NOON,
+        timeZone: TIME_ZONE,
+      });
+
+    it("refuses a block that ended a quarter hour ago and one that ends this very minute", () => {
+      expect(() => today("11:00", "11:30")).toThrow("A block cannot end in the past (2026-10-05 11:30).");
+      expect(() => today("11:00", "11:45")).toThrow(UnavailabilityInThePastError);
+    });
+
+    it("accepts a block that began earlier and ends a quarter hour from now", () => {
+      expect(today("11:00", "12:00").slots.map(({ slot }) => slot)).toEqual(["44", "45", "46", "47"]);
+    });
   });
 
   describe("only when the venue is open (AC3a)", () => {

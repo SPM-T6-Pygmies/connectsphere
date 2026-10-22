@@ -62,7 +62,7 @@ describe("joinSlotCodes (SPM-321)", () => {
     expect(joinSlotCodes(["38", "36", "37"])).toEqual([at("09:00", "09:45")]);
   });
 
-  it("counts a slot inside another once", () => {
+  it("joins a slot inside another with one that touches its end, into one span", () => {
     expect(joinSlotCodes(["PM", "60", "72"])).toEqual([at("13:00", "18:15")]);
   });
 
