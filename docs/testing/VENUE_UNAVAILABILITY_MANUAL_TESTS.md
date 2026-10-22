@@ -156,13 +156,13 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ### TC-VBLOCK-003: Block a booked date and see what it overlaps (SPM-321 AC4; SPM-21 AC10)
 
-**Scenario:** The Coordinator books Rooftop Terrace for the morning of Wednesday 2026-12-16 (AM is 07:00 to 12:00) and Venue Staff approve it, so it is Confirmed. Then Venue Staff need the terrace from 09:30 to 10:30 that day for a safety inspection. The block covers only part of the booking, and it must not move the booking.
+**Scenario:** The Coordinator books Rooftop Terrace for the morning of Wednesday 2026-12-16, 07:00 to 12:00, and Venue Staff approve it, so it is Confirmed. Then Venue Staff need the terrace from 09:30 to 10:30 that day for a safety inspection. The block covers only part of the booking, and it must not move the booking.
 
 **Preconditions:** The Venue Safety Review request approved once as `coordinator@test.com` (Setup). Signed in as `coordinator@test.com` first, then `venue@test.com`.
 
 **Steps:**
-1. As `coordinator@test.com` open `/staff/coordinator/4/venue-booking`, choose **Rooftop Terrace**, layout **Banquet**, date `2026-12-16`, tick **AM**, press **Send booking request**.
-2. As `venue@test.com` open **Requests**, the **Rooftop Terrace** request for 2026-12-16 AM, and press **Approve booking**. It reads *Confirmed*.
+1. As `coordinator@test.com` open `/staff/coordinator/4/venue-booking`, choose **Rooftop Terrace**, layout **Banquet**, date `2026-12-16`, Start **07:00**, End **12:00**, press **Send booking request**.
+2. As `venue@test.com` open **Requests**, the **Rooftop Terrace** request for 2026-12-16 07:00–12:00, and press **Approve booking**. It reads *Confirmed*.
 3. Open **Unavailability**. Choose **Rooftop Terrace**, From and To `2026-12-16`, Start **09:30**, End **10:30**, Reason **Safety**, press **Mark unavailable**.
 4. Read **Bookings this block overlaps**.
 5. Check the booking and its event:
@@ -175,7 +175,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Expected Result:**
 - Step 3: the block saves; it does not wait for the booking to move.
-- Step 4: the card lists *Venue Safety Review · 2026-12-16 07:00 to 12:00 · Confirmed*: the booking's whole days and hours, not the slot name, though the block covers only 09:30 to 10:30. It says the bookings and their events are unchanged.
+- Step 4: the card lists *Venue Safety Review · 2026-12-16 09:30–10:30 · Confirmed*: the time the block takes from the booking, not the booking's whole morning. It says the bookings and their events are unchanged.
 - Step 5: the booking is still `Confirmed` and the event still `Planning`.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks)
@@ -186,23 +186,25 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ### TC-VBLOCK-004: A coordinator cannot request a blocked time (SPM-321 AC3)
 
-**Scenario:** Studio is blocked 09:00 to 11:30 on Monday 2026-12-14 (TC-VBLOCK-001). The Coordinator tries to book Studio for the morning (AM is 07:00 to 12:00, so it overlaps the block), then for the afternoon, then for the weekend day after the block ends.
+**Scenario:** Studio is blocked 09:00 to 11:30 on Monday 2026-12-14 (TC-VBLOCK-001). The Coordinator tries to book Studio for 07:00 to 12:00 (it overlaps the block), then 13:00 to 18:00, then 11:30 to 12:00 (it starts exactly when the block ends), then the Saturday after the block ends.
 
 **Preconditions:** TC-VBLOCK-001 has run. Signed in as `coordinator@test.com`; open `/staff/coordinator/4/venue-booking`.
 
-**Steps:**
-1. Choose **Studio**, date `2026-12-14`, tick **AM**, press **Send booking request**.
-2. Choose **Studio**, date `2026-12-14`, tick **PM**, send.
-3. Choose **Studio**, date `2026-12-19`, tick **AM**, send.
+**Steps:** On each, choose **Studio** and press **Send booking request**:
+1. Date `2026-12-14`, Start **07:00**, End **12:00**.
+2. Date `2026-12-14`, Start **13:00**, End **18:00**.
+3. Date `2026-12-14`, Start **11:30**, End **12:00**.
+4. Date `2026-12-19`, Start **07:00**, End **12:00**.
 
 **Expected Result:**
-- Step 1: refused with *The venue is unavailable 2026-12-14 09:00 to 11:30. Choose other times or another venue.* and nothing is requested. It names the blocked times, not "AM". There is no way to override it.
-- Step 2: accepted: PM (13:00 to 18:00) shares no time with the block.
-- Step 3: accepted: the day after the block ends.
+- Step 1: refused with *The venue is unavailable for 2026-12-14 09:00–11:30. Choose other times or another venue.* and nothing is requested. It names the time the request shares with the block. There is no way to override it.
+- Step 2: accepted: it shares no time with the block.
+- Step 3: accepted: it starts at 11:30, exactly when the block ends, so they share no time.
+- Step 4: accepted: the day after the block ends.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks)
 
-**Screenshots:** [step1-refused-naming-date-and-slot](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step1-refused-naming-date-and-slot.png) · [step2-another-slot-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step2-another-slot-accepted.png) · [step3-day-after-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step3-day-after-accepted.png)
+**Screenshots:** [step1-refused-naming-date-and-slot](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step1-refused-naming-date-and-slot.png) · [step2-another-slot-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step2-another-slot-accepted.png) · [step3-touching-time-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step3-touching-time-accepted.png) · [step4-day-after-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step4-day-after-accepted.png)
 
 ---
 
@@ -237,13 +239,13 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 **Steps:**
 1. As `venue@test.com`, block **Studio** from `2026-12-14` to `2026-12-15`, Start **10:00**, End **12:00**, Reason **Safety**. It overlaps the Renovation block between 10:00 and 11:30.
 2. On the **Studio Renovation** row, press **Lift**, then reload.
-3. As `coordinator@test.com`, request **Studio** on `2026-12-15` AM.
-4. Request **Studio** on `2026-12-16` AM.
+3. As `coordinator@test.com`, request **Studio** on `2026-12-15`, Start **07:00**, End **12:00**.
+4. Request **Studio** on `2026-12-16`, Start **07:00**, End **12:00**.
 
 **Expected Result:**
 - Step 1: the second block saves although it covers some of the same time.
 - Step 2: the Renovation row shows **Lifted**, with who lifted it and when, and has **no Lift button**. It stays in the list.
-- Step 3: refused: *The venue is unavailable 2026-12-15 10:00 to 12:00. Choose other times or another venue.* The Safety block still covers it.
+- Step 3: refused: *The venue is unavailable for 2026-12-15 10:00–12:00. Choose other times or another venue.* The Safety block still covers it.
 - Step 4: accepted: only the lifted block covered 2026-12-16.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)

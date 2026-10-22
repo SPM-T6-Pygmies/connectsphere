@@ -1,4 +1,11 @@
-import { holdsSlot, type BookingId, type BookingSlot, type BookingStatus, type SlotOnDate } from "@/core/domain/booking";
+import {
+  blockedTimes,
+  holdsSlot,
+  slotTime,
+  type BookingId,
+  type BookingStatus,
+  type SlotOnDate,
+} from "@/core/domain/booking";
 import {
   blockFlagDetail,
   bookingsToFlagForBlock,
@@ -9,7 +16,7 @@ import {
   UnavailabilityAlreadyLiftedError,
   VenueUnavailabilityNotFoundError,
 } from "@/core/domain/errors";
-import { slotsOverlapping, type SlotCodeOnDate } from "@/core/domain/slot-grid";
+import type { SlotCodeOnDate } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
 import type { CalendarBlock } from "@/core/domain/venue-calendar";
@@ -202,14 +209,14 @@ export class InMemoryVenueUnavailabilityRepository
     return this.bookings
       .filter((booking) => booking.venueId === venueId && LIVE.includes(booking.status))
       .flatMap((booking) =>
-        slotsOverlapping(booking.slots, slots)
-          .map(({ date, slot }) => ({
-            bookingId: booking.id as BookingId,
-            eventName: booking.eventName,
-            status: booking.status,
-            date,
-            slot: slot as BookingSlot,
-          })),
+        blockedTimes(booking.slots.map(slotTime), slots).map(({ date, start, end }) => ({
+          bookingId: booking.id as BookingId,
+          eventName: booking.eventName,
+          status: booking.status,
+          date,
+          start,
+          end,
+        })),
       );
   }
 

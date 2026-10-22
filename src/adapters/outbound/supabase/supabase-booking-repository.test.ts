@@ -30,10 +30,10 @@ const REQUEST: BookingRequest = {
   eventId: "1",
   venueId: venueId("5"),
   roomLayout: "Theatre",
-  slots: [
-    { date: "2026-10-22", slot: "AM" },
-    { date: "2026-10-22", slot: "PM" },
-    { date: "2026-10-23", slot: "AM" },
+  times: [
+    { date: "2026-10-22", start: "07:00", end: "12:00" },
+    { date: "2026-10-22", start: "13:00", end: "18:00" },
+    { date: "2026-10-23", start: "07:00", end: "12:00" },
   ],
   requestedBy: userAccountId("2"),
   status: "Requested",
@@ -41,7 +41,7 @@ const REQUEST: BookingRequest = {
 
 const REFUSED_BY_TRIGGER = {
   data: null,
-  error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 AM" },
+  error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 07:00–07:15" },
 };
 
 describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
@@ -69,12 +69,12 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
     const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(VenueSlotBlockedError);
-    expect((error as VenueSlotBlockedError).slots).toEqual([
-      { date: "2026-10-22", slot: "AM" },
-      { date: "2026-10-22", slot: "PM" },
+    expect((error as VenueSlotBlockedError).times).toEqual([
+      { date: "2026-10-22", start: "07:00", end: "12:00" },
+      { date: "2026-10-22", start: "13:00", end: "18:00" },
     ]);
-    expect((error as VenueSlotBlockedError).message).toBe(
-      "The venue is unavailable 2026-10-22 07:00 to 12:00, 2026-10-22 13:00 to 18:00. Choose other times or another venue.",
+    expect((error as VenueSlotBlockedError).message).toContain(
+      "2026-10-22 07:00–12:00, 2026-10-22 13:00–18:00",
     );
     expect(calls[1]).toEqual({
       name: "venue_blocked_slots",
@@ -82,7 +82,7 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
     });
   });
 
-  it("names the block's own hours, 09:00 to 11:30, for a request on AM, once however many blocks hold them (SPM-321)", async () => {
+  it("names the shared time, 09:00 to 11:30, for a request on AM, once however many blocks hold it (SPM-321)", async () => {
     const quarters = Array.from({ length: 10 }, (_, i) => ({
       venue_id: 5,
       date: "2026-10-22",
@@ -97,13 +97,11 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
 
     const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
 
-    expect((error as VenueSlotBlockedError).slots).toHaveLength(10);
-    expect((error as VenueSlotBlockedError).message).toBe(
-      "The venue is unavailable 2026-10-22 09:00 to 11:30. Choose other times or another venue.",
-    );
+    expect((error as VenueSlotBlockedError).times).toEqual([{ date: "2026-10-22", start: "09:00", end: "11:30" }]);
+    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 09:00–11:30");
   });
 
-  it("AC12: falls back to the slot the trigger named when a lift landed in between", async () => {
+  it("AC12: falls back to the time the trigger named when a lift landed in between", async () => {
     const { client } = fakeClient({
       coordinator_submit_booking_request: REFUSED_BY_TRIGGER,
       venue_blocked_slots: { data: [], error: null },
@@ -111,8 +109,9 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
 
     const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
 
-    expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
-    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 07:00 to 12:00");
+    expect((error as VenueSlotBlockedError).times).toEqual([
+      { date: "2026-10-22", start: "07:00", end: "07:15" },
+    ]);
   });
 });
 

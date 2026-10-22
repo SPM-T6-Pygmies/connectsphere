@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { timeSpans } from "@/core/domain/booking-review-flag";
 import { joinSlotCodes } from "@/core/domain/slot-grid";
 import type { VenueUnavailabilityEntry } from "@/core/domain/venue-unavailability";
 import { closedPeriods, formatOpeningHours, type OpeningWindow } from "@/core/domain/opening-hours";
@@ -341,13 +340,6 @@ function BlockForm({
 /** AC11: what the block sits over, read-only, or that nothing is affected. */
 function AffectedBookings({ state }: { state: Extract<RecordUnavailabilityState, { status: "saved" }> }) {
   const { affectedBookings, entry } = state;
-  // One line per booking, its days and hours joined as a person reads them (AC4).
-  const bookings = [...Map.groupBy(affectedBookings, (booking) => booking.bookingId).values()].map((rows) => ({
-    bookingId: rows[0].bookingId,
-    eventName: rows[0].eventName,
-    status: rows[0].status,
-    slots: rows,
-  }));
   return (
     <Card>
       <CardHeader>
@@ -357,13 +349,14 @@ function AffectedBookings({ state }: { state: Extract<RecordUnavailabilityState,
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {bookings.length === 0 ? (
+        {affectedBookings.length === 0 ? (
           <p className="text-sm">No bookings are affected.</p>
         ) : (
           <ul className="space-y-1 text-sm">
-            {bookings.map((booking) => (
-              <li key={booking.bookingId}>
-                <span className="font-medium">{booking.eventName}</span> · {timeSpans(booking.slots)} · {booking.status}
+            {affectedBookings.map((booking) => (
+              <li key={`${booking.bookingId}-${booking.date}-${booking.start}`}>
+                <span className="font-medium">{booking.eventName}</span> · {booking.date} {booking.start}–{booking.end} ·{" "}
+                {booking.status}
               </li>
             ))}
           </ul>

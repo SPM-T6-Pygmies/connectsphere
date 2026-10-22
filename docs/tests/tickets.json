@@ -882,6 +882,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-324": {
+      "title": "Request a venue booking by start and end time",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-326": {
       "title": "Run events on start and end times",
       "parent": "SPM-276",
@@ -916,6 +921,36 @@
       "title": "Test and verify opening hours against AC1–AC5",
       "parent": "SPM-320",
       "status": "In Progress"
+    },
+    "SPM-347": {
+      "title": "Store bookings as 15-minute slots and convert existing bookings",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-348": {
+      "title": "Update the request form to take a start and end time per date",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-349": {
+      "title": "Validate booking request times and missing fields",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-350": {
+      "title": "Block requests that overlap a live booking",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-351": {
+      "title": "Show requested times on the review page and new-request notification",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-352": {
+      "title": "Test and verify booking requests against AC1–AC5",
+      "parent": "SPM-324",
+      "status": "Todo"
     },
     "SPM-450": {
       "title": "Domain: define a block by date range and start and end time",

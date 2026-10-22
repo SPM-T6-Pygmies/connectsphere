@@ -1,4 +1,4 @@
-import type { BookingId, BookingStatus, SlotOnDate } from "../../domain/booking";
+import type { BookingId, BookingStatus } from "../../domain/booking";
 import type { SlotCodeOnDate } from "../../domain/slot-grid";
 import type { UserAccountId } from "../../domain/user-account";
 import type { CalendarBlock } from "../../domain/venue-calendar";
@@ -9,13 +9,17 @@ import type {
 } from "../../domain/venue-unavailability";
 import type { VenueId } from "../../domain/venue";
 
-/** One booking a block sits over: which event, which day, which slot (SPM-21 AC11). */
+/**
+ * One booking a block sits over: which event, which day, and the booking's
+ * time under the block (SPM-21 AC11, SPM-324).
+ */
 export interface AffectedBooking {
   readonly bookingId: BookingId;
   readonly eventName: string;
   readonly status: BookingStatus;
   readonly date: string;
-  readonly slot: SlotOnDate["slot"];
+  readonly start: string;
+  readonly end: string;
 }
 
 /**

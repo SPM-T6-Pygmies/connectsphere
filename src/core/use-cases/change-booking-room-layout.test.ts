@@ -42,7 +42,7 @@ function booking(overrides: Partial<StoredBooking> = {}): StoredBooking {
     venueLocation: "Main Hall",
     roomLayoutName: "Theatre",
     status: "Requested",
-    slots: [{ date: "2026-10-05", slot: "AM" }],
+    times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
     requestedBy: COORDINATOR,
     requestedAt: "2026-09-28T00:00:00.000Z",
     ...overrides,

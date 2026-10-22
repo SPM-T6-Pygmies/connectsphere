@@ -131,7 +131,7 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
     expect(unavailability.seededBookings()[0].status).toBe("Confirmed");
   });
 
-  it("AC11: returns the overlapping bookings (event, date, slot) on record", async () => {
+  it("AC11: returns the overlapping bookings (event, date, time) on record", async () => {
     const { record } = build([
       {
         id: "booking-1",
@@ -154,13 +154,15 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
 
     const { affectedBookings } = await record.execute(block());
 
+    // The block is 09:00 to 10:00, the part of the 07:00 to 12:00 booking it takes (SPM-324).
     expect(affectedBookings).toEqual([
       {
         bookingId: "booking-1",
         eventName: "Founders' Gala Dinner",
         status: "Confirmed",
         date: "2026-10-13",
-        slot: "AM",
+        start: "09:00",
+        end: "10:00",
       },
     ]);
   });
@@ -472,7 +474,15 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
 
     expect(flaggedBookings.map((flagged) => flagged.detail)).toEqual(["Safety: 2026-10-13 17:00 to 18:00"]);
     expect(affectedBookings).toEqual([
-      { bookingId: "booking-1", eventName: "Tech Summit", status: "Confirmed", date: "2026-10-13", slot: "PM" },
+      // The time the block takes from the booking (SPM-324), not the booking's whole 13:00 to 18:00.
+      {
+        bookingId: "booking-1",
+        eventName: "Tech Summit",
+        status: "Confirmed",
+        date: "2026-10-13",
+        start: "17:00",
+        end: "18:00",
+      },
     ]);
   });
 

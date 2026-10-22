@@ -1,5 +1,4 @@
 import { holdsSlot, type BookingStatus } from "./booking";
-import { VenueSlotBlockedError } from "./errors";
 import { joinSlotCodes, slotCodeRange, type SlotCodeOnDate } from "./slot-grid";
 import { fromMinutes } from "./time-of-day";
 import type { VenueId } from "./venue";
@@ -48,14 +47,6 @@ export function timeSpans(slots: readonly SlotCodeOnDate[]): string {
       joinSlotCodes(codes).map(({ start, end }) => `${date} ${fromMinutes(start)} to ${fromMinutes(end)}`),
     )
     .join(", ");
-}
-
-/**
- * SPM-321 AC3: the refusal for a request a block overlaps. `blocked` are the block's own slots
- * that share time with it; they are named as days and hours, not as the AM, PM or Night asked for.
- */
-export function venueSlotBlocked(blocked: readonly SlotCodeOnDate[]): VenueSlotBlockedError {
-  return new VenueSlotBlockedError(blocked, timeSpans(blocked));
 }
 
 /** A booking as the flagging rule sees it. */

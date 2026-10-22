@@ -43,8 +43,8 @@ const BOOKING_ROW: BookingReviewRow = {
   venue_location: "Main Hall",
   room_layout_name: "Theatre",
   slots: [
-    { date: "2026-10-22", slot: "AM" },
-    { date: "2026-10-22", slot: "PM" },
+    { date: "2026-10-22", start: "07:00:00", end: "12:00:00" },
+    { date: "2026-10-22", start: "13:00:00", end: "18:00:00" },
   ],
   requested_by_name: "Test Coordinator",
   requested_at: "2026-10-01T00:00:00Z",
@@ -73,7 +73,7 @@ const BOOKING_ROW: BookingReviewRow = {
 
 const REFUSED_OVER_BLOCK = {
   data: null,
-  error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 PM" },
+  error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 13:00–13:15" },
 };
 
 describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () => {
@@ -92,11 +92,13 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
       .catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(VenueSlotBlockedError);
-    expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "PM" }]);
-    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 13:00 to 18:00");
+    expect((error as VenueSlotBlockedError).times).toEqual([
+      { date: "2026-10-22", start: "13:00", end: "18:00" },
+    ]);
+    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 13:00–18:00");
   });
 
-  it("falls back to the slot the function named when a lift landed in between", async () => {
+  it("falls back to the time the function named when a lift landed in between", async () => {
     const { client } = fakeClient({
       venue_staff_decide_booking: REFUSED_OVER_BLOCK,
       venue_staff_bookings: { data: [BOOKING_ROW], error: null },
@@ -107,7 +109,9 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
       .decide(APPROVED)
       .catch((e: unknown) => e);
 
-    expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "PM" }]);
+    expect((error as VenueSlotBlockedError).times).toEqual([
+      { date: "2026-10-22", start: "13:00", end: "13:15" },
+    ]);
   });
 
   it("still maps CS025 to the slot-taken error, not the blocked one", async () => {

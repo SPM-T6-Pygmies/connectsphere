@@ -20,7 +20,7 @@ function booking(status: BookingStatus, holdExpiresAt: string | null): BookingFo
     venueId: venueId("v1"),
     venueLocation: "Venue v1",
     roomLayoutName: null,
-    slots: [{ date: "2026-10-22", slot: "AM" }],
+    times: [{ date: "2026-10-22", start: "07:00", end: "12:00" }],
     requestedByName: "Coordinator",
     requestedAt: "2026-10-01T00:00:00.000Z",
     decidedByName: null,

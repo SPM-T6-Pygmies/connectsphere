@@ -210,7 +210,7 @@ flagging leaves Requested bookings to it.
 **Expected Result:**
 - Step 1: the list names *Flag Test: Second Event*, F PM, Requested.
 - Step 2: no **Flagged for review** section.
-- Step 3: the approval is refused: "The venue is unavailable F 13:00 to 18:00. Choose other times or another venue." The booking is still **Requested**.
+- Step 3: the approval is refused: "The venue is unavailable for F 13:00–18:00. Choose other times or another venue." The booking is still **Requested**.
 - Step 4: the booking is **Rejected**.
 - Step 5: one `Sent` notice for the Coordinator, "Rooftop Terrace rejected for Flag Test: Second Event", with Venue Staff's note as the reason.
 

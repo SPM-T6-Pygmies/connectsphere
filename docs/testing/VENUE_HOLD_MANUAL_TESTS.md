@@ -184,7 +184,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 1: refused, naming the date T + 2 and "Night"; the booking stays **Requested** (AC2).
-- Step 2: refused with "The venue is unavailable <T + 6> 07:00 to 12:00" (AC2).
+- Step 2: refused with "The venue is unavailable for <T + 6> 07:00–12:00" (AC2).
 - Step 3: both are `Requested` with no expiry, and no audit rows (AC2).
 
 **Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
@@ -360,7 +360,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 2: the card still reads "On hold until …" and offers **Confirm hold** and **Release hold**: a block does not change an existing hold.
-- Step 3: refused with "The venue is unavailable <day H> 07:00 to 12:00. Choose other times or another venue."; booking D stays on hold (AC7).
+- Step 3: refused with "The venue is unavailable for <day H> 07:00–12:00. Choose other times or another venue."; booking D stays on hold (AC7).
 - Step 4: accepted: the card reads "Already decided — Released by Test Venue Staff" (AC7).
 - Step 5: `Released`; the audit rows are `hold` then `release hold`, with no `confirm hold`: the refused confirmation wrote nothing (AC7).
 

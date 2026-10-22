@@ -1,4 +1,4 @@
-import { SLOT_HOURS, type BookingSlot } from "./booking";
+import { slotTime } from "./booking";
 import { END_OF_DAY, fromMinutes, GRID_MINUTES, isOnGrid, overlaps, toMinutes, type TimeRange } from "./time-of-day";
 
 /**
@@ -12,20 +12,10 @@ export interface SlotCodeOnDate {
   readonly slot: string;
 }
 
-/** The last 15-minute code of a day: '95' is 23:45 to 24:00. */
-const LAST_CODE = END_OF_DAY / GRID_MINUTES - 1;
-
 /** The `slot` table's hours for one code. Throws on a code the table does not have. */
 export function slotCodeRange(code: string): TimeRange {
-  if (code in SLOT_HOURS) {
-    const { start, end } = SLOT_HOURS[code as BookingSlot];
-    return { start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 };
-  }
-  const n = Number(code);
-  if (Number.isInteger(n) && String(n) === code && n >= 0 && n <= LAST_CODE) {
-    return { start: n * GRID_MINUTES, end: (n + 1) * GRID_MINUTES };
-  }
-  throw new Error(`Unknown slot code "${code}"`);
+  const { start, end } = slotTime({ date: "", slot: code });
+  return { start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 };
 }
 
 /**

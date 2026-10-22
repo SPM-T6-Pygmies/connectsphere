@@ -9,7 +9,7 @@ describe("venueBookingRequestedInApp (SPM-61)", () => {
       bookingId: "31",
       eventName: "Harbour Lights Gala",
       venueLocation: "Grand Ballroom",
-      slots: [{ date: "2026-11-20", slot: "PM" }],
+      times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     });
 
     expect(inApp.redirect).toEqual({ url: "/staff/venue/31", target: "_self" });

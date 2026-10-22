@@ -221,7 +221,7 @@ The request is still **Requested**: a block does not change existing bookings.
 2. Reload the page.
 
 **Expected Result:**
-- The form shows *The venue is unavailable 2026-12-08 07:00 to 12:00. Choose
+- The form shows *The venue is unavailable for 2026-12-08 07:00–12:00. Choose
   other times or another venue.*, the same words the coordinator gets for a
   blocked time
 - After reload the booking is still **Requested**, with the decision form

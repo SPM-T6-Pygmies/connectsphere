@@ -10,6 +10,7 @@ import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-
 import { InMemoryVenueStaffDirectory } from "@/adapters/outbound/in-memory/in-memory-venue-staff-directory";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
+import { slotTime } from "@/core/domain/booking";
 import { VenueSlotBlockedError } from "@/core/domain/errors";
 import { venueId, type Venue } from "@/core/domain/venue";
 
@@ -69,8 +70,15 @@ function build() {
   };
 }
 
+/** A request for each slot's hours, so it reads against the AM, PM and Night blocks. */
 function request(slots: ReadonlyArray<{ date: string; slot: "AM" | "PM" | "Night" }>) {
-  return { eventId: "event-1", userAccountId: COORDINATOR, venueId: "venue-hall", roomLayout: "Theatre", slots };
+  return {
+    eventId: "event-1",
+    userAccountId: COORDINATOR,
+    venueId: "venue-hall",
+    roomLayout: "Theatre",
+    times: slots.map(slotTime),
+  };
 }
 
 const BLOCK = {
@@ -103,7 +111,7 @@ describe("a booking request over a venue block (SPM-270)", () => {
     const error = await submit.execute(request([{ date: "2026-10-19", slot: "AM" }])).catch((e: unknown) => e);
 
     expect((error as VenueSlotBlockedError).message).toBe(
-      "The venue is unavailable 2026-10-19 09:00 to 11:30. Choose other times or another venue.",
+      "The venue is unavailable for 2026-10-19 09:00–11:30. Choose other times or another venue.",
     );
   });
 

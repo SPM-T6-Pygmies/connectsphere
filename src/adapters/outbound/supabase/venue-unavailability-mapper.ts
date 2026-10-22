@@ -5,7 +5,7 @@ import { slotCodeRange } from "@/core/domain/slot-grid";
 import { venueId } from "@/core/domain/venue";
 import type { AffectedBooking } from "@/core/ports/outbound/venue-unavailability-repository";
 
-import { toDate, toSlot, toStatus } from "./booking-mapper";
+import { toBookingTimes, toDate, toStatus } from "./booking-mapper";
 
 /** One block in the JSON `venue_staff_unavailability()` returns. */
 export interface VenueUnavailabilityRow {
@@ -24,13 +24,17 @@ export interface VenueUnavailabilityRow {
   slots: ReadonlyArray<{ date: string; slot: string }>;
 }
 
-/** One booking in the JSON `venue_staff_unavailability_affected()` returns. */
+/**
+ * One booking slot in the JSON `venue_staff_unavailability_affected()`
+ * returns, with its hours (SPM-324). A booking has a row per slot.
+ */
 export interface AffectedBookingRow {
   booking_id: number;
   event_name: string;
   status: string;
   date: string;
-  slot: string;
+  start: string;
+  end: string;
 }
 
 /** One slot in the JSON `venue_blocked_slots()` returns. */
@@ -79,14 +83,24 @@ export function toVenueUnavailabilityEntry(row: VenueUnavailabilityRow): VenueUn
   };
 }
 
-export function toAffectedBooking(row: AffectedBookingRow): AffectedBooking {
-  return {
-    bookingId: String(row.booking_id) as BookingId,
-    eventName: row.event_name,
-    status: toStatus(row.status),
-    date: toDate(row.date),
-    slot: toSlot(row.slot),
-  };
+/** Each booking's slots joined into the times the block sits over, in date then start order. */
+export function toAffectedBookings(rows: readonly AffectedBookingRow[]): AffectedBooking[] {
+  const byBooking = new Map<number, AffectedBookingRow[]>();
+  for (const row of rows) {
+    byBooking.set(row.booking_id, [...(byBooking.get(row.booking_id) ?? []), row]);
+  }
+  return [...byBooking.values()]
+    .flatMap((booking) =>
+      toBookingTimes(booking).map(({ date, start, end }) => ({
+        bookingId: String(booking[0].booking_id) as BookingId,
+        eventName: booking[0].event_name,
+        status: toStatus(booking[0].status),
+        date,
+        start,
+        end,
+      })),
+    )
+    .sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
 }
 
 /** The arguments of `venue_staff_record_unavailability`; null when the venue id is not one this store issued. */

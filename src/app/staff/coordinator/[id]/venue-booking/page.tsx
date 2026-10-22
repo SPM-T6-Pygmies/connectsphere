@@ -32,6 +32,7 @@ import type {
 
 import { EmptyState, FieldList } from "../../../field-list";
 import { formatHoldExpiry } from "../../../hold-expiry";
+import { formatTimes } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
@@ -77,7 +78,7 @@ function BookingsTable({
       <TableHeader>
         <TableRow>
           <TableHead>Venue</TableHead>
-          <TableHead>Slots</TableHead>
+          <TableHead>Times</TableHead>
           <TableHead>Layout</TableHead>
           <TableHead>Suitability</TableHead>
           <TableHead>Status</TableHead>
@@ -105,7 +106,7 @@ function BookingsTable({
                 ) : null}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs whitespace-normal">
-                {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
+                {formatTimes(booking.times)}
               </TableCell>
               <TableCell className="text-muted-foreground whitespace-normal">
                 <div className="space-y-2">
@@ -253,8 +254,8 @@ export default async function VenueBookingPage({
             <CardHeader>
               <CardTitle>New booking request</CardTitle>
               <CardDescription>
-                Venues are booked in AM, PM and Night slots. A slot another
-                event already holds cannot be requested.
+                Venues are booked by start and end time, on the quarter hour.
+                Time another event already holds cannot be requested.
               </CardDescription>
             </CardHeader>
             <CardContent>

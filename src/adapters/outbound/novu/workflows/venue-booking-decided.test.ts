@@ -12,7 +12,7 @@ function notice(overrides: Partial<VenueBookingDecidedNotice> = {}): VenueBookin
     eventRequestId: "6",
     eventName: "Harbour Lights Gala",
     venueLocation: "Grand Ballroom",
-    slots: [{ date: "2026-11-20", slot: "PM" }],
+    times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     outcome: "Rejected",
     reason: "Closed for resurfacing.",
     suggestedAlternativeLocation: "Main Hall",

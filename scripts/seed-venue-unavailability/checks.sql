@@ -101,26 +101,40 @@ begin
   v_checks := v_checks + 1;
   if v_n <> 0 then v_failed := array_append(v_failed, 'AC14 a day with no block is busy'); end if;
 
-  -- AC12: a new booking whose hours the block reaches is refused with CS028 naming date and slot.
-  -- The block is 09:00-10:00 and AM is 07:00-12:00: they share time, though the codes differ.
+  -- AC12: a new booking over the blocked slot is refused with CS028 naming date and time
   begin
     insert into public.booking (venue_id, event_id, requested_by_user_account_id)
     values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'AM');
+    -- AM is 07:00-12:00 as 15-minute slots (SPM-324); the block is 09:00-10:00, so they share time.
+    insert into public.booking_slot (booking_id, slot_date, slot)
+    select v_booking, v_day, g.slot_code
+    from public.slot s
+    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+    where s.slot_code = 'AM';
     v_checks := v_checks + 1; v_failed := array_append(v_failed, 'AC12 booking over a block was accepted');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate, v_msg = message_text;
     v_checks := v_checks + 1;
-    if v_code <> 'CS028' or v_msg not like '%' || v_day::text || ' AM%' then
+    -- The trigger names the first 15-minute slot it refuses: the block starts at 09:00 (SPM-324).
+    if v_code <> 'CS028' or v_msg not like '%' || v_day::text || ' 09:00–09:15%' then
       v_failed := array_append(v_failed, ('AC12 gave ' || v_code || ' ' || v_msg)); end if;
   end;
 
   -- AC13: slots on the blocked day the block does not reach, and the day after the block, are accepted
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'PM');
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'Night');
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day + 2, 'AM');
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_booking, v_day, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code in ('PM', 'Night');
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_booking, v_day + 2, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code = 'AM';
   v_checks := v_checks + 1;
 
   -- AC19: an overlapping second block saves
@@ -143,7 +157,12 @@ begin
   begin
     insert into public.booking (venue_id, event_id, requested_by_user_account_id)
     values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day + 1, 'AM');
+    -- The slot's hours as 15-minute slots (SPM-324).
+    insert into public.booking_slot (booking_id, slot_date, slot)
+    select v_booking, v_day + 1, g.slot_code
+    from public.slot s
+    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+    where s.slot_code = 'AM';
     v_checks := v_checks + 1; v_failed := array_append(v_failed, 'AC15 slot another block covers was accepted');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate;
@@ -152,7 +171,12 @@ begin
   end;
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'AM');
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_booking, v_day, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code = 'AM';
   v_checks := v_checks + 1;
 
   -- AC17: lifting twice is refused
@@ -184,7 +208,9 @@ begin
        from public.booking_slot bs join public.booking b using (booking_id)
       where b.event_id = v_event and b.status = 'Confirmed'));
   v_checks := v_checks + 1;
-  if jsonb_array_length(v_json) <> 1 or v_json -> 0 ->> 'event_name' <> 'UAT-44 Booked Harbour' then
+  -- One entry per affected 15-minute slot, all of the one booking (SPM-324).
+  if (select count(distinct e ->> 'booking_id') from jsonb_array_elements(v_json) e) <> 1
+     or v_json -> 0 ->> 'event_name' <> 'UAT-44 Booked Harbour' then
     v_failed := array_append(v_failed, 'AC11 the confirmed booking is not listed as affected'); end if;
 
   -- SPM-321: the same block twice (venue, reason, days and times) is refused (CS079); a different
@@ -244,7 +270,7 @@ begin
   begin
     insert into public.booking (venue_id, event_id, requested_by_user_account_id)
     values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day + 5, 'AM');
+    insert into public.booking_slot (booking_id, slot_date, slot) select v_booking, v_day + 5, n::text from generate_series(28, 47) n;
     v_checks := v_checks + 1; v_failed := array_append(v_failed, 'SPM-321 a quarter hour of AM was not refused');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate;
@@ -253,22 +279,22 @@ begin
   end;
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day + 5, 'PM');
+  insert into public.booking_slot (booking_id, slot_date, slot) select v_booking, v_day + 5, n::text from generate_series(52, 71) n;
   v_checks := v_checks + 1;
   v_second := public.venue_staff_record_unavailability(v_staff, v_venue, 'Safety', null,
     jsonb_build_array(jsonb_build_object('date', v_day + 6, 'slot', '48')));          -- 12:00-12:15
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day + 6, 'AM');
+  insert into public.booking_slot (booking_id, slot_date, slot) select v_booking, v_day + 6, n::text from generate_series(28, 47) n;
   v_checks := v_checks + 1;                                                           -- accepted: it only touches AM
 
   -- SPM-321: approving or holding a Requested booking over a block recorded after the request is refused
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_request;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_request, v_day + 10, 'AM');
+  insert into public.booking_slot (booking_id, slot_date, slot) select v_request, v_day + 10, n::text from generate_series(28, 47) n;
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_hold;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_hold, v_day + 11, 'AM');
+  insert into public.booking_slot (booking_id, slot_date, slot) select v_hold, v_day + 11, n::text from generate_series(28, 47) n;
   perform public.venue_staff_decide_booking(v_staff, v_hold, 'hold', null, null, now() + interval '2 days');
   perform public.venue_staff_record_unavailability(v_staff, v_venue, 'Maintenance', null,
     (select jsonb_agg(jsonb_build_object('date', d, 'slot', n::text) order by d, n)
@@ -311,8 +337,8 @@ begin
   v_json := public.venue_staff_unavailability_affected(v_staff, v_venue,
     jsonb_build_array(jsonb_build_object('date', v_day + 10, 'slot', '36')));
   v_checks := v_checks + 1;
-  if jsonb_array_length(v_json) <> 1 or v_json -> 0 ->> 'slot' <> 'AM' then
-    v_failed := array_append(v_failed, 'SPM-321 a block on 09:00-09:15 does not list the AM request it sits over'); end if;
+  if jsonb_array_length(v_json) <> 1 or v_json -> 0 ->> 'start' <> '09:00:00' then
+    v_failed := array_append(v_failed, 'SPM-321 a block on 09:00-09:15 does not list the AM request, at its shared quarter hour, got ' || v_json::text); end if;
 
   if cardinality(v_failed) = 0 then
     raise exception 'ok: all % checks held', v_checks;
