@@ -29,7 +29,6 @@ import {
   CancelledEventBookingError,
   DecisionReasonRequiredError,
   DuplicateBookingDateError,
-  DuplicateBookingSlotError,
   HoldNotLiveError,
   HoldSlotStartedError,
   IncompleteBookingTimeError,
@@ -88,7 +87,8 @@ function request(
     eventStatus,
     venue: venue(),
     roomLayout: layout,
-    slots,
+    // Each slot asked for as its hours (SPM-324).
+    times: slots.map(slotTime),
     requestedBy: userAccountId("coordinator-1"),
     occupied: existing,
     now: NOW,
@@ -96,28 +96,26 @@ function request(
 }
 
 describe("requestVenueBooking (SPM-46)", () => {
-  it("records one venue, one slot and the event as a Requested booking (AC1)", () => {
+  it("records one venue, one time and the event as a Requested booking (AC1)", () => {
     expect(request([{ date: "2026-10-05", slot: "AM" }])).toEqual({
       eventId: "event-1",
       venueId: "venue-1",
       roomLayout: THEATRE,
-      slots: [{ date: "2026-10-05", slot: "AM" }],
+      times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       requestedBy: "coordinator-1",
       status: "Requested",
     });
   });
 
-  it("takes several slots on several days, in date then slot order (AC1)", () => {
+  it("takes a time on each of several days, in date order (AC1)", () => {
     const booking = request([
       { date: "2026-10-06", slot: "AM" },
       { date: "2026-10-05", slot: "Night" },
-      { date: "2026-10-05", slot: "AM" },
     ]);
 
-    expect(booking.slots).toEqual([
-      { date: "2026-10-05", slot: "AM" },
-      { date: "2026-10-05", slot: "Night" },
-      { date: "2026-10-06", slot: "AM" },
+    expect(booking.times).toEqual([
+      { date: "2026-10-05", start: "19:00", end: "24:00" },
+      { date: "2026-10-06", start: "07:00", end: "12:00" },
     ]);
   });
 
@@ -125,16 +123,16 @@ describe("requestVenueBooking (SPM-46)", () => {
     expect(() => request([])).toThrow(NoBookingSlotsError);
   });
 
-  it("refuses the same slot on the same day twice", () => {
+  it("refuses the same day twice", () => {
     expect(() =>
       request([
         { date: "2026-10-05", slot: "PM" },
         { date: "2026-10-05", slot: "PM" },
       ]),
-    ).toThrow(DuplicateBookingSlotError);
+    ).toThrow(DuplicateBookingDateError);
   });
 
-  it.each(["2026-02-30", "2026-13-01", "05/10/2026", ""])(
+  it.each(["2026-02-30", "2026-13-01", "05/10/2026"])(
     "refuses %j, which is not a calendar date",
     (date) => {
       expect(() => request([{ date, slot: "AM" }])).toThrow(InvalidBookingDateError);
@@ -147,12 +145,12 @@ describe("requestVenueBooking (SPM-46)", () => {
     ).toThrow(VenueSlotUnavailableError);
   });
 
-  it("names only the clashing slots when some of a multi-slot request are free (AC4)", () => {
+  it("names only the clashing times when some of a request's dates are free (AC4)", () => {
     let caught: unknown;
     try {
       request(
         [
-          { date: "2026-10-05", slot: "AM" },
+          { date: "2026-10-04", slot: "AM" },
           { date: "2026-10-05", slot: "PM" },
           { date: "2026-10-06", slot: "AM" },
         ],
@@ -214,8 +212,8 @@ describe("requestVenueBooking (SPM-46)", () => {
   it("allows the adjacent slot to a Confirmed booking (buffers are a known gap, #123)", () => {
     expect(
       request([{ date: "2026-10-05", slot: "PM" }], [occupied("2026-10-05", "AM", "Confirmed")])
-        .slots,
-    ).toEqual([{ date: "2026-10-05", slot: "PM" }]);
+        .times,
+    ).toEqual([{ date: "2026-10-05", start: "13:00", end: "18:00" }]);
   });
 
   it("allows the same slot on a different day", () => {
@@ -245,17 +243,17 @@ describe("requestVenueBooking over closed time (SPM-334)", () => {
       eventStatus: "Planning",
       venue: { ...venue(), openingHours },
       roomLayout: THEATRE,
-      slots,
+      times: slots.map(slotTime),
       requestedBy: userAccountId("coordinator-1"),
       occupied: [],
       now: NOW,
     });
   }
 
-  it("accepts slots that fall exactly within the opening windows, ending at 24:00", () => {
+  it("accepts times that fall exactly within the opening windows, ending at 24:00", () => {
     const booking = requestAt(AM_AND_NIGHT, [
       { date: "2026-10-05", slot: "AM" },
-      { date: "2026-10-05", slot: "Night" },
+      { date: "2026-10-06", slot: "Night" },
     ]);
 
     expect(booking.status).toBe("Requested");

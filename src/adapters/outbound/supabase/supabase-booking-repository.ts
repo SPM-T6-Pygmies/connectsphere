@@ -1,7 +1,6 @@
 import {
   blockedTimes,
   clashingTimes,
-  slotTime,
   type BookingId,
   type BookingRequest,
   type OccupiedTime,
@@ -138,14 +137,14 @@ export class SupabaseBookingRepository implements BookingRepository {
         case SLOTS_INVALID:
           // The domain refuses these before the call; reaching here means the
           // two disagree, and the date is the likeliest culprit.
-          throw request.slots.length === 0
+          throw request.times.length === 0
             ? new NoBookingSlotsError()
-            : new InvalidBookingDateError(request.slots.map(({ date }) => date).join(", "));
+            : new InvalidBookingDateError(request.times.map(({ date }) => date).join(", "));
         case SLOT_TAKEN:
           throw new VenueSlotUnavailableError(await this.takenOf(request));
         case SLOT_BLOCKED:
           throw new VenueSlotBlockedError(
-            await this.blockedOf(request.venueId, request.slots.map(slotTime), error.message),
+            await this.blockedOf(request.venueId, request.times, error.message),
           );
         default:
           throw new Error(`Failed to submit the booking request: ${error.message}`, {
@@ -234,9 +233,9 @@ export class SupabaseBookingRepository implements BookingRepository {
   private async takenOf(request: BookingRequest) {
     const occupied = await this.listSlotsAt(
       request.venueId,
-      [...new Set(request.slots.map(({ date }) => date))],
+      [...new Set(request.times.map(({ date }) => date))],
     );
-    return clashingTimes(request.slots.map(slotTime), occupied, new Date());
+    return clashingTimes(request.times, occupied, new Date());
   }
 
   /**

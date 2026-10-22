@@ -1,7 +1,6 @@
 import {
   blockedTimes,
   bookingCancellable,
-  slotTime,
   type BookingId,
   type BookingRequest,
   type OccupiedTime,
@@ -94,9 +93,8 @@ export class InMemoryBookingRepository implements BookingRepository {
    * (SPM-21 AC12), whatever the use case checked first.
    */
   async submit(request: BookingRequest): Promise<BookingId> {
-    const times = request.slots.map(slotTime);
     const refused = blockedTimes(
-      times,
+      request.times,
       this.blocks.blockedSlots().filter((slot) => slot.venueId === request.venueId),
     );
     if (refused.length > 0) {
@@ -111,7 +109,7 @@ export class InMemoryBookingRepository implements BookingRepository {
       venueLocation: this.venueLocations.get(request.venueId) ?? request.venueId,
       roomLayoutName: request.roomLayout,
       status: request.status,
-      times,
+      times: request.times,
       requestedBy: request.requestedBy,
       requestedAt: "2026-09-28T00:00:00.000Z",
     });

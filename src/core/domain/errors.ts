@@ -342,7 +342,7 @@ export class NoBookingSlotsError extends DomainError {
   readonly code = "no_booking_slots";
 
   constructor() {
-    super("Choose at least one slot to book.");
+    super("Choose at least one date and time to book.");
   }
 }
 
@@ -351,17 +351,6 @@ export class InvalidBookingDateError extends DomainError {
 
   constructor(readonly date: string) {
     super(`"${date}" is not a valid date.`);
-  }
-}
-
-export class DuplicateBookingSlotError extends DomainError {
-  readonly code = "duplicate_booking_slot";
-
-  constructor(
-    readonly date: string,
-    readonly slot: string,
-  ) {
-    super(`${date} ${slot} is requested more than once.`);
   }
 }
 

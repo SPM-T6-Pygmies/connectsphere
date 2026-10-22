@@ -7,7 +7,6 @@ import {
   CancelledEventBookingError,
   DecisionReasonRequiredError,
   DuplicateBookingDateError,
-  DuplicateBookingSlotError,
   HoldNotLiveError,
   HoldSlotStartedError,
   IncompleteBookingTimeError,
@@ -93,11 +92,7 @@ export interface SlotOnDate {
   readonly slot: BookingSlot;
 }
 
-/**
- * The hours `slot` covers on its date. A request still names AM, PM or Night
- * until it is made by time (SPM-324); everything it is checked against is
- * already time.
- */
+/** The hours `slot` covers on its date, so a block's slot can be compared with a booking's time. */
 export function slotTime({ date, slot }: SlotOnDate): TimeRangeOnDate {
   return { date, ...SLOT_HOURS[slot] };
 }
@@ -118,8 +113,8 @@ export interface BookingRequest {
    * the catalogue keeps them (SPM-42). Null only when the venue has none.
    */
   readonly roomLayout: string | null;
-  /** Sorted by date, then by slot within the day. */
-  readonly slots: readonly SlotOnDate[];
+  /** One start and end time per date, sorted by date (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
   readonly requestedBy: UserAccountId;
   readonly status: "Requested";
 }
@@ -166,18 +161,6 @@ export function isCalendarDate(raw: string): boolean {
   }
   const parsed = new Date(`${raw}T00:00:00.000Z`);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === raw;
-}
-
-function slotKey({ date, slot }: SlotOnDate): string {
-  return `${date}|${slot}`;
-}
-
-function compareSlots(a: SlotOnDate, b: SlotOnDate): number {
-  return a.date === b.date
-    ? BOOKING_SLOTS.indexOf(a.slot) - BOOKING_SLOTS.indexOf(b.slot)
-    : a.date < b.date
-      ? -1
-      : 1;
 }
 
 /**
@@ -370,16 +353,17 @@ function sharedTimes(
 }
 
 /**
- * SPM-46: an Event Coordinator asks Venue Staff for one venue, on one or more
- * slots across one or more days, for one event.
+ * SPM-46, SPM-324: an Event Coordinator asks Venue Staff for one venue, at a
+ * start and end time on each of one or more dates, for one event. The times
+ * follow `defineBookingTimes`.
  *
- * A slot the venue is closed for, even in part, refuses the request, naming
+ * A time the venue is closed for, even in part, refuses the request, naming
  * the closed time (SPM-334).
  *
- * `occupied` is what the venue already carries on the requested days. A clash
- * with a live hold or confirmed booking refuses the request outright (#35,
- * #41); clashing with another pending request, or a hold that expired before
- * `now`, does not.
+ * `occupied` is what the venue already carries on the requested days. Overlap
+ * with a live hold or confirmed booking by any amount refuses the request
+ * outright, naming the overlap (#35, #41, SPM-324 AC2); clashing with another
+ * pending request, or a hold that expired before `now`, does not.
  *
  * SPM-55 AC6: a Cancelled event takes no new requests, whatever else it asks
  * for. `coordinator_submit_booking_request` restates this under a lock on the
@@ -390,7 +374,7 @@ export function requestVenueBooking(input: {
   readonly eventStatus: CoordinatorEventStatus;
   readonly venue: Venue;
   readonly roomLayout: string | null;
-  readonly slots: readonly SlotOnDate[];
+  readonly times: readonly BookingTimeInput[];
   readonly requestedBy: UserAccountId;
   readonly occupied: readonly OccupiedTime[];
   readonly now: Date;
@@ -399,37 +383,21 @@ export function requestVenueBooking(input: {
     throw new CancelledEventBookingError();
   }
 
-  if (input.slots.length === 0) {
-    throw new NoBookingSlotsError();
-  }
-
-  const seen = new Set<string>();
-  for (const slot of input.slots) {
-    if (!isCalendarDate(slot.date)) {
-      throw new InvalidBookingDateError(slot.date);
-    }
-    const key = slotKey(slot);
-    if (seen.has(key)) {
-      throw new DuplicateBookingSlotError(slot.date, slot.slot);
-    }
-    seen.add(key);
-  }
+  const times = defineBookingTimes(input.times);
 
   const roomLayout = chooseRoomLayout(input.venue, input.roomLayout);
 
-  const closed = [...input.slots]
-    .sort(compareSlots)
-    .flatMap(({ date, slot }) =>
-      closedPeriods(input.venue.openingHours, slotRange(slot)).map((range) => ({
-        date,
-        time: formatRange(range),
-      })),
-    );
+  const closed = times.flatMap((time) =>
+    closedPeriods(input.venue.openingHours, minutesOf(time)).map((range) => ({
+      date: time.date,
+      time: formatRange(range),
+    })),
+  );
   if (closed.length > 0) {
     throw new VenueClosedError(closed);
   }
 
-  const clashes = clashingTimes(input.slots.map(slotTime), input.occupied, input.now);
+  const clashes = clashingTimes(times, input.occupied, input.now);
   if (clashes.length > 0) {
     throw new VenueSlotUnavailableError(clashes);
   }
@@ -438,7 +406,7 @@ export function requestVenueBooking(input: {
     eventId: input.eventId,
     venueId: input.venue.id,
     roomLayout,
-    slots: [...input.slots].sort(compareSlots),
+    times,
     requestedBy: input.requestedBy,
     status: "Requested",
   };

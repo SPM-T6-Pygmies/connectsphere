@@ -6,6 +6,7 @@ import {
   type OccupiedTime,
 } from "@/core/domain/booking";
 import { joinSlots, type TimeRangeOnDate } from "@/core/domain/event-times";
+import { slotCodes, toMinutes } from "@/core/domain/time-of-day";
 import type { UserAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 import type { EventBookingSummary } from "@/core/ports/outbound/booking-repository";
@@ -123,7 +124,8 @@ export interface SubmitBookingArgs {
   p_venue_id: number;
   /** The layout's name; the function resolves it to the venue's own layout. */
   p_room_layout: string | null;
-  p_slots: ReadonlyArray<{ date: string; slot: BookingSlot }>;
+  /** One entry per 15-minute slot the times cover, coded '0' to '95' (SPM-324). */
+  p_slots: ReadonlyArray<{ date: string; slot: string }>;
 }
 
 /** Null when an id is not one this store could have issued. */
@@ -141,7 +143,9 @@ export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs 
     p_event_id: event,
     p_venue_id: venue,
     p_room_layout: request.roomLayout,
-    p_slots: request.slots.map(({ date, slot }) => ({ date, slot })),
+    p_slots: request.times.flatMap(({ date, start, end }) =>
+      slotCodes({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot })),
+    ),
   };
 }
 

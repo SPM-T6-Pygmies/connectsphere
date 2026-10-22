@@ -1,4 +1,4 @@
-import { requestVenueBooking, slotTime, type BookingSlot } from "../domain/booking";
+import { requestVenueBooking, type BookingTimeInput } from "../domain/booking";
 import { CoordinatorEventNotFoundError, VenueNotFoundError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
@@ -16,7 +16,8 @@ export interface SubmitVenueBookingRequestCommand {
   readonly venueId: string;
   /** The name of a layout the venue supports; null when the form offered no choice. */
   readonly roomLayout: string | null;
-  readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: BookingSlot }>;
+  /** One start and end time per date, as entered; a blank is `""` (SPM-324). */
+  readonly times: readonly BookingTimeInput[];
 }
 
 export interface SubmitVenueBookingRequestResult {
@@ -40,7 +41,7 @@ export interface SubmitVenueBookingRequestDeps {
  *
  * Only the coordinator planning the event may ask; anyone else is told the
  * event does not exist (#91). Whether the layout is needed and supported,
- * and whether a slot is already held, are `requestVenueBooking`'s calls --
+ * and whether the time is already held, are `requestVenueBooking`'s calls --
  * this file only gathers what it needs to decide.
  *
  * SPM-61: once the request is saved, every Venue Staff member is told, so it
@@ -65,7 +66,7 @@ export class SubmitVenueBookingRequestUseCase {
       throw new VenueNotFoundError();
     }
 
-    const dates = [...new Set(command.slots.map(({ date }) => date))];
+    const dates = [...new Set(command.times.map(({ date }) => date.trim()).filter((date) => date !== ""))];
     const occupied = dates.length === 0 ? [] : await bookings.listSlotsAt(venue.id, dates);
 
     const request = requestVenueBooking({
@@ -73,7 +74,7 @@ export class SubmitVenueBookingRequestUseCase {
       eventStatus: event.status,
       venue,
       roomLayout: command.roomLayout,
-      slots: command.slots,
+      times: command.times,
       requestedBy,
       occupied,
       now: clock.now(),
@@ -87,7 +88,7 @@ export class SubmitVenueBookingRequestUseCase {
         bookingId,
         eventName: event.name,
         venueLocation: venue.location,
-        times: request.slots.map(slotTime),
+        times: request.times,
       });
     }
 

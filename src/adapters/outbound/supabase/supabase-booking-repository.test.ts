@@ -30,10 +30,10 @@ const REQUEST: BookingRequest = {
   eventId: "1",
   venueId: venueId("5"),
   roomLayout: "Theatre",
-  slots: [
-    { date: "2026-10-22", slot: "AM" },
-    { date: "2026-10-22", slot: "PM" },
-    { date: "2026-10-23", slot: "AM" },
+  times: [
+    { date: "2026-10-22", start: "07:00", end: "12:00" },
+    { date: "2026-10-22", start: "13:00", end: "18:00" },
+    { date: "2026-10-23", start: "07:00", end: "12:00" },
   ],
   requestedBy: userAccountId("2"),
   status: "Requested",

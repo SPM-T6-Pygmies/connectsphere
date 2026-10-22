@@ -130,7 +130,7 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
     eventId: "7",
     venueId: venueId("3"),
     roomLayout: "Banquet",
-    slots: [{ date: "2026-10-05", slot: "AM" }],
+    times: [{ date: "2026-10-05", start: "07:00", end: "07:45" }],
     requestedBy: userAccountId("2"),
     status: "Requested",
   };
@@ -141,7 +141,11 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
       p_event_id: 7,
       p_venue_id: 3,
       p_room_layout: "Banquet",
-      p_slots: [{ date: "2026-10-05", slot: "AM" }],
+      p_slots: [
+        { date: "2026-10-05", slot: "28" },
+        { date: "2026-10-05", slot: "29" },
+        { date: "2026-10-05", slot: "30" },
+      ],
     });
   });
 
@@ -289,5 +293,28 @@ describe("coordinator event mapper -- booking details (SPM-46)", () => {
     });
 
     expect(details.times).toEqual([]);
+  });
+});
+
+describe("booking mapper -- requested times as 15-minute slots (SPM-347)", () => {
+  it("sends one code per 15 minutes each time covers, on its own date", () => {
+    const request: BookingRequest = {
+      eventId: "7",
+      venueId: venueId("3"),
+      roomLayout: null,
+      times: [
+        { date: "2026-10-05", start: "07:00", end: "12:00" },
+        { date: "2026-10-06", start: "23:45", end: "24:00" },
+      ],
+      requestedBy: userAccountId("2"),
+      status: "Requested",
+    };
+
+    const slots = toSubmitBookingArgs(request)?.p_slots ?? [];
+
+    expect(slots.filter(({ date }) => date === "2026-10-05").map(({ slot }) => slot)).toEqual(
+      Array.from({ length: 20 }, (_, i) => String(28 + i)),
+    );
+    expect(slots.filter(({ date }) => date === "2026-10-06")).toEqual([{ date: "2026-10-06", slot: "95" }]);
   });
 });
