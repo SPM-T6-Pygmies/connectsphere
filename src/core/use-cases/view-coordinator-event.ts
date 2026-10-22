@@ -45,10 +45,10 @@ export interface ViewCoordinatorEventResult {
   readonly safetyCheckBlocker: SafetyCheckBlocker | null;
   /** SPM-51: whether the event can be marked completed now -- Confirmed, and its latest end time passed. */
   readonly canComplete: boolean;
-  /** SPM-313 AC4: each open reason one of the event's venue bookings is flagged for, oldest first. */
-  readonly flaggedBookings: readonly EventBookingFlag[];
   /** SPM-326 AC3: the ISO instant its latest end time passes, or null while it has no times. */
   readonly endsAt: string | null;
+  /** SPM-313 AC4: each open reason one of the event's venue bookings is flagged for, oldest first. */
+  readonly flaggedBookings: readonly EventBookingFlag[];
   /** SPM-55: whether the event can still be cancelled -- any stage before it is over. */
   readonly canCancel: boolean;
 }
@@ -116,8 +116,8 @@ export class ViewCoordinatorEventUseCase {
       blockingEquipment: blockingEquipment(readiness),
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
-      flaggedBookings,
       endsAt: eventEndsAt(details)?.toISOString() ?? null,
+      flaggedBookings,
       canCancel: canCancel(details),
     };
   }

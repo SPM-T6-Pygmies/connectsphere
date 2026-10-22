@@ -104,8 +104,8 @@ export default async function CoordinatorEventPage({
     blockingEquipment,
     safetyCheckBlocker,
     canComplete,
-    flaggedBookings,
     endsAt,
+    flaggedBookings,
     canCancel,
   } = result;
   const blockers = readiness.essentialArrangements.filter((arrangement) => !arrangement.complete);

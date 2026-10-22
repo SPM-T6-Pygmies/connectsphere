@@ -13,7 +13,13 @@ export interface SafetyCheckCandidateRow {
   preferred_date: string | null;
   expected_attendance: number | null;
   bookings: { status: BookingStatus; venue_location: string }[];
-  equipment_lines: { line_state: EquipmentLineState; quantity_requested: number; quantity_reserved: number }[];
+  equipment_lines: {
+    line_state: EquipmentLineState;
+    quantity_requested: number;
+    quantity_reserved: number;
+    /** SPM-319: the line's SPM-109 mark; false until the coordinator marks it. */
+    essential: boolean;
+  }[];
   checked: boolean;
 }
 
@@ -32,6 +38,7 @@ export function toSafetyCheckCandidate(row: SafetyCheckCandidateRow): SafetyChec
       state: line.line_state,
       quantityRequested: line.quantity_requested,
       quantityReserved: line.quantity_reserved,
+      essential: line.essential,
     })),
     checked: row.checked,
   };
