@@ -67,13 +67,11 @@ catalogue (`/staff/venue/catalogue`).
       free-text box. Projector and PA system are equipment, not facilities.
 - [x] **Accessibility** offers exactly Step-free access, Hearing loop,
       Accessible toilets, Lift access and Wheelchair seating, the same way.
-- [x] **Opening hours** shows one window with **Opens** and **Closes**, each an
-      hour and a minute picker, and an **Add opening window** button. No AM, PM
-      or Night appears anywhere on the form.
-- [x] After step 3, **Add venue** is still disabled; setting the window's
-      opening and closing times enables it.
-
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+- [ ] **Opening hours** shows one **Opens** and one **Closes**, each an hour and
+      a minute picker, and no way to add a second window: a venue opens once a
+      day. No AM, PM or Night appears anywhere on the form.
+- [ ] After step 3, **Add venue** is still disabled; setting the opening and
+      closing times enables it.
 
 ### TC-VCAT-002 Create a venue
 
@@ -81,18 +79,17 @@ catalogue (`/staff/venue/catalogue`).
 1. Click **Add venue**. Enter **Location** `UAT-42 Lecture Hall`, **Capacity**
    `250`, **Booking horizon (days)** `90`.
 2. Tick **Wi-Fi** and **Video-conferencing**; **Hearing loop** and **Lift
-   access**. Set the opening window to `07`:`00`–`12`:`00`, click **Add opening
-   window** and set the second to `13`:`00`–`18`:`00`.
+   access**. Set **Opens** to `07`:`00` and **Closes** to `18`:`00`.
 3. Set the layout to **Theatre**, capacity `200`. Click **Add venue**.
 
 **Expected Result**
-- [x] The catalogue lists `UAT-42 Lecture Hall` with capacity 250, **Layouts
-      (capacity)** showing Theatre 200, **Opening hours** `07:00–12:00,
-      13:00–18:00`, and facilities Wi-Fi and Video-conferencing.
-- [x] Opening it shows every value entered, including both accessibility
-      features and both opening windows.
+- [ ] The catalogue lists `UAT-42 Lecture Hall` with capacity 250, **Layouts
+      (capacity)** showing Theatre 200, **Opening hours** `07:00–18:00`, and
+      facilities Wi-Fi and Video-conferencing.
+- [ ] Opening it shows every value entered, including both accessibility
+      features and **Opens** `07:00`, **Closes** `18:00`.
 
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../screenshots/2026-10-09_TC-VCAT-002_step3-catalogue-row.png)).
 
 ### TC-VCAT-003 Layouts each carry their own capacity
@@ -119,21 +116,18 @@ Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: 
 
 **Steps**
 1. Open `UAT-42 Lecture Hall`.
-2. Untick **Video-conferencing**, tick **Catering area**, remove the
-   `07:00–12:00` window, click **Add opening window** and set it to
-   `19`:`00`–`24`:`00`, and change **Classroom** to `100`. Click **Save venue**.
+2. Untick **Video-conferencing**, tick **Catering area**, set **Opens** to
+   `13`:`00` and **Closes** to `24`:`00`, and change **Classroom** to `100`.
+   Click **Save venue**.
 3. Reload the page.
-4. Remove opening windows until one is left, and try to remove that one.
 
 **Expected Result**
-- [x] "Venue saved." appears.
-- [x] After the reload: Wi-Fi and Catering area ticked, Video-conferencing not;
-      opening windows `13:00–18:00` and `19:00–24:00`; Classroom 100. The
-      catalogue row shows **Opening hours** `13:00–18:00, 19:00–24:00`.
-- [x] Step 4: the last window's remove button is disabled, so a venue always
-      has at least one window.
+- [ ] "Venue saved." appears.
+- [ ] After the reload: Wi-Fi and Catering area ticked, Video-conferencing not;
+      **Opens** `13:00`, **Closes** `24:00`; Classroom 100. The catalogue row
+      shows **Opening hours** `13:00–24:00`.
 
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Screenshots, retaken 21/10/2026 on the same build: [step3-opening-windows-after-reload](../screenshots/2026-10-21_SPM-320_TC-VCAT-004_step3-opening-windows-after-reload.png)
 Earlier run on slots: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-edits-before-save](../screenshots/2026-10-09_TC-VCAT-004_step2-edits-before-save.png) · [step3-after-reload](../screenshots/2026-10-09_TC-VCAT-004_step3-after-reload.png) · [step4-save-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-004_step4-save-disabled-no-slot.png)
 

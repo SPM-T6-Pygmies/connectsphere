@@ -4,9 +4,13 @@
 
 Browser and database checks for **SPM-320 — Set a venue's opening hours in
 15-minute periods** (CR-W7-01, parent SPM-276). A venue's opening hours are one
-or more windows a day on the 15-minute grid, the same every day. They are
-stored as `venue_slot` rows, one per open 15-minute slot coded `'0'`–`'95'`,
-and joined back into windows for display.
+continuous window a day on the 15-minute grid, the same every day, with no break
+(team decision on brain Q12, 2026-10-22). They are stored as `venue_slot` rows,
+one per open 15-minute slot coded `'0'`–`'95'`, and joined back into a window for
+display.
+
+TC-VHOURS-003 (windows may not overlap) is retired: a venue now has one window,
+so there is no second one to overlap. TC-VHOURS-008 checks the one-window rule.
 
 The rules are covered by automated tests (`opening-hours.test.ts`,
 `time-of-day.test.ts`, `venue.test.ts`, `venue-schema.test.ts`,
@@ -28,11 +32,12 @@ them, tick the boxes below **and** report each in the PR description's
 | --- | --- | --- |
 | TC-VHOURS-001 | SPM-333 | AC1 — the picker stays on the 15-minute grid |
 | TC-VHOURS-002 | SPM-332 | AC2 — a window must end after it starts |
-| TC-VHOURS-003 | SPM-332 | AC2 — windows may not overlap |
+| ~~TC-VHOURS-003~~ | SPM-332 | Retired — windows may not overlap |
 | TC-VHOURS-004 | SPM-334 | AC3 — a request over closed time is refused |
 | TC-VHOURS-005 | SPM-331 | AC4 — AM, PM and Night convert to the slots they cover |
 | TC-VHOURS-006 | SPM-335 | AC5 — opening hours show as times |
-| TC-VHOURS-007 | SPM-331 | AC4 — neighbouring slots join into one window |
+| TC-VHOURS-007 | SPM-331 | AC4 — every venue's hours become one window |
+| TC-VHOURS-008 | SPM-332 | AC2 — a venue opens once a day |
 
 ---
 
@@ -44,7 +49,7 @@ them, tick the boxes below **and** report each in the PR description's
   `supabase db query --file scripts/seed-equipment/seed.sql --local`
 - Running: `pnpm dev:local`
 - TC-VCAT-002 and -004 run first, so **UAT-42 Lecture Hall** exists and is open
-  `13:00–18:00, 19:00–24:00`.
+  `13:00–24:00`.
 
 ### Test Accounts (password `TestPass123!`)
 - `venue@test.com` (Venue Staff)
@@ -55,7 +60,7 @@ them, tick the boxes below **and** report each in the PR description's
 
 ## Cases
 
-**Shared Pre-Conditions (001–003):** log in as `venue@test.com` and open
+**Shared Pre-Conditions (001, 002):** log in as `venue@test.com` and open
 **UAT-42 Lecture Hall** from the venue catalogue (`/staff/venue/catalogue`).
 
 ### TC-VHOURS-001 The picker stays on the 15-minute grid
@@ -76,31 +81,17 @@ them, tick the boxes below **and** report each in the PR description's
 ### TC-VHOURS-002 A window must end after it starts
 
 **Steps**
-1. Set the `13:00–18:00` window's **Closes** to `12`:`00`. Click **Save venue**.
-2. Set the same **Closes** to `13`:`00`. Click **Save venue**.
+1. Set **Closes** to `12`:`00`. Click **Save venue**.
+2. Set **Closes** to `13`:`00`. Click **Save venue**.
 3. Reload the page.
 
 **Expected Result**
-- [x] Step 1 is refused under the opening windows with "The window 13:00–12:00
+- [ ] Step 1 is refused under the opening hours with "The window 13:00–12:00
       must end after it starts."
-- [x] Step 2 is refused with "The window 13:00–13:00 must end after it starts."
-- [x] Step 3: the venue still has `13:00–18:00` and `19:00–24:00`; nothing was
-      saved.
+- [ ] Step 2 is refused with "The window 13:00–13:00 must end after it starts."
+- [ ] Step 3: the venue still opens `13:00` and closes `24:00`; nothing was saved.
 
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
-
-### TC-VHOURS-003 Windows may not overlap
-
-**Steps**
-1. Set the `19:00–24:00` window's **Opens** to `17`:`00`. Click **Save venue**.
-2. Reload the page.
-
-**Expected Result**
-- [x] Refused with "The windows 13:00–18:00 and 17:00–24:00 overlap."
-- [x] Step 2: the venue still has `13:00–18:00` and `19:00–24:00`.
-
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
-Screenshots, retaken 21/10/2026 on the same build: [step1-overlap-refused](../screenshots/2026-10-21_SPM-320_TC-VHOURS-003_step1-overlap-refused.png)
+Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VHOURS-004 A request over closed time is refused
 
@@ -109,21 +100,23 @@ Screenshots, retaken 21/10/2026 on the same build: [step1-overlap-refused](../sc
 yet.
 
 **Steps**
-1. Choose **UAT-42 Lecture Hall** (open `13:00–18:00, 19:00–24:00`). On
-   2026-12-12 tick **AM** only and click **Send booking request**.
-2. Untick **AM**, tick **PM** and **Night**, and send.
+1. Choose **UAT-42 Lecture Hall** (open `13:00–24:00`). On 2026-12-12 request
+   `07:00` to `12:00` and click **Send booking request**.
+2. Change the times to `12:45` to `13:30` and send.
+3. Change the times to `13:00` to `24:00` and send.
 
 **Expected Result**
-- [x] Step 1 is refused with "The venue is closed 2026-12-12 07:00–12:00.
+- [ ] Step 1 is refused with "The venue is closed 2026-12-12 07:00–12:00.
       Choose times within its opening hours or another venue." No request is
       added to *Booking requests for this event*.
-- [x] Step 2 is accepted: "Booking request sent for UAT-42 Lecture Hall", and
-      the request is listed as **Requested** with 2026-12-12 PM and Night.
+- [ ] Step 2 is refused, naming only the closed part: "The venue is closed
+      2026-12-12 12:45–13:00."
+- [ ] Step 3 is accepted: "Booking request sent for UAT-42 Lecture Hall", and
+      the request is listed as **Requested** with 2026-12-12 13:00–24:00.
 
 **Clean up:** `delete from booking where event_id = (select event_id from event where name = 'Founders'' Gala Dinner') and status = 'Requested';`
 
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
-Screenshots, retaken 21/10/2026 on the same build: [step1-closed-time-refused](../screenshots/2026-10-21_SPM-320_TC-VHOURS-004_step1-closed-time-refused.png)
+Earlier run on slots: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VHOURS-005 AM, PM and Night convert to the slots they cover
 
@@ -171,31 +164,28 @@ migration's own run on the two converted seed venues also kept their open time
 1. As `venue@test.com`, open the venue catalogue (`/staff/venue/catalogue`).
 2. As `coordinator@test.com`, open **Find a venue** (`/staff/coordinator/venues`)
    with no filters.
-3. Search 2026-12-12, slot **Night**.
+3. Search 2026-12-12, `19:00` to `24:00`.
 
 **Expected Result**
-- [x] Step 1: the column is headed **Opening hours** and lists each venue's
-      windows as times, e.g. UAT-44 Harbour Room `07:00–12:00, 13:00–18:00,
-      19:00–24:00`; a venue with none shows `—`. AM, PM and Night appear nowhere
-      on the page.
-- [x] Step 2: the results table has the same **Opening hours** column.
-- [x] Step 3: only venues open 19:00–24:00 are listed (UAT-42 Lecture Hall,
-      UAT-44 Harbour Room); the rest are explained as "closed for part of a slot
-      chosen (Night)" or "no opening hours or booking horizon recorded".
+- [ ] Step 1: the column is headed **Opening hours** and lists each venue's
+      window as times, e.g. UAT-42 Lecture Hall `13:00–24:00`; a venue with none
+      shows `—`. AM, PM and Night appear nowhere on the page.
+- [ ] Step 2: the results table has the same **Opening hours** column.
+- [ ] Step 3: venues open until 24:00 are listed (UAT-42 Lecture Hall, and
+      UAT-44 Harbour Room if `seed-venue-search-uat` is loaded); the rest are
+      explained as "closed for part of 19:00–24:00" or "no opening hours or
+      booking horizon recorded".
 
-The search filter itself still picks AM, PM or Night: it moves to times in
-SPM-322.
-
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+Earlier run on slots and two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hours](../screenshots/2026-10-21_SPM-320_TC-VHOURS-006_step1-catalogue-opening-hours.png)
 
-### TC-VHOURS-007 Neighbouring slots join into one window
+### TC-VHOURS-007 Every venue's hours become one window
 
-SPM-331 AC4, as revised: slots that sat next to each other join into one window,
-gaining the hour between them; AM and Night stay apart (TC-VHOURS-005). The join is
-`supabase/migrations/20261023000000_venue_opening_hours_join_adjacent_slots.sql`,
-run after the conversion in `20261020010000`. Run both against one venue of each
-kind inside a transaction that is rolled back, so the local data is untouched.
+SPM-331 AC4, under the one-window rule: each venue opens from its earliest
+opening to its latest closing, so neighbouring slots join and a break closes up.
+The conversion is `20261020010000` (AM, PM and Night to 15-minute slots) then
+`20261023000000` (one window). Run both against one venue of each kind inside a
+transaction that is rolled back, so the local data is untouched.
 
 **Steps** — in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
 1. ```sql
@@ -217,12 +207,29 @@ kind inside a transaction that is rolled back, so the local data is untouched.
    ```
 
 **Expected Result**
-- [x] Step 2 raises nothing and says *Joined adjacent opening hours: N slots added*:
-      at least 16 (one hour each for AM PM and PM Night, two for AM PM Night), more if
-      other local venues still had AM, PM or Night rows to convert.
-- [x] The catalogue reads **AM PM** as `07:00–18:00`, **PM Night** as `13:00–24:00`
-      and **AM PM Night** as `07:00–24:00`, each one window.
-- [x] **AM Night** reads `07:00–12:00` and `19:00–24:00`, and **AM** reads `07:00–12:00`:
-      unchanged.
+- [ ] Step 2 raises nothing (it checks that no venue is left with a break).
+- [ ] Every venue reads one window: **AM PM** `07:00–18:00`, **PM Night**
+      `13:00–24:00`, **AM PM Night** `07:00–24:00`, **AM Night** `07:00–24:00`
+      and **AM** `07:00–12:00`.
 
-**Run:** Pass, 22/10/2026, local Supabase after `supabase db reset`, by Claude Code for joyceetran: 16 slots added, and every venue read as expected.
+### TC-VHOURS-008 A venue opens once a day
+
+SPM-332 AC2: one opening and one closing time. The form offers only one pair
+(TC-VCAT-001); this checks the store refuses a second window from any caller.
+
+**Steps** — in `psql` on the local database:
+1. ```sql
+   begin;
+   select public.venue_catalogue_write_opening_hours(venue_id, '[{"start":"08:00","end":"20:00"}]')
+     from venue where location = 'UAT-42 Lecture Hall';
+   select min(slot_code::int), max(slot_code::int), count(*) from venue_slot
+    where venue_id = (select venue_id from venue where location = 'UAT-42 Lecture Hall');
+   select public.venue_catalogue_write_opening_hours(venue_id,
+            '[{"start":"07:00","end":"12:00"},{"start":"13:00","end":"18:00"}]')
+     from venue where location = 'UAT-42 Lecture Hall';
+   rollback;
+   ```
+
+**Expected Result**
+- [ ] One window saves: slots `32` to `79`, 48 of them (08:00–20:00).
+- [ ] Two windows are refused with `CS022` "A venue needs one opening window".
