@@ -18,13 +18,13 @@ are compared by the hours they cover), and venue search treats it as taken. A bl
 early and stays on record as Lifted.
 
 The cases are specified in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as
-`TC-VBLOCK-001` to `TC-VBLOCK-011`. Report what you ran in the PR description's
+`TC-VBLOCK-001` to `TC-VBLOCK-013`. Report what you ran in the PR description's
 `## Manual test results` table (CaseID, Result, Actual result, Remarks, Evidence); CI records it
 in `manual-runs.csv` when the PR merges, so do not edit that file. The ticked boxes and
 screenshots below are the working record for this run.
 
-**Last run:** all eleven cases passed on 2026-10-22. A browser script drove TC-VBLOCK-001 to 007
-and 009 to 011 and checked each expected result, and `checks.sql` ran TC-VBLOCK-008. The
+**Last run:** all thirteen cases passed on 2026-10-22. A browser script drove TC-VBLOCK-001 to 007,
+009 to 012 and checked each expected result, `checks.sql` ran TC-VBLOCK-008, and TC-VBLOCK-013 was run by hand with SQL. The
 screenshots are in [`../screenshots/`](../screenshots/).
 
 **Run the cases in order**, or re-seed (below) between them: TC-VBLOCK-004, 006 and 011 build on
@@ -105,9 +105,11 @@ keep a weekday range such as 2026-11-02 to 2026-11-06 in the future).
 **Expected Result:**
 - The block saves and is listed: Studio, 2026-11-02 to 2026-11-06, **09:00–11:30**, Renovation, **In force**, recorded by Test Venue Staff with the time.
 - The page says *No bookings are affected.*
+- A green message says what was saved: *Saved. Studio is blocked 2026-11-02 to 2026-11-06, 09:00–11:30, for renovation. It is In force and listed below.*
+- The form is empty again, with **Mark unavailable** disabled, so the block is not one click from being saved a second time.
 - The count is **50**: five days × ten quarter hours (codes 36 to 45 each day).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (6/6 checks)
 
 **Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step1-form-filled.png) · [step2-saved-in-force](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step2-saved-in-force.png)
 
@@ -170,7 +172,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 - The card lists *UAT-44 Booked Harbour · 2026-11-05 13:00 to 18:00 · Confirmed*: the booking's days and hours, not the PM slot name, and says the bookings and their events are unchanged.
 - The booking is still `Confirmed` and the event still `Planning`.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (6/6 checks)
 
 **Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step1-form-filled.png) · [step2-affected-bookings-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step2-affected-bookings-listed.png)
 
@@ -275,9 +277,13 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Expected Result:**
 - Step 1: one `recorded` row per block and one `lifted` row per lifted block. On the run date: 7 recorded, 1 lifted, for 7 blocks and 1 lifted.
-- Step 2: ends with *ok: all 30 checks held*. They cover a non-Venue-Staff session being refused on record, lift, list and affected bookings, the audit rows, the busy-time read of 09:00 to 10:00, a booking slot whose hours a block reaches being refused with `CS028` while a slot it does not reach is accepted, a block touching only a quarter hour of AM refusing AM, a block that starts as AM ends not refusing it, approving, holding and confirming a hold over a block recorded later being refused, a block over the 12:00 to 13:00 lunch gap being refused with `CS078` and leaving nothing behind, the calendar read giving quarter hours in order, and lifting twice being refused.
+- Step 2: ends with *ok: all 34 checks held*. They cover a non-Venue-Staff session being refused on record, lift, list and affected bookings, the audit rows, the busy-time read of 09:00 to 10:00, a booking slot whose hours a block reaches being refused with `CS028` while a slot it does not reach is accepted, a block touching only a quarter hour of AM refusing AM, a block that starts as AM ends not refusing it, approving, holding and confirming a hold over a block recorded later being refused, the same block twice being refused with `CS079` while another reason, shorter times, or the same block after a lift are accepted, a block over the 12:00 to 13:00 lunch gap being refused with `CS078` and leaving nothing behind, the calendar read giving quarter hours in order, and lifting twice being refused.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 30 checks held"
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 34 checks held"
+
+**Reading the result:** the CLI prints `failed to execute query: error: ok: all 34 checks held`. That
+is the pass. The script ends with an error on purpose, so that everything it wrote is rolled back,
+and the CLI words any error as "failed". A real failure reads `error: FAILED: <the checks that did not hold>`.
 
 **Screenshots:** none (database checks)
 
@@ -343,3 +349,66 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (1/1 check)
 
 **Screenshots:** [step1-calendar-week-of-2026-11-02](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-11-02.png)
+
+---
+
+### TC-VBLOCK-012: The same block cannot be saved twice (SPM-321)
+
+**Scenario:** Rooftop Terrace is blocked for Maintenance on 2026-11-10, 13:00–18:00 (TC-VBLOCK-002, row 5). A second member of Venue Staff, with an old page open, enters exactly the same block. It should be refused, not stacked. A different reason, or shorter times, is a different block and is allowed.
+
+**Preconditions:** TC-VBLOCK-002 has run, so the Rooftop Terrace block above is In force. Signed in as `venue@test.com`.
+
+**Steps:**
+1. Choose **Rooftop Terrace**, From and To `2026-11-10`, Start **13:00**, End **18:00**, Reason **Maintenance**, press **Mark unavailable**.
+2. Change only the **Reason** to **Equipment failure** and press **Mark unavailable**.
+3. Choose **Rooftop Terrace**, From and To `2026-11-10`, Start **13:00**, End **17:00**, Reason **Maintenance**, press **Mark unavailable**.
+
+**Expected Result:**
+- Step 1: refused with *That block is already in force: same venue, reason, dates and times.* Nothing is saved, and the form keeps what was entered so one field can be changed.
+- Step 2: saves: the same hours under another reason is a different block (overlapping blocks are allowed). The *Saved.* message names Rooftop Terrace, 2026-11-10, 13:00–18:00, equipment failure.
+- Step 3: saves: the same reason over shorter times overlaps the first but is not the same block.
+- A lifted block no longer counts: after lifting, the identical block can be saved again (unit and database checks).
+
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau
+
+**Screenshots:** [step1-same-block-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step1-same-block-refused.png) · [step2-other-reason-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step2-other-reason-saved.png) · [step3-shorter-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step3-shorter-block-saved.png)
+
+---
+
+### TC-VBLOCK-013: Existing blocks convert to 15-minute slots (SPM-321 AC6)
+
+**Scenario:** Before this change Studio had a Renovation block on 2026-12-01 and 2026-12-02 for AM and Night, and a Safety block on 2026-12-03 PM that Venue Staff had already lifted. After the upgrade they must cover exactly the same hours, none may be lost, and the lifted one must stay lifted.
+
+**Preconditions:** Local Supabase. This case rebuilds the database only as far as the migration before this one, so it cannot follow the browser cases without a reset.
+
+**Steps:**
+1. Rebuild up to the migration before this change and load the venues:
+   ```bash
+   supabase db reset --version 20261020020000
+   supabase db query --file scripts/seed-venues/seed.sql --local
+   ```
+2. Record the two blocks the old way (AM, Night, PM codes): save the SQL below as `legacy.sql` and run `supabase db query --file legacy.sql --local`.
+   ```sql
+with staff as (select user_account_id u from user_account where name = 'Test Venue Staff' and client_organisation_id is null),
+studio as (select venue_id v from venue where location = 'Studio'),
+ren as (insert into venue_unavailability (venue_id, reason_category, recorded_by_user_account_id) select v, 'Renovation', u from studio, staff returning venue_unavailability_id i),
+s1 as (insert into venue_unavailability_slot (venue_unavailability_id, slot_date, slot) select i, d, s from ren, (values ('2026-12-01'::date), ('2026-12-02')) d(d), (values ('AM'), ('Night')) s(s) returning 1),
+saf as (insert into venue_unavailability (venue_id, reason_category, recorded_by_user_account_id, lifted_by_user_account_id, lifted_at) select v, 'Safety', u, u, now() from studio, staff returning venue_unavailability_id i),
+s2 as (insert into venue_unavailability_slot (venue_unavailability_id, slot_date, slot) select i, '2026-12-03', 'PM' from saf returning 1)
+select (select count(*) from s1) as renovation_rows, (select count(*) from s2) as safety_rows
+   ```
+   It reports 4 Renovation rows and 1 Safety row.
+3. Read the blocks before, then apply the migration, then read them again:
+   ```bash
+   supabase db query "select u.reason_category, case when u.lifted_at is null then 'In force' else 'Lifted' end as status, count(*) as slots, count(*) filter (where s.slot in ('AM','PM','Night')) as old_codes from venue_unavailability u join venue_unavailability_slot s using (venue_unavailability_id) group by 1,2 order by 1" --local
+   supabase migration up --local
+   supabase db query "select u.reason_category, case when u.lifted_at is null then 'In force' else 'Lifted' end as status, count(*) as slots, count(*) filter (where s.slot in ('AM','PM','Night')) as old_codes from venue_unavailability u join venue_unavailability_slot s using (venue_unavailability_id) group by 1,2 order by 1" --local
+   ```
+
+**Expected Result:**
+- Before: Renovation, In force, 4 slots, 4 old codes; Safety, Lifted, 1 slot, 1 old code.
+- After: Renovation, In force, **80** slots (2 days × AM 28–47 and Night 76–95), **0** old codes; Safety, **Lifted**, **20** slots (PM 52–71), 0 old codes. No block is lost and the lifted block is still lifted.
+
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run by Claude Code for JameszLau against local Supabase (before and after read as above)
+
+**Screenshots:** none (database case)
