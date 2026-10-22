@@ -3,6 +3,7 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   HoldExpiredNotice,
@@ -99,6 +100,12 @@ export class LoggingNotifier implements Notifier {
   async holdExpired(notice: HoldExpiredNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told the hold on booking ${notice.bookingId} expired`,
+    );
+  }
+
+  async eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} told event ${notice.eventId} is confirmed`,
     );
   }
 

@@ -18,6 +18,7 @@ import {
   blockingEquipment,
   canConfirm,
   confirmationState,
+  confirmedArrangements,
   confirmEvent,
   type ArrangementReadiness,
   type EquipmentLineReadiness,
@@ -506,5 +507,31 @@ describe("essential equipment and confirmation (SPM-318)", () => {
     const assessed = assessReadiness(facts({ essentialTypes: ["venue"], essentialEquipment: [projector] }));
 
     expect(() => confirmEvent(event(), assessed, APPROVED)).toThrow(EventNotReadyForConfirmationError);
+  });
+});
+
+describe("confirmedArrangements (SPM-66)", () => {
+  const MICROPHONES = { equipmentType: "Wireless microphone", state: "Reserved", quantityRequested: 4, quantityReserved: 4 } as const;
+
+  it("lists the essential venue and every essential equipment line", () => {
+    expect(
+      confirmedArrangements(
+        facts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall", essentialEquipment: [MICROPHONES] }),
+      ),
+    ).toEqual({
+      venueLocation: "Main Hall",
+      equipment: [{ equipmentType: "Wireless microphone", quantityReserved: 4 }],
+    });
+  });
+
+  it("leaves out a booked venue that is Not applicable to the event", () => {
+    expect(confirmedArrangements(facts({ confirmedVenueLocation: "Main Hall" }))).toEqual({
+      venueLocation: null,
+      equipment: [],
+    });
+  });
+
+  it("lists nothing for an event with no essential arrangements", () => {
+    expect(confirmedArrangements(facts())).toEqual({ venueLocation: null, equipment: [] });
   });
 });

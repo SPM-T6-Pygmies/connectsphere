@@ -3,6 +3,7 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   HoldExpiredNotice,
@@ -30,6 +31,7 @@ export class RecordingNotifier implements Notifier {
   readonly equipmentDecisions: EquipmentDecidedNotice[] = [];
   readonly bookingsDecided: VenueBookingDecidedNotice[] = [];
   readonly holdsExpired: HoldExpiredNotice[] = [];
+  readonly eventsConfirmed: EventConfirmedNotice[] = [];
   readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
@@ -82,6 +84,10 @@ export class RecordingNotifier implements Notifier {
 
   async holdExpired(notice: HoldExpiredNotice): Promise<void> {
     this.holdsExpired.push(notice);
+  }
+
+  async eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
+    this.eventsConfirmed.push(notice);
   }
 
   async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
