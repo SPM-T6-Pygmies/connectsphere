@@ -1,4 +1,5 @@
-import type { BookingId, SlotOnDate } from "../../domain/booking";
+import type { BookingId } from "../../domain/booking";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 
 /** A hold that has expired and whose coordinator has not yet been told (SPM-254). */
 export interface ExpiredHold {
@@ -10,8 +11,8 @@ export interface ExpiredHold {
   /** The event's assigned Event Coordinator; null if unassigned. */
   readonly coordinatorUserAccountId: string | null;
   readonly venueLocation: string;
-  /** Sorted by date, then by slot within the day. */
-  readonly slots: readonly SlotOnDate[];
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
   /** ISO instant the hold lapsed. */
   readonly holdExpiresAt: string;
 }

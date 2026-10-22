@@ -26,7 +26,7 @@ describe("SupabaseExpiredHoldNotices (SPM-254)", () => {
           coordinator_user_account_id: 3,
           venue_location: "Grand Ballroom",
           hold_expires_at: "2026-11-20T05:00:00+00:00",
-          slots: [{ date: "2026-11-20", slot: "PM" }],
+          slots: [{ date: "2026-11-20", start: "13:00:00", end: "18:00:00" }],
         },
       ],
       error: null,
@@ -40,7 +40,7 @@ describe("SupabaseExpiredHoldNotices (SPM-254)", () => {
         eventName: "Harbour Lights Gala",
         coordinatorUserAccountId: "3",
         venueLocation: "Grand Ballroom",
-        slots: [{ date: "2026-11-20", slot: "PM" }],
+        times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
         holdExpiresAt: "2026-11-20T05:00:00+00:00",
       },
     ]);

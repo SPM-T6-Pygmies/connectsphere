@@ -315,7 +315,10 @@ create table booking_slot (
     -- booking.status, filled on insert and kept in step on update by triggers
     -- on booking_slot and booking, so the index below can see them.
   unique (booking_id, slot_date, slot),
-  constraint booking_slot_value_chk check (slot in ('AM', 'PM', 'Night'))
+  -- 15-minute codes only (SPM-324, 2026-10-22): a booking is one row per date
+  -- per 15-minute slot between its start and end; AM, PM and Night rows became
+  -- the codes they cover.
+  constraint booking_slot_value_chk check (slot ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
 
 -- Double-booking is a HARD block, not an overridable warning (#35): one venue

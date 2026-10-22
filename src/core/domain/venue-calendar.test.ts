@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { BookingSlot, BookingStatus, OccupiedSlot } from "./booking";
+import { slotTime, type BookingSlot, type BookingStatus, type OccupiedTime } from "./booking";
 import { InvalidCalendarRangeError } from "./errors";
 import type { OpeningWindow } from "./opening-hours";
 import type { UnavailabilityReason } from "./venue-unavailability";
@@ -22,8 +22,8 @@ function occupied(
   slot: BookingSlot,
   status: BookingStatus,
   holdExpiresAt: Date | null = null,
-): OccupiedSlot {
-  return { date: DAY, slot, status, holdExpiresAt };
+): OccupiedTime {
+  return { ...slotTime({ date: DAY, slot }), status, holdExpiresAt };
 }
 
 function block(
@@ -36,7 +36,7 @@ function block(
 
 function statuses(input: {
   openingHours?: readonly OpeningWindow[];
-  occupied?: readonly OccupiedSlot[];
+  occupied?: readonly OccupiedTime[];
   blocked?: readonly CalendarBlock[];
 }): Record<BookingSlot, CalendarSlotStatus> {
   const [day] = deriveVenueCalendar({
@@ -272,5 +272,35 @@ describe("deriveVenueCalendar block notes (SPM-43)", () => {
 
   it("gives no note on a slot that is not blocked", () => {
     expect(pm([]).notes).toEqual([]);
+  });
+});
+
+describe("deriveVenueCalendar over bookings kept as times (SPM-347)", () => {
+  function at(start: string, end: string, status: BookingStatus, holdExpiresAt: Date | null = null): OccupiedTime {
+    return { date: DAY, start, end, status, holdExpiresAt };
+  }
+
+  it("marks a slot booked when a confirmed 15 minutes overlaps its hours, and no other", () => {
+    expect(statuses({ occupied: [at("11:45", "12:00", "Confirmed")] })).toEqual({
+      AM: "booked",
+      PM: "available",
+      Night: "available",
+    });
+  });
+
+  it("leaves a slot available when a booking only touches its hours", () => {
+    expect(statuses({ occupied: [at("12:00", "13:00", "Confirmed")] })).toEqual({
+      AM: "available",
+      PM: "available",
+      Night: "available",
+    });
+  });
+
+  it("shows booked when a confirmed booking and a hold both overlap one slot", () => {
+    const later = new Date(NOW.getTime() + 60 * 60 * 1000);
+    expect(
+      statuses({ occupied: [at("07:00", "08:00", "Tentative Hold", later), at("09:00", "10:00", "Confirmed")] })
+        .AM,
+    ).toBe("booked");
   });
 });

@@ -22,11 +22,18 @@ expected (booking, venue, slot_date, slot, status) as (
   select 'U', 'UAT-44 Harbour Room', day + 1, 'AM',    'Rejected'       from c
 ),
 actual as (
-  select v.location as venue, bs.slot_date, bs.slot, b.status, b.hold_expires_at
+  -- A booking's 15-minute slots read back as the AM, PM or Night they fill,
+  -- once per booking (SPM-324).
+  select distinct b.booking_id, v.location as venue, bs.slot_date, old.slot_code as slot,
+         b.status, b.hold_expires_at
   from public.booking b
   join public.event e on e.event_id = b.event_id
   join public.venue v on v.venue_id = b.venue_id
   join public.booking_slot bs on bs.booking_id = b.booking_id
+  join public.slot sl on sl.slot_code = bs.slot
+  join public.slot old
+    on old.slot_code in ('AM', 'PM', 'Night')
+   and sl.start_time >= old.start_time and sl.end_time <= old.end_time
   where e.name = 'Founders'' Gala Dinner'
 ),
 checks as (

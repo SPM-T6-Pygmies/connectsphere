@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { formatRange, fromMinutes, gaps, isOnGrid, overlaps, toMinutes } from "./time-of-day";
+import {
+  formatRange,
+  fromMinutes,
+  gaps,
+  isOnGrid,
+  overlaps,
+  slotCodes,
+  toMinutes,
+} from "./time-of-day";
 
 describe("times of day on the 15-minute grid (SPM-332)", () => {
   describe("toMinutes", () => {
@@ -83,5 +91,23 @@ describe("times of day on the 15-minute grid (SPM-332)", () => {
 
   it("formats a range as times", () => {
     expect(formatRange({ start: 1140, end: 1440 })).toBe("19:00–24:00");
+  });
+});
+
+describe("slotCodes (SPM-347)", () => {
+  it("turns AM's hours into codes 28 to 47", () => {
+    expect(slotCodes({ start: 420, end: 720 })).toEqual(
+      Array.from({ length: 20 }, (_, i) => String(28 + i)),
+    );
+  });
+
+  it("gives one code for the first and the last 15 minutes of the day", () => {
+    expect(slotCodes({ start: 0, end: 15 })).toEqual(["0"]);
+    expect(slotCodes({ start: 1425, end: 1440 })).toEqual(["95"]);
+  });
+
+  it("leaves out the slot a range ends on, so touching ranges share none", () => {
+    expect(slotCodes({ start: 900, end: 960 })).not.toContain("64");
+    expect(slotCodes({ start: 960, end: 1020 })[0]).toBe("64");
   });
 });

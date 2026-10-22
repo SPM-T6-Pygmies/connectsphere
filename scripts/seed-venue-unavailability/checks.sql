@@ -91,24 +91,40 @@ begin
   v_checks := v_checks + 1;
   if v_n <> 0 then v_failed := array_append(v_failed, 'AC14 a day with no block is busy'); end if;
 
-  -- AC12: a new booking over the blocked slot is refused with CS028 naming date and slot
+  -- AC12: a new booking over the blocked slot is refused with CS028 naming date and time
   begin
     insert into public.booking (venue_id, event_id, requested_by_user_account_id)
     values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'PM');
+    -- The slot's hours as 15-minute slots (SPM-324).
+    insert into public.booking_slot (booking_id, slot_date, slot)
+    select v_booking, v_day, g.slot_code
+    from public.slot s
+    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+    where s.slot_code = 'PM';
     v_checks := v_checks + 1; v_failed := array_append(v_failed, 'AC12 booking over a block was accepted');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate, v_msg = message_text;
     v_checks := v_checks + 1;
-    if v_code <> 'CS028' or v_msg not like '%' || v_day::text || ' PM%' then
+    -- The trigger names the first 15-minute slot it refuses (SPM-324).
+    if v_code <> 'CS028' or v_msg not like '%' || v_day::text || ' 13:00–13:15%' then
       v_failed := array_append(v_failed, ('AC12 gave ' || v_code || ' ' || v_msg)); end if;
   end;
 
   -- AC13: another slot on the blocked day, and the day after the block, are accepted
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'Night');
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day + 2, 'AM');
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_booking, v_day, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code = 'Night';
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_booking, v_day + 2, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code = 'AM';
   v_checks := v_checks + 1;
 
   -- AC19: an overlapping second block saves
@@ -130,7 +146,12 @@ begin
   begin
     insert into public.booking (venue_id, event_id, requested_by_user_account_id)
     values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day + 1, 'AM');
+    -- The slot's hours as 15-minute slots (SPM-324).
+    insert into public.booking_slot (booking_id, slot_date, slot)
+    select v_booking, v_day + 1, g.slot_code
+    from public.slot s
+    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+    where s.slot_code = 'AM';
     v_checks := v_checks + 1; v_failed := array_append(v_failed, 'AC15 slot another block covers was accepted');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate;
@@ -139,7 +160,12 @@ begin
   end;
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'AM');
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_booking, v_day, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code = 'AM';
   v_checks := v_checks + 1;
 
   -- AC17: lifting twice is refused
@@ -171,7 +197,9 @@ begin
        from public.booking_slot bs join public.booking b using (booking_id)
       where b.event_id = v_event and b.status = 'Confirmed'));
   v_checks := v_checks + 1;
-  if jsonb_array_length(v_json) <> 1 or v_json -> 0 ->> 'event_name' <> 'UAT-44 Booked Harbour' then
+  -- One entry per affected 15-minute slot, all of the one booking (SPM-324).
+  if (select count(distinct e ->> 'booking_id') from jsonb_array_elements(v_json) e) <> 1
+     or v_json -> 0 ->> 'event_name' <> 'UAT-44 Booked Harbour' then
     v_failed := array_append(v_failed, 'AC11 the confirmed booking is not listed as affected'); end if;
 
   if cardinality(v_failed) = 0 then

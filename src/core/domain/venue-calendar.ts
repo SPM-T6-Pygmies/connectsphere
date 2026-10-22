@@ -1,6 +1,15 @@
-import { BOOKING_SLOTS, holdsSlot, isCalendarDate, slotRange, type BookingSlot, type OccupiedSlot, type SlotOnDate } from "./booking";
+import {
+  BOOKING_SLOTS,
+  holdsSlot,
+  isCalendarDate,
+  slotRange,
+  type BookingSlot,
+  type OccupiedTime,
+  type SlotOnDate,
+} from "./booking";
 import { InvalidCalendarRangeError } from "./errors";
 import { closedPeriods, type OpeningWindow } from "./opening-hours";
+import { overlaps, toMinutes } from "./time-of-day";
 import type { UnavailabilityReason } from "./venue-unavailability";
 
 /**
@@ -104,8 +113,9 @@ function slotKey({ date, slot }: SlotOnDate): string {
  *
  * - A block beats a booking: approval over a block is refused (SPM-22), so a
  *   booking under one cannot go ahead.
- * - Booked and held never meet on one slot: only one live hold or
- *   confirmation per venue and slot (`booking_slot_no_double_booking_uidx`).
+ * - Bookings are kept as times (SPM-324); a slot is booked or held when a
+ *   live booking's time overlaps its hours at all. Should a confirmed booking
+ *   and a hold both overlap one slot, it shows booked.
  * - Whether a booking holds its slot is `holdsSlot`: a Requested, Rejected,
  *   Released or Cancelled booking, or a hold past its expiry, holds nothing
  *   and leaves the slot available.
@@ -117,7 +127,7 @@ function slotKey({ date, slot }: SlotOnDate): string {
 export function deriveVenueCalendar(input: {
   readonly days: readonly string[];
   readonly openingHours: readonly OpeningWindow[];
-  readonly occupied: readonly OccupiedSlot[];
+  readonly occupied: readonly OccupiedTime[];
   readonly blocked: readonly CalendarBlock[];
   readonly now: Date;
 }): CalendarDay[] {
@@ -132,18 +142,22 @@ export function deriveVenueCalendar(input: {
     }
     blocked.set(slotKey(block), why);
   }
-  const holding = new Map<string, OccupiedSlot>();
-  for (const occupied of input.occupied) {
-    if (holdsSlot(occupied, input.now)) {
-      holding.set(slotKey(occupied), occupied);
-    }
-  }
+  const live = input.occupied.filter((occupied) => holdsSlot(occupied, input.now));
+  const holding = (date: string, slot: BookingSlot): OccupiedTime | undefined => {
+    const hours = slotRange(slot);
+    const over = live.filter(
+      (o) =>
+        o.date === date &&
+        overlaps(hours, { start: toMinutes(o.start) ?? 0, end: toMinutes(o.end) ?? 0 }),
+    );
+    return over.find((o) => o.status === "Confirmed") ?? over[0];
+  };
 
   return input.days.map((date) => ({
     date,
     slots: BOOKING_SLOTS.map((slot): CalendarSlot => {
       const key = slotKey({ date, slot });
-      const booking = holding.get(key);
+      const booking = holding(date, slot);
       const why = blocked.get(key);
 
       if (why !== undefined) {
