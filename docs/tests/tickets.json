@@ -867,6 +867,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-326": {
+      "title": "Run events on start and end times",
+      "parent": "SPM-276",
+      "status": "Todo"
+    },
     "SPM-331": {
       "title": "Store opening hours as 15-minute slots and convert existing venue slots",
       "parent": "SPM-320",

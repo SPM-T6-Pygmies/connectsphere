@@ -5,6 +5,8 @@ import {
   type EventRequestId,
   type NewEventRequest,
 } from "@/core/domain/event-request";
+import { SLOT_HOURS } from "@/core/domain/booking";
+import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { ClarificationMessageId } from "@/core/domain/clarification-message";
 import type { ClarificationThreadRepository } from "@/core/ports/outbound/clarification-thread-repository";
@@ -72,6 +74,16 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
 
   async findById(id: EventRequestId): Promise<EventRequest | null> {
     return this.rows.get(id) ?? null;
+  }
+
+  /** An approved request's event runs at its preferred slots' hours, as approval copies them. */
+  async findEventTimes(id: EventRequestId): Promise<readonly TimeRangeOnDate[] | null> {
+    const request = this.rows.get(id);
+    const date = request?.details.preferredDate;
+    if (request?.status !== "Approved" || date == null) {
+      return null;
+    }
+    return request.details.preferredSlots.map((slot) => ({ date, ...SLOT_HOURS[slot] }));
   }
 
   /** Assigns the id the way the real store does -- the caller does not choose it. */
