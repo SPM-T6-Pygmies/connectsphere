@@ -32,6 +32,7 @@ them, tick the boxes below **and** report each in the PR description's
 | TC-VHOURS-004 | SPM-334 | AC3 — a request over closed time is refused |
 | TC-VHOURS-005 | SPM-331 | AC4 — AM, PM and Night convert to the slots they cover |
 | TC-VHOURS-006 | SPM-335 | AC5 — opening hours show as times |
+| TC-VHOURS-007 | SPM-331 | AC4 — neighbouring slots join into one window |
 
 ---
 
@@ -187,3 +188,39 @@ SPM-322.
 
 **Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hours](../screenshots/2026-10-21_SPM-320_TC-VHOURS-006_step1-catalogue-opening-hours.png)
+
+### TC-VHOURS-007 Neighbouring slots join into one window
+
+SPM-331 AC4, as revised: slots that sat next to each other join into one window,
+gaining the hour between them; AM and Night stay apart (TC-VHOURS-005). The join is
+`supabase/migrations/20261023000000_venue_opening_hours_join_adjacent_slots.sql`,
+run after the conversion in `20261020010000`. Run both against one venue of each
+kind inside a transaction that is rolled back, so the local data is untouched.
+
+**Steps** — in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
+1. ```sql
+   begin;
+   insert into venue (location, capacity, booking_horizon_days)
+     select 'UAT-320 ' || k, 100, 60 from unnest(array['AM PM', 'PM Night', 'AM PM Night', 'AM Night', 'AM']) k;
+   insert into venue_slot (venue_id, slot_code)
+     select venue_id, c from venue, unnest(string_to_array(substr(location, 9), ' ')) c
+      where location like 'UAT-320 %';
+   ```
+2. Paste the statements under `-- 1. Convert the existing rows.` from `20261020010000`
+   (the `insert … select` and the `delete`), then the `do $$ … $$;` block from
+   `20261023000000`.
+3. ```sql
+   set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000005"}';
+   select r->>'location', r->'opening_hours' from jsonb_array_elements(public.venue_catalogue()) r
+    where r->>'location' like 'UAT-320 %' order by 1;
+   rollback;
+   ```
+
+**Expected Result**
+- [ ] Step 2 raises nothing and says *Joined adjacent opening hours: N slots added*:
+      at least 16 (one hour each for AM PM and PM Night, two for AM PM Night), more if
+      other local venues still had AM, PM or Night rows to convert.
+- [ ] The catalogue reads **AM PM** as `07:00–18:00`, **PM Night** as `13:00–24:00`
+      and **AM PM Night** as `07:00–24:00`, each one window.
+- [ ] **AM Night** reads `07:00–12:00` and `19:00–24:00`, and **AM** reads `07:00–12:00`:
+      unchanged.
