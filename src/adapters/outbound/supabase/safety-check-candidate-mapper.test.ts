@@ -15,7 +15,7 @@ const gala: SafetyCheckCandidateRow = {
   preferred_date: "2026-12-12",
   expected_attendance: 120,
   bookings: [{ status: "Confirmed", venue_location: "Grand Ballroom" }],
-  equipment_lines: [{ line_state: "Reserved", quantity_requested: 3, quantity_reserved: 3 }],
+  equipment_lines: [{ line_state: "Reserved", quantity_requested: 3, quantity_reserved: 3, essential: true }],
   checked: false,
 };
 
@@ -30,9 +30,21 @@ describe("safety check candidate mapper (SPM-259)", () => {
         expectedAttendance: 120,
       },
       bookings: [{ status: "Confirmed", venueName: "Grand Ballroom" }],
-      equipmentLines: [{ state: "Reserved", quantityRequested: 3, quantityReserved: 3 }],
+      equipmentLines: [{ state: "Reserved", quantityRequested: 3, quantityReserved: 3, essential: true }],
       checked: false,
     });
+  });
+
+  it("SPM-319 AC3: carries a line's essential mark, unmarked as not essential", () => {
+    const lines = toSafetyCheckCandidate({
+      ...gala,
+      equipment_lines: [
+        { line_state: "Requested", quantity_requested: 2, quantity_reserved: 0, essential: false },
+        { line_state: "Reserved", quantity_requested: 1, quantity_reserved: 1, essential: true },
+      ],
+    }).equipmentLines;
+
+    expect(lines.map(({ essential }) => essential)).toEqual([false, true]);
   });
 
   it("SPM-260 AC6: maps whether a safety check has been recorded on the event", () => {

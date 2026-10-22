@@ -862,6 +862,11 @@
       "parent": null,
       "status": "Todo"
     },
+    "SPM-319": {
+      "title": "Admit events with only non-essential gaps to the safety check",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-320": {
       "title": "Set a venue's opening hours in 15-minute periods",
       "parent": null,
