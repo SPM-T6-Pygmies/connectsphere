@@ -275,9 +275,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Expected Result:**
 - Step 1: one `recorded` row per block and one `lifted` row per lifted block. On the run date: 7 recorded, 1 lifted, for 7 blocks and 1 lifted.
-- Step 2: ends with *ok: all 29 checks held*. They cover a non-Venue-Staff session being refused on record, lift, list and affected bookings, the audit rows, the busy-time read of 09:00 to 10:00, a booking slot whose hours a block reaches being refused with `CS028` while a slot it does not reach is accepted, a block touching only a quarter hour of AM refusing AM, a block that starts as AM ends not refusing it, approving, holding and confirming a hold over a block recorded later being refused, a block over the 12:00 to 13:00 lunch gap being refused with `CS078` and leaving nothing behind, the calendar read giving quarter hours in order, and lifting twice being refused.
+- Step 2: ends with *ok: all 30 checks held*. They cover a non-Venue-Staff session being refused on record, lift, list and affected bookings, the audit rows, the busy-time read of 09:00 to 10:00, a booking slot whose hours a block reaches being refused with `CS028` while a slot it does not reach is accepted, a block touching only a quarter hour of AM refusing AM, a block that starts as AM ends not refusing it, approving, holding and confirming a hold over a block recorded later being refused, a block over the 12:00 to 13:00 lunch gap being refused with `CS078` and leaving nothing behind, the calendar read giving quarter hours in order, and lifting twice being refused.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 29 checks held"
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 30 checks held"
 
 **Screenshots:** none (database checks)
 
@@ -309,26 +309,20 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ### TC-VBLOCK-010: A block over closed time is refused, naming it (SPM-321 AC7)
 
-**Scenario:** Venue Staff A opens the form for Rooftop Terrace and picks 09:00–11:30 on 2026-11-17. Before A saves, a colleague shortens Rooftop Terrace's morning hours to end at 11:00. A's page still shows 11:00–12:00 as open, but the server knows better.
+**Scenario:** Venue Staff A opens the form for UAT-44 Harbour Room and picks 09:00–11:30 on 2026-11-17. Before A saves, a colleague shortens the Harbour Room's morning hours to end at 11:00. A's page still shows 11:00–12:00 as open, but the server knows better.
 
 **Preconditions:** Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open the form, choose **Rooftop Terrace**, From and To `2026-11-17`, Start **09:00**, End **11:30**, Reason **Maintenance**. Do not save yet.
-2. In a second tab, shorten Rooftop Terrace's morning window to end at 11:00. The seeded record is not complete enough for the venue form to save, so use SQL:
-   ```sql
-   delete from venue_slot where venue_id = (select venue_id from venue where location = 'Rooftop Terrace') and slot_code::int between 44 and 47;
-   ```
+1. Open the form, choose **UAT-44 Harbour Room**, From and To `2026-11-17`, Start **09:00**, End **11:30**, Reason **Maintenance**. Do not save yet.
+2. In a second tab, as `venue@test.com`, open **Venues**, then **UAT-44 Harbour Room**, change the first opening window's **Closes** hour from 12 to **11** (minute 00) and press **Save venue**.
 3. Back in the first tab press **Mark unavailable**.
-4. Put the hours back to 07:00–12:00:
-   ```sql
-   insert into venue_slot (venue_id, slot_code) select (select venue_id from venue where location = 'Rooftop Terrace'), n::text from generate_series(44, 47) n;
-   ```
+4. Put the hours back: in the second tab set the first window's **Closes** hour back to **12** and press **Save venue**.
 
 **Expected Result:**
 - Step 3: refused with *The venue is closed 11:00–11:30, so it cannot be blocked then. Choose times within its opening hours (07:00–11:00, 13:00–18:00, 19:00–24:00).* The form still shows the venue and times chosen, and nothing is saved for 2026-11-17.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks), with the hours changed and restored through the venue form
 
 **Screenshots:** [step1-form-filled-before-hours-change](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
 

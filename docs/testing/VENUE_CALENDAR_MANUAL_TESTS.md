@@ -75,7 +75,7 @@ Signed in as `coordinator@test.com`.
 
 **Expected:** Harbour Room shows **Confirmed** on D PM and **Available** in every other
 slot of the week. Garden Hall shows **Available** on D AM (the rejected booking does
-not count) and **Not offered** in every Night slot.
+not count) and **Closed** in every Night slot (the venue closes at 18:00).
 
 - [x] Pass
 
@@ -85,10 +85,11 @@ not count) and **Not offered** in every Night slot.
 
 1. From the search, open **Main Hall** and move to the week with D.
 
-**Expected:** a note says the venue has no bookable slots recorded, and the grid still
-shows. AM on D to D+4 reads **Blocked** with *Renovation*, except D+2 AM, which reads
-*Renovation, Maintenance*. D+2 PM and Night read **Blocked** with *Maintenance*. Every
-other slot reads **Not offered**.
+**Expected:** AM on D to D+4 reads **Blocked** with *Renovation* (the block is 09:00 to 11:30, and
+AM is 07:00 to 12:00, so it reaches it), except D+2 AM, which reads *Renovation, Maintenance*: the
+reasons come in the order the blocks were recorded, whichever starts first in the day. D+2 PM and
+Night read **Blocked** with *Maintenance* (that block runs across every open hour). Every other slot
+reads **Available**: Main Hall is open all three, so it is no longer a venue with no slots.
 
 > **Seed timing.** `seed-venue-unavailability` dates its blocks from the UTC day, so a
 > run between midnight and 08:00 Singapore time puts them one day earlier than D. The
@@ -105,7 +106,7 @@ other slot reads **Not offered**.
 
 **Expected:** D+7 PM reads **Held** with *Until* and a date about 30 days after the seed
 ran, worded as on the Venue Staff decision page (e.g. *Until Thu, 5 Nov, 12:00 pm*). D+7
-AM reads **Not offered**, not Held: its hold has expired.
+AM reads **Available**, not Held: its hold has expired and the venue is open.
 
 - [x] Pass
 

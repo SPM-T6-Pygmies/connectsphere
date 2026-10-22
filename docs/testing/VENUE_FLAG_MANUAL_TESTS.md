@@ -119,7 +119,7 @@ To see which blocks the cases have recorded so far:
 
 ### Order
 
-Run the cases in order, 001 to 010. Each case adds blocks that the next ones read: 001 records the
+Run the cases in order, 001 to 011. Each case adds blocks that the next ones read: 001 records the
 first block on Main Hall, 002 and 003 add blocks at Studio and Rooftop Terrace, 004, 005, 006 and 009 read the
 result without recording anything, 007 stacks a second block over the first on Main Hall and 008 lifts
 the first. To run any case again, use the teardown and seed
@@ -421,3 +421,31 @@ from today (the day the SPM-20 seed books).
 **Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step2-coordinator-two-flags](../screenshots/2026-10-21_TC-VFLAG-010_step2-coordinator-two-flags.png) · [step3-coordinator-badge-card](../screenshots/2026-10-21_TC-VFLAG-010_step3-coordinator-badge-card.png) · [step4-coordinator-cancelled](../screenshots/2026-10-21_TC-VFLAG-010_step4-coordinator-cancelled.png) · [step5-coordinator-one-flag](../screenshots/2026-10-21_TC-VFLAG-010_step5-coordinator-one-flag.png)
+
+---
+
+### TC-VFLAG-011: A block over part of a booking flags it, naming the block's own hours (SPM-321)
+
+**What this tests:** Since SPM-321 a block is a start and end time, so it can cover only part of a
+booking. Coordinator 2's Gala is Confirmed at Main Hall on F from 19:00 to 24:00 (the Night slot).
+Venue Staff block Main Hall on F from 19:00 to 20:00, the Gala's first hour. The Gala should be
+flagged, and the reason should name the hour that clashes, 19:00 to 20:00, not the Gala's whole evening.
+The Workshop, booked at Main Hall the same day from 07:00 to 12:00, shares no time with the block and
+must stay clear.
+
+**Preconditions:** After TC-VFLAG-010 (or any time after TC-VFLAG-004). Nothing else is blocked at
+Main Hall on F from 19:00. Signed in as Venue Staff, then Coordinator 2 (`coordinator2@test.com`).
+
+**Steps:**
+1. As Venue Staff open **Unavailability**. Choose **Main Hall**, start and end date **F**, start time **19:00**, end time **20:00**, reason **Maintenance**, and save. Read **Bookings this block overlaps**.
+2. As Coordinator 2 open *Flag Test: Gala* and its **Venue** tab. Read **Flagged for review**.
+3. Open *Flag Test: Workshop* and its **Venue** tab.
+
+**Expected Result:**
+- Step 1: the list shows *Flag Test: Gala · F 19:00 to 24:00 · Confirmed* and not the Workshop, Quiz or Tech Summit.
+- Step 2: **Flagged for review** with the reason "Maintenance: F 19:00 to 20:00", and the booking still **Confirmed**.
+- Step 3: no **Flagged for review** section.
+
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau
+
+**Screenshots:** [step1-venue-staff-affected-list](../screenshots/2026-10-22_SPM-321_TC-VFLAG-011_step1-venue-staff-affected-list.png) · [step2-coordinator-2-gala-flagged](../screenshots/2026-10-22_SPM-321_TC-VFLAG-011_step2-coordinator-2-gala-flagged.png) · [step3-coordinator-2-workshop-not-flagged](../screenshots/2026-10-22_SPM-321_TC-VFLAG-011_step3-coordinator-2-workshop-not-flagged.png)
