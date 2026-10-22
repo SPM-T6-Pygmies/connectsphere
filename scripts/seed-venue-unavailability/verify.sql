@@ -16,9 +16,9 @@
 -- the exit code. The expected rows below must stay in step with seed.sql.
 
 with block (venue, reason, expected) as (
-  values ('Main Hall', 'Renovation',  '5 slots, In force'),
-         ('Main Hall', 'Maintenance', '3 slots, In force'),
-         ('Studio',    'Safety',      '1 slots, Lifted')
+  values ('Main Hall', 'Renovation',  '50 slots, In force'),
+         ('Main Hall', 'Maintenance', '60 slots, In force'),
+         ('Studio',    'Safety',      '20 slots, Lifted')
 ),
 checks as (
   select 'block ' || b.venue || ' ' || b.reason as check_name, b.expected,
@@ -34,7 +34,7 @@ checks as (
            limit 1), 'missing') as actual
   from block b
   union all
-  select 'Main Hall slot covered by two In force blocks', '1',
+  select 'Main Hall slots covered by two In force blocks (09:00-11:30 on the middle day)', '10',
          (select count(*)::text from (
             select s.slot_date, s.slot
             from public.venue_unavailability_slot s

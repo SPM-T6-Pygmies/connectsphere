@@ -304,3 +304,47 @@ describe("deriveVenueCalendar over bookings kept as times (SPM-347)", () => {
     ).toBe("booked");
   });
 });
+
+describe("deriveVenueCalendar blocks by time of day (SPM-321)", () => {
+  /** A block over `first` to `last`, the 15-minute codes of SPM-331, on DAY. */
+  function blockOf(first: number, last: number, reason: UnavailabilityReason = "Maintenance") {
+    return Array.from({ length: last - first + 1 }, (_, i) => block(String(first + i) as BookingSlot, reason));
+  }
+
+  it("blocks AM, and only AM, for a block of 09:00 to 11:30 (codes 36 to 45)", () => {
+    expect(statuses({ blocked: blockOf(36, 45) })).toEqual({ AM: "blocked", PM: "available", Night: "available" });
+  });
+
+  it("blocks AM for a block that clips one quarter hour of it, at either end", () => {
+    expect(statuses({ blocked: blockOf(28, 28) }).AM).toBe("blocked"); // 07:00-07:15
+    expect(statuses({ blocked: blockOf(47, 47) }).AM).toBe("blocked"); // 11:45-12:00
+  });
+
+  it("does not block AM for a block that starts as AM ends (12:00-13:00)", () => {
+    expect(statuses({ blocked: blockOf(48, 51) })).toEqual({ AM: "available", PM: "available", Night: "available" });
+  });
+
+  it("blocks both AM and PM for a block that spans the lunch gap", () => {
+    expect(statuses({ blocked: blockOf(44, 55) })).toEqual({ AM: "blocked", PM: "blocked", Night: "available" });
+  });
+
+  it("gives each calendar slot only the reasons of the blocks that reach it", () => {
+    const [day] = deriveVenueCalendar({
+      days: [DAY],
+      openingHours: ALL_HOURS,
+      occupied: [],
+      blocked: [...blockOf(44, 47, "Safety"), ...blockOf(52, 53, "Renovation")],
+      now: NOW,
+    });
+
+    expect(day.slots.map(({ slot, reasons }) => [slot, reasons])).toEqual([
+      ["AM", ["Safety"]],
+      ["PM", ["Renovation"]],
+      ["Night", []],
+    ]);
+  });
+
+  it("still reads a block recorded before SPM-321 on AM, PM or Night the same way", () => {
+    expect(statuses({ blocked: [block("PM")] })).toEqual({ AM: "available", PM: "blocked", Night: "available" });
+  });
+});

@@ -77,7 +77,7 @@ const REFUSED_OVER_BLOCK = {
 };
 
 describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () => {
-  it("maps the decide function's CS028 to the blocked-slot domain error, naming the slot", async () => {
+  it("maps the decide function's CS028 to the blocked-slot domain error, naming the blocked hours", async () => {
     const { client } = fakeClient({
       venue_staff_decide_booking: REFUSED_OVER_BLOCK,
       venue_staff_bookings: { data: [BOOKING_ROW], error: null },

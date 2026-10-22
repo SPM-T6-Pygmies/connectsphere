@@ -1035,12 +1035,30 @@ export class EquipmentRequirementConflictError extends DomainError {
   }
 }
 
-/** SPM-21 AC3: a block covers at least one slot. */
-export class NoUnavailabilitySlotsError extends DomainError {
-  readonly code = "no_unavailability_slots";
+/** SPM-321 AC3: a block's start and end are times on the 15-minute grid, the end after the start. */
+export class InvalidUnavailabilityTimeError extends DomainError {
+  readonly code = "invalid_unavailability_time";
 
-  constructor() {
-    super("Choose at least one slot to block.");
+  constructor(reason: string) {
+    super(reason);
+  }
+}
+
+/**
+ * SPM-321 AC3a: the block reaches into time the venue is closed. Naming the closed time,
+ * and the hours the venue keeps, tells Venue Staff what to change.
+ */
+export class UnavailabilityOutsideOpeningHoursError extends DomainError {
+  readonly code = "unavailability_outside_opening_hours";
+
+  constructor(
+    readonly closed: readonly string[],
+    readonly openingHours: string,
+  ) {
+    super(
+      `The venue is closed ${closed.join(", ")}, so it cannot be blocked then. ` +
+        `Choose times within its opening hours (${openingHours}).`,
+    );
   }
 }
 
@@ -1056,12 +1074,13 @@ export class UnavailabilityEndsBeforeStartError extends DomainError {
   }
 }
 
-/** SPM-21 AC5: a block that has already ended is refused; one ending today is not. */
+/** SPM-21 AC5: a block that has already ended is refused; one still running today is not. */
 export class UnavailabilityInThePastError extends DomainError {
   readonly code = "unavailability_in_the_past";
 
-  constructor(readonly endDate: string) {
-    super(`A block cannot end in the past (${endDate}).`);
+  /** `endsAt` is the block's last day and end time, e.g. `2026-11-18 11:30`. */
+  constructor(readonly endsAt: string) {
+    super(`A block cannot end in the past (${endsAt}).`);
   }
 }
 
@@ -1089,6 +1108,20 @@ export class UnavailabilityNoteTooLongError extends DomainError {
 
   constructor(readonly maxLength: number) {
     super(`The note must be at most ${maxLength} characters.`);
+  }
+}
+
+/**
+ * SPM-321: the same block is already In force. Same venue, reason, days and times is the same
+ * block saved twice (a double click, a stale page), so it is refused; an overlapping block with
+ * another reason or other times is still allowed (SPM-21 AC19). Other is exempt: its note is free
+ * text we do not read, so two Other blocks are never taken for one.
+ */
+export class DuplicateUnavailabilityError extends DomainError {
+  readonly code = "duplicate_unavailability";
+
+  constructor() {
+    super("That block is already in force: same venue, reason, dates and times.");
   }
 }
 
@@ -1120,9 +1153,10 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
 }
 
 /**
- * SPM-21 AC12: a Venue Staff block covers a slot the request asks for. Unlike a
- * clash with another booking, there is no other venue slot to choose around it
- * and no override.
+ * SPM-21 AC12, SPM-321 AC3: a Venue Staff block shares time with what the request asks for.
+ * `slots` are the block's own slots that overlap it, and `times` says them as a person reads
+ * them (`2026-11-02 09:00 to 11:30`), not as the AM, PM or Night the request used. Unlike a
+ * clash with another booking, there is nothing to choose around it and no override.
  */
 export class VenueSlotBlockedError extends DomainError {
   readonly code = "venue_slot_blocked";

@@ -360,9 +360,9 @@ transaction that is rolled back, so the local data is untouched, against a
 
 ### TC-VENUE-BOOK-030 A block still refuses the time it covers (SPM-347)
 
-Blocks stay on AM, PM and Night until SPM-321; they are compared with times by their hours.
+A block is a start and end time (SPM-321); it is compared with the requested times by the time they share.
 
-- [x] As `venue@test.com`, block **UAT-44 Harbour Room** for **AM** on D+6.
+- [x] As `venue@test.com`, block **UAT-44 Harbour Room** from **07:00** to **12:00** on D+6.
 - [x] As the coordinator, request it on D+6, `11:45` to `12:15`: refused with *The venue is
       unavailable for D+6 11:45–12:00. Choose other times or another venue.*
 - [x] D+6, `12:00` to `13:00`: accepted.
