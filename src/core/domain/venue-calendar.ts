@@ -1,5 +1,6 @@
-import { BOOKING_SLOTS, holdsSlot, isCalendarDate, type BookingSlot, type OccupiedSlot, type SlotOnDate } from "./booking";
+import { BOOKING_SLOTS, holdsSlot, isCalendarDate, slotRange, type BookingSlot, type OccupiedSlot, type SlotOnDate } from "./booking";
 import { InvalidCalendarRangeError } from "./errors";
+import { closedPeriods, type OpeningWindow } from "./opening-hours";
 import type { UnavailabilityReason } from "./venue-unavailability";
 
 /**
@@ -9,9 +10,9 @@ import type { UnavailabilityReason } from "./venue-unavailability";
  * - `booked`     a Confirmed booking holds it
  * - `held`       a Tentative Hold holds it until `holdExpiresAt` (Week 7 C4)
  * - `blocked`    an In force Venue Staff block covers it (SPM-21)
- * - `notOffered` the venue is never booked in this slot (`venue_slot`)
+ * - `closed`     the venue is closed for some of the slot's hours (SPM-320)
  */
-export type CalendarSlotStatus = "available" | "booked" | "held" | "blocked" | "notOffered";
+export type CalendarSlotStatus = "available" | "booked" | "held" | "blocked" | "closed";
 
 export interface CalendarSlot {
   readonly slot: BookingSlot;
@@ -94,12 +95,12 @@ function slotKey({ date, slot }: SlotOnDate): string {
 }
 
 /**
- * SPM-152: each slot's status on each day, from what the venue offers, the
+ * SPM-152: each slot's status on each day, from the venue's opening hours, the
  * bookings on it and the blocks over it, as of `now`.
  *
  * When more than one thing applies, the first wins:
  *
- *   blocked > booked > held > notOffered > available
+ *   blocked > booked > held > closed > available
  *
  * - A block beats a booking: approval over a block is refused (SPM-22), so a
  *   booking under one cannot go ahead.
@@ -108,14 +109,14 @@ function slotKey({ date, slot }: SlotOnDate): string {
  * - Whether a booking holds its slot is `holdsSlot`: a Requested, Rejected,
  *   Released or Cancelled booking, or a hold past its expiry, holds nothing
  *   and leaves the slot available.
- * - A slot the venue is not booked in cannot be requested, but a booking or
- *   block already on it still shows, so dropping a slot hides nothing.
+ * - A slot the venue is closed for cannot be requested, but a booking or
+ *   block already on it still shows, so changing the hours hides nothing.
  *
  * Setup and turnaround buffers are not counted (#123, SPM-23).
  */
 export function deriveVenueCalendar(input: {
   readonly days: readonly string[];
-  readonly offeredSlots: readonly BookingSlot[];
+  readonly openingHours: readonly OpeningWindow[];
   readonly occupied: readonly OccupiedSlot[];
   readonly blocked: readonly CalendarBlock[];
   readonly now: Date;
@@ -154,8 +155,8 @@ export function deriveVenueCalendar(input: {
       if (booking !== undefined) {
         return { slot, status: "held", holdExpiresAt: booking.holdExpiresAt, reasons: [], notes: [] };
       }
-      if (!input.offeredSlots.includes(slot)) {
-        return { slot, status: "notOffered", holdExpiresAt: null, reasons: [], notes: [] };
+      if (closedPeriods(input.openingHours, slotRange(slot)).length > 0) {
+        return { slot, status: "closed", holdExpiresAt: null, reasons: [], notes: [] };
       }
       return { slot, status: "available", holdExpiresAt: null, reasons: [], notes: [] };
     }),

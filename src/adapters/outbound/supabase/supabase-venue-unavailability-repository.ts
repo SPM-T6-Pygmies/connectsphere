@@ -15,12 +15,14 @@ import type {
 } from "@/core/domain/venue-unavailability";
 import type {
   AffectedBooking,
+  FlaggedBooking,
   VenueUnavailabilityRepository,
 } from "@/core/ports/outbound/venue-unavailability-repository";
 
 import type { SupabaseServerClient } from "./client";
 import { toKey } from "./coordinator-event-mapper";
 import { expireLapsedHolds } from "./expire-lapsed-holds";
+import { toFlaggedBooking, type FlaggedBookingRow } from "./booking-flag-mapper";
 import {
   toAffectedBooking,
   toCalendarBlock,
@@ -128,6 +130,24 @@ export class SupabaseVenueUnavailabilityRepository implements VenueUnavailabilit
       throw new Error(`Failed to read the affected bookings: ${error.message}`, { cause: error });
     }
     return ((data ?? []) as unknown as AffectedBookingRow[]).map(toAffectedBooking);
+  }
+
+  /** SPM-313: read back from the flags `venue_staff_record_unavailability` wrote in its own transaction. */
+  async flaggedBookings(reader: UserAccountId, blockId: string): Promise<readonly FlaggedBooking[]> {
+    const staff = toKey(reader);
+    const block = toKey(blockId);
+    if (staff === null || block === null) {
+      return [];
+    }
+
+    const { data, error } = await this.client.rpc("venue_staff_block_flagged_bookings", {
+      p_staff_user_account_id: staff,
+      p_unavailability_id: block,
+    });
+    if (error) {
+      throw new Error(`Failed to read the bookings the block flagged: ${error.message}`, { cause: error });
+    }
+    return ((data ?? []) as unknown as FlaggedBookingRow[]).map(toFlaggedBooking);
   }
 
   /** Through `venue_blocked_slots`, which reads the live tables on every call. */

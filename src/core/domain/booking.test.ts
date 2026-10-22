@@ -31,9 +31,11 @@ import {
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
+  VenueClosedError,
   VenueSlotUnavailableError,
 } from "./errors";
 import type { CoordinatorEventStatus } from "./coordinator-event";
+import type { OpeningWindow } from "./opening-hours";
 import { userAccountId } from "./user-account";
 import { venueId, type Venue } from "./venue";
 
@@ -47,7 +49,7 @@ function venue(layouts: readonly string[] = [THEATRE, CLASSROOM]): Venue {
     location: "Harbour Hall",
     facilities: null,
     accessibility: null,
-    slots: [],
+    openingHours: [{ start: "00:00", end: "24:00" }],
     capacity: null,
     bookingHorizonDays: null,
     layouts: layouts.map((name) => ({ name, capacity: 100 })),
@@ -219,6 +221,63 @@ describe("requestVenueBooking (SPM-46)", () => {
   it("needs a layout when the venue supports more than one (AC2)", () => {
     expect(() => request([{ date: "2026-10-05", slot: "AM" }], [], null)).toThrow(
       RoomLayoutRequiredError,
+    );
+  });
+});
+
+describe("requestVenueBooking over closed time (SPM-334)", () => {
+  /** A venue converted from AM and Night (SPM-320 AC4). */
+  const AM_AND_NIGHT = [
+    { start: "07:00", end: "12:00" },
+    { start: "19:00", end: "24:00" },
+  ];
+
+  function requestAt(openingHours: readonly OpeningWindow[], slots: readonly SlotOnDate[]) {
+    return requestVenueBooking({
+      eventId: "event-1",
+      eventStatus: "Planning",
+      venue: { ...venue(), openingHours },
+      roomLayout: THEATRE,
+      slots,
+      requestedBy: userAccountId("coordinator-1"),
+      occupied: [],
+      now: NOW,
+    });
+  }
+
+  it("accepts slots that fall exactly within the opening windows, ending at 24:00", () => {
+    const booking = requestAt(AM_AND_NIGHT, [
+      { date: "2026-10-05", slot: "AM" },
+      { date: "2026-10-05", slot: "Night" },
+    ]);
+
+    expect(booking.status).toBe("Requested");
+  });
+
+  it("refuses a slot in the closed gap between windows, naming the closed time", () => {
+    expect(() => requestAt(AM_AND_NIGHT, [{ date: "2026-10-05", slot: "PM" }])).toThrow(
+      "The venue is closed 2026-10-05 13:00–18:00.",
+    );
+  });
+
+  it("refuses a slot the venue is closed for only part of, naming just that part", () => {
+    expect(() =>
+      requestAt([{ start: "08:00", end: "11:45" }], [{ date: "2026-10-05", slot: "AM" }]),
+    ).toThrow("The venue is closed 2026-10-05 07:00–08:00, 2026-10-05 11:45–12:00.");
+  });
+
+  it("refuses the whole request when any one slot includes closed time", () => {
+    expect(() =>
+      requestAt(AM_AND_NIGHT, [
+        { date: "2026-10-05", slot: "AM" },
+        { date: "2026-10-06", slot: "PM" },
+      ]),
+    ).toThrow(VenueClosedError);
+  });
+
+  it("refuses a venue with no opening hours", () => {
+    expect(() => requestAt([], [{ date: "2026-10-05", slot: "AM" }])).toThrow(
+      "The venue is closed 2026-10-05 07:00–12:00.",
     );
   });
 });

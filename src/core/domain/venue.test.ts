@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import type { BookingSlot } from "./booking";
 import { InvalidVenueError, type VenueField } from "./errors";
 import {
   canMaintainVenues,
@@ -16,7 +15,7 @@ function details(overrides: Partial<VenueDetails> = {}): VenueDetails {
     location: "Level 3, Marina Bay Hall",
     facilities: "Wi-Fi, Catering area",
     accessibility: "Step-free access",
-    slots: ["AM", "PM", "Night"],
+    openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }, { start: "19:00", end: "24:00" }],
     capacity: 300,
     bookingHorizonDays: 180,
     layouts: [
@@ -62,7 +61,7 @@ describe("defineVenue (SPM-42)", () => {
       ["facilities", { facilities: null }, "facilities"],
       ["blank facilities", { facilities: "  " }, "facilities"],
       ["accessibility", { accessibility: "" }, "accessibility"],
-      ["slot", { slots: [] }, "slots"],
+      ["opening hours", { openingHours: [] }, "openingHours"],
       ["venue capacity", { capacity: null }, "capacity"],
       ["booking horizon", { bookingHorizonDays: null }, "bookingHorizonDays"],
       ["layouts", { layouts: [] }, "layouts"],
@@ -121,22 +120,26 @@ describe("defineVenue (SPM-42)", () => {
     });
   });
 
-  describe("slots the venue offers", () => {
-    it("accepts a single slot", () => {
-      expect(defineVenue(details({ slots: ["Night"] })).slots).toEqual(["Night"]);
-    });
+});
 
-    it("keeps slots in the order the day runs, whatever order they were picked in", () => {
-      expect(defineVenue(details({ slots: ["Night", "AM"] })).slots).toEqual(["AM", "Night"]);
-    });
+describe("a venue's opening hours (SPM-332)", () => {
+  it("keeps two windows with a closed gap between them, earliest first", () => {
+    expect(defineVenue(details({ openingHours: [{ start: "19:00", end: "24:00" }, { start: "07:00", end: "12:00" }] })).openingHours).toEqual([
+      { start: "07:00", end: "12:00" },
+      { start: "19:00", end: "24:00" },
+    ]);
+  });
 
-    it("keeps a slot picked twice once", () => {
-      expect(defineVenue(details({ slots: ["PM", "PM"] })).slots).toEqual(["PM"]);
-    });
+  it("refuses overlapping windows, flagging opening hours", () => {
+    expect(
+      flaggedField(details({ openingHours: [{ start: "07:00", end: "12:00" }, { start: "11:45", end: "13:00" }] })),
+    ).toBe("openingHours");
+  });
 
-    it("refuses a slot that is not AM, PM or Night, flagging slots", () => {
-      expect(flaggedField(details({ slots: ["Evening" as BookingSlot] }))).toBe("slots");
-    });
+  it("refuses a window off the 15-minute grid, flagging opening hours", () => {
+    expect(flaggedField(details({ openingHours: [{ start: "07:10", end: "12:00" }] }))).toBe(
+      "openingHours",
+    );
   });
 });
 

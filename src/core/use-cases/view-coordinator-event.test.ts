@@ -8,12 +8,14 @@ import {
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
+import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
+import { venueId } from "@/core/domain/venue";
 import type { SafetyCheckEntry } from "@/core/ports/outbound/safety-check-repository";
 
 import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
@@ -84,8 +86,10 @@ function buildUseCase(
   now: Date = AFTER_END,
   /** Every event's safety-check history, newest first -- one approval unless given. */
   checks: readonly SafetyCheckEntry[] = [APPROVED],
+  flags: InMemoryVenueUnavailabilityRepository = new InMemoryVenueUnavailabilityRepository(new FixedClock(now)),
 ) {
   return new ViewCoordinatorEventUseCase({
+    flags,
     events: new InMemoryCoordinatorEventRepository(events),
     readiness: new InMemoryEventReadinessRepository(
       readiness,
@@ -293,6 +297,83 @@ describe("ViewCoordinatorEventUseCase completion (SPM-51)", () => {
     const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
 
     expect(result?.canComplete).toBe(false);
+  });
+});
+
+describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
+  const BLOCK = {
+    venueId: venueId("venue-1"),
+    startDate: "2026-11-06",
+    endDate: "2026-11-06",
+    slots: [{ date: "2026-11-06", slot: "PM" }],
+    reason: "Maintenance",
+    note: null,
+  } as const;
+
+  async function flaggedStore(): Promise<InMemoryVenueUnavailabilityRepository> {
+    const flags = new InMemoryVenueUnavailabilityRepository(
+      new FixedClock(AFTER_END),
+      new Map([["venue-1", "Main Hall"]]),
+      new Map(),
+      [
+        {
+          id: "booking-1",
+          venueId: "venue-1",
+          eventName: "Tech Summit",
+          status: "Confirmed",
+          slots: [{ date: "2026-11-06", slot: "PM" }],
+          eventId: "event-1",
+          coordinatorUserAccountId: COORDINATOR,
+        },
+      ],
+    );
+    await flags.record(BLOCK, userAccountId("staff-1"));
+    return flags;
+  }
+
+  it("AC4: gives the assigned coordinator each flagged booking with its reason, slots and flag time", async () => {
+    const useCase = buildUseCase([seedEvent()], [], AFTER_END, [APPROVED], await flaggedStore());
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.flaggedBookings).toEqual([
+      {
+        flagId: "flag-1",
+        bookingId: "booking-1",
+        venueLocation: "Main Hall",
+        status: "Confirmed",
+        holdExpiresAt: null,
+        bookedFor: "2026-11-06 13:00 to 18:00",
+        reasonCode: "venue-unavailable",
+        detail: "Maintenance: 2026-11-06 13:00 to 18:00",
+        flaggedAt: AFTER_END.toISOString(),
+        sourceLiftedAt: null,
+      },
+    ]);
+  });
+
+  it("AC3: leaves the booking's status as it was beside the flag", async () => {
+    const useCase = buildUseCase([seedEvent()], [], AFTER_END, [APPROVED], await flaggedStore());
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.flaggedBookings.map((flag) => flag.status)).toEqual(["Confirmed"]);
+  });
+
+  it("AC4: gives an event with nothing flagged an empty list", async () => {
+    const useCase = buildUseCase([seedEvent()]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.flaggedBookings).toEqual([]);
+  });
+
+  it("AC4: gives another coordinator no event, and so no flag", async () => {
+    const useCase = buildUseCase([seedEvent()], [], AFTER_END, [APPROVED], await flaggedStore());
+
+    await expect(
+      useCase.execute({ id: "event-1", userAccountId: OTHER_COORDINATOR }),
+    ).resolves.toBeNull();
   });
 });
 

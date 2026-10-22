@@ -18,7 +18,7 @@ const STATUS: Record<CalendarSlotStatus, { label: string; variant: Variant }> = 
   booked: { label: "Confirmed", variant: "secondary" },
   held: { label: "Held", variant: "warning" },
   blocked: { label: "Blocked", variant: "destructive" },
-  notOffered: { label: "Not offered", variant: "outline" },
+  closed: { label: "Closed", variant: "outline" },
 };
 
 // Calendar days are plain `YYYY-MM-DD`; read them at UTC midnight so the day never shifts.

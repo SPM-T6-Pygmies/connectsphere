@@ -11,9 +11,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { buildListVenues } from "@/composition/container";
+import { formatOpeningHours } from "@/core/domain/opening-hours";
 
 import { EmptyState } from "../../field-list";
-import { formatSlots } from "../../slot-label";
 import { PageHeader, StaffShell } from "../../staff-shell";
 
 export const metadata = { title: "Venues | ConnectSphere" };
@@ -45,7 +45,7 @@ export default async function VenueCataloguePage() {
                 <TableHead>Location</TableHead>
                 <TableHead>Capacity</TableHead>
                 <TableHead>Layouts (capacity)</TableHead>
-                <TableHead>Slots</TableHead>
+                <TableHead>Opening hours</TableHead>
                 <TableHead>Facilities</TableHead>
               </TableRow>
             </TableHeader>
@@ -66,7 +66,7 @@ export default async function VenueCataloguePage() {
                       ? "—"
                       : venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ")}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{formatSlots(venue.slots)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatOpeningHours(venue.openingHours) || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{venue.facilities ?? "—"}</TableCell>
                 </TableRow>
               ))}

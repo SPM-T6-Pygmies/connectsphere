@@ -128,12 +128,12 @@ export default async function VenueCalendarPage({
         actions={<WeekNav venueId={venueId} from={calendar.from} />}
       />
       <div className="mt-6 space-y-4">
-        {/* The grid still shows: a booking or block outranks Not offered, so it is never hidden. */}
-        {calendar.venue.slots.length === 0 ? (
+        {/* The grid still shows: a booking or block outranks Closed, so it is never hidden. */}
+        {calendar.venue.openingHours.length === 0 ? (
           <Alert>
             <AlertDescription>
-              This venue has no bookable slots recorded yet, so none can be requested. Ask Venue Staff to
-              set its slots.
+              This venue has no opening hours recorded yet, so it cannot be requested. Ask Venue Staff to
+              set its opening hours.
             </AlertDescription>
           </Alert>
         ) : null}

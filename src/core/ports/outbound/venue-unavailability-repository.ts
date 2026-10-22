@@ -18,6 +18,21 @@ export interface AffectedBooking {
 }
 
 /**
+ * SPM-313: a booking a block flagged, with who to tell. SPM-71 sends one notice
+ * for each, so a block over three of a coordinator's bookings gives three.
+ */
+export interface FlaggedBooking {
+  readonly bookingId: BookingId;
+  readonly eventId: string;
+  readonly eventName: string;
+  /** Null when the event has no assigned coordinator yet. */
+  readonly coordinatorUserAccountId: string | null;
+  readonly venueLocation: string;
+  /** The reason as the coordinator reads it. */
+  readonly detail: string;
+}
+
+/**
  * Driven port: the blocks Venue Staff put on a venue (SPM-21). A block is
  * stored once per date and slot; this port speaks of whole blocks. Whether a
  * block may be recorded or lifted is the domain's call; this reads and stores
@@ -56,6 +71,13 @@ export interface VenueUnavailabilityRepository {
     venueId: VenueId,
     slots: readonly SlotOnDate[],
   ): Promise<readonly AffectedBooking[]>;
+
+  /**
+   * SPM-313: the bookings recording this block flagged. Recording flags them in the
+   * same transaction (a Confirmed booking or live hold the block overlaps, one reason
+   * per block); this reads them back. Venue Staff only; anyone else gets nothing.
+   */
+  flaggedBookings(reader: UserAccountId, blockId: string): Promise<readonly FlaggedBooking[]>;
 
   /**
    * SPM-43: the slots In force blocks cover at `venueId` from `from` to `to`
