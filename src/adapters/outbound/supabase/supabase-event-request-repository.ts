@@ -15,6 +15,7 @@ import type {
   EventRequestId,
   NewEventRequest,
 } from "@/core/domain/event-request";
+import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   EventRequestRepository,
@@ -22,6 +23,7 @@ import type {
 } from "@/core/ports/outbound/event-request-repository";
 
 import type { SupabaseServerClient } from "./client";
+import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
 import {
   PREFERRED_SLOTS_SELECT,
   toAssignEventCoordinatorArgs,
@@ -171,6 +173,24 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
     // arrives here as a truthy object, not `null` -- checked on the primary
     // key, the one column no real row ever has null.
     return row && row.event_request_id !== null ? toDomain(row) : null;
+  }
+
+  async findEventTimes(id: EventRequestId): Promise<readonly TimeRangeOnDate[] | null> {
+    const key = toKey(id);
+    if (key === null) {
+      return null;
+    }
+
+    const { data, error } = await this.client.rpc("organiser_event_request_times", {
+      p_event_request_id: key,
+    });
+
+    if (error) {
+      throw new Error(`Failed to read the event's times: ${error.message}`, { cause: error });
+    }
+
+    // Null until the request is approved and has an event.
+    return data === null ? null : toEventTimes(data as unknown as EventSlotTimeRow[]);
   }
 
   /**

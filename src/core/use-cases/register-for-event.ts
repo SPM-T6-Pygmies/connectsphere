@@ -99,7 +99,7 @@ export class RegisterForEventUseCase {
       attendeeName: registration.attendeeName,
       eventName: available.name,
       startsAt: available.startsAt,
-      slots: available.slots,
+      times: available.times,
       venueName: available.venueName,
     });
 

@@ -5,6 +5,7 @@ import {
   eventRequestAccessFor,
   type OrganiserContext,
 } from "../domain/event-request";
+import type { TimeRangeOnDate } from "../domain/event-times";
 import { userAccountId } from "../domain/user-account";
 import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
@@ -38,6 +39,8 @@ export interface ViewOrganiserEventRequestResult {
   readonly canDiscuss: boolean;
   /** The assigned Event Coordinator's name, or null until Operations assigns one (SPM-97). */
   readonly assignedCoordinatorName: string | null;
+  /** SPM-326 AC6: when the event the request became runs. Null until it is approved. */
+  readonly eventTimes: readonly TimeRangeOnDate[] | null;
 }
 
 export interface ViewOrganiserEventRequestDeps {
@@ -76,7 +79,10 @@ export class ViewOrganiserEventRequestUseCase {
       return null;
     }
 
-    const messages = await this.deps.clarificationThread.messagesFor(request.id);
+    const [messages, eventTimes] = await Promise.all([
+      this.deps.clarificationThread.messagesFor(request.id),
+      this.deps.eventRequests.findEventTimes(request.id),
+    ]);
     const coordinatorId = request.assignedCoordinatorUserAccountId;
     // One batched lookup for the whole thread and the coordinator rather than one per person.
     const names = await this.deps.userAccounts.findNamesByIds([
@@ -89,6 +95,7 @@ export class ViewOrganiserEventRequestUseCase {
       clarificationThread: toClarificationThreadView(messages, names),
       canDiscuss: canDiscussEventRequest(request.status),
       assignedCoordinatorName: coordinatorId === null ? null : (names.get(coordinatorId) ?? null),
+      eventTimes,
     };
   }
 }
