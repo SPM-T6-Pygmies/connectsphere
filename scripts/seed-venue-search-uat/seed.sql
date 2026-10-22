@@ -89,7 +89,12 @@ begin
       decided_by_user_account_id, status)
     values (v_harbour, v_event, v_coordinator, v_coordinator, 'Confirmed')
     returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'PM');
+    -- The slot's hours as 15-minute slots (SPM-324).
+    insert into public.booking_slot (booking_id, slot_date, slot)
+    select v_booking, v_day, g.slot_code
+    from public.slot s
+    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+    where s.slot_code = 'PM';
   end if;
 
   if not exists (select 1 from public.event where name = 'UAT-44 Rejected Garden') then
@@ -103,7 +108,12 @@ begin
       decided_by_user_account_id, status)
     values (v_garden, v_event, v_coordinator, v_coordinator, 'Rejected')
     returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, v_day, 'AM');
+    -- The slot's hours as 15-minute slots (SPM-324).
+    insert into public.booking_slot (booking_id, slot_date, slot)
+    select v_booking, v_day, g.slot_code
+    from public.slot s
+    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+    where s.slot_code = 'AM';
   end if;
 
   raise notice 'SPM-44 UAT data ready. Booking day D = %', v_day;

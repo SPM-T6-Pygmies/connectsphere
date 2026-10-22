@@ -23,7 +23,8 @@ lapsed as (
   cross join c
   where e.name = 'Founders'' Gala Dinner'
     and v.location = 'UAT-44 Garden Hall'
-    and bs.slot_date = c.day and bs.slot = 'Night'
+    -- Night's first 15 minutes: one row per booking (SPM-324).
+    and bs.slot_date = c.day and bs.slot = '76'
 ),
 checks as (
   select 'booking L: UAT-44 Garden Hall C Night is a Tentative Hold past its expiry' as "check",
