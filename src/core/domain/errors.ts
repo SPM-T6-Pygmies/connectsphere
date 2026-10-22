@@ -453,16 +453,22 @@ export class BookingRoomLayoutNotChangeableError extends DomainError {
   }
 }
 
-/** SPM-46: a hold or confirmed booking already has one of the slots -- a hard block (#35, #41). */
+/** A date with a start and end time, as the booking refusals name them. */
+type TimeOnDate = { readonly date: string; readonly start: string; readonly end: string };
+
+function namedTimes(times: ReadonlyArray<TimeOnDate>): string {
+  return times.map(({ date, start, end }) => `${date} ${start}–${end}`).join(", ");
+}
+
+/**
+ * SPM-46: a hold or confirmed booking already has some of the time -- a hard
+ * block (#35, #41). Names the overlapping part (SPM-324 AC2).
+ */
 export class VenueSlotUnavailableError extends DomainError {
   readonly code = "venue_slot_unavailable";
 
-  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
-    super(
-      `The venue is already booked for ${slots
-        .map(({ date, slot }) => `${date} ${slot}`)
-        .join(", ")}. Choose other slots or another venue.`,
-    );
+  constructor(readonly times: ReadonlyArray<TimeOnDate>) {
+    super(`The venue is already booked for ${namedTimes(times)}. Choose other times or another venue.`);
   }
 }
 
@@ -1132,12 +1138,9 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
 export class VenueSlotBlockedError extends DomainError {
   readonly code = "venue_slot_blocked";
 
-  constructor(readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: string }>) {
-    super(
-      `The venue is unavailable for ${slots
-        .map(({ date, slot }) => `${date} ${slot}`)
-        .join(", ")}. Choose other slots or another venue.`,
-    );
+  /** The blocked part of the booking's times (SPM-324). */
+  constructor(readonly times: ReadonlyArray<TimeOnDate>) {
+    super(`The venue is unavailable for ${namedTimes(times)}. Choose other times or another venue.`);
   }
 }
 

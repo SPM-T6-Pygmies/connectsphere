@@ -28,7 +28,7 @@ export class NotifyExpiredHoldsUseCase {
         eventRequestId: hold.eventRequestId,
         eventName: hold.eventName,
         venueLocation: hold.venueLocation,
-        slots: hold.slots,
+        times: hold.times,
         holdExpiresAt: hold.holdExpiresAt,
       });
     }

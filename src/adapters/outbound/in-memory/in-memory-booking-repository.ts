@@ -1,8 +1,10 @@
 import {
+  blockedTimes,
   bookingCancellable,
+  slotTime,
   type BookingId,
   type BookingRequest,
-  type OccupiedSlot,
+  type OccupiedTime,
 } from "@/core/domain/booking";
 import {
   BookingNotCancellableError,
@@ -52,14 +54,14 @@ export class InMemoryBookingRepository implements BookingRepository {
     this.nextId = seed.length + 1;
   }
 
-  async listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedSlot[]> {
+  async listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedTime[]> {
     return this.rows
       .filter((booking) => booking.venueId === venue)
       .flatMap((booking) =>
-        booking.slots
-          .filter((slot) => dates.includes(slot.date))
-          .map((slot) => ({
-            ...slot,
+        booking.times
+          .filter((time) => dates.includes(time.date))
+          .map((time) => ({
+            ...time,
             status: booking.status,
             holdExpiresAt: booking.holdExpiresAt ?? null,
           })),
@@ -80,7 +82,7 @@ export class InMemoryBookingRepository implements BookingRepository {
         roomLayoutName: booking.roomLayoutName,
         status: booking.status,
         holdExpiresAt: booking.holdExpiresAt?.toISOString() ?? null,
-        slots: booking.slots,
+        times: booking.times,
         requestedAt: booking.requestedAt,
         rejectionNote: booking.rejectionNote ?? null,
         suggestedAlternative: booking.suggestedAlternative ?? null,
@@ -92,11 +94,10 @@ export class InMemoryBookingRepository implements BookingRepository {
    * (SPM-21 AC12), whatever the use case checked first.
    */
   async submit(request: BookingRequest): Promise<BookingId> {
-    const blocked = this.blocks
-      .blockedSlots()
-      .filter((slot) => slot.venueId === request.venueId);
-    const refused = request.slots.filter(({ date, slot }) =>
-      blocked.some((b) => b.date === date && b.slot === slot),
+    const times = request.slots.map(slotTime);
+    const refused = blockedTimes(
+      times,
+      this.blocks.blockedSlots().filter((slot) => slot.venueId === request.venueId),
     );
     if (refused.length > 0) {
       throw new VenueSlotBlockedError(refused);
@@ -110,7 +111,7 @@ export class InMemoryBookingRepository implements BookingRepository {
       venueLocation: this.venueLocations.get(request.venueId) ?? request.venueId,
       roomLayoutName: request.roomLayout,
       status: request.status,
-      slots: request.slots,
+      times,
       requestedBy: request.requestedBy,
       requestedAt: "2026-09-28T00:00:00.000Z",
     });

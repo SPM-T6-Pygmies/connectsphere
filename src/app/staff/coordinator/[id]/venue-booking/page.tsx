@@ -32,6 +32,7 @@ import type {
 
 import { EmptyState, FieldList } from "../../../field-list";
 import { formatHoldExpiry } from "../../../hold-expiry";
+import { formatTimes } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
@@ -105,7 +106,7 @@ function BookingsTable({
                 ) : null}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs whitespace-normal">
-                {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
+                {formatTimes(booking.times)}
               </TableCell>
               <TableCell className="text-muted-foreground whitespace-normal">
                 <div className="space-y-2">

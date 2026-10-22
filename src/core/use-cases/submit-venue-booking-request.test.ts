@@ -19,6 +19,7 @@ import {
   VenueNotFoundError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
+import { slotTime } from "@/core/domain/booking";
 import { venueId, type Venue } from "@/core/domain/venue";
 
 import { SubmitVenueBookingRequestUseCase } from "./submit-venue-booking-request";
@@ -75,7 +76,7 @@ function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): 
     venueLocation: venue,
     roomLayoutName: null,
     status: "Confirmed",
-    slots: [{ date, slot }],
+    times: [slotTime({ date, slot })],
     requestedBy: OTHER_COORDINATOR,
     requestedAt: "2026-09-20T00:00:00.000Z",
   };
@@ -127,9 +128,9 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         roomLayoutName: "Banquet",
         status: "Requested",
         requestedBy: COORDINATOR,
-        slots: [
-          { date: "2026-10-05", slot: "AM" },
-          { date: "2026-10-05", slot: "PM" },
+        times: [
+          { date: "2026-10-05", start: "07:00", end: "12:00" },
+          { date: "2026-10-05", start: "13:00", end: "18:00" },
         ],
       }),
     ]);
@@ -223,7 +224,9 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       .catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(VenueSlotUnavailableError);
-    expect((error as VenueSlotUnavailableError).slots).toEqual([{ date: "2026-10-05", slot: "PM" }]);
+    expect((error as VenueSlotUnavailableError).times).toEqual([
+      { date: "2026-10-05", start: "13:00", end: "18:00" },
+    ]);
   });
 
   it("does not clash with the same event's own live booking at another venue (AC5)", async () => {
@@ -287,7 +290,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
 });
 
 describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
-  it("AC1, AC2: tells every Venue Staff member the venue, dates and slots requested", async () => {
+  it("AC1, AC2: tells every Venue Staff member the venue, dates and times requested", async () => {
     const { useCase, notifier } = buildUseCase([], ["venue-staff-1", "venue-staff-2"]);
 
     await useCase.execute({
@@ -305,9 +308,9 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
       bookingId: "booking-1",
       eventName: "Annual Conference",
       venueLocation: "Main Hall",
-      slots: [
-        { date: "2026-10-05", slot: "Night" },
-        { date: "2026-10-06", slot: "AM" },
+      times: [
+        { date: "2026-10-05", start: "19:00", end: "24:00" },
+        { date: "2026-10-06", start: "07:00", end: "12:00" },
       ],
     };
     expect(notifier.bookingRequests).toEqual([

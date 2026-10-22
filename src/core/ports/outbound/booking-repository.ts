@@ -2,9 +2,9 @@ import type {
   BookingId,
   BookingRequest,
   BookingStatus,
-  OccupiedSlot,
-  SlotOnDate,
+  OccupiedTime,
 } from "../../domain/booking";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { UserAccountId } from "../../domain/user-account";
 import type { VenueId } from "../../domain/venue";
 
@@ -18,7 +18,8 @@ export interface EventBookingSummary {
   readonly status: BookingStatus;
   /** SPM-218: ISO instant a Tentative Hold lapses; null for any other status. */
   readonly holdExpiresAt: string | null;
-  readonly slots: readonly SlotOnDate[];
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
   /** ISO instant. */
   readonly requestedAt: string;
   /** Venue Staff's reason for a rejection (SPM-62 AC2); null otherwise. */
@@ -28,14 +29,17 @@ export interface EventBookingSummary {
 }
 
 /**
- * Driven port: venue bookings and the slots they sit on.
+ * Driven port: venue bookings and the times they hold.
  *
  * `submit`, `changeRoomLayout` and `cancel` are the only writes. The store restates the request's rules at its
  * own boundary, so a race the use case could not see is still refused.
  */
 export interface BookingRepository {
-  /** Every booking at the venue touching any of these dates, whatever its status. */
-  listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedSlot[]>;
+  /**
+   * Every booking at the venue touching any of these dates, whatever its
+   * status: one entry per 15-minute slot, so a caller compares by overlap.
+   */
+  listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedTime[]>;
   /** The bookings raised for one of the coordinator's events; empty if it isn't theirs. */
   listForEvent(coordinatorId: UserAccountId, eventId: string): Promise<readonly EventBookingSummary[]>;
   submit(request: BookingRequest): Promise<BookingId>;

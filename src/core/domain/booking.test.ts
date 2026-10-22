@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  blockedTimes,
   bookingCancellable,
   cancelBooking,
   checkLayoutCapacity,
@@ -13,11 +14,11 @@ import {
   holdsSlot,
   requestVenueBooking,
   resolveHold,
+  slotTime,
   type BookingForDecision,
   type BookingForHoldResolution,
   type BookingId,
   type BookingStatus,
-  type OccupiedSlot,
   type OccupiedTime,
   type SlotOnDate,
 } from "./booking";
@@ -72,13 +73,13 @@ function occupied(
   slot: SlotOnDate["slot"],
   status: BookingStatus,
   holdExpiresAt: Date | null = null,
-): OccupiedSlot {
-  return { date, slot, status, holdExpiresAt };
+): OccupiedTime {
+  return { ...slotTime({ date, slot }), status, holdExpiresAt };
 }
 
 function request(
   slots: readonly SlotOnDate[],
-  existing: readonly OccupiedSlot[] = [],
+  existing: readonly OccupiedTime[] = [],
   layout: string | null = THEATRE,
   eventStatus: CoordinatorEventStatus = "Planning",
 ) {
@@ -162,9 +163,9 @@ describe("requestVenueBooking (SPM-46)", () => {
     }
 
     expect(caught).toBeInstanceOf(VenueSlotUnavailableError);
-    expect((caught as VenueSlotUnavailableError).slots).toEqual([
-      { date: "2026-10-05", slot: "PM" },
-      { date: "2026-10-06", slot: "AM" },
+    expect((caught as VenueSlotUnavailableError).times).toEqual([
+      { date: "2026-10-05", start: "13:00", end: "18:00" },
+      { date: "2026-10-06", start: "07:00", end: "12:00" },
     ]);
   });
 
@@ -341,9 +342,9 @@ describe("decideBooking (SPM-22)", () => {
     id: "booking-1" as BookingId,
     venueId: venueId("v1"),
     status: "Requested",
-    slots: [
-      { date: "2026-10-22", slot: "AM" },
-      { date: "2026-10-22", slot: "PM" },
+    times: [
+      { date: "2026-10-22", start: "07:00", end: "12:00" },
+      { date: "2026-10-22", start: "13:00", end: "18:00" },
     ],
   };
 
@@ -460,9 +461,9 @@ describe("decideBooking placing a hold (SPM-218)", () => {
     id: "booking-1" as BookingId,
     venueId: venueId("v1"),
     status: "Requested",
-    slots: [
-      { date: "2026-10-22", slot: "AM" },
-      { date: "2026-10-22", slot: "PM" },
+    times: [
+      { date: "2026-10-22", start: "07:00", end: "12:00" },
+      { date: "2026-10-22", start: "13:00", end: "18:00" },
     ],
   };
   const hold = { kind: "hold" } as const;
@@ -503,9 +504,9 @@ describe("decideBooking placing a hold (SPM-218)", () => {
       decideBooking(waiting, hold, staff, [confirmed, live], NOW);
       expect.unreachable();
     } catch (error) {
-      expect((error as VenueSlotUnavailableError).slots).toEqual([
-        { date: "2026-10-22", slot: "AM" },
-        { date: "2026-10-22", slot: "PM" },
+      expect((error as VenueSlotUnavailableError).times).toEqual([
+        { date: "2026-10-22", start: "07:00", end: "12:00" },
+        { date: "2026-10-22", start: "13:00", end: "18:00" },
       ]);
     }
   });
@@ -706,7 +707,7 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
     id: "booking-1" as BookingId,
     venueId: venueId("v1"),
     status: "Requested",
-    slots,
+    times: slots.map(slotTime),
   });
   // NOW is 2026-10-01 09:00 in Singapore. AM starts at 07:00, PM at 13:00.
   const SEVENTY_TWO_HOURS = DEFAULT_HOLD_HOURS * 60 * 60 * 1000;
@@ -923,6 +924,34 @@ describe("clashingTimes (SPM-350)", () => {
   it("is no clash with a hold that lapsed before now (AC3)", () => {
     expect(
       clashingTimes(want, [booked("15:00", "16:00", "Tentative Hold", BEFORE_NOW)], NOW),
+    ).toEqual([]);
+  });
+});
+
+describe("blockedTimes (SPM-347)", () => {
+  const D = "2026-11-04";
+
+  it("names the part of a time an AM, PM or Night block covers, by its hours", () => {
+    expect(
+      blockedTimes([{ date: D, start: "11:00", end: "14:00" }], [
+        { date: D, slot: "AM" },
+        { date: D, slot: "PM" },
+      ]),
+    ).toEqual([
+      { date: D, start: "11:00", end: "12:00" },
+      { date: D, start: "13:00", end: "14:00" },
+    ]);
+  });
+
+  it("names nothing when the time only touches the block or is on another date", () => {
+    expect(
+      blockedTimes(
+        [
+          { date: D, start: "12:00", end: "13:00" },
+          { date: "2026-11-05", start: "07:00", end: "08:00" },
+        ],
+        [{ date: D, slot: "AM" }],
+      ),
     ).toEqual([]);
   });
 });

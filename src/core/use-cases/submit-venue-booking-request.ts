@@ -1,4 +1,4 @@
-import { requestVenueBooking, type BookingSlot } from "../domain/booking";
+import { requestVenueBooking, slotTime, type BookingSlot } from "../domain/booking";
 import { CoordinatorEventNotFoundError, VenueNotFoundError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
@@ -87,7 +87,7 @@ export class SubmitVenueBookingRequestUseCase {
         bookingId,
         eventName: event.name,
         venueLocation: venue.location,
-        slots: request.slots,
+        times: request.slots.map(slotTime),
       });
     }
 

@@ -3,18 +3,22 @@ import {
   type BookingRequest,
   type BookingSlot,
   type BookingStatus,
-  type OccupiedSlot,
+  type OccupiedTime,
 } from "@/core/domain/booking";
+import { joinSlots, type TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 import type { EventBookingSummary } from "@/core/ports/outbound/booking-repository";
 
 import { toKey } from "./coordinator-event-mapper";
+import type { EventSlotTimeRow } from "./event-mapper";
 
-/** A row of `venue_booked_slots()`. */
+/** A row of `venue_booked_slots()`: one booking_slot row with its hours (SPM-324). */
 export interface BookedSlotRow {
   slot_date: string;
-  slot: string;
+  /** `HH:MM:SS`; the last slot of a day ends `24:00:00`. */
+  start_time: string;
+  end_time: string;
   status: string;
   hold_expires_at: string | null;
 }
@@ -28,7 +32,7 @@ export interface EventBookingRow {
   status: string;
   hold_expires_at: string | null;
   created_at: string;
-  slots: ReadonlyArray<{ date: string; slot: string }>;
+  slots: readonly EventSlotTimeRow[];
   rejection_note: string | null;
   suggested_alternative_venue_id: number | null;
   suggested_alternative_location: string | null;
@@ -67,10 +71,26 @@ export function toDate(raw: string): string {
   return raw.slice(0, 10);
 }
 
-export function toOccupiedSlot(row: BookedSlotRow): OccupiedSlot {
+/** A `time` column as `HH:MM`. */
+function toTimeOfDay(raw: string): string {
+  return raw.slice(0, 5);
+}
+
+/**
+ * A booking's slot rows, `{date, start, end}` as the reads report them, joined
+ * into the times people read (SPM-324). Bookings and events share the shape.
+ */
+export function toBookingTimes(rows: readonly EventSlotTimeRow[]): TimeRangeOnDate[] {
+  return joinSlots(
+    rows.map((row) => ({ date: toDate(row.date), start: toTimeOfDay(row.start), end: toTimeOfDay(row.end) })),
+  );
+}
+
+export function toOccupiedTime(row: BookedSlotRow): OccupiedTime {
   return {
     date: toDate(row.slot_date),
-    slot: toSlot(row.slot),
+    start: toTimeOfDay(row.start_time),
+    end: toTimeOfDay(row.end_time),
     status: toStatus(row.status),
     holdExpiresAt: row.hold_expires_at === null ? null : new Date(row.hold_expires_at),
   };
@@ -84,7 +104,7 @@ export function toEventBookingSummary(row: EventBookingRow): EventBookingSummary
     roomLayoutName: row.room_layout_name,
     status: toStatus(row.status),
     holdExpiresAt: row.hold_expires_at,
-    slots: row.slots.map(({ date, slot }) => ({ date: toDate(date), slot: toSlot(slot) })),
+    times: toBookingTimes(row.slots),
     requestedAt: row.created_at,
     rejectionNote: row.rejection_note,
     suggestedAlternative:

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   toChangeRoomLayoutArgs,
   toEventBookingSummary,
-  toOccupiedSlot,
+  toOccupiedTime,
   toSubmitBookingArgs,
 } from "./booking-mapper";
 import { toCoordinatorEventDetails } from "./coordinator-event-mapper";
@@ -12,12 +12,19 @@ import { userAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 
 describe("booking mapper (SPM-46)", () => {
-  it("reads a booked slot, keeping only the calendar date", () => {
+  it("reads a booked slot as its hours, keeping only the calendar date and HH:MM", () => {
     expect(
-      toOccupiedSlot({ slot_date: "2026-10-05", slot: "Night", status: "Confirmed", hold_expires_at: null }),
+      toOccupiedTime({
+        slot_date: "2026-10-05",
+        start_time: "23:45:00",
+        end_time: "24:00:00",
+        status: "Confirmed",
+        hold_expires_at: null,
+      }),
     ).toEqual({
       date: "2026-10-05",
-      slot: "Night",
+      start: "23:45",
+      end: "24:00",
       status: "Confirmed",
       holdExpiresAt: null,
     });
@@ -25,18 +32,26 @@ describe("booking mapper (SPM-46)", () => {
 
   it("reads a hold's expiry as an instant (AC4)", () => {
     expect(
-      toOccupiedSlot({
+      toOccupiedTime({
         slot_date: "2026-10-05",
-        slot: "AM",
+        start_time: "07:00:00",
+        end_time: "07:15:00",
         status: "Tentative Hold",
         hold_expires_at: "2026-10-03T10:00:00+00:00",
       }).holdExpiresAt,
     ).toEqual(new Date("2026-10-03T10:00:00Z"));
   });
 
-  it("refuses a slot or status the schema does not allow", () => {
-    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "Evening", status: "Confirmed", hold_expires_at: null })).toThrow();
-    expect(() => toOccupiedSlot({ slot_date: "2026-10-05", slot: "AM", status: "Pending", hold_expires_at: null })).toThrow();
+  it("refuses a status the schema does not allow", () => {
+    expect(() =>
+      toOccupiedTime({
+        slot_date: "2026-10-05",
+        start_time: "07:00:00",
+        end_time: "07:15:00",
+        status: "Pending",
+        hold_expires_at: null,
+      }),
+    ).toThrow();
   });
 
   it("reads a held booking's expiry as the instant it lapses (SPM-218)", () => {
@@ -49,7 +64,7 @@ describe("booking mapper (SPM-46)", () => {
         status: "Tentative Hold",
         hold_expires_at: "2026-10-04T01:00:00+00:00",
         created_at: "2026-09-28T02:00:00+00:00",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        slots: [{ date: "2026-10-05", start: "07:00:00", end: "12:00:00" }],
         rejection_note: null,
         suggested_alternative_venue_id: null,
         suggested_alternative_location: null,
@@ -67,7 +82,7 @@ describe("booking mapper (SPM-46)", () => {
         status: "Requested",
         hold_expires_at: null,
         created_at: "2026-09-28T02:00:00+00:00",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        slots: [{ date: "2026-10-05", start: "07:00:00", end: "12:00:00" }],
         rejection_note: null,
         suggested_alternative_venue_id: null,
         suggested_alternative_location: null,
@@ -79,7 +94,7 @@ describe("booking mapper (SPM-46)", () => {
       roomLayoutName: null,
       status: "Requested",
       holdExpiresAt: null,
-      slots: [{ date: "2026-10-05", slot: "AM" }],
+      times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       requestedAt: "2026-09-28T02:00:00+00:00",
       rejectionNote: null,
       suggestedAlternative: null,
@@ -98,7 +113,7 @@ describe("booking mapper -- Venue Staff's answer (SPM-62)", () => {
         status: "Rejected",
         hold_expires_at: null,
         created_at: "2026-09-28T02:00:00+00:00",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        slots: [{ date: "2026-10-05", start: "07:00:00", end: "12:00:00" }],
         rejection_note: "Closed for resurfacing.",
         suggested_alternative_venue_id: 1,
         suggested_alternative_location: "Main Hall",

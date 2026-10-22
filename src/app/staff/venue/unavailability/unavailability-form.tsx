@@ -196,8 +196,8 @@ function AffectedBookings({ state }: { state: Extract<RecordUnavailabilityState,
         ) : (
           <ul className="space-y-1 text-sm">
             {affectedBookings.map((booking) => (
-              <li key={`${booking.bookingId}-${booking.date}-${booking.slot}`}>
-                <span className="font-medium">{booking.eventName}</span> · {booking.date} {booking.slot} ·{" "}
+              <li key={`${booking.bookingId}-${booking.date}-${booking.start}`}>
+                <span className="font-medium">{booking.eventName}</span> · {booking.date} {booking.start}–{booking.end} ·{" "}
                 {booking.status}
               </li>
             ))}

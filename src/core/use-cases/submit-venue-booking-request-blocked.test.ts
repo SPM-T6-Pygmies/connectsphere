@@ -94,7 +94,7 @@ describe("a booking request over a venue block (SPM-270)", () => {
     expect(bookings.all()).toEqual([]);
   });
 
-  it("AC12: the message the form shows names the date and slot", async () => {
+  it("AC12: the message the form shows names the date and time", async () => {
     const { record, submit } = build();
     await record.execute({ ...BLOCK, slots: ["AM"] });
 
@@ -102,7 +102,7 @@ describe("a booking request over a venue block (SPM-270)", () => {
     const error = await submit.execute(request([{ date: "2026-10-19", slot: "AM" }])).catch((e: unknown) => e);
 
     expect((error as VenueSlotBlockedError).message).toBe(
-      "The venue is unavailable for 2026-10-19 AM. Choose other slots or another venue.",
+      "The venue is unavailable for 2026-10-19 07:00–12:00. Choose other times or another venue.",
     );
   });
 
