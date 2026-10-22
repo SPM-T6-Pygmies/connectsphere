@@ -3,7 +3,7 @@
 -- survives: it ends in an error, which rolls everything back, and the error
 -- message is the result.
 --
---   ok: all 29 checks held            every check passed
+--   ok: all 30 checks held            every check passed
 --   FAILED: <checks that did not hold>
 --
 -- Run against a local stack that has the base seed, seed-venues and
@@ -263,6 +263,17 @@ begin
   v_checks := v_checks + 1;
   if (select string_agg(e ->> 'slot', ',' order by ord) from jsonb_array_elements(v_json) with ordinality t(e, ord)) is distinct from '36,37,38,39' then
     v_failed := array_append(v_failed, 'SPM-321 the calendar read is not the quarter hours 36-39 in order'); end if;
+  -- SPM-321: a calendar slot lists its reasons in the order the blocks were recorded, not by which
+  -- starts first: the later block here starts earlier in the day, yet its reason comes second
+  perform public.venue_staff_record_unavailability(v_staff, v_venue, 'Renovation', null,
+    (select jsonb_agg(jsonb_build_object('date', v_day + 20, 'slot', n::text) order by n) from generate_series(36, 39) n));   -- 09:00-10:00
+  perform public.venue_staff_record_unavailability(v_staff, v_venue, 'Safety', null,
+    (select jsonb_agg(jsonb_build_object('date', v_day + 20, 'slot', n::text) order by n) from generate_series(28, 31) n));    -- 07:00-08:00
+  v_checks := v_checks + 1;
+  if (select string_agg(distinct e ->> 'reason_category', ',' order by e ->> 'reason_category') from jsonb_array_elements(public.venue_blocked_slots(v_venue, v_day + 20, v_day + 20)) e) <> 'Renovation,Safety'
+     or (public.venue_blocked_slots(v_venue, v_day + 20, v_day + 20) -> 0 ->> 'reason_category') <> 'Renovation' then
+    v_failed := array_append(v_failed, 'SPM-321 the calendar read does not give the earlier-recorded block first'); end if;
+
   v_json := public.venue_staff_unavailability_affected(v_staff, v_venue,
     jsonb_build_array(jsonb_build_object('date', v_day + 10, 'slot', '36')));
   v_checks := v_checks + 1;

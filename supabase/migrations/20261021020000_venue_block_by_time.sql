@@ -11,7 +11,9 @@
 --    that check replaced.
 -- 3. Recording a block refuses time the venue is closed (CS078) -- the backstop for the
 --    form and the use case, which refuse it first and name the closed time.
--- 4. The calendar and list reads order by the slot's start time, not by AM/PM/Night.
+-- 4. The calendar and list reads order by the slot's start time, not by AM/PM/Night. The calendar
+--    read gives each day's rows block by block, so a calendar slot lists its reasons in the order
+--    the blocks were recorded.
 --
 -- Hours narrowed after a block was recorded are not rechecked: a block stays as recorded.
 
@@ -376,7 +378,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 4. Reads ordered by the slot's start time.
+-- 4. Reads ordered by the slot's start time (the calendar read, block by block within a day).
 -- ---------------------------------------------------------------------------
 create or replace function public.venue_blocked_slots(
   p_venue_id bigint,
@@ -396,7 +398,7 @@ as $$
              'slot', s.slot,
              'reason_category', u.reason_category,
              'reason_note', u.reason_note)
-           order by s.venue_id, s.slot_date, sl.start_time, u.venue_unavailability_id), '[]'::jsonb)
+           order by s.venue_id, s.slot_date, u.venue_unavailability_id, sl.start_time), '[]'::jsonb)
   from public.venue_unavailability_slot s
   join public.slot sl on sl.slot_code = s.slot
   join public.venue_unavailability u
