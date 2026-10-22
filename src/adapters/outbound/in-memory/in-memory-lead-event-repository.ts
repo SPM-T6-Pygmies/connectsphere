@@ -3,7 +3,14 @@ import type { LeadEvent } from "@/core/domain/coordinator-workload";
 import { NotCoordinatorLeadError } from "@/core/domain/errors";
 import type { EventId } from "@/core/domain/event";
 import type { UserAccountId } from "@/core/domain/user-account";
-import type { LeadEventRepository } from "@/core/ports/outbound/lead-event-repository";
+import type { TimeRangeOnDate } from "@/core/domain/event-times";
+import type {
+  LeadEventDetails,
+  LeadEventRepository,
+} from "@/core/ports/outbound/lead-event-repository";
+
+/** A seeded event; `times` defaults to none. */
+export type SeedLeadEvent = LeadEvent & { readonly times?: readonly TimeRangeOnDate[] };
 
 /** One reassignment as the store records it: the audit trail's who, from and to (SPM-257 AC4). */
 export interface RecordedReassignment {
@@ -14,13 +21,13 @@ export interface RecordedReassignment {
 }
 
 export class InMemoryLeadEventRepository implements LeadEventRepository {
-  private readonly events: LeadEvent[];
+  private readonly events: SeedLeadEvent[];
   private readonly leads: ReadonlySet<UserAccountId>;
   readonly reassignments: RecordedReassignment[] = [];
 
   constructor(
     seed: {
-      readonly events?: readonly LeadEvent[];
+      readonly events?: readonly SeedLeadEvent[];
       /** The accounts holding the Event Coordinator Lead role. */
       readonly leads?: readonly UserAccountId[];
     } = {},
@@ -34,9 +41,10 @@ export class InMemoryLeadEventRepository implements LeadEventRepository {
     return [...this.events];
   }
 
-  async findById(reader: UserAccountId, id: EventId): Promise<LeadEvent | null> {
+  async findById(reader: UserAccountId, id: EventId): Promise<LeadEventDetails | null> {
     this.assertLead(reader);
-    return this.events.find((event) => event.id === id) ?? null;
+    const event = this.events.find((stored) => stored.id === id);
+    return event === undefined ? null : { ...event, times: event.times ?? [] };
   }
 
   async reassignCoordinator(event: LeadEvent, reassignedBy: UserAccountId): Promise<void> {

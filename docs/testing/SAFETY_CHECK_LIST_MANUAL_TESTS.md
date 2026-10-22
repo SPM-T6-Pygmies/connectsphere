@@ -4,7 +4,7 @@
 
 Browser checks for **SPM-259 — See events awaiting a safety check**: a Safety
 Officer's `/staff/safety` workspace lists the Planning events whose live venue
-bookings are all Confirmed and whose equipment lines are all reserved in full,
+bookings are all Confirmed and whose essential equipment lines are all reserved in full (SPM-319),
 with each event's date, expected attendance and venues.
 
 What SPM-259 does **not** cover, so is not tested here:
@@ -55,7 +55,7 @@ seven events, each in a different state against the rule, from the SQL editor
 | Harbour Lights Gala | Planning, 2026-11-20, 150; Confirmed at Grand Ballroom, Confirmed at Sky Terrace on its session, Released at Old Hall; 4 of 4 reserved | Yes |
 | Riverside Workshop | Planning, no date, no attendance; Confirmed at Grand Ballroom; no equipment lines | Yes |
 | Autumn Tech Expo | Planning; Confirmed at Grand Ballroom, **Tentative Hold** at Sky Terrace | No |
-| Lantern Festival | Planning; Confirmed; **2 of 3** projectors reserved | No |
+| Lantern Festival | Planning; Confirmed; **2 of 3** projectors reserved, on a line marked essential | No |
 | Founders' Dinner | **Confirmed** event; Confirmed booking | No |
 | Community Fun Run | Planning; **no booking** | No |
 
@@ -118,14 +118,15 @@ begin
   values (v_ballroom, v_event, v_organiser, v_venue, 'Confirmed'),
          (v_terrace,  v_event, v_organiser, v_venue, 'Tentative Hold');
 
-  -- 5. Not listed: 2 of 3 projectors reserved.
+  -- 5. Not listed: 2 of 3 projectors reserved, on an essential line (SPM-319: only an essential line
+  --    keeps an event off the list).
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
   values ('Lantern Festival', 'Planning', '2026-11-10', 200, v_organiser, v_org) returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
   values (v_ballroom, v_event, v_organiser, v_venue, 'Confirmed');
   insert into equipment_reservation (event_id) values (v_event) returning equipment_reservation_id into v_res;
-  insert into equipment_reservation_line (equipment_reservation_id, equipment_item_id, quantity_requested, quantity_reserved, line_state)
-  values (v_res, v_projector, 3, 2, 'Reserved');
+  insert into equipment_reservation_line (equipment_reservation_id, equipment_item_id, quantity_requested, quantity_reserved, line_state, essential)
+  values (v_res, v_projector, 3, 2, 'Reserved', true);
 
   -- 6. Not listed: already Confirmed, though its venue is.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)

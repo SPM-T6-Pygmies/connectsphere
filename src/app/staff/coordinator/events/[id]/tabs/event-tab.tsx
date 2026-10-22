@@ -1,5 +1,6 @@
 import { LockIcon } from "lucide-react";
 
+import { EventTimes } from "@/app/events/event-times";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -30,7 +31,6 @@ export function EventDetailsTab({
   const ordinary = Object.fromEntries(
     ORDINARY_EVENT_FIELDS.map((field) => [field, details[field]]),
   ) as OrdinaryEventDetails;
-  const slots = details.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
 
   return (
     <>
@@ -41,7 +41,7 @@ export function EventDetailsTab({
           <CardTitle>When and how many</CardTitle>
           <CardDescription className="flex items-center gap-1.5">
             <LockIcon className="size-3.5" aria-hidden />
-            Date, timeslots, attendance, venue and equipment changes go through a change request.
+            Date and times, attendance, venue and equipment changes go through a change request.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -51,8 +51,10 @@ export function EventDetailsTab({
               <dd>{event.preferredDate ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-muted-foreground text-xs">Timeslots</dt>
-              <dd>{slots || "—"}</dd>
+              <dt className="text-muted-foreground text-xs">Times</dt>
+              <dd>
+                <EventTimes times={details.times} nameEveryDay />
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground text-xs">Expected attendance</dt>
