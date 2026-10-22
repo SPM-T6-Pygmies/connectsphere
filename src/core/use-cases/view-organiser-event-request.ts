@@ -8,7 +8,10 @@ import {
 import type { TimeRangeOnDate } from "../domain/event-times";
 import { userAccountId } from "../domain/user-account";
 import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
-import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type {
+  EventRequestRepository,
+  OrganiserEventArrangements,
+} from "../ports/outbound/event-request-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
 import {
@@ -41,6 +44,8 @@ export interface ViewOrganiserEventRequestResult {
   readonly assignedCoordinatorName: string | null;
   /** SPM-326 AC6: when the event the request became runs. Null until it is approved. */
   readonly eventTimes: readonly TimeRangeOnDate[] | null;
+  /** SPM-66 AC3: the event's status and what has been arranged for it. Null until it is approved. */
+  readonly eventArrangements: OrganiserEventArrangements | null;
 }
 
 export interface ViewOrganiserEventRequestDeps {
@@ -79,9 +84,10 @@ export class ViewOrganiserEventRequestUseCase {
       return null;
     }
 
-    const [messages, eventTimes] = await Promise.all([
+    const [messages, eventTimes, eventArrangements] = await Promise.all([
       this.deps.clarificationThread.messagesFor(request.id),
       this.deps.eventRequests.findEventTimes(request.id),
+      this.deps.eventRequests.findEventArrangements(request.id),
     ]);
     const coordinatorId = request.assignedCoordinatorUserAccountId;
     // One batched lookup for the whole thread and the coordinator rather than one per person.
@@ -96,6 +102,7 @@ export class ViewOrganiserEventRequestUseCase {
       canDiscuss: canDiscussEventRequest(request.status),
       assignedCoordinatorName: coordinatorId === null ? null : (names.get(coordinatorId) ?? null),
       eventTimes,
+      eventArrangements,
     };
   }
 }

@@ -25,6 +25,7 @@ export default async function Page({ params }: PageProps<"/staff/requester/[id]"
       canDiscuss={result.canDiscuss}
       assignedCoordinatorName={result.assignedCoordinatorName}
       eventTimes={result.eventTimes}
+      eventArrangements={result.eventArrangements}
       organiserName={organiser.name}
     />
   );
