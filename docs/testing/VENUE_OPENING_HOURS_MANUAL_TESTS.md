@@ -217,10 +217,12 @@ kind inside a transaction that is rolled back, so the local data is untouched.
    ```
 
 **Expected Result**
-- [ ] Step 2 raises nothing and says *Joined adjacent opening hours: N slots added*:
+- [x] Step 2 raises nothing and says *Joined adjacent opening hours: N slots added*:
       at least 16 (one hour each for AM PM and PM Night, two for AM PM Night), more if
       other local venues still had AM, PM or Night rows to convert.
-- [ ] The catalogue reads **AM PM** as `07:00–18:00`, **PM Night** as `13:00–24:00`
+- [x] The catalogue reads **AM PM** as `07:00–18:00`, **PM Night** as `13:00–24:00`
       and **AM PM Night** as `07:00–24:00`, each one window.
-- [ ] **AM Night** reads `07:00–12:00` and `19:00–24:00`, and **AM** reads `07:00–12:00`:
+- [x] **AM Night** reads `07:00–12:00` and `19:00–24:00`, and **AM** reads `07:00–12:00`:
       unchanged.
+
+**Run:** Pass, 22/10/2026, local Supabase after `supabase db reset`, by Claude Code for joyceetran: 16 slots added, and every venue read as expected.
