@@ -1,6 +1,7 @@
 import type { CoordinatorEventStatus } from "../domain/coordinator-event";
 import { isActiveEvent } from "../domain/coordinator-workload";
 import { eventId } from "../domain/event";
+import type { TimeRangeOnDate } from "../domain/event-times";
 import { userAccountId } from "../domain/user-account";
 import type { ClientOrganisationRepository } from "../ports/outbound/client-organisation-repository";
 import type { LeadEventRepository } from "../ports/outbound/lead-event-repository";
@@ -18,6 +19,8 @@ export interface ViewLeadEventResult {
     readonly status: CoordinatorEventStatus;
     /** ISO calendar date, `YYYY-MM-DD`. */
     readonly preferredDate: string | null;
+    /** SPM-326 AC1: its start and end times, in date then start order. */
+    readonly times: readonly TimeRangeOnDate[];
     readonly clientOrganisationName: string;
     readonly assignedCoordinatorUserAccountId: string | null;
   };
@@ -54,6 +57,7 @@ export class ViewLeadEventUseCase {
         name: event.name,
         status: event.status,
         preferredDate: event.preferredDate,
+        times: event.times,
         clientOrganisationName: names.get(event.clientOrganisationId) ?? "",
         assignedCoordinatorUserAccountId: event.assignedCoordinatorUserAccountId,
       },

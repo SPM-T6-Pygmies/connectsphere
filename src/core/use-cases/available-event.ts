@@ -1,5 +1,5 @@
-import { slotStartsAt, type SlotOnDate } from "../domain/booking";
 import type { Event } from "../domain/event";
+import { rangeStartsAt, type TimeRangeOnDate } from "../domain/event-times";
 
 /**
  * What the attendee-facing use cases return about an event.
@@ -14,10 +14,10 @@ export interface AvailableEvent {
   readonly id: string;
   readonly name: string;
   readonly description: string | null;
-  /** When the first slot starts -- what the event is listed and grouped under. */
+  /** When the event first starts -- what it is listed and grouped under. */
   readonly startsAt: string;
-  /** Every slot the event runs in, in date then day order. */
-  readonly slots: readonly SlotOnDate[];
+  /** Every start and end time the event runs at, in date then start order. */
+  readonly times: readonly TimeRangeOnDate[];
   readonly venueName: string | null;
   readonly registrationClosesAt: string | null;
 }
@@ -34,8 +34,8 @@ export function toAvailableEvent(event: Event): AvailableEvent {
     id: event.id,
     name: event.name,
     description: event.description,
-    startsAt: slotStartsAt(event.slots[0]).toISOString(),
-    slots: event.slots,
+    startsAt: rangeStartsAt(event.times[0]).toISOString(),
+    times: event.times,
     venueName: event.venueName,
     registrationClosesAt: event.registrationClosesAt?.toISOString() ?? null,
   };

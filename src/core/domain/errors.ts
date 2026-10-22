@@ -1143,12 +1143,12 @@ export class EventNotCancellableError extends DomainError {
   }
 }
 
-/** SPM-51: an event can be marked completed only once its last timeslot has ended. */
+/** SPM-51, SPM-326 AC3: an event can be marked completed only once its latest end time has passed. */
 export class EventNotYetEndedError extends DomainError {
   readonly code = "event_not_yet_ended";
 
   constructor() {
-    super("This event can be marked completed only after its last timeslot ends.");
+    super("This event can be marked completed only after its latest end time.");
   }
 }
 

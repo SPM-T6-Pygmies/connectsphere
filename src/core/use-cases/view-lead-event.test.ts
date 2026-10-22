@@ -48,6 +48,7 @@ describe("ViewLeadEventUseCase (SPM-257)", () => {
         name: "Venue Safety Review",
         status: "Blocked",
         preferredDate: "2026-11-04",
+        times: [],
         clientOrganisationName: "Acme Holdings",
         assignedCoordinatorUserAccountId: "coordinator-1",
       },
@@ -69,5 +70,20 @@ describe("ViewLeadEventUseCase (SPM-257)", () => {
     await expect(
       useCase([event("Planning")], []).execute({ eventId: "9", leadUserAccountId: LEAD }),
     ).rejects.toBeInstanceOf(NotCoordinatorLeadError);
+  });
+});
+
+describe("ViewLeadEventUseCase times (SPM-326)", () => {
+  it("AC1: gives the Lead each date's start and end time", async () => {
+    const times = [
+      { date: "2026-11-04", start: "07:00", end: "12:00" },
+      { date: "2026-11-04", start: "13:00", end: "18:00" },
+    ];
+    const result = await new ViewLeadEventUseCase({
+      leadEvents: new InMemoryLeadEventRepository({ events: [{ ...event("Confirmed"), times }], leads: [LEAD] }),
+      clientOrganisations: new InMemoryClientOrganisationRepository(new Map([[ORG, "Acme Holdings"]])),
+    }).execute({ eventId: "9", leadUserAccountId: LEAD });
+
+    expect(result?.event.times).toEqual(times);
   });
 });

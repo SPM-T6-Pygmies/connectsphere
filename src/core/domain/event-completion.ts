@@ -1,11 +1,11 @@
-import { slotEndsAt, type SlotOnDate } from "./booking";
 import type { CoordinatorEventStatus } from "./coordinator-event";
 import { EventNotCompletableError, EventNotYetEndedError } from "./errors";
+import { rangeEndsAt, type TimeRangeOnDate } from "./event-times";
 
 /** What completing an event depends on: where it stands, when it runs, and the notes it already has. */
 export interface CompletableEvent {
   readonly status: CoordinatorEventStatus;
-  readonly slots: readonly SlotOnDate[];
+  readonly times: readonly TimeRangeOnDate[];
   readonly operationalNotes: string | null;
 }
 
@@ -17,14 +17,13 @@ export interface EventCompletion {
 }
 
 /**
- * When the event is over: the end of its latest slot. Null when it has no
- * slots -- the event's own start/end times were dropped for slots
- * (20261006070000_drop_timestamp_timing.sql), so there is nothing else to go by.
+ * When the event is over: its latest end time (SPM-326 AC3). Null when it has
+ * no times, so an event nobody has scheduled can never be completed.
  */
-export function eventEndsAt(event: Pick<CompletableEvent, "slots">): Date | null {
+export function eventEndsAt(event: Pick<CompletableEvent, "times">): Date | null {
   let latest: Date | null = null;
-  for (const slot of event.slots) {
-    const endsAt = slotEndsAt(slot);
+  for (const range of event.times) {
+    const endsAt = rangeEndsAt(range);
     if (latest === null || endsAt > latest) {
       latest = endsAt;
     }

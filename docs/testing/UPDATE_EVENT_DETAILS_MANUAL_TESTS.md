@@ -8,7 +8,7 @@ ordinary details from the **Event** tab of `/staff/coordinator/events/<id>`.
 - **Ordinary fields** are edited directly: name, description, purpose,
   category, programme agenda, special arrangements, accessibility and
   internal notes.
-- **Significant fields** are shown locked: date, timeslots and attendance
+- **Significant fields** are shown locked: date and times, and attendance
   (venue and equipment have their own tabs). They change only through a
   change request (#4).
 
@@ -107,9 +107,9 @@ in Planning, Blocked or Confirmed.
 2. Click **Edit details** and look for those fields.
 
 **Expected Result:**
-- The card shows preferred date, timeslots and expected attendance with
-  "Date, timeslots, attendance, venue and equipment changes go through a
-  change request."
+- The card shows preferred date, times and expected attendance with
+  "Date and times, attendance, venue and equipment changes go through a
+  change request." (wording from SPM-326)
 - The edit form has no field for any of them
 
 **Status:** [x] Pass [ ] Fail

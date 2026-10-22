@@ -113,7 +113,8 @@ begin
   insert into booking (venue_id, event_id, requested_by_user_account_id, status)
   values (v_ballroom, v_event, v_coordinator, 'Requested');
 
-  -- 3. Venue Confirmed, one unreserved projector line: the coordinator deleting it puts it on the list.
+  -- 3. Venue Confirmed, one unreserved projector line, marked essential (SPM-319: only an essential
+  --    line keeps an event off the list): the coordinator deleting it puts it on the list.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id,
                      client_organisation_id, assigned_coordinator_user_account_id)
   values ('Charity Book Fair', 'Planning', '2026-12-12', 300, v_organiser, v_org, v_coordinator)
@@ -121,8 +122,8 @@ begin
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
   values (v_ballroom, v_event, v_coordinator, v_venue_staff, 'Confirmed');
   insert into equipment_reservation (event_id) values (v_event) returning equipment_reservation_id into v_res;
-  insert into equipment_reservation_line (equipment_reservation_id, equipment_item_id, quantity_requested)
-  values (v_res, v_projector, 2);
+  insert into equipment_reservation_line (equipment_reservation_id, equipment_item_id, quantity_requested, essential)
+  values (v_res, v_projector, 2, true);
 end;
 $$;
 ```

@@ -28,9 +28,9 @@ function event(id: string, overrides: Partial<Event> = {}): Event {
     name: `Event ${id}`,
     description: null,
     status: "confirmed",
-    slots: [
-      { date: "2026-10-01", slot: "AM" },
-      { date: "2026-10-01", slot: "PM" },
+    times: [
+      { date: "2026-10-01", start: "07:00", end: "12:00" },
+      { date: "2026-10-01", start: "13:00", end: "18:00" },
     ],
     venueName: "Hall A, 60 Stamford Road",
     capacity: null,
@@ -153,9 +153,9 @@ describe("WithdrawRegistrationUseCase (SPM-28)", () => {
 
     it("allows withdrawal after the event has started but before it is completed", async () => {
       const started = event(SUMMIT, {
-        slots: [
-          { date: "2026-09-06", slot: "AM" },
-          { date: "2026-09-06", slot: "PM" },
+        times: [
+          { date: "2026-09-06", start: "07:00", end: "12:00" },
+          { date: "2026-09-06", start: "13:00", end: "18:00" },
         ],
       });
       const { useCase, registrations } = buildUseCase({ events: [started] });
@@ -264,9 +264,9 @@ describe("WithdrawRegistrationUseCase (SPM-28)", () => {
         id: SUMMIT,
         name: "Event 1",
         startsAt: "2026-09-30T23:00:00.000Z",
-        slots: [
-          { date: "2026-10-01", slot: "AM" },
-          { date: "2026-10-01", slot: "PM" },
+        times: [
+          { date: "2026-10-01", start: "07:00", end: "12:00" },
+          { date: "2026-10-01", start: "13:00", end: "18:00" },
         ],
         venueName: "Hall A, 60 Stamford Road",
       });

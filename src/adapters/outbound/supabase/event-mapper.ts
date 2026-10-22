@@ -1,7 +1,7 @@
-import type { SlotOnDate } from "@/core/domain/booking";
 import { eventId, type Event, type EventId, type EventStatus } from "@/core/domain/event";
+import { joinSlots, type TimeRangeOnDate } from "@/core/domain/event-times";
 
-import { toDate, toSlot } from "./booking-mapper";
+import { toDate } from "./booking-mapper";
 
 /**
  * The database's shape, named honestly and kept in the adapter.
@@ -97,35 +97,45 @@ function venueOf(row: EventRow): string | null {
   return confirmed?.venue?.location ?? null;
 }
 
-/** One slot in the JSON `confirmed_event_slots()` returns. */
-export interface EventSlotRow {
-  event_id: number;
-  date: string;
-  slot: string;
-}
-
 /**
- * Each event's slots, keyed by event id, in the order the function returns
- * them (date, then day order).
+ * One 15-minute `event_slot` row as the event reads report it (SPM-326):
+ * `time` columns arrive as `HH:MM:SS`, and the last slot of a day ends `24:00:00`.
  */
-export function slotsByEvent(rows: readonly EventSlotRow[]): Map<number, SlotOnDate[]> {
-  const byEvent = new Map<number, SlotOnDate[]>();
-  for (const row of rows) {
-    const slots = byEvent.get(row.event_id) ?? [];
-    slots.push({ date: toDate(row.date), slot: toSlot(row.slot) });
-    byEvent.set(row.event_id, slots);
-  }
-  return byEvent;
+export interface EventSlotTimeRow {
+  date: string;
+  start: string;
+  end: string;
 }
 
-/** `slots` must be non-empty: an event with none cannot be a domain `Event`. */
-export function toDomain(row: EventRow, slots: readonly SlotOnDate[]): Event {
+/** One row of `confirmed_event_slots()`, which answers for many events at once. */
+export interface EventSlotRow extends EventSlotTimeRow {
+  event_id: number;
+}
+
+/** The rows joined into the start and end times people read. */
+export function toEventTimes(rows: readonly EventSlotTimeRow[]): TimeRangeOnDate[] {
+  return joinSlots(
+    rows.map((row) => ({ date: toDate(row.date), start: row.start.slice(0, 5), end: row.end.slice(0, 5) })),
+  );
+}
+
+/** Each event's start and end times, keyed by event id. */
+export function timesByEvent(rows: readonly EventSlotRow[]): Map<number, TimeRangeOnDate[]> {
+  const byEvent = new Map<number, EventSlotRow[]>();
+  for (const row of rows) {
+    byEvent.set(row.event_id, [...(byEvent.get(row.event_id) ?? []), row]);
+  }
+  return new Map([...byEvent].map(([id, eventRows]) => [id, toEventTimes(eventRows)]));
+}
+
+/** `times` must be non-empty: an event with none cannot be a domain `Event`. */
+export function toDomain(row: EventRow, times: readonly TimeRangeOnDate[]): Event {
   return {
     id: eventId(String(row.event_id)),
     name: row.name,
     description: row.description,
     status: toStatus(row.status),
-    slots,
+    times,
     venueName: venueOf(row),
     capacity: row.event_capacity,
     registrationEnabled: row.registration_enabled_flag,

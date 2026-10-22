@@ -16,9 +16,9 @@ function event(overrides: Partial<Event> = {}): Event {
     name: "Pygmies Product Summit",
     description: "A day of talks.",
     status: "confirmed",
-    slots: [
-      { date: "2026-10-01", slot: "AM" },
-      { date: "2026-10-01", slot: "PM" },
+    times: [
+      { date: "2026-10-01", start: "07:00", end: "12:00" },
+      { date: "2026-10-01", start: "13:00", end: "18:00" },
     ],
     venueName: "Hall A, 81 Victoria Street",
     capacity: 100,
@@ -45,9 +45,9 @@ describe("ViewEventForRegistrationUseCase (SPM-79)", () => {
       name: "Pygmies Product Summit",
       description: "A day of talks.",
       startsAt: "2026-09-30T23:00:00.000Z",
-      slots: [
-        { date: "2026-10-01", slot: "AM" },
-        { date: "2026-10-01", slot: "PM" },
+      times: [
+        { date: "2026-10-01", start: "07:00", end: "12:00" },
+        { date: "2026-10-01", start: "13:00", end: "18:00" },
       ],
       venueName: "Hall A, 81 Victoria Street",
       registrationClosesAt: "2026-09-30T00:00:00.000Z",
