@@ -15,7 +15,9 @@ import { venueId } from "./venue";
 import {
   UNAVAILABILITY_REASONS,
   defineVenueUnavailability,
+  duplicatesInForceBlock,
   type NewVenueUnavailability,
+  type VenueUnavailabilityEntry,
 } from "./venue-unavailability";
 
 const TIME_ZONE = "Asia/Singapore";
@@ -254,5 +256,64 @@ describe("defineVenueUnavailability by time of day (SPM-321)", () => {
         UnavailabilityOutsideOpeningHoursError,
       );
     });
+  });
+});
+
+describe("duplicatesInForceBlock (SPM-321)", () => {
+  /** The stored form of a block, In force unless said otherwise. */
+  function stored(
+    overrides: Partial<NewVenueUnavailability> = {},
+    status: VenueUnavailabilityEntry["status"] = "In force",
+  ): VenueUnavailabilityEntry {
+    return {
+      ...block(overrides),
+      id: "1",
+      venueLocation: "Grand Hall",
+      status,
+      recordedByName: "Test Venue Staff",
+      recordedAt: NOW.toISOString(),
+      liftedByName: null,
+      liftedAt: null,
+    };
+  }
+
+  it("is true for the same venue, reason, days and times", () => {
+    expect(duplicatesInForceBlock(block(), [stored()])).toBe(true);
+  });
+
+  it("is true whatever order the stored slots come in", () => {
+    const reversed = { ...stored(), slots: [...stored().slots].reverse() };
+    expect(duplicatesInForceBlock(block(), [reversed])).toBe(true);
+  });
+
+  it("is false when the reason differs, even over the same time", () => {
+    expect(duplicatesInForceBlock(block({ reason: "Safety" }), [stored()])).toBe(false);
+  });
+
+  it.each([
+    ["a different start time", { startTime: "09:15" }],
+    ["a different end time", { endTime: "12:00" }],
+    ["one more day", { endDate: "2026-10-13" }],
+    ["another day", { startDate: "2026-10-14", endDate: "2026-10-14" }],
+  ])("is false for %s: an overlapping block is allowed", (_label, change) => {
+    expect(duplicatesInForceBlock(block(change), [stored()])).toBe(false);
+  });
+
+  it("is false at another venue", () => {
+    expect(duplicatesInForceBlock(block({ venueId: venueId("venue-2") }), [stored()])).toBe(false);
+  });
+
+  it("treats Other with a different note as a different block, and with the same note as the same", () => {
+    const other = stored({ reason: "Other", note: "Film shoot" });
+    expect(duplicatesInForceBlock(block({ reason: "Other", note: "Film shoot" }), [other])).toBe(true);
+    expect(duplicatesInForceBlock(block({ reason: "Other", note: "Fire drill" }), [other])).toBe(false);
+  });
+
+  it("is false once the earlier block is lifted: it is history, and the time can be blocked again", () => {
+    expect(duplicatesInForceBlock(block(), [stored({}, "Lifted")])).toBe(false);
+  });
+
+  it("is false when nothing is in force", () => {
+    expect(duplicatesInForceBlock(block(), [])).toBe(false);
   });
 });

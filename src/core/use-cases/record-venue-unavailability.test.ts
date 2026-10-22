@@ -8,6 +8,7 @@ import {
 } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 
 import {
+  DuplicateUnavailabilityError,
   UnavailabilityAlreadyLiftedError,
   VenueNotFoundError,
   VenueUnavailabilityNotPermittedError,
@@ -471,5 +472,42 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
     expect(affectedBookings).toEqual([
       { bookingId: "booking-1", eventName: "Tech Summit", status: "Confirmed", date: "2026-10-13", slot: "PM" },
     ]);
+  });
+
+  it("refuses the same block saved twice and stores only the first", async () => {
+    const { record, list } = build();
+
+    await record.execute(block());
+    await expect(record.execute(block())).rejects.toBeInstanceOf(DuplicateUnavailabilityError);
+
+    expect((await list.execute(read)).entries).toHaveLength(1);
+  });
+
+  it("refuses the same block even when a different member of Venue Staff saves it", async () => {
+    const { record } = build();
+    await record.execute(block());
+
+    await expect(record.execute(block({ userAccountId: "staff-2" }))).rejects.toBeInstanceOf(
+      DuplicateUnavailabilityError,
+    );
+  });
+
+  it("still accepts overlapping blocks that differ in reason, times or days (SPM-21 AC19)", async () => {
+    const { record, list } = build();
+    await record.execute(block());
+
+    await record.execute(block({ reason: "Safety" }));
+    await record.execute(block({ startTime: "09:30", endTime: "10:30" }));
+    await record.execute(block({ endDate: "2026-10-15" }));
+
+    expect((await list.execute(read)).entries).toHaveLength(4);
+  });
+
+  it("accepts the same block again once the first has been lifted", async () => {
+    const { record, lift } = build();
+    const { entry } = await record.execute(block());
+    await lift.execute({ ...read, unavailabilityId: entry.id });
+
+    await expect(record.execute(block())).resolves.toBeDefined();
   });
 });

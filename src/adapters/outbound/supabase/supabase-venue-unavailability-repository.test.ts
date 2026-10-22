@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DuplicateUnavailabilityError,
   InvalidUnavailabilityTimeError,
   UnavailabilityAlreadyLiftedError,
   VenueNotFoundError,
@@ -282,5 +283,18 @@ describe("SupabaseVenueUnavailabilityRepository on 15-minute slots (SPM-321)", (
 
     expect(error).toBeInstanceOf(InvalidUnavailabilityTimeError);
     expect((error as Error).message).toContain("Reload the page");
+  });
+
+  it("maps the database's refusal of the same block twice to the domain error", async () => {
+    const { client } = fakeClient({
+      venue_staff_record_unavailability: {
+        data: null,
+        error: { code: "CS079", message: "That block is already in force." },
+      },
+    });
+
+    await expect(new SupabaseVenueUnavailabilityRepository(client).record(BLOCK, STAFF)).rejects.toBeInstanceOf(
+      DuplicateUnavailabilityError,
+    );
   });
 });

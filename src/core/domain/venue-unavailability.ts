@@ -198,6 +198,31 @@ function gridTime(raw: string): number {
   return minutes;
 }
 
+/**
+ * SPM-321: whether `block` is the same as one already In force: same venue, reason and note, and
+ * exactly the same days and times. A lifted block is history and does not count. Overlapping
+ * blocks that differ in any of those are different blocks (SPM-21 AC19).
+ */
+export function duplicatesInForceBlock(
+  block: VenueUnavailabilityBlock,
+  entries: readonly VenueUnavailabilityEntry[],
+): boolean {
+  const key = (slots: readonly SlotCodeOnDate[]) =>
+    slots
+      .map(({ date, slot }) => `${date}|${slot}`)
+      .sort()
+      .join(",");
+  const wanted = key(block.slots);
+  return entries.some(
+    (entry) =>
+      entry.status === "In force" &&
+      entry.venueId === block.venueId &&
+      entry.reason === block.reason &&
+      entry.note === block.note &&
+      key(entry.slots) === wanted,
+  );
+}
+
 /** The zone a venue's own "today" is read in, as bookings' dates are (#36). */
 export const VENUE_TIME_ZONE = "Asia/Singapore";
 

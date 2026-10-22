@@ -1078,6 +1078,19 @@ export class UnavailabilityNoteTooLongError extends DomainError {
   }
 }
 
+/**
+ * SPM-321: the same block is already In force. Same venue, reason, note, days and times is the
+ * same block saved twice (a double click, a stale page), so it is refused; an overlapping block
+ * with another reason or other times is still allowed (SPM-21 AC19).
+ */
+export class DuplicateUnavailabilityError extends DomainError {
+  readonly code = "duplicate_unavailability";
+
+  constructor() {
+    super("That block is already in force: same venue, reason, dates and times.");
+  }
+}
+
 /** SPM-21 AC9: only Venue Staff record or lift a block. */
 export class VenueUnavailabilityNotPermittedError extends DomainError {
   readonly code = "venue_unavailability_not_permitted";

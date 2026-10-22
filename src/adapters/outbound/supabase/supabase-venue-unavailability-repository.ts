@@ -1,4 +1,5 @@
 import {
+  DuplicateUnavailabilityError,
   InvalidUnavailabilityTimeError,
   UnavailabilityAlreadyLiftedError,
   VenueNotFoundError,
@@ -40,6 +41,7 @@ const NOT_FOUND = "CS037";
 const ALREADY_LIFTED = "CS038";
 const VENUE_NOT_FOUND = "CS039";
 const OUTSIDE_OPENING_HOURS = "CS078";
+const DUPLICATE_BLOCK = "CS079";
 
 /**
  * Reached through `security definer` functions, not the tables: they have RLS
@@ -201,6 +203,8 @@ function translate(error: { code?: string; message: string }, doing: string): Er
       return new UnavailabilityAlreadyLiftedError();
     case VENUE_NOT_FOUND:
       return new VenueNotFoundError();
+    case DUPLICATE_BLOCK:
+      return new DuplicateUnavailabilityError();
     case OUTSIDE_OPENING_HOURS:
       // The core checks first and names the time; reaching here means the venue's hours moved in between.
       return new InvalidUnavailabilityTimeError(

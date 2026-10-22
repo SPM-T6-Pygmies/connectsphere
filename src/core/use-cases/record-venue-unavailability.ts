@@ -1,8 +1,13 @@
-import { VenueNotFoundError, VenueUnavailabilityNotPermittedError } from "../domain/errors";
+import {
+  DuplicateUnavailabilityError,
+  VenueNotFoundError,
+  VenueUnavailabilityNotPermittedError,
+} from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import { canMaintainVenues, venueId } from "../domain/venue";
 import {
   defineVenueUnavailability,
+  duplicatesInForceBlock,
   VENUE_TIME_ZONE,
   type VenueUnavailabilityEntry,
 } from "../domain/venue-unavailability";
@@ -48,7 +53,7 @@ export interface RecordVenueUnavailabilityDeps {
 
 /**
  * SPM-21 AC1-AC8, AC10, AC11, AC19: Venue Staff block a venue for a date range
- * and a time of day within the venue's opening hours, with a reason. Over days that already have bookings is fine:
+ * and a time of day within the venue's opening hours, with a reason. The same block twice is refused (SPM-321); over days that already have bookings is fine:
  * those bookings are listed back, and not changed.
  *
  * SPM-313: the store flags the Confirmed bookings and live holds the block overlaps as it
@@ -84,6 +89,10 @@ export class RecordVenueUnavailabilityUseCase {
       now: clock.now(),
       timeZone: VENUE_TIME_ZONE,
     });
+
+    if (duplicatesInForceBlock(block, await unavailability.list(staff))) {
+      throw new DuplicateUnavailabilityError();
+    }
 
     const entry = await unavailability.record(block, staff);
     const affectedBookings = await unavailability.affectedBookings(staff, id, block.slots);

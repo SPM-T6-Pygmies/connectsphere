@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { timeSpans } from "@/core/domain/booking-review-flag";
+import { joinSlotCodes } from "@/core/domain/slot-grid";
+import type { VenueUnavailabilityEntry } from "@/core/domain/venue-unavailability";
 import { closedPeriods, formatOpeningHours, type OpeningWindow } from "@/core/domain/opening-hours";
-import { END_OF_DAY, fromMinutes, GRID_MINUTES, toMinutes } from "@/core/domain/time-of-day";
+import { END_OF_DAY, formatRange, fromMinutes, GRID_MINUTES, toMinutes } from "@/core/domain/time-of-day";
 import { UNAVAILABILITY_NOTE_MAX_LENGTH, UNAVAILABILITY_REASONS } from "@/core/domain/venue-unavailability";
 
 import { OptionSelect } from "../../option-fields";
@@ -93,6 +95,60 @@ export function UnavailabilityForm({
 }) {
   const [state, formAction, pending] = useActionState(recordUnavailabilityAction, INITIAL);
 
+  useEffect(() => {
+    if (state.status === "saved") {
+      toast.success("Venue marked unavailable.");
+    }
+  }, [state]);
+
+  return (
+    <div className="space-y-6">
+      {state.status === "saved" ? <Saved entry={state.entry} /> : null}
+      {/* A new key after a save gives an empty form, so a saved block is not one click from being saved again. */}
+      <BlockForm
+        key={state.status === "saved" ? state.entry.id : "draft"}
+        venues={venues}
+        defaultVenueId={defaultVenueId}
+        state={state}
+        formAction={formAction}
+        pending={pending}
+      />
+      {state.status === "saved" ? <AffectedBookings state={state} /> : null}
+    </div>
+  );
+}
+
+/** What was just saved, in the words the list below uses, so the empty form is not mistaken for a failure. */
+function Saved({ entry }: { entry: VenueUnavailabilityEntry }) {
+  const first = entry.slots.map(({ date }) => date).sort()[0];
+  const times = joinSlotCodes(entry.slots.filter(({ date }) => date === first).map(({ slot }) => slot))
+    .map(formatRange)
+    .join(", ");
+  const dates = entry.startDate === entry.endDate ? entry.startDate : `${entry.startDate} to ${entry.endDate}`;
+  return (
+    <p
+      role="status"
+      className="rounded-lg border border-green-600/40 bg-green-50 px-3 py-2 text-sm text-green-900 dark:bg-green-950/30 dark:text-green-200"
+    >
+      <span className="font-medium">Saved.</span> {entry.venueLocation} is blocked {dates}, {times}, for{" "}
+      {entry.reason.toLowerCase()}. It is In force and listed below.
+    </p>
+  );
+}
+
+function BlockForm({
+  venues,
+  defaultVenueId,
+  state,
+  formAction,
+  pending,
+}: {
+  venues: ReadonlyArray<{ id: string; location: string; openingHours: readonly OpeningWindow[] }>;
+  defaultVenueId?: string;
+  state: RecordUnavailabilityState;
+  formAction: (formData: FormData) => void;
+  pending: boolean;
+}) {
   const [venueId, setVenueId] = useState(
     venues.some((venue) => venue.id === defaultVenueId) ? (defaultVenueId ?? "") : "",
   );
@@ -102,12 +158,6 @@ export function UnavailabilityForm({
   const [endTime, setEndTime] = useState("");
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
-
-  useEffect(() => {
-    if (state.status === "saved") {
-      toast.success("Venue marked unavailable.");
-    }
-  }, [state]);
 
   const readyToSubmit = [venueId, startDate, endDate, startTime, endTime, reason].every(isFilled);
 
@@ -135,7 +185,7 @@ export function UnavailabilityForm({
   }
 
   return (
-    <div className="space-y-6">
+    <>
       {/* Submitted by hand, not through `action`: React resets a form once its action finishes,
           which blanks the selects after a refusal while their state still holds the values. */}
       <form
@@ -284,9 +334,7 @@ export function UnavailabilityForm({
           {pending ? "Saving…" : "Mark unavailable"}
         </Button>
       </form>
-
-      {state.status === "saved" ? <AffectedBookings state={state} /> : null}
-    </div>
+    </>
   );
 }
 
