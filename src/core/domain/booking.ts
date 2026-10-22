@@ -6,18 +6,30 @@ import {
   BookingRoomLayoutNotChangeableError,
   CancelledEventBookingError,
   DecisionReasonRequiredError,
+  DuplicateBookingDateError,
   DuplicateBookingSlotError,
   HoldNotLiveError,
   HoldSlotStartedError,
+  IncompleteBookingTimeError,
   InvalidBookingDateError,
+  InvalidBookingTimeError,
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueClosedError,
   VenueSlotUnavailableError,
 } from "./errors";
+import { joinSlots, type TimeRangeOnDate } from "./event-times";
 import { closedPeriods } from "./opening-hours";
-import { formatRange, toMinutes, type TimeRange } from "./time-of-day";
+import {
+  END_OF_DAY,
+  formatRange,
+  fromMinutes,
+  isOnGrid,
+  overlaps,
+  toMinutes,
+  type TimeRange,
+} from "./time-of-day";
 import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
 
@@ -83,6 +95,13 @@ export interface SlotOnDate {
 
 /** A slot some existing booking at the venue already sits on. */
 export interface OccupiedSlot extends SlotOnDate {
+  readonly status: BookingStatus;
+  /** When a Tentative Hold lapses; null when none is set, and for every other status. */
+  readonly holdExpiresAt: Date | null;
+}
+
+/** Time some existing booking at the venue already has (SPM-324). */
+export interface OccupiedTime extends TimeRangeOnDate {
   readonly status: BookingStatus;
   /** When a Tentative Hold lapses; null when none is set, and for every other status. */
   readonly holdExpiresAt: Date | null;
@@ -229,6 +248,101 @@ export function chooseLayoutChange(
     throw new BookingRoomLayoutNotChangeableError(booking.status);
   }
   return chooseRoomLayout(venue, requested);
+}
+
+/** One requested date as the coordinator entered it; a blank is `""`. */
+export interface BookingTimeInput {
+  readonly date: string;
+  readonly start: string;
+  readonly end: string;
+}
+
+/**
+ * SPM-324 AC1: the times a booking request asks for, one start and end time
+ * per date, on the 15-minute grid. The end is after the start, so no time
+ * crosses midnight; 24:00 is a valid end but not a start. A missing date or
+ * time is refused, naming which. Sorted by date.
+ */
+export function defineBookingTimes(rows: readonly BookingTimeInput[]): TimeRangeOnDate[] {
+  if (rows.length === 0) {
+    throw new NoBookingSlotsError();
+  }
+
+  const seen = new Set<string>();
+  const times = rows.map((row) => {
+    const date = row.date.trim();
+    if (date === "") {
+      throw new IncompleteBookingTimeError("date", null);
+    }
+    if (row.start.trim() === "") {
+      throw new IncompleteBookingTimeError("start", date);
+    }
+    if (row.end.trim() === "") {
+      throw new IncompleteBookingTimeError("end", date);
+    }
+    if (!isCalendarDate(date)) {
+      throw new InvalidBookingDateError(date);
+    }
+
+    const from = toMinutes(row.start);
+    if (from === null || from >= END_OF_DAY || !isOnGrid(from)) {
+      throw new InvalidBookingTimeError(
+        date,
+        `Choose a start time for ${date} on the quarter hour, from 00:00 to 23:45.`,
+      );
+    }
+    const to = toMinutes(row.end);
+    if (to === null || !isOnGrid(to)) {
+      throw new InvalidBookingTimeError(
+        date,
+        `Choose an end time for ${date} on the quarter hour, up to 24:00.`,
+      );
+    }
+    // An end before the start is a time that crosses midnight, which no booking does.
+    if (to <= from) {
+      throw new InvalidBookingTimeError(date, `The end time for ${date} must be after the start time.`);
+    }
+
+    if (seen.has(date)) {
+      throw new DuplicateBookingDateError(date);
+    }
+    seen.add(date);
+    return { date, start: fromMinutes(from), end: fromMinutes(to) };
+  });
+
+  return times.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function minutesOf({ start, end }: TimeRangeOnDate): TimeRange {
+  return { start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 };
+}
+
+/**
+ * SPM-324 AC2, AC3: the parts of the requested times that a live hold or
+ * confirmed booking already has at `now`, joined into ranges. Overlap by any
+ * amount clashes; a time that only touches another does not.
+ */
+export function clashingTimes(
+  requested: readonly TimeRangeOnDate[],
+  occupied: readonly OccupiedTime[],
+  now: Date,
+): TimeRangeOnDate[] {
+  const live = occupied.filter((o) => holdsSlot(o, now));
+  return joinSlots(
+    requested.flatMap((wanted) => {
+      const want = minutesOf(wanted);
+      return live
+        .filter((o) => o.date === wanted.date && overlaps(want, minutesOf(o)))
+        .map((o) => {
+          const have = minutesOf(o);
+          return {
+            date: wanted.date,
+            start: fromMinutes(Math.max(want.start, have.start)),
+            end: fromMinutes(Math.min(want.end, have.end)),
+          };
+        });
+    }),
+  );
 }
 
 /** The requested slots that a live hold or confirmed booking already has at `now`. */

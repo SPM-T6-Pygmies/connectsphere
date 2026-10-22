@@ -365,6 +365,43 @@ export class DuplicateBookingSlotError extends DomainError {
   }
 }
 
+/** SPM-324 AC1: a requested date is missing its date, start or end time, named so it can be filled in. */
+export class IncompleteBookingTimeError extends DomainError {
+  readonly code = "incomplete_booking_time";
+
+  constructor(
+    readonly missing: "date" | "start" | "end",
+    readonly date: string | null,
+  ) {
+    super(
+      missing === "date"
+        ? "Choose a date for each time you request."
+        : `Choose ${missing === "start" ? "a start" : "an end"} time for ${date}.`,
+    );
+  }
+}
+
+/** SPM-324 AC1: a requested time is off the 15-minute grid, starts at 24:00, or does not end after it starts. */
+export class InvalidBookingTimeError extends DomainError {
+  readonly code = "invalid_booking_time";
+
+  constructor(
+    readonly date: string,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** SPM-324: each date takes one start and end time; two windows on one day are two requests. */
+export class DuplicateBookingDateError extends DomainError {
+  readonly code = "duplicate_booking_date";
+
+  constructor(readonly date: string) {
+    super(`${date} is requested more than once. Give each date one start and end time.`);
+  }
+}
+
 /** SPM-104: a venue with more than one layout needs the request to say which it assumes (#112). */
 export class RoomLayoutRequiredError extends DomainError {
   readonly code = "room_layout_required";

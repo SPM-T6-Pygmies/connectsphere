@@ -6,7 +6,9 @@ import {
   checkLayoutCapacity,
   chooseLayoutChange,
   chooseRoomLayout,
+  clashingTimes,
   decideBooking,
+  defineBookingTimes,
   DEFAULT_HOLD_HOURS,
   holdsSlot,
   requestVenueBooking,
@@ -16,6 +18,7 @@ import {
   type BookingId,
   type BookingStatus,
   type OccupiedSlot,
+  type OccupiedTime,
   type SlotOnDate,
 } from "./booking";
 import {
@@ -24,10 +27,13 @@ import {
   BookingRoomLayoutNotChangeableError,
   CancelledEventBookingError,
   DecisionReasonRequiredError,
+  DuplicateBookingDateError,
   DuplicateBookingSlotError,
   HoldNotLiveError,
   HoldSlotStartedError,
+  IncompleteBookingTimeError,
   InvalidBookingDateError,
+  InvalidBookingTimeError,
   NoBookingSlotsError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
@@ -795,5 +801,128 @@ describe("cancelBooking (SPM-20)", () => {
       expect(bookingCancellable(status)).toBe(false);
       expect(() => cancelBooking({ status })).toThrow(BookingNotCancellableError);
     }
+  });
+});
+
+describe("defineBookingTimes (SPM-349)", () => {
+  const D = "2026-11-04";
+
+  it("takes the first and the last 15 minutes of a day (AC1)", () => {
+    expect(defineBookingTimes([{ date: D, start: "07:00", end: "07:15" }])).toEqual([
+      { date: D, start: "07:00", end: "07:15" },
+    ]);
+    expect(defineBookingTimes([{ date: D, start: "23:45", end: "24:00" }])).toEqual([
+      { date: D, start: "23:45", end: "24:00" },
+    ]);
+  });
+
+  it("takes several dates, in date order (AC1)", () => {
+    expect(
+      defineBookingTimes([
+        { date: "2026-11-05", start: "13:00", end: "18:00" },
+        { date: D, start: "07:00", end: "12:00" },
+      ]).map((time) => time.date),
+    ).toEqual([D, "2026-11-05"]);
+  });
+
+  it("refuses a request with no dates", () => {
+    expect(() => defineBookingTimes([])).toThrow(NoBookingSlotsError);
+  });
+
+  it.each([
+    ["date", { date: "", start: "07:00", end: "08:00" }, /Choose a date/],
+    ["start", { date: D, start: "", end: "08:00" }, /Choose a start time for 2026-11-04/],
+    ["end", { date: D, start: "07:00", end: " " }, /Choose an end time for 2026-11-04/],
+  ] as const)("refuses a missing %s, naming it (AC1)", (missing, row, message) => {
+    expect(() => defineBookingTimes([row])).toThrow(IncompleteBookingTimeError);
+    expect(() => defineBookingTimes([row])).toThrow(message);
+  });
+
+  it("refuses a date that is not on the calendar", () => {
+    expect(() => defineBookingTimes([{ date: "2026-02-30", start: "07:00", end: "08:00" }])).toThrow(
+      InvalidBookingDateError,
+    );
+  });
+
+  it.each([
+    ["a start off the grid", "07:10", "08:00"],
+    ["an end off the grid", "07:00", "08:05"],
+    ["a start of 24:00", "24:00", "24:00"],
+    ["an end equal to the start", "07:00", "07:00"],
+    ["an end before the start, crossing midnight", "23:00", "01:00"],
+    ["a start that is not a time", "7am", "08:00"],
+  ])("refuses %s (AC1)", (_case, start, end) => {
+    expect(() => defineBookingTimes([{ date: D, start, end }])).toThrow(InvalidBookingTimeError);
+  });
+
+  it("refuses the same date twice", () => {
+    expect(() =>
+      defineBookingTimes([
+        { date: D, start: "07:00", end: "08:00" },
+        { date: D, start: "13:00", end: "14:00" },
+      ]),
+    ).toThrow(DuplicateBookingDateError);
+  });
+});
+
+describe("clashingTimes (SPM-350)", () => {
+  const D = "2026-11-04";
+  const want = [{ date: D, start: "15:00", end: "16:00" }];
+
+  function booked(
+    start: string,
+    end: string,
+    status: BookingStatus = "Confirmed",
+    holdExpiresAt: Date | null = null,
+    date = D,
+  ): OccupiedTime {
+    return { date, start, end, status, holdExpiresAt };
+  }
+
+  it.each([
+    ["by 15 minutes at the start", "14:00", "15:15", { start: "15:00", end: "15:15" }],
+    ["by 15 minutes at the end", "15:45", "17:00", { start: "15:45", end: "16:00" }],
+    ["inside it", "15:15", "15:30", { start: "15:15", end: "15:30" }],
+    ["around it", "07:00", "24:00", { start: "15:00", end: "16:00" }],
+  ])("names the overlap when a booking overlaps %s (AC2)", (_case, start, end, overlap) => {
+    expect(clashingTimes(want, [booked(start, end)], NOW)).toEqual([{ date: D, ...overlap }]);
+  });
+
+  it.each([
+    ["ends as it starts", "14:00", "15:00"],
+    ["starts as it ends", "16:00", "17:00"],
+  ])("is no clash when a booking only touches it: %s (AC2)", (_case, start, end) => {
+    expect(clashingTimes(want, [booked(start, end)], NOW)).toEqual([]);
+  });
+
+  it("joins overlaps with two touching bookings into one range (AC2)", () => {
+    expect(clashingTimes(want, [booked("14:00", "15:30"), booked("15:30", "17:00")], NOW)).toEqual(
+      want,
+    );
+  });
+
+  it("is no clash on another date", () => {
+    expect(clashingTimes(want, [booked("15:00", "16:00", "Confirmed", null, "2026-11-05")], NOW)).toEqual(
+      [],
+    );
+  });
+
+  it("clashes with a hold still live at now (AC2)", () => {
+    expect(clashingTimes(want, [booked("15:00", "16:00", "Tentative Hold", AFTER_NOW)], NOW)).toEqual(
+      want,
+    );
+  });
+
+  it.each(["Requested", "Rejected", "Released", "Cancelled", "Expired"] as const)(
+    "is no clash with a booking that is %s (AC3)",
+    (status) => {
+      expect(clashingTimes(want, [booked("15:00", "16:00", status)], NOW)).toEqual([]);
+    },
+  );
+
+  it("is no clash with a hold that lapsed before now (AC3)", () => {
+    expect(
+      clashingTimes(want, [booked("15:00", "16:00", "Tentative Hold", BEFORE_NOW)], NOW),
+    ).toEqual([]);
   });
 });
