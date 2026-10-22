@@ -170,4 +170,7 @@ SPM-324 AC4.
   **Booking requested**, reading "Requested for Wed, 20 Jan 2027 (09:00–10:30) and Thu,
   21 Jan 2027 (19:00–24:00). Approve or reject it." No AM, PM or Night.
 
-**Status:** [ ] Pass [ ] Fail
+**Evidence:**
+- [`TC-VENUENOTE-005_step3-venue-inbox.png`](../screenshots/2026-10-22_SPM-324_TC-VENUENOTE-005_step3-venue-inbox.png)
+
+**Status:** [x] Pass [ ] Fail — 22/10/2026, Chrome via Claude in Chrome for joyceetran (`pnpm dev:local` with the Novu tunnel; the new booking was 10).

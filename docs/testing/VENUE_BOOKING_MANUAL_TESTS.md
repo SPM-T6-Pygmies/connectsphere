@@ -246,41 +246,47 @@ both for another event. Garden Hall is open `07:00`–`12:00` and `13:00`–`18:
 
 ### TC-VENUE-BOOK-023 Request a venue by start and end time (SPM-348, AC1)
 
-- [ ] Open a **Start** hour picker, then an **End** hour picker. Start offers `00`–`23`,
+- [x] Open a **Start** hour picker, then an **End** hour picker. Start offers `00`–`23`,
       End `00`–`24`; both minute pickers offer only `00`, `15`, `30`, `45`, and End hour
       `24` offers only `00`.
-- [ ] Choose **UAT-44 Harbour Room** (and a layout if asked). Date 1 D+1, `07:00` to
+- [x] Choose **UAT-44 Harbour Room** (and a layout if asked). Date 1 D+1, `07:00` to
       `07:15`. **Add another date**: Date 2 D+2, `23:45` to `24:00`. Send.
-- [ ] *Booking request sent for UAT-44 Harbour Room.* The form clears, and the new row
+- [x] *Booking request sent for UAT-44 Harbour Room.* The form clears, and the new row
       under *Booking requests* is **Requested**, its time cell reading
       `D+1 07:00–07:15, D+2 23:45–24:00`. No AM, PM or Night anywhere on the page.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step2-two-dates-end-24-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step2-two-dates-end-24-00.png), [step3-requested-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step3-requested-times.png)
 
 ### TC-VENUE-BOOK-024 A missing or impossible time is refused, naming it (SPM-349, AC1)
 
 Each step uses **UAT-44 Harbour Room** on D+3 and changes only what it says; nothing is
 added to *Booking requests* by any of them.
 
-- [ ] Leave **Start** and **End** blank and send: *Choose a start time for D+3.*
-- [ ] Start `09:00`, End blank: *Choose an end time for D+3.*
-- [ ] Clear the date, Start `09:00`, End `10:00`: *Choose a date for each time you request.*
-- [ ] Date D+3, Start `10:00`, End `09:00`: *The end time for D+3 must be after the start time.*
-- [ ] Start `09:00`, End `10:00`, add a second row also D+3 `13:00`–`14:00`:
+- [x] Leave **Start** and **End** blank and send: *Choose a start time for D+3.*
+- [x] Start `09:00`, End blank: *Choose an end time for D+3.*
+- [x] Clear the date, Start `09:00`, End `10:00`: *Choose a date for each time you request.*
+- [x] Date D+3, Start `10:00`, End `09:00`: *The end time for D+3 must be after the start time.*
+- [x] Start `09:00`, End `10:00`, add a second row also D+3 `13:00`–`14:00`:
       *D+3 is requested more than once. Give each date one start and end time.*
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step5-date-twice](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-024_step5-date-twice.png). The event still had only TC-VENUE-BOOK-023's booking afterwards.
 
 ### TC-VENUE-BOOK-025 Overlap by any amount clashes; touching does not (SPM-350, AC2)
 
-- [ ] Request **UAT-44 Harbour Room** on D, `17:45` to `18:15`: refused with *The venue is
+- [x] Request **UAT-44 Harbour Room** on D, `17:45` to `18:15`: refused with *The venue is
       already booked for D 17:45–18:00. Choose other times or another venue.* The form
       keeps the venue and times.
-- [ ] D, `15:00` to `16:00` (inside the booking): refused, naming *D 15:00–16:00*.
-- [ ] D, `18:00` to `19:00` (starts as it ends): accepted, **Requested**.
-- [ ] D, `12:00` to `13:00` (ends as it starts): accepted, **Requested**.
+- [x] D, `15:00` to `16:00` (inside the booking): refused, naming *D 15:00–16:00*.
+- [x] D, `18:00` to `19:00` (starts as it ends): accepted, **Requested**.
+- [x] D, `12:00` to `13:00` (ends as it starts): accepted, **Requested**.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step1-17-45-18-15-overlap](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-025_step1-17-45-18-15-overlap.png)
 
 ### TC-VENUE-BOOK-026 Bookings that hold nothing do not clash (SPM-350, AC3)
 
-- [ ] Request **UAT-44 Garden Hall** on D, `07:00` to `12:00`, the time of its
+- [x] Request **UAT-44 Garden Hall** on D, `07:00` to `12:00`, the time of its
       **Rejected** booking: accepted.
-- [ ] Make TC-VENUE-BOOK-025's D `18:00`–`19:00` request a hold that lapsed an hour ago:
+- [x] Make TC-VENUE-BOOK-025's D `18:00`–`19:00` request a hold that lapsed an hour ago:
       ```sql
       update booking set status = 'Tentative Hold', decided_by_user_account_id = requested_by_user_account_id,
         hold_expires_at = now() - interval '1 hour'
@@ -288,23 +294,29 @@ added to *Booking requests* by any of them.
                             where s.start_time = '18:00' order by booking_id desc limit 1);
       ```
       Request Harbour Room on D, `18:00` to `19:00` again: accepted.
-- [ ] Set that hold's `hold_expires_at` to `now() + interval '1 day'` and request the same
+- [x] Set that hold's `hold_expires_at` to `now() + interval '1 day'` and request the same
       time: refused, naming *D 18:00–19:00*.
-- [ ] Set its `status` to `'Released'` and request it again: accepted.
+- [x] Set its `status` to `'Released'` and request it again: accepted.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). The hold was booking 4; it read Tentative Hold and lapsed, then live, then Released.
 
 ### TC-VENUE-BOOK-027 The same event at another venue is no clash (SPM-350, AC3)
 
-- [ ] Request **UAT-44 Garden Hall** on D+5, `09:00` to `10:00`. As `venue@test.com`
+- [x] Request **UAT-44 Garden Hall** on D+5, `09:00` to `10:00`. As `venue@test.com`
       approve it.
-- [ ] As the coordinator, request **UAT-44 Harbour Room** on D+5, `09:00` to `10:00` for
+- [x] As the coordinator, request **UAT-44 Harbour Room** on D+5, `09:00` to `10:00` for
       the same event: accepted. Both rows are listed.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05).
 
 ### TC-VENUE-BOOK-028 Venue Staff read the requested times (SPM-351, AC4)
 
-- [ ] As `venue@test.com`, open **Booking requests**. TC-VENUE-BOOK-023's request reads
+- [x] As `venue@test.com`, open **Booking requests**. TC-VENUE-BOOK-023's request reads
       `… · 07:00–07:15 + 23:45–24:00`.
-- [ ] Open it. The header reads `D+1 07:00–07:15, D+2 23:45–24:00 · requested by …`.
+- [x] Open it. The header reads `D+1 07:00–07:15, D+2 23:45–24:00 · requested by …`.
       No AM, PM or Night anywhere on the page.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-review-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-028_step2-review-times.png)
 
 ### TC-VENUE-BOOK-029 Existing AM, PM and Night bookings convert (SPM-347, AC5)
 
@@ -339,16 +351,20 @@ transaction that is rolled back, so the local data is untouched, against a
    rollback;
    ```
 
-- [ ] Step 1 lists three rows: the Confirmed booking's AM and Night, the Rejected one's PM.
-- [ ] Step 2 raises nothing (it checks 20 rows per slot and that no booking lost its rows).
-- [ ] Step 3 reads the same two bookings with the same statuses: the Confirmed one
+- [x] Step 1 lists three rows: the Confirmed booking's AM and Night, the Rejected one's PM.
+- [x] Step 2 raises nothing (it checks 20 rows per slot and that no booking lost its rows).
+- [x] Step 3 reads the same two bookings with the same statuses: the Confirmed one
       `28 47 20` and `76 95 20` on its day, the Rejected one `52 71 20`; then `0`.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Run in `psql`; each step's output matched.
 
 ### TC-VENUE-BOOK-030 A block still refuses the time it covers (SPM-347)
 
 Blocks stay on AM, PM and Night until SPM-321; they are compared with times by their hours.
 
-- [ ] As `venue@test.com`, block **UAT-44 Harbour Room** for **AM** on D+6.
-- [ ] As the coordinator, request it on D+6, `11:45` to `12:15`: refused with *The venue is
+- [x] As `venue@test.com`, block **UAT-44 Harbour Room** for **AM** on D+6.
+- [x] As the coordinator, request it on D+6, `11:45` to `12:15`: refused with *The venue is
       unavailable for D+6 11:45–12:00. Choose other times or another venue.*
-- [ ] D+6, `12:00` to `13:00`: accepted.
+- [x] D+6, `12:00` to `13:00`: accepted.
+
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-block-11-45-12-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-030_step2-block-11-45-12-00.png)
