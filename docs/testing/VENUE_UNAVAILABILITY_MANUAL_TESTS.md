@@ -69,16 +69,19 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | Venue | Where it comes from | Opening hours | Used for |
 | --- | --- | --- | --- |
 | Main Hall, Studio, Rooftop Terrace | `seed-venues` | 07:00–12:00, 13:00–18:00, 19:00–24:00 | Blocks and booking requests. They have no booking horizon recorded, so venue search never lists them |
-| UAT-44 Harbour Room | `seed-venue-search-uat` | 07:00–12:00, 13:00–18:00, 19:00–24:00 | A Confirmed booking, *UAT-44 Booked Harbour*, on **D** PM (13:00 to 18:00) |
+| UAT-44 Harbour Room | `seed-venue-search-uat` | 07:00–12:00, 13:00–18:00, 19:00–24:00 | TC-VBLOCK-010 and the venue search in TC-VBLOCK-005 |
 | UAT-44 Garden Hall | `seed-venue-search-uat` | 07:00–12:00, 13:00–18:00 | The venue venue search lists, for TC-VBLOCK-005 |
 
 Every seeded venue is closed 12:00–13:00 and 18:00–19:00 (and, for Garden Hall, from 18:00).
 
 ### The dates used on this run
 
-Today is **Thursday 2026-10-22** (Singapore). **D** is 14 days from today, **2026-11-05**. Every
-date below is that run's exact date; if you run later, shift each by the same number of days (and
-keep a weekday range such as 2026-11-02 to 2026-11-06 in the future).
+Every date in these cases is fixed in **December 2026**, so the cases still work when they are run
+late in November or in December: Monday 2026-12-14 to Friday 2026-12-18 (the Studio week),
+Saturday 2026-12-19, Monday 2026-12-21 to Thursday 2026-12-24, Wednesday 2026-12-16 and Monday
+2026-12-28. Two things are not fixed, on purpose: "yesterday" in TC-VBLOCK-002 is the fixed past date
+2026-10-01, and the row that must end *tonight* uses **today's** date, because a block still in
+progress can only be tested with the day it runs. The run recorded below was on Thursday 2026-10-22.
 
 ---
 
@@ -87,12 +90,12 @@ keep a weekday range such as 2026-11-02 to 2026-11-06 in the future).
 ### TC-VBLOCK-001: Record a block by time and see it In force (SPM-321 AC1, AC2)
 
 **Scenario:** Studio's mornings need refurbishing. Venue Staff take Studio out of use from 09:00 to
-11:30 every weekday of the week of Monday 2026-11-02.
+11:30 every weekday of the week of Monday 2026-12-14.
 
 **Preconditions:** Signed in as `venue@test.com`; **Unavailability** in the sidebar.
 
 **Steps:**
-1. Choose **Studio**, From `2026-11-02`, To `2026-11-06`, Start time **09:00**, End time **11:30**, Reason **Renovation**.
+1. Choose **Studio**, From `2026-12-14`, To `2026-12-18`, Start time **09:00**, End time **11:30**, Reason **Renovation**.
 2. Press **Mark unavailable**.
 3. Count the stored records:
    ```sql
@@ -103,9 +106,9 @@ keep a weekday range such as 2026-11-02 to 2026-11-06 in the future).
    ```
 
 **Expected Result:**
-- The block saves and is listed: Studio, 2026-11-02 to 2026-11-06, **09:00–11:30**, Renovation, **In force**, recorded by Test Venue Staff with the time.
+- The block saves and is listed: Studio, 2026-12-14 to 2026-12-18, **09:00–11:30**, Renovation, **In force**, recorded by Test Venue Staff with the time.
 - The page says *No bookings are affected.*
-- A green message says what was saved: *Saved. Studio is blocked 2026-11-02 to 2026-11-06, 09:00–11:30, for renovation. It is In force and listed below.*
+- A green message says what was saved: *Saved. Studio is blocked 2026-12-14 to 2026-12-18, 09:00–11:30, for renovation. It is In force and listed below.*
 - The form is empty again, with **Mark unavailable** disabled, so the block is not one click from being saved a second time.
 - The count is **50**: five days × ten quarter hours (codes 36 to 45 each day).
 
@@ -125,13 +128,13 @@ keep a weekday range such as 2026-11-02 to 2026-11-06 in the future).
 
 | From | To | Times | Reason | Note | Expected |
 | --- | --- | --- | --- | --- | --- |
-| 2026-11-10 | 2026-11-09 | 09:00–11:30 | Maintenance | — | Refused: the end date is before the start date (AC4) |
-| 2026-10-21 | 2026-10-21 | 09:00–11:30 | Maintenance | — | Refused: *A block cannot end in the past (2026-10-21 11:30).* (AC5) |
-| 2026-11-12 | 2026-11-12 | 09:00–11:30 | Other | 501 characters | Refused: at most 500 characters (AC8) |
-| 2026-11-13 | 2026-11-13 | 09:00 to *(none)* | Maintenance | — | **Mark unavailable** stays disabled (AC3) |
-| 2026-11-10 | 2026-11-10 | 13:00–18:00 | Maintenance | — | **Accepted**: one day (AC4) |
+| 2026-12-21 | 2026-12-20 | 09:00–11:30 | Maintenance | — | Refused: the end date is before the start date (AC4) |
+| 2026-10-01 | 2026-10-01 | 09:00–11:30 | Maintenance | — | Refused: *A block cannot end in the past (2026-10-01 11:30).* (AC5) |
+| 2026-12-23 | 2026-12-23 | 09:00–11:30 | Other | 501 characters | Refused: at most 500 characters (AC8) |
+| 2026-12-24 | 2026-12-24 | 09:00 to *(none)* | Maintenance | — | **Mark unavailable** stays disabled (AC3) |
+| 2026-12-21 | 2026-12-21 | 13:00–18:00 | Maintenance | — | **Accepted**: one day (AC4) |
 | today, 2026-10-22 | 2026-10-22 | 19:00–24:00 | Equipment failure | — | **Accepted**: a block ending tonight at midnight has not ended (AC5) |
-| 2026-11-11 | 2026-11-11 | 09:00–11:30 | Other | exactly 500 characters | **Accepted** (AC8) |
+| 2026-12-22 | 2026-12-22 | 09:00–11:30 | Other | exactly 500 characters | **Accepted** (AC8) |
 
 Then choose **Safety**: the **Note** box is not offered (AC7).
 
@@ -153,26 +156,29 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ### TC-VBLOCK-003: Block a booked date and see what it overlaps (SPM-321 AC4; SPM-21 AC10)
 
-**Scenario:** Harbour Room has a Confirmed booking, *UAT-44 Booked Harbour*, on D PM (13:00 to 18:00). Venue Staff need the room from 15:00 to 17:00 that day for a safety inspection.
+**Scenario:** The Coordinator books Rooftop Terrace for the morning of Wednesday 2026-12-16 (AM is 07:00 to 12:00) and Venue Staff approve it, so it is Confirmed. Then Venue Staff need the terrace from 09:30 to 10:30 that day for a safety inspection. The block covers only part of the booking, and it must not move the booking.
 
-**Preconditions:** As TC-VBLOCK-001.
+**Preconditions:** The Venue Safety Review request approved once as `coordinator@test.com` (Setup). Signed in as `coordinator@test.com` first, then `venue@test.com`.
 
 **Steps:**
-1. Choose **UAT-44 Harbour Room**, From and To `2026-11-05`, Start **15:00**, End **17:00**, Reason **Safety**, press **Mark unavailable**.
-2. Read **Bookings this block overlaps**.
-3. Check the booking and its event:
+1. As `coordinator@test.com` open `/staff/coordinator/4/venue-booking`, choose **Rooftop Terrace**, layout **Banquet**, date `2026-12-16`, tick **AM**, press **Send booking request**.
+2. As `venue@test.com` open **Requests**, the **Rooftop Terrace** request for 2026-12-16 AM, and press **Approve booking**. It reads *Confirmed*.
+3. Open **Unavailability**. Choose **Rooftop Terrace**, From and To `2026-12-16`, Start **09:30**, End **10:30**, Reason **Safety**, press **Mark unavailable**.
+4. Read **Bookings this block overlaps**.
+5. Check the booking and its event:
    ```sql
    select b.status as booking_status, e.status as event_status
      from booking b join event e using (event_id)
-    where e.name = 'UAT-44 Booked Harbour';
+     join booking_slot bs on bs.booking_id = b.booking_id
+    where bs.slot_date = '2026-12-16' and b.venue_id = (select venue_id from venue where location = 'Rooftop Terrace');
    ```
 
 **Expected Result:**
-- The block saves (it does not need the booking to move).
-- The card lists *UAT-44 Booked Harbour · 2026-11-05 13:00 to 18:00 · Confirmed*: the booking's days and hours, not the PM slot name, and says the bookings and their events are unchanged.
-- The booking is still `Confirmed` and the event still `Planning`.
+- Step 3: the block saves; it does not wait for the booking to move.
+- Step 4: the card lists *Venue Safety Review · 2026-12-16 07:00 to 12:00 · Confirmed*: the booking's whole days and hours, not the slot name, though the block covers only 09:30 to 10:30. It says the bookings and their events are unchanged.
+- Step 5: the booking is still `Confirmed` and the event still `Planning`.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (6/6 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks)
 
 **Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step1-form-filled.png) · [step2-affected-bookings-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step2-affected-bookings-listed.png)
 
@@ -180,17 +186,17 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ### TC-VBLOCK-004: A coordinator cannot request a blocked time (SPM-321 AC3)
 
-**Scenario:** Studio is blocked 09:00 to 11:30 on Monday 2026-11-02 (TC-VBLOCK-001). The Coordinator tries to book Studio for the morning (AM is 07:00 to 12:00, so it overlaps the block), then for the afternoon, then for the weekend day after the block ends.
+**Scenario:** Studio is blocked 09:00 to 11:30 on Monday 2026-12-14 (TC-VBLOCK-001). The Coordinator tries to book Studio for the morning (AM is 07:00 to 12:00, so it overlaps the block), then for the afternoon, then for the weekend day after the block ends.
 
 **Preconditions:** TC-VBLOCK-001 has run. Signed in as `coordinator@test.com`; open `/staff/coordinator/4/venue-booking`.
 
 **Steps:**
-1. Choose **Studio**, date `2026-11-02`, tick **AM**, press **Send booking request**.
-2. Choose **Studio**, date `2026-11-02`, tick **PM**, send.
-3. Choose **Studio**, date `2026-11-07`, tick **AM**, send.
+1. Choose **Studio**, date `2026-12-14`, tick **AM**, press **Send booking request**.
+2. Choose **Studio**, date `2026-12-14`, tick **PM**, send.
+3. Choose **Studio**, date `2026-12-19`, tick **AM**, send.
 
 **Expected Result:**
-- Step 1: refused with *The venue is unavailable 2026-11-02 09:00 to 11:30. Choose other times or another venue.* and nothing is requested. It names the blocked times, not "AM". There is no way to override it.
+- Step 1: refused with *The venue is unavailable 2026-12-14 09:00 to 11:30. Choose other times or another venue.* and nothing is requested. It names the blocked times, not "AM". There is no way to override it.
 - Step 2: accepted: PM (13:00 to 18:00) shares no time with the block.
 - Step 3: accepted: the day after the block ends.
 
@@ -202,41 +208,43 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ### TC-VBLOCK-005: Venue search leaves a blocked venue out (SPM-321 AC8; SPM-21 AC14)
 
-**Scenario:** Garden Hall's projector is broken from 08:00 to 10:00 on Wednesday 2026-10-28. A Coordinator searching for a morning that day should not be offered it, but should still be offered it for the afternoon.
+**Scenario:** Garden Hall's projector is broken from 08:00 to 10:00 on Wednesday 2026-12-16. A Coordinator searching for 09:00 to 10:00 that day should not be offered it. A search starting at 10:00, the moment the block ends, or in the afternoon, should still offer it.
 
-**Preconditions:** Venue search lists only venues with opening hours and a booking horizon, so this case uses **UAT-44 Garden Hall**. As `venue@test.com`, block it from **08:00** to **10:00** on `2026-10-28` (Reason **Equipment failure**). Then sign in as `coordinator@test.com` and open **Find a venue**.
+**Preconditions:** Venue search lists only venues with opening hours and a booking horizon, so this case uses **UAT-44 Garden Hall**. As `venue@test.com`, block it from **08:00** to **10:00** on `2026-12-16` (Reason **Equipment failure**). Then sign in as `coordinator@test.com` and open **Find a venue**.
 
 **Steps:**
-1. Search date `2026-10-28`, tick **AM**, press **Search**.
-2. Search date `2026-10-28`, tick **PM**, press **Search**.
+1. Search date `2026-12-16`, **Start time** `09:00`, **End time** `10:00`, press **Search**.
+2. Search date `2026-12-16`, **Start time** `10:00`, **End time** `11:00`, press **Search**.
+3. Search date `2026-12-16`, **Start time** `13:00`, **End time** `14:00`, press **Search**.
 
 **Expected Result:**
 - Step 1: **UAT-44 Garden Hall** is not listed; UAT-44 Harbour Room is. The summary counts a venue not shown because it is already booked in the time chosen.
-- Step 2: both venues are listed: the block does not reach PM.
+- Step 2: both venues are listed. The search starts at 10:00, exactly when the block ends, so they share no time.
+- Step 3: both venues are listed: the block does not reach the afternoon.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (3/3 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
 
-**Screenshots:** [step1-blocked-venue-left-out](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step1-blocked-venue-left-out.png) · [step2-other-slot-both-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step2-other-slot-both-listed.png)
+**Screenshots:** [step1-blocked-venue-left-out](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step1-blocked-venue-left-out.png) · [step2-touching-time-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step2-touching-time-listed.png) · [step3-other-time-both-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step3-other-time-both-listed.png)
 
 ---
 
 ### TC-VBLOCK-006: Lift a block, overlap, and history (SPM-321 AC5; SPM-21 AC15 to AC17, AC19)
 
-**Scenario:** After TC-VBLOCK-001 Studio is blocked 09:00 to 11:30 (Renovation) from 2026-11-02 to 2026-11-06. Venue Staff add a Safety block over 10:00 to 12:00 on 2026-11-02 and 2026-11-03, then lift the Renovation block early. The Safety block must keep refusing the overlap, and the times only Renovation held must come free.
+**Scenario:** After TC-VBLOCK-001 Studio is blocked 09:00 to 11:30 (Renovation) from 2026-12-14 to 2026-12-18. Venue Staff add a Safety block over 10:00 to 12:00 on 2026-12-14 and 2026-12-15, then lift the Renovation block early. The Safety block must keep refusing the overlap, and the times only Renovation held must come free.
 
 **Preconditions:** TC-VBLOCK-001 and TC-VBLOCK-004 have run.
 
 **Steps:**
-1. As `venue@test.com`, block **Studio** from `2026-11-02` to `2026-11-03`, Start **10:00**, End **12:00**, Reason **Safety**. It overlaps the Renovation block between 10:00 and 11:30.
+1. As `venue@test.com`, block **Studio** from `2026-12-14` to `2026-12-15`, Start **10:00**, End **12:00**, Reason **Safety**. It overlaps the Renovation block between 10:00 and 11:30.
 2. On the **Studio Renovation** row, press **Lift**, then reload.
-3. As `coordinator@test.com`, request **Studio** on `2026-11-03` AM.
-4. Request **Studio** on `2026-11-04` AM.
+3. As `coordinator@test.com`, request **Studio** on `2026-12-15` AM.
+4. Request **Studio** on `2026-12-16` AM.
 
 **Expected Result:**
 - Step 1: the second block saves although it covers some of the same time.
 - Step 2: the Renovation row shows **Lifted**, with who lifted it and when, and has **no Lift button**. It stays in the list.
-- Step 3: refused: *The venue is unavailable 2026-11-03 10:00 to 12:00. Choose other times or another venue.* The Safety block still covers it.
-- Step 4: accepted: only the lifted block covered 2026-11-04.
+- Step 3: refused: *The venue is unavailable 2026-12-15 10:00 to 12:00. Choose other times or another venue.* The Safety block still covers it.
+- Step 4: accepted: only the lifted block covered 2026-12-16.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
 
@@ -315,18 +323,18 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 ### TC-VBLOCK-010: A block over closed time is refused, naming it (SPM-321 AC7)
 
-**Scenario:** Venue Staff A opens the form for UAT-44 Harbour Room and picks 09:00–11:30 on 2026-11-17. Before A saves, a colleague shortens the Harbour Room's morning hours to end at 11:00. A's page still shows 11:00–12:00 as open, but the server knows better.
+**Scenario:** Venue Staff A opens the form for UAT-44 Harbour Room and picks 09:00–11:30 on 2026-12-28. Before A saves, a colleague shortens the Harbour Room's morning hours to end at 11:00. A's page still shows 11:00–12:00 as open, but the server knows better.
 
 **Preconditions:** Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open the form, choose **UAT-44 Harbour Room**, From and To `2026-11-17`, Start **09:00**, End **11:30**, Reason **Maintenance**. Do not save yet.
+1. Open the form, choose **UAT-44 Harbour Room**, From and To `2026-12-28`, Start **09:00**, End **11:30**, Reason **Maintenance**. Do not save yet.
 2. In a second tab, as `venue@test.com`, open **Venues**, then **UAT-44 Harbour Room**, change the first opening window's **Closes** hour from 12 to **11** (minute 00) and press **Save venue**.
 3. Back in the first tab press **Mark unavailable**.
 4. Put the hours back: in the second tab set the first window's **Closes** hour back to **12** and press **Save venue**.
 
 **Expected Result:**
-- Step 3: refused with *The venue is closed 11:00–11:30, so it cannot be blocked then. Choose times within its opening hours (07:00–11:00, 13:00–18:00, 19:00–24:00).* The form still shows the venue and times chosen, and nothing is saved for 2026-11-17.
+- Step 3: refused with *The venue is closed 11:00–11:30, so it cannot be blocked then. Choose times within its opening hours (07:00–11:00, 13:00–18:00, 19:00–24:00).* The form still shows the venue and times chosen, and nothing is saved for 2026-12-28.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks), with the hours changed and restored through the venue form
 
@@ -336,37 +344,37 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 ### TC-VBLOCK-011: A block on part of a slot blocks that slot on the calendar (SPM-321 AC8)
 
-**Scenario:** Studio is blocked 09:00 to 11:30 (Renovation) for the week of 2026-11-02. A Coordinator looking at Studio's calendar for that week should see the mornings as Blocked with the reason, and the afternoons and evenings as Available.
+**Scenario:** Studio is blocked 09:00 to 11:30 (Renovation) for the week of 2026-12-14. A Coordinator looking at Studio's calendar for that week should see the mornings as Blocked with the reason, and the afternoons and evenings as Available.
 
 **Preconditions:** TC-VBLOCK-001 has run, and TC-VBLOCK-006 has not (it lifts the Renovation block). Signed in as `coordinator@test.com`.
 
 **Steps:**
-1. Open **Find a venue**, then Studio's calendar, and go to the week of Monday 2026-11-02 (or open the calendar with `?from=2026-11-02`).
+1. Open **Find a venue**, then Studio's calendar, and go to the week of Monday 2026-12-14 (or open the calendar with `?from=2026-12-14`).
 
 **Expected Result:**
-- Monday 2026-11-02 to Friday 2026-11-06: **AM** reads **Blocked** with *Renovation*. **PM** and **Night** read **Available** (the block does not reach them).
+- Monday 2026-12-14 to Friday 2026-12-18: **AM** reads **Blocked** with *Renovation*. **PM** and **Night** read **Available** (the block does not reach them).
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (1/1 check)
 
-**Screenshots:** [step1-calendar-week-of-2026-11-02](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-11-02.png)
+**Screenshots:** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
 
 ---
 
 ### TC-VBLOCK-012: The same block cannot be saved twice (SPM-321)
 
-**Scenario:** Rooftop Terrace is blocked for Maintenance on 2026-11-10, 13:00–18:00 (TC-VBLOCK-002, row 5). A second member of Venue Staff, with an old page open, enters exactly the same block. It should be refused, not stacked. A different reason, or shorter times, is a different block and is allowed. **Other** is exempt: its note is free text nothing reads, so Venue Staff may record the same Other block more than once.
+**Scenario:** Rooftop Terrace is blocked for Maintenance on 2026-12-21, 13:00–18:00 (TC-VBLOCK-002, row 5). A second member of Venue Staff, with an old page open, enters exactly the same block. It should be refused, not stacked. A different reason, or shorter times, is a different block and is allowed. **Other** is exempt: its note is free text nothing reads, so Venue Staff may record the same Other block more than once.
 
 **Preconditions:** TC-VBLOCK-002 has run, so the Rooftop Terrace block above is In force. Signed in as `venue@test.com`.
 
 **Steps:**
-1. Choose **Rooftop Terrace**, From and To `2026-11-10`, Start **13:00**, End **18:00**, Reason **Maintenance**, press **Mark unavailable**.
+1. Choose **Rooftop Terrace**, From and To `2026-12-21`, Start **13:00**, End **18:00**, Reason **Maintenance**, press **Mark unavailable**.
 2. Change only the **Reason** to **Equipment failure** and press **Mark unavailable**.
-3. Choose **Rooftop Terrace**, From and To `2026-11-10`, Start **13:00**, End **17:00**, Reason **Maintenance**, press **Mark unavailable**.
-4. Choose **Rooftop Terrace**, From and To `2026-11-11`, Start **09:00**, End **11:30**, Reason **Other**, Note *Film shoot*, press **Mark unavailable**. Then do exactly the same again.
+3. Choose **Rooftop Terrace**, From and To `2026-12-21`, Start **13:00**, End **17:00**, Reason **Maintenance**, press **Mark unavailable**.
+4. Choose **Rooftop Terrace**, From and To `2026-12-22`, Start **09:00**, End **11:30**, Reason **Other**, Note *Film shoot*, press **Mark unavailable**. Then do exactly the same again.
 
 **Expected Result:**
 - Step 1: refused with *That block is already in force: same venue, reason, dates and times.* Nothing is saved, and the form keeps what was entered so one field can be changed.
-- Step 2: saves: the same hours under another reason is a different block (overlapping blocks are allowed). The *Saved.* message names Rooftop Terrace, 2026-11-10, 13:00–18:00, equipment failure.
+- Step 2: saves: the same hours under another reason is a different block (overlapping blocks are allowed). The *Saved.* message names Rooftop Terrace, 2026-12-21, 13:00–18:00, equipment failure.
 - Step 3: saves: the same reason over shorter times overlaps the first but is not the same block.
 - Step 4: both save. The same Other block, even with the same note, is never refused (TC-VBLOCK-002 row 7 already recorded an Other block for those hours).
 - A lifted block no longer counts: after lifting, the identical block can be saved again (unit and database checks).
@@ -379,7 +387,7 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 ### TC-VBLOCK-013: Existing blocks convert to 15-minute slots (SPM-321 AC6)
 
-**Scenario:** Before this change Studio had a Renovation block on 2026-12-01 and 2026-12-02 for AM and Night, and a Safety block on 2026-12-03 PM that Venue Staff had already lifted. After the upgrade they must cover exactly the same hours, none may be lost, and the lifted one must stay lifted.
+**Scenario:** Before this change Studio had a Renovation block on 2026-12-21 and 2026-12-22 for AM and Night, and a Safety block on 2026-12-23 PM that Venue Staff had already lifted. After the upgrade they must cover exactly the same hours, none may be lost, and the lifted one must stay lifted.
 
 **Preconditions:** Local Supabase. This case rebuilds the database only as far as the migration before this one, so it cannot follow the browser cases without a reset.
 
@@ -394,9 +402,9 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 with staff as (select user_account_id u from user_account where name = 'Test Venue Staff' and client_organisation_id is null),
 studio as (select venue_id v from venue where location = 'Studio'),
 ren as (insert into venue_unavailability (venue_id, reason_category, recorded_by_user_account_id) select v, 'Renovation', u from studio, staff returning venue_unavailability_id i),
-s1 as (insert into venue_unavailability_slot (venue_unavailability_id, slot_date, slot) select i, d, s from ren, (values ('2026-12-01'::date), ('2026-12-02')) d(d), (values ('AM'), ('Night')) s(s) returning 1),
+s1 as (insert into venue_unavailability_slot (venue_unavailability_id, slot_date, slot) select i, d, s from ren, (values ('2026-12-21'::date), ('2026-12-22')) d(d), (values ('AM'), ('Night')) s(s) returning 1),
 saf as (insert into venue_unavailability (venue_id, reason_category, recorded_by_user_account_id, lifted_by_user_account_id, lifted_at) select v, 'Safety', u, u, now() from studio, staff returning venue_unavailability_id i),
-s2 as (insert into venue_unavailability_slot (venue_unavailability_id, slot_date, slot) select i, '2026-12-03', 'PM' from saf returning 1)
+s2 as (insert into venue_unavailability_slot (venue_unavailability_id, slot_date, slot) select i, '2026-12-23', 'PM' from saf returning 1)
 select (select count(*) from s1) as renovation_rows, (select count(*) from s2) as safety_rows
    ```
    It reports 4 Renovation rows and 1 Safety row.
