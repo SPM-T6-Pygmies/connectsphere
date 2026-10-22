@@ -277,11 +277,11 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Expected Result:**
 - Step 1: one `recorded` row per block and one `lifted` row per lifted block. On the run date: 7 recorded, 1 lifted, for 7 blocks and 1 lifted.
-- Step 2: ends with *ok: all 34 checks held*. They cover a non-Venue-Staff session being refused on record, lift, list and affected bookings, the audit rows, the busy-time read of 09:00 to 10:00, a booking slot whose hours a block reaches being refused with `CS028` while a slot it does not reach is accepted, a block touching only a quarter hour of AM refusing AM, a block that starts as AM ends not refusing it, approving, holding and confirming a hold over a block recorded later being refused, the same block twice being refused with `CS079` while another reason, shorter times, or the same block after a lift are accepted, a block over the 12:00 to 13:00 lunch gap being refused with `CS078` and leaving nothing behind, the calendar read giving quarter hours in order, and lifting twice being refused.
+- Step 2: ends with *ok: all 35 checks held*. They cover a non-Venue-Staff session being refused on record, lift, list and affected bookings, the audit rows, the busy-time read of 09:00 to 10:00, a booking slot whose hours a block reaches being refused with `CS028` while a slot it does not reach is accepted, a block touching only a quarter hour of AM refusing AM, a block that starts as AM ends not refusing it, approving, holding and confirming a hold over a block recorded later being refused, the same block twice being refused with `CS079` while another reason, shorter times, or the same block after a lift are accepted, a block over the 12:00 to 13:00 lunch gap being refused with `CS078` and leaving nothing behind, the calendar read giving quarter hours in order, and lifting twice being refused.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 34 checks held"
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 35 checks held"
 
-**Reading the result:** the CLI prints `failed to execute query: error: ok: all 34 checks held`. That
+**Reading the result:** the CLI prints `failed to execute query: error: ok: all 35 checks held`. That
 is the pass. The script ends with an error on purpose, so that everything it wrote is rolled back,
 and the CLI words any error as "failed". A real failure reads `error: FAILED: <the checks that did not hold>`.
 
@@ -354,7 +354,7 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 ### TC-VBLOCK-012: The same block cannot be saved twice (SPM-321)
 
-**Scenario:** Rooftop Terrace is blocked for Maintenance on 2026-11-10, 13:00–18:00 (TC-VBLOCK-002, row 5). A second member of Venue Staff, with an old page open, enters exactly the same block. It should be refused, not stacked. A different reason, or shorter times, is a different block and is allowed.
+**Scenario:** Rooftop Terrace is blocked for Maintenance on 2026-11-10, 13:00–18:00 (TC-VBLOCK-002, row 5). A second member of Venue Staff, with an old page open, enters exactly the same block. It should be refused, not stacked. A different reason, or shorter times, is a different block and is allowed. **Other** is exempt: its note is free text nothing reads, so Venue Staff may record the same Other block more than once.
 
 **Preconditions:** TC-VBLOCK-002 has run, so the Rooftop Terrace block above is In force. Signed in as `venue@test.com`.
 
@@ -362,16 +362,18 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 1. Choose **Rooftop Terrace**, From and To `2026-11-10`, Start **13:00**, End **18:00**, Reason **Maintenance**, press **Mark unavailable**.
 2. Change only the **Reason** to **Equipment failure** and press **Mark unavailable**.
 3. Choose **Rooftop Terrace**, From and To `2026-11-10`, Start **13:00**, End **17:00**, Reason **Maintenance**, press **Mark unavailable**.
+4. Choose **Rooftop Terrace**, From and To `2026-11-11`, Start **09:00**, End **11:30**, Reason **Other**, Note *Film shoot*, press **Mark unavailable**. Then do exactly the same again.
 
 **Expected Result:**
 - Step 1: refused with *That block is already in force: same venue, reason, dates and times.* Nothing is saved, and the form keeps what was entered so one field can be changed.
 - Step 2: saves: the same hours under another reason is a different block (overlapping blocks are allowed). The *Saved.* message names Rooftop Terrace, 2026-11-10, 13:00–18:00, equipment failure.
 - Step 3: saves: the same reason over shorter times overlaps the first but is not the same block.
+- Step 4: both save. The same Other block, even with the same note, is never refused (TC-VBLOCK-002 row 7 already recorded an Other block for those hours).
 - A lifted block no longer counts: after lifting, the identical block can be saved again (unit and database checks).
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau
 
-**Screenshots:** [step1-same-block-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step1-same-block-refused.png) · [step2-other-reason-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step2-other-reason-saved.png) · [step3-shorter-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step3-shorter-block-saved.png)
+**Screenshots:** [step1-same-block-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step1-same-block-refused.png) · [step2-other-reason-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step2-other-reason-saved.png) · [step3-shorter-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step3-shorter-block-saved.png) · [step4-other-block-saved-1](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-1.png) · [step4-other-block-saved-2](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-2.png)
 
 ---
 
