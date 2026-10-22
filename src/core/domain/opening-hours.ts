@@ -1,17 +1,15 @@
 import { InvalidVenueError } from "./errors";
 import {
   END_OF_DAY,
-  formatRange,
   fromMinutes,
   gaps,
   isOnGrid,
-  overlaps,
   toMinutes,
   type TimeRange,
 } from "./time-of-day";
 
 /**
- * SPM-320: one period a venue is open, the same every day. Times are `HH:MM` on
+ * SPM-320: the period a venue is open, the same every day. Times are `HH:MM` on
  * the 15-minute grid; `24:00` is a valid end (AC2).
  */
 export interface OpeningWindow {
@@ -20,39 +18,29 @@ export interface OpeningWindow {
 }
 
 /**
- * The only way to obtain valid opening hours (SPM-320 AC2): at least one
- * window, each on the grid and ending after it starts, none overlapping
- * another. Windows that touch (07:00–12:00 then 12:00–13:00) do not overlap.
- * Returned earliest first.
+ * The only way to obtain valid opening hours (SPM-320 AC2): one continuous
+ * window a day, on the grid and ending after it starts. A venue has no break
+ * in its day (team decision on brain Q12, 2026-10-22: operating hours bound
+ * the day). Kept as a list so every reader takes hours the same way.
  */
 export function defineOpeningHours(windows: readonly OpeningWindow[]): OpeningWindow[] {
   if (windows.length === 0) {
-    throw refuse("Add at least one opening window.");
+    throw refuse("Set the venue's opening and closing time.");
+  }
+  if (windows.length > 1) {
+    throw refuse("A venue opens once a day: set one opening time and one closing time.");
   }
 
-  const ranges = windows
-    .map((window) => {
-      const start = gridTime(window.start);
-      const end = gridTime(window.end);
-      if (start === END_OF_DAY) {
-        throw refuse("An opening window cannot start at 24:00.");
-      }
-      if (end <= start) {
-        throw refuse(`The window ${window.start}–${window.end} must end after it starts.`);
-      }
-      return { start, end };
-    })
-    .sort((a, b) => a.start - b.start);
-
-  for (let i = 1; i < ranges.length; i++) {
-    if (overlaps(ranges[i - 1], ranges[i])) {
-      throw refuse(
-        `The windows ${formatRange(ranges[i - 1])} and ${formatRange(ranges[i])} overlap.`,
-      );
-    }
+  const [window] = windows;
+  const start = gridTime(window.start);
+  const end = gridTime(window.end);
+  if (start === END_OF_DAY) {
+    throw refuse("An opening window cannot start at 24:00.");
   }
-
-  return ranges.map(toWindow);
+  if (end <= start) {
+    throw refuse(`The window ${window.start}–${window.end} must end after it starts.`);
+  }
+  return [toWindow({ start, end })];
 }
 
 /** The parts of `range` the venue is closed for, earliest first (SPM-320 AC3). */
