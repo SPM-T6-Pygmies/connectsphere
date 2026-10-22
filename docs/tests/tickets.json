@@ -872,6 +872,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-322": {
+      "title": "Search venues by start and end time",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-326": {
       "title": "Run events on start and end times",
       "parent": "SPM-276",
