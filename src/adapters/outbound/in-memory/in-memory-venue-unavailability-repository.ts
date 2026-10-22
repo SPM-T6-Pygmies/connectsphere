@@ -1,4 +1,11 @@
-import { holdsSlot, type BookingId, type BookingSlot, type BookingStatus, type SlotOnDate } from "@/core/domain/booking";
+import {
+  blockedTimes,
+  holdsSlot,
+  slotTime,
+  type BookingId,
+  type BookingStatus,
+  type SlotOnDate,
+} from "@/core/domain/booking";
 import {
   blockFlagDetail,
   bookingsToFlagForBlock,
@@ -198,19 +205,17 @@ export class InMemoryVenueUnavailabilityRepository
     venueId: VenueId,
     slots: readonly SlotOnDate[],
   ): Promise<readonly AffectedBooking[]> {
-    const covered = new Set(slots.map(({ date, slot }) => `${date}|${slot}`));
     return this.bookings
       .filter((booking) => booking.venueId === venueId && LIVE.includes(booking.status))
       .flatMap((booking) =>
-        booking.slots
-          .filter(({ date, slot }) => covered.has(`${date}|${slot}`))
-          .map(({ date, slot }) => ({
-            bookingId: booking.id as BookingId,
-            eventName: booking.eventName,
-            status: booking.status,
-            date,
-            slot: slot as BookingSlot,
-          })),
+        blockedTimes(booking.slots.map(slotTime), slots).map(({ date, start, end }) => ({
+          bookingId: booking.id as BookingId,
+          eventName: booking.eventName,
+          status: booking.status,
+          date,
+          start,
+          end,
+        })),
       );
   }
 

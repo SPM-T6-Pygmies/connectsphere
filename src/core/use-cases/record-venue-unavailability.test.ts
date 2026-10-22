@@ -132,7 +132,7 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
     expect(unavailability.seededBookings()[0].status).toBe("Confirmed");
   });
 
-  it("AC11: returns the overlapping bookings (event, date, slot) on record", async () => {
+  it("AC11: returns the overlapping bookings (event, date, time) on record", async () => {
     const { record } = build([
       {
         id: "booking-1",
@@ -161,7 +161,8 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
         eventName: "Founders' Gala Dinner",
         status: "Confirmed",
         date: "2026-10-13",
-        slot: "AM",
+        start: "07:00",
+        end: "12:00",
       },
     ]);
   });

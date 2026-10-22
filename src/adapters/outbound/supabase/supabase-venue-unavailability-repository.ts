@@ -24,7 +24,7 @@ import { toKey } from "./coordinator-event-mapper";
 import { expireLapsedHolds } from "./expire-lapsed-holds";
 import { toFlaggedBooking, type FlaggedBookingRow } from "./booking-flag-mapper";
 import {
-  toAffectedBooking,
+  toAffectedBookings,
   toCalendarBlock,
   toRecordUnavailabilityArgs,
   toVenueUnavailabilityEntry,
@@ -129,7 +129,7 @@ export class SupabaseVenueUnavailabilityRepository implements VenueUnavailabilit
     if (error) {
       throw new Error(`Failed to read the affected bookings: ${error.message}`, { cause: error });
     }
-    return ((data ?? []) as unknown as AffectedBookingRow[]).map(toAffectedBooking);
+    return toAffectedBookings((data ?? []) as unknown as AffectedBookingRow[]);
   }
 
   /** SPM-313: read back from the flags `venue_staff_record_unavailability` wrote in its own transaction. */

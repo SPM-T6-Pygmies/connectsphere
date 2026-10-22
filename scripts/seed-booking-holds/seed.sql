@@ -57,11 +57,21 @@ begin
     (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, hold_expires_at)
   values (v_venue, v_event, v_staff, v_staff, 'Tentative Hold', now() - interval '1 hour')
   returning booking_id into v_hold;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_hold, v_day, 'AM');
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_hold, v_day, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code = 'AM';
 
   insert into public.booking
     (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, hold_expires_at)
   values (v_venue, v_event, v_staff, v_staff, 'Tentative Hold', now() + interval '30 days')
   returning booking_id into v_hold;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_hold, v_day, 'PM');
+  -- The slot's hours as 15-minute slots (SPM-324).
+  insert into public.booking_slot (booking_id, slot_date, slot)
+  select v_hold, v_day, g.slot_code
+  from public.slot s
+  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+  where s.slot_code = 'PM';
 end $$;
