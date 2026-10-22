@@ -41,7 +41,7 @@ export const createVenueSchema = z.object({
   location: requiredText("Enter the location."),
   facilities: requiredText("Enter the facilities."),
   accessibility: requiredText("Enter the accessibility details."),
-  openingHours: z.array(openingWindow).min(1, "Add at least one opening window."),
+  openingHours: z.array(openingWindow).min(1, "Set the venue's opening and closing time."),
   capacity: wholeNumber("Enter the venue capacity.", "Enter the venue capacity as a whole number."),
   bookingHorizonDays: wholeNumber(
     "Enter the booking horizon in days.",

@@ -155,7 +155,7 @@ Chromium driven by Playwright at 1440 × 900. No page errors were raised.
 SPM-324 AC4.
 
 **Preconditions:** As above, plus `scripts/seed-venue-search-uat/seed.sql` for
-**UAT-44 Harbour Room**, open `07:00`–`24:00` (set it in the catalogue as `venue@test.com`).
+**UAT-44 Harbour Room**, open `07:00`–`24:00` as seeded.
 
 **Steps:**
 1. Sign in as `coordinator@test.com` and open `/staff/coordinator/6/venue-booking`.
