@@ -37,6 +37,11 @@
       "parent": null,
       "status": "Backlog"
     },
+    "SPM-23": {
+      "title": "Configure Venue Turnaround and Setup Buffer",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-24": {
       "title": "Register for a confirmed event",
       "parent": null,
@@ -1000,6 +1005,36 @@
     "SPM-458": {
       "title": "Seed, checks, manual cases and the existing cases that use the old form",
       "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-462": {
+      "title": "Domain: define and validate a venue's setup and turnaround time",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-463": {
+      "title": "Domain: the one padded-window rule",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-464": {
+      "title": "Database: validate the two values, lock them once defined, refuse defining with upcoming bookings",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-465": {
+      "title": "Catalogue read and write: carry the two values through create, update and read",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-466": {
+      "title": "Venue form: setup and turnaround fields, read-only once defined",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-467": {
+      "title": "Seeds, manual cases, registry and the cases that padding will change",
+      "parent": "SPM-23",
       "status": "In Progress"
     }
   }
