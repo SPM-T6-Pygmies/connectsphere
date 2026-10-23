@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import {
   InMemoryVenueUnavailabilityRepository,
   type SeededBooking,
@@ -50,9 +51,11 @@ function build(bookings: readonly SeededBooking[] = []) {
   );
   const venues = new InMemoryVenueCatalogue([GRAND_HALL]);
   const clock = new FixedClock(NOW);
+  const notifier = new RecordingNotifier();
   return {
     unavailability,
-    record: new RecordVenueUnavailabilityUseCase({ unavailability, venues, clock }),
+    notifier,
+    record: new RecordVenueUnavailabilityUseCase({ unavailability, venues, clock, notifier }),
     lift: new LiftVenueUnavailabilityUseCase({ unavailability, clock }),
     list: new ListVenueUnavailabilityUseCase({ unavailability }),
   };
@@ -444,6 +447,7 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
       unavailability,
       venues: new InMemoryVenueCatalogue([GRAND_HALL, lateOnly]),
       clock: new FixedClock(NOW),
+      notifier: new RecordingNotifier(),
     });
 
     await expect(record.execute(block({ venueId: lateOnly.id }))).rejects.toThrow("closed 09:00–10:00");
@@ -534,5 +538,85 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
 
     expect(second.entry.status).toBe("In force");
     expect(second.entry.id).not.toBe(entry.id);
+  });
+});
+
+describe("RecordVenueUnavailabilityUseCase notifies the coordinator (SPM-71)", () => {
+  const COORDINATOR = "coordinator-1";
+  const PM_ON_13 = { startDate: "2026-10-13", endDate: "2026-10-13", startTime: "13:00", endTime: "18:00" } as const;
+
+  function seeded(overrides: Partial<SeededBooking> & Pick<SeededBooking, "id">): SeededBooking {
+    return {
+      venueId: GRAND_HALL.id,
+      eventName: "Tech Summit",
+      status: "Confirmed",
+      slots: [{ date: "2026-10-13", slot: "PM" }],
+      eventId: "event-1",
+      coordinatorUserAccountId: COORDINATOR,
+      ...overrides,
+    };
+  }
+
+  it("AC1, AC3: tells the coordinator of a booking the block flags, naming the event, the venue and the reason", async () => {
+    const { record, notifier } = build([seeded({ id: "booking-1" })]);
+
+    await record.execute(block({ ...PM_ON_13, reason: "Maintenance" }));
+
+    expect(notifier.bookingsFlagged).toEqual([
+      {
+        recipientUserAccountId: COORDINATOR,
+        bookingId: "booking-1",
+        eventId: "event-1",
+        eventName: "Tech Summit",
+        venueLocation: "Grand Hall",
+        reasonCode: "venue-unavailable",
+        reasons: ["Maintenance: 2026-10-13 13:00 to 18:00"],
+      },
+    ]);
+  });
+
+  it("AC4: a block over three bookings sends three notices, one per booking", async () => {
+    const { record, notifier } = build([
+      seeded({ id: "a" }),
+      seeded({ id: "b", eventId: "event-2", eventName: "Gala" }),
+      seeded({ id: "c", eventId: "event-3", eventName: "Expo", coordinatorUserAccountId: "coordinator-2" }),
+    ]);
+
+    await record.execute(block(PM_ON_13));
+
+    expect(notifier.bookingsFlagged.map((notice) => [notice.bookingId, notice.recipientUserAccountId])).toEqual([
+      ["a", COORDINATOR],
+      ["b", COORDINATOR],
+      ["c", "coordinator-2"],
+    ]);
+  });
+
+  it("AC1: tells nobody of a booking the block does not flag: a Requested one, or one outside it", async () => {
+    const { record, notifier } = build([
+      seeded({ id: "requested", status: "Requested" }),
+      seeded({ id: "morning", slots: [{ date: "2026-10-13", slot: "AM" }] }),
+    ]);
+
+    await record.execute(block(PM_ON_13));
+
+    expect(notifier.bookingsFlagged).toEqual([]);
+  });
+
+  it("AC6: flags but tells nobody of a booking whose event has no coordinator", async () => {
+    const { record, notifier } = build([seeded({ id: "unassigned", coordinatorUserAccountId: undefined })]);
+
+    const { flaggedBookings } = await record.execute(block(PM_ON_13));
+
+    expect(flaggedBookings.map((flagged) => flagged.bookingId)).toEqual(["unassigned"]);
+    expect(notifier.bookingsFlagged).toEqual([]);
+  });
+
+  it("AC4: the same block saved again is refused and tells nobody a second time", async () => {
+    const { record, notifier } = build([seeded({ id: "booking-1" })]);
+
+    await record.execute(block(PM_ON_13));
+    await expect(record.execute(block(PM_ON_13))).rejects.toThrow(DuplicateUnavailabilityError);
+
+    expect(notifier.bookingsFlagged).toHaveLength(1);
   });
 });

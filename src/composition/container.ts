@@ -992,13 +992,14 @@ export async function getVenueMaintenanceRoles(): Promise<readonly string[]> {
   return (await getStaffWorkspaces()).includes("venue") ? ["Venue Staff"] : [];
 }
 
-/** SPM-21: Venue Staff block a venue for a period, with a reason. */
+/** SPM-21: Venue Staff block a venue for a period, with a reason; SPM-71: tell each flagged booking's coordinator. */
 export async function buildRecordVenueUnavailability(): Promise<RecordVenueUnavailabilityUseCase> {
   const client = await createSupabaseServerClient();
   return new RecordVenueUnavailabilityUseCase({
     unavailability: new SupabaseVenueUnavailabilityRepository(client),
     venues: new SupabaseVenueCatalogue(client),
     clock: systemClock,
+    notifier: recordedNotifier(),
   });
 }
 
