@@ -28,6 +28,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
 import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
+import { SupabaseVenueChangeReview } from "@/adapters/outbound/supabase/supabase-venue-change-review";
 import { SupabaseBookingFlagRepository } from "@/adapters/outbound/supabase/supabase-booking-flag-repository";
 import { SupabaseVenueUnavailabilityRepository } from "@/adapters/outbound/supabase/supabase-venue-unavailability-repository";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
@@ -956,9 +957,14 @@ export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
   return new CreateVenueUseCase({ venues: await venueCatalogue() });
 }
 
-/** SPM-147: Venue Staff update a venue and its layouts. */
+/** SPM-147: Venue Staff update a venue and its layouts; SPM-105: flag the bookings it no longer fits. */
 export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
-  return new UpdateVenueUseCase({ venues: await venueCatalogue() });
+  const client = await createSupabaseServerClient();
+  return new UpdateVenueUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    review: new SupabaseVenueChangeReview(client),
+    clock: systemClock,
+  });
 }
 
 /**
