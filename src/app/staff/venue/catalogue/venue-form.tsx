@@ -83,6 +83,11 @@ export function VenueForm({
       : [{ key: 0, start: "", end: "" }],
   );
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
+  // SPM-23: defined once, then locked. A locked box is read-only, not disabled, so the venue's own
+  // values are still sent back with the rest of the form and the save is not a change.
+  const buffersLocked = venue?.setupMinutes != null || venue?.turnaroundMinutes != null;
+  const [setup, setSetup] = useState(venue?.setupMinutes?.toString() ?? "");
+  const [turnaround, setTurnaround] = useState(venue?.turnaroundMinutes?.toString() ?? "");
   const [nextKey, setNextKey] = useState(() => (venue?.layouts.length ?? 0) + 1);
   const [layouts, setLayouts] = useState<LayoutRow[]>(() =>
     venue && venue.layouts.length > 0
@@ -324,6 +329,52 @@ export function VenueForm({
               aria-invalid={errors?.bookingHorizonDays !== undefined}
               value={horizon}
               onChange={(event) => setHorizon(event.target.value)}
+            />
+          </Field>
+          <Field
+            id="setupMinutes"
+            label="Setup time (minutes)"
+            hint={
+              buffersLocked
+                ? "Locked: setup and turnaround are set once and cannot be changed."
+                : "Time to prepare the room before an event. In 15-minute steps; 0 is allowed. Enter both setup and turnaround, or neither: a venue with neither set counts as 0. Once saved they are locked."
+            }
+            error={errors?.setupMinutes}
+          >
+            <Input
+              id="setupMinutes"
+              name="setupMinutes"
+              type="number"
+              placeholder="Not set"
+              readOnly={buffersLocked}
+              aria-readonly={buffersLocked}
+              aria-invalid={errors?.setupMinutes !== undefined}
+              className={buffersLocked ? "bg-muted text-muted-foreground" : undefined}
+              value={setup}
+              onChange={(event) => setSetup(event.target.value)}
+            />
+          </Field>
+          <Field
+            id="turnaroundMinutes"
+            label="Turnaround time (minutes)"
+            hint={
+              buffersLocked
+                ? "Locked."
+                : "Time to reset the room after an event. In 15-minute steps; 0 is allowed."
+            }
+            error={errors?.turnaroundMinutes}
+          >
+            <Input
+              id="turnaroundMinutes"
+              name="turnaroundMinutes"
+              type="number"
+              placeholder="Not set"
+              readOnly={buffersLocked}
+              aria-readonly={buffersLocked}
+              aria-invalid={errors?.turnaroundMinutes !== undefined}
+              className={buffersLocked ? "bg-muted text-muted-foreground" : undefined}
+              value={turnaround}
+              onChange={(event) => setTurnaround(event.target.value)}
             />
           </Field>
         </CardContent>
