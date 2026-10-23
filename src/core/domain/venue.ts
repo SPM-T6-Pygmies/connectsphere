@@ -85,6 +85,19 @@ export function canMaintainVenues(roles: readonly string[]): boolean {
  * is exactly what SPM-42 AC2 rules out. Nor may a layout seat more than the
  * venue itself (SPM-106).
  */
+/** The location as the catalogue compares it: two venues are the same place if this matches. */
+export function venueNameKey(location: string): string {
+  return location.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/** The refusal for a location another venue already has; the database's unique index is mapped to it. */
+export function venueNameTaken(): InvalidVenueError {
+  return new InvalidVenueError(
+    "A venue with this location already exists. Choose a different location.",
+    "location",
+  );
+}
+
 export function defineVenue(input: VenueDetails): VenueDetails {
   const location = requiredText(input.location, "Enter the location.", "location");
   const facilities = requiredOptions(

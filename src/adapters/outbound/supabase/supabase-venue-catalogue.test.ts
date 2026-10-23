@@ -94,6 +94,21 @@ describe("SupabaseVenueCatalogue setup and turnaround (SPM-23)", () => {
     expect((error as InvalidVenueError).message).toMatch(/locked/);
   });
 
+  it("maps the unique-location index to the duplicate-location refusal, on create and on update", async () => {
+    const taken = { code: "23505", message: 'duplicate key value violates unique constraint "venue_location_unique_idx"' };
+    const create = fakeClient({ venue_catalogue_create: { data: null, error: taken } });
+    const update = fakeClient({ venue_catalogue_update: { data: null, error: taken } });
+
+    const created = await new SupabaseVenueCatalogue(create.client).add(DETAILS).catch((e: unknown) => e);
+    const revised = await new SupabaseVenueCatalogue(update.client).revise(venueId("5"), DETAILS).catch((e: unknown) => e);
+
+    for (const error of [created, revised]) {
+      expect(error).toBeInstanceOf(InvalidVenueError);
+      expect((error as InvalidVenueError).field).toBe("location");
+      expect((error as InvalidVenueError).message).toMatch(/already exists/);
+    }
+  });
+
   it("keeps mapping the older refusals: not permitted, not found, and an invalid record", async () => {
     const refuse = (code: string) =>
       new SupabaseVenueCatalogue(

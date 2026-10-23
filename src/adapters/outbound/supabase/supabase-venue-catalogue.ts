@@ -3,7 +3,7 @@ import {
   VenueMaintenanceNotPermittedError,
   VenueNotFoundError,
 } from "@/core/domain/errors";
-import type { Venue, VenueDetails, VenueId } from "@/core/domain/venue";
+import { venueNameTaken, type Venue, type VenueDetails, type VenueId } from "@/core/domain/venue";
 import { venueBuffersLocked } from "@/core/domain/venue-buffers";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 
@@ -16,6 +16,9 @@ const NOT_FOUND = "CS021";
 const INVALID = "CS022";
 // Raised by the guard on `venue` (SPM-23): the two values are defined and the update changes them.
 const BUFFERS_LOCKED = "CS080";
+// Postgres's unique-violation, from the index that keeps two venues from sharing a location.
+const UNIQUE_VIOLATION = "23505";
+const LOCATION_INDEX = "venue_location_unique_idx";
 
 /**
  * The venue catalogue in Postgres, through the `venue_catalogue*` functions.
@@ -77,5 +80,6 @@ function translate(error: { code?: string; message: string }, action: string): E
   if (error.code === NOT_FOUND) return new VenueNotFoundError();
   if (error.code === INVALID) return new InvalidVenueError(error.message);
   if (error.code === BUFFERS_LOCKED) return venueBuffersLocked();
+  if (error.code === UNIQUE_VIOLATION && error.message.includes(LOCATION_INDEX)) return venueNameTaken();
   return new Error(`Failed to ${action}: ${error.message}`, { cause: error });
 }

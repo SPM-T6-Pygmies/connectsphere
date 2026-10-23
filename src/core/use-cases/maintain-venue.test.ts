@@ -317,3 +317,48 @@ describe("Setup and turnaround time on create and update (SPM-23)", () => {
     ).rejects.toThrow(/locked/);
   });
 });
+
+describe("A venue's location is unique", () => {
+  it("refuses a second venue with the same location, and stores nothing", async () => {
+    const { create, list } = build();
+    await create.execute(newVenue());
+
+    await expect(create.execute(newVenue())).rejects.toThrow(/already exists/);
+    expect((await list.execute()).venues).toHaveLength(1);
+  });
+
+  it("treats a location that differs only by case or spacing as the same", async () => {
+    const { create } = build();
+    await create.execute(newVenue({ location: "Marina Bay Hall" }));
+
+    await expect(create.execute(newVenue({ location: "  marina  BAY hall " }))).rejects.toThrow(/already exists/);
+  });
+
+  it("names the location field in the refusal", async () => {
+    const { create } = build();
+    await create.execute(newVenue());
+
+    const error = await create.execute(newVenue()).catch((e: unknown) => e);
+
+    expect((error as InvalidVenueError).field).toBe("location");
+  });
+
+  it("refuses renaming a venue onto another venue's location", async () => {
+    const { create, update } = build();
+    await create.execute(newVenue({ location: "Marina Bay Hall" }));
+    const { venue } = await create.execute(newVenue({ location: "Sentosa Pavilion" }));
+
+    await expect(
+      update.execute({ ...newVenue({ location: "Marina Bay Hall" }), venueId: venue.id }),
+    ).rejects.toThrow(/already exists/);
+  });
+
+  it("lets a venue be saved under its own location", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue());
+
+    await update.execute({ ...newVenue({ facilities: "Wi-Fi, Catering area" }), venueId: venue.id });
+
+    expect((await view.execute({ venueId: venue.id })).venue.facilities).toBe("Wi-Fi, Catering area");
+  });
+});
