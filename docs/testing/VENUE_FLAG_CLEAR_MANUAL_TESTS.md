@@ -54,13 +54,13 @@ Run the cases in order: each starts from where the one before left off.
    supabase db query --file scripts/seed-booking-cancel/seed.sql --local
    ```
    **C** is 10 days from today. The Founders' Gala Dinner now has, among others, **P** (UAT-44 Harbour
-   Room, C AM, Confirmed), **Q** (UAT-44 Harbour Room, C Night, Confirmed) and two Garden Hall bookings
-   on C (Requested, Tentative Hold).
+   Room, C 07:00–12:00, Confirmed), **Q** (UAT-44 Harbour Room, C 19:00–24:00, Confirmed) and two Garden
+   Hall bookings on C (Requested, Tentative Hold).
 3. Record the blocks that flag P twice and Q once, as Test Venue Staff:
    ```bash
    supabase db query --file scripts/seed-booking-flag-clear/blocks.sql --local
    ```
-   It lists three blocks: AM Maintenance, AM Safety, Night Renovation.
+   It lists three blocks: Maintenance and Safety over 07:00 to 12:00, Renovation over 19:00 to 24:00.
 4. Start the app: `pnpm dev:local`, then open <http://localhost:3000/auth/login>.
 
 To run the cases again without a reset, remove the blocks and flags, then repeat step 3:
@@ -80,7 +80,7 @@ once, leaves the booking as it was, and does not touch the flag on the event's o
 
 **Steps:**
 1. Open **My events**, *Founders' Gala Dinner*, **Manage venue booking** (Request a venue). Read the
-   Status column of the Harbour Room rows for C AM (P) and C Night (Q).
+   Status column of the Harbour Room rows for C 07:00–12:00 (P) and C 19:00–24:00 (Q).
 2. Click P's **Flagged** badge. Read the card, click **Clear flag**, and read the question.
 3. Click **Yes, clear flag**. Read the toast and the Status column of P and Q.
 4. Go back to the event page and read **Flagged for review** in the Venue section.
@@ -95,9 +95,9 @@ once, leaves the booking as it was, and does not touch the flag on the event's o
   shows **Confirmed**, with no badge. Q still shows **Confirmed** and **Flagged**.
 - Step 4: only Q is listed ("UAT-44 Harbour Room C 19:00 to 24:00", "Renovation: C 19:00 to 24:00").
 
-**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chromium via Playwright for arinmakk
+**Status:** [x] Pass [ ] Fail — 23/10/2026, run in Chromium via Playwright for arinmakk
 
-**Screenshots:** [step1-coordinator-two-flagged](../screenshots/2026-10-21_TC-VFCLR-001_step1-coordinator-two-flagged.png) · [step2-coordinator-confirm-clear](../screenshots/2026-10-21_TC-VFCLR-001_step2-coordinator-confirm-clear.png) · [step3-coordinator-cleared-toast](../screenshots/2026-10-21_TC-VFCLR-001_step3-coordinator-cleared-toast.png) · [step4-coordinator-venue-tab-one-flag](../screenshots/2026-10-21_TC-VFCLR-001_step4-coordinator-venue-tab-one-flag.png)
+**Screenshots:** [step1-coordinator-two-flagged](../screenshots/2026-10-23_TC-VFCLR-001_step1-coordinator-two-flagged.png) · [step2-coordinator-confirm-clear](../screenshots/2026-10-23_TC-VFCLR-001_step2-coordinator-confirm-clear.png) · [step3-coordinator-cleared-toast](../screenshots/2026-10-23_TC-VFCLR-001_step3-coordinator-cleared-toast.png) · [step4-coordinator-venue-tab-one-flag](../screenshots/2026-10-23_TC-VFCLR-001_step4-coordinator-venue-tab-one-flag.png)
 
 ### TC-VFCLR-002: Clearing is recorded, not deleted (AC2)
 
@@ -111,12 +111,12 @@ once, leaves the booking as it was, and does not touch the flag on the event's o
    supabase db query --file scripts/seed-booking-flag-clear/flags.sql --local
    ```
 
-**Expected Result:** three rows. The two AM rows ("Maintenance: C 07:00 to 12:00" and "Safety: C
+**Expected Result:** three rows, one per flag. The two rows booked for C 07:00 to 12:00 ("Maintenance: C 07:00 to 12:00" and "Safety: C
 07:00 to 12:00") have `cleared_at` set to the moment of step 3 in TC-VFCLR-001, `cleared_by`
 **Test Coordinator** and `cleared_how` **coordinator**; `booking_status` is still **Confirmed**. The
 Night row ("Renovation: C 19:00 to 24:00") has `cleared_at`, `cleared_by` and `cleared_how` empty.
 
-**Status:** [x] Pass [ ] Fail — 21/10/2026, by query, for arinmakk
+**Status:** [x] Pass [ ] Fail — 23/10/2026, by query, for arinmakk
 
 **Evidence:** query output in the Run record below.
 
@@ -135,9 +135,9 @@ cannot reach the card at all.
 **Expected Result:** both get "You don't have access to this page." with status 403, and no
 **Flagged** badge or **Clear flag** button anywhere.
 
-**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chromium via Playwright for arinmakk
+**Status:** [x] Pass [ ] Fail — 23/10/2026, run in Chromium via Playwright for arinmakk
 
-**Screenshots:** [step1-coordinator-2-denied](../screenshots/2026-10-21_TC-VFCLR-003_step1-coordinator-2-denied.png) · [step2-venue-staff-denied](../screenshots/2026-10-21_TC-VFCLR-003_step2-venue-staff-denied.png)
+**Screenshots:** [step1-coordinator-2-denied](../screenshots/2026-10-23_TC-VFCLR-003_step1-coordinator-2-denied.png) · [step2-venue-staff-denied](../screenshots/2026-10-23_TC-VFCLR-003_step2-venue-staff-denied.png)
 
 ### TC-VFCLR-004: A cleared booking is flagged again by a later block (AC5)
 
@@ -147,7 +147,7 @@ is flagged again, with only the new reason; the cleared ones stay cleared.
 **Preconditions:** TC-VFCLR-001 done. Signed in as `coordinator@test.com`.
 
 **Steps:**
-1. Record a new block over P's slot, as Venue Staff would:
+1. Record a new block over P's time, as Venue Staff would:
    ```bash
    supabase db query --file scripts/seed-booking-flag-clear/reblock.sql --local
    ```
@@ -156,9 +156,9 @@ is flagged again, with only the new reason; the cleared ones stay cleared.
 **Expected Result:** P shows **Flagged** again. The card lists one reason, "Equipment failure: C
 07:00 to 12:00", and neither Maintenance nor Safety.
 
-**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chromium via Playwright for arinmakk
+**Status:** [x] Pass [ ] Fail — 23/10/2026, run in Chromium via Playwright for arinmakk
 
-**Screenshots:** [step1-coordinator-flagged-again](../screenshots/2026-10-21_TC-VFCLR-004_step1-coordinator-flagged-again.png)
+**Screenshots:** [step1-coordinator-flagged-again](../screenshots/2026-10-23_TC-VFCLR-004_step1-coordinator-flagged-again.png)
 
 ### TC-VFCLR-005: Nothing to clear, nothing offered (AC6)
 
@@ -174,17 +174,18 @@ tab) is refused with a message instead of pretending to succeed.
 3. In tab A click **Yes, clear flag**. Then in tab B click **Yes, clear flag**.
 
 **Expected Result:**
-- Step 1: the Garden Hall rows show **Requested** and **Tentative Hold**, with no **Flagged** badge, so
+- Step 1: the Garden Hall rows (C 07:00–12:00 and C 13:00–18:00) show **Requested** and **Tentative Hold**, with no **Flagged** badge, so
   no **Clear flag** anywhere on them.
 - Step 3: tab A shows the toast "Flag cleared on UAT-44 Harbour Room. The booking stays Confirmed."
   Tab B shows, under its buttons, "This booking has no open flag to clear." and nothing else changes.
 
-**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chromium via Playwright for arinmakk
+**Status:** [x] Pass [ ] Fail — 23/10/2026, run in Chromium via Playwright for arinmakk
 
-**Screenshots:** [step1-coordinator-unflagged-rows](../screenshots/2026-10-21_TC-VFCLR-005_step1-coordinator-unflagged-rows.png) · [step2-coordinator-second-tab-refused](../screenshots/2026-10-21_TC-VFCLR-005_step2-coordinator-second-tab-refused.png)
+**Screenshots:** [step1-coordinator-unflagged-rows](../screenshots/2026-10-23_TC-VFCLR-005_step1-coordinator-unflagged-rows.png) · [step2-coordinator-second-tab-refused](../screenshots/2026-10-23_TC-VFCLR-005_step2-coordinator-second-tab-refused.png)
 
 ## Run record
 
 | Date | Build | Who | Cases | Result | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 2026-10-21 | `feat/spm-310-clear-a-flag-when-the-booking-still-fits`, local Supabase | arinmakk (Playwright, Chromium 1440×900) | TC-VFCLR-001–005 | 5 Pass | C was 2026-10-31. No page errors. TC-VFCLR-002's query gave the two AM rows `cleared_by` Test Coordinator, `cleared_how` coordinator, `cleared_at` 2026-10-21T14:40:06Z, booking Confirmed; the Night row open. The Next.js dev badge's "1 Issue" in two screenshots is the Agentation dev toolbar failing to reach its local server, not this page. |
+| 2026-10-21 | `feat/spm-310-clear-a-flag-when-the-booking-still-fits`, local Supabase | arinmakk (Playwright, Chromium 1440×900) | TC-VFCLR-001–005 | 5 Pass | C was 2026-10-31. No page errors. Screenshots superseded by the 2026-10-23 run. TC-VFCLR-002's query gave the two AM rows `cleared_by` Test Coordinator, `cleared_how` coordinator, `cleared_at` 2026-10-21T14:40:06Z, booking Confirmed; the Night row open. The Next.js dev badge's "1 Issue" in two screenshots is the Agentation dev toolbar failing to reach its local server, not this page. |
+| 2026-10-23 | `feat/spm-310-clear-a-flag-when-the-booking-still-fits` after merging `main` (SPM-321's 15-minute blocks and bookings), local Supabase | arinmakk (Playwright, Chromium 1440×900) | TC-VFCLR-001–005 | 5 Pass | C was 2026-11-02. No page errors. TC-VFCLR-002's query gave the two 07:00 to 12:00 rows `cleared_by` Test Coordinator, `cleared_how` coordinator, `cleared_at` 2026-10-23T02:21:50Z, booking Confirmed; the 19:00 to 24:00 row open. The "1 Issue" dev badge is the Agentation dev toolbar, as before. |
