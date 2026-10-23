@@ -47,7 +47,7 @@ build on what the earlier ones left.
 | Main Hall | 30 | 45 | The customer's own example: 10:00–12:00 occupies 09:30–12:45 |
 | Studio | 0 | 0 | A defined 0, which is locked too |
 | Seminar Room 2-1, Rooftop Terrace | not set | not set | Counts as 0 until defined |
-| UAT-44 Harbour Room, UAT-44 Garden Hall | not set | not set | Complete venue records, so the form can save them; the cases define their values |
+| UAT-44 Harbour Room, UAT-44 Garden Hall | not set | not set | Complete venue records, so the form can save them; the cases choose their values |
 
 The first four have no booking horizon recorded, so the venue form will not save them (a venue's
 every field is mandatory). The cases that save a venue therefore use the two UAT-44 venues.
@@ -56,41 +56,42 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 ## Test Cases
 
-### TC-VBUFFER-001: Create a venue with setup and turnaround, and see them locked (AC1, AC3)
+### TC-VBUFFER-001: Add a venue with setup and turnaround; the form clears; the values are locked (AC1, AC3, AC10)
 
 **Scenario:** Venue Staff add a new studio, Lakeside Studio, that needs 30 minutes to set up and 45 to reset.
 
 **Steps:**
-1. Open **Venues**, then **Add venue**. Enter Location `Lakeside Studio`, Capacity `80`, tick **Wi-Fi** and **Lift access**, Opens `07`:`00`, Closes `12`:`00`, Booking horizon `90`, **Setup time** `30`, **Turnaround time** `45`, Layout **Theatre** capacity `60`. Press **Add venue**.
-2. On the venue's page, look at the two time boxes.
-3. Change the Location to `Lakeside Studio West` and press **Save venue**.
+1. Open **Venues**, then **Add venue**. Enter Location `Lakeside Studio`, Capacity `80`, tick **Wi-Fi** and **Lift access**, Opens `07`:`00`, Closes `12`:`00`, Booking horizon `90`, choose **Setup time** `30 min` and **Turnaround time** `45 min`, Layout **Theatre** capacity `60`. Press **Add venue**.
+2. Look at the form straight after.
+3. Open **Venues**.
+4. Open **Lakeside Studio** and look at the two time choices.
+5. Change the Location to `Lakeside Studio West` and press **Save venue**.
 
 **Expected Result:**
-- Step 1: the venue is created and its page opens.
-- Step 2: **Setup time** shows `30` and **Turnaround time** shows `45`, greyed and read-only, with *Locked: setup and turnaround are set once and cannot be changed.*
-- Step 3: *Venue saved.* The location changes and the two values stay `30` and `45`.
+- Step 2: a *Venue created.* toast shows and the form is empty again (Location, Capacity, Booking horizon, the two time choices and the layout are all blank), ready for the next venue. The page does not open the venue.
+- Step 3: the list shows Lakeside Studio with *Setup 30 min · Turnaround 45 min*.
+- Step 4: **Setup time** shows `30 min` and **Turnaround time** `45 min`, greyed and not changeable, with *Locked: setup and turnaround are set once and cannot be changed.*
+- Step 5: a *Venue saved.* toast shows. The location changes and the two values stay `30 min` and `45 min`.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (3/3 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (6/6 checks)
 
-**Screenshots:** [step1-create-form-filled](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step1-create-form-filled.png) · [step2-created-venue-locked](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step2-created-venue-locked.png) · [step3-other-detail-saved](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step3-other-detail-saved.png)
+**Screenshots:** [step1-create-form-filled](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step1-create-form-filled.png) · [step2-cleared-with-toast](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step2-cleared-with-toast.png) · [step3-venue-in-list](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step3-venue-in-list.png) · [step4-created-venue-locked](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step4-created-venue-locked.png)
 
 ---
 
 ### TC-VBUFFER-002: Define the values on a venue that has none (AC1, AC4)
 
-**Scenario:** UAT-44 Garden Hall has never had setup or turnaround entered. Venue Staff enter 15 and 30.
-
-**Preconditions:** After TC-VBUFFER-003, which leaves Garden Hall undefined.
+**Scenario:** UAT-44 Garden Hall has never had setup or turnaround chosen. Venue Staff choose 15 and 30.
 
 **Steps:**
-1. Open **UAT-44 Garden Hall**. Look at the two time boxes.
-2. Enter **Setup time** `15` and **Turnaround time** `30`, then press **Save venue**.
+1. Open **UAT-44 Garden Hall**. Look at the two time choices.
+2. Choose **Setup time** `15 min` and **Turnaround time** `30 min`, then press **Save venue**.
 3. Open the venue again.
 
 **Expected Result:**
-- Step 1: both boxes are empty (*Not set*), and the note says a venue with neither set counts as 0.
+- Step 1: both read *Not set*, and the note says a venue with neither set counts as 0.
 - Step 2: *Venue saved.*
-- Step 3: both show `15` and `30`, read-only and locked.
+- Step 3: both show `15 min` and `30 min`, greyed and not changeable (locked).
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (3/3 checks)
 
@@ -98,26 +99,22 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 ---
 
-### TC-VBUFFER-003: What is refused (AC1, AC2)
+### TC-VBUFFER-003: The choices, and one without the other (AC1, AC2)
 
-**Scenario:** Venue Staff mistype the two values on UAT-44 Garden Hall.
+**Scenario:** The two values are picked from a list, so a value off the 15-minute grid, a negative one or one over 150 minutes cannot be entered at all. Venue Staff can still choose one and leave the other.
 
-**Steps:** On **UAT-44 Garden Hall**, enter each pair and press **Save venue**:
-
-| Setup | Turnaround | Expected |
-| --- | --- | --- |
-| 30 | *(blank)* | Refused beside **Turnaround time**: *Enter the turnaround time too: setup and turnaround are entered together.* |
-| 20 | 30 | Refused beside **Setup time**: *The setup time must be a multiple of 15 minutes -- use 0, 15, 30, 45 and so on.* |
-| 30 | 1455 | Refused beside **Turnaround time**: *The turnaround time must be at most 1440 minutes (24 hours).* |
-| -15 | 30 | Refused beside **Setup time**: *Enter the minutes as a whole number, 0 or more.* |
+**Steps:**
+1. Open **UAT-44 Harbour Room** and open the **Setup time** list.
+2. Choose **Setup time** `30 min`, leave **Turnaround time** on *Not set*, and press **Save venue**.
 
 **Expected Result:**
-- Each row shows one message on its box, and nothing is saved: Garden Hall still has no values.
-- Exactly 24 hours (1440) and 0 are accepted; unit tests and the database checks cover them, because saving them here would lock the venue.
+- Step 1: the list offers *Not set*, then `0 min`, `15 min`, `30 min`, `45 min`, `60 min`, `75 min`, `90 min`, `105 min`, `120 min`, `135 min` and `150 min`. The Turnaround list is the same.
+- Step 2: refused beside **Turnaround time**: *Enter the turnaround time too: setup and turnaround are entered together.* Nothing is saved: Harbour Room still has no values.
+- A value off the grid, a negative one or one over 150 is refused by the domain rules and the database constraint, which unit tests and TC-VBUFFER-005 cover.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (3/3 checks)
 
-**Screenshots:** [step1-setup-without-turnaround](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step1-setup-without-turnaround.png) · [step2-setup-off-the-grid](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step2-setup-off-the-grid.png) · [step3-turnaround-over-a-day](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step3-turnaround-over-a-day.png) · [step4-negative](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step4-negative.png)
+**Screenshots:** [step1-the-choices](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step1-the-choices.png) · [step2-setup-without-turnaround](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step2-setup-without-turnaround.png)
 
 ---
 
@@ -126,7 +123,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 **Scenario:** Studio is defined as 0 and 0 and Main Hall as 30 and 45. Nobody, including a direct database request, may change them.
 
 **Steps:**
-1. Open **Studio** and look at the two time boxes.
+1. Open **Studio** and look at the two time choices.
 2. Run:
    ```sql
    update venue set setup_time_minutes = 15 where location = 'Studio';
@@ -138,7 +135,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 4. Read both venues' values.
 
 **Expected Result:**
-- Step 1: `0` and `0`, read-only and locked. A defined 0 is a value.
+- Step 1: `0 min` and `0 min`, greyed and not changeable (locked). A defined 0 is a value.
 - Steps 2 and 3: each is refused with *Setup and turnaround time are locked once defined* (`CS080`).
 - Step 4: Studio is still 0 and 0, and Main Hall 30 and 45.
 
@@ -152,7 +149,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 **Scenario:** Venue Staff and a Coordinator can see each venue's setup and turnaround without opening the venue form, so the Coordinator knows how much time around an event a venue needs.
 
-**Preconditions:** UAT-44 Garden Hall has 30 and 45 defined (TC-VBUFFER-002). The *Holds Test Event* is assigned to `coordinator@test.com`.
+**Preconditions:** UAT-44 Garden Hall has 15 and 30 defined (TC-VBUFFER-002). `scripts/seed-booking-holds/seed.sql` has been run *after* the last `supabase db reset`, which creates *Holds Test Event* and assigns it to `coordinator@test.com`; without it that event does not exist.
 
 **Steps:**
 1. Signed in as `venue@test.com`, open **Venues**.
@@ -161,7 +158,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 **Expected Result:**
 - Step 1: the **Setup and turnaround** column reads *Setup 30 min · Turnaround 45 min* for Main Hall, *Setup 0 min · Turnaround 0 min* for Studio, and *Not set* for Seminar Room 2-1.
-- Step 2: UAT-44 Garden Hall reads *Setup 30 min · Turnaround 45 min* and UAT-44 Harbour Room reads *Not set*.
+- Step 2: UAT-44 Garden Hall reads *Setup 15 min · Turnaround 30 min* and UAT-44 Harbour Room reads *Not set*.
 - Step 3: under the picker, Main Hall shows *Setup 30 min · Turnaround 45 min* and Seminar Room 2-1 shows *Not set*.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (8/8 checks)
