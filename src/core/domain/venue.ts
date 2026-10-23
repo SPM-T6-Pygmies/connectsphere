@@ -1,6 +1,7 @@
 import type { Brand } from "./brand";
 import { InvalidVenueError, InvalidVenueIdError, type VenueField } from "./errors";
 import { defineOpeningHours, type OpeningWindow } from "./opening-hours";
+import { defineVenueBuffers } from "./venue-buffers";
 import {
   ACCESSIBILITY_OPTIONS,
   FACILITY_OPTIONS,
@@ -47,6 +48,12 @@ export interface VenueDetails {
   readonly capacity: number | null;
   /** How many days ahead the venue can be booked. */
   readonly bookingHorizonDays: number | null;
+  /**
+   * SPM-23: minutes to set the venue up before an event and to reset it after, defined once
+   * and then locked. Null or missing is not defined, and counts as 0 in every check.
+   */
+  readonly setupMinutes?: number | null;
+  readonly turnaroundMinutes?: number | null;
   readonly layouts: readonly VenueLayout[];
 }
 
@@ -111,6 +118,8 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     );
   }
 
+  const { setupMinutes, turnaroundMinutes } = defineVenueBuffers(input);
+
   if (input.layouts.length === 0) {
     throw new InvalidVenueError("Add at least one supported room layout.", "layouts");
   }
@@ -154,6 +163,8 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     openingHours,
     capacity: input.capacity,
     bookingHorizonDays: input.bookingHorizonDays,
+    setupMinutes,
+    turnaroundMinutes,
     layouts,
   };
 }
