@@ -7,6 +7,8 @@
 --                                     15-minute codes, which add two overlap-by-time checks)
 --   FAILED: <checks that did not hold>
 --
+-- A block is recorded on 15-minute codes (SPM-321): AM is codes 28-47, PM 52-71, Night 76-95.
+--
 -- Run against a local stack that has the base seed, seed-venues and seed-booking-flags:
 --   supabase db query --file scripts/seed-booking-flags/checks.sql --local
 --
@@ -79,7 +81,7 @@ begin
   -- 1. A block over Main Hall on F PM flags the Confirmed booking there, with its day and hours.
   v_block1 := public.venue_staff_record_unavailability(
     v_staff, v_main, 'Maintenance', null,
-    jsonb_build_array(jsonb_build_object('date', f, 'slot', 'PM')));
+    (select jsonb_agg(jsonb_build_object('date', f, 'slot', n::text) order by n) from generate_series(52, 71) n));
   v_checks := v_checks + 1;
   select detail into v_text from public.booking_review_flag
     where booking_id = v_tech_hall_a and cleared_at is null;
@@ -99,7 +101,7 @@ begin
   -- A block over a Requested booking's slot flags nothing: Venue Staff cannot approve it over the block.
   perform public.venue_staff_record_unavailability(
     v_staff, v_rooftop, 'Renovation', null,
-    jsonb_build_array(jsonb_build_object('date', f, 'slot', 'PM')));
+    (select jsonb_agg(jsonb_build_object('date', f, 'slot', n::text) order by n) from generate_series(52, 71) n));
   v_checks := v_checks + 1;
   select count(*) into v_n from public.booking_review_flag where booking_id = v_second;
   if v_n <> 0 then v_failed := array_append(v_failed, 'AC1 a Requested booking is not flagged'); end if;
@@ -124,7 +126,7 @@ begin
   -- 4. Holds: a live hold is flagged, a lapsed one is marked Expired and not flagged.
   perform public.venue_staff_record_unavailability(
     v_staff, v_studio, 'Safety', null,
-    jsonb_build_array(jsonb_build_object('date', f + 2, 'slot', 'PM'), jsonb_build_object('date', f + 3, 'slot', 'PM')));
+    (select jsonb_agg(jsonb_build_object('date', f + d, 'slot', n::text) order by d, n) from generate_series(2, 3) d, generate_series(52, 71) n));
   v_checks := v_checks + 1;
   select count(*) into v_n from public.booking_review_flag where booking_id = v_live_hold;
   if v_n <> 1 then v_failed := array_append(v_failed, 'AC1 a live hold is flagged'); end if;
@@ -141,7 +143,7 @@ begin
   -- 5. Stacked blocks: one reason per block.
   v_block2 := public.venue_staff_record_unavailability(
     v_staff, v_main, 'Equipment failure', null,
-    (select jsonb_agg(jsonb_build_object('date', f + d, 'slot', 'PM')) from generate_series(0, 8) d));
+    (select jsonb_agg(jsonb_build_object('date', f + d, 'slot', n::text) order by d, n) from generate_series(0, 8) d, generate_series(52, 71) n));
   v_checks := v_checks + 1;
   select count(*) into v_n from public.booking_review_flag where booking_id = v_tech_hall_a and cleared_at is null;
   if v_n <> 2 then v_failed := array_append(v_failed, 'AC5 two blocks give Tech Summit two reasons'); end if;
@@ -193,7 +195,7 @@ begin
   -- 8. A lifted block flags nothing new, and a block over nothing flags nothing.
   v_block3 := public.venue_staff_record_unavailability(
     v_staff, v_main, 'Other', 'Nothing booked',
-    jsonb_build_array(jsonb_build_object('date', f + 12, 'slot', 'AM')));
+    (select jsonb_agg(jsonb_build_object('date', f + 12, 'slot', n::text) order by n) from generate_series(28, 47) n));
   v_checks := v_checks + 1;
   select count(*) into v_n from public.booking_review_flag where source_ref = v_block3::text;
   if v_n <> 0 then v_failed := array_append(v_failed, 'AC1 a block over no booking flags nothing'); end if;
@@ -258,6 +260,9 @@ begin
   --     with it, joined where the codes run into each other, and not when it only touches.
   --     Skipped until the slot table has those codes.
   if exists (select 1 from public.slot where slot_code = '48') then
+    -- Main Hall is closed 12:00-13:00; open it for this check so a block can start exactly as AM ends.
+    insert into public.venue_slot (venue_id, slot_code)
+    select v_main, n::text from generate_series(48, 51) n on conflict do nothing;
     v_checks := v_checks + 1;
     v_block3 := public.venue_staff_record_unavailability(
       v_staff, v_main, 'Safety', null,
@@ -282,7 +287,7 @@ begin
   begin
     perform public.venue_staff_record_unavailability(
       v_coordinator, v_main, 'Maintenance', null,
-      jsonb_build_array(jsonb_build_object('date', f, 'slot', 'PM')));
+      (select jsonb_agg(jsonb_build_object('date', f, 'slot', n::text) order by n) from generate_series(52, 71) n));
     v_failed := array_append(v_failed, 'only Venue Staff can record a block');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate;

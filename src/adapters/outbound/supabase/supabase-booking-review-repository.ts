@@ -1,5 +1,5 @@
 import {
-  clashingSlots,
+  clashingTimes,
   type BookingId,
   type DecidedBooking,
   type ResolvedHold,
@@ -160,16 +160,16 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
     return ((data ?? []) as unknown as BookingReviewRow[]).map(toBookingForReview);
   }
 
-  /** Which of the booking's slots are blocked, for a message that names them. */
+  /** Which of the booking's times are blocked, for a message that names them. */
   private async blockedBy(id: BookingId, staff: UserAccountId, refusal: string) {
     const booking = await this.find(staff, id);
     if (booking === null) {
       return [];
     }
-    return this.bookings.blockedOf(booking.venueId, booking.slots, refusal);
+    return this.bookings.blockedOf(booking.venueId, booking.times, refusal);
   }
 
-  /** Which of the booking's slots were taken, for a message that names them. */
+  /** Which of the booking's times were taken, for a message that names them. */
   private async takenBy(decided: DecidedBooking) {
     const booking = await this.find(decided.decidedBy, decided.id);
     if (booking === null) {
@@ -177,8 +177,8 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
     }
     const occupied = await this.bookings.listSlotsAt(
       venueId(booking.venueId),
-      [...new Set(booking.slots.map(({ date }) => date))],
+      [...new Set(booking.times.map(({ date }) => date))],
     );
-    return clashingSlots(booking.slots, occupied, new Date());
+    return clashingTimes(booking.times, occupied, new Date());
   }
 }

@@ -1,10 +1,13 @@
 -- Seeds venue unavailability blocks (SPM-21) so the Venue Staff page, the
 -- coordinator's venue search and the booking refusal can be tried in the app:
 --
---   Main Hall   Renovation   five days of AM, starting 14 days from today
---   Main Hall   Maintenance  all three slots on the middle day of that week,
---                            so one slot (AM) is covered by two blocks
---   Studio      Safety       one PM slot, already lifted
+--   Main Hall   Renovation   09:00-11:30 on five days, starting 14 days from today
+--   Main Hall   Maintenance  every open hour (07:00-12:00, 13:00-18:00, 19:00-24:00) on the
+--                            middle day of that week, so 09:00-11:30 that day is covered by two blocks
+--   Studio      Safety       13:00-18:00 on one day, already lifted
+--
+-- Blocks are 15-minute slots (SPM-321): 09:00-11:30 is codes 36-45; 07:00-12:00 is 28-47,
+-- 13:00-18:00 is 52-71 and 19:00-24:00 is 76-95. Needs the venues' opening hours from seed-venues.
 --
 -- Dates are relative to today so the seed never goes stale. Needs the venues
 -- from seed-venues and the Venue Staff account from the base seed. Run
@@ -44,7 +47,8 @@ begin
     values (v_main_hall, 'Renovation', v_staff)
     returning venue_unavailability_id into v_block;
     insert into public.venue_unavailability_slot (venue_unavailability_id, slot_date, slot)
-    select v_block, d::date, 'AM' from generate_series(v_start, v_start + 4, interval '1 day') d;
+    select v_block, d::date, n::text
+    from generate_series(v_start, v_start + 4, interval '1 day') d, generate_series(36, 45) n;
   end if;
 
   if not exists (select 1 from public.venue_unavailability
@@ -53,7 +57,9 @@ begin
     values (v_main_hall, 'Maintenance', v_staff)
     returning venue_unavailability_id into v_block;
     insert into public.venue_unavailability_slot (venue_unavailability_id, slot_date, slot)
-    select v_block, v_start + 2, s from unnest(array['AM', 'PM', 'Night']) s;
+    select v_block, v_start + 2, n::text
+    from generate_series(28, 95) n
+    where n between 28 and 47 or n between 52 and 71 or n between 76 and 95;
   end if;
 
   if not exists (select 1 from public.venue_unavailability
@@ -62,7 +68,7 @@ begin
     values (v_studio, 'Safety', v_staff)
     returning venue_unavailability_id into v_block;
     insert into public.venue_unavailability_slot (venue_unavailability_id, slot_date, slot)
-    values (v_block, v_start + 6, 'PM');
+    select v_block, v_start + 6, n::text from generate_series(52, 71) n;
     update public.venue_unavailability
        set lifted_at = now(), lifted_by_user_account_id = v_staff
      where venue_unavailability_id = v_block;

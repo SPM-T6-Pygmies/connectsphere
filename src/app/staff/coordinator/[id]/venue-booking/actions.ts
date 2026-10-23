@@ -40,7 +40,12 @@ export async function submitVenueBookingRequestAction(
     eventRequestId: String(formData.get("eventRequestId") ?? ""),
     venueId: String(formData.get("venueId") ?? ""),
     roomLayout: String(formData.get("roomLayout") ?? ""),
-    slots: formData.getAll("slot").map(String),
+    // One entry per row of the form, in order (SPM-324).
+    times: formData.getAll("bookingDate").map((date, index) => ({
+      date: String(date),
+      start: String(formData.getAll("bookingStart")[index] ?? ""),
+      end: String(formData.getAll("bookingEnd")[index] ?? ""),
+    })),
   });
 
   if (!parsed.success) {

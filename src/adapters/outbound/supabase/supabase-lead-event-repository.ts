@@ -3,11 +3,19 @@ import type { LeadEvent } from "@/core/domain/coordinator-workload";
 import { NotCoordinatorLeadError } from "@/core/domain/errors";
 import type { EventId } from "@/core/domain/event";
 import type { UserAccountId } from "@/core/domain/user-account";
-import type { LeadEventRepository } from "@/core/ports/outbound/lead-event-repository";
+import type {
+  LeadEventDetails,
+  LeadEventRepository,
+} from "@/core/ports/outbound/lead-event-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toCoordinatorEvent, toKey, type CoordinatorEventRecordRow } from "./coordinator-event-mapper";
-import { toLeadEvent, toLeadEventError, type LeadEventRow } from "./lead-event-mapper";
+import {
+  EVENT_SLOTS_SELECT,
+  toCoordinatorEvent,
+  toKey,
+  type CoordinatorEventRecordRow,
+} from "./coordinator-event-mapper";
+import { toLeadEventDetails, toLeadEventError, type LeadEventRow } from "./lead-event-mapper";
 
 /**
  * SPM-256 and SPM-257, through the `lead_*` functions, not the table -- the
@@ -34,17 +42,20 @@ export class SupabaseLeadEventRepository implements LeadEventRepository {
     return ((data ?? []) as unknown as CoordinatorEventRecordRow[]).map(toCoordinatorEvent);
   }
 
-  async findById(reader: UserAccountId, id: EventId): Promise<LeadEvent | null> {
+  async findById(reader: UserAccountId, id: EventId): Promise<LeadEventDetails | null> {
     const readerKey = leadKey(reader);
     const key = toKey(id);
     if (key === null) {
       return null;
     }
 
-    const { data, error } = await this.client.rpc("lead_event", {
-      p_event_id: key,
-      p_user_account_id: readerKey,
-    });
+    const { data, error } = await this.client
+      .rpc("lead_event", {
+        p_event_id: key,
+        p_user_account_id: readerKey,
+      })
+      .select(EVENT_SLOTS_SELECT)
+      .single();
 
     if (error) {
       throw (
@@ -55,7 +66,7 @@ export class SupabaseLeadEventRepository implements LeadEventRepository {
 
     const row = data as unknown as LeadEventRow | null;
     // Single-row (not `setof`) function: a miss comes back as one row of nulls.
-    return row && row.event_id !== null ? toLeadEvent(row) : null;
+    return row && row.event_id !== null ? toLeadEventDetails(row) : null;
   }
 
   async reassignCoordinator(event: LeadEvent, reassignedBy: UserAccountId): Promise<void> {

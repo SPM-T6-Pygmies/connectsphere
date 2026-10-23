@@ -95,6 +95,7 @@ export default async function CoordinatorEventPage({
     blockingEquipment,
     safetyCheckBlocker,
     canComplete,
+    endsAt,
     flaggedBookings,
     canCancel,
   } = result;
@@ -208,6 +209,7 @@ export default async function CoordinatorEventPage({
                 <CompleteForm
                   eventId={event.id}
                   canComplete={canComplete}
+                  endsAt={endsAt}
                   operationalNotes={details.operationalNotes}
                 />
               ) : null}

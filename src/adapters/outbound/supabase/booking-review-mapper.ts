@@ -2,8 +2,9 @@ import type { BookingId, DecidedBooking, ResolvedHold } from "@/core/domain/book
 import { venueId } from "@/core/domain/venue";
 import type { BookingForReview } from "@/core/ports/outbound/booking-review-repository";
 
-import { toDate, toSlot, toStatus } from "./booking-mapper";
+import { toBookingTimes, toDate, toStatus } from "./booking-mapper";
 import { toKey } from "./coordinator-event-mapper";
+import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
 
 /** One booking in the JSON `venue_staff_bookings()` returns. */
 export interface BookingReviewRow {
@@ -12,7 +13,7 @@ export interface BookingReviewRow {
   venue_id: number;
   venue_location: string;
   room_layout_name: string | null;
-  slots: ReadonlyArray<{ date: string; slot: string }>;
+  slots: readonly EventSlotTimeRow[];
   requested_by_name: string;
   requested_at: string;
   decided_by_name: string | null;
@@ -28,7 +29,7 @@ export interface BookingReviewRow {
     organisation_name: string | null;
     category: string | null;
     preferred_date: string | null;
-    slots: ReadonlyArray<{ date: string; slot: string }>;
+    slots: readonly EventSlotTimeRow[];
     expected_attendance: number | null;
     room_layout_preference: string | null;
     accessibility_requirements: string | null;
@@ -45,7 +46,7 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
     venueId: venueId(String(row.venue_id)),
     venueLocation: row.venue_location,
     roomLayoutName: row.room_layout_name,
-    slots: row.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
+    times: toBookingTimes(row.slots),
     requestedByName: row.requested_by_name,
     requestedAt: row.requested_at,
     decidedByName: row.decided_by_name,
@@ -64,7 +65,7 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
       organisationName: row.event.organisation_name,
       category: row.event.category,
       preferredDate: row.event.preferred_date === null ? null : toDate(row.event.preferred_date),
-      slots: row.event.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
+      times: toEventTimes(row.event.slots),
       expectedAttendance: row.event.expected_attendance,
       roomLayoutPreference: row.event.room_layout_preference,
       accessibilityRequirements: row.event.accessibility_requirements,

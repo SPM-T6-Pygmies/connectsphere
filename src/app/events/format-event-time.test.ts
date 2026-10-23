@@ -1,27 +1,53 @@
 import { describe, expect, it } from "vitest";
 
-import { slotTimes } from "./format-event-time";
+import { eventTimes } from "./format-event-time";
 
-describe("slotTimes", () => {
-  it("names each slot with its hours on a one-day event", () => {
-    expect(slotTimes([{ date: "2026-11-04", slot: "AM" }])).toBe("AM (7:00 am – 12:00 pm)");
+describe("eventTimes (SPM-326)", () => {
+  it("AC2: gives a one-day event's start and end time, with no slot label", () => {
+    expect(eventTimes([{ date: "2026-11-04", start: "07:00", end: "12:00" }])).toBe(
+      "7:00 am – 12:00 pm",
+    );
   });
 
-  it("lists slots apart rather than as one range, so a gap is not claimed", () => {
+  it("lists ranges apart rather than as one, so a gap is not claimed", () => {
     expect(
-      slotTimes([
-        { date: "2026-11-04", slot: "AM" },
-        { date: "2026-11-04", slot: "Night" },
+      eventTimes([
+        { date: "2026-11-04", start: "07:00", end: "12:00" },
+        { date: "2026-11-04", start: "19:00", end: "24:00" },
       ]),
-    ).toBe("AM (7:00 am – 12:00 pm), Night (7:00 pm – 12:00 am)");
+    ).toBe("7:00 am – 12:00 pm, 7:00 pm – 12:00 am");
   });
 
-  it("names the day before each slot when the event runs over more than one day", () => {
+  it("names the day before each range when the event runs over more than one day", () => {
     expect(
-      slotTimes([
-        { date: "2026-11-04", slot: "PM" },
-        { date: "2026-11-05", slot: "AM" },
+      eventTimes([
+        { date: "2026-11-04", start: "13:00", end: "18:00" },
+        { date: "2026-11-05", start: "07:15", end: "09:45" },
       ]),
-    ).toBe("4 Nov PM (1:00 pm – 6:00 pm), 5 Nov AM (7:00 am – 12:00 pm)");
+    ).toBe("4 Nov 1:00 pm – 6:00 pm, 5 Nov 7:15 am – 9:45 am");
+  });
+
+  it("AC1: names the day before every range when asked, for staff screens", () => {
+    expect(eventTimes([{ date: "2026-11-04", start: "07:00", end: "12:00" }], "Asia/Singapore", true)).toBe(
+      "4 Nov 7:00 am – 12:00 pm",
+    );
+  });
+
+  it("shows the times in the viewer's timezone, and names it, outside Singapore", () => {
+    expect(eventTimes([{ date: "2026-11-04", start: "19:00", end: "21:30" }], "Europe/London")).toBe(
+      "11:00 am – 1:30 pm (GMT)",
+    );
+  });
+
+  it("names the day when the viewer's timezone moves a range onto another day", () => {
+    expect(
+      eventTimes(
+        [
+          { date: "2026-11-04", start: "07:00", end: "08:00" },
+          { date: "2026-11-04", start: "19:00", end: "20:00" },
+        ],
+        "America/New_York",
+      ),
+    ).toBe("3 Nov 6:00 pm – 7:00 pm, 4 Nov 6:00 am – 7:00 am (GMT-5)");
   });
 });

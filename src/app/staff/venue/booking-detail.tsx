@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { EventTimes } from "@/app/events/event-times";
 import { buildReviewBookingRequests, getCurrentVenueStaff } from "@/composition/container";
 import { DEFAULT_HOLD_HOURS } from "@/core/domain/booking";
 import { BookingNotFoundError } from "@/core/domain/errors";
@@ -19,7 +20,7 @@ import type { BookingReviewDetail } from "@/core/use-cases/review-booking-reques
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { formatHoldExpiry } from "../hold-expiry";
-import { formatSlotsOnDates } from "../slot-label";
+import { formatTimes } from "../slot-label";
 import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 import { DecisionForm } from "./[id]/decision-form";
@@ -100,8 +101,7 @@ export async function BookingDetail({
   const { event } = booking;
   const decided = booking.status !== "Requested";
   const { section, queueLabel, queueHref } = sectionOf(booking.status);
-  const eventSlots = formatSlotsOnDates(event.slots);
-  const slots = booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ");
+  const times = formatTimes(booking.times);
   const onHold = booking.status === "Tentative Hold" && booking.holdExpiresAt !== null;
   // SPM-253: a hold that ran out and was marked Expired. Its expiry stays on record.
   const expired = booking.status === "Expired" && booking.holdExpiresAt !== null;
@@ -116,7 +116,7 @@ export async function BookingDetail({
     >
       <PageHeader
         title={booking.venueLocation}
-        description={`${slots} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}${
+        description={`${times} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}${
           onHold ? ` · on hold until ${formatHoldExpiry(booking.holdExpiresAt!)}` : ""
         }`}
         actions={<StatusBadge status={booking.status} />}
@@ -180,8 +180,8 @@ export async function BookingDetail({
             <CardHeader>
               <CardTitle>Decision</CardTitle>
               <CardDescription>
-                Approving confirms this booking and holds the venue for the slots above. Holding
-                keeps the slots for up to {DEFAULT_HOLD_HOURS} hours, or until the first of them
+                Approving confirms this booking and holds the venue for the times above. Holding
+                keeps them for up to {DEFAULT_HOLD_HOURS} hours, or until the first of them
                 starts if that comes sooner, while the coordinator finalises the event, then frees
                 them. Nothing else can take them in the meantime.
               </CardDescription>
@@ -261,7 +261,7 @@ export async function BookingDetail({
                 fields={[
                   { label: "Category", value: event.category },
                   { label: "Date", value: event.preferredDate },
-                  { label: "Event slots", value: eventSlots },
+                  { label: "Event times", value: <EventTimes times={event.times} nameEveryDay /> },
                   { label: "Expected attendance", value: event.expectedAttendance },
                   { label: "Room layout", value: event.roomLayoutPreference },
                   { label: "Accessibility needs", value: event.accessibilityRequirements },

@@ -80,7 +80,12 @@ begin
         case when r.status = 'Tentative Hold' then now() + interval '72 hours' end
       )
       returning booking_id into v_id;
-      insert into public.booking_slot (booking_id, slot_date, slot) values (v_id, r.slot_date, r.slot);
+      -- The slot's hours as 15-minute slots (SPM-324).
+      insert into public.booking_slot (booking_id, slot_date, slot)
+      select v_id, r.slot_date, g.slot_code
+      from public.slot s
+      join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
+      where s.slot_code = r.slot;
     end if;
   end loop;
 end $$;

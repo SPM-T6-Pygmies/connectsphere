@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EventTimes } from "@/app/events/event-times";
 import { buildViewVenueBookingOptions, getCurrentCoordinator } from "@/composition/container";
 import { bookingCancellable } from "@/core/domain/booking";
 import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
@@ -31,7 +32,7 @@ import type {
 
 import { EmptyState, FieldList } from "../../../field-list";
 import { formatHoldExpiry } from "../../../hold-expiry";
-import { formatSlotsOnDates } from "../../../slot-label";
+import { formatTimes } from "../../../slot-label";
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { StatusBadge } from "../../../status-badge";
 import { BookingRequestForm } from "./booking-request-form";
@@ -77,7 +78,7 @@ function BookingsTable({
       <TableHeader>
         <TableRow>
           <TableHead>Venue</TableHead>
-          <TableHead>Slots</TableHead>
+          <TableHead>Times</TableHead>
           <TableHead>Layout</TableHead>
           <TableHead>Suitability</TableHead>
           <TableHead>Status</TableHead>
@@ -105,7 +106,7 @@ function BookingsTable({
                 ) : null}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs whitespace-normal">
-                {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
+                {formatTimes(booking.times)}
               </TableCell>
               <TableCell className="text-muted-foreground whitespace-normal">
                 <div className="space-y-2">
@@ -257,8 +258,8 @@ export default async function VenueBookingPage({
             <CardHeader>
               <CardTitle>New booking request</CardTitle>
               <CardDescription>
-                Venues are booked in AM, PM and Night slots. A slot another
-                event already holds cannot be requested.
+                Venues are booked by start and end time, on the quarter hour.
+                Time another event already holds cannot be requested.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -307,7 +308,7 @@ export default async function VenueBookingPage({
                 columns={1}
                 fields={[
                   { label: "Preferred date", value: event.preferredDate },
-                  { label: "Slots", value: formatSlotsOnDates(event.slots) },
+                  { label: "Times", value: <EventTimes times={event.times} nameEveryDay /> },
                   { label: "Expected attendance", value: event.expectedAttendance },
                   { label: "Layout preference", value: event.roomLayoutPreference },
                   { label: "Venue requirements", value: event.venueRequirements },

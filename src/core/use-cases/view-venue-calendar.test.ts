@@ -37,7 +37,7 @@ function booking(overrides: Partial<StoredBooking>): StoredBooking {
     venueLocation: "Harbour Hall",
     roomLayoutName: null,
     status: "Confirmed",
-    slots: [],
+    times: [],
     requestedAt: NOW.toISOString(),
     requestedBy: "2",
     ...overrides,
@@ -83,12 +83,12 @@ describe("ViewVenueCalendarUseCase (SPM-154)", () => {
 
   it("shows the venue's bookings and blocks together", async () => {
     const { useCase, blocks } = build([
-      booking({ slots: [{ date: "2026-11-03", slot: "AM" }] }),
+      booking({ times: [{ date: "2026-11-03", start: "07:00", end: "12:00" }] }),
       booking({
         id: "2",
         status: "Tentative Hold",
         holdExpiresAt: new Date("2026-11-05T12:00:00+08:00"),
-        slots: [{ date: "2026-11-03", slot: "PM" }],
+        times: [{ date: "2026-11-03", start: "13:00", end: "18:00" }],
       }),
     ]);
     await blocks.record(
@@ -113,7 +113,7 @@ describe("ViewVenueCalendarUseCase (SPM-154)", () => {
   });
 
   it("ignores another venue's bookings", async () => {
-    const { useCase } = build([booking({ venueId: "6", slots: [{ date: "2026-11-03", slot: "AM" }] })]);
+    const { useCase } = build([booking({ venueId: "6", times: [{ date: "2026-11-03", start: "07:00", end: "12:00" }] })]);
 
     const calendar = await useCase.execute({ venueId: "5", from: "2026-11-02" });
 

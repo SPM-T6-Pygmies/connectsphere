@@ -1,5 +1,7 @@
-import { holdsSlot, SLOT_HOURS, type BookingSlot, type BookingStatus } from "./booking";
+import { holdsSlot, type BookingStatus } from "./booking";
 import { NoFlagToClearError } from "./errors";
+import { joinSlotCodes, slotCodeRange, type SlotCodeOnDate } from "./slot-grid";
+import { fromMinutes } from "./time-of-day";
 import type { VenueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
@@ -9,44 +11,9 @@ export const VENUE_UNAVAILABLE_FLAG = "venue-unavailable";
 /** `booking_review_flag_reason_chk`: SPM-105 and SPM-309 add the other two. */
 export type FlagReasonCode = typeof VENUE_UNAVAILABLE_FLAG | "venue-attributes" | "event-change";
 
-/**
- * A slot code on a date. The code is any the `slot` table holds: AM, PM and Night while
- * bookings and blocks are still on them, or the 15-minute codes '0' to '95' they are
- * moving to (SPM-276, SPM-331). Nothing here assumes which, so the flag survives the move.
- */
-export interface SlotCodeOnDate {
-  readonly date: string;
-  readonly slot: string;
-}
-
 export interface TimeWindow {
   readonly startsAt: Date;
   readonly endsAt: Date;
-}
-
-const DAY_MINUTES = 24 * 60;
-const FIFTEEN = 15;
-
-/** The `slot` table's hours for one code, in minutes from midnight; 24:00 is 1440. */
-function slotMinutes(code: string): { start: number; end: number } {
-  if (code in SLOT_HOURS) {
-    const { start, end } = SLOT_HOURS[code as BookingSlot];
-    return { start: toMinutes(start), end: toMinutes(end) };
-  }
-  const n = Number(code);
-  if (Number.isInteger(n) && String(n) === code && n >= 0 && n <= 95) {
-    return { start: n * FIFTEEN, end: (n + 1) * FIFTEEN };
-  }
-  throw new Error(`Unknown slot code "${code}"`);
-}
-
-function toMinutes(hhmm: string): number {
-  const [hours, minutes] = hhmm.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
-function hhmm(minutes: number): string {
-  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 }
 
 /**
@@ -55,7 +22,7 @@ function hhmm(minutes: number): string {
  * padding of SPM-23 widens it in one place. Until then it is the slot's own hours.
  */
 export function bookingWindow({ date, slot }: SlotCodeOnDate): TimeWindow {
-  const { start, end } = slotMinutes(slot);
+  const { start, end } = slotCodeRange(slot);
   const midnight = Date.parse(`${date}T00:00:00+08:00`);
   return { startsAt: new Date(midnight + start * 60_000), endsAt: new Date(midnight + end * 60_000) };
 }
@@ -71,24 +38,15 @@ export function windowsOverlap(a: TimeWindow, b: TimeWindow): boolean {
  * PM slot. `merge_time_spans` in the database writes the same text.
  */
 export function timeSpans(slots: readonly SlotCodeOnDate[]): string {
-  const byDate = new Map<string, Array<{ start: number; end: number }>>();
+  const byDate = new Map<string, string[]>();
   for (const { date, slot } of slots) {
-    byDate.set(date, [...(byDate.get(date) ?? []), slotMinutes(slot)]);
+    byDate.set(date, [...(byDate.get(date) ?? []), slot]);
   }
   return [...byDate.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .flatMap(([date, spans]) => {
-      const merged: Array<{ start: number; end: number }> = [];
-      for (const span of [...spans].sort((a, b) => a.start - b.start)) {
-        const last = merged[merged.length - 1];
-        if (last !== undefined && span.start <= last.end) {
-          last.end = Math.max(last.end, span.end);
-        } else {
-          merged.push({ ...span });
-        }
-      }
-      return merged.map(({ start, end }) => `${date} ${hhmm(start)} to ${hhmm(Math.min(end, DAY_MINUTES))}`);
-    })
+    .flatMap(([date, codes]) =>
+      joinSlotCodes(codes).map(({ start, end }) => `${date} ${fromMinutes(start)} to ${fromMinutes(end)}`),
+    )
     .join(", ");
 }
 

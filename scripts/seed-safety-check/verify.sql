@@ -42,7 +42,7 @@ expected_bookings (event, location, expected) as (
 expected_lines (event, type, expected) as (
   values ('Marina Bay Gala',   'Wireless microphone', '4/4 Reserved'),
          ('Marina Bay Gala',   'Crowd barrier',       '10/10 Reserved'),
-         ('Charity Book Fair', 'Projector',           '2/0 Requested')
+         ('Charity Book Fair', 'Projector',           '2/0 Requested essential')
 ),
 checks as (
   select 'event ' || x.name as check_name, x.expected,
@@ -72,6 +72,7 @@ checks as (
   select 'line ' || x.event || ' / ' || x.type, x.expected,
          coalesce((
            select l.quantity_requested || '/' || l.quantity_reserved || ' ' || l.line_state
+                  || case when l.essential then ' essential' else '' end
            from public.equipment_reservation_line l
            join public.equipment_reservation r on r.equipment_reservation_id = l.equipment_reservation_id
            join public.event e on e.event_id = r.event_id
