@@ -11,13 +11,18 @@ This story stores the two values and defines the one padded-window rule. The cla
 the rule belong to SPM-272 (on submit), SPM-250 (search) and SPM-19 (approval), so no screen
 shows the padding yet; the rule itself (AC6 to AC9) is covered by unit tests. The cases below are
 registered in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as `TC-VBUFFER-001` to
-`TC-VBUFFER-005`. Report what you ran in the PR description's `## Manual test results` table; CI
+`TC-VBUFFER-006`. Report what you ran in the PR description's `## Manual test results` table; CI
 records it in `manual-runs.csv` when the PR merges.
 
-**Last run:** all five cases passed on 2026-10-23. A browser script drove TC-VBUFFER-001 to 004 and
-checked each result, and `checks.sql` ran TC-VBUFFER-005. The screenshots are in
+**Last run:** all six cases passed on 2026-10-23. A browser script drove TC-VBUFFER-001 to 004 and 006
+and checked each result, and `checks.sql` ran TC-VBUFFER-005. The screenshots are in
 [`../screenshots/`](../screenshots/). Run the cases in order, or re-seed between them: 002 to 004
 build on what the earlier ones left.
+
+> **Re-seed once.** An earlier version of `seed-venues` gave the four venues setup and turnaround of
+> 60, 30, 90 and 120 minutes. Those values are locked once defined, so a database seeded before
+> this change keeps them. Run `supabase db reset` and the seeds below to get the values in the
+> table.
 
 ---
 
@@ -32,6 +37,7 @@ build on what the earlier ones left.
   supabase db query --file scripts/seed-venues/seed.sql --local
   supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
   ```
+  TC-VBUFFER-006 also needs `scripts/seed-booking-holds/seed.sql` (it gives the Coordinator an event to request a venue for).
 - `pnpm dev:local`, signed in as `venue@test.com` (password `TestPass123!`).
 
 ### The seeded venues
@@ -139,6 +145,28 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
 
 **Screenshots:** [step1-studio-zero-locked](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-004_step1-studio-zero-locked.png)
+
+---
+
+### TC-VBUFFER-006: Setup and turnaround show on the venue list and to Coordinators (AC10)
+
+**Scenario:** Venue Staff and a Coordinator can see each venue's setup and turnaround without opening the venue form, so the Coordinator knows how much time around an event a venue needs.
+
+**Preconditions:** UAT-44 Garden Hall has 30 and 45 defined (TC-VBUFFER-002). The *Holds Test Event* is assigned to `coordinator@test.com`.
+
+**Steps:**
+1. Signed in as `venue@test.com`, open **Venues**.
+2. Signed in as `coordinator@test.com`, open **Find a venue**, search date `2026-12-14`, start `09:00`, end `11:00`.
+3. Open *Holds Test Event*, the **Venue** tab, and in **New booking request** choose **Main Hall**, then **Seminar Room 2-1**.
+
+**Expected Result:**
+- Step 1: the **Setup and turnaround** column reads *Setup 30 min · Turnaround 45 min* for Main Hall, *Setup 0 min · Turnaround 0 min* for Studio, and *Not set* for Seminar Room 2-1.
+- Step 2: UAT-44 Garden Hall reads *Setup 30 min · Turnaround 45 min* and UAT-44 Harbour Room reads *Not set*.
+- Step 3: under the picker, Main Hall shows *Setup 30 min · Turnaround 45 min* and Seminar Room 2-1 shows *Not set*.
+
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (8/8 checks)
+
+**Screenshots:** [step1-venue-list](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step1-venue-list.png) · [step2-find-a-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step2-find-a-venue.png) · [step3-request-a-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step3-request-a-venue.png)
 
 ---
 

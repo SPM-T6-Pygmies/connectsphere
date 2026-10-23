@@ -6,6 +6,7 @@ import {
   buffersOf,
   checkBuffersChange,
   defineVenueBuffers,
+  describeBuffers,
   MAX_BUFFER_MINUTES,
 } from "./venue-buffers";
 
@@ -154,5 +155,20 @@ describe("buffersOf (SPM-23)", () => {
   it("reads a venue's two values, a missing one as undefined", () => {
     expect(buffersOf({ setupMinutes: 30, turnaroundMinutes: 45 })).toEqual({ setupMinutes: 30, turnaroundMinutes: 45 });
     expect(buffersOf({})).toEqual({ setupMinutes: null, turnaroundMinutes: null });
+  });
+});
+
+describe("describeBuffers (SPM-23 AC10)", () => {
+  it("AC10: reads a defined pair as setup and turnaround in minutes", () => {
+    expect(describeBuffers({ setupMinutes: 30, turnaroundMinutes: 45 })).toBe("Setup 30 min · Turnaround 45 min");
+  });
+
+  it("AC10: reads a defined 0 and 0 as values, not as unset", () => {
+    expect(describeBuffers({ setupMinutes: 0, turnaroundMinutes: 0 })).toBe("Setup 0 min · Turnaround 0 min");
+  });
+
+  it("AC10: reads a venue with none defined, or no fields at all, as Not set", () => {
+    expect(describeBuffers({ setupMinutes: null, turnaroundMinutes: null })).toBe("Not set");
+    expect(describeBuffers({})).toBe("Not set");
   });
 });

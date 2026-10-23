@@ -70,6 +70,13 @@ export function buffersOf(venue: Partial<VenueBuffers>): VenueBuffers {
   return { setupMinutes: venue.setupMinutes ?? null, turnaroundMinutes: venue.turnaroundMinutes ?? null };
 }
 
+/** SPM-23 AC10: how the venue list and the Coordinator's screens show a venue's two values. */
+export function describeBuffers(venue: Partial<VenueBuffers>): string {
+  const { setupMinutes, turnaroundMinutes } = buffersOf(venue);
+  if (setupMinutes === null || turnaroundMinutes === null) return "Not set";
+  return `Setup ${setupMinutes} min · Turnaround ${turnaroundMinutes} min`;
+}
+
 /** What every check uses: an undefined value counts as 0 minutes (SPM-23 AC4). */
 export function bufferMinutes(venue: Partial<VenueBuffers>): { setup: number; turnaround: number } {
   return { setup: venue.setupMinutes ?? 0, turnaround: venue.turnaroundMinutes ?? 0 };

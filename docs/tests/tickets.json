@@ -1036,6 +1036,11 @@
       "title": "Seeds, manual cases, registry and the cases that padding will change",
       "parent": "SPM-23",
       "status": "In Progress"
+    },
+    "SPM-468": {
+      "title": "Show setup and turnaround on the venue list and to Coordinators",
+      "parent": "SPM-23",
+      "status": "In Progress"
     }
   }
 }
