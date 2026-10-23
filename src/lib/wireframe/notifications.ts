@@ -14,6 +14,7 @@ export type NotificationTrigger =
   | "Safety check outcome"
   | "Booking requested"
   | "Booking decided"
+  | "Booking cancelled"
   | "Equipment recorded"
   | "Equipment decided"
   | "Event confirmed"

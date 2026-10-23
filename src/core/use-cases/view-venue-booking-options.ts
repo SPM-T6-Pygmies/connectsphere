@@ -19,8 +19,7 @@ export type { CoordinatorEventDetails } from "../ports/outbound/coordinator-even
 export type { Venue } from "../domain/venue";
 
 export interface ViewVenueBookingOptionsCommand {
-  /** The approved request the coordinator opened the event from. */
-  readonly eventRequestId: string;
+  readonly eventId: string;
   readonly userAccountId: string;
 }
 
@@ -56,8 +55,8 @@ export interface ViewVenueBookingOptionsDeps {
  * timing and venue requirements, the venues to choose from, and the bookings
  * already raised for this event.
  *
- * Reached by the approved request's id, because that is how a coordinator
- * reaches an event today (events have no page of their own). A thin read
+ * Reached by the event's id (SPM-459: the event page's Venue tab), so an
+ * event with no source request can be booked too. A thin read
  * (ARCHITECTURE.md section 11): nothing here can say no except "not yours",
  * which the store's coordinator scoping answers as null (#91).
  *
@@ -72,10 +71,7 @@ export class ViewVenueBookingOptionsUseCase {
     command: ViewVenueBookingOptionsCommand,
   ): Promise<ViewVenueBookingOptionsResult | null> {
     const coordinatorId = userAccountId(command.userAccountId);
-    const event = await this.deps.events.findAssignedByRequest(
-      coordinatorId,
-      command.eventRequestId,
-    );
+    const event = await this.deps.events.findAssigned(coordinatorId, command.eventId);
     if (event === null) {
       return null;
     }

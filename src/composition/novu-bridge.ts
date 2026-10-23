@@ -11,6 +11,7 @@ import { organiserMessagePosted } from "@/adapters/outbound/novu/workflows/organ
 import { registrationConfirmed } from "@/adapters/outbound/novu/workflows/registration-confirmed";
 import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { safetyCheckRecorded } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
+import { venueBookingCancelled } from "@/adapters/outbound/novu/workflows/venue-booking-cancelled";
 import { venueBookingDecided } from "@/adapters/outbound/novu/workflows/venue-booking-decided";
 import { venueBookingRequested } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 
@@ -43,6 +44,7 @@ function handlers(): Bridge {
       equipmentDecided,
       venueBookingDecided,
       holdExpired,
+      venueBookingCancelled,
       registrationConfirmed,
     ],
   });
