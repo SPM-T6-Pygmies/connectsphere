@@ -249,7 +249,14 @@ create table venue (
   turnaround_time_minutes integer check (turnaround_time_minutes is null or turnaround_time_minutes >= 0),
   booking_horizon_days   integer check (booking_horizon_days is null or booking_horizon_days >= 0),
   created_at             timestamptz not null default now(),
-  updated_at             timestamptz not null default now()
+  updated_at             timestamptz not null default now(),
+    -- SPM-23: both or neither, 15-minute steps, at most a day; defined once, then locked by a trigger
+  constraint venue_buffers_chk check (
+    (setup_time_minutes is null and turnaround_time_minutes is null)
+    or (setup_time_minutes is not null and turnaround_time_minutes is not null
+        and setup_time_minutes % 15 = 0 and turnaround_time_minutes % 15 = 0
+        and setup_time_minutes <= 1440 and turnaround_time_minutes <= 1440)
+  )
 );
 
 create table room_layout (
