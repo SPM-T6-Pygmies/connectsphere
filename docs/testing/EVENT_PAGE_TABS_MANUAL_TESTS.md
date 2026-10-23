@@ -10,7 +10,9 @@ kept in `?tab=` so a link can open it directly.
 The planning details the Venue tab shows are unit-tested
 (`ViewCoordinatorEventUseCase planning details (SPM-285)`). These cases cover
 what the unit tests cannot: switching tabs in the browser, deep links, and the
-link through to the venue booking page.
+venue booking workspace in the Venue tab (SPM-459, which replaced the link
+through to a separate venue booking page; its own cases are in
+[`EVENT_VENUE_TAB_MANUAL_TESTS.md`](EVENT_VENUE_TAB_MANUAL_TESTS.md)).
 
 These cases are registered as `TC-EVTABS-001`–`TC-EVTABS-002` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
@@ -59,8 +61,9 @@ least one event under **My events**.
 **Expected Result:**
 - The page opens on **Event**: description, preferred date, expected attendance
   and Essential arrangements
-- **Venue** shows venue requirements, facilities needed, room layout and
-  accessibility, and a **Manage venue booking** link
+- **Venue** shows the event's venue needs and the **Facilities needed** form,
+  the **New booking request** form, and **Booking requests for this event**
+  (SPM-459)
 - **Equipment** shows the equipment requirements and the Add equipment form
 - **Safety** shows the safety check card
 - **Registration** reads "Registration management isn't available yet."
@@ -68,23 +71,23 @@ least one event under **My events**.
 - The **Confirmation** card stays beside every tab
 - At phone width (375px) the tabs fit with no sideways scrolling
 
-**Status:** [x] Pass [ ] Fail
+**Status:** [ ] Pass [ ] Fail (passed 2026-10-10 before SPM-459 changed the Venue tab)
 
 ---
 
-### TC-EVTABS-002: A link opens its tab, and the venue link reaches the booking page
+### TC-EVTABS-002: A link opens its tab, and the Venue tab holds the booking workspace
 
 **Preconditions:** As TC-EVTABS-001.
 
 **Steps:**
 1. Open `/staff/coordinator/events/<id>?tab=safety`.
 2. Open `/staff/coordinator/events/<id>?tab=nonsense`.
-3. Click **Venue**, then **Manage venue booking**.
+3. Click **Venue**.
 
 **Expected Result:**
 - Step 1 opens with **Safety** selected
 - Step 2 opens on **Event**
-- Step 3 lands on `/staff/coordinator/<request id>/venue-booking` ("Request a
-  venue") for this event's request
+- Step 3 shows the venue booking workspace in the tab, with no **Manage venue
+  booking** link and no separate page (SPM-459)
 
-**Status:** [x] Pass [ ] Fail
+**Status:** [ ] Pass [ ] Fail (passed 2026-10-10 before SPM-459 changed step 3)

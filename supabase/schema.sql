@@ -315,7 +315,10 @@ create table booking_slot (
     -- booking.status, filled on insert and kept in step on update by triggers
     -- on booking_slot and booking, so the index below can see them.
   unique (booking_id, slot_date, slot),
-  constraint booking_slot_value_chk check (slot in ('AM', 'PM', 'Night'))
+  -- 15-minute codes only (SPM-324, 2026-10-22): a booking is one row per date
+  -- per 15-minute slot between its start and end; AM, PM and Night rows became
+  -- the codes they cover.
+  constraint booking_slot_value_chk check (slot ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
 
 -- Double-booking is a HARD block, not an overridable warning (#35): one venue
@@ -367,14 +370,18 @@ create table event_slot (
   event_id  bigint not null references event (event_id) on delete cascade,
   slot_date date   not null,
   slot_code text   not null references slot (slot_code) on delete restrict,
-  primary key (event_id, slot_date, slot_code)
+  primary key (event_id, slot_date, slot_code),
+  constraint event_slot_fifteen_minute_chk check (slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
+-- 15-minute codes only (SPM-326, 2026-10-20): AM, PM and Night rows became the
+-- codes they cover. Screens join touching slots back into start and end times.
 
 create table session_slot (
   session_id bigint not null references session (session_id) on delete cascade,
   slot_date  date   not null,
   slot_code  text   not null references slot (slot_code) on delete restrict,
-  primary key (session_id, slot_date, slot_code)
+  primary key (session_id, slot_date, slot_code),
+  constraint session_slot_fifteen_minute_chk check (slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
 
 -- ---------------------------------------------------------------------------

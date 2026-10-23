@@ -1,7 +1,7 @@
 import type { VenueBookingDecidedNotice } from "@/core/ports/outbound/notifier";
 
 import type { NotificationMessage } from "./coordinator-assigned";
-import { slotDays } from "./venue-booking-requested";
+import { timeDays } from "./venue-booking-requested";
 
 /**
  * The words a coordinator reads when Venue Staff decide one of their booking
@@ -14,18 +14,18 @@ export function venueBookingDecidedMessage(notice: VenueBookingDecidedNotice): N
   if (notice.outcome === "Confirmed") {
     return {
       subject: `${notice.venueLocation} approved for ${notice.eventName}`,
-      body: `Venue Staff confirmed ${notice.venueLocation} for ${slotDays(notice.slots)}. The venue is secured.`,
+      body: `Venue Staff confirmed ${notice.venueLocation} for ${timeDays(notice.times)}. The venue is secured.`,
     };
   }
 
   if (notice.outcome === "Released") {
     return {
       subject: `${notice.venueLocation} hold released for ${notice.eventName}`,
-      body: `Venue Staff released the hold on ${notice.venueLocation} for ${slotDays(notice.slots)}. The slots are free for other events; send a new request if you still need them.`,
+      body: `Venue Staff released the hold on ${notice.venueLocation} for ${timeDays(notice.times)}. The times are free for other events; send a new request if you still need them.`,
     };
   }
 
-  const rejected = `Venue Staff rejected ${notice.venueLocation} for ${slotDays(notice.slots)}. Reason: ${notice.reason ?? "none given"}`;
+  const rejected = `Venue Staff rejected ${notice.venueLocation} for ${timeDays(notice.times)}. Reason: ${notice.reason ?? "none given"}`;
   return {
     subject: `${notice.venueLocation} rejected for ${notice.eventName}`,
     body:

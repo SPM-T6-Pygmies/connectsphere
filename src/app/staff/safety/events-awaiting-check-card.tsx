@@ -21,7 +21,7 @@ export function EventsAwaitingCheckCard({ events }: { events: readonly EventAwai
       <CardHeader>
         <CardTitle>Awaiting check</CardTitle>
         <CardDescription>
-          Events whose venue bookings are all confirmed and whose equipment is fully reserved.
+          Events whose venue bookings are all confirmed and whose essential equipment is fully reserved.
         </CardDescription>
       </CardHeader>
       <CardContent>

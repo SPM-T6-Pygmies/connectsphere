@@ -1,5 +1,6 @@
-import type { BookingSlot, SlotOnDate } from "../../domain/booking";
+import type { BookingSlot } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
 /**
@@ -117,8 +118,8 @@ export interface VenueBookingRequestedNotice {
   readonly bookingId: string;
   readonly eventName: string;
   readonly venueLocation: string;
-  /** Sorted by date, then by slot within the day, as the request stores them. */
-  readonly slots: readonly SlotOnDate[];
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
 }
 
 /**
@@ -189,8 +190,8 @@ export interface VenueBookingDecidedNotice {
   readonly eventRequestId: string | null;
   readonly eventName: string;
   readonly venueLocation: string;
-  /** Sorted by date, then by slot within the day, as the booking stores them. */
-  readonly slots: readonly SlotOnDate[];
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
   /** Released: Venue Staff gave up a hold on the event's behalf (SPM-219). */
   readonly outcome: "Confirmed" | "Rejected" | "Released";
   /** Null unless rejected. */
@@ -201,7 +202,7 @@ export interface VenueBookingDecidedNotice {
 /**
  * What an event's assigned Event Coordinator is told when a tentative hold on
  * one of its venues expires unconfirmed (SPM-254): the venue is no longer
- * held. Names the venue, the held slots and when the hold lapsed (AC2).
+ * held. Names the venue, the held times and when the hold lapsed (AC2).
  */
 export interface HoldExpiredNotice {
   readonly recipientUserAccountId: string;
@@ -211,8 +212,8 @@ export interface HoldExpiredNotice {
   readonly eventRequestId: string | null;
   readonly eventName: string;
   readonly venueLocation: string;
-  /** Sorted by date, then by slot within the day, as the booking stores them. */
-  readonly slots: readonly SlotOnDate[];
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
   /** ISO instant the hold lapsed. */
   readonly holdExpiresAt: string;
 }
@@ -230,8 +231,8 @@ export interface VenueBookingCancelledNotice {
   readonly venueId: string;
   readonly venueLocation: string;
   readonly eventName: string;
-  /** The slots released, sorted by date, then by slot within the day. */
-  readonly slots: readonly SlotOnDate[];
+  /** The times released, in date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
 }
 
 /**
@@ -248,9 +249,9 @@ export interface RegistrationConfirmedNotice {
   readonly recipientEmail: string;
   readonly attendeeName: string;
   readonly eventName: string;
-  /** ISO instant the first slot starts, as `AvailableEvent` gives it. */
+  /** ISO instant the event first starts, as `AvailableEvent` gives it. */
   readonly startsAt: string;
-  readonly slots: readonly SlotOnDate[];
+  readonly times: readonly TimeRangeOnDate[];
   readonly venueName: string | null;
 }
 

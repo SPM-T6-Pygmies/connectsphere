@@ -20,7 +20,7 @@ export function safetyCheckReview(overrides: Partial<SafetyCheckReview> = {}): S
         expectedAttendance: 220,
       },
       bookings: [{ status: "Confirmed", venueName: "Grand Ballroom" }],
-      equipmentLines: [{ state: "Reserved", quantityRequested: 2, quantityReserved: 2 }],
+      equipmentLines: [{ state: "Reserved", quantityRequested: 2, quantityReserved: 2, essential: true }],
       checked: false,
     },
     accessibilityRequirements: "Step-free route to the stage",

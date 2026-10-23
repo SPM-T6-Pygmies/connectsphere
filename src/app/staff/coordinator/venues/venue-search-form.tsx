@@ -6,12 +6,11 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOOKING_SLOTS } from "@/core/domain/booking";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS } from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
-import { slotLabel } from "../../slot-label";
+import { TimePicker } from "../../time-picker";
 
 export interface VenueSearchValues {
   layout: string;
@@ -19,13 +18,15 @@ export interface VenueSearchValues {
   facilities: string;
   accessibility: string;
   date: string;
-  /** Comma-separated, as `OptionCheckboxes` posts it. */
-  slots: string;
+  /** `HH:MM`, as `TimePicker` posts it (SPM-322). */
+  start: string;
+  end: string;
 }
 
 /**
  * The venue search filters (SPM-44). Submits as a GET so a search is a link the
- * Coordinator can reload or share. Every filter is optional.
+ * Coordinator can reload or share. Every filter is optional; a date is searched
+ * with a start and end time on the 15-minute grid (SPM-322).
  */
 export function VenueSearchForm({
   initial,
@@ -35,7 +36,8 @@ export function VenueSearchForm({
   errors: Partial<Record<keyof VenueSearchValues, string>>;
 }) {
   const [layout, setLayout] = useState(initial.layout);
-  const [slots, setSlots] = useState(initial.slots);
+  const [start, setStart] = useState(initial.start);
+  const [end, setEnd] = useState(initial.end);
   const [facilities, setFacilities] = useState(initial.facilities);
   const [accessibility, setAccessibility] = useState(initial.accessibility);
   const form = useRef<HTMLFormElement>(null);
@@ -44,27 +46,42 @@ export function VenueSearchForm({
   function clear() {
     form.current?.reset();
     setLayout("");
-    setSlots("");
+    setStart("");
+    setEnd("");
     setFacilities("");
     setAccessibility("");
   }
 
   return (
     <form ref={form} method="get" className="space-y-4 rounded-xl border p-4">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Field id="date" label="Date" error={errors.date}>
           <Input id="date" name="date" type="date" defaultValue={initial.date} aria-invalid={!!errors.date} />
         </Field>
+        <Field id="start" label="Start time" error={errors.start}>
+          <TimePicker
+            id="start"
+            name="start"
+            label="Start time"
+            required={false}
+            invalid={!!errors.start}
+            value={start}
+            onChange={setStart}
+          />
+        </Field>
+        <Field id="end" label="End time" error={errors.end}>
+          <TimePicker
+            id="end"
+            name="end"
+            label="End time"
+            endOfDay
+            required={false}
+            invalid={!!errors.end}
+            value={end}
+            onChange={setEnd}
+          />
+        </Field>
       </div>
-      <Field id="slots" label="Slots" error={errors.slots}>
-        <OptionCheckboxes
-          name="slots"
-          options={BOOKING_SLOTS}
-          value={slots}
-          onChange={setSlots}
-          label={slotLabel}
-        />
-      </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field id="layout" label="Room layout" error={errors.layout}>
           <OptionSelect

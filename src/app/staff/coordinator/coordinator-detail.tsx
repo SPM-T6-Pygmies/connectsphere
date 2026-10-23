@@ -1,6 +1,10 @@
 import { forbidden } from "next/navigation";
 
-import { buildViewAssignedEventRequest, getCurrentCoordinator } from "@/composition/container";
+import {
+  buildFindAssignedEventByRequest,
+  buildViewAssignedEventRequest,
+  getCurrentCoordinator,
+} from "@/composition/container";
 
 import type { DetailOrigin } from "../detail-origin";
 import { AssignedRequestDetail } from "./assigned-request-detail";
@@ -41,6 +45,13 @@ export async function CoordinatorDetail({
     forbidden();
   }
 
+  // SPM-459: an approved request books its venue on the event's Venue tab.
+  const findAssignedEventByRequest = await buildFindAssignedEventByRequest();
+  const eventId =
+    result.state === "approved"
+      ? await findAssignedEventByRequest.execute({ eventRequestId: id, userAccountId: coordinator.userAccountId })
+      : null;
+
   return (
     <AssignedRequestDetail
       eventRequest={result.eventRequest}
@@ -52,6 +63,7 @@ export async function CoordinatorDetail({
       canDiscuss={result.canDiscuss}
       coordinatorName={coordinator.name}
       canWithdraw={result.canWithdraw}
+      eventId={eventId}
       origin={origin}
     />
   );

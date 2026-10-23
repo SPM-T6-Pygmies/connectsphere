@@ -27,15 +27,16 @@ export const registrationConfirmed = workflow(
         attendeeName: { type: "string" },
         eventName: { type: "string" },
         startsAt: { type: "string" },
-        slots: {
+        times: {
           type: "array",
           items: {
             type: "object",
             properties: {
               date: { type: "string" },
-              slot: { type: "string", enum: ["AM", "PM", "Night"] },
+              start: { type: "string" },
+              end: { type: "string" },
             },
-            required: ["date", "slot"],
+            required: ["date", "start", "end"],
             additionalProperties: false,
           },
         },
@@ -48,7 +49,7 @@ export const registrationConfirmed = workflow(
         "attendeeName",
         "eventName",
         "startsAt",
-        "slots",
+        "times",
         "venueName",
         "registrationUrl",
       ],

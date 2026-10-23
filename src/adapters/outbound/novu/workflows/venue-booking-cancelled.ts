@@ -8,10 +8,10 @@ export const VENUE_BOOKING_CANCELLED_WORKFLOW_ID = "venue-booking-cancelled";
 /**
  * The Inbox entry Venue Staff see when a confirmed booking is cancelled
  * (SPM-63): the shared wording, plus a click that opens the venue's calendar
- * on the week of the first released date, where the freed slots show (AC4).
+ * on the week of the first released date, where the freed time shows (AC4).
  */
 export function venueBookingCancelledInApp(notice: VenueBookingCancelledNotice) {
-  const from = notice.slots[0]?.date;
+  const from = notice.times[0]?.date;
   const calendar = `/staff/venue/catalogue/${notice.venueId}/calendar`;
   return {
     ...venueBookingCancelledMessage(notice),
@@ -44,15 +44,16 @@ export const venueBookingCancelled = workflow(
         venueId: { type: "string" },
         venueLocation: { type: "string" },
         eventName: { type: "string" },
-        slots: {
+        times: {
           type: "array",
           items: {
             type: "object",
             properties: {
               date: { type: "string" },
-              slot: { type: "string", enum: ["AM", "PM", "Night"] },
+              start: { type: "string" },
+              end: { type: "string" },
             },
-            required: ["date", "slot"],
+            required: ["date", "start", "end"],
             additionalProperties: false,
           },
         },
@@ -63,7 +64,7 @@ export const venueBookingCancelled = workflow(
         "venueId",
         "venueLocation",
         "eventName",
-        "slots",
+        "times",
       ],
       additionalProperties: false,
     } as const,

@@ -3,6 +3,7 @@
 import { CircleAlert } from "lucide-react";
 import { useActionState, useState } from "react";
 
+import { useViewerTimeZone } from "@/app/events/event-times";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -31,12 +32,16 @@ const INITIAL: CompleteEventState = { status: "idle" };
 export function CompleteForm({
   eventId,
   canComplete,
+  endsAt,
   operationalNotes,
 }: {
   eventId: string;
   canComplete: boolean;
+  /** SPM-326 AC3: when the event's latest end time passes, or null while it has no times. */
+  endsAt: string | null;
   operationalNotes: string | null;
 }) {
+  const timeZone = useViewerTimeZone();
   const [state, formAction, pending] = useActionState(completeEventAction, INITIAL);
   const [open, setOpen] = useState(false);
 
@@ -105,7 +110,13 @@ export function CompleteForm({
 
       {canComplete ? null : (
         <p id="complete-event-hint" className="text-muted-foreground text-xs">
-          Available after the event ends.
+          {endsAt === null
+            ? "Available once the event has start and end times."
+            : `Available after ${new Intl.DateTimeFormat("en-SG", {
+                timeZone,
+                dateStyle: "medium",
+                timeStyle: "short",
+              }).format(new Date(endsAt))}.`}
         </p>
       )}
     </div>

@@ -10,7 +10,8 @@ describe("venueSearchSchema (SPM-44)", () => {
       facilities: [],
       accessibility: [],
       date: null,
-      slots: [],
+      start: null,
+      end: null,
     };
 
     expect(venueSearchSchema.parse({})).toEqual(blank);
@@ -25,7 +26,8 @@ describe("venueSearchSchema (SPM-44)", () => {
         facilities: "Wi-Fi, Video-conferencing",
         accessibility: "Lift access",
         date: "2026-11-05",
-        slots: "AM, PM",
+        start: "07:00",
+        end: "24:00",
       }),
     ).toEqual({
       layout: "Theatre",
@@ -33,7 +35,8 @@ describe("venueSearchSchema (SPM-44)", () => {
       facilities: ["Wi-Fi", "Video-conferencing"],
       accessibility: ["Lift access"],
       date: "2026-11-05",
-      slots: ["AM", "PM"],
+      start: "07:00",
+      end: "24:00",
     });
   });
 

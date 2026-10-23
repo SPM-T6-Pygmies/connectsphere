@@ -48,7 +48,7 @@ function booking(overrides: Partial<StoredBooking> = {}): StoredBooking {
     venueLocation: "Main Hall",
     roomLayoutName: null,
     status: "Confirmed",
-    slots: [{ date: "2026-11-03", slot: "AM" }],
+    times: [{ date: "2026-11-03", start: "07:00", end: "12:00" }],
     requestedBy: COORDINATOR,
     requestedAt: "2026-10-28T00:00:00.000Z",
     ...overrides,
@@ -130,7 +130,7 @@ describe("CancelVenueBookingUseCase (SPM-20)", () => {
   it("leaves another booking on the same event as it was", async () => {
     const { useCase, bookings } = build([
       booking(),
-      booking({ id: "booking-2", slots: [{ date: "2026-11-03", slot: "PM" }] }),
+      booking({ id: "booking-2", times: [{ date: "2026-11-03", start: "13:00", end: "18:00" }] }),
     ]);
 
     await useCase.execute(command());
@@ -170,12 +170,12 @@ describe("CancelVenueBookingUseCase notifying Venue Staff (SPM-63)", () => {
     expect(notifier.bookingsCancelled.map((n) => n.recipientUserAccountId)).toEqual(VENUE_STAFF);
   });
 
-  it("AC3, AC4: names the venue, the event and the released slots, and which venue's calendar to open", async () => {
+  it("AC3, AC4: names the venue, the event and the released times, and which venue's calendar to open", async () => {
     const { useCase, notifier } = build([
       booking({
-        slots: [
-          { date: "2026-11-03", slot: "AM" },
-          { date: "2026-11-04", slot: "Night" },
+        times: [
+          { date: "2026-11-03", start: "07:00", end: "12:00" },
+          { date: "2026-11-04", start: "19:00", end: "24:00" },
         ],
       }),
     ]);
@@ -188,9 +188,9 @@ describe("CancelVenueBookingUseCase notifying Venue Staff (SPM-63)", () => {
       venueId: HALL.id,
       venueLocation: "Main Hall",
       eventName: "Annual Conference",
-      slots: [
-        { date: "2026-11-03", slot: "AM" },
-        { date: "2026-11-04", slot: "Night" },
+      times: [
+        { date: "2026-11-03", start: "07:00", end: "12:00" },
+        { date: "2026-11-04", start: "19:00", end: "24:00" },
       ],
     });
   });

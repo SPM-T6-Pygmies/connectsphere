@@ -176,17 +176,17 @@ describe("notificationItem (SPM-65)", () => {
 })
 
 describe("notificationItem (SPM-62)", () => {
-  it("AC3: names a booking decision's notice and opens the booking on its Request a venue page", () => {
+  it("AC3: names a booking decision's notice and opens the booking on its event's Venue tab", () => {
     const item = notificationItem(
       "coordinator",
       notification({
-        redirect: { url: "/staff/coordinator/6/venue-booking?booking=31" },
+        redirect: { url: "/staff/coordinator/events/8?tab=venue&booking=31" },
         tags: ["venue-booking-decided"],
       }),
     )
 
     expect(item.status).toBe("Booking decided")
-    expect(item.href).toBe("/staff/coordinator/6/venue-booking?booking=31")
+    expect(item.href).toBe("/staff/coordinator/events/8?tab=venue&booking=31")
   })
 })
 

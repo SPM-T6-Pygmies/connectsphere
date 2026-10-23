@@ -3,8 +3,8 @@ import type {
   BookingStatus,
   DecidedBooking,
   ResolvedHold,
-  SlotOnDate,
 } from "../../domain/booking";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { UserAccountId } from "../../domain/user-account";
 import type { VenueId } from "../../domain/venue";
 
@@ -23,8 +23,8 @@ export interface BookedEvent {
   readonly organisationName: string | null;
   readonly category: string | null;
   readonly preferredDate: string | null;
-  /** The event's own slots, in date then day order. Empty until it has any. */
-  readonly slots: readonly SlotOnDate[];
+  /** The event's own start and end times, in date then start order. Empty until it has any. */
+  readonly times: readonly TimeRangeOnDate[];
   readonly expectedAttendance: number | null;
   readonly roomLayoutPreference: string | null;
   readonly accessibilityRequirements: string | null;
@@ -41,7 +41,8 @@ export interface BookingForReview {
   readonly venueLocation: string;
   /** Null when the booking predates layout capture, or its venue has no layouts. */
   readonly roomLayoutName: string | null;
-  readonly slots: readonly SlotOnDate[];
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
   readonly requestedByName: string;
   /** ISO instant. */
   readonly requestedAt: string;

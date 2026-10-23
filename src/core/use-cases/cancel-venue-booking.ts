@@ -67,7 +67,7 @@ export class CancelVenueBookingUseCase {
           venueId: booking.venueId,
           venueLocation: booking.venueLocation,
           eventName: event.name,
-          slots: booking.slots,
+          times: booking.times,
         });
       }
     }

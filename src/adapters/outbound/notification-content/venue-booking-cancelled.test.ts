@@ -11,7 +11,7 @@ function notice(overrides: Partial<VenueBookingCancelledNotice> = {}): VenueBook
     venueId: "2",
     venueLocation: "Grand Ballroom",
     eventName: "Harbour Lights Gala",
-    slots: [{ date: "2026-11-20", slot: "PM" }],
+    times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     ...overrides,
   };
 }
@@ -27,10 +27,10 @@ describe("venueBookingCancelledMessage (SPM-63)", () => {
   it("AC3: names every date released, each with its own times, in the order they fall", () => {
     const message = venueBookingCancelledMessage(
       notice({
-        slots: [
-          { date: "2026-11-20", slot: "AM" },
-          { date: "2026-11-20", slot: "Night" },
-          { date: "2026-11-21", slot: "PM" },
+        times: [
+          { date: "2026-11-20", start: "07:00", end: "12:00" },
+          { date: "2026-11-20", start: "19:00", end: "24:00" },
+          { date: "2026-11-21", start: "13:00", end: "18:00" },
         ],
       }),
     );
@@ -42,7 +42,12 @@ describe("venueBookingCancelledMessage (SPM-63)", () => {
 
   it("AC3: gives times, never the AM, PM or Night slot names", () => {
     const { subject, body } = venueBookingCancelledMessage(
-      notice({ slots: [{ date: "2026-11-20", slot: "AM" }, { date: "2026-11-20", slot: "Night" }] }),
+      notice({
+        times: [
+          { date: "2026-11-20", start: "07:00", end: "12:00" },
+          { date: "2026-11-20", start: "19:00", end: "24:00" },
+        ],
+      }),
     );
 
     expect(`${subject} ${body}`).not.toMatch(/\b(AM|PM|Night)\b/);

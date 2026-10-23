@@ -9,7 +9,8 @@ const VALID = {
   venueId: "2",
   startDate: "2026-10-12",
   endDate: "2026-10-16",
-  slots: "AM, PM",
+  startTime: "09:00",
+  endTime: "11:30",
   reason: "Renovation",
   note: "",
 };
@@ -20,7 +21,8 @@ describe("recordVenueUnavailabilitySchema (SPM-269)", () => {
       venueId: "2",
       startDate: "2026-10-12",
       endDate: "2026-10-16",
-      slots: ["AM", "PM"],
+      startTime: "09:00",
+      endTime: "11:30",
       reason: "Renovation",
       note: null,
     });
@@ -45,12 +47,15 @@ describe("recordVenueUnavailabilitySchema (SPM-269)", () => {
     expect(recordVenueUnavailabilitySchema.safeParse({ ...VALID, startDate: "2026-02-30" }).success).toBe(true);
   });
 
-  it.each(["Evening", "AM, Dusk", "am"])("AC3: rejects the slots %j, which are not AM, PM or Night", (slots) => {
-    expect(recordVenueUnavailabilitySchema.safeParse({ ...VALID, slots }).success).toBe(false);
-  });
-
-  it("AC3: leaves no slots ticked for the domain to refuse", () => {
-    expect(recordVenueUnavailabilitySchema.parse({ ...VALID, slots: "" }).slots).toEqual([]);
+  it("AC3: trims the times and leaves what they mean for the domain, so a blank or off-grid time reaches it", () => {
+    expect(recordVenueUnavailabilitySchema.parse({ ...VALID, startTime: " 09:00 ", endTime: " 24:00 " })).toMatchObject({
+      startTime: "09:00",
+      endTime: "24:00",
+    });
+    expect(recordVenueUnavailabilitySchema.parse({ ...VALID, startTime: "", endTime: "9:10" })).toMatchObject({
+      startTime: "",
+      endTime: "9:10",
+    });
   });
 
   it("AC7: reads a blank note as no note and passes any other text on", () => {

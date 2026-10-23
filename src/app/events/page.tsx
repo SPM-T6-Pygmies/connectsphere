@@ -37,7 +37,7 @@ export default function EventsPage() {
       <header className="mb-8">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Events</h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Everything open for registration right now. Times are Singapore time.
+          Everything open for registration right now. Times are in your timezone.
         </p>
       </header>
 

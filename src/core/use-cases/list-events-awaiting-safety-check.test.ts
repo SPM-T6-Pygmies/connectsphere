@@ -22,7 +22,7 @@ function candidate(overrides: Partial<SafetyCheckCandidate["event"]> = {}, ready
       { status: "Confirmed", venueName: "Sky Terrace" },
       { status: ready ? "Confirmed" : "Requested", venueName: "Grand Ballroom" },
     ],
-    equipmentLines: [{ state: "Reserved", quantityRequested: 2, quantityReserved: 2 }],
+    equipmentLines: [{ state: "Reserved", quantityRequested: 2, quantityReserved: 2, essential: true }],
     checked: false,
   };
 }

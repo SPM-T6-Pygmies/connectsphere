@@ -39,6 +39,19 @@ export function fromMinutes(minutes: number): string {
   return `${String(hours).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 }
 
+/**
+ * The `slot` codes a range covers: one per 15 minutes, `'0'` from 00:00 to
+ * `'95'` ending 24:00 (SPM-276 team decision 6). The range's end is not
+ * covered, so 07:00–12:00 is `'28'` to `'47'`. `range` is on the grid.
+ */
+export function slotCodes(range: TimeRange): string[] {
+  const codes: string[] = [];
+  for (let minute = range.start; minute < range.end; minute += GRID_MINUTES) {
+    codes.push(String(minute / GRID_MINUTES));
+  }
+  return codes;
+}
+
 export function isOnGrid(minutes: number): boolean {
   return minutes % GRID_MINUTES === 0;
 }

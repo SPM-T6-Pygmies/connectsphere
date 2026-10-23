@@ -11,9 +11,9 @@ function notice(overrides: Partial<VenueBookingCancelledNotice> = {}): VenueBook
     venueId: "2",
     venueLocation: "Grand Ballroom",
     eventName: "Harbour Lights Gala",
-    slots: [
-      { date: "2026-11-20", slot: "PM" },
-      { date: "2026-11-21", slot: "AM" },
+    times: [
+      { date: "2026-11-20", start: "13:00", end: "18:00" },
+      { date: "2026-11-21", start: "07:00", end: "12:00" },
     ],
     ...overrides,
   };

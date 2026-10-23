@@ -7,16 +7,12 @@ export const VENUE_BOOKING_DECIDED_WORKFLOW_ID = "venue-booking-decided";
 
 /**
  * The Inbox entry a coordinator sees (SPM-62): the shared wording, plus a
- * click that opens the booking on the event's Request a venue page, where a
+ * click that opens the booking on the event's Venue tab (SPM-459), where a
  * rejected booking shows Venue Staff's answer and its suggestion can be
- * requested afresh (AC3). An event with no request has no such page, so it
- * opens the event instead.
+ * requested afresh (AC3).
  */
 export function venueBookingDecidedInApp(notice: VenueBookingDecidedNotice) {
-  const url =
-    notice.eventRequestId === null
-      ? `/staff/coordinator/events/${notice.eventId}`
-      : `/staff/coordinator/${notice.eventRequestId}/venue-booking?booking=${notice.bookingId}`;
+  const url = `/staff/coordinator/events/${notice.eventId}?tab=venue&booking=${notice.bookingId}`;
   return {
     ...venueBookingDecidedMessage(notice),
     redirect: { url, target: "_self" as const },
@@ -46,15 +42,16 @@ export const venueBookingDecided = workflow(
         eventRequestId: { type: ["string", "null"] },
         eventName: { type: "string" },
         venueLocation: { type: "string" },
-        slots: {
+        times: {
           type: "array",
           items: {
             type: "object",
             properties: {
               date: { type: "string" },
-              slot: { type: "string", enum: ["AM", "PM", "Night"] },
+              start: { type: "string" },
+              end: { type: "string" },
             },
-            required: ["date", "slot"],
+            required: ["date", "start", "end"],
             additionalProperties: false,
           },
         },
@@ -69,7 +66,7 @@ export const venueBookingDecided = workflow(
         "eventRequestId",
         "eventName",
         "venueLocation",
-        "slots",
+        "times",
         "outcome",
         "reason",
         "suggestedAlternativeLocation",

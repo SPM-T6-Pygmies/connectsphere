@@ -90,6 +90,7 @@ import { ViewArchivedEventRequestsUseCase } from "@/core/use-cases/view-archived
 import { ViewAssignedEventRequestUseCase } from "@/core/use-cases/view-assigned-event-request";
 import { ViewAssignedEventRequestsUseCase } from "@/core/use-cases/view-assigned-event-requests";
 import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events";
+import { FindAssignedEventByRequestUseCase } from "@/core/use-cases/find-assigned-event-by-request";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { ViewVenueCalendarUseCase } from "@/core/use-cases/view-venue-calendar";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
@@ -575,6 +576,13 @@ export async function buildViewAssignedEvents(): Promise<ViewAssignedEventsUseCa
   const { events } = await coordinatorAdapters();
 
   return new ViewAssignedEventsUseCase({ events });
+}
+
+/** SPM-459: the event a request opened, so a link keyed by the request can open the event's Venue tab. */
+export async function buildFindAssignedEventByRequest(): Promise<FindAssignedEventByRequestUseCase> {
+  const { events } = await coordinatorAdapters();
+
+  return new FindAssignedEventByRequestUseCase({ events });
 }
 
 async function venueBookingAdapters(): Promise<{
