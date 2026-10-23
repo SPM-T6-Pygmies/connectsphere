@@ -177,6 +177,11 @@
       "parent": "SPM-47",
       "status": "In Progress"
     },
+    "SPM-63": {
+      "title": "Notify venue staff of a cancelled booking",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-64": {
       "title": "Notify technical support of an equipment requirement",
       "parent": null,

@@ -190,6 +190,21 @@ describe("notificationItem (SPM-62)", () => {
   })
 })
 
+describe("notificationItem (SPM-63)", () => {
+  it("AC4: names a cancelled booking's notice and opens the venue's calendar as it is", () => {
+    const item = notificationItem(
+      "venue",
+      notification({
+        redirect: { url: "/staff/venue/catalogue/2/calendar?from=2026-11-20" },
+        tags: ["venue-booking-cancelled"],
+      }),
+    )
+
+    expect(item.status).toBe("Booking cancelled")
+    expect(item.href).toBe("/staff/venue/catalogue/2/calendar?from=2026-11-20")
+  })
+})
+
 describe("notificationItem (SPM-164)", () => {
   it("AC3: opens the request from the coordinator's inbox and names it an organiser message", () => {
     const item = notificationItem(

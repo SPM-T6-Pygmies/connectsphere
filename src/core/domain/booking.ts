@@ -587,6 +587,15 @@ export function bookingCancellable(status: BookingStatus): boolean {
 }
 
 /**
+ * SPM-63: whether Venue Staff are told a cancelled booking was released --
+ * only a Confirmed one, since that is the venue they may be preparing. A
+ * pending request or a hold was never confirmed to them as going ahead.
+ */
+export function cancellationNotifiesVenueStaff(status: BookingStatus): boolean {
+  return status === "Confirmed";
+}
+
+/**
  * SPM-20: the assigned Event Coordinator cancels a booking, at any stage of
  * the event (AC1). It becomes Released, which frees its slots at once, since
  * `holdsSlot` counts only a live hold or a confirmed booking (AC2). Whether the

@@ -10,6 +10,7 @@ import {
   organiserMessagePostedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
+  venueBookingCancelledRow,
   venueBookingDecidedRow,
   venueBookingRequestedRow,
   type NotificationRow,
@@ -28,6 +29,7 @@ import type {
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingCancelledNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -116,6 +118,12 @@ export class SupabaseRecordingNotifier implements Notifier {
 
   holdExpired(notice: HoldExpiredNotice): Promise<void> {
     return this.recordAndDeliver(holdExpiredRow(notice), () => this.inner.holdExpired(notice));
+  }
+
+  venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void> {
+    return this.recordAndDeliver(venueBookingCancelledRow(notice), () =>
+      this.inner.venueBookingCancelled(notice),
+    );
   }
 
   /**
