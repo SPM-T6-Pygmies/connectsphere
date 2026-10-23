@@ -204,6 +204,26 @@ begin
   if (now() at time zone 'Asia/Singapore')::time > time '00:15' and public.venue_has_upcoming_booking(v_rooftop) then
     v_failed := array_append(v_failed, 'AC5 a booking that ended at 00:15 today counts as upcoming'); end if;
 
+  -- AC5: the last slot of today ends at 24:00, tonight, so a booking on it is upcoming all day
+  delete from public.booking_slot where booking_id = v_booking;
+  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, (now() at time zone 'Asia/Singapore')::date, '95');
+  v_checks := v_checks + 1;
+  if not public.venue_has_upcoming_booking(v_rooftop) then
+    v_failed := array_append(v_failed, 'AC5 a booking on today''s last slot, ending at midnight, is not upcoming'); end if;
+
+  -- AC5: a Tentative Hold counts while it holds, and not once it has lapsed
+  update public.booking set status = 'Tentative Hold', hold_expires_at = now() + interval '1 day' where booking_id = v_booking;
+  v_checks := v_checks + 1;
+  if not public.venue_has_upcoming_booking(v_rooftop) then
+    v_failed := array_append(v_failed, 'AC5 a live Tentative Hold is not upcoming'); end if;
+  update public.booking set hold_expires_at = now() - interval '1 hour' where booking_id = v_booking;
+  v_checks := v_checks + 1;
+  if public.venue_has_upcoming_booking(v_rooftop) then
+    v_failed := array_append(v_failed, 'AC5 a lapsed Tentative Hold counts as upcoming'); end if;
+  update public.booking set status = 'Confirmed', hold_expires_at = null where booking_id = v_booking;
+  delete from public.booking_slot where booking_id = v_booking;
+  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, (now() at time zone 'Asia/Singapore')::date - 1, '0');
+
   -- AC5: defining is then allowed
   update public.venue set setup_time_minutes = 30, turnaround_time_minutes = 45 where venue_id = v_rooftop;
   v_checks := v_checks + 1;

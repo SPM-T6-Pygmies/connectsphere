@@ -148,6 +148,8 @@ Harbour Room has a Confirmed booking, *UAT-44 Booked Harbour*, **D** = 14 days f
 
 **Scenario:** UAT-44 Harbour Room has a Confirmed booking, *UAT-44 Booked Harbour*, 14 days from today (D). Entering setup and turnaround now would change how long that booking occupies the room, so it is refused.
 
+**Preconditions:** The seeds were loaded today (`supabase db reset` and the three seeds), so D is still ahead. A database seeded more than 14 days ago has D in the past, and the booking has ended.
+
 **Steps:**
 1. Open **UAT-44 Harbour Room**, enter **Setup time** `30` and **Turnaround time** `45`.
 2. Press **Save venue**.
@@ -198,8 +200,8 @@ Harbour Room has a Confirmed booking, *UAT-44 Booked Harbour*, **D** = 14 days f
 supabase db query --file scripts/seed-venue-buffers/checks.sql --local
 ```
 
-**Expected Result:** the CLI prints `failed to execute query: error: ok: all 26 checks held`. That is the pass: the script ends with an error on purpose so everything it wrote rolls back. A failure reads `error: FAILED: <the checks that did not hold>`. The checks cover the catalogue reading each venue's state, one without the other, off the 15-minute grid, negative and over-a-day values refused by the constraint, exactly a day accepted, a defined venue's values refused when changed, cleared or defined as 0 and 0 (`CS080`), a save sending the locked values back accepted, create storing the pair and refusing half of it, and defining refused while a Requested booking has not ended (`CS081`) but allowed when it is Rejected or has ended.
+**Expected Result:** the CLI prints `failed to execute query: error: ok: all 29 checks held`. That is the pass: the script ends with an error on purpose so everything it wrote rolls back. A failure reads `error: FAILED: <the checks that did not hold>`. The checks cover the catalogue reading each venue's state, one without the other, off the 15-minute grid, negative and over-a-day values refused by the constraint, exactly a day accepted, a defined venue's values refused when changed, cleared or defined as 0 and 0 (`CS080`), a save sending the locked values back accepted, create storing the pair and refusing half of it, and defining refused while a Requested booking has not ended (`CS081`), including one on today's last slot that ends at midnight and a Tentative Hold that has not lapsed, but allowed when the booking is Rejected, has ended or the hold has lapsed.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, `checks.sql` ended with "ok: all 26 checks held"
+**Status:** [x] Pass [ ] Fail — 2026-10-23, `checks.sql` ended with "ok: all 29 checks held"
 
 **Screenshots:** none (database checks)

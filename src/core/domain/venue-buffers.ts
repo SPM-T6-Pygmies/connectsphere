@@ -45,6 +45,22 @@ export function defineVenueBuffers(input: {
   };
 }
 
+/** The refusal for changing defined values; the database guard (`CS080`) is mapped to it. */
+export function venueBuffersLocked(): InvalidVenueError {
+  return new InvalidVenueError(
+    "Setup and turnaround time are locked: they are set once, when they are first defined, and cannot be changed.",
+    "setupMinutes",
+  );
+}
+
+/** The refusal for defining them while a booking has not ended; `CS081` is mapped to it. */
+export function venueHasUpcomingBooking(): InvalidVenueError {
+  return new InvalidVenueError(
+    "Setup and turnaround time cannot be defined while this venue has an upcoming booking, because it would change what that booking occupies.",
+    "setupMinutes",
+  );
+}
+
 /**
  * SPM-23 AC3, AC5: whether a save may change a venue's setup and turnaround.
  *
@@ -53,20 +69,6 @@ export function defineVenueBuffers(input: {
  * while a booking that has not yet ended exists, because it would change what that booking
  * occupies; a booking that has ended occupies nothing and does not count.
  */
-export function venueBuffersLocked(): InvalidVenueError {
-  return new InvalidVenueError(
-    "Setup and turnaround time are locked: they are set once, when they are first defined, and cannot be changed.",
-    "setupMinutes",
-  );
-}
-
-export function venueHasUpcomingBooking(): InvalidVenueError {
-  return new InvalidVenueError(
-    "Setup and turnaround time cannot be defined while this venue has an upcoming booking, because it would change what that booking occupies.",
-    "setupMinutes",
-  );
-}
-
 export function checkBuffersChange(
   current: VenueBuffers,
   next: VenueBuffers,
