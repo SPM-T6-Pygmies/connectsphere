@@ -48,6 +48,18 @@ describe("paddedWindows (SPM-23 AC6)", () => {
     ]);
   });
 
+  it("stops exactly at midnight without a piece on the next date: 22:00-23:00 with an hour's turnaround ends 24:00", () => {
+    expect(paddedWindows({ date: DAY, start: "22:00", end: "23:00" }, { setup: 0, turnaround: 60 })).toEqual([
+      { date: DAY, start: "22:00", end: "24:00" },
+    ]);
+  });
+
+  it("starts exactly at midnight without a piece on the previous date: 00:30-01:30 with 30 minutes' setup starts 00:00", () => {
+    expect(paddedWindows({ date: DAY, start: "00:30", end: "01:30" }, { setup: 30, turnaround: 0 })).toEqual([
+      { date: DAY, start: "00:00", end: "01:30" },
+    ]);
+  });
+
   it("carries a month or year end: turnaround from 31 December reaches 1 January", () => {
     expect(paddedWindows({ date: "2026-12-31", start: "23:30", end: "24:00" }, { setup: 0, turnaround: 60 })).toEqual([
       { date: "2026-12-31", start: "23:30", end: "24:00" },

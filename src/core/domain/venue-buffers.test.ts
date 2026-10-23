@@ -136,6 +136,11 @@ describe("checkBuffersChange (SPM-23)", () => {
     ).toThrow(/locked/);
   });
 
+  it("AC3: treats a venue holding only one of the two as defined, so it is locked too", () => {
+    expect(() => checkBuffersChange({ setupMinutes: 30, turnaroundMinutes: null }, DEFINED, false)).toThrow(/locked/);
+    expect(() => checkBuffersChange({ setupMinutes: null, turnaroundMinutes: 45 }, UNDEFINED, false)).toThrow(/locked/);
+  });
+
   it("AC5: refuses defining them while a booking that has not ended exists, saying why", () => {
     expect(() => checkBuffersChange(UNDEFINED, DEFINED, true)).toThrow(/upcoming booking/);
   });
