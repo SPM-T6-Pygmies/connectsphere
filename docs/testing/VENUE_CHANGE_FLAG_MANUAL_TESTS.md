@@ -18,8 +18,9 @@ Report what you ran in the PR description's `## Manual test results` table; CI r
 
 **Not covered here:** flags raised by a block (SPM-313, [VENUE_FLAG_MANUAL_TESTS.md](VENUE_FLAG_MANUAL_TESTS.md)),
 by a setup or turnaround change (SPM-314), clearing a flag (SPM-310), re-requesting a venue
-(SPM-251) and telling the coordinator (SPM-71). The Flagged card and the event page's **Flagged
-for review** section are SPM-313's and SPM-447's; this ticket only adds reasons to them.
+(SPM-251) and telling the coordinator (SPM-71). The event page's **Flagged for review** section and
+the amber **Flagged** badge in *Booking requests for this event* (both on the **Venue** tab since
+SPM-459) are SPM-313's and SPM-447's; this ticket only adds reasons to them.
 
 ## The people and places
 
@@ -116,7 +117,8 @@ Board Lunch (60, still fits) are left alone.
 1. As Venue Staff set the **Banquet** capacity to **80** and save.
 2. As the Coordinator open *Venue Change: Gala Dinner* and its **Venue** tab.
 3. Open *Venue Change: Board Lunch* and its **Venue** tab.
-4. Read the Gala's booking statuses:
+4. Still on the Gala Dinner's **Venue** tab, scroll to **Booking requests for this event** and click the amber **Flagged** badge on the Change Test Hall row.
+5. Read the Gala's booking statuses:
    ```sql
    select v.location, b.status from booking b join venue v using (venue_id)
      join event e using (event_id) where e.name = 'Venue Change: Gala Dinner';
@@ -125,11 +127,12 @@ Board Lunch (60, still fits) are left alone.
 **Expected Result:**
 - Step 2: **Flagged for review** lists Change Test Hall, F 13:00 to 18:00, **Confirmed**, with "Venue changed · Capacity: Banquet seats 80, 40 over · Flagged <now>". Studio is not listed.
 - Step 3: no **Flagged for review** section.
-- Step 4: both bookings `Confirmed`.
+- Step 4: the badge reads **Flagged**, and its card says "Flagged for review", "Venue changed", "Capacity: Banquet seats 80, 40 over". The Studio row has no badge.
+- Step 5: both bookings `Confirmed`.
 
 **Status:** [x] Pass [ ] Fail — 23/10/2026, run in Chrome via Playwright for arinmakk
 
-**Screenshots:** [step1-banquet-seats-80-saved](../screenshots/2026-10-23_TC-VCHG-002_step1-banquet-seats-80-saved.png) · [step2-gala-flagged-capacity](../screenshots/2026-10-23_TC-VCHG-002_step2-gala-flagged-capacity.png) · [step3-board-lunch-not-flagged](../screenshots/2026-10-23_TC-VCHG-002_step3-board-lunch-not-flagged.png)
+**Screenshots:** [step1-banquet-seats-80-saved](../screenshots/2026-10-23_TC-VCHG-002_step1-banquet-seats-80-saved.png) · [step2-gala-flagged-capacity](../screenshots/2026-10-23_TC-VCHG-002_step2-gala-flagged-capacity.png) · [step3-board-lunch-not-flagged](../screenshots/2026-10-23_TC-VCHG-002_step3-board-lunch-not-flagged.png) · [step5-gala-flagged-badge](../screenshots/2026-10-23_TC-VCHG-002_step5-gala-flagged-badge.png)
 
 ---
 
@@ -220,3 +223,4 @@ Banquet capacity well below 120, and none was flagged.
 | Date | Build | Run by | Cases | Result | Notes |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-23 | `feat/spm-105-flag-bookings-when-venue-attributes-change` at `3919bee5`, local Supabase | arinmakk (Playwright, Chrome 1440×900) | TC-VCHG-001–006 | 6 Pass | Every page returned 200, no page errors. Each screenshot was looked at: the flagged Gala shows "Venue changed" with the capacity reason (then a second, facilities reason), status Confirmed, Studio not listed; the other events show no Flagged for review section. In the full-page Venue Staff shots the sticky header renders mid-page; that is the capture, not the app. |
+| 2026-10-23 | the same branch after merging `main` at `7e348462` (SPM-459, SPM-63), local Supabase | arinmakk (Playwright, Chrome 1440×900) | TC-VCHG-001–006 | 6 Pass | Re-run because SPM-459 moved the bookings table onto the Venue tab; the screenshots above are from this run. Case 002 now also opens the **Flagged** badge (step 4): its card shows the capacity reason. No page errors. The Gala's Studio row reads "Not suitable" in its own checklist (Studio only seats 60, Theatre): true from the start, at another venue, and not flagged (AC7). |
