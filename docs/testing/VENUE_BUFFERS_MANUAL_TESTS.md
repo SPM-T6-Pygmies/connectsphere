@@ -11,12 +11,12 @@ This story stores the two values and defines the one padded-window rule. The cla
 the rule belong to SPM-272 (on submit), SPM-250 (search) and SPM-19 (approval), so no screen
 shows the padding yet; the rule itself (AC6 to AC9) is covered by unit tests. The cases below are
 registered in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as `TC-VBUFFER-001` to
-`TC-VBUFFER-007`. Report what you ran in the PR description's `## Manual test results` table; CI
+`TC-VBUFFER-005`. Report what you ran in the PR description's `## Manual test results` table; CI
 records it in `manual-runs.csv` when the PR merges.
 
-**Last run:** all seven cases passed on 2026-10-23. A browser script drove TC-VBUFFER-001 to 006 and
-checked each result, and `checks.sql` ran TC-VBUFFER-007. The screenshots are in
-[`../screenshots/`](../screenshots/). Run the cases in order, or re-seed between them: 002 to 006
+**Last run:** all five cases passed on 2026-10-23. A browser script drove TC-VBUFFER-001 to 004 and
+checked each result, and `checks.sql` ran TC-VBUFFER-005. The screenshots are in
+[`../screenshots/`](../screenshots/). Run the cases in order, or re-seed between them: 002 to 004
 build on what the earlier ones left.
 
 ---
@@ -44,9 +44,7 @@ build on what the earlier ones left.
 | UAT-44 Harbour Room, UAT-44 Garden Hall | not set | not set | Complete venue records, so the form can save them; the cases define their values |
 
 The first four have no booking horizon recorded, so the venue form will not save them (a venue's
-every field is mandatory). The cases that save a venue therefore use the two UAT-44 venues. UAT-44
-Harbour Room has a Confirmed booking, *UAT-44 Booked Harbour*, **D** = 14 days from today
-(2026-11-06 on the run date); UAT-44 Garden Hall has only a Rejected booking, which holds nothing.
+every field is mandatory). The cases that save a venue therefore use the two UAT-44 venues.
 
 ---
 
@@ -144,64 +142,15 @@ Harbour Room has a Confirmed booking, *UAT-44 Booked Harbour*, **D** = 14 days f
 
 ---
 
-### TC-VBUFFER-005: Not while a booking has not ended (AC5)
-
-**Scenario:** UAT-44 Harbour Room has a Confirmed booking, *UAT-44 Booked Harbour*, 14 days from today (D). Entering setup and turnaround now would change how long that booking occupies the room, so it is refused.
-
-**Preconditions:** The seeds were loaded today (`supabase db reset` and the three seeds), so D is still ahead. A database seeded more than 14 days ago has D in the past, and the booking has ended.
-
-**Steps:**
-1. Open **UAT-44 Harbour Room**, enter **Setup time** `30` and **Turnaround time** `45`.
-2. Press **Save venue**.
-3. Read the two boxes after the refusal, and the database:
-   ```sql
-   select setup_time_minutes, turnaround_time_minutes from venue where location = 'UAT-44 Harbour Room';
-   ```
-
-**Expected Result:**
-- Step 2: refused, beside **Setup time**: *Setup and turnaround time cannot be defined while this venue has an upcoming booking, because it would change what that booking occupies.*
-- Step 3: both columns are still null.
-
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (3/3 checks)
-
-**Screenshots:** [step1-values-entered](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-005_step1-values-entered.png) · [step2-refused-with-upcoming-booking](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-005_step2-refused-with-upcoming-booking.png)
-
----
-
-### TC-VBUFFER-006: A booking that has ended does not count (AC5)
-
-**Scenario:** The same booking, now a past one, takes no future time, so defining the values changes nothing for it.
-
-**Preconditions:** After TC-VBUFFER-005.
-
-**Steps:**
-1. Move the booking to a past date (there is no screen to age a booking):
-   ```sql
-   update booking_slot set slot_date = '2026-09-14'
-    where booking_id in (select b.booking_id from booking b join event e using (event_id) where e.name = 'UAT-44 Booked Harbour');
-   ```
-2. Open **UAT-44 Harbour Room**, enter `30` and `45`, press **Save venue**.
-3. Open the venue again.
-
-**Expected Result:**
-- Step 2: *Venue saved.* and the database holds 30 and 45.
-- Step 3: both boxes are read-only and locked.
-
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks)
-
-**Screenshots:** [step1-defined-after-booking-ended](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step1-defined-after-booking-ended.png)
-
----
-
-### TC-VBUFFER-007: The database refuses what the rules refuse (AC1 to AC5)
+### TC-VBUFFER-005: The database refuses what the rules refuse (AC1 to AC3)
 
 **Steps:**
 ```bash
 supabase db query --file scripts/seed-venue-buffers/checks.sql --local
 ```
 
-**Expected Result:** the CLI prints `failed to execute query: error: ok: all 29 checks held`. That is the pass: the script ends with an error on purpose so everything it wrote rolls back. A failure reads `error: FAILED: <the checks that did not hold>`. The checks cover the catalogue reading each venue's state, one without the other, off the 15-minute grid, negative and over-a-day values refused by the constraint, exactly a day accepted, a defined venue's values refused when changed, cleared or defined as 0 and 0 (`CS080`), a save sending the locked values back accepted, create storing the pair and refusing half of it, and defining refused while a Requested booking has not ended (`CS081`), including one on today's last slot that ends at midnight and a Tentative Hold that has not lapsed, but allowed when the booking is Rejected, has ended or the hold has lapsed.
+**Expected Result:** the CLI prints `failed to execute query: error: ok: all 19 checks held`. That is the pass: the script ends with an error on purpose so everything it wrote rolls back. A failure reads `error: FAILED: <the checks that did not hold>`. The checks cover the catalogue reading each venue's state, one without the other, off the 15-minute grid, negative and over-a-day values refused by the constraint, exactly a day accepted, a defined venue's values refused when changed, cleared or defined as 0 and 0 (`CS080`), a save sending the locked values back accepted, create storing the pair and refusing half of it.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, `checks.sql` ended with "ok: all 29 checks held"
+**Status:** [x] Pass [ ] Fail — 2026-10-23, `checks.sql` ended with "ok: all 19 checks held"
 
 **Screenshots:** none (database checks)

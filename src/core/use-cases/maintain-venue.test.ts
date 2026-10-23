@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
-import {
-  InMemoryUpcomingVenueBookings,
-  type KnownVenueBooking,
-} from "@/adapters/outbound/in-memory/in-memory-upcoming-venue-bookings";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 
 import {
@@ -18,21 +13,12 @@ import { ListVenuesUseCase, ViewVenueUseCase } from "./view-venues";
 
 const STAFF = ["Venue Staff"];
 
-/** Monday 14 December 2026, 10:00 in Singapore. */
-const NOW = new Date("2026-12-14T02:00:00.000Z");
-
 function build() {
   const venues = new InMemoryVenueCatalogue();
-  const bookings: KnownVenueBooking[] = [];
   return {
     venues,
-    bookings,
     create: new CreateVenueUseCase({ venues }),
-    update: new UpdateVenueUseCase({
-      venues,
-      upcomingBookings: new InMemoryUpcomingVenueBookings(bookings),
-      clock: new FixedClock(NOW),
-    }),
+    update: new UpdateVenueUseCase({ venues }),
     list: new ListVenuesUseCase({ venues }),
     view: new ViewVenueUseCase({ venues }),
   };
@@ -329,41 +315,5 @@ describe("Setup and turnaround time on create and update (SPM-23)", () => {
     await expect(
       update.execute({ ...newVenue({ setupMinutes: 15, turnaroundMinutes: 0 }), venueId: venue.id }),
     ).rejects.toThrow(/locked/);
-  });
-
-  it("AC5: refuses defining them while a booking that has not ended exists, naming why", async () => {
-    const { create, update, bookings, view } = build();
-    const { venue } = await create.execute(newVenue());
-    bookings.push({ venueId: venue.id, status: "Confirmed", endsAt: new Date("2026-12-14T12:00:00+08:00") });
-
-    await expect(
-      update.execute({ ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }), venueId: venue.id }),
-    ).rejects.toThrow(/upcoming booking/);
-
-    expect((await view.execute({ venueId: venue.id })).venue.setupMinutes ?? null).toBeNull();
-  });
-
-  it("AC5: lets them be defined when the only booking has ended, and when the booking is at another venue", async () => {
-    const { create, update, bookings, view } = build();
-    const { venue } = await create.execute(newVenue());
-    const { venue: other } = await create.execute(newVenue({ location: "Elsewhere" }));
-    bookings.push(
-      { venueId: venue.id, status: "Confirmed", endsAt: new Date("2026-12-13T12:00:00+08:00") },
-      { venueId: other.id, status: "Confirmed", endsAt: new Date("2026-12-20T12:00:00+08:00") },
-    );
-
-    await update.execute({ ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }), venueId: venue.id });
-
-    expect((await view.execute({ venueId: venue.id })).venue.setupMinutes).toBe(30);
-  });
-
-  it("AC5: an upcoming booking does not stop other details being edited while the values stay undefined", async () => {
-    const { create, update, bookings, view } = build();
-    const { venue } = await create.execute(newVenue());
-    bookings.push({ venueId: venue.id, status: "Requested", endsAt: new Date("2026-12-20T12:00:00+08:00") });
-
-    await update.execute({ ...newVenue({ location: "Renamed" }), venueId: venue.id });
-
-    expect((await view.execute({ venueId: venue.id })).venue.location).toBe("Renamed");
   });
 });

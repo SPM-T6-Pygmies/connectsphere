@@ -1,13 +1,13 @@
 -- Checks the database side of a venue's setup and turnaround time (SPM-23): the constraint, the
--- lock, the upcoming-booking rule, and the catalogue functions. Writes nothing that survives: it
+-- lock, and the catalogue functions. Writes nothing that survives: it
 -- ends in an error, which rolls everything back, and the error message is the result.
 --
 --   error: ok: all N checks held      every check passed. The CLI words this "failed to execute
 --                                     query"; the ok: is the pass.
 --   error: FAILED: <checks that did not hold>
 --
--- Run against a local stack that has the base seed, seed-venues and seed-venue-search-uat (it
--- borrows Test Venue Staff, the venues, and the event UAT-44 Booked Harbour):
+-- Run against a local stack that has the base seed and seed-venues (it borrows Test Venue Staff
+-- and the venues):
 --   supabase db query --file scripts/seed-venue-buffers/checks.sql --local
 --
 -- Main Hall is defined 30 and 45, Studio 0 and 0, Seminar Room 2-1 and Rooftop Terrace are not.
@@ -19,10 +19,6 @@ declare
   v_seminar bigint;
   v_rooftop bigint;
   v_staff_auth uuid;
-  v_event   bigint;
-  v_coord   bigint;
-  v_booking bigint;
-  v_day     date := (now() at time zone 'Asia/Singapore')::date + 10;
   v_code    text;
   v_json    jsonb;
   v_new     bigint;
@@ -36,12 +32,9 @@ begin
   select venue_id into v_rooftop from public.venue where location = 'Rooftop Terrace';
   select ua.auth_user_id into v_staff_auth
     from public.user_account ua where ua.name = 'Test Venue Staff' and ua.client_organisation_id is null;
-  select e.event_id into v_event from public.event e where e.name = 'UAT-44 Booked Harbour';
-  select user_account_id into v_coord
-    from public.user_account where name = 'Test Coordinator' and client_organisation_id is null;
   if v_main is null or v_studio is null or v_seminar is null or v_rooftop is null
-     or v_staff_auth is null or v_event is null or v_coord is null then
-    raise exception 'Run the base seed, seed-venues and seed-venue-search-uat first';
+     or v_staff_auth is null then
+    raise exception 'Run the base seed and seed-venues first';
   end if;
 
   perform set_config('request.jwt.claim.sub', v_staff_auth::text, true);
@@ -166,69 +159,6 @@ begin
     v_checks := v_checks + 1;
     if v_code <> 'CS022' then v_failed := array_append(v_failed, 'AC1 create with one value gave ' || v_code); end if;
   end;
-
-  -- AC5: not while a booking has not ended (Rooftop Terrace has none defined)
-  insert into public.booking (venue_id, event_id, requested_by_user_account_id)
-  values (v_rooftop, v_event, v_coord) returning booking_id into v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) select v_booking, v_day, n::text from generate_series(40, 47) n;
-  v_checks := v_checks + 1;
-  if not public.venue_has_upcoming_booking(v_rooftop) then
-    v_failed := array_append(v_failed, 'AC5 a Requested booking next week is not upcoming'); end if;
-  begin
-    update public.venue set setup_time_minutes = 30, turnaround_time_minutes = 45 where venue_id = v_rooftop;
-    v_checks := v_checks + 1; v_failed := array_append(v_failed, 'AC5 defining with an upcoming booking was accepted');
-  exception when others then
-    get stacked diagnostics v_code = returned_sqlstate;
-    v_checks := v_checks + 1;
-    if v_code <> 'CS081' then v_failed := array_append(v_failed, 'AC5 defining with an upcoming booking gave ' || v_code); end if;
-  end;
-  -- undefined stays undefined and other columns may change while it is booked
-  update public.venue set capacity = capacity where venue_id = v_rooftop;
-  v_checks := v_checks + 1;
-
-  -- AC5: a Rejected booking, and a booking that has ended, do not count
-  update public.booking set status = 'Rejected', decided_by_user_account_id = v_coord, rejection_note = 'Not needed' where booking_id = v_booking;
-  v_checks := v_checks + 1;
-  if public.venue_has_upcoming_booking(v_rooftop) then
-    v_failed := array_append(v_failed, 'AC5 a Rejected booking counts as upcoming'); end if;
-  update public.booking set status = 'Confirmed', decided_by_user_account_id = v_coord, rejection_note = null where booking_id = v_booking;
-  update public.booking_slot set slot_date = (now() at time zone 'Asia/Singapore')::date - 30 where booking_id = v_booking;
-  v_checks := v_checks + 1;
-  if public.venue_has_upcoming_booking(v_rooftop) then
-    v_failed := array_append(v_failed, 'AC5 a Confirmed booking from a month ago counts as upcoming'); end if;
-
-  -- AC5: a booking that ended earlier today is not upcoming, one still running is
-  delete from public.booking_slot where booking_id = v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, (now() at time zone 'Asia/Singapore')::date, '0');
-  v_checks := v_checks + 1;
-  if (now() at time zone 'Asia/Singapore')::time > time '00:15' and public.venue_has_upcoming_booking(v_rooftop) then
-    v_failed := array_append(v_failed, 'AC5 a booking that ended at 00:15 today counts as upcoming'); end if;
-
-  -- AC5: the last slot of today ends at 24:00, tonight, so a booking on it is upcoming all day
-  delete from public.booking_slot where booking_id = v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, (now() at time zone 'Asia/Singapore')::date, '95');
-  v_checks := v_checks + 1;
-  if not public.venue_has_upcoming_booking(v_rooftop) then
-    v_failed := array_append(v_failed, 'AC5 a booking on today''s last slot, ending at midnight, is not upcoming'); end if;
-
-  -- AC5: a Tentative Hold counts while it holds, and not once it has lapsed
-  update public.booking set status = 'Tentative Hold', hold_expires_at = now() + interval '1 day' where booking_id = v_booking;
-  v_checks := v_checks + 1;
-  if not public.venue_has_upcoming_booking(v_rooftop) then
-    v_failed := array_append(v_failed, 'AC5 a live Tentative Hold is not upcoming'); end if;
-  update public.booking set hold_expires_at = now() - interval '1 hour' where booking_id = v_booking;
-  v_checks := v_checks + 1;
-  if public.venue_has_upcoming_booking(v_rooftop) then
-    v_failed := array_append(v_failed, 'AC5 a lapsed Tentative Hold counts as upcoming'); end if;
-  update public.booking set status = 'Confirmed', hold_expires_at = null where booking_id = v_booking;
-  delete from public.booking_slot where booking_id = v_booking;
-  insert into public.booking_slot (booking_id, slot_date, slot) values (v_booking, (now() at time zone 'Asia/Singapore')::date - 1, '0');
-
-  -- AC5: defining is then allowed
-  update public.venue set setup_time_minutes = 30, turnaround_time_minutes = 45 where venue_id = v_rooftop;
-  v_checks := v_checks + 1;
-  if (select setup_time_minutes from public.venue where venue_id = v_rooftop) <> 30 then
-    v_failed := array_append(v_failed, 'AC5 defining after the booking ended did not store'); end if;
 
   if cardinality(v_failed) = 0 then
     raise exception 'ok: all % checks held', v_checks;

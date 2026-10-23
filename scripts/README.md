@@ -176,7 +176,7 @@ Some of the scripts have extra read-only files:
 
 - `seed-venue-unavailability/refusals.sql` tries inputs the database must refuse
   (a bad reason, a note under Safety, a 501-character note) and writes nothing.
-- `seed-venue-buffers/checks.sql` checks a venue's setup and turnaround: the constraint, the lock, and refusing to define them while a booking has not ended (TC-VBUFFER-007). It needs `seed-venues` and `seed-venue-search-uat`.
+- `seed-venue-buffers/checks.sql` checks a venue's setup and turnaround: the constraint, the lock, and the catalogue functions (TC-VBUFFER-005). It needs `seed-venues`.
 - `seed-venue-unavailability/checks.sql` checks the functions, audit rows, busy-time
   read, the booking refusals by time, the closed-time refusal and the order of reasons (TC-VBLOCK-008). It needs `seed-venue-search-uat`
   as well.

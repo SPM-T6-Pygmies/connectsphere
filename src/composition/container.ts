@@ -27,7 +27,6 @@ import { SupabaseEventRequestRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/supabase-registration-repository";
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
-import { SupabaseUpcomingVenueBookings } from "@/adapters/outbound/supabase/supabase-upcoming-venue-bookings";
 import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
 import { SupabaseBookingFlagRepository } from "@/adapters/outbound/supabase/supabase-booking-flag-repository";
 import { SupabaseVenueUnavailabilityRepository } from "@/adapters/outbound/supabase/supabase-venue-unavailability-repository";
@@ -976,11 +975,7 @@ export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
 /** SPM-147: Venue Staff update a venue and its layouts. */
 export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
   const client = await createSupabaseServerClient();
-  return new UpdateVenueUseCase({
-    venues: new SupabaseVenueCatalogue(client),
-    upcomingBookings: new SupabaseUpcomingVenueBookings(client),
-    clock: systemClock,
-  });
+  return new UpdateVenueUseCase({ venues: new SupabaseVenueCatalogue(client) });
 }
 
 /**

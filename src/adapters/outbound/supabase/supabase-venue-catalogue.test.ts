@@ -94,18 +94,6 @@ describe("SupabaseVenueCatalogue setup and turnaround (SPM-23)", () => {
     expect((error as InvalidVenueError).message).toMatch(/locked/);
   });
 
-  it("AC5: maps the database's upcoming-booking refusal (CS081) to the domain's", async () => {
-    const { client } = fakeClient({
-      venue_catalogue_update: { data: null, error: { code: "CS081", message: "Venue 5 has an upcoming booking" } },
-    });
-
-    const error = await new SupabaseVenueCatalogue(client).revise(venueId("5"), DETAILS).catch((e: unknown) => e);
-
-    expect(error).toBeInstanceOf(InvalidVenueError);
-    expect((error as InvalidVenueError).field).toBe("setupMinutes");
-    expect((error as InvalidVenueError).message).toMatch(/upcoming booking/);
-  });
-
   it("keeps mapping the older refusals: not permitted, not found, and an invalid record", async () => {
     const refuse = (code: string) =>
       new SupabaseVenueCatalogue(

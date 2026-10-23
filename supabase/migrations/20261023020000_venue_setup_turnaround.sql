@@ -6,14 +6,10 @@
 -- 1. Values that do not satisfy the new rule are made undefined first: only one of the two set,
 --    off the 15-minute grid, or over a day. Nothing reads them yet, so no booking changes.
 -- 2. `venue_buffers_chk`: both or neither, a multiple of 15, at most 1440 (AC1, AC2).
--- 3. `venue_has_upcoming_booking`: a Requested or Confirmed booking, or a Tentative Hold that
---    has not lapsed, whose last slot ends after now, Singapore time (AC5). It serves the guard
---    below and the app.
--- 4. A guard on the venue table, so a direct request to the database is refused too (AC3, AC5):
+-- 3. A guard on the venue table, so a direct request to the database is refused too (AC3):
 --      CS080  the values are defined and the update changes them
---      CS081  the values are undefined, the update defines them, and a booking has not yet ended
 --    Sending a defined venue's own values back is not a change.
--- 5. The catalogue read, create and update carry the two values (AC1).
+-- 4. The catalogue read, create and update carry the two values (AC1).
 
 begin;
 
@@ -45,36 +41,7 @@ alter table public.venue
   );
 
 -- ---------------------------------------------------------------------------
--- 3. A booking that has not yet ended
--- ---------------------------------------------------------------------------
-create function public.venue_has_upcoming_booking(p_venue_id bigint)
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select exists (
-    select 1
-    from public.booking b
-    where b.venue_id = p_venue_id
-      and (b.status in ('Requested', 'Confirmed')
-           or (b.status = 'Tentative Hold' and public.booking_holds_slot(b.status, b.hold_expires_at)))
-      and exists (
-        select 1
-        from public.booking_slot bs
-        join public.slot s on s.slot_code = bs.slot
-        where bs.booking_id = b.booking_id
-          and (bs.slot_date + s.end_time) at time zone 'Asia/Singapore' > now()
-      )
-  );
-$$;
-
-revoke execute on function public.venue_has_upcoming_booking(bigint) from public, anon;
-grant execute on function public.venue_has_upcoming_booking(bigint) to authenticated;
-
--- ---------------------------------------------------------------------------
--- 4. The lock
+-- 3. The lock
 -- ---------------------------------------------------------------------------
 create function public.venue_buffers_guard()
 returns trigger
@@ -88,9 +55,6 @@ begin
        or new.turnaround_time_minutes is distinct from old.turnaround_time_minutes then
       raise exception 'Setup and turnaround time are locked once defined' using errcode = 'CS080';
     end if;
-  elsif (new.setup_time_minutes is not null or new.turnaround_time_minutes is not null)
-        and public.venue_has_upcoming_booking(new.venue_id) then
-    raise exception 'Venue % has an upcoming booking', new.venue_id using errcode = 'CS081';
   end if;
   return new;
 end;
@@ -102,7 +66,7 @@ create trigger venue_buffers_guard_trg
   execute function public.venue_buffers_guard();
 
 -- ---------------------------------------------------------------------------
--- 5. The catalogue carries the values
+-- 4. The catalogue carries the values
 -- ---------------------------------------------------------------------------
 create or replace function public.venue_catalogue(p_venue_id bigint default null)
 returns jsonb

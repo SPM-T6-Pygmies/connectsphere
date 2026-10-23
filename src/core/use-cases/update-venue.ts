@@ -2,8 +2,6 @@ import { VenueMaintenanceNotPermittedError } from "../domain/errors";
 import { VenueNotFoundError } from "../domain/errors";
 import { canMaintainVenues, defineVenue, venueId, type Venue } from "../domain/venue";
 import { buffersOf, checkBuffersChange } from "../domain/venue-buffers";
-import type { Clock } from "../ports/outbound/clock";
-import type { UpcomingVenueBookings } from "../ports/outbound/upcoming-venue-bookings";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 
 export interface UpdateVenueCommand {
@@ -30,16 +28,13 @@ export interface UpdateVenueResult {
 
 export interface UpdateVenueDeps {
   readonly venues: VenueCatalogue;
-  readonly upcomingBookings: UpcomingVenueBookings;
-  readonly clock: Clock;
 }
 
 /**
  * SPM-147 (SPM-42 AC3): Venue Staff edit a venue's attributes, and add, edit or
  * remove its supported layouts, including a layout's capacity.
  *
- * SPM-23: setup and turnaround are defined once and then locked, and cannot be defined while
- * the venue has a booking that has not yet ended.
+ * SPM-23: setup and turnaround are defined once and then locked.
  */
 export class UpdateVenueUseCase {
   constructor(private readonly deps: UpdateVenueDeps) {}
@@ -66,11 +61,7 @@ export class UpdateVenueUseCase {
     if (current === null) {
       throw new VenueNotFoundError();
     }
-    checkBuffersChange(
-      buffersOf(current),
-      buffersOf(details),
-      await this.deps.upcomingBookings.hasUpcomingBooking(id, this.deps.clock.now()),
-    );
+    checkBuffersChange(buffersOf(current), buffersOf(details));
 
     const venue = await this.deps.venues.revise(id, details);
 

@@ -1,4 +1,3 @@
-import { holdsSlot, type BookingStatus } from "./booking";
 import { InvalidVenueError, type VenueField } from "./errors";
 import { GRID_MINUTES } from "./time-of-day";
 
@@ -53,57 +52,22 @@ export function venueBuffersLocked(): InvalidVenueError {
   );
 }
 
-/** The refusal for defining them while a booking has not ended; `CS081` is mapped to it. */
-export function venueHasUpcomingBooking(): InvalidVenueError {
-  return new InvalidVenueError(
-    "Setup and turnaround time cannot be defined while this venue has an upcoming booking, because it would change what that booking occupies.",
-    "setupMinutes",
-  );
-}
-
 /**
- * SPM-23 AC3, AC5: whether a save may change a venue's setup and turnaround.
+ * SPM-23 AC3: whether a save may change a venue's setup and turnaround.
  *
  * They are defined once and then locked, 0 included, so a defined venue cannot change either
- * (sending its own values back is not a change). Defining them for the first time is refused
- * while a booking that has not yet ended exists, because it would change what that booking
- * occupies; a booking that has ended occupies nothing and does not count.
+ * (sending its own values back is not a change).
  */
-export function checkBuffersChange(
-  current: VenueBuffers,
-  next: VenueBuffers,
-  hasUpcomingBooking: boolean,
-): void {
-  if (current.setupMinutes !== null || current.turnaroundMinutes !== null) {
-    if (current.setupMinutes !== next.setupMinutes || current.turnaroundMinutes !== next.turnaroundMinutes) {
-      throw venueBuffersLocked();
-    }
-    return;
-  }
-  if ((next.setupMinutes !== null || next.turnaroundMinutes !== null) && hasUpcomingBooking) {
-    throw venueHasUpcomingBooking();
+export function checkBuffersChange(current: VenueBuffers, next: VenueBuffers): void {
+  if (current.setupMinutes === null && current.turnaroundMinutes === null) return;
+  if (current.setupMinutes !== next.setupMinutes || current.turnaroundMinutes !== next.turnaroundMinutes) {
+    throw venueBuffersLocked();
   }
 }
 
 /** The setup and turnaround a venue has, as `VenueBuffers` (undefined stays null). */
 export function buffersOf(venue: Partial<VenueBuffers>): VenueBuffers {
   return { setupMinutes: venue.setupMinutes ?? null, turnaroundMinutes: venue.turnaroundMinutes ?? null };
-}
-
-/**
- * SPM-23 AC5: a booking that would change if padding were added. It is live (Requested,
- * Confirmed, or a Tentative Hold that has not lapsed) and has not yet ended; one that has
- * ended occupies no future time.
- */
-export function isUpcomingBooking(
-  booking: { readonly status: BookingStatus; readonly endsAt: Date; readonly holdExpiresAt: Date | null },
-  now: Date,
-): boolean {
-  const live =
-    booking.status === "Requested" ||
-    booking.status === "Confirmed" ||
-    (booking.status === "Tentative Hold" && holdsSlot(booking, now));
-  return live && booking.endsAt > now;
 }
 
 /** What every check uses: an undefined value counts as 0 minutes (SPM-23 AC4). */

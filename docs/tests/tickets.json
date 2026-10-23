@@ -1018,7 +1018,7 @@
       "status": "In Progress"
     },
     "SPM-464": {
-      "title": "Database: validate the two values, lock them once defined, refuse defining with upcoming bookings",
+      "title": "Database: validate the two values, lock them once defined",
       "parent": "SPM-23",
       "status": "In Progress"
     },
