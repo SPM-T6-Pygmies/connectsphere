@@ -47,7 +47,8 @@ begin
     where e.name = 'Flag Test: Offsite Day';
 
   -- Two blocks over the Tech Summit's Main Hall booking, one over its Studio booking.
-  pm := jsonb_build_array(jsonb_build_object('date', f, 'slot', 'PM'));
+  -- Blocks are on the 15-minute grid since SPM-321: PM is codes 52-71.
+  pm := (select jsonb_agg(jsonb_build_object('date', f, 'slot', n::text) order by n) from generate_series(52, 71) n);
   perform public.venue_staff_record_unavailability(v_staff, v_main, 'Maintenance', null, pm);
   perform public.venue_staff_record_unavailability(v_staff, v_main, 'Safety', null, pm);
   perform public.venue_staff_record_unavailability(v_staff, v_studio, 'Renovation', null, pm);

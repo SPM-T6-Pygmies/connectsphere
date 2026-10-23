@@ -4,7 +4,11 @@
 --   supabase db query --file scripts/seed-booking-flag-clear/flags.sql --local
 
 select v.location as venue,
-       bs.slot,
+       (select public.merge_time_spans(jsonb_agg(
+                 jsonb_build_object('date', bs.slot_date, 'start', sl.start_time, 'end', sl.end_time)))
+        from public.booking_slot bs
+        join public.slot sl on sl.slot_code = bs.slot
+        where bs.booking_id = b.booking_id) as booked_for,
        b.status as booking_status,
        f.detail,
        f.flagged_at,
@@ -13,9 +17,8 @@ select v.location as venue,
        f.cleared_how
 from public.booking_review_flag f
 join public.booking b on b.booking_id = f.booking_id
-join public.booking_slot bs on bs.booking_id = b.booking_id
 join public.event e on e.event_id = b.event_id
 join public.venue v on v.venue_id = b.venue_id
 left join public.user_account c on c.user_account_id = f.cleared_by_user_account_id
 where e.name = 'Founders'' Gala Dinner'
-order by bs.slot, f.booking_review_flag_id;
+order by f.booking_review_flag_id;
