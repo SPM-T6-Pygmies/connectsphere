@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 
-import { FlagReasons } from "../../flag-reasons";
+import { FlagReasons } from "../../../flag-reasons";
 import { ClearFlagForm } from "./clear-flag-form";
 
 /**
@@ -16,15 +16,7 @@ import { ClearFlagForm } from "./clear-flag-form";
  * them in the list they already manage bookings from. The card also clears the flag when
  * the booking still fits (SPM-310); asking for another venue is SPM-251's to add.
  */
-export function FlaggedBadge({
-  flags,
-  eventId,
-  eventRequestId,
-}: {
-  flags: readonly EventBookingFlag[];
-  eventId: string;
-  eventRequestId: string;
-}) {
+export function FlaggedBadge({ flags, eventId }: { flags: readonly EventBookingFlag[]; eventId: string }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -59,7 +51,6 @@ export function FlaggedBadge({
         <FlagReasons flags={flags} />
         <ClearFlagForm
           eventId={eventId}
-          eventRequestId={eventRequestId}
           bookingId={flags[0].bookingId}
           venueLocation={flags[0].venueLocation}
         />

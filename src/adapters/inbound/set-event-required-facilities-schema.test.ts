@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { setEventRequiredFacilitiesSchema } from "./set-event-required-facilities-schema";
 
-const base = { eventId: "5", eventRequestId: "24" };
+const base = { eventId: "5" };
 
 describe("setEventRequiredFacilitiesSchema (SPM-247)", () => {
   it("turns the posted comma-separated field into a list", () => {
@@ -21,6 +21,5 @@ describe("setEventRequiredFacilitiesSchema (SPM-247)", () => {
 
   it("refuses a missing event", () => {
     expect(setEventRequiredFacilitiesSchema.safeParse({ ...base, eventId: " ", facilities: "" }).success).toBe(false);
-    expect(setEventRequiredFacilitiesSchema.safeParse({ ...base, eventRequestId: "", facilities: "" }).success).toBe(false);
   });
 });

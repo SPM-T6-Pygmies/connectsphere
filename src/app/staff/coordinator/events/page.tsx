@@ -57,15 +57,13 @@ function AssignedEventTable({ events }: { events: readonly AssignedEventSummary[
                 <StatusBadge status={event.status} />
               </TableCell>
               <TableCell className="text-right">
-                {/* SPM-46: keyed by the request, like every other event link here. */}
-                {event.eventRequestId === null ? null : (
-                  <Link
-                    href={`/staff/coordinator/${event.eventRequestId}/venue-booking`}
-                    className="text-sm hover:underline"
-                  >
-                    Request a venue
-                  </Link>
-                )}
+                {/* SPM-459: venue booking is the event's Venue tab. */}
+                <Link
+                  href={`/staff/coordinator/events/${event.id}?tab=venue`}
+                  className="text-sm hover:underline"
+                >
+                  Request a venue
+                </Link>
               </TableCell>
             </TableRow>
           ))}
