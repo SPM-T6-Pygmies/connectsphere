@@ -1,5 +1,10 @@
 # Venue Booking Request Manual Tests (SPM-46, SPM-104, SPM-45, SPM-324)
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for the coordinator's **Request a venue** page. The rules behind
@@ -52,10 +57,11 @@ cases only use the four above.
 
 ### TC-VENUE-BOOK-001 Reach the page from an approved event
 
-- [x] On the approved request, the **Venue** card shows **Request a venue**.
-- [x] In *My events*, the event's row has a **Request a venue** link.
-- [x] Both open the same page, titled *Request a venue*, with the event's
-      preferred date, time, attendance and venue requirements on the right.
+- [ ] On the approved request, the **Venue** card shows **Request a venue**.
+- [ ] In *My events*, the event's row has a **Request a venue** link.
+- [ ] Both open the event page on its **Venue** tab (SPM-459), with the event's
+      preferred date, time, attendance and venue requirements above the
+      **New booking request** form.
 
 **Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-approved-request-venue-card](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step1-approved-request-venue-card.png) · [step3-request-a-venue-page](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step3-request-a-venue-page.png)
 

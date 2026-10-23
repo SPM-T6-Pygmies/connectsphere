@@ -13,7 +13,6 @@ import { z } from "zod";
  */
 export const submitVenueBookingRequestSchema = z.object({
   eventId: z.string().trim().min(1, "The event is missing."),
-  eventRequestId: z.string().trim().min(1, "The event is missing."),
   venueId: z.string().trim().min(1, "Choose a venue."),
   roomLayout: z
     .string()

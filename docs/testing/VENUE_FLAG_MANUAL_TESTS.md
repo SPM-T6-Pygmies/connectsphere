@@ -1,5 +1,10 @@
 # Venue Flag Manual Tests (SPM-313)
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for **SPM-313: Flag bookings when a venue is marked unavailable**. When Venue Staff
@@ -400,7 +405,7 @@ from today (the day the SPM-20 seed books).
 **Steps:**
 1. As Venue Staff open **Unavailability**. Choose **UAT-44 Harbour Room**, start and end date **C**, start time **07:00**, end time **12:00**, reason **Renovation**, and save. Record a second block the same way for **19:00** to **24:00** (a block is one range of times, so the morning and the night are two blocks).
 2. As the Coordinator open **My events**, *Founders' Gala Dinner*, the **Venue** tab, and read **Flagged for review**.
-3. Open **Manage venue booking** (Request a venue). On the Harbour Room rows for C AM (P) and C Night (Q), read the Status column, then hover over, or click, the **Flagged** badge on Q.
+3. Scroll down the same tab to **Booking requests for this event** (SPM-459). On the Harbour Room rows for C AM (P) and C Night (Q), read the Status column, then hover over, or click, the **Flagged** badge on Q.
 4. On P's row click **Cancel booking**, then **Yes, cancel booking**. Read the Status column of both rows again.
 5. Return to the event's **Venue** tab and read **Flagged for review** again.
 6. Read the flags:
@@ -418,7 +423,7 @@ from today (the day the SPM-20 seed books).
 - Step 5: only the Night booking is listed. The morning one is gone.
 - Step 6: the AM row is closed with `booking-ended`; the Night row is open (`cleared_how` empty, `closed` false).
 
-**Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [ ] Pass [ ] Fail — last passed 21/10/2026, before SPM-459 moved step 3 into the Venue tab, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step2-coordinator-two-flags](../screenshots/2026-10-21_TC-VFLAG-010_step2-coordinator-two-flags.png) · [step3-coordinator-badge-card](../screenshots/2026-10-21_TC-VFLAG-010_step3-coordinator-badge-card.png) · [step4-coordinator-cancelled](../screenshots/2026-10-21_TC-VFLAG-010_step4-coordinator-cancelled.png) · [step5-coordinator-one-flag](../screenshots/2026-10-21_TC-VFLAG-010_step5-coordinator-one-flag.png)
 
