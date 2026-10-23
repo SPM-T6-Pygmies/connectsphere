@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
+import {
+  InMemoryUpcomingVenueBookings,
+  type KnownVenueBooking,
+} from "@/adapters/outbound/in-memory/in-memory-upcoming-venue-bookings";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 
 import {
@@ -13,12 +18,21 @@ import { ListVenuesUseCase, ViewVenueUseCase } from "./view-venues";
 
 const STAFF = ["Venue Staff"];
 
+/** Monday 14 December 2026, 10:00 in Singapore. */
+const NOW = new Date("2026-12-14T02:00:00.000Z");
+
 function build() {
   const venues = new InMemoryVenueCatalogue();
+  const bookings: KnownVenueBooking[] = [];
   return {
     venues,
+    bookings,
     create: new CreateVenueUseCase({ venues }),
-    update: new UpdateVenueUseCase({ venues }),
+    update: new UpdateVenueUseCase({
+      venues,
+      upcomingBookings: new InMemoryUpcomingVenueBookings(bookings),
+      clock: new FixedClock(NOW),
+    }),
     list: new ListVenuesUseCase({ venues }),
     view: new ViewVenueUseCase({ venues }),
   };
@@ -33,6 +47,8 @@ function newVenue(overrides: Partial<CreateVenueCommand> = {}): CreateVenueComma
     openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }, { start: "19:00", end: "24:00" }],
     capacity: 300,
     bookingHorizonDays: 180,
+    setupMinutes: null,
+    turnaroundMinutes: null,
     layouts: [
       { name: "Theatre", capacity: 200 },
       { name: "Banquet", capacity: 120 },
@@ -227,5 +243,127 @@ describe("Access control for venue maintenance (SPM-148)", () => {
     const { venues: all } = await list.execute();
     expect(all).toHaveLength(1);
     expect(all[0].location).toBe(existing.location);
+  });
+});
+
+describe("Setup and turnaround time on create and update (SPM-23)", () => {
+  it("AC1: stores the setup and turnaround a new venue is given", async () => {
+    const { create, view } = build();
+
+    const { venue } = await create.execute(newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }));
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC1: stores a venue given 0 and 0 as defined, which is not the same as none", async () => {
+    const { create } = build();
+
+    const { venue } = await create.execute(newVenue({ setupMinutes: 0, turnaroundMinutes: 0 }));
+
+    expect(venue.setupMinutes).toBe(0);
+    expect(venue.turnaroundMinutes).toBe(0);
+  });
+
+  it("AC1, AC2: refuses a new venue with only one of them, or an off-grid one, and stores nothing", async () => {
+    const { create, list } = build();
+
+    await expect(create.execute(newVenue({ setupMinutes: 30 }))).rejects.toThrow("Enter the turnaround time too");
+    await expect(create.execute(newVenue({ setupMinutes: 20, turnaroundMinutes: 30 }))).rejects.toThrow(
+      /multiple of 15/,
+    );
+    expect((await list.execute()).venues).toEqual([]);
+  });
+
+  it("AC1: lets a venue with none defined be given both, once", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue());
+
+    await update.execute({ ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }), venueId: venue.id });
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC3: refuses changing a defined venue's values and leaves them as they were", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }));
+
+    await expect(
+      update.execute({ ...newVenue({ setupMinutes: 60, turnaroundMinutes: 45 }), venueId: venue.id }),
+    ).rejects.toThrow(/locked/);
+    await expect(
+      update.execute({ ...newVenue({ setupMinutes: null, turnaroundMinutes: null }), venueId: venue.id }),
+    ).rejects.toThrow(/locked/);
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC3: lets other details change while the locked values are sent back unchanged", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }));
+
+    await update.execute({
+      ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45, location: "Sentosa Pavilion" }),
+      venueId: venue.id,
+    });
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      location: "Sentosa Pavilion",
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC3: a venue defined as 0 and 0 is locked at 0", async () => {
+    const { create, update } = build();
+    const { venue } = await create.execute(newVenue({ setupMinutes: 0, turnaroundMinutes: 0 }));
+
+    await expect(
+      update.execute({ ...newVenue({ setupMinutes: 15, turnaroundMinutes: 0 }), venueId: venue.id }),
+    ).rejects.toThrow(/locked/);
+  });
+
+  it("AC5: refuses defining them while a booking that has not ended exists, naming why", async () => {
+    const { create, update, bookings, view } = build();
+    const { venue } = await create.execute(newVenue());
+    bookings.push({ venueId: venue.id, status: "Confirmed", endsAt: new Date("2026-12-14T12:00:00+08:00") });
+
+    await expect(
+      update.execute({ ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }), venueId: venue.id }),
+    ).rejects.toThrow(/upcoming booking/);
+
+    expect((await view.execute({ venueId: venue.id })).venue.setupMinutes ?? null).toBeNull();
+  });
+
+  it("AC5: lets them be defined when the only booking has ended, and when the booking is at another venue", async () => {
+    const { create, update, bookings, view } = build();
+    const { venue } = await create.execute(newVenue());
+    const { venue: other } = await create.execute(newVenue({ location: "Elsewhere" }));
+    bookings.push(
+      { venueId: venue.id, status: "Confirmed", endsAt: new Date("2026-12-13T12:00:00+08:00") },
+      { venueId: other.id, status: "Confirmed", endsAt: new Date("2026-12-20T12:00:00+08:00") },
+    );
+
+    await update.execute({ ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }), venueId: venue.id });
+
+    expect((await view.execute({ venueId: venue.id })).venue.setupMinutes).toBe(30);
+  });
+
+  it("AC5: an upcoming booking does not stop other details being edited while the values stay undefined", async () => {
+    const { create, update, bookings, view } = build();
+    const { venue } = await create.execute(newVenue());
+    bookings.push({ venueId: venue.id, status: "Requested", endsAt: new Date("2026-12-20T12:00:00+08:00") });
+
+    await update.execute({ ...newVenue({ location: "Renamed" }), venueId: venue.id });
+
+    expect((await view.execute({ venueId: venue.id })).venue.location).toBe("Renamed");
   });
 });

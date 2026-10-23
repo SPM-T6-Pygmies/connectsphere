@@ -4,6 +4,7 @@ import {
   VenueNotFoundError,
 } from "@/core/domain/errors";
 import type { Venue, VenueDetails, VenueId } from "@/core/domain/venue";
+import { venueBuffersLocked, venueHasUpcomingBooking } from "@/core/domain/venue-buffers";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 
 import type { SupabaseServerClient } from "./client";
@@ -13,6 +14,9 @@ import { toVenue, toVenueArgument, type VenueRow } from "./venue-mapper";
 const NOT_PERMITTED = "CS020";
 const NOT_FOUND = "CS021";
 const INVALID = "CS022";
+// Raised by the guard on `venue` (SPM-23): the two values are defined, or a booking has not ended.
+const BUFFERS_LOCKED = "CS080";
+const BUFFERS_UPCOMING_BOOKING = "CS081";
 
 /**
  * The venue catalogue in Postgres, through the `venue_catalogue*` functions.
@@ -73,5 +77,7 @@ function translate(error: { code?: string; message: string }, action: string): E
   if (error.code === NOT_PERMITTED) return new VenueMaintenanceNotPermittedError();
   if (error.code === NOT_FOUND) return new VenueNotFoundError();
   if (error.code === INVALID) return new InvalidVenueError(error.message);
+  if (error.code === BUFFERS_LOCKED) return venueBuffersLocked();
+  if (error.code === BUFFERS_UPCOMING_BOOKING) return venueHasUpcomingBooking();
   return new Error(`Failed to ${action}: ${error.message}`, { cause: error });
 }
