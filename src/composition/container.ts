@@ -973,13 +973,14 @@ export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
   return new CreateVenueUseCase({ venues: await venueCatalogue() });
 }
 
-/** SPM-147: Venue Staff update a venue and its layouts; SPM-105: flag the bookings it no longer fits. */
+/** SPM-147: Venue Staff update a venue and its layouts; SPM-105: flag the bookings it no longer fits; SPM-71: tell their coordinators. */
 export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
   const client = await createSupabaseServerClient();
   return new UpdateVenueUseCase({
     venues: new SupabaseVenueCatalogue(client),
     review: new SupabaseVenueChangeReview(client),
     clock: systemClock,
+    notifier: recordedNotifier(),
   });
 }
 

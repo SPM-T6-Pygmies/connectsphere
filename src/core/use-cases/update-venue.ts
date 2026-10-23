@@ -1,7 +1,8 @@
 import { VenueMaintenanceNotPermittedError } from "../domain/errors";
 import { canMaintainVenues, defineVenue, venueId, type Venue } from "../domain/venue";
-import { flagsForVenueChange } from "../domain/venue-change-flag";
+import { flagsForVenueChange, newlyFlaggedReasons, VENUE_ATTRIBUTES_FLAG } from "../domain/venue-change-flag";
 import type { Clock } from "../ports/outbound/clock";
+import type { Notifier } from "../ports/outbound/notifier";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 import type { VenueChangeReview } from "../ports/outbound/venue-change-review";
 
@@ -28,6 +29,7 @@ export interface UpdateVenueDeps {
   readonly venues: VenueCatalogue;
   readonly review: VenueChangeReview;
   readonly clock: Clock;
+  readonly notifier: Pick<Notifier, "venueBookingFlagged">;
 }
 
 /**
@@ -36,6 +38,9 @@ export interface UpdateVenueDeps {
  *
  * SPM-105: the live bookings the edit no longer fits are then flagged for their
  * coordinator. The booking itself is left as it is.
+ *
+ * SPM-71: each booking the edit newly flags has its coordinator told, once, with every
+ * reason. A booking whose event has no coordinator has nobody to tell.
  */
 export class UpdateVenueUseCase {
   constructor(private readonly deps: UpdateVenueDeps) {}
@@ -66,6 +71,21 @@ export class UpdateVenueUseCase {
       const flags = flagsForVenueChange(before, venue, bookings, this.deps.clock.now());
       if (flags.length > 0) {
         await this.deps.review.flag(id, flags);
+      }
+
+      const reasons = newlyFlaggedReasons(flags);
+      for (const booking of bookings) {
+        const details = reasons.get(booking.id);
+        if (details === undefined || booking.coordinatorUserAccountId === null) continue;
+        await this.deps.notifier.venueBookingFlagged({
+          recipientUserAccountId: booking.coordinatorUserAccountId,
+          bookingId: booking.id,
+          eventId: booking.eventId,
+          eventName: booking.eventName,
+          venueLocation: venue.location,
+          reasonCode: VENUE_ATTRIBUTES_FLAG,
+          reasons: details,
+        });
       }
     }
 

@@ -3,10 +3,11 @@ import { describe, expect, it } from "vitest";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 import { InMemoryVenueChangeReview } from "@/adapters/outbound/in-memory/in-memory-venue-change-review";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 
 import { VenueMaintenanceNotPermittedError, VenueNotFoundError } from "../domain/errors";
 import { venueId, type Venue } from "../domain/venue";
-import type { VenueChangeBooking } from "../domain/venue-change-flag";
+import type { ReviewedBooking } from "../ports/outbound/venue-change-review";
 import { UpdateVenueUseCase, type UpdateVenueCommand } from "./update-venue";
 
 const MAIN_HALL: Venue = {
@@ -23,8 +24,11 @@ const MAIN_HALL: Venue = {
   ],
 };
 
-const GALA: VenueChangeBooking = {
+const GALA: ReviewedBooking = {
   id: "812",
+  eventId: "40",
+  eventName: "Harbour Lights Gala",
+  coordinatorUserAccountId: "coordinator-1",
   status: "Confirmed",
   holdExpiresAt: null,
   slots: [{ date: "2026-11-16", slot: "76" }],
@@ -32,15 +36,17 @@ const GALA: VenueChangeBooking = {
   needs: { expectedAttendance: 120, preferredLayout: "Banquet", accessibilityNeeds: null, requiredFacilities: null },
 };
 
-function build() {
+function build(bookings: readonly ReviewedBooking[] = [GALA]) {
   const venues = new InMemoryVenueCatalogue([MAIN_HALL]);
-  const review = new InMemoryVenueChangeReview(new Map([[MAIN_HALL.id, [GALA]]]));
+  const review = new InMemoryVenueChangeReview(new Map([[MAIN_HALL.id, bookings]]));
+  const notifier = new RecordingNotifier();
   const update = new UpdateVenueUseCase({
     venues,
     review,
     clock: new FixedClock(new Date("2026-10-23T10:00:00+08:00")),
+    notifier,
   });
-  return { venues, review, update };
+  return { venues, review, notifier, update };
 }
 
 function banquetSeats(capacity: number, overrides: Partial<UpdateVenueCommand> = {}): UpdateVenueCommand {
@@ -110,5 +116,75 @@ describe("UpdateVenueUseCase flags the bookings an edit breaks (SPM-105)", () =>
     await expect(update.execute(banquetSeats(80, { roles: [] }))).rejects.toThrow(VenueMaintenanceNotPermittedError);
     await expect(update.execute(banquetSeats(80, { venueId: "99" }))).rejects.toThrow(VenueNotFoundError);
     expect(review.all()).toEqual([]);
+  });
+});
+
+describe("UpdateVenueUseCase notifies the coordinator (SPM-71)", () => {
+  it("AC2, AC3: tells the coordinator of a booking the edit flags, naming the event, the venue and the reason", async () => {
+    const { notifier, update } = build();
+
+    await update.execute(banquetSeats(80));
+
+    expect(notifier.bookingsFlagged).toEqual([
+      {
+        recipientUserAccountId: "coordinator-1",
+        bookingId: "812",
+        eventId: "40",
+        eventName: "Harbour Lights Gala",
+        venueLocation: "Main Hall",
+        reasonCode: "venue-attributes",
+        reasons: ["Capacity: Banquet seats 80, 40 over"],
+      },
+    ]);
+  });
+
+  it("AC4: an edit that breaks two checks on one booking sends one notice listing both", async () => {
+    const needsWifi = { ...GALA, needs: { ...GALA.needs, requiredFacilities: "Wi-Fi" } };
+    const { notifier, update } = build([needsWifi]);
+
+    await update.execute(banquetSeats(80, { facilities: "Catering area" }));
+
+    expect(notifier.bookingsFlagged.map((notice) => notice.reasons)).toEqual([
+      ["Capacity: Banquet seats 80, 40 over", "Facilities: Missing: Wi-Fi"],
+    ]);
+  });
+
+  it("AC4: one edit over two bookings sends a notice to each booking's coordinator", async () => {
+    const lunch = { ...GALA, id: "813", eventId: "41", eventName: "Board Lunch", coordinatorUserAccountId: "coordinator-2" };
+    const { notifier, update } = build([GALA, lunch]);
+
+    await update.execute(banquetSeats(80));
+
+    expect(notifier.bookingsFlagged.map((notice) => [notice.bookingId, notice.recipientUserAccountId])).toEqual([
+      ["812", "coordinator-1"],
+      ["813", "coordinator-2"],
+    ]);
+  });
+
+  it("AC4: tells nobody when the booking still fits, or when a further cut only restates its reason", async () => {
+    const { notifier, update } = build();
+
+    await update.execute(banquetSeats(120));
+    expect(notifier.bookingsFlagged).toEqual([]);
+
+    await update.execute(banquetSeats(80));
+    await update.execute(banquetSeats(70));
+    expect(notifier.bookingsFlagged).toHaveLength(1);
+  });
+
+  it("AC6: flags but tells nobody of a booking whose event has no coordinator", async () => {
+    const { review, notifier, update } = build([{ ...GALA, coordinatorUserAccountId: null }]);
+
+    await update.execute(banquetSeats(80));
+
+    expect(review.all()).toHaveLength(1);
+    expect(notifier.bookingsFlagged).toEqual([]);
+  });
+
+  it("tells nobody when the edit is refused", async () => {
+    const { notifier, update } = build();
+
+    await expect(update.execute(banquetSeats(80, { roles: [] }))).rejects.toThrow(VenueMaintenanceNotPermittedError);
+    expect(notifier.bookingsFlagged).toEqual([]);
   });
 });
