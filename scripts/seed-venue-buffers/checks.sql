@@ -64,8 +64,8 @@ begin
         ('a setup off the grid', 20, 30),
         ('a turnaround off the grid', 30, 20),
         ('a negative setup', -15, 30),
-        ('a setup over a day', 1455, 30),
-        ('a turnaround over a day', 30, 1455)
+        ('a setup over 150 minutes', 165, 30),
+        ('a turnaround over 150 minutes', 30, 165)
       ) as t (label, setup, turnaround)
     loop
       begin
@@ -81,11 +81,11 @@ begin
     end loop;
   end;
 
-  -- AC2: a day is the most, and 0 is a value
-  update public.venue set setup_time_minutes = 1440, turnaround_time_minutes = 1440 where venue_id = v_seminar;
+  -- AC2: 150 minutes is the most, and 0 is a value
+  update public.venue set setup_time_minutes = 150, turnaround_time_minutes = 150 where venue_id = v_seminar;
   v_checks := v_checks + 1;
-  if (select setup_time_minutes from public.venue where venue_id = v_seminar) <> 1440 then
-    v_failed := array_append(v_failed, 'AC2 exactly a day was not stored'); end if;
+  if (select setup_time_minutes from public.venue where venue_id = v_seminar) <> 150 then
+    v_failed := array_append(v_failed, 'AC2 exactly 150 minutes was not stored'); end if;
   -- put it back for the next checks: this venue is locked now, so use a rolled-back subtransaction
   -- (the whole script rolls back, and the lock is checked below on this same row)
 

@@ -4,8 +4,8 @@
 -- counts as 0 in every check; a 0 is defined.
 --
 -- 1. Values that do not satisfy the new rule are made undefined first: only one of the two set,
---    off the 15-minute grid, or over a day. Nothing reads them yet, so no booking changes.
--- 2. `venue_buffers_chk`: both or neither, a multiple of 15, at most 1440 (AC1, AC2).
+--    off the 15-minute grid, or over 150 minutes. Nothing reads them yet, so no booking changes.
+-- 2. `venue_buffers_chk`: both or neither, a multiple of 15, at most 150 (AC1, AC2).
 -- 3. A guard on the venue table, so a direct request to the database is refused too (AC3):
 --      CS080  the values are defined and the update changes them
 --    Sending a defined venue's own values back is not a change.
@@ -25,8 +25,8 @@ where not (
       and turnaround_time_minutes is not null
       and setup_time_minutes % 15 = 0
       and turnaround_time_minutes % 15 = 0
-      and setup_time_minutes <= 1440
-      and turnaround_time_minutes <= 1440)
+      and setup_time_minutes <= 150
+      and turnaround_time_minutes <= 150)
 );
 
 alter table public.venue
@@ -36,8 +36,8 @@ alter table public.venue
         and turnaround_time_minutes is not null
         and setup_time_minutes % 15 = 0
         and turnaround_time_minutes % 15 = 0
-        and setup_time_minutes <= 1440
-        and turnaround_time_minutes <= 1440)
+        and setup_time_minutes <= 150
+        and turnaround_time_minutes <= 150)
   );
 
 -- ---------------------------------------------------------------------------

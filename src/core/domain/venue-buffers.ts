@@ -11,12 +11,18 @@ export interface VenueBuffers {
   readonly turnaroundMinutes: number | null;
 }
 
-/** A day: more than that would run a window past the neighbouring date. */
-export const MAX_BUFFER_MINUTES = 24 * 60;
+/** The most setup or turnaround a venue can have: two and a half hours. */
+export const MAX_BUFFER_MINUTES = 150;
+
+/** What the venue form offers for each of the two values: 0 to the most, in 15-minute steps. */
+export const BUFFER_OPTIONS: readonly number[] = Array.from(
+  { length: MAX_BUFFER_MINUTES / GRID_MINUTES + 1 },
+  (_, step) => step * GRID_MINUTES,
+);
 
 /**
  * The only way to obtain valid setup and turnaround times (SPM-23 AC1, AC2): both or neither,
- * whole minutes on the 15-minute grid (#128), from 0 to a day. 0 is a value; blank is not.
+ * whole minutes on the 15-minute grid (#128), from 0 to 150. 0 is a value; blank is not.
  */
 export function defineVenueBuffers(input: {
   readonly setupMinutes?: number | null;
@@ -96,7 +102,7 @@ function validMinutes(minutes: number, label: string, field: VenueField): number
     );
   }
   if (minutes > MAX_BUFFER_MINUTES) {
-    throw new InvalidVenueError(`${label} must be at most ${MAX_BUFFER_MINUTES} minutes (24 hours).`, field);
+    throw new InvalidVenueError(`${label} must be at most ${MAX_BUFFER_MINUTES} minutes.`, field);
   }
   return minutes;
 }

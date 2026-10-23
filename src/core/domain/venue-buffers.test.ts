@@ -7,6 +7,7 @@ import {
   checkBuffersChange,
   defineVenueBuffers,
   describeBuffers,
+  BUFFER_OPTIONS,
   MAX_BUFFER_MINUTES,
 } from "./venue-buffers";
 
@@ -55,7 +56,7 @@ describe("defineVenueBuffers (SPM-23)", () => {
     );
   });
 
-  it.each([-15, -1, -1440])("AC2: refuses %i minutes, which is negative", (minutes) => {
+  it.each([-15, -1, -150])("AC2: refuses %i minutes, which is negative", (minutes) => {
     expect(() => defineVenueBuffers({ setupMinutes: minutes, turnaroundMinutes: 0 })).toThrow(/0 or more/);
   });
 
@@ -64,14 +65,18 @@ describe("defineVenueBuffers (SPM-23)", () => {
     expect(() => defineVenueBuffers({ setupMinutes: Number.NaN, turnaroundMinutes: 0 })).toThrow(/whole number/);
   });
 
-  it("AC2: accepts exactly 24 hours and refuses a quarter hour more", () => {
-    expect(MAX_BUFFER_MINUTES).toBe(1440);
-    expect(defineVenueBuffers({ setupMinutes: 1440, turnaroundMinutes: 1440 })).toEqual({
-      setupMinutes: 1440,
-      turnaroundMinutes: 1440,
+  it("AC2: accepts exactly 150 minutes and refuses a quarter hour more", () => {
+    expect(MAX_BUFFER_MINUTES).toBe(150);
+    expect(defineVenueBuffers({ setupMinutes: 150, turnaroundMinutes: 150 })).toEqual({
+      setupMinutes: 150,
+      turnaroundMinutes: 150,
     });
-    expect(() => defineVenueBuffers({ setupMinutes: 1455, turnaroundMinutes: 0 })).toThrow(/at most 1440/);
-    expect(() => defineVenueBuffers({ setupMinutes: 0, turnaroundMinutes: 1455 })).toThrow(/at most 1440/);
+    expect(() => defineVenueBuffers({ setupMinutes: 165, turnaroundMinutes: 0 })).toThrow(/at most 150/);
+    expect(() => defineVenueBuffers({ setupMinutes: 0, turnaroundMinutes: 165 })).toThrow(/at most 150/);
+  });
+
+  it("AC2: offers 0 to 150 in steps of 15 in the form, 11 choices", () => {
+    expect(BUFFER_OPTIONS).toEqual([0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150]);
   });
 
   it("names the field the problem is on, so the form can show it beside the right box", () => {

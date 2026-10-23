@@ -291,7 +291,7 @@ describe("defineVenue setup and turnaround (SPM-23)", () => {
     ["only the setup time", { setupMinutes: 30, turnaroundMinutes: null }, "turnaroundMinutes"],
     ["only the turnaround time", { setupMinutes: null, turnaroundMinutes: 30 }, "setupMinutes"],
     ["a setup that is off the grid", { setupMinutes: 20, turnaroundMinutes: 30 }, "setupMinutes"],
-    ["a turnaround over a day", { setupMinutes: 30, turnaroundMinutes: 1455 }, "turnaroundMinutes"],
+    ["a turnaround over 150 minutes", { setupMinutes: 30, turnaroundMinutes: 165 }, "turnaroundMinutes"],
   ])("AC1, AC2: refuses %s and points at the box to fix", (_label, change, field) => {
     try {
       defineVenue(details(change));
