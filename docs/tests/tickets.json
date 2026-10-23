@@ -872,6 +872,21 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-321": {
+      "title": "Block a venue for a date range and time of day",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-322": {
+      "title": "Search venues by start and end time",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-324": {
+      "title": "Request a venue booking by start and end time",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-326": {
       "title": "Run events on start and end times",
       "parent": "SPM-276",
@@ -905,6 +920,81 @@
     "SPM-336": {
       "title": "Test and verify opening hours against AC1–AC5",
       "parent": "SPM-320",
+      "status": "In Progress"
+    },
+    "SPM-347": {
+      "title": "Store bookings as 15-minute slots and convert existing bookings",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-348": {
+      "title": "Update the request form to take a start and end time per date",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-349": {
+      "title": "Validate booking request times and missing fields",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-350": {
+      "title": "Block requests that overlap a live booking",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-351": {
+      "title": "Show requested times on the review page and new-request notification",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-352": {
+      "title": "Test and verify booking requests against AC1–AC5",
+      "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-450": {
+      "title": "Domain: define a block by date range and start and end time",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-451": {
+      "title": "Domain: refuse a block over closed time",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-452": {
+      "title": "Migration: convert existing blocks to 15-minute slots",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-453": {
+      "title": "Record, list and lift functions on 15-minute slots, with a closed-time backstop",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-454": {
+      "title": "One shared \"blocked over\" check, by time, for the four refusals",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-455": {
+      "title": "Readers: affected list, venue search and calendar read blocks by time",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-456": {
+      "title": "Ports, adapters, in-memory store and tests for blocks by time",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-457": {
+      "title": "Venue Staff form: start and end time, with opening hours listed and closed time disabled",
+      "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-458": {
+      "title": "Seed, checks, manual cases and the existing cases that use the old form",
+      "parent": "SPM-321",
       "status": "In Progress"
     }
   }

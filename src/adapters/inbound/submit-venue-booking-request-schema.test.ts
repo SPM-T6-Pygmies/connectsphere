@@ -6,33 +6,33 @@ const VALID = {
   eventId: "7",
   venueId: "2",
   roomLayout: "5",
-  slots: ["2026-10-05|AM", "2026-10-05|Night"],
+  times: [
+    { date: "2026-10-05", start: "07:00", end: "12:00" },
+    { date: "2026-10-06", start: "23:45", end: "24:00" },
+  ],
 };
 
 describe("submitVenueBookingRequestSchema (SPM-46)", () => {
-  it("reads each slot as a date and a slot", () => {
-    expect(submitVenueBookingRequestSchema.parse(VALID)).toEqual({
-      ...VALID,
-      slots: [
-        { date: "2026-10-05", slot: "AM" },
-        { date: "2026-10-05", slot: "Night" },
-      ],
-    });
-  });
-
   it("reads a blank layout as no layout chosen", () => {
     expect(submitVenueBookingRequestSchema.parse({ ...VALID, roomLayout: "" }).roomLayout).toBeNull();
   });
 
-  it("leaves an empty slot list for the domain to refuse", () => {
-    expect(submitVenueBookingRequestSchema.parse({ ...VALID, slots: [] }).slots).toEqual([]);
-  });
-
-  it.each(["2026-10-05|Evening", "2026-10-05", "|AM"])("refuses the malformed slot %j", (slot) => {
-    expect(submitVenueBookingRequestSchema.safeParse({ ...VALID, slots: [slot] }).success).toBe(false);
-  });
-
   it("refuses a request with no venue chosen", () => {
     expect(submitVenueBookingRequestSchema.safeParse({ ...VALID, venueId: " " }).success).toBe(false);
+  });
+});
+
+describe("submitVenueBookingRequestSchema (SPM-348)", () => {
+  it("reads each date with its start and end time, in the order sent", () => {
+    expect(submitVenueBookingRequestSchema.parse(VALID).times).toEqual(VALID.times);
+  });
+
+  it("passes a blank date or time through, so the domain can name what is missing", () => {
+    const times = [{ date: "", start: "07:00", end: "" }];
+    expect(submitVenueBookingRequestSchema.parse({ ...VALID, times }).times).toEqual(times);
+  });
+
+  it("leaves an empty list for the domain to refuse", () => {
+    expect(submitVenueBookingRequestSchema.parse({ ...VALID, times: [] }).times).toEqual([]);
   });
 });

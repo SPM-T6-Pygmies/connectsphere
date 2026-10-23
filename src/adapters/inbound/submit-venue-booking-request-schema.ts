@@ -1,14 +1,15 @@
 import { z } from "zod";
 
-import { BOOKING_SLOTS } from "@/core/domain/booking";
-
 /**
- * What the coordinator's booking request form submits (SPM-46).
+ * What the coordinator's booking request form submits (SPM-46, SPM-324).
  *
- * Shape only: each slot arrives as `YYYY-MM-DD|AM`. Whether the date is a
- * real day, whether a slot repeats, whether the venue needs a layout and
- * whether a slot is already taken are business rules, and they stay in the
- * domain (`requestVenueBooking`) so every caller gets the same answer.
+ * Shape only: each requested date arrives with its start and end time as
+ * `HH:MM`, and a field left blank stays blank. Whether a date or time is
+ * missing, whether it is a real day on the 15-minute grid, whether a date
+ * repeats, whether the venue needs a layout and whether the time is already
+ * taken are business rules, and they stay in the domain
+ * (`requestVenueBooking`) so every caller gets the same answer -- naming what
+ * is missing.
  */
 export const submitVenueBookingRequestSchema = z.object({
   eventId: z.string().trim().min(1, "The event is missing."),
@@ -17,15 +18,7 @@ export const submitVenueBookingRequestSchema = z.object({
     .string()
     .trim()
     .transform((value) => (value === "" ? null : value)),
-  slots: z.array(
-    z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}\|(AM|PM|Night)$/, "A slot is not in a form the server can read.")
-      .transform((value) => {
-        const [date, slot] = value.split("|");
-        return { date, slot: BOOKING_SLOTS.find((candidate) => candidate === slot)! };
-      }),
-  ),
+  times: z.array(z.object({ date: z.string(), start: z.string(), end: z.string() })),
 });
 
 export type SubmitVenueBookingRequestInput = z.infer<typeof submitVenueBookingRequestSchema>;

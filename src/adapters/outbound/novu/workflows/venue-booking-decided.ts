@@ -42,15 +42,16 @@ export const venueBookingDecided = workflow(
         eventRequestId: { type: ["string", "null"] },
         eventName: { type: "string" },
         venueLocation: { type: "string" },
-        slots: {
+        times: {
           type: "array",
           items: {
             type: "object",
             properties: {
               date: { type: "string" },
-              slot: { type: "string", enum: ["AM", "PM", "Night"] },
+              start: { type: "string" },
+              end: { type: "string" },
             },
-            required: ["date", "slot"],
+            required: ["date", "start", "end"],
             additionalProperties: false,
           },
         },
@@ -65,7 +66,7 @@ export const venueBookingDecided = workflow(
         "eventRequestId",
         "eventName",
         "venueLocation",
-        "slots",
+        "times",
         "outcome",
         "reason",
         "suggestedAlternativeLocation",

@@ -31,7 +31,7 @@ export type LiftUnavailabilityState =
   | { status: "lifted" }
   | { status: "error"; message: string };
 
-/** SPM-21: Venue Staff block a venue for a date range and some slots. */
+/** SPM-21: Venue Staff block a venue for a date range and a time of day. */
 export async function recordUnavailabilityAction(
   _previous: RecordUnavailabilityState,
   formData: FormData,
@@ -40,7 +40,8 @@ export async function recordUnavailabilityAction(
     venueId: String(formData.get("venueId") ?? ""),
     startDate: String(formData.get("startDate") ?? ""),
     endDate: String(formData.get("endDate") ?? ""),
-    slots: String(formData.get("slots") ?? ""),
+    startTime: String(formData.get("startTime") ?? ""),
+    endTime: String(formData.get("endTime") ?? ""),
     reason: String(formData.get("reason") ?? ""),
     note: String(formData.get("note") ?? ""),
   });

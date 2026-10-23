@@ -12,7 +12,7 @@ function notice(overrides: Partial<HoldExpiredNotice> = {}): HoldExpiredNotice {
     eventRequestId: "6",
     eventName: "Harbour Lights Gala",
     venueLocation: "Grand Ballroom",
-    slots: [{ date: "2026-11-20", slot: "PM" }],
+    times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     holdExpiresAt: "2026-11-18T05:00:00.000Z",
     ...overrides,
   };

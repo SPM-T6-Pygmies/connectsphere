@@ -81,8 +81,9 @@ export function VenueTab({
         <CardHeader>
           <CardTitle>New booking request</CardTitle>
           <CardDescription>
-            Venues are booked in AM, PM and Night slots. A slot another event already holds cannot
-            be requested. Venue Staff review the request and approve or reject it.
+            Venues are booked by start and end time, on the quarter hour. Time another event
+            already holds cannot be requested. Venue Staff review the request and approve or
+            reject it.
           </CardDescription>
         </CardHeader>
         <CardContent>

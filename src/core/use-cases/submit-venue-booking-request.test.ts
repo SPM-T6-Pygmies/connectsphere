@@ -19,6 +19,7 @@ import {
   VenueNotFoundError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
+import { slotTime } from "@/core/domain/booking";
 import { venueId, type Venue } from "@/core/domain/venue";
 
 import { SubmitVenueBookingRequestUseCase } from "./submit-venue-booking-request";
@@ -75,7 +76,7 @@ function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): 
     venueLocation: venue,
     roomLayoutName: null,
     status: "Confirmed",
-    slots: [{ date, slot }],
+    times: [slotTime({ date, slot })],
     requestedBy: OTHER_COORDINATOR,
     requestedAt: "2026-09-20T00:00:00.000Z",
   };
@@ -113,9 +114,9 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       userAccountId: COORDINATOR,
       venueId: "venue-hall",
       roomLayout: "Banquet",
-      slots: [
-        { date: "2026-10-05", slot: "PM" },
-        { date: "2026-10-05", slot: "AM" },
+      times: [
+        { date: "2026-10-06", start: "13:00", end: "18:00" },
+        { date: "2026-10-05", start: "07:00", end: "12:00" },
       ],
     });
 
@@ -127,9 +128,9 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         roomLayoutName: "Banquet",
         status: "Requested",
         requestedBy: COORDINATOR,
-        slots: [
-          { date: "2026-10-05", slot: "AM" },
-          { date: "2026-10-05", slot: "PM" },
+        times: [
+          { date: "2026-10-05", start: "07:00", end: "12:00" },
+          { date: "2026-10-06", start: "13:00", end: "18:00" },
         ],
       }),
     ]);
@@ -143,7 +144,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       userAccountId: COORDINATOR,
       venueId: "venue-studio",
       roomLayout: null,
-      slots: [{ date: "2026-10-05", slot: "AM" }],
+      times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
     });
 
     expect(bookings.all()[0]).toMatchObject({ roomLayoutName: "Classroom" });
@@ -158,7 +159,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
         roomLayout: null,
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       }),
     ).rejects.toThrow(RoomLayoutRequiredError);
     expect(bookings.all()).toEqual([]);
@@ -173,7 +174,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
         roomLayout: "Theatre",
-        slots: [{ date: "2026-10-05", slot: "PM" }],
+        times: [{ date: "2026-10-05", start: "13:00", end: "18:00" }],
       }),
     ).rejects.toThrow(VenueSlotUnavailableError);
     expect(bookings.all()).toHaveLength(1);
@@ -187,7 +188,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       userAccountId: COORDINATOR,
       venueId: "venue-hall",
       roomLayout: "Theatre",
-      slots: [{ date: "2026-10-05", slot: "PM" }],
+      times: [{ date: "2026-10-05", start: "13:00", end: "18:00" }],
     });
 
     expect(bookings.all()).toHaveLength(2);
@@ -202,7 +203,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       userAccountId: COORDINATOR,
       venueId: "venue-hall",
       roomLayout: "Theatre",
-      slots: [{ date: "2026-10-05", slot: "PM" }],
+      times: [{ date: "2026-10-05", start: "13:00", end: "18:00" }],
     });
 
     expect(bookings.all()).toHaveLength(2);
@@ -218,12 +219,14 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
         roomLayout: "Theatre",
-        slots: [{ date: "2026-10-05", slot: "PM" }],
+        times: [{ date: "2026-10-05", start: "13:00", end: "18:00" }],
       })
       .catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(VenueSlotUnavailableError);
-    expect((error as VenueSlotUnavailableError).slots).toEqual([{ date: "2026-10-05", slot: "PM" }]);
+    expect((error as VenueSlotUnavailableError).times).toEqual([
+      { date: "2026-10-05", start: "13:00", end: "18:00" },
+    ]);
   });
 
   it("does not clash with the same event's own live booking at another venue (AC5)", async () => {
@@ -236,7 +239,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       userAccountId: COORDINATOR,
       venueId: "venue-hall",
       roomLayout: "Theatre",
-      slots: [{ date: "2026-10-05", slot: "PM" }],
+      times: [{ date: "2026-10-05", start: "13:00", end: "18:00" }],
     });
 
     expect(bookings.all()).toHaveLength(2);
@@ -251,7 +254,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         userAccountId: OTHER_COORDINATOR,
         venueId: "venue-hall",
         roomLayout: "Theatre",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       }),
     ).rejects.toThrow(CoordinatorEventNotFoundError);
     expect(bookings.all()).toEqual([]);
@@ -266,7 +269,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
         roomLayout: "Theatre",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       }),
     ).rejects.toThrow(CoordinatorEventNotFoundError);
   });
@@ -280,14 +283,14 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
         userAccountId: COORDINATOR,
         venueId: "venue-404",
         roomLayout: null,
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       }),
     ).rejects.toThrow(VenueNotFoundError);
   });
 });
 
 describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
-  it("AC1, AC2: tells every Venue Staff member the venue, dates and slots requested", async () => {
+  it("AC1, AC2: tells every Venue Staff member the venue, dates and times requested", async () => {
     const { useCase, notifier } = buildUseCase([], ["venue-staff-1", "venue-staff-2"]);
 
     await useCase.execute({
@@ -295,9 +298,9 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
       userAccountId: COORDINATOR,
       venueId: "venue-hall",
       roomLayout: "Banquet",
-      slots: [
-        { date: "2026-10-06", slot: "AM" },
-        { date: "2026-10-05", slot: "Night" },
+      times: [
+        { date: "2026-10-06", start: "07:00", end: "12:00" },
+        { date: "2026-10-05", start: "19:00", end: "24:00" },
       ],
     });
 
@@ -305,9 +308,9 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
       bookingId: "booking-1",
       eventName: "Annual Conference",
       venueLocation: "Main Hall",
-      slots: [
-        { date: "2026-10-05", slot: "Night" },
-        { date: "2026-10-06", slot: "AM" },
+      times: [
+        { date: "2026-10-05", start: "19:00", end: "24:00" },
+        { date: "2026-10-06", start: "07:00", end: "12:00" },
       ],
     };
     expect(notifier.bookingRequests).toEqual([
@@ -325,7 +328,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
         roomLayout: "Banquet",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       }),
     ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
     expect(notifier.bookingRequests).toEqual([]);
@@ -339,7 +342,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
       userAccountId: COORDINATOR,
       venueId: "venue-studio",
       roomLayout: null,
-      slots: [{ date: "2026-10-05", slot: "AM" }],
+      times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
     });
 
     expect(result.status).toBe("Requested");
@@ -358,10 +361,43 @@ describe("SubmitVenueBookingRequestUseCase on a cancelled event (SPM-55)", () =>
         userAccountId: COORDINATOR,
         venueId: "venue-hall",
         roomLayout: "Theatre",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       }),
     ).rejects.toThrow(CancelledEventBookingError);
     expect(bookings.all()).toEqual([]);
     expect(notifier.bookingRequests).toEqual([]);
+  });
+});
+
+describe("SubmitVenueBookingRequestUseCase by time (SPM-350)", () => {
+  const confirmedMorning: StoredBooking = {
+    ...confirmedAt("venue-hall", "2026-10-05", "AM"),
+    times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
+  };
+
+  function submit(start: string, end: string) {
+    const { useCase } = buildUseCase([confirmedMorning]);
+    return useCase.execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+      venueId: "venue-hall",
+      roomLayout: "Banquet",
+      times: [{ date: "2026-10-05", start, end }],
+    });
+  }
+
+  it("refuses a 15-minute overlap with a confirmed booking, naming the overlapping time (AC2)", async () => {
+    const error = await submit("11:45", "13:00").catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenueSlotUnavailableError);
+    expect((error as VenueSlotUnavailableError).message).toContain("2026-10-05 11:45–12:00");
+  });
+
+  it("accepts a time that starts as the confirmed booking ends (AC2)", async () => {
+    await expect(submit("12:00", "13:00")).resolves.toMatchObject({ status: "Requested" });
+  });
+
+  it("accepts a time that ends as the confirmed booking starts (AC2)", async () => {
+    await expect(submit("06:00", "07:00")).resolves.toMatchObject({ status: "Requested" });
   });
 });

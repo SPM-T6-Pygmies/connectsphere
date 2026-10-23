@@ -6,9 +6,10 @@ import { parseOptionList } from "@/core/domain/venue-options";
  * The venue search's query string (SPM-44) -- and only its shape.
  *
  * Every filter is optional, so a blank or missing one becomes null (or an empty
- * list). Whether a date needs a slot, or a slot is one there is, is
- * `defineVenueSearch`'s call. Facilities, accessibility and slots arrive as
- * one comma-separated value each, as `OptionCheckboxes` posts them.
+ * list). Whether a date needs times, or a time is on the 15-minute grid, is
+ * `defineVenueSearch`'s call (SPM-322). Facilities and accessibility arrive as
+ * one comma-separated value each, as `OptionCheckboxes` posts them; the start
+ * and end as `HH:MM`, as `TimePicker` posts them.
  */
 const param = z
   .union([z.string(), z.array(z.string())])
@@ -30,7 +31,8 @@ export const venueSearchSchema = z.object({
   facilities: param.transform(parseOptionList),
   accessibility: param.transform(parseOptionList),
   date: param,
-  slots: param.transform(parseOptionList),
+  start: param,
+  end: param,
 });
 
 export type VenueSearchParams = z.input<typeof venueSearchSchema>;

@@ -1,6 +1,6 @@
-import { BOOKING_SLOTS, isBookingSlot, SLOT_HOURS, slotRange, type BookingSlot } from "./booking";
 import { closedPeriods } from "./opening-hours";
 import { InvalidVenueSearchError } from "./errors";
+import { END_OF_DAY, fromMinutes, isOnGrid, toMinutes, type TimeRange } from "./time-of-day";
 import { STANDARD_LAYOUTS, type Venue, type VenueId } from "./venue";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS, parseOptionList } from "./venue-options";
 
@@ -21,12 +21,16 @@ export interface VenueSearchCriteria {
   readonly window: VenueSearchWindow | null;
 }
 
-/** When the event would run: a day at the venue, and the slots it takes on that day. */
+/**
+ * SPM-322: when the event would run -- a day at the venue, and a start and end
+ * time on it, `HH:MM` on the 15-minute grid, Singapore time (#36). The end is
+ * after the start and may be `24:00`; the window never crosses midnight.
+ */
 export interface VenueSearchWindow {
   /** `YYYY-MM-DD`. */
   readonly date: string;
-  /** At least one, in `BOOKING_SLOTS` order. */
-  readonly slots: readonly BookingSlot[];
+  readonly start: string;
+  readonly end: string;
 }
 
 /** A span during which a venue is held by a live booking. */
@@ -42,15 +46,18 @@ export interface VenueSearchInput {
   readonly facilities: readonly string[];
   readonly accessibility: readonly string[];
   readonly date: string | null;
-  readonly slots: readonly string[];
+  readonly start: string | null;
+  readonly end: string | null;
 }
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * The only way to obtain `VenueSearchCriteria`. Refuses a search that cannot be
- * answered: a date without a slot (or slots without a date), a date already
- * past, or a value that is not an option. `today` is `YYYY-MM-DD` at the venues.
+ * answered: a date without a start and end time (or times without a date), a
+ * date already past, a time off the 15-minute grid or an end not after the
+ * start (SPM-322 AC3), or a value that is not an option. `today` is
+ * `YYYY-MM-DD` at the venues.
  */
 export function defineVenueSearch(input: VenueSearchInput, today: string): VenueSearchCriteria {
   const layout = blankToNull(input.layout);
@@ -83,16 +90,20 @@ export function defineVenueSearch(input: VenueSearchInput, today: string): Venue
 
 function defineWindow(input: VenueSearchInput, today: string): VenueSearchWindow | null {
   const date = blankToNull(input.date);
-  const picked = input.slots.map((slot) => slot.trim()).filter((slot) => slot.length > 0);
+  const start = blankToNull(input.start);
+  const end = blankToNull(input.end);
 
-  if (date === null && picked.length === 0) {
+  if (date === null && start === null && end === null) {
     return null;
   }
   if (date === null) {
     throw new InvalidVenueSearchError("Choose the event date.", "date");
   }
-  if (picked.length === 0) {
-    throw new InvalidVenueSearchError("Choose at least one slot.", "slots");
+  if (start === null) {
+    throw new InvalidVenueSearchError("Choose a start time.", "start");
+  }
+  if (end === null) {
+    throw new InvalidVenueSearchError("Choose an end time.", "end");
   }
   if (!DATE.test(date) || Number.isNaN(Date.parse(`${date}T00:00:00Z`))) {
     throw new InvalidVenueSearchError("Enter the date as YYYY-MM-DD.", "date");
@@ -100,14 +111,35 @@ function defineWindow(input: VenueSearchInput, today: string): VenueSearchWindow
   if (date < today) {
     throw new InvalidVenueSearchError("Choose a date from today onwards.", "date");
   }
-  const unknown = picked.filter((slot) => !isBookingSlot(slot));
-  if (unknown.length > 0) {
+
+  const from = gridTime(start, "start");
+  const to = gridTime(end, "end");
+  if (from === END_OF_DAY) {
+    throw new InvalidVenueSearchError("A search cannot start at 24:00.", "start");
+  }
+  // An end before the start is a range that crosses midnight, which no booking does.
+  if (to <= from) {
+    throw new InvalidVenueSearchError("The end time must be after the start time.", "end");
+  }
+  return { date, start: fromMinutes(from), end: fromMinutes(to) };
+}
+
+/** Minutes after midnight for a searched time, or a refusal naming what is wrong with it. */
+function gridTime(raw: string, field: "start" | "end"): number {
+  const minutes = toMinutes(raw);
+  if (minutes === null) {
     throw new InvalidVenueSearchError(
-      `${unknown.join(", ")} is not a slot -- choose from ${BOOKING_SLOTS.join(", ")}.`,
-      "slots",
+      `${raw} is not a time -- enter it as HH:MM, such as 07:00.`,
+      field,
     );
   }
-  return { date, slots: BOOKING_SLOTS.filter((slot) => picked.includes(slot)) };
+  if (!isOnGrid(minutes)) {
+    throw new InvalidVenueSearchError(
+      `${raw} is not on the 15-minute grid -- use :00, :15, :30 or :45.`,
+      field,
+    );
+  }
+  return minutes;
 }
 
 /**
@@ -120,7 +152,7 @@ export const EXCLUSION_REASONS = [
   "facilities",
   "accessibility",
   "hoursUnknown",
-  "slotClosed",
+  "closed",
   "beyondHorizon",
   "booked",
 ] as const;
@@ -141,7 +173,7 @@ export interface VenueSearchOutcome {
  * The venues that meet every criterion given, and why the rest did not.
  *
  * `busy` must cover the searched window; `timeZone` (IANA) is where the
- * venues' wall-clock times -- the slots on the searched date -- are read.
+ * venues' wall-clock times -- the searched times on its date -- are read.
  */
 export function searchVenues(
   venues: readonly Venue[],
@@ -212,10 +244,11 @@ export function isOpenFor(
 }
 
 /**
- * Whether the venue could be booked in every slot searched: it is open for
- * the whole of each one (SPM-320), the date is within its booking horizon,
- * and no live booking overlaps any of them. A venue missing its opening hours
- * or horizon cannot be shown to be open, so it is not.
+ * Whether the venue could be booked for the whole window searched: it is open
+ * for all of it (SPM-320, SPM-322 AC1), the date is within its booking
+ * horizon, and no live booking or In force block overlaps any of it. `busy`
+ * holds both, whichever slot grid they are stored on. A venue missing its
+ * opening hours or horizon cannot be shown to be open, so it is not.
  */
 function unavailability(
   venue: Venue,
@@ -228,41 +261,39 @@ function unavailability(
   if (openingHours.length === 0 || bookingHorizonDays === null) {
     return "hoursUnknown";
   }
-  if (window.slots.some((slot) => closedPeriods(openingHours, slotRange(slot)).length > 0)) {
-    return "slotClosed";
+  if (closedPeriods(openingHours, windowRange(window)).length > 0) {
+    return "closed";
   }
   if (daysBetween(today, window.date) > bookingHorizonDays) {
     return "beyondHorizon";
   }
 
-  const booked = window.slots.some((slot) => {
-    const from = instantAt(window.date, SLOT_HOURS[slot].start, timeZone).getTime();
-    const to = instantAt(window.date, SLOT_HOURS[slot].end, timeZone).getTime();
-    // Half-open: a booking ending as the slot starts leaves the venue free.
-    return busy.some(
-      (interval) =>
-        interval.venueId === venue.id &&
-        interval.startsAt.getTime() < to &&
-        interval.endsAt.getTime() > from,
-    );
-  });
+  const { from, to } = windowInstants(window, timeZone);
+  // Half-open (SPM-322 AC2): a booking ending as the window starts, or starting
+  // as it ends, leaves the venue free.
+  const booked = busy.some(
+    (interval) =>
+      interval.venueId === venue.id &&
+      interval.startsAt.getTime() < to.getTime() &&
+      interval.endsAt.getTime() > from.getTime(),
+  );
   return booked ? "booked" : null;
 }
 
-/**
- * The instants from the first searched slot's start to the last one's end, so
- * a caller can fetch the bookings it needs.
- */
+/** The instants the searched window starts and ends, so a caller can fetch the bookings it needs. */
 export function windowInstants(
   window: VenueSearchWindow,
   timeZone: string,
 ): { from: Date; to: Date } {
-  const first = window.slots[0];
-  const last = window.slots[window.slots.length - 1];
   return {
-    from: instantAt(window.date, SLOT_HOURS[first].start, timeZone),
-    to: instantAt(window.date, SLOT_HOURS[last].end, timeZone),
+    from: instantAt(window.date, window.start, timeZone),
+    to: instantAt(window.date, window.end, timeZone),
   };
+}
+
+/** The window as minutes after midnight. Assumes it came through `defineVenueSearch`. */
+function windowRange(window: VenueSearchWindow): TimeRange {
+  return { start: toMinutes(window.start) ?? 0, end: toMinutes(window.end) ?? 0 };
 }
 
 /** `now`'s calendar date (`YYYY-MM-DD`) in `timeZone`. */

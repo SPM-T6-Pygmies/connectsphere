@@ -10,7 +10,7 @@ function notice(overrides: Partial<VenueBookingRequestedNotice> = {}): VenueBook
     bookingId: "31",
     eventName: "Harbour Lights Gala",
     venueLocation: "Grand Ballroom",
-    slots: [{ date: "2026-11-20", slot: "PM" }],
+    times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     ...overrides,
   };
 }
@@ -19,37 +19,37 @@ describe("venueBookingRequestedMessage (SPM-61)", () => {
   it("AC2: names the venue, the date and the slot requested", () => {
     expect(venueBookingRequestedMessage(notice())).toEqual({
       subject: "Grand Ballroom requested for Harbour Lights Gala",
-      body: "Requested for Fri, 20 Nov 2026 (PM). Approve or reject it.",
+      body: "Requested for Fri, 20 Nov 2026 (13:00–18:00). Approve or reject it.",
     });
   });
 
   it("AC2: lists every slot on a day, in the order they fall", () => {
     const message = venueBookingRequestedMessage(
       notice({
-        slots: [
-          { date: "2026-11-20", slot: "AM" },
-          { date: "2026-11-20", slot: "PM" },
-          { date: "2026-11-20", slot: "Night" },
+        times: [
+          { date: "2026-11-20", start: "07:00", end: "12:00" },
+          { date: "2026-11-20", start: "13:00", end: "18:00" },
+          { date: "2026-11-20", start: "19:00", end: "24:00" },
         ],
       }),
     );
 
-    expect(message.body).toBe("Requested for Fri, 20 Nov 2026 (AM, PM, Night). Approve or reject it.");
+    expect(message.body).toBe("Requested for Fri, 20 Nov 2026 (07:00–12:00, 13:00–18:00, 19:00–24:00). Approve or reject it.");
   });
 
   it("AC2: names every date of a request that spans days, each with its own slots", () => {
     const message = venueBookingRequestedMessage(
       notice({
-        slots: [
-          { date: "2026-11-20", slot: "Night" },
-          { date: "2026-11-21", slot: "AM" },
-          { date: "2026-11-21", slot: "PM" },
+        times: [
+          { date: "2026-11-20", start: "19:00", end: "24:00" },
+          { date: "2026-11-21", start: "07:00", end: "12:00" },
+          { date: "2026-11-21", start: "13:00", end: "18:00" },
         ],
       }),
     );
 
     expect(message.body).toBe(
-      "Requested for Fri, 20 Nov 2026 (Night) and Sat, 21 Nov 2026 (AM, PM). Approve or reject it.",
+      "Requested for Fri, 20 Nov 2026 (19:00–24:00) and Sat, 21 Nov 2026 (07:00–12:00, 13:00–18:00). Approve or reject it.",
     );
   });
 });

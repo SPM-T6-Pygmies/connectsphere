@@ -7,7 +7,7 @@
 --   Seminar Room 2-1     two layouts
 --   Studio               one layout   -- taken without asking
 --   Rooftop Terrace      two layouts  -- the coordinator must choose one
--- No seeded venue has zero layouts.
+-- No seeded venue has zero layouts. Each is open 07:00-12:00, 13:00-18:00 and 19:00-24:00.
 --
 -- Facilities, accessibility and layouts follow the Connectsphere Data Single
 -- Source of Truth (SPM-277).
@@ -57,6 +57,15 @@ begin
       )
       returning venue_id into v_venue_id;
     end if;
+
+    -- Opening hours (SPM-320): 07:00-12:00, 13:00-18:00 and 19:00-24:00 -- what AM, PM and Night
+    -- were -- so a booking or a block has hours to be judged against. Only a venue with none yet,
+    -- so a re-run never undoes hours changed in the app.
+    insert into public.venue_slot (venue_id, slot_code)
+    select v_venue_id, n::text
+    from generate_series(28, 95) n
+    where (n between 28 and 47 or n between 52 and 71 or n between 76 and 95)
+      and not exists (select 1 from public.venue_slot where venue_id = v_venue_id);
   end loop;
 
   for l in

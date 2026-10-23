@@ -1,9 +1,9 @@
 import {
-  clashingSlots,
+  blockedTimes,
+  clashingTimes,
   type BookingId,
   type BookingRequest,
-  type OccupiedSlot,
-  type SlotOnDate,
+  type OccupiedTime,
 } from "@/core/domain/booking";
 import {
   BookingNotCancellableError,
@@ -19,6 +19,7 @@ import {
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
+import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
 import type {
@@ -29,8 +30,7 @@ import type {
 import {
   toChangeRoomLayoutArgs,
   toEventBookingSummary,
-  toOccupiedSlot,
-  toSlot,
+  toOccupiedTime,
   toSubmitBookingArgs,
   type BookedSlotRow,
   type EventBookingRow,
@@ -65,7 +65,7 @@ const BOOKING_NOT_CANCELLABLE = "CS075";
 export class SupabaseBookingRepository implements BookingRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
-  async listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedSlot[]> {
+  async listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedTime[]> {
     const key = toKey(venue);
     if (key === null || dates.length === 0) {
       return [];
@@ -79,7 +79,7 @@ export class SupabaseBookingRepository implements BookingRepository {
       throw new Error(`Failed to read the venue's booked slots: ${error.message}`, { cause: error });
     }
 
-    return ((data ?? []) as unknown as BookedSlotRow[]).map(toOccupiedSlot);
+    return ((data ?? []) as unknown as BookedSlotRow[]).map(toOccupiedTime);
   }
 
   async listForEvent(
@@ -136,14 +136,14 @@ export class SupabaseBookingRepository implements BookingRepository {
         case SLOTS_INVALID:
           // The domain refuses these before the call; reaching here means the
           // two disagree, and the date is the likeliest culprit.
-          throw request.slots.length === 0
+          throw request.times.length === 0
             ? new NoBookingSlotsError()
-            : new InvalidBookingDateError(request.slots.map(({ date }) => date).join(", "));
+            : new InvalidBookingDateError(request.times.map(({ date }) => date).join(", "));
         case SLOT_TAKEN:
           throw new VenueSlotUnavailableError(await this.takenOf(request));
         case SLOT_BLOCKED:
           throw new VenueSlotBlockedError(
-            await this.blockedOf(request.venueId, request.slots, error.message),
+            await this.blockedOf(request.venueId, request.times, error.message),
           );
         default:
           throw new Error(`Failed to submit the booking request: ${error.message}`, {
@@ -228,49 +228,47 @@ export class SupabaseBookingRepository implements BookingRepository {
     }
   }
 
-  /** Which of the request's slots were taken, for a message that names them. */
+  /** Which of the request's times were taken, for a message that names them. */
   private async takenOf(request: BookingRequest) {
     const occupied = await this.listSlotsAt(
       request.venueId,
-      [...new Set(request.slots.map(({ date }) => date))],
+      [...new Set(request.times.map(({ date }) => date))],
     );
-    return clashingSlots(request.slots, occupied, new Date());
+    return clashingTimes(request.times, occupied, new Date());
   }
 
   /**
-   * Which of a booking's slots are blocked, for a message that names them.
-   * The trigger stops at the first one; the read says them all. If a lift
+   * Which of a booking's times are blocked, for a message that names them.
+   * The trigger stops at the first slot; the read says them all. If a lift
    * landed in between and nothing is blocked any more, the database's own
-   * message still names the slot it refused. Venue Staff's approval reads it
+   * message still names the time it refused. Venue Staff's approval reads it
    * too (SPM-22).
    */
   async blockedOf(
     venue: VenueId,
-    slots: readonly SlotOnDate[],
+    times: readonly TimeRangeOnDate[],
     refusal: string,
-  ): Promise<SlotOnDate[]> {
+  ): Promise<TimeRangeOnDate[]> {
     const key = toKey(venue);
-    const dates = slots.map(({ date }) => date).sort();
+    const dates = times.map(({ date }) => date).sort();
     if (key !== null && dates.length > 0) {
       const { data } = await this.client.rpc("venue_blocked_slots", {
         p_venue_id: key,
         p_from: dates[0],
         p_to: dates[dates.length - 1],
       });
-      const blocked = new Set(
-        ((data ?? []) as unknown as Array<{ date: string; slot: string }>).map(
-          ({ date, slot }) => `${date.slice(0, 10)}|${slot}`,
-        ),
+      const blocks = ((data ?? []) as unknown as Array<{ date: string; slot: string }>).map(
+        ({ date, slot }) => ({ date: date.slice(0, 10), slot }),
       );
-      const named = slots.filter(({ date, slot }) => blocked.has(`${date}|${slot}`));
+      const named = blockedTimes(times, blocks);
       if (named.length > 0) {
         return named;
       }
     }
 
-    const fromMessage = /(\d{4}-\d{2}-\d{2}) (AM|PM|Night)/.exec(refusal);
+    const fromMessage = /(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})–(\d{2}:\d{2})/.exec(refusal);
     return fromMessage === null
       ? []
-      : [{ date: fromMessage[1], slot: toSlot(fromMessage[2]) }];
+      : [{ date: fromMessage[1], start: fromMessage[2], end: fromMessage[3] }];
   }
 }

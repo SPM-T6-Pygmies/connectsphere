@@ -20,6 +20,7 @@ import type {
 
 import { EmptyState } from "../../../../field-list";
 import { formatHoldExpiry } from "../../../../hold-expiry";
+import { formatTimes } from "../../../../slot-label";
 import { StatusBadge } from "../../../../status-badge";
 import { SuitabilityChecklist } from "../../../../suitability-checklist";
 import { CancelBookingForm } from "./cancel-booking-form";
@@ -58,7 +59,7 @@ export function BookingsTable({
       <TableHeader>
         <TableRow>
           <TableHead>Venue</TableHead>
-          <TableHead>Slots</TableHead>
+          <TableHead>Times</TableHead>
           <TableHead>Layout</TableHead>
           <TableHead>Suitability</TableHead>
           <TableHead>Status</TableHead>
@@ -86,7 +87,7 @@ export function BookingsTable({
                 ) : null}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs whitespace-normal">
-                {booking.slots.map(({ date, slot }) => `${date} ${slot}`).join(", ")}
+                {formatTimes(booking.times)}
               </TableCell>
               <TableCell className="text-muted-foreground whitespace-normal">
                 <div className="space-y-2">
