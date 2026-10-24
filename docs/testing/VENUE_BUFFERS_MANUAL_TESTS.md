@@ -174,7 +174,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 supabase db query --file scripts/seed-venue-buffers/checks.sql --local
 ```
 
-**Expected Result:** the CLI prints `failed to execute query: error: ok: all 19 checks held`. That is the pass: the script ends with an error on purpose so everything it wrote rolls back. A failure reads `error: FAILED: <the checks that did not hold>`. The checks cover the catalogue reading each venue's state, one without the other, off the 15-minute grid, negative and over-a-day values refused by the constraint, exactly a day accepted, a defined venue's values refused when changed, cleared or defined as 0 and 0 (`CS080`), a save sending the locked values back accepted, create storing the pair and refusing half of it.
+**Expected Result:** the CLI prints `failed to execute query: error: ok: all 19 checks held`. That is the pass: the script ends with an error on purpose so everything it wrote rolls back. A failure reads `error: FAILED: <the checks that did not hold>`. The checks cover the catalogue reading each venue's state, one without the other, off the 15-minute grid, negative and over-150-minute values refused by the constraint, exactly 150 accepted, a defined venue's values refused when changed, cleared or defined as 0 and 0 (`CS080`), a save sending the locked values back accepted, create storing the pair and refusing half of it.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, `checks.sql` ended with "ok: all 19 checks held"
 
