@@ -984,7 +984,8 @@ export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
 
 /** SPM-147: Venue Staff update a venue and its layouts. */
 export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
-  return new UpdateVenueUseCase({ venues: await venueCatalogue() });
+  const client = await createSupabaseServerClient();
+  return new UpdateVenueUseCase({ venues: new SupabaseVenueCatalogue(client) });
 }
 
 /**

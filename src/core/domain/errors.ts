@@ -810,6 +810,8 @@ export type VenueField =
   | "openingHours"
   | "capacity"
   | "bookingHorizonDays"
+  | "setupMinutes"
+  | "turnaroundMinutes"
   | "layouts";
 
 /**

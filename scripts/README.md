@@ -60,7 +60,7 @@ What you now have:
 | Seed | Gives you |
 | --- | --- |
 | `seed-coordinator-view` | 8 event requests, one in each state the screens tell apart. Includes *Founders' Gala Dinner*, Approved, assigned to Test Coordinator. No events yet. |
-| `seed-venues` | Main Hall, Seminar Room 2-1, Studio and Rooftop Terrace, with their layouts, each open 07:00–12:00, 13:00–18:00 and 19:00–24:00. |
+| `seed-venues` | Main Hall, Seminar Room 2-1, Studio and Rooftop Terrace, with their layouts, each open 07:00–12:00, 13:00–18:00 and 19:00–24:00. Setup and turnaround show each state (an earlier seed gave 60, 30, 90 and 120 minutes, now locked in a database seeded before; run `supabase db reset` once to pick up these): Main Hall 30 and 45 minutes, Studio 0 and 0, the other two not defined. |
 | `seed-venue-search-uat` | UAT-44 Harbour Room and UAT-44 Garden Hall, with slots and a booking horizon, and two bookings on them. |
 | `seed-equipment` | The six equipment types (Projector 10, Wireless microphone 30, PA speaker 5, Presentation laptop 8, Livestream kit 2, Crowd barrier 40) and the *Founders' Gala Dinner* event, with two equipment lines. |
 
@@ -111,6 +111,7 @@ needs. This table says what that is.
 | Venue hold | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-holds`, then `seed-booking-holds/fixture.sql` (its Setup lists every command) |
 | Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
 | Venue flag | `seed-coordinator-view`, `seed-venues`, `seed-booking-flags` (its Setup lists every command) |
+| Venue setup and turnaround | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-booking-holds`; `seed-venue-buffers/checks.sql` for the database cases |
 | Venue booking cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel` |
 | Venue flag clear | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel`, `seed-booking-flag-clear/blocks.sql` |
 | Safety check essential lines | `seed-venues`, `seed-safety-check` (its `verify` must read 29 rows `ok = true`) |
@@ -162,6 +163,7 @@ local subscribers and notifications stay behind otherwise.
 | `seed-equipment-reserve` | 4 events whose lines are all New, for reserving | The base logins | Yes | `seed`, `verify` (14 rows), `teardown` |
 | `seed-safety-check` | 8 Planning events for the Safety Officer: 4 on the Awaiting check list, 4 one change away from it, with their bookings and lines | The base logins, `seed-venues` | Yes | `seed`, `verify` (29 rows), `teardown` |
 | `seed-venue-unavailability` | 3 venue blocks on Main Hall and Studio, on 15-minute slots (09:00–11:30, a whole open day, 13:00–18:00) | `seed-venues` | Yes | `seed`, `verify` (5 rows), `refusals`, `checks`, `teardown` |
+| `seed-venue-buffers` | No data: `checks.sql` only, for a venue's setup and turnaround (SPM-23) | `seed-venues` | n/a | `checks` |
 | `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, 21 days from today (one expired, one live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset | `seed`, `fixture`, `teardown` |
 | `seed-booking-flags` | 7 *Flag Test:* events with 9 bookings on Main Hall, Studio and Rooftop Terrace, 28 days from today (Confirmed, Requested, a live and an expired hold), for the venue flag cases to block | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events | `seed`, `show` (9 rows), `blocks`, `checks` (40 checks), `clear-checks` (14 checks, SPM-310), `teardown` (also removes the blocks the cases recorded) |
 | `seed-booking-cancel` | 5 bookings on the *Founders' Gala Dinner* at the two UAT-44 venues, 10 days from today: two Confirmed, one Requested, one Tentative Hold, one Rejected | `seed-equipment`, `seed-venue-search-uat` | Yes | `seed`, `verify` (7 rows), `teardown` |
@@ -172,15 +174,16 @@ local subscribers and notifications stay behind otherwise.
 "Safe to re-run" means it inserts only what is missing, so a row you have since
 changed in the app is kept. For a fresh start, use the teardown or a reset.
 
-Two of the scripts have extra read-only files:
+Some of the scripts have extra read-only files:
 
 - `seed-venue-unavailability/refusals.sql` tries inputs the database must refuse
   (a bad reason, a note under Safety, a 501-character note) and writes nothing.
+- `seed-venue-buffers/checks.sql` checks a venue's setup and turnaround: the constraint, the lock, and the catalogue functions (TC-VBUFFER-005). It needs `seed-venues`.
 - `seed-venue-unavailability/checks.sql` checks the functions, audit rows, busy-time
   read, the booking refusals by time, the closed-time refusal and the order of reasons (TC-VBLOCK-008). It needs `seed-venue-search-uat`
   as well.
 
-Both report **success as an error**: a line reading `ERROR: ok: all refusals held`
+These report **success as an error**: a line reading `ERROR: ok: all refusals held`
 or `ERROR: ok: all 35 checks held` means every check passed (the `supabase db query`
 CLI words it `failed to execute query: error: ok: all 35 checks held`). They raise on
 purpose, so nothing is saved. A real failure reads `error: FAILED: <the checks that did not hold>`.
