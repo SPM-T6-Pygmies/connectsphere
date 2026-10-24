@@ -19,6 +19,14 @@ const wholeNumber = (blank: string, invalid: string) =>
     .regex(/^\d+$/, invalid)
     .transform(Number);
 
+/** SPM-23: left blank when not defined; a number of minutes otherwise. Whether it is on the grid is `defineVenueBuffers`' call. */
+const optionalMinutes = z
+  .string()
+  .trim()
+  .default("")
+  .refine((value) => value === "" || /^\d+$/.test(value), "Enter the minutes as a whole number, 0 or more.")
+  .transform((value) => (value === "" ? null : Number(value)));
+
 const time = (blank: string) =>
   z
     .string()
@@ -47,6 +55,8 @@ export const createVenueSchema = z.object({
     "Enter the booking horizon in days.",
     "Enter the booking horizon as a whole number of days.",
   ),
+  setupMinutes: optionalMinutes,
+  turnaroundMinutes: optionalMinutes,
   layouts: z.array(layout).min(1, "Add at least one supported room layout."),
 });
 
@@ -84,6 +94,8 @@ export function venueFormValues(formData: FormData) {
     })),
     capacity: String(formData.get("capacity") ?? ""),
     bookingHorizonDays: String(formData.get("bookingHorizonDays") ?? ""),
+    setupMinutes: String(formData.get("setupMinutes") ?? ""),
+    turnaroundMinutes: String(formData.get("turnaroundMinutes") ?? ""),
     layouts: names.map((name, index) => ({
       name: String(name),
       capacity: String(capacities[index] ?? ""),

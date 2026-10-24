@@ -7,6 +7,9 @@
 --   Seminar Room 2-1     two layouts
 --   Studio               one layout   -- taken without asking
 --   Rooftop Terrace      two layouts  -- the coordinator must choose one
+-- Setup and turnaround (SPM-23), once defined, are locked, so the four show each state:
+-- Main Hall 30 and 45 minutes (the customer's example: 10:00-12:00 occupies 09:30-12:45),
+-- Studio 0 and 0 (a defined 0), Seminar Room 2-1 and Rooftop Terrace not defined (counts as 0).
 -- No seeded venue has zero layouts. Each is open 07:00-12:00, 13:00-18:00 and 19:00-24:00.
 --
 -- Facilities, accessibility and layouts follow the Connectsphere Data Single
@@ -38,10 +41,10 @@ begin
   for v in
     select *
     from (values
-      ('Main Hall',        300, 'Wi-Fi, Catering area',           'Step-free access, Hearing loop', 120, 120),
-      ('Seminar Room 2-1',  40, 'Wi-Fi, Video-conferencing',      'Lift access',                     30,  30),
-      ('Studio',            60, 'Wi-Fi, Video-conferencing',      'Step-free access',                60,  60),
-      ('Rooftop Terrace',  150, 'Catering area',                  'Lift access',                     90,  90)
+      ('Main Hall',        300, 'Wi-Fi, Catering area',           'Step-free access, Hearing loop',  30,  45),
+      ('Seminar Room 2-1',  40, 'Wi-Fi, Video-conferencing',      'Lift access',                   null::int, null::int),
+      ('Studio',            60, 'Wi-Fi, Video-conferencing',      'Step-free access',                 0,   0),
+      ('Rooftop Terrace',  150, 'Catering area',                  'Lift access',                   null::int, null::int)
     ) as t (location, capacity, facilities, accessibility, setup_minutes, turnaround_minutes)
   loop
     select venue_id into v_venue_id from public.venue where location = v.location;

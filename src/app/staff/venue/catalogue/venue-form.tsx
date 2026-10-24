@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { exceedsVenueCapacity, STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
+import { BUFFER_OPTIONS } from "@/core/domain/venue-buffers";
 import {
   ACCESSIBILITY_OPTIONS,
   FACILITY_OPTIONS,
@@ -83,6 +84,11 @@ export function VenueForm({
       : [{ key: 0, start: "", end: "" }],
   );
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
+  // SPM-23: defined once, then locked. A locked box is read-only, not disabled, so the venue's own
+  // values are still sent back with the rest of the form and the save is not a change.
+  const buffersLocked = venue?.setupMinutes != null || venue?.turnaroundMinutes != null;
+  const [setup, setSetup] = useState(venue?.setupMinutes?.toString() ?? "");
+  const [turnaround, setTurnaround] = useState(venue?.turnaroundMinutes?.toString() ?? "");
   const [nextKey, setNextKey] = useState(() => (venue?.layouts.length ?? 0) + 1);
   const [layouts, setLayouts] = useState<LayoutRow[]>(() =>
     venue && venue.layouts.length > 0
@@ -326,6 +332,42 @@ export function VenueForm({
               onChange={(event) => setHorizon(event.target.value)}
             />
           </Field>
+          <Field
+            id="setupMinutes"
+            label="Setup time"
+            hint={
+              buffersLocked
+                ? "Locked: setup and turnaround are set once and cannot be changed."
+                : "Time to prepare the room before an event. Choose 0 to 150 minutes in 15-minute steps; 0 is allowed. Choose both setup and turnaround, or neither: a venue with neither set counts as 0. Once saved they are locked."
+            }
+            error={errors?.setupMinutes}
+          >
+            <BufferSelect
+              id="setupMinutes"
+              locked={buffersLocked}
+              invalid={errors?.setupMinutes !== undefined}
+              value={setup}
+              onChange={setSetup}
+            />
+          </Field>
+          <Field
+            id="turnaroundMinutes"
+            label="Turnaround time"
+            hint={
+              buffersLocked
+                ? "Locked."
+                : "Time to reset the room after an event. 0 to 150 minutes in 15-minute steps."
+            }
+            error={errors?.turnaroundMinutes}
+          >
+            <BufferSelect
+              id="turnaroundMinutes"
+              locked={buffersLocked}
+              invalid={errors?.turnaroundMinutes !== undefined}
+              value={turnaround}
+              onChange={setTurnaround}
+            />
+          </Field>
         </CardContent>
       </Card>
 
@@ -448,3 +490,44 @@ function Field({
   );
 }
 
+
+/**
+ * SPM-23: setup or turnaround, 0 to the most in 15-minute steps. Blank is "not set". Once the
+ * venue's values are defined the choice is shown but cannot be changed; a disabled select is not
+ * submitted, so the venue's own value travels in a hidden field and the save is not a change.
+ */
+function BufferSelect({
+  id,
+  locked,
+  invalid,
+  value,
+  onChange,
+}: {
+  id: "setupMinutes" | "turnaroundMinutes";
+  locked: boolean;
+  invalid: boolean;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <>
+      {locked ? <input type="hidden" name={id} value={value} /> : null}
+      <select
+        id={id}
+        name={locked ? undefined : id}
+        disabled={locked}
+        aria-invalid={invalid}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="border-input aria-invalid:border-destructive disabled:bg-muted disabled:text-muted-foreground h-8 w-full rounded-lg border bg-transparent px-2.5 text-base md:text-sm"
+      >
+        <option value="">Not set</option>
+        {BUFFER_OPTIONS.map((minutes) => (
+          <option key={minutes} value={minutes}>
+            {minutes} min
+          </option>
+        ))}
+      </select>
+    </>
+  );
+}

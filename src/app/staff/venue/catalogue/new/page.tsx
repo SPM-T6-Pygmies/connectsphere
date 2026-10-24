@@ -1,6 +1,6 @@
 import { PageHeader, StaffShell } from "../../../staff-shell";
 import { createVenueAction } from "../actions";
-import { VenueForm } from "../venue-form";
+import { NewVenueForm } from "./new-venue-form";
 
 export const metadata = { title: "Add venue | ConnectSphere" };
 
@@ -12,7 +12,7 @@ export default function NewVenuePage() {
       defaultOpen={false}
     >
       <PageHeader title="Add venue" description="Create a venue record and the layouts it supports." />
-      <VenueForm action={createVenueAction} />
+      <NewVenueForm action={createVenueAction} />
     </StaffShell>
   );
 }
