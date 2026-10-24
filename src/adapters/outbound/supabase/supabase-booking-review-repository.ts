@@ -9,6 +9,7 @@ import {
   BookingNotFoundError,
   DecisionReasonRequiredError,
   HoldNotLiveError,
+  VenuePaddedClashError,
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
@@ -39,6 +40,9 @@ const SLOT_TAKEN = "CS025";
 // A Venue Staff block covers one of the booking's slots (SPM-22), the same
 // code the booking_slot trigger raises for a request.
 const SLOT_BLOCKED = "CS028";
+// SPM-19: the booking's setup or turnaround time overlaps another live booking's. The clashes come as JSON in
+// the error detail: `[{ event, date, start, end }]`.
+const PADDED_CLASH = "CS082";
 // SQLSTATE raised by venue_staff_resolve_hold (SPM-219): not a live hold. CS030 is its not-found,
 // and CS028 (above) its refusal to confirm over a block.
 const HOLD_NOT_LIVE = "CS074";
@@ -101,6 +105,8 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
         throw new VenueSlotUnavailableError(await this.takenBy(decided));
       case SLOT_BLOCKED:
         throw new VenueSlotBlockedError(await this.blockedBy(decided.id, decided.decidedBy, error.message));
+      case PADDED_CLASH:
+        throw new VenuePaddedClashError(toPaddedClashes(error.details));
       default:
         throw new Error(`Failed to decide the booking: ${error.message}`, { cause: error });
     }
@@ -181,4 +187,15 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
     );
     return clashingTimes(booking.times, occupied, new Date());
   }
+}
+
+/** The clashes the decide function names in its error detail (CS082). */
+function toPaddedClashes(details: string | null | undefined) {
+  const rows = JSON.parse(details ?? "[]") as ReadonlyArray<{
+    event: string;
+    date: string;
+    start: string;
+    end: string;
+  }>;
+  return rows.map(({ event, date, start, end }) => ({ eventName: event, date, start, end }));
 }

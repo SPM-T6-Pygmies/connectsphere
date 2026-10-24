@@ -16,6 +16,7 @@ import {
   DecisionReasonRequiredError,
   HoldNotLiveError,
   HoldSlotStartedError,
+  VenuePaddedClashError,
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "../domain/errors";
@@ -669,5 +670,100 @@ describe("DecideBookingRequestUseCase confirming or releasing a hold (SPM-219)",
     await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "confirm" });
 
     expect(notifier.safetyChecksReady.map((notice) => notice.recipientUserAccountId)).toEqual(["safety-1"]);
+  });
+});
+
+describe("DecideBookingRequestUseCase, setup and turnaround (SPM-19)", () => {
+  const MAIN_HALL = { setup: 30, turnaround: 45 };
+  const DAY = "2026-12-14";
+
+  /** A request at Main Hall v1 (30 / 45) and the booking already there, at the given times. */
+  function atMainHall(
+    existing: { status: BookingStatus; start: string; end: string },
+    request: { start: string; end: string },
+  ) {
+    const asked = booking("b1", "Requested", "AM", "v1");
+    const there = booking("b2", existing.status, "AM", "v1");
+    const rows = [
+      { ...asked, times: [{ date: DAY, ...request }] },
+      {
+        ...there,
+        times: [{ date: DAY, start: existing.start, end: existing.end }],
+        event: { ...there.event, name: "Charity Run" },
+      },
+    ];
+    const reviews = new InMemoryBookingReviewRepository(rows, [STAFF], {}, { v1: MAIN_HALL });
+    const bookings = new InMemoryBookingRepository([]);
+    const notifier = new RecordingNotifier();
+    const useCase = new DecideBookingRequestUseCase({
+      reviews,
+      bookings,
+      safetyCheck: new SafetyCheckEntryAnnouncer({ watch: new InMemorySafetyCheckWatch(), notifier }),
+      clock: new FixedClock(NOW),
+      notifier,
+    });
+    return { useCase, reviews };
+  }
+
+  it("AC1: refuses to approve a request whose setup runs into another booking's turnaround, though the times do not touch", async () => {
+    const { useCase, reviews } = atMainHall(
+      { status: "Confirmed", start: "07:00", end: "09:15" },
+      { start: "10:00", end: "12:00" },
+    );
+
+    const error = await useCase
+      .execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenuePaddedClashError);
+    expect((error as VenuePaddedClashError).clashes).toEqual([
+      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00" },
+    ]);
+    expect(reviews.all()[0]?.status).toBe("Requested");
+  });
+
+  it("AC2: approves a request whose setup starts exactly when the other booking's turnaround ends", async () => {
+    const { useCase, reviews } = atMainHall(
+      { status: "Confirmed", start: "07:00", end: "09:15" },
+      { start: "10:30", end: "12:00" },
+    );
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+
+    expect(reviews.all()[0]?.status).toBe("Confirmed");
+  });
+
+  it("AC3: refuses to place a hold in the same way, and the request stays Requested", async () => {
+    const { useCase, reviews } = atMainHall(
+      { status: "Confirmed", start: "07:00", end: "09:15" },
+      { start: "10:00", end: "12:00" },
+    );
+
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" }),
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
+    expect(reviews.all()[0]?.status).toBe("Requested");
+  });
+
+  it("AC4: a Tentative Hold in the way is padded like a Confirmed booking", async () => {
+    const { useCase } = atMainHall(
+      { status: "Tentative Hold", start: "07:00", end: "09:15" },
+      { start: "10:00", end: "12:00" },
+    );
+
+    await expect(
+      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
+  });
+
+  it("AC5: a Rejected booking in the way does not block", async () => {
+    const { useCase, reviews } = atMainHall(
+      { status: "Rejected", start: "07:00", end: "09:15" },
+      { start: "10:00", end: "12:00" },
+    );
+
+    await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
+
+    expect(reviews.all()[0]?.status).toBe("Confirmed");
   });
 });

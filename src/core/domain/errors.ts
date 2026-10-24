@@ -461,6 +461,22 @@ export class VenueSlotUnavailableError extends DomainError {
   }
 }
 
+/**
+ * SPM-19: a booking's setup or turnaround time overlaps another live booking's (a hold counts
+ * too), though the booked times themselves are free. Names each overlap and the event in the way.
+ */
+export class VenuePaddedClashError extends DomainError {
+  readonly code = "venue_padded_clash";
+
+  constructor(readonly clashes: ReadonlyArray<TimeOnDate & { readonly eventName: string }>) {
+    super(
+      `The padded time (setup and turnaround) overlaps with ${clashes
+        .map(({ eventName, date, start, end }) => `${eventName} on ${date}, ${start}–${end}`)
+        .join("; ")}. Choose other times or another venue.`,
+    );
+  }
+}
+
 /** SPM-334: a requested slot includes time the venue is closed (SPM-320 AC3). */
 export class VenueClosedError extends DomainError {
   readonly code = "venue_closed";

@@ -5,6 +5,7 @@ import {
   BookingNotDecidableError,
   BookingNotFoundError,
   HoldNotLiveError,
+  VenuePaddedClashError,
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
@@ -14,7 +15,7 @@ import type { SupabaseServerClient } from "./client";
 import type { BookingReviewRow } from "./booking-review-mapper";
 import { SupabaseBookingReviewRepository } from "./supabase-booking-review-repository";
 
-type RpcResult = { data: unknown; error: { code?: string; message: string } | null };
+type RpcResult = { data: unknown; error: { code?: string; message: string; details?: string } | null };
 
 function fakeClient(answers: Record<string, RpcResult>) {
   const calls: Array<{ name: string; args: unknown }> = [];
@@ -250,5 +251,39 @@ describe("SupabaseBookingReviewRepository, lapsed holds (SPM-253)", () => {
       "Failed to expire lapsed holds: boom",
     );
     expect(calls.map((call) => call.name)).toEqual(["expire_lapsed_holds"]);
+  });
+});
+
+describe("SupabaseBookingReviewRepository, padded clashes (SPM-19)", () => {
+  const PADDED_CLASH = {
+    data: null,
+    error: {
+      code: "CS082",
+      message: "Venue 5 has another booking within this booking's setup or turnaround time",
+      details: JSON.stringify([{ event: "Charity Run", date: "2026-12-14", start: "09:30", end: "10:00" }]),
+    },
+  };
+
+  it("AC1: maps CS082 to the padded-clash error, naming the event, date and times from the detail", async () => {
+    const { client } = fakeClient({ venue_staff_decide_booking: PADDED_CLASH });
+
+    const error = await new SupabaseBookingReviewRepository(client).decide(APPROVED).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenuePaddedClashError);
+    expect((error as VenuePaddedClashError).clashes).toEqual([
+      { eventName: "Charity Run", date: "2026-12-14", start: "09:30", end: "10:00" },
+    ]);
+  });
+
+  it("AC3: maps it the same way when placing a hold", async () => {
+    const { client } = fakeClient({ venue_staff_decide_booking: PADDED_CLASH });
+
+    await expect(
+      new SupabaseBookingReviewRepository(client).decide({
+        ...APPROVED,
+        status: "Tentative Hold",
+        holdExpiresAt: new Date("2026-12-10T01:00:00.000Z"),
+      }),
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { paddedWindowsClash, paddedWindows } from "./padded-window";
+import { VenuePaddedClashError } from "./errors";
+import { paddedClashes, paddedWindowsClash, paddedWindows } from "./padded-window";
 
 const DAY = "2026-12-14";
 const MAIN_HALL = { setup: 30, turnaround: 45 };
@@ -125,5 +126,48 @@ describe("paddedWindowsClash (SPM-23 AC6, AC8)", () => {
   it("does not clash with another date", () => {
     const otherDay = paddedWindows({ date: "2026-12-15", start: "10:00", end: "12:00" }, MAIN_HALL);
     expect(paddedWindowsClash(first, otherDay)).toBe(false);
+  });
+});
+
+describe("paddedClashes (SPM-19)", () => {
+  const charityRun = { eventName: "Charity Run", times: [{ date: DAY, start: "07:00", end: "09:15" }] };
+
+  it("AC1: names the other event and the overlap when a request's setup runs into its turnaround: 10:00 after 07:00-09:15 at Main Hall", () => {
+    expect(paddedClashes([{ date: DAY, start: "10:00", end: "12:00" }], [charityRun], MAIN_HALL)).toEqual([
+      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00" },
+    ]);
+  });
+
+  it("AC2: finds nothing when the windows only touch: 10:30 sets up from 10:00, as the turnaround ends", () => {
+    expect(paddedClashes([{ date: DAY, start: "10:30", end: "12:00" }], [charityRun], MAIN_HALL)).toEqual([]);
+  });
+
+  it("AC1: a venue with no setup or turnaround is checked on the booked times", () => {
+    expect(paddedClashes([{ date: DAY, start: "09:15", end: "10:00" }], [charityRun], NONE)).toEqual([]);
+  });
+
+  it("AC6: names each date a clash falls on when the windows run across midnight: a 00:15 request after a 22:00-24:00 Gala", () => {
+    const lateEvent = { eventName: "Gala", times: [{ date: DAY, start: "22:00", end: "24:00" }] };
+    expect(paddedClashes([{ date: "2026-12-15", start: "00:15", end: "01:15" }], [lateEvent], MAIN_HALL)).toEqual([
+      { eventName: "Gala", date: DAY, start: "23:45", end: "24:00" },
+      { eventName: "Gala", date: "2026-12-15", start: "00:00", end: "00:45" },
+    ]);
+  });
+
+  it("AC1: lists every event in the way, in date and time order", () => {
+    const other = { eventName: "Quiz", times: [{ date: DAY, start: "12:30", end: "14:00" }] };
+    expect(
+      paddedClashes([{ date: DAY, start: "10:00", end: "12:00" }], [other, charityRun], MAIN_HALL).map((c) => c.eventName),
+    ).toEqual(["Charity Run", "Quiz"]);
+  });
+});
+
+describe("VenuePaddedClashError (SPM-19 AC1)", () => {
+  it("says the padded time overlaps, naming the event, the date and the times", () => {
+    const error = new VenuePaddedClashError([{ eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00" }]);
+
+    expect(error.message).toBe(
+      "The padded time (setup and turnaround) overlaps with Charity Run on 2026-12-14, 09:30–10:00. Choose other times or another venue.",
+    );
   });
 });

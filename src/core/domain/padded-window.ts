@@ -46,6 +46,40 @@ export function paddedWindowsClash(
   return a.some((one) => b.some((other) => one.date === other.date && overlaps(minutes(one), minutes(other))));
 }
 
+/** One stretch of time another booking's padded window shares with a request's (SPM-19). */
+export interface PaddedClash {
+  readonly eventName: string;
+  readonly date: string;
+  readonly start: string;
+  readonly end: string;
+}
+
+/**
+ * SPM-19: where a request's padded windows overlap the padded windows of the live bookings at its
+ * venue (`others`, already filtered to those that hold the venue), naming the event in the way, in
+ * date then start order. Windows that only touch do not overlap. The database function
+ * `booking_padded_clashes` applies the same rule at the approval itself.
+ */
+export function paddedClashes(
+  requested: readonly TimeRangeOnDate[],
+  others: ReadonlyArray<{ readonly eventName: string; readonly times: readonly TimeRangeOnDate[] }>,
+  buffers: Buffers,
+): PaddedClash[] {
+  const mine = requested.flatMap((time) => paddedWindows(time, buffers));
+  return others
+    .flatMap(({ eventName, times }) =>
+      times.flatMap((time) => paddedWindows(time, buffers)).flatMap((theirs) =>
+        mine.flatMap((window) => {
+          if (window.date !== theirs.date) return [];
+          const start = Math.max(minutes(window).start, minutes(theirs).start);
+          const end = Math.min(minutes(window).end, minutes(theirs).end);
+          return start < end ? [{ eventName, date: window.date, start: fromMinutes(start), end: fromMinutes(end) }] : [];
+        }),
+      ),
+    )
+    .sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+}
+
 function minutes({ start, end }: TimeRangeOnDate): TimeRange {
   return { start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 };
 }
