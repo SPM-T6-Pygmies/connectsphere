@@ -1,5 +1,10 @@
 # Venue Hold Manual Tests (SPM-218, SPM-219, SPM-253, SPM-254)
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for **SPM-218: Place a tentative hold on a venue slot**, **SPM-219: Confirm or
@@ -184,7 +189,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 1: refused, naming the date T + 2 and "Night"; the booking stays **Requested** (AC2).
-- Step 2: refused with "The venue is unavailable for <T + 6> AM" (AC2).
+- Step 2: refused with "The venue is unavailable for <T + 6> 07:00–12:00" (AC2).
 - Step 3: both are `Requested` with no expiry, and no audit rows (AC2).
 
 **Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
@@ -348,7 +353,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 **Preconditions:** After TC-VHOLD-004: booking D is on hold for Main Hall, day H, AM. Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open `/staff/venue/unavailability` and block **Main Hall** on day H for **AM**, reason **Maintenance**.
+1. Open `/staff/venue/unavailability` and block **Main Hall** on day H from **07:00** to **12:00**, reason **Maintenance**.
 2. Open booking D and read the **Decision** card.
 3. Click **Confirm hold**.
 4. Click **Release hold**.
@@ -360,7 +365,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 2: the card still reads "On hold until …" and offers **Confirm hold** and **Release hold**: a block does not change an existing hold.
-- Step 3: refused with "The venue is unavailable for <day H> AM. Choose other slots or another venue."; booking D stays on hold (AC7).
+- Step 3: refused with "The venue is unavailable for <day H> 07:00–12:00. Choose other times or another venue."; booking D stays on hold (AC7).
 - Step 4: accepted: the card reads "Already decided — Released by Test Venue Staff" (AC7).
 - Step 5: `Released`; the audit rows are `hold` then `release hold`, with no `confirm hold`: the refused confirmation wrote nothing (AC7).
 

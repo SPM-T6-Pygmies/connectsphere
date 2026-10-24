@@ -1,5 +1,10 @@
 # Venue Booking Notification Manual Tests
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for **SPM-61 — Notify venue staff of a new booking request**:

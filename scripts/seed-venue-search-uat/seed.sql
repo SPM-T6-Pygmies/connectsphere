@@ -55,8 +55,10 @@ begin
       booking_horizon_days)
     values ('UAT-44 Harbour Room', 250, 'Wi-Fi, Video-conferencing', 'Step-free access, Hearing loop', 60)
     returning venue_id into v_harbour;
+    -- Opening hours as 15-minute slots (SPM-320): 07:00-12:00, 13:00-18:00 and 19:00-24:00.
     insert into public.venue_slot (venue_id, slot_code)
-    values (v_harbour, 'AM'), (v_harbour, 'PM'), (v_harbour, 'Night');
+    select v_harbour, n::text from generate_series(28, 95) n
+    where n between 28 and 47 or n between 52 and 71 or n between 76 and 95;
     insert into public.venue_supported_layout (venue_id, room_layout_id, capacity)
     select v_harbour, room_layout_id, c.capacity
     from (values ('Theatre', 200), ('Boardroom', 20)) c(name, capacity)
@@ -69,8 +71,10 @@ begin
       booking_horizon_days)
     values ('UAT-44 Garden Hall', 500, 'Catering area', 'Lift access', 60)
     returning venue_id into v_garden;
+    -- Open 07:00-12:00 and 13:00-18:00 (no evening).
     insert into public.venue_slot (venue_id, slot_code)
-    values (v_garden, 'AM'), (v_garden, 'PM');
+    select v_garden, n::text from generate_series(28, 71) n
+    where n between 28 and 47 or n between 52 and 71;
     insert into public.venue_supported_layout (venue_id, room_layout_id, capacity)
     select v_garden, room_layout_id, c.capacity
     from (values ('Banquet', 150), ('Classroom', 80)) c(name, capacity)

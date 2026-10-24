@@ -8,6 +8,7 @@ import {
 } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 
 import {
+  DuplicateUnavailabilityError,
   UnavailabilityAlreadyLiftedError,
   VenueNotFoundError,
   VenueUnavailabilityNotPermittedError,
@@ -64,7 +65,8 @@ function block(overrides: Partial<RecordVenueUnavailabilityCommand> = {}): Recor
     venueId: GRAND_HALL.id,
     startDate: "2026-10-12",
     endDate: "2026-10-14",
-    slots: ["AM", "PM"],
+    startTime: "09:00",
+    endTime: "10:00",
     reason: "Renovation",
     note: null,
     ...overrides,
@@ -85,19 +87,16 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
     expect(entries).toEqual([entry]);
   });
 
-  it("AC1: saves one record per date and slot (Mon to Wed, AM and PM gives six)", async () => {
+  it("AC1: saves one record per date and 15-minute slot (Mon to Wed, 09:00 to 10:00 gives twelve)", async () => {
     const { record } = build();
 
     const { entry } = await record.execute(block());
 
-    expect(entry.slots).toEqual([
-      { date: "2026-10-12", slot: "AM" },
-      { date: "2026-10-12", slot: "PM" },
-      { date: "2026-10-13", slot: "AM" },
-      { date: "2026-10-13", slot: "PM" },
-      { date: "2026-10-14", slot: "AM" },
-      { date: "2026-10-14", slot: "PM" },
-    ]);
+    expect(entry.slots).toEqual(
+      ["2026-10-12", "2026-10-13", "2026-10-14"].flatMap((date) =>
+        ["36", "37", "38", "39"].map((slot) => ({ date, slot })),
+      ),
+    );
   });
 
   it("AC2: refuses a venue that is not in the catalogue", async () => {
@@ -155,14 +154,15 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
 
     const { affectedBookings } = await record.execute(block());
 
+    // The block is 09:00 to 10:00, the part of the 07:00 to 12:00 booking it takes (SPM-324).
     expect(affectedBookings).toEqual([
       {
         bookingId: "booking-1",
         eventName: "Founders' Gala Dinner",
         status: "Confirmed",
         date: "2026-10-13",
-        start: "07:00",
-        end: "12:00",
+        start: "09:00",
+        end: "10:00",
       },
     ]);
   });
@@ -215,9 +215,9 @@ describe("LiftVenueUnavailabilityUseCase (SPM-267)", () => {
     const { entries } = await list.execute(read);
 
     const blocked = slotsStillBlocked(entries).map(({ date, slot }) => `${date} ${slot}`);
-    expect(blocked).toContain("2026-10-13 AM");
-    expect(blocked).toContain("2026-10-14 PM");
-    expect(blocked).not.toContain("2026-10-12 AM");
+    expect(blocked).toContain("2026-10-13 36");
+    expect(blocked).toContain("2026-10-14 39");
+    expect(blocked).not.toContain("2026-10-12 36");
   });
 
   it("AC16: keeps a lifted block listed as Lifted with who and when", async () => {
@@ -272,7 +272,7 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
     };
   }
 
-  const PM_ON_13 = { startDate: "2026-10-13", endDate: "2026-10-13", slots: ["PM"] } as const;
+  const PM_ON_13 = { startDate: "2026-10-13", endDate: "2026-10-13", startTime: "13:00", endTime: "18:00" } as const;
 
   it("AC1: flags a Confirmed booking the block covers and hands back whom to tell", async () => {
     const { record } = build([seeded({ id: "booking-1" })]);
@@ -424,5 +424,115 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
     unavailability.endBooking("hold-1", "Expired");
 
     expect(await unavailability.openForEvent(userAccountId(COORDINATOR), "event-1")).toEqual([]);
+  });
+});
+
+describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
+  it("AC3a: refuses a block over the hour the venue is closed for lunch, and stores nothing", async () => {
+    const { record, list } = build();
+
+    await expect(record.execute(block({ startTime: "11:30", endTime: "13:30" }))).rejects.toThrow(
+      "The venue is closed 12:00–13:00",
+    );
+    expect((await list.execute(read)).entries).toEqual([]);
+  });
+
+  it("AC3a: judges the hours of the venue chosen, not of any venue", async () => {
+    const lateOnly: Venue = { ...GRAND_HALL, id: venueId("venue-2"), openingHours: [{ start: "19:00", end: "24:00" }] };
+    const unavailability = new InMemoryVenueUnavailabilityRepository(new FixedClock(NOW));
+    const record = new RecordVenueUnavailabilityUseCase({
+      unavailability,
+      venues: new InMemoryVenueCatalogue([GRAND_HALL, lateOnly]),
+      clock: new FixedClock(NOW),
+    });
+
+    await expect(record.execute(block({ venueId: lateOnly.id }))).rejects.toThrow("closed 09:00–10:00");
+    const { entry } = await record.execute(block({ venueId: GRAND_HALL.id }));
+    expect(entry).toMatchObject({ venueId: GRAND_HALL.id, status: "In force" });
+    expect(entry.slots).toHaveLength(12);
+  });
+
+  function seeded(): SeededBooking {
+    return {
+      id: "booking-1",
+      venueId: GRAND_HALL.id,
+      eventName: "Tech Summit",
+      status: "Confirmed",
+      slots: [{ date: "2026-10-13", slot: "PM" }],
+      eventId: "event-1",
+      coordinatorUserAccountId: "coordinator-1",
+    };
+  }
+
+  it("flags a booking a shorter block only clips, and says only the clashing hours", async () => {
+    // The PM booking runs 13:00 to 18:00; the block is 17:00 to 18:00, its last hour.
+    const { record } = build([seeded()]);
+
+    const { flaggedBookings, affectedBookings } = await record.execute(
+      block({ startDate: "2026-10-13", endDate: "2026-10-13", startTime: "17:00", endTime: "18:00", reason: "Safety" }),
+    );
+
+    expect(flaggedBookings.map((flagged) => flagged.detail)).toEqual(["Safety: 2026-10-13 17:00 to 18:00"]);
+    expect(affectedBookings).toEqual([
+      // The time the block takes from the booking (SPM-324), not the booking's whole 13:00 to 18:00.
+      {
+        bookingId: "booking-1",
+        eventName: "Tech Summit",
+        status: "Confirmed",
+        date: "2026-10-13",
+        start: "17:00",
+        end: "18:00",
+      },
+    ]);
+  });
+
+  it("refuses the same block saved twice and stores only the first", async () => {
+    const { record, list } = build();
+
+    await record.execute(block());
+    await expect(record.execute(block())).rejects.toBeInstanceOf(DuplicateUnavailabilityError);
+
+    expect((await list.execute(read)).entries).toHaveLength(1);
+  });
+
+  it("refuses the same block even when a different member of Venue Staff saves it", async () => {
+    const { record } = build();
+    await record.execute(block());
+
+    await expect(record.execute(block({ userAccountId: "staff-2" }))).rejects.toBeInstanceOf(
+      DuplicateUnavailabilityError,
+    );
+  });
+
+  it("still accepts overlapping blocks that differ in reason, times or days (SPM-21 AC19)", async () => {
+    const { record, list } = build();
+    await record.execute(block());
+
+    await record.execute(block({ reason: "Safety" }));
+    await record.execute(block({ startTime: "09:30", endTime: "10:30" }));
+    await record.execute(block({ endDate: "2026-10-15" }));
+
+    expect((await list.execute(read)).entries).toHaveLength(4);
+  });
+
+  it("lets Venue Staff record the same Other block more than once, with or without the same note", async () => {
+    const { record, list } = build();
+
+    await record.execute(block({ reason: "Other", note: "Film shoot" }));
+    await record.execute(block({ reason: "Other", note: "Film shoot" }));
+    await record.execute(block({ reason: "Other", note: null }));
+
+    expect((await list.execute(read)).entries).toHaveLength(3);
+  });
+
+  it("accepts the same block again once the first has been lifted", async () => {
+    const { record, lift } = build();
+    const { entry } = await record.execute(block());
+    await lift.execute({ ...read, unavailabilityId: entry.id });
+
+    const second = await record.execute(block());
+
+    expect(second.entry.status).toBe("In force");
+    expect(second.entry.id).not.toBe(entry.id);
   });
 });

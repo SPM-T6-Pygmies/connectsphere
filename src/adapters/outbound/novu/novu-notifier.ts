@@ -14,6 +14,7 @@ import { ORGANISER_MESSAGE_POSTED_WORKFLOW_ID } from "@/adapters/outbound/novu/w
 import { REGISTRATION_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/registration-confirmed";
 import { SAFETY_CHECK_READY_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { SAFETY_CHECK_RECORDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
+import { VENUE_BOOKING_CANCELLED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-cancelled";
 import { VENUE_BOOKING_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-decided";
 import { VENUE_BOOKING_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 import type { Connection } from "@/core/domain/connection";
@@ -31,6 +32,7 @@ import type {
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingCancelledNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -120,6 +122,10 @@ export class NovuNotifier implements Notifier {
 
   holdExpired(notice: HoldExpiredNotice): Promise<void> {
     return this.trigger(HOLD_EXPIRED_WORKFLOW_ID, notice);
+  }
+
+  venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void> {
+    return this.trigger(VENUE_BOOKING_CANCELLED_WORKFLOW_ID, notice);
   }
 
   eventConfirmed(notice: EventConfirmedNotice): Promise<void> {

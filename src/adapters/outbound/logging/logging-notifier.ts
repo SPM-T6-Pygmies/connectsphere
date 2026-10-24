@@ -13,6 +13,7 @@ import type {
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingCancelledNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -100,6 +101,12 @@ export class LoggingNotifier implements Notifier {
   async holdExpired(notice: HoldExpiredNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told the hold on booking ${notice.bookingId} expired`,
+    );
+  }
+
+  async venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void> {
+    console.info(
+      `[notifier] venue staff ${notice.recipientUserAccountId} told booking ${notice.bookingId} was cancelled`,
     );
   }
 

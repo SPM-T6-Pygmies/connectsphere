@@ -176,17 +176,32 @@ describe("notificationItem (SPM-65)", () => {
 })
 
 describe("notificationItem (SPM-62)", () => {
-  it("AC3: names a booking decision's notice and opens the booking on its Request a venue page", () => {
+  it("AC3: names a booking decision's notice and opens the booking on its event's Venue tab", () => {
     const item = notificationItem(
       "coordinator",
       notification({
-        redirect: { url: "/staff/coordinator/6/venue-booking?booking=31" },
+        redirect: { url: "/staff/coordinator/events/8?tab=venue&booking=31" },
         tags: ["venue-booking-decided"],
       }),
     )
 
     expect(item.status).toBe("Booking decided")
-    expect(item.href).toBe("/staff/coordinator/6/venue-booking?booking=31")
+    expect(item.href).toBe("/staff/coordinator/events/8?tab=venue&booking=31")
+  })
+})
+
+describe("notificationItem (SPM-63)", () => {
+  it("AC4: names a cancelled booking's notice and opens the venue's calendar as it is", () => {
+    const item = notificationItem(
+      "venue",
+      notification({
+        redirect: { url: "/staff/venue/catalogue/2/calendar?from=2026-11-20" },
+        tags: ["venue-booking-cancelled"],
+      }),
+    )
+
+    expect(item.status).toBe("Booking cancelled")
+    expect(item.href).toBe("/staff/venue/catalogue/2/calendar?from=2026-11-20")
   })
 })
 

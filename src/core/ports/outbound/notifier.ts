@@ -220,6 +220,23 @@ export interface HoldExpiredNotice {
 }
 
 /**
+ * What a Venue Staff member is told when a coordinator cancels a confirmed
+ * booking (SPM-63), so nobody prepares the venue for an event that is not
+ * happening. Every Venue Staff member gets their own copy: staff are not
+ * scoped to particular venues (#66).
+ */
+export interface VenueBookingCancelledNotice {
+  readonly recipientUserAccountId: string;
+  readonly bookingId: string;
+  /** Where the notice opens the venue's calendar (AC4). */
+  readonly venueId: string;
+  readonly venueLocation: string;
+  readonly eventName: string;
+  /** The times released, in date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
+}
+
+/**
  * What an Event Organiser is told when the assigned coordinator confirms their
  * event (SPM-66): the point ConnectSphere is committed (#80). Lists only the
  * essential arrangements -- one Not applicable to the event is left out.
@@ -279,6 +296,7 @@ export interface Notifier {
   equipmentDecided(notice: EquipmentDecidedNotice): Promise<void>;
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
   holdExpired(notice: HoldExpiredNotice): Promise<void>;
+  venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void>;
   eventConfirmed(notice: EventConfirmedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

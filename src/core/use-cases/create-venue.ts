@@ -11,6 +11,9 @@ export interface CreateVenueCommand {
   readonly openingHours: readonly { readonly start: string; readonly end: string }[];
   readonly capacity: number | null;
   readonly bookingHorizonDays: number | null;
+  /** SPM-23: both or neither; defined once, then locked. */
+  readonly setupMinutes: number | null;
+  readonly turnaroundMinutes: number | null;
   readonly layouts: readonly { readonly name: string; readonly capacity: number }[];
 }
 
@@ -40,6 +43,8 @@ export class CreateVenueUseCase {
         openingHours: command.openingHours,
         capacity: command.capacity,
         bookingHorizonDays: command.bookingHorizonDays,
+        setupMinutes: command.setupMinutes,
+        turnaroundMinutes: command.turnaroundMinutes,
         layouts: command.layouts,
       }),
     );

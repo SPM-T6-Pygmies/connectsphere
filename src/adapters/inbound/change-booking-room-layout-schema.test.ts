@@ -4,7 +4,6 @@ import { changeBookingRoomLayoutSchema } from "./change-booking-room-layout-sche
 
 const valid = {
   eventId: "7",
-  eventRequestId: "24",
   bookingId: "12",
   roomLayout: "Boardroom",
 };
@@ -30,7 +29,7 @@ describe("changeBookingRoomLayoutSchema (SPM-104)", () => {
     ).toBeNull();
   });
 
-  it.each(["eventId", "eventRequestId", "bookingId"] as const)(
+  it.each(["eventId", "bookingId"] as const)(
     "refuses a missing %s",
     (field) => {
       expect(
