@@ -39,7 +39,8 @@ function flaggedField(input: VenueDetails): VenueField | null {
 
 describe("defineVenue (SPM-42)", () => {
   it("accepts a venue with every attribute and its layouts", () => {
-    expect(defineVenue(details())).toEqual(details());
+    // A venue with no setup or turnaround entered keeps them undefined (SPM-23 AC4).
+    expect(defineVenue(details())).toEqual({ ...details(), setupMinutes: null, turnaroundMinutes: null });
   });
 
   it("trims text", () => {
@@ -271,5 +272,34 @@ describe("exceedsVenueCapacity (SPM-106)", () => {
     [201, true],
   ])("a %s-seat layout in a 200-seat venue exceeds it: %s", (layout, expected) => {
     expect(exceedsVenueCapacity(layout, 200)).toBe(expected);
+  });
+});
+
+describe("defineVenue setup and turnaround (SPM-23)", () => {
+  it("AC1: keeps the setup and turnaround a venue is given, 0 included", () => {
+    expect(defineVenue(details({ setupMinutes: 30, turnaroundMinutes: 45 }))).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+    expect(defineVenue(details({ setupMinutes: 0, turnaroundMinutes: 0 }))).toMatchObject({
+      setupMinutes: 0,
+      turnaroundMinutes: 0,
+    });
+  });
+
+  it.each<[string, Partial<VenueDetails>, VenueField]>([
+    ["only the setup time", { setupMinutes: 30, turnaroundMinutes: null }, "turnaroundMinutes"],
+    ["only the turnaround time", { setupMinutes: null, turnaroundMinutes: 30 }, "setupMinutes"],
+    ["a setup that is off the grid", { setupMinutes: 20, turnaroundMinutes: 30 }, "setupMinutes"],
+    ["a turnaround over 150 minutes", { setupMinutes: 30, turnaroundMinutes: 165 }, "turnaroundMinutes"],
+  ])("AC1, AC2: refuses %s and points at the box to fix", (_label, change, field) => {
+    try {
+      defineVenue(details(change));
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidVenueError);
+      expect((error as InvalidVenueError).field).toBe(field);
+      return;
+    }
+    throw new Error("expected a refusal");
   });
 });

@@ -35,6 +35,8 @@ describe("createVenueSchema (SPM-146)", () => {
       openingHours: [{ start: "07:00", end: "12:00" }, { start: "19:00", end: "24:00" }],
       capacity: 300,
       bookingHorizonDays: 180,
+      setupMinutes: null,
+      turnaroundMinutes: null,
       layouts: [
         { name: "Theatre", capacity: 200 },
         { name: "Banquet", capacity: 120 },
@@ -153,4 +155,46 @@ describe("venueFormValues (SPM-146)", () => {
     ]);
   });
 
+});
+
+describe("setup and turnaround on the venue form (SPM-23)", () => {
+  it("AC1: reads both as numbers when they are filled in, 0 included", () => {
+    expect(createVenueSchema.parse({ ...valid, setupMinutes: " 30 ", turnaroundMinutes: "45" })).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+    expect(createVenueSchema.parse({ ...valid, setupMinutes: "0", turnaroundMinutes: "0" })).toMatchObject({
+      setupMinutes: 0,
+      turnaroundMinutes: 0,
+    });
+  });
+
+  it("AC4: reads blank, or not sent at all, as not defined rather than 0", () => {
+    expect(createVenueSchema.parse({ ...valid, setupMinutes: "", turnaroundMinutes: "  " })).toMatchObject({
+      setupMinutes: null,
+      turnaroundMinutes: null,
+    });
+    expect(createVenueSchema.parse(valid)).toMatchObject({ setupMinutes: null, turnaroundMinutes: null });
+  });
+
+  it.each(["abc", "-15", "22.5", "1e3", "30 min"])("flags %j against the field, as not whole minutes", (bad) => {
+    expect(errorsFor({ ...valid, setupMinutes: bad })).toEqual({
+      setupMinutes: "Enter the minutes as a whole number, 0 or more.",
+    });
+    expect(errorsFor({ ...valid, turnaroundMinutes: bad })).toEqual({
+      turnaroundMinutes: "Enter the minutes as a whole number, 0 or more.",
+    });
+  });
+
+  it("leaves the 15-minute grid and the one-without-the-other rule to the domain", () => {
+    expect(createVenueSchema.safeParse({ ...valid, setupMinutes: "20", turnaroundMinutes: "" }).success).toBe(true);
+  });
+
+  it("reads the two boxes from a posted form", () => {
+    const formData = new FormData();
+    formData.set("setupMinutes", "30");
+    formData.set("turnaroundMinutes", "45");
+
+    expect(venueFormValues(formData)).toMatchObject({ setupMinutes: "30", turnaroundMinutes: "45" });
+  });
 });
