@@ -73,7 +73,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 - Step 4: **Setup time** shows `30 min` and **Turnaround time** `45 min`, greyed and not changeable, with *Locked: setup and turnaround are set once and cannot be changed.*
 - Step 5: a *Venue saved.* toast shows. The location changes and the two values stay `30 min` and `45 min`.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (6/6 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (6/6 checks)
 
 **Screenshots:** [step1-create-form-filled](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step1-create-form-filled.png) · [step2-cleared-with-toast](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step2-cleared-with-toast.png) · [step3-venue-in-list](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step3-venue-in-list.png) · [step4-created-venue-locked](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step4-created-venue-locked.png)
 
@@ -93,7 +93,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 - Step 2: *Venue saved.*
 - Step 3: both show `15 min` and `30 min`, greyed and not changeable (locked).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (3/3 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (3/3 checks)
 
 **Screenshots:** [step1-undefined-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-002_step1-undefined-venue.png) · [step2-values-entered](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-002_step2-values-entered.png) · [step3-locked-after-save](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-002_step3-locked-after-save.png)
 
@@ -112,7 +112,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 - Step 2: refused beside **Turnaround time**: *Enter the turnaround time too: setup and turnaround are entered together.* Nothing is saved: Harbour Room still has no values.
 - A value off the grid, a negative one or one over 150 is refused by the domain rules and the database constraint, which unit tests and TC-VBUFFER-005 cover.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (3/3 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (3/3 checks)
 
 **Screenshots:** [step1-the-choices](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step1-the-choices.png) · [step2-setup-without-turnaround](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step2-setup-without-turnaround.png)
 
@@ -139,7 +139,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 - Steps 2 and 3: each is refused with *Setup and turnaround time are locked once defined* (`CS080`).
 - Step 4: Studio is still 0 and 0, and Main Hall 30 and 45.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (4/4 checks)
 
 **Screenshots:** [step1-studio-zero-locked](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-004_step1-studio-zero-locked.png)
 
@@ -161,7 +161,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 - Step 2: UAT-44 Garden Hall reads *Setup 15 min · Turnaround 30 min* and UAT-44 Harbour Room reads *Not set*.
 - Step 3: under the picker, Main Hall shows *Setup 30 min · Turnaround 45 min* and Seminar Room 2-1 shows *Not set*.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright by Claude Code for JameszLau (8/8 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (8/8 checks)
 
 **Screenshots:** [step1-venue-list](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step1-venue-list.png) · [step2-find-a-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step2-find-a-venue.png) · [step3-request-a-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step3-request-a-venue.png)
 

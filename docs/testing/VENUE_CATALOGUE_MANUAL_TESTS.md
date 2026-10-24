@@ -219,4 +219,4 @@ select count(*) from v;
 - [x] Step 1: refused beside **Location**: *A venue with this location already exists. Choose a different location.* No venue is added, and the form keeps what was typed.
 - [x] Step 2: refused the same way; Harbour Room keeps its name.
 
-**Run:** Pass, 23/10/2026, Chrome via Playwright by Claude Code for JameszLau (3/3 checks) ([step1-same-location-typed](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step1-same-location-typed.png) · [step2-refused-as-duplicate](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step2-refused-as-duplicate.png)).
+**Run:** Pass, 23/10/2026, Chrome via Playwright for JameszLau (3/3 checks) ([step1-same-location-typed](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step1-same-location-typed.png) · [step2-refused-as-duplicate](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step2-refused-as-duplicate.png)).
