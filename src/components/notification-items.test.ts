@@ -205,6 +205,17 @@ describe("notificationItem (SPM-63)", () => {
   })
 })
 
+describe("notificationItem (SPM-66)", () => {
+  it("AC1: names a confirmed event's notice", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["event-confirmed"] }),
+    )
+
+    expect(item.status).toBe("Event confirmed")
+  })
+})
+
 describe("notificationItem (SPM-164)", () => {
   it("AC3: opens the request from the coordinator's inbox and names it an organiser message", () => {
     const item = notificationItem(

@@ -3,6 +3,7 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   HoldExpiredNotice,
@@ -106,6 +107,12 @@ export class LoggingNotifier implements Notifier {
   async venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void> {
     console.info(
       `[notifier] venue staff ${notice.recipientUserAccountId} told booking ${notice.bookingId} was cancelled`,
+    );
+  }
+
+  async eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} told event ${notice.eventId} is confirmed`,
     );
   }
 

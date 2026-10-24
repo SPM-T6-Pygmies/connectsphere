@@ -15,11 +15,13 @@ import type {
   EventRequestId,
   NewEventRequest,
 } from "@/core/domain/event-request";
+import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   EventRequestRepository,
   MyEventRequestSummary,
+  OrganiserEventArrangements,
 } from "@/core/ports/outbound/event-request-repository";
 
 import type { SupabaseServerClient } from "./client";
@@ -69,6 +71,24 @@ const THREAD_CLOSED = "CS018";
  * keep event requests and knows nothing about how the store defends itself.
  * See supabase/migrations/20260909000000_organiser_event_request_submission.sql.
  */
+/** What `organiser_event_request_arrangements` returns for a request with an event. */
+interface EventArrangementsRow {
+  readonly status: CoordinatorEventStatus;
+  readonly venues: readonly string[];
+  readonly equipment: readonly { equipment_type: string; quantity_reserved: number }[];
+}
+
+function toEventArrangements(row: EventArrangementsRow): OrganiserEventArrangements {
+  return {
+    status: row.status,
+    venues: row.venues,
+    equipment: row.equipment.map((line) => ({
+      equipmentType: line.equipment_type,
+      quantityReserved: line.quantity_reserved,
+    })),
+  };
+}
+
 export class SupabaseEventRequestRepository implements EventRequestRepository {
   constructor(private readonly client: SupabaseServerClient) {}
 
@@ -191,6 +211,24 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     // Null until the request is approved and has an event.
     return data === null ? null : toEventTimes(data as unknown as EventSlotTimeRow[]);
+  }
+
+  async findEventArrangements(id: EventRequestId): Promise<OrganiserEventArrangements | null> {
+    const key = toKey(id);
+    if (key === null) {
+      return null;
+    }
+
+    const { data, error } = await this.client.rpc("organiser_event_request_arrangements", {
+      p_event_request_id: key,
+    });
+
+    if (error) {
+      throw new Error(`Failed to read the event's arrangements: ${error.message}`, { cause: error });
+    }
+
+    // Null until the request is approved and has an event.
+    return data === null ? null : toEventArrangements(data as unknown as EventArrangementsRow);
   }
 
   /**

@@ -1,5 +1,6 @@
 import type { BookingSlot } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
+import type { ConfirmedEquipmentLine } from "../../domain/event-readiness";
 import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
@@ -236,6 +237,25 @@ export interface VenueBookingCancelledNotice {
 }
 
 /**
+ * What an Event Organiser is told when the assigned coordinator confirms their
+ * event (SPM-66): the point ConnectSphere is committed (#80). Lists only the
+ * essential arrangements -- one Not applicable to the event is left out.
+ */
+export interface EventConfirmedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  /** In date then start order: touching slots joined into one time (SPM-324). */
+  readonly times: readonly TimeRangeOnDate[];
+  /** Null when the venue is not essential to this event. */
+  readonly venueLocation: string | null;
+  /** The essential equipment lines, each reserved in full. */
+  readonly equipment: readonly ConfirmedEquipmentLine[];
+}
+
+/**
  * What an Attendee is told once their registration is recorded (SPM-87): the
  * event, as the on-screen confirmation shows it, and the reference that is
  * their only way back to the registration.
@@ -277,5 +297,6 @@ export interface Notifier {
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
   holdExpired(notice: HoldExpiredNotice): Promise<void>;
   venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void>;
+  eventConfirmed(notice: EventConfirmedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }
