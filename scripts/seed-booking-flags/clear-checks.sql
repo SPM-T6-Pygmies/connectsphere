@@ -107,13 +107,13 @@ begin
     perform public.coordinator_clear_booking_flags(v_coordinator, v_tech_hall_a);
     v_code := 'none';
   exception when others then v_code := sqlstate; end;
-  if v_code <> 'CS080' then v_failed := array_append(v_failed, 'AC6 a second clear gets CS080, got ' || v_code); end if;
+  if v_code <> 'CS082' then v_failed := array_append(v_failed, 'AC6 a second clear gets CS082, got ' || v_code); end if;
   v_checks := v_checks + 1;
   begin
     perform public.coordinator_clear_booking_flags(v_coordinator, v_offsite);
     v_code := 'none';
   exception when others then v_code := sqlstate; end;
-  if v_code <> 'CS080' then v_failed := array_append(v_failed, 'AC6 an unflagged booking gets CS080, got ' || v_code); end if;
+  if v_code <> 'CS082' then v_failed := array_append(v_failed, 'AC6 an unflagged booking gets CS082, got ' || v_code); end if;
 
   -- AC5: a later block over the booking flags it again, with only the new reason open.
   perform public.venue_staff_record_unavailability(v_staff, v_main, 'Equipment failure', null, pm);
@@ -132,7 +132,7 @@ begin
     perform public.coordinator_clear_booking_flags(v_coordinator, v_tech_hall_c);
     v_code := 'none';
   exception when others then v_code := sqlstate; end;
-  if v_code <> 'CS080' then v_failed := array_append(v_failed, 'AC6 a cancelled booking gets CS080, got ' || v_code); end if;
+  if v_code <> 'CS082' then v_failed := array_append(v_failed, 'AC6 a cancelled booking gets CS082, got ' || v_code); end if;
 
   if cardinality(v_failed) = 0 then
     raise exception 'ok: all % checks held', v_checks;

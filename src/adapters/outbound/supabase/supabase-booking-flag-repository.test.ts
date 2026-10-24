@@ -203,9 +203,9 @@ describe("SupabaseBookingFlagRepository clear (SPM-310)", () => {
     expect(calls).toEqual([]);
   });
 
-  it("AC6: reads CS080 as a booking with no open flag left to clear", async () => {
+  it("AC6: reads CS082 as a booking with no open flag left to clear", async () => {
     const { client } = fakeClient({
-      coordinator_clear_booking_flags: { data: null, error: { code: "CS080", message: "nothing open" } },
+      coordinator_clear_booking_flags: { data: null, error: { code: "CS082", message: "nothing open" } },
     });
 
     await expect(new SupabaseBookingFlagRepository(client).clear(userAccountId("3"), BOOKING)).rejects.toThrow(
