@@ -12,6 +12,7 @@ import type { TechnicalSupportEquipmentLine } from "@/core/use-cases/view-event-
 
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { EquipmentLineDecision } from "./equipment-line-decision";
+import { EquipmentLineRelease } from "./equipment-line-release";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 
@@ -87,7 +88,13 @@ function EquipmentRow({ eventId, line }: { eventId: string; line: TechnicalSuppo
         )}
       </TableCell>
       <TableCell className="w-72 max-w-72 align-top whitespace-normal">
-        {line.canDecide ? <EquipmentLineDecision eventId={eventId} line={line} /> : <Decision line={line} />}
+        {line.canDecide ? (
+          <EquipmentLineDecision eventId={eventId} line={line} />
+        ) : line.canRelease ? (
+          <EquipmentLineRelease eventId={eventId} line={line} />
+        ) : (
+          <Decision line={line} />
+        )}
       </TableCell>
     </TableRow>
   );
@@ -98,7 +105,8 @@ function EquipmentRow({ eventId, line }: { eventId: string; line: TechnicalSuppo
  * line, marked with why it needs attention, with what a changed line was when
  * it was reserved and how many units are free on the event's date. SPM-274:
  * a line awaiting a decision is reserved or marked unfulfilled in place, and
- * the others show what was decided. Releasing or replacing is SPM-108.
+ * the others show what was decided. SPM-108: a line whose removal was
+ * requested is released in place.
  */
 export async function EventEquipmentDetail({ id, origin = "queue" }: { id: string; origin?: DetailOrigin }) {
   // Anyone who is not Technical Support Staff gets the shared access-denied screen (SPM-16).
