@@ -25,7 +25,7 @@
     "SPM-19": {
       "title": "Automatic Venue Availability Update upon Booking Confirmation",
       "parent": null,
-      "status": "Backlog"
+      "status": "In Progress"
     },
     "SPM-20": {
       "title": "Cancel Venue Booking and Free Up Availability",
@@ -1040,6 +1040,31 @@
     "SPM-468": {
       "title": "Show setup and turnaround on the venue list and to Coordinators",
       "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-469": {
+      "title": "Domain: a hold is padded like any other booking",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-470": {
+      "title": "Database: refuse an approval or a hold whose padded window overlaps a live booking",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-471": {
+      "title": "The refusal names the date, overlapping times, event and the padded overlap",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-472": {
+      "title": "Test that the database and the code give the same padded-overlap answers",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-473": {
+      "title": "Seeds, manual cases and registry for the padded approval check",
+      "parent": "SPM-19",
       "status": "In Progress"
     }
   }

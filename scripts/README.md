@@ -111,6 +111,7 @@ needs. This table says what that is.
 | Venue hold | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-holds`, then `seed-booking-holds/fixture.sql` (its Setup lists every command) |
 | Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
 | Venue flag | `seed-coordinator-view`, `seed-venues`, `seed-booking-flags` (its Setup lists every command) |
+| Venue padded approval | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-padding` |
 | Venue setup and turnaround | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-booking-holds`; `seed-venue-buffers/checks.sql` for the database cases |
 | Venue booking cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel` |
 | Safety check essential lines | `seed-venues`, `seed-safety-check` (its `verify` must read 29 rows `ok = true`) |
@@ -163,7 +164,7 @@ local subscribers and notifications stay behind otherwise.
 | `seed-safety-check` | 8 Planning events for the Safety Officer: 4 on the Awaiting check list, 4 one change away from it, with their bookings and lines | The base logins, `seed-venues` | Yes | `seed`, `verify` (29 rows), `teardown` |
 | `seed-venue-unavailability` | 3 venue blocks on Main Hall and Studio, on 15-minute slots (09:00–11:30, a whole open day, 13:00–18:00) | `seed-venues` | Yes | `seed`, `verify` (5 rows), `refusals`, `checks`, `teardown` |
 | `seed-venue-buffers` | No data: `checks.sql` only, for a venue's setup and turnaround (SPM-23) | `seed-venues` | n/a | `checks` |
-| `seed-venue-padding` | No data: `checks.sql` only, for the padded approval and hold check (SPM-19) | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat` | n/a | `checks` |
+| `seed-venue-padding` | 12 events with bookings at Main Hall on 14 to 19 December 2026 (Confirmed, Requested, a live and a lapsed hold, a Rejected one, two across midnight), for the padded approval and hold cases (SPM-19) | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat` | Yes | `seed`, `teardown`, `checks`, `same-answers.mjs`, `race.mjs` |
 | `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, 21 days from today (one expired, one live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset | `seed`, `fixture`, `teardown` |
 | `seed-booking-flags` | 7 *Flag Test:* events with 9 bookings on Main Hall, Studio and Rooftop Terrace, 28 days from today (Confirmed, Requested, a live and an expired hold), for the venue flag cases to block | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events | `seed`, `show` (9 rows), `blocks`, `checks` (40 checks), `teardown` (also removes the blocks the cases recorded) |
 | `seed-booking-cancel` | 5 bookings on the *Founders' Gala Dinner* at the two UAT-44 venues, 10 days from today: two Confirmed, one Requested, one Tentative Hold, one Rejected | `seed-equipment`, `seed-venue-search-uat` | Yes | `seed`, `verify` (7 rows), `teardown` |
@@ -178,6 +179,7 @@ Some of the scripts have extra read-only files:
 - `seed-venue-unavailability/refusals.sql` tries inputs the database must refuse
   (a bad reason, a note under Safety, a 501-character note) and writes nothing.
 - `seed-venue-buffers/checks.sql` checks a venue's setup and turnaround: the constraint, the lock, and the catalogue functions (TC-VBUFFER-005). It needs `seed-venues`.
+- `seed-venue-padding/seed.sql` loads the bookings the padded approval cases decide (TC-VPAD-001 to 006); `race.mjs` starts two approvals at once and really approves one, so run `seed.sql` again afterwards.
 - `seed-venue-padding/checks.sql` checks that approving or holding a booking is refused when its setup or turnaround overlaps another live booking, and accepted when they only touch (SPM-19). Every case books on Monday 14 December 2026 and rolls back; it ends `error: ok: all N checks held` when it passes.
 - `seed-venue-padding/same-answers.mjs` runs `seed-venue-padding/cases.json` through the database's padded-window function and fails if its answers differ from the list. `src/core/domain/padded-window-cases.test.ts` runs the same list through the code, so the two copies of the rule stay the same (SPM-19 AC7). Run it with `node scripts/seed-venue-padding/same-answers.mjs`.
 - `seed-venue-unavailability/checks.sql` checks the functions, audit rows, busy-time
