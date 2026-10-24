@@ -162,7 +162,7 @@ describe("ReleaseEquipmentLineUseCase (SPM-108)", () => {
     expect((await view("A"))?.lines).toHaveLength(1);
   });
 
-  it("AC1: releasing the last line needing attention tells the coordinator the outcome of the rest (SPM-65)", async () => {
+  it("AC1: releasing the last line needing attention tells the coordinator the outcome of the rest", async () => {
     const { notifier, release } = setup([event("A", "2026-11-15", [lectern(), removalRequested()])]);
 
     await release("A");
