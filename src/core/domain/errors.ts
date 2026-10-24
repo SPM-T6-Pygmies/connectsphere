@@ -1243,3 +1243,12 @@ export class InvalidCalendarRangeError extends DomainError {
     super(reason);
   }
 }
+
+/** SPM-310 AC6: a booking with no open flag has nothing to clear, e.g. it was cleared in another tab. */
+export class NoFlagToClearError extends DomainError {
+  readonly code = "no_flag_to_clear";
+
+  constructor(readonly bookingId: string) {
+    super("This booking has no open flag to clear.");
+  }
+}
