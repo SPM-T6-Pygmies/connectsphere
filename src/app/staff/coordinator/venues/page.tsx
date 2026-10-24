@@ -13,6 +13,7 @@ import {
 import { buildSearchVenues, getCurrentCoordinator } from "@/composition/container";
 import { InvalidVenueSearchError } from "@/core/domain/errors";
 import { formatOpeningHours } from "@/core/domain/opening-hours";
+import { describeBuffers } from "@/core/domain/venue-buffers";
 import type { ExclusionReason, VenueSearchOutcome } from "@/core/domain/venue-search";
 
 import { PageHeader, StaffShell } from "../../staff-shell";
@@ -39,12 +40,12 @@ function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): s
       return `missing a selected accessibility feature (${values.accessibility})`;
     case "hoursUnknown":
       return "no opening hours or booking horizon recorded";
-    case "slotClosed":
-      return `closed for part of a slot chosen (${values.slots})`;
+    case "closed":
+      return `closed for part of ${values.start}–${values.end}`;
     case "beyondHorizon":
       return `cannot be booked as far ahead as ${values.date}`;
     case "booked":
-      return "already booked in a slot chosen";
+      return `already booked or blocked for part of ${values.start}–${values.end}`;
   }
 }
 
@@ -70,7 +71,7 @@ function SearchSummary({
       )}
       {found === 0 && outcome.excluded.length > 0 ? (
         <p className="text-muted-foreground">
-          Try a different date or slot, a smaller attendance or fewer facilities.
+          Try a different date or time, a smaller attendance or fewer facilities.
         </p>
       ) : null}
     </div>
@@ -100,7 +101,8 @@ export default async function VenueSearchPage({
     facilities: text(params.facilities),
     accessibility: text(params.accessibility),
     date: text(params.date),
-    slots: text(params.slots),
+    start: text(params.start),
+    end: text(params.end),
   };
 
   let outcome: VenueSearchOutcome = { venues: [], excluded: [] };
@@ -126,7 +128,7 @@ export default async function VenueSearchPage({
     <StaffShell role="coordinator" crumbs={[{ label: "Find a venue" }]}>
       <PageHeader
         title="Find a venue"
-        description="Narrow the catalogue to venues that could host the event. Slots are Singapore time. Check suitability before booking."
+        description="Narrow the catalogue to venues that could host the event. Times are Singapore time. Check suitability before booking."
       />
       <div className="space-y-6">
         {/* Keyed on the search so Clear (same route, new query) remounts it with fresh state. */}
@@ -140,6 +142,7 @@ export default async function VenueSearchPage({
                   <TableHead>Location</TableHead>
                   <TableHead>Layouts (capacity)</TableHead>
                   <TableHead>Opening hours</TableHead>
+                  <TableHead>Setup and turnaround</TableHead>
                   <TableHead>Facilities</TableHead>
                   <TableHead>Accessibility</TableHead>
                 </TableRow>
@@ -156,6 +159,7 @@ export default async function VenueSearchPage({
                       {venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ") || "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{formatOpeningHours(venue.openingHours) || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{describeBuffers(venue)}</TableCell>
                     <TableCell className="text-muted-foreground">{venue.facilities ?? "—"}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {venue.accessibility ?? "—"}

@@ -16,9 +16,9 @@ function event(id: string, overrides: Partial<Event> = {}): Event {
     name: `Event ${id}`,
     description: "A confirmed event with registration open.",
     status: "confirmed",
-    slots: [
-      { date: "2026-10-01", slot: "AM" },
-      { date: "2026-10-01", slot: "PM" },
+    times: [
+      { date: "2026-10-01", start: "07:00", end: "12:00" },
+      { date: "2026-10-01", start: "13:00", end: "18:00" },
     ],
     venueName: "Hall A, 81 Victoria Street",
     capacity: 100,
@@ -96,10 +96,10 @@ describe("ListEventsOpenForRegistrationUseCase (SPM-79)", () => {
 
   it("returns the soonest event first", async () => {
     const later = event("later", {
-      slots: [{ date: "2026-11-01", slot: "AM" }],
+      times: [{ date: "2026-11-01", start: "07:00", end: "12:00" }],
     });
     const sooner = event("sooner", {
-      slots: [{ date: "2026-10-05", slot: "AM" }],
+      times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
     });
     await expect(listedIds([later, sooner])).resolves.toEqual([
       "sooner",
@@ -108,8 +108,8 @@ describe("ListEventsOpenForRegistrationUseCase (SPM-79)", () => {
   });
 
   it("orders events on the same day by the slot each starts in", async () => {
-    const evening = event("evening", { slots: [{ date: "2026-10-05", slot: "Night" }] });
-    const afternoon = event("afternoon", { slots: [{ date: "2026-10-05", slot: "PM" }] });
+    const evening = event("evening", { times: [{ date: "2026-10-05", start: "19:00", end: "24:00" }] });
+    const afternoon = event("afternoon", { times: [{ date: "2026-10-05", start: "13:00", end: "18:00" }] });
     await expect(listedIds([evening, afternoon])).resolves.toEqual(["afternoon", "evening"]);
   });
 
@@ -126,9 +126,9 @@ describe("ListEventsOpenForRegistrationUseCase (SPM-79)", () => {
         name: "Event summit",
         description: "A confirmed event with registration open.",
         startsAt: "2026-09-30T23:00:00.000Z",
-        slots: [
-          { date: "2026-10-01", slot: "AM" },
-          { date: "2026-10-01", slot: "PM" },
+        times: [
+          { date: "2026-10-01", start: "07:00", end: "12:00" },
+          { date: "2026-10-01", start: "13:00", end: "18:00" },
         ],
         venueName: "Hall A, 81 Victoria Street",
         registrationClosesAt: "2026-09-30T00:00:00.000Z",

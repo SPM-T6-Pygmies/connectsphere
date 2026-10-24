@@ -29,7 +29,7 @@ function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinat
     name: "Founders' Day",
     clientOrganisationName: "Sunrise Events Co",
     preferredDate: "2026-10-14",
-    slots: [{ date: "2026-10-14", slot: "PM" }],
+    times: [{ date: "2026-10-14", start: "13:00", end: "18:00" }],
     status: "Confirmed",
     assignedCoordinatorUserAccountId: COORDINATOR,
     description: null,
@@ -135,7 +135,7 @@ describe("CompleteEventUseCase (SPM-51)", () => {
   });
 
   it("refuses an event with no slots, whose end is unknown", async () => {
-    const { useCase } = buildUseCase([seedEvent({ slots: [] })]);
+    const { useCase } = buildUseCase([seedEvent({ times: [] })]);
 
     await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toBeInstanceOf(
       EventNotYetEndedError,

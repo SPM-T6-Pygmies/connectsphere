@@ -16,23 +16,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { exceedsVenueCapacity, STANDARD_LAYOUTS, type Venue } from "@/core/domain/venue";
+import { BUFFER_OPTIONS } from "@/core/domain/venue-buffers";
 import {
   ACCESSIBILITY_OPTIONS,
   FACILITY_OPTIONS,
 } from "@/core/domain/venue-options";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
+import { TimePicker } from "../../time-picker";
 import type { VenueFormState } from "./actions";
 
 const INITIAL: VenueFormState = { status: "idle" };
 
 type LayoutRow = { key: number; name: string; capacity: string };
 type WindowRow = { key: number; start: string; end: string };
-
-/** Hours 00–24; only a closing time may be 24, and only as 24:00. */
-const HOURS = Array.from({ length: 25 }, (_, hour) => String(hour).padStart(2, "0"));
-/** The 15-minute grid (#128). */
-const MINUTES = ["00", "15", "30", "45"] as const;
 
 function isFilled(value: string): boolean {
   return value.trim().length > 0;
@@ -87,6 +84,11 @@ export function VenueForm({
       : [{ key: 0, start: "", end: "" }],
   );
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
+  // SPM-23: defined once, then locked. A locked box is read-only, not disabled, so the venue's own
+  // values are still sent back with the rest of the form and the save is not a change.
+  const buffersLocked = venue?.setupMinutes != null || venue?.turnaroundMinutes != null;
+  const [setup, setSetup] = useState(venue?.setupMinutes?.toString() ?? "");
+  const [turnaround, setTurnaround] = useState(venue?.turnaroundMinutes?.toString() ?? "");
   const [nextKey, setNextKey] = useState(() => (venue?.layouts.length ?? 0) + 1);
   const [layouts, setLayouts] = useState<LayoutRow[]>(() =>
     venue && venue.layouts.length > 0
@@ -330,6 +332,42 @@ export function VenueForm({
               onChange={(event) => setHorizon(event.target.value)}
             />
           </Field>
+          <Field
+            id="setupMinutes"
+            label="Setup time"
+            hint={
+              buffersLocked
+                ? "Locked: setup and turnaround are set once and cannot be changed."
+                : "Time to prepare the room before an event. Choose 0 to 150 minutes in 15-minute steps; 0 is allowed. Choose both setup and turnaround, or neither: a venue with neither set counts as 0. Once saved they are locked."
+            }
+            error={errors?.setupMinutes}
+          >
+            <BufferSelect
+              id="setupMinutes"
+              locked={buffersLocked}
+              invalid={errors?.setupMinutes !== undefined}
+              value={setup}
+              onChange={setSetup}
+            />
+          </Field>
+          <Field
+            id="turnaroundMinutes"
+            label="Turnaround time"
+            hint={
+              buffersLocked
+                ? "Locked."
+                : "Time to reset the room after an event. 0 to 150 minutes in 15-minute steps."
+            }
+            error={errors?.turnaroundMinutes}
+          >
+            <BufferSelect
+              id="turnaroundMinutes"
+              locked={buffersLocked}
+              invalid={errors?.turnaroundMinutes !== undefined}
+              value={turnaround}
+              onChange={setTurnaround}
+            />
+          </Field>
         </CardContent>
       </Card>
 
@@ -415,83 +453,6 @@ export function VenueForm({
   );
 }
 
-const SELECT_CLASS =
-  "border-input aria-invalid:border-destructive h-8 w-full rounded-lg border bg-transparent px-2.5 text-base disabled:opacity-50 md:text-sm";
-
-/**
- * SPM-333: a time on the 15-minute grid, picked as an hour and then a minute,
- * and posted as one `HH:MM` field. Picking an hour fills the minute with 00;
- * 24 is offered only with `endOfDay`, and only as 24:00. Whether the window
- * makes sense is `defineVenue`'s call.
- */
-function TimePicker({
-  id,
-  name,
-  label,
-  value,
-  onChange,
-  endOfDay = false,
-  invalid,
-}: {
-  id: string;
-  name: string;
-  label: string;
-  /** `HH:MM`, or empty until an hour is picked. */
-  value: string;
-  onChange: (value: string) => void;
-  endOfDay?: boolean;
-  invalid?: boolean;
-}) {
-  const [hour = "", minute = ""] = value === "" ? [] : value.split(":");
-  const hours = endOfDay ? HOURS : HOURS.slice(0, -1);
-  const minutes = hour === "24" ? ["00"] : MINUTES;
-
-  function pick(nextHour: string, nextMinute: string) {
-    if (nextHour === "") {
-      onChange("");
-      return;
-    }
-    onChange(`${nextHour}:${nextHour === "24" ? "00" : nextMinute || "00"}`);
-  }
-
-  return (
-    <div className="flex gap-2">
-      <input type="hidden" name={name} value={value} />
-      <select
-        id={id}
-        aria-label={`${label} hour`}
-        aria-invalid={invalid}
-        required
-        value={hour}
-        onChange={(event) => pick(event.target.value, minute)}
-        className={SELECT_CLASS}
-      >
-        <option value="">Hour</option>
-        {hours.map((h) => (
-          <option key={h} value={h}>
-            {h}
-          </option>
-        ))}
-      </select>
-      <select
-        aria-label={`${label} minute`}
-        aria-invalid={invalid}
-        disabled={hour === ""}
-        value={minute}
-        onChange={(event) => pick(hour, event.target.value)}
-        className={SELECT_CLASS}
-      >
-        {hour === "" ? <option value="">Min</option> : null}
-        {minutes.map((m) => (
-          <option key={m} value={m}>
-            {m}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 function Field({
   id,
   label,
@@ -529,3 +490,44 @@ function Field({
   );
 }
 
+
+/**
+ * SPM-23: setup or turnaround, 0 to the most in 15-minute steps. Blank is "not set". Once the
+ * venue's values are defined the choice is shown but cannot be changed; a disabled select is not
+ * submitted, so the venue's own value travels in a hidden field and the save is not a change.
+ */
+function BufferSelect({
+  id,
+  locked,
+  invalid,
+  value,
+  onChange,
+}: {
+  id: "setupMinutes" | "turnaroundMinutes";
+  locked: boolean;
+  invalid: boolean;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <>
+      {locked ? <input type="hidden" name={id} value={value} /> : null}
+      <select
+        id={id}
+        name={locked ? undefined : id}
+        disabled={locked}
+        aria-invalid={invalid}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="border-input aria-invalid:border-destructive disabled:bg-muted disabled:text-muted-foreground h-8 w-full rounded-lg border bg-transparent px-2.5 text-base md:text-sm"
+      >
+        <option value="">Not set</option>
+        {BUFFER_OPTIONS.map((minutes) => (
+          <option key={minutes} value={minutes}>
+            {minutes} min
+          </option>
+        ))}
+      </select>
+    </>
+  );
+}

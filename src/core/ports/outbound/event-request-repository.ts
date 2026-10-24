@@ -6,6 +6,7 @@ import type {
   EventRequestStatus,
   NewEventRequest,
 } from "../../domain/event-request";
+import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { UserAccountId } from "../../domain/user-account";
 
 /**
@@ -37,6 +38,11 @@ export interface EventRequestRepository {
   ): Promise<readonly MyEventRequestSummary[]>;
   listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]>;
   findById(id: EventRequestId): Promise<EventRequest | null>;
+  /**
+   * The start and end times of the event the request became, in date then
+   * start order (SPM-326 AC6). Null while the request has no event.
+   */
+  findEventTimes(id: EventRequestId): Promise<readonly TimeRangeOnDate[] | null>;
   /** Stores a request the core has built and hands back the id the store chose. */
   create(request: NewEventRequest): Promise<EventRequest>;
   save(request: EventRequest): Promise<void>;

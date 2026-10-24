@@ -12,6 +12,7 @@ import type {
   RegistrationConfirmedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingCancelledNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -30,6 +31,7 @@ export class RecordingNotifier implements Notifier {
   readonly equipmentDecisions: EquipmentDecidedNotice[] = [];
   readonly bookingsDecided: VenueBookingDecidedNotice[] = [];
   readonly holdsExpired: HoldExpiredNotice[] = [];
+  readonly bookingsCancelled: VenueBookingCancelledNotice[] = [];
   readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
@@ -82,6 +84,10 @@ export class RecordingNotifier implements Notifier {
 
   async holdExpired(notice: HoldExpiredNotice): Promise<void> {
     this.holdsExpired.push(notice);
+  }
+
+  async venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void> {
+    this.bookingsCancelled.push(notice);
   }
 
   async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {

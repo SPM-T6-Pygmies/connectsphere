@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { buildListVenues } from "@/composition/container";
 import { formatOpeningHours } from "@/core/domain/opening-hours";
+import { describeBuffers } from "@/core/domain/venue-buffers";
 
 import { EmptyState } from "../../field-list";
 import { PageHeader, StaffShell } from "../../staff-shell";
@@ -46,6 +47,7 @@ export default async function VenueCataloguePage() {
                 <TableHead>Capacity</TableHead>
                 <TableHead>Layouts (capacity)</TableHead>
                 <TableHead>Opening hours</TableHead>
+                <TableHead>Setup and turnaround</TableHead>
                 <TableHead>Facilities</TableHead>
               </TableRow>
             </TableHeader>
@@ -67,6 +69,7 @@ export default async function VenueCataloguePage() {
                       : venue.layouts.map((l) => `${l.name} (${l.capacity})`).join(", ")}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{formatOpeningHours(venue.openingHours) || "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">{describeBuffers(venue)}</TableCell>
                   <TableCell className="text-muted-foreground">{venue.facilities ?? "—"}</TableCell>
                 </TableRow>
               ))}

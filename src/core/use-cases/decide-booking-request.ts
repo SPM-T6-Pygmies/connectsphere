@@ -88,7 +88,7 @@ export class DecideBookingRequestUseCase {
       return this.resolve(command.decision, staff, booking);
     }
 
-    const dates = [...new Set(booking.slots.map(({ date }) => date))];
+    const dates = [...new Set(booking.times.map(({ date }) => date))];
     const occupied = dates.length === 0 ? [] : await bookings.listSlotsAt(booking.venueId, dates);
 
     const decision: BookingDecision =
@@ -170,7 +170,7 @@ export class DecideBookingRequestUseCase {
       eventRequestId: after.event.requestId,
       eventName: after.event.name,
       venueLocation: after.venueLocation,
-      slots: after.slots,
+      times: after.times,
       outcome,
       reason: after.rejectionNote,
       suggestedAlternativeLocation: after.suggestedAlternativeLocation,

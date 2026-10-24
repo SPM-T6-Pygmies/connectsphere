@@ -50,7 +50,7 @@ its original wording and recorded passes, and is replaced by:
 
 No seed script creates an attendee-facing event, so add one. Run this in
 Supabase Studio's SQL editor (http://127.0.0.1:54323). It creates a Confirmed
-event in the AM and PM slots two weeks from today, with registration open from
+event from 7:00 am to 12:00 pm and 1:00 pm to 6:00 pm two weeks from today, with registration open from
 yesterday until a week from today, and a Confirmed booking at **Main Hall** so the event has a venue:
 
 ```sql
@@ -72,9 +72,12 @@ begin
       true, current_date - 1, current_date + 7, v_organiser, v_org)
   returning event_id into v_event;
 
-  -- Events run in slots, not timestamps (20261006070000_drop_timestamp_timing.sql).
+  -- Events run on 15-minute slots (SPM-326): '28'-'47' is 7:00 am-12:00 pm,
+  -- '52'-'71' is 1:00 pm-6:00 pm.
   insert into public.event_slot (event_id, slot_date, slot_code)
-  values (v_event, current_date + 14, 'AM'), (v_event, current_date + 14, 'PM');
+  select v_event, current_date + 14, n::text
+  from generate_series(28, 71) as n
+  where n not between 48 and 51;
 
   insert into public.booking (venue_id, event_id, requested_by_user_account_id,
       decided_by_user_account_id, status)
@@ -109,10 +112,10 @@ Confirmed test event under its date heading, with its time range and venue).
 
 **Expected Result:**
 - Heading **Events**, with "Everything open for registration right now. Times
-  are Singapore time." and a **Search events** box
+  are in your timezone." and a **Search events** box
 - The event appears under a day heading for its date (e.g. "18 Oct / Sunday")
-- Its card shows the name, the slots "AM (7:00 am – 12:00 pm), PM (12:00 pm –
-  6:00 pm)" and the venue **Main Hall**
+- Its card shows the name, the times "7:00 am – 12:00 pm, 1:00 pm – 6:00 pm"
+  and the venue **Main Hall**
 
 **Status:** [ ] Pass [ ] Fail
 
@@ -131,9 +134,8 @@ name and Email address with the closing date).
 
 **Expected Result:**
 - An **All events** link back to the list
-- The event name as the heading, then its full date, its slots "AM (7:00 am –
-  12:00 pm), PM (12:00 pm – 6:00 pm)" and venue **Main Hall**, then its
-  description
+- The event name as the heading, then its full date, its times "7:00 am –
+  12:00 pm, 1:00 pm – 6:00 pm" and venue **Main Hall**, then its description
 - A **Register** section reading "Registration closes <weekday, d Month
   yyyy>." with exactly two fields, **Full name** and **Email address**, and a
   **Register** button

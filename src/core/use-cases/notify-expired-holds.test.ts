@@ -15,7 +15,7 @@ function hold(overrides: Partial<ExpiredHold> = {}): ExpiredHold {
     eventName: "Harbour Lights Gala",
     coordinatorUserAccountId: "3",
     venueLocation: "Grand Ballroom",
-    slots: [{ date: "2026-11-20", slot: "PM" }],
+    times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     holdExpiresAt: "2026-11-18T05:00:00.000Z",
     ...overrides,
   };
@@ -28,7 +28,7 @@ function setup(seed: readonly ExpiredHold[]) {
 }
 
 describe("NotifyExpiredHoldsUseCase (SPM-254)", () => {
-  it("AC1, AC2: tells the coordinator the hold expired, naming the venue, the held slots and the expiry", async () => {
+  it("AC1, AC2: tells the coordinator the hold expired, naming the venue, the held times and the expiry", async () => {
     const { notifier, useCase } = setup([hold()]);
 
     await useCase.execute();
@@ -41,7 +41,7 @@ describe("NotifyExpiredHoldsUseCase (SPM-254)", () => {
         eventRequestId: "6",
         eventName: "Harbour Lights Gala",
         venueLocation: "Grand Ballroom",
-        slots: [{ date: "2026-11-20", slot: "PM" }],
+        times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
         holdExpiresAt: "2026-11-18T05:00:00.000Z",
       },
     ]);

@@ -11,6 +11,7 @@ import {
   organiserMessagePostedRow,
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
+  venueBookingCancelledRow,
   venueBookingDecidedRow,
   venueBookingRequestedRow,
 } from "./notification-row";
@@ -151,7 +152,7 @@ describe("venueBookingRequestedRow (SPM-61)", () => {
         bookingId: "31",
         eventName: "Harbour Lights Gala",
         venueLocation: "Grand Ballroom",
-        slots: [{ date: "2026-11-20", slot: "PM" }],
+        times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
       }),
     ).toEqual({
       recipient_user_account_id: "5",
@@ -160,7 +161,7 @@ describe("venueBookingRequestedRow (SPM-61)", () => {
       status: "Pending",
       related_booking_id: "31",
       message_content:
-        "Grand Ballroom requested for Harbour Lights Gala\nRequested for Fri, 20 Nov 2026 (PM). Approve or reject it.",
+        "Grand Ballroom requested for Harbour Lights Gala\nRequested for Fri, 20 Nov 2026 (13:00–18:00). Approve or reject it.",
     });
   });
 });
@@ -231,7 +232,7 @@ describe("venueBookingDecidedRow (SPM-62)", () => {
         eventRequestId: "6",
         eventName: "Harbour Lights Gala",
         venueLocation: "Grand Ballroom",
-        slots: [{ date: "2026-11-20", slot: "PM" }],
+        times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
         outcome: "Confirmed",
         reason: null,
         suggestedAlternativeLocation: null,
@@ -243,7 +244,7 @@ describe("venueBookingDecidedRow (SPM-62)", () => {
       status: "Pending",
       related_booking_id: "31",
       message_content:
-        "Grand Ballroom approved for Harbour Lights Gala\nVenue Staff confirmed Grand Ballroom for Fri, 20 Nov 2026 (PM). The venue is secured.",
+        "Grand Ballroom approved for Harbour Lights Gala\nVenue Staff confirmed Grand Ballroom for Fri, 20 Nov 2026 (13:00–18:00). The venue is secured.",
     });
   });
 });
@@ -258,7 +259,7 @@ describe("holdExpiredRow (SPM-254)", () => {
         eventRequestId: "6",
         eventName: "Harbour Lights Gala",
         venueLocation: "Grand Ballroom",
-        slots: [{ date: "2026-11-20", slot: "PM" }],
+        times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
         holdExpiresAt: "2026-11-18T05:00:00.000Z",
       }),
     ).toEqual({
@@ -268,7 +269,7 @@ describe("holdExpiredRow (SPM-254)", () => {
       status: "Pending",
       related_booking_id: "31",
       message_content:
-        "Grand Ballroom hold expired for Harbour Lights Gala\nThe hold on Grand Ballroom for Fri, 20 Nov 2026 (PM) expired at Wed, 18 Nov, 1:00 pm without being confirmed. The venue is no longer held; send a new request if you still need it.",
+        "Grand Ballroom hold expired for Harbour Lights Gala\nThe hold on Grand Ballroom for Fri, 20 Nov 2026 (13:00–18:00) expired at Wed, 18 Nov, 1:00 pm without being confirmed. The venue is no longer held; send a new request if you still need it.",
     });
   });
 });
@@ -287,6 +288,29 @@ describe("organiserMessagePostedRow (SPM-164)", () => {
       trigger_scenario: "organiser-message-posted",
       status: "Pending",
       related_event_request_id: "42",
+    });
+  });
+});
+
+describe("venueBookingCancelledRow (SPM-63)", () => {
+  it("AC1: records the notice as Pending against the Venue Staff member and the booking", () => {
+    expect(
+      venueBookingCancelledRow({
+        recipientUserAccountId: "5",
+        bookingId: "31",
+        venueId: "2",
+        venueLocation: "Grand Ballroom",
+        eventName: "Harbour Lights Gala",
+        times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "5",
+      trigger_scenario: "venue-booking-cancelled",
+      channel: "in_app",
+      status: "Pending",
+      related_booking_id: "31",
+      message_content:
+        "Grand Ballroom booking cancelled for Harbour Lights Gala\nThe coordinator cancelled the confirmed booking of Grand Ballroom for Fri, 20 Nov 2026 (13:00–18:00). It is now Released, and that time is free to book again.",
     });
   });
 });

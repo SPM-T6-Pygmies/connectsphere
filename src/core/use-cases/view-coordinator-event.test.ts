@@ -269,10 +269,10 @@ describe("ViewCoordinatorEventUseCase planning details (SPM-285)", () => {
 });
 
 describe("ViewCoordinatorEventUseCase completion (SPM-51)", () => {
-  const slots = [{ date: "2026-10-14", slot: "PM" }] as const;
+  const times = [{ date: "2026-10-14", start: "13:00", end: "18:00" }] as const;
 
   it("offers completion on a Confirmed event once its last slot has ended", async () => {
-    const useCase = buildUseCase([seedEvent({ status: "Confirmed", slots })]);
+    const useCase = buildUseCase([seedEvent({ status: "Confirmed", times })]);
 
     const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
 
@@ -281,7 +281,7 @@ describe("ViewCoordinatorEventUseCase completion (SPM-51)", () => {
 
   it("holds completion back before the last slot ends", async () => {
     const useCase = buildUseCase(
-      [seedEvent({ status: "Confirmed", slots })],
+      [seedEvent({ status: "Confirmed", times })],
       [],
       new Date("2026-10-14T17:59:59+08:00"),
     );
@@ -292,7 +292,7 @@ describe("ViewCoordinatorEventUseCase completion (SPM-51)", () => {
   });
 
   it("does not offer completion on a Planning event, even after it would have ended", async () => {
-    const useCase = buildUseCase([seedEvent({ status: "Planning", slots })]);
+    const useCase = buildUseCase([seedEvent({ status: "Planning", times })]);
 
     const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
 
@@ -423,5 +423,31 @@ describe("ViewCoordinatorEventUseCase essential equipment (SPM-318)", () => {
     const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
 
     expect(result?.blockingEquipment).toEqual([]);
+  });
+});
+
+describe("ViewCoordinatorEventUseCase end time (SPM-326)", () => {
+  it("AC3: gives the instant the event's latest end time passes", async () => {
+    const useCase = buildUseCase([
+      seedEvent({
+        status: "Confirmed",
+        times: [
+          { date: "2026-10-14", start: "07:00", end: "12:00" },
+          { date: "2026-10-14", start: "13:00", end: "18:15" },
+        ],
+      }),
+    ]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.endsAt).toBe(new Date("2026-10-14T18:15:00+08:00").toISOString());
+  });
+
+  it("AC3: has no end time for an event with no times", async () => {
+    const useCase = buildUseCase([seedEvent({ status: "Confirmed", times: [] })]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.endsAt).toBeNull();
   });
 });

@@ -1,8 +1,9 @@
 import type { BookingId } from "@/core/domain/booking";
 import type { ExpiredHold, ExpiredHoldNotices } from "@/core/ports/outbound/expired-hold-notices";
 
-import { toDate, toSlot } from "./booking-mapper";
+import { toBookingTimes } from "./booking-mapper";
 import type { SupabaseAdminClient } from "./client";
+import type { EventSlotTimeRow } from "./event-mapper";
 
 /** One row `claim_expired_hold_notices()` returns. */
 interface ExpiredHoldRow {
@@ -13,7 +14,7 @@ interface ExpiredHoldRow {
   coordinator_user_account_id: number | null;
   venue_location: string;
   hold_expires_at: string;
-  slots: ReadonlyArray<{ date: string; slot: string }>;
+  slots: readonly EventSlotTimeRow[];
 }
 
 /**
@@ -38,7 +39,7 @@ export class SupabaseExpiredHoldNotices implements ExpiredHoldNotices {
       coordinatorUserAccountId:
         row.coordinator_user_account_id === null ? null : String(row.coordinator_user_account_id),
       venueLocation: row.venue_location,
-      slots: row.slots.map((slot) => ({ date: toDate(slot.date), slot: toSlot(slot.slot) })),
+      times: toBookingTimes(row.slots),
       holdExpiresAt: row.hold_expires_at,
     }));
   }

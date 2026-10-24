@@ -72,6 +72,7 @@ export function AssignedRequestDetail({
   coordinatorName,
   canDiscuss,
   canWithdraw,
+  eventId,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -89,6 +90,8 @@ export function AssignedRequestDetail({
   section: CoordinatorSection;
   /** Whether a withdrawal can be recorded now, from the use case. */
   canWithdraw: boolean;
+  /** SPM-459: the event an approved request opened, whose Venue tab books its venue; null until there is one. */
+  eventId: string | null;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -212,17 +215,17 @@ export function AssignedRequestDetail({
             </Card>
           ) : null}
 
-          {state === "approved" ? (
+          {state === "approved" && eventId !== null ? (
             <Card>
               <CardHeader>
                 <CardTitle>Venue</CardTitle>
                 <CardDescription>
-                  Ask Venue Staff for a venue and slots for this event.
+                  Ask Venue Staff for a venue and times for this event.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Button asChild className="w-full">
-                  <Link href={`/staff/coordinator/${eventRequest.id}/venue-booking`}>
+                  <Link href={`/staff/coordinator/events/${eventId}?tab=venue`}>
                     Request a venue
                   </Link>
                 </Button>

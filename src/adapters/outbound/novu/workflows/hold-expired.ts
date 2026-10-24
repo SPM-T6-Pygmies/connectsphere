@@ -7,15 +7,11 @@ export const HOLD_EXPIRED_WORKFLOW_ID = "hold-expired";
 
 /**
  * The Inbox entry a coordinator sees when a hold expires (SPM-254): the shared
- * wording, plus a click that opens the booking on the event's Request a venue
- * page, where they can request the venue again or arrange another. An event
- * with no request has no such page, so it opens the event instead.
+ * wording, plus a click that opens the booking on the event's Venue tab
+ * (SPM-459), where they can request the venue again or arrange another.
  */
 export function holdExpiredInApp(notice: HoldExpiredNotice) {
-  const url =
-    notice.eventRequestId === null
-      ? `/staff/coordinator/events/${notice.eventId}`
-      : `/staff/coordinator/${notice.eventRequestId}/venue-booking?booking=${notice.bookingId}`;
+  const url = `/staff/coordinator/events/${notice.eventId}?tab=venue&booking=${notice.bookingId}`;
   return {
     ...holdExpiredMessage(notice),
     redirect: { url, target: "_self" as const },
@@ -45,15 +41,16 @@ export const holdExpired = workflow(
         eventRequestId: { type: ["string", "null"] },
         eventName: { type: "string" },
         venueLocation: { type: "string" },
-        slots: {
+        times: {
           type: "array",
           items: {
             type: "object",
             properties: {
               date: { type: "string" },
-              slot: { type: "string", enum: ["AM", "PM", "Night"] },
+              start: { type: "string" },
+              end: { type: "string" },
             },
-            required: ["date", "slot"],
+            required: ["date", "start", "end"],
             additionalProperties: false,
           },
         },
@@ -66,7 +63,7 @@ export const holdExpired = workflow(
         "eventRequestId",
         "eventName",
         "venueLocation",
-        "slots",
+        "times",
         "holdExpiresAt",
       ],
       additionalProperties: false,
