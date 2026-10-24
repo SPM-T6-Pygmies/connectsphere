@@ -100,6 +100,7 @@ import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue
 import { MarkEquipmentLineUnfulfilledUseCase } from "@/core/use-cases/mark-equipment-line-unfulfilled";
 import { ListEventsAwaitingSafetyCheckUseCase } from "@/core/use-cases/list-events-awaiting-safety-check";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
+import { ReleaseEquipmentLineUseCase } from "@/core/use-cases/release-equipment-line";
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
 import { ReserveEquipmentLineUseCase } from "@/core/use-cases/reserve-equipment-line";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
@@ -461,6 +462,13 @@ export async function buildMarkEquipmentLineUnfulfilled(): Promise<MarkEquipment
   const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
   return new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
+}
+
+/** SPM-108: release a line the coordinator asked to remove. */
+export async function buildReleaseEquipmentLine(): Promise<ReleaseEquipmentLineUseCase> {
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
+
+  return new ReleaseEquipmentLineUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /**

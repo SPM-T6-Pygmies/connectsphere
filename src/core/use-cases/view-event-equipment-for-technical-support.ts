@@ -3,6 +3,7 @@ import type { EquipmentLineState, EquipmentReviewBaseline } from "../domain/equi
 import {
   attentionReason,
   awaitsDecision,
+  awaitsRelease,
   equipmentQueueOf,
   reservedAs,
   unitsAvailableForLine,
@@ -39,6 +40,8 @@ export interface TechnicalSupportEquipmentLine {
   readonly state: EquipmentLineState;
   /** SPM-274: whether it can be reserved or marked unfulfilled now -- new, or changed after being marked unfulfilled. */
   readonly canDecide: boolean;
+  /** SPM-108: whether its units can be released now -- the coordinator asked to remove it. */
+  readonly canRelease: boolean;
   /** SPM-274: who last reserved it or marked it unfulfilled, and why not; null while nobody has. */
   readonly decision: { readonly byName: string | null; readonly comment: string | null } | null;
   /** SPM-109 AC2: the coordinator marked it essential, as agreed with Technical Support. */
@@ -66,7 +69,7 @@ export interface ViewEventEquipmentForTechnicalSupportDeps {
  * SPM-273 AC3-4: every equipment line of one event, marked with why it needs
  * attention, and with how many units are free on the event's date. SPM-274:
  * which lines can be reserved or marked unfulfilled, and what was decided on
- * the others. Releasing or replacing a reservation is SPM-108.
+ * the others. SPM-108: which lines can be released.
  */
 export class ViewEventEquipmentForTechnicalSupportUseCase {
   constructor(private readonly deps: ViewEventEquipmentForTechnicalSupportDeps) {}
@@ -98,6 +101,7 @@ export class ViewEventEquipmentForTechnicalSupportUseCase {
         available: unitsAvailableForLine(line, owned, outOfService, event.preferredDate, otherHolds),
         state: line.state,
         canDecide: awaitsDecision(event.status, line),
+        canRelease: awaitsRelease(event.status, line),
         decision: line.decision === null ? null : { byName: decidedByName, comment: line.decision.comment },
         essential: line.essential,
       })),

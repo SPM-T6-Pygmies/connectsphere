@@ -12,6 +12,7 @@ import { updateEquipmentStockSchema } from "@/adapters/inbound/update-equipment-
 import {
   buildCreateEquipmentItem,
   buildMarkEquipmentLineUnfulfilled,
+  buildReleaseEquipmentLine,
   buildReserveEquipmentLine,
   buildUpdateEquipmentStock,
   getCurrentTechnicalSupport,
@@ -20,6 +21,7 @@ import {
 import {
   DomainError,
   EquipmentLineNotAwaitingDecisionError,
+  EquipmentNothingToReleaseError,
   NotEnoughEquipmentAvailableError,
 } from "@/core/domain/errors";
 
@@ -129,10 +131,11 @@ const NOT_TECHNICAL_SUPPORT: EquipmentFormState = {
 };
 
 /**
- * Runs one SPM-274 decision as the signed-in Technical Support Staff member,
- * turning a broken rule into the line's message. A refusal because the line
- * or what is free changed since the page was read (AC6) refreshes the page
- * too, so it shows where things now stand.
+ * Runs one SPM-274 decision, or an SPM-108 release, as the signed-in
+ * Technical Support Staff member, turning a broken rule into the line's
+ * message. A refusal because the line or what is free changed since the page
+ * was read (AC6, SPM-108 AC3) refreshes the page too, so it shows where
+ * things now stand.
  */
 async function decideOnLine(
   decide: (userAccountId: string) => Promise<{ readonly equipmentType: string; readonly state: string }>,
@@ -149,7 +152,11 @@ async function decideOnLine(
     return { status: "success", message: `${decided.equipmentType}: ${decided.state.toLowerCase()}.` };
   } catch (error) {
     if (error instanceof DomainError) {
-      if (error instanceof NotEnoughEquipmentAvailableError || error instanceof EquipmentLineNotAwaitingDecisionError) {
+      if (
+        error instanceof NotEnoughEquipmentAvailableError ||
+        error instanceof EquipmentLineNotAwaitingDecisionError ||
+        error instanceof EquipmentNothingToReleaseError
+      ) {
         revalidatePath("/staff/technical", "layout");
       }
       return { status: "error", message: error.message };
@@ -188,4 +195,19 @@ export async function markEquipmentLineUnfulfilledAction(
     (await buildMarkEquipmentLineUnfulfilled()).execute({ ...parsed.data, userAccountId }),
   );
   return result.status === "error" ? { ...result, values } : result;
+}
+
+/** SPM-108: release the units held on a line the coordinator asked to remove. */
+export async function releaseEquipmentLineAction(
+  _previous: EquipmentFormState,
+  formData: FormData,
+): Promise<EquipmentFormState> {
+  const parsed = equipmentLineDecisionSchema.safeParse(submittedValues(formData, ["eventId", "equipmentItemId"]));
+  if (!parsed.success) {
+    return { status: "error", message: "Reload the page and try again." };
+  }
+
+  return decideOnLine(async (userAccountId) =>
+    (await buildReleaseEquipmentLine()).execute({ ...parsed.data, userAccountId }),
+  );
 }
