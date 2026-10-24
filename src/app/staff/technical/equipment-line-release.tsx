@@ -18,16 +18,18 @@ export interface ReleasableLine {
 /**
  * SPM-108: release the units held on a line the coordinator asked to remove.
  * The line then goes, which cannot be undone, so the first press asks before
- * anything is sent -- and the confirmation is a toast, as the row unmounts.
- * If the coordinator withdrew the removal meanwhile (AC3), the server says so
- * here as the page refreshes.
+ * anything is sent. Either way the outcome is a toast: on success the row
+ * unmounts, and if the coordinator withdrew the removal meanwhile (AC3) the
+ * page refreshes to show the line Reserved, which unmounts this form too.
  */
 export function EquipmentLineRelease({ eventId, line }: { eventId: string; line: ReleasableLine }) {
-  const [state, formAction, pending] = useActionState(
+  const [, formAction, pending] = useActionState(
     async (previous: EquipmentFormState, formData: FormData) => {
       const next = await releaseEquipmentLineAction(previous, formData);
       if (next.status === "success") {
         toast.success(`${line.quantityReserved} × ${line.equipmentType} released. They are free for other events.`);
+      } else if (next.status === "error") {
+        toast.error(next.message);
       }
       return next;
     },
@@ -65,11 +67,6 @@ export function EquipmentLineRelease({ eventId, line }: { eventId: string; line:
           Keep
         </Button>
       </div>
-      {state.status === "error" ? (
-        <p role="alert" className="text-destructive text-xs">
-          {state.message}
-        </p>
-      ) : null}
     </form>
   );
 }
