@@ -54,13 +54,26 @@ as, so the rebuilt database is usable straight away — see
    a comment block up top explaining *why*, `add column if not exists` /
    `create ... if not exists` where you can so the migration tolerates being
    replayed, and inline comments next to anything non-obvious.
-3. Verify locally: `supabase db reset`, then run the app and/or `pnpm test`
+3. Grant access explicitly, in the same migration. Supabase no longer gives
+   the API roles (`anon`, `authenticated`, `service_role`) access to new
+   `public` tables, functions or sequences, so anything you create is
+   unreachable through supabase-js until you grant it:
+   - Every new table gets `enable row level security`, and no table grants
+     to `anon` or `authenticated`. The app reaches tables through functions.
+   - Every new function gets a `revoke execute … from public` and a
+     `grant execute … to <roles>` naming only the roles that call it.
+   - An adapter that uses the admin client on a table directly needs a
+     narrow `grant … to service_role` (only the privileges it uses).
+     `service_role` bypasses RLS, not grants.
+
+   `20261020020000_booking_review_flag.sql` is a worked example.
+4. Verify locally: `supabase db reset`, then run the app and/or `pnpm test`
    against it.
-4. If your change alters a table Supabase Studio would show differently than
+5. If your change alters a table Supabase Studio would show differently than
    `supabase/schema.sql` describes, update that file's table block by hand to
    match — it's a hand-maintained reference, not generated, so nothing keeps
    it in sync automatically.
-5. Commit the migration file (and the `schema.sql` edit, if any) and open a
+6. Commit the migration file (and the `schema.sql` edit, if any) and open a
    PR. **The PR is how teammates find out a table changed** — there's no
    separate channel or changelog for this. Reviewers see the migration in the
    diff, same as any other code change.
