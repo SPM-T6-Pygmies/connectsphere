@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { paddedWindowsClash, occupiedWindows, paddedWindows } from "./padded-window";
+import { paddedWindowsClash, paddedWindows } from "./padded-window";
 
 const DAY = "2026-12-14";
 const MAIN_HALL = { setup: 30, turnaround: 45 };
@@ -75,15 +75,19 @@ describe("paddedWindows (SPM-23 AC6)", () => {
   });
 });
 
-describe("occupiedWindows (SPM-23 AC7)", () => {
-  const booked = { date: DAY, start: "10:00", end: "12:00" };
+describe("a Tentative Hold is padded like any other booking (SPM-19)", () => {
+  const hold = paddedWindows({ date: DAY, start: "10:00", end: "12:00" }, MAIN_HALL); // 09:30-12:45
 
-  it.each(["Requested", "Confirmed"] as const)("pads a %s booking", (status) => {
-    expect(occupiedWindows(booked, status, MAIN_HALL)).toEqual([{ date: DAY, start: "09:30", end: "12:45" }]);
+  it("AC4: pads a hold's held time with the venue's setup and turnaround", () => {
+    expect(hold).toEqual([{ date: DAY, start: "09:30", end: "12:45" }]);
   });
 
-  it("does not pad a Tentative Hold: it holds only the held time", () => {
-    expect(occupiedWindows(booked, "Tentative Hold", MAIN_HALL)).toEqual([booked]);
+  it("AC4: blocks a booking that starts in the hold's turnaround: 12:15-14:00 at a venue with none", () => {
+    expect(paddedWindowsClash(hold, paddedWindows({ date: DAY, start: "12:15", end: "14:00" }, NONE))).toBe(true);
+  });
+
+  it("AC4: does not block a booking that starts exactly when the hold's turnaround ends: 12:45", () => {
+    expect(paddedWindowsClash(hold, paddedWindows({ date: DAY, start: "12:45", end: "14:00" }, NONE))).toBe(false);
   });
 });
 
