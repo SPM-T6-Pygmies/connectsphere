@@ -135,7 +135,10 @@ than committed here.
 
 ## SPM-66: event confirmed
 
-Not yet run. Studio should also list `event-confirmed`.
+Last run 2026-10-24, local (`pnpm dev:local`, Novu Development), by Isaiah
+Chia, on Operations Roadmap Conference (`organiser2@test.com`). The first run
+found no **Event confirmed** badge; the badge was added and checked again.
+Screenshots are attached to PR #175. Studio should also list `event-confirmed`.
 
 **Pre-conditions:** an approved request whose event is ready to confirm,
 assigned to `coordinator@test.com`: a Confirmed venue booking, every
@@ -152,13 +155,13 @@ with something reserved.
 3. As `coordinator@test.com`, open **Notifications**.
 
 **Expected Result**
-- [ ] One new unread notification for the organiser, badged **Event
+- [x] One new unread notification for the organiser, badged **Event
       confirmed**, reading "<event> is confirmed". It says the event is now
       Confirmed and ConnectSphere is committed to delivering it, then gives
       the times, the venue and the essential equipment line.
-- [ ] The non-essential equipment line is not mentioned.
-- [ ] The coordinator has no new notification for the confirmation.
-- [ ] `notification` has a row with `trigger_scenario = 'event-confirmed'`,
+- [x] The non-essential equipment line is not mentioned.
+- [x] The coordinator has no new notification for the confirmation.
+- [x] `notification` has a row with `trigger_scenario = 'event-confirmed'`,
       the organiser as recipient, and `status = 'Sent'`.
 
 ### TC-ORGNOTIFY-008 Opening the notification shows the confirmed arrangements and reads it
@@ -167,7 +170,7 @@ with something reserved.
 1. As `organiser@test.com`, click the notification from TC-ORGNOTIFY-007.
 
 **Expected Result**
-- [ ] The request opens. Its **Your event** card shows **Confirmed**, the
+- [x] The request opens. Its **Your event** card shows **Confirmed**, the
       venue and every reserved equipment line (both lines, with their
       quantities), and **Event times** shows the event's dates and times.
-- [ ] The notification is now read, and the unread count drops by one.
+- [x] The notification is now read, and the unread count drops by one.
