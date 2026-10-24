@@ -28,7 +28,7 @@ build on what the earlier ones left.
 
 ## Test Environment Setup
 
-- Local Supabase, rebuilt from every migration (`20261023020000` adds the constraint, the lock and the
+- Local Supabase, rebuilt from every migration (`20261023030000` adds the constraint, the lock and the
   catalogue changes), then:
   ```bash
   supabase start
