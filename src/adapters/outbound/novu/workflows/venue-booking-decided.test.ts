@@ -12,7 +12,7 @@ function notice(overrides: Partial<VenueBookingDecidedNotice> = {}): VenueBookin
     eventRequestId: "6",
     eventName: "Harbour Lights Gala",
     venueLocation: "Grand Ballroom",
-    slots: [{ date: "2026-11-20", slot: "PM" }],
+    times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     outcome: "Rejected",
     reason: "Closed for resurfacing.",
     suggestedAlternativeLocation: "Main Hall",
@@ -21,16 +21,16 @@ function notice(overrides: Partial<VenueBookingDecidedNotice> = {}): VenueBookin
 }
 
 describe("venueBookingDecidedInApp (SPM-62)", () => {
-  it("AC3: opens the booking on its event's Request a venue page, in the same tab", () => {
+  it("AC3: opens the booking on its event's Venue tab, in the same tab", () => {
     expect(venueBookingDecidedInApp(notice()).redirect).toEqual({
-      url: "/staff/coordinator/6/venue-booking?booking=31",
+      url: "/staff/coordinator/events/8?tab=venue&booking=31",
       target: "_self",
     });
   });
 
-  it("AC3: opens the event itself when it has no request to book venues from", () => {
+  it("AC3: opens the booking the same way when the event has no source request", () => {
     expect(venueBookingDecidedInApp(notice({ eventRequestId: null })).redirect.url).toBe(
-      "/staff/coordinator/events/8",
+      "/staff/coordinator/events/8?tab=venue&booking=31",
     );
   });
 });

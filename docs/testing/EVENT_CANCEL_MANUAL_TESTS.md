@@ -1,5 +1,10 @@
 # Event Cancel Manual Tests (SPM-55)
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for **SPM-55: Cancel an event**. The assigned Event Coordinator cancels an event

@@ -1,6 +1,7 @@
 import type { Brand } from "./brand";
 import { InvalidVenueError, InvalidVenueIdError, type VenueField } from "./errors";
 import { defineOpeningHours, type OpeningWindow } from "./opening-hours";
+import { defineVenueBuffers } from "./venue-buffers";
 import {
   ACCESSIBILITY_OPTIONS,
   FACILITY_OPTIONS,
@@ -47,6 +48,12 @@ export interface VenueDetails {
   readonly capacity: number | null;
   /** How many days ahead the venue can be booked. */
   readonly bookingHorizonDays: number | null;
+  /**
+   * SPM-23: minutes to set the venue up before an event and to reset it after, defined once
+   * and then locked. Null or missing is not defined, and counts as 0 in every check.
+   */
+  readonly setupMinutes?: number | null;
+  readonly turnaroundMinutes?: number | null;
   readonly layouts: readonly VenueLayout[];
 }
 
@@ -78,6 +85,19 @@ export function canMaintainVenues(roles: readonly string[]): boolean {
  * is exactly what SPM-42 AC2 rules out. Nor may a layout seat more than the
  * venue itself (SPM-106).
  */
+/** The location as the catalogue compares it: two venues are the same place if this matches. */
+export function venueNameKey(location: string): string {
+  return location.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/** The refusal for a location another venue already has; the database's unique index is mapped to it. */
+export function venueNameTaken(): InvalidVenueError {
+  return new InvalidVenueError(
+    "A venue with this location already exists. Choose a different location.",
+    "location",
+  );
+}
+
 export function defineVenue(input: VenueDetails): VenueDetails {
   const location = requiredText(input.location, "Enter the location.", "location");
   const facilities = requiredOptions(
@@ -110,6 +130,8 @@ export function defineVenue(input: VenueDetails): VenueDetails {
       "bookingHorizonDays",
     );
   }
+
+  const { setupMinutes, turnaroundMinutes } = defineVenueBuffers(input);
 
   if (input.layouts.length === 0) {
     throw new InvalidVenueError("Add at least one supported room layout.", "layouts");
@@ -154,6 +176,8 @@ export function defineVenue(input: VenueDetails): VenueDetails {
     openingHours,
     capacity: input.capacity,
     bookingHorizonDays: input.bookingHorizonDays,
+    setupMinutes,
+    turnaroundMinutes,
     layouts,
   };
 }

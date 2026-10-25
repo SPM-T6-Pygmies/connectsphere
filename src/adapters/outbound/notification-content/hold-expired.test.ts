@@ -12,9 +12,9 @@ function notice(overrides: Partial<HoldExpiredNotice> = {}): HoldExpiredNotice {
     eventRequestId: "6",
     eventName: "Harbour Lights Gala",
     venueLocation: "Grand Ballroom",
-    slots: [
-      { date: "2026-11-20", slot: "AM" },
-      { date: "2026-11-20", slot: "PM" },
+    times: [
+      { date: "2026-11-20", start: "07:00", end: "12:00" },
+      { date: "2026-11-20", start: "13:00", end: "18:00" },
     ],
     holdExpiresAt: "2026-11-18T05:00:00.000Z",
     ...overrides,
@@ -25,7 +25,7 @@ describe("holdExpiredMessage (SPM-254)", () => {
   it("AC1, AC2: names the venue, the held slots and the expiry, and says the venue is no longer held", () => {
     expect(holdExpiredMessage(notice())).toEqual({
       subject: "Grand Ballroom hold expired for Harbour Lights Gala",
-      body: "The hold on Grand Ballroom for Fri, 20 Nov 2026 (AM, PM) expired at Wed, 18 Nov, 1:00 pm without being confirmed. The venue is no longer held; send a new request if you still need it.",
+      body: "The hold on Grand Ballroom for Fri, 20 Nov 2026 (07:00–12:00, 13:00–18:00) expired at Wed, 18 Nov, 1:00 pm without being confirmed. The venue is no longer held; send a new request if you still need it.",
     });
   });
 

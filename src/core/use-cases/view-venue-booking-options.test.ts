@@ -52,7 +52,7 @@ function buildUseCase() {
         venueLocation: "Main Hall",
         roomLayoutName: "Theatre",
         status: "Requested",
-        slots: [{ date: "2026-10-05", slot: "AM" }],
+        times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
         requestedBy: "coordinator-1",
         requestedAt: "2026-09-27T00:00:00.000Z",
       },
@@ -63,7 +63,7 @@ function buildUseCase() {
         venueLocation: "Main Hall",
         roomLayoutName: null,
         status: "Confirmed",
-        slots: [{ date: "2026-10-06", slot: "AM" }],
+        times: [{ date: "2026-10-06", start: "07:00", end: "12:00" }],
         requestedBy: "coordinator-2",
         requestedAt: "2026-09-27T00:00:00.000Z",
       },
@@ -74,7 +74,7 @@ function buildUseCase() {
 describe("ViewVenueBookingOptionsUseCase (SPM-46)", () => {
   it("shows the event's timing and venue requirements, the venues, and this event's bookings (AC3)", async () => {
     const result = await buildUseCase().execute({
-      eventRequestId: "request-1",
+      eventId: "event-1",
       userAccountId: "coordinator-1",
     });
 
@@ -91,8 +91,36 @@ describe("ViewVenueBookingOptionsUseCase (SPM-46)", () => {
 
   it("returns nothing to a coordinator the event is not assigned to (#91)", async () => {
     await expect(
-      buildUseCase().execute({ eventRequestId: "request-1", userAccountId: "coordinator-2" }),
+      buildUseCase().execute({ eventId: "event-1", userAccountId: "coordinator-2" }),
     ).resolves.toBeNull();
+  });
+});
+
+describe("ViewVenueBookingOptionsUseCase by event (SPM-46)", () => {
+  it("reaches an event with no source request, by the event's own id", async () => {
+    const result = await new ViewVenueBookingOptionsUseCase({
+      flags: new InMemoryVenueUnavailabilityRepository(new FixedClock(new Date("2026-10-01T00:00:00Z"))),
+      events: new InMemoryCoordinatorEventRepository([
+        {
+          id: "event-direct",
+          eventRequestId: null,
+          name: "Board Offsite",
+          clientOrganisationName: "Acme",
+          preferredDate: "2026-10-05",
+          status: "Planning",
+          assignedCoordinatorUserAccountId: "coordinator-1",
+          description: null,
+          expectedAttendance: null,
+          clientOrganisationId: "org-1",
+          owningOrganiserUserAccountId: "organiser-1",
+        },
+      ]),
+      venues: new InMemoryVenueCatalogue([HALL]),
+      bookings: new InMemoryBookingRepository([]),
+    }).execute({ eventId: "event-direct", userAccountId: "coordinator-1" });
+
+    expect(result?.event.id).toBe("event-direct");
+    expect(result?.venues).toEqual([HALL]);
   });
 });
 
@@ -151,7 +179,7 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
       venueLocation: venue.location,
       roomLayoutName,
       status,
-      slots: [{ date: "2026-10-05", slot: "AM" as const }],
+      times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       requestedBy: "coordinator-1",
       requestedAt: "2026-09-27T00:00:00.000Z",
     };
@@ -168,7 +196,7 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
       events: new InMemoryCoordinatorEventRepository([seed]),
       venues: new InMemoryVenueCatalogue([STUDIO, ROOFTOP, BARE]),
       bookings: new InMemoryBookingRepository(bookings),
-    }).execute({ eventRequestId: "request-1", userAccountId });
+    }).execute({ eventId: "event-1", userAccountId });
   }
 
   it("works out a verdict for every venue and layout on offer, from the event's needs (AC3)", async () => {

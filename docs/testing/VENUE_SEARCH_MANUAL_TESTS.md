@@ -1,13 +1,16 @@
-# Venue Search Manual Tests (SPM-44)
+# Venue Search Manual Tests (SPM-44, SPM-322)
 
 ## Overview
 Manual browser tests for the Event Coordinator searching the venue catalogue on
-**Find a venue** (`/staff/coordinator/venues`), on slot-based timing: a search
-asks for a date plus slots (AM 07:00–12:00, PM 13:00–18:00, Night 19:00–24:00,
-Singapore time) instead of a start and end time.
+**Find a venue** (`/staff/coordinator/venues`). Since SPM-322 a search asks for
+a date with a start and end time on the 15-minute grid, Singapore time. A venue
+is left out if it is closed for any part of that time, or if a live booking or
+In force block overlaps it. A booking or block that only touches the time does
+not.
 
-SPM-44 AC2 still says "start and end time". Slots replace it, so these cases
-check the slot form of the rule.
+Bookings and blocks are still stored as AM, PM and Night here (SPM-324 and
+SPM-321 move them). The search reads them as the hours they cover: AM
+07:00–12:00, PM 13:00–18:00, Night 19:00–24:00.
 
 These cases are registered in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
@@ -17,12 +20,19 @@ them, tick the boxes below **and** report each in the PR description's
 
 | Case | Ticket | AC |
 | --- | --- | --- |
-| TC-VSEARCH-001–003 | SPM-44 | AC1 — layout capacity, facilities, accessibility |
-| TC-VSEARCH-004, 006, 007, 012 | SPM-44 | AC2 — date and slots |
-| TC-VSEARCH-009–011 | SPM-44 | AC1 and AC2 together |
+| TC-VSEARCH-001–003 | SPM-44 | AC1 — layout capacity, facilities, accessibility (SPM-322 AC4) |
+| TC-VSEARCH-006, 007 | SPM-44 | AC2 — date and time |
+| TC-VSEARCH-009–011 | SPM-44 | AC1 and AC2 together (SPM-322 AC4) |
+| TC-VSEARCH-013 | SPM-322 | AC1 — closed for any part of the time |
+| TC-VSEARCH-014 | SPM-322 | AC1, AC2 — an overlapping booking, and touching times |
+| TC-VSEARCH-015 | SPM-322 | AC1, AC2 — an In force block |
+| TC-VSEARCH-016 | SPM-322 | AC3 — a time that cannot be searched |
 
 TC-VSEARCH-005 (outside operating hours) and TC-VSEARCH-008 (backwards time
 window) are retired: they tested inputs that no longer exist.
+TC-VSEARCH-004 (booked in a chosen slot) and TC-VSEARCH-012 (a slot the venue
+does not offer) are retired by SPM-322: the search no longer picks slots.
+TC-VSEARCH-014 and TC-VSEARCH-013 test the same rules by time.
 
 ---
 
@@ -48,10 +58,13 @@ window) are retired: they tested inputs that no longer exist.
 
 Seeded venues (from `scripts/seed-venue-search-uat/seed.sql`):
 
-| Venue | Slots | Layouts | Facilities / Accessibility | Bookings |
+| Venue | Opening hours | Layouts | Facilities / Accessibility | Bookings |
 | --- | --- | --- | --- | --- |
-| UAT-44 Harbour Room | AM, PM, Night | Theatre 200, Boardroom 20 | Wi-Fi, Video-conferencing / Step-free access, Hearing loop | Confirmed on D PM |
-| UAT-44 Garden Hall | AM, PM | Banquet 150, Classroom 80 | Catering area / Lift access | Rejected on D AM |
+| UAT-44 Harbour Room | 07:00–12:00, 13:00–18:00, 19:00–24:00 | Theatre 200, Boardroom 20 | Wi-Fi, Video-conferencing / Step-free access, Hearing loop | Confirmed on D 13:00–18:00 (PM) |
+| UAT-44 Garden Hall | 07:00–12:00, 13:00–18:00 | Banquet 150, Classroom 80 | Catering area / Lift access | Rejected on D 07:00–12:00 (AM) |
+
+The seed still writes opening hours as AM, PM and Night; the SPM-320 migration
+reads them as the windows above.
 
 Both have a 60-day booking horizon; Harbour Room's venue capacity is 250,
 Garden Hall's 500.
@@ -71,7 +84,7 @@ with that seed loaded as well, step 2 lists it.
       because its Boardroom layout seats fewer than 100.
 - [x] Step 2: Harbour Room is listed.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-boardroom-100](../screenshots/2026-10-09_TC-VSEARCH-001_step1-boardroom-100.png) · [step2-theatre-100](../screenshots/2026-10-09_TC-VSEARCH-001_step2-theatre-100.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-boardroom-100](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-001_step1-boardroom-100.png) · [step2-theatre-100](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-001_step2-theatre-100.png)
 
 ### TC-VSEARCH-002 No fallback to the venue-wide capacity
 
@@ -82,7 +95,7 @@ with that seed loaded as well, step 2 lists it.
 - [x] No venues found. Garden Hall is not listed although its venue capacity is
       500; the summary says no layout seats 300.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-attendance-300](../screenshots/2026-10-09_TC-VSEARCH-002_step1-attendance-300.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Main Hall, from another local seed, has Theatre 300 and was listed too; the case's check holds: Garden Hall was not listed, and the summary said no layout seats 300. Screenshots: [step1-attendance-300](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-002_step1-attendance-300.png)
 
 ### TC-VSEARCH-003 Every selected facility and accessibility feature is required
 
@@ -95,68 +108,43 @@ with that seed loaded as well, step 2 lists it.
 - [x] Step 2: no venues found, since no venue has both; the summary names the
       missing facility and accessibility feature.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-video-conferencing-hearing-loop](../screenshots/2026-10-09_TC-VSEARCH-003_step1-video-conferencing-hearing-loop.png) · [step2-video-conferencing-lift-access](../screenshots/2026-10-09_TC-VSEARCH-003_step2-video-conferencing-lift-access.png)
-
-### TC-VSEARCH-004 A venue booked in a chosen slot is excluded
-
-**Steps**
-1. Enter **Date** D, tick **PM**. Click **Search**.
-2. Open the page again. Enter **Date** D, tick **AM**. Click **Search**.
-
-**Expected Result**
-- [x] Step 1: Harbour Room is not listed; the summary says it is already booked
-      in a slot chosen.
-- [x] Step 2: Harbour Room is listed; the slot before a booked one is free.
-
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-date-d-pm](../screenshots/2026-10-09_TC-VSEARCH-004_step1-date-d-pm.png) · [step2-date-d-am](../screenshots/2026-10-09_TC-VSEARCH-004_step2-date-d-am.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Step 2 listed Seminar Room 2-1, from another local seed, which has both; neither UAT-44 venue was listed. Screenshots: [step1-video-conferencing-hearing-loop](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-003_step1-video-conferencing-hearing-loop.png) · [step2-video-conferencing-lift-access](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-003_step2-video-conferencing-lift-access.png)
 
 ### TC-VSEARCH-006 A rejected booking does not block the venue
 
 **Steps**
-1. Enter **Date** D, tick **AM**. Click **Search**.
+1. Enter **Date** D, **Start time** 07:00, **End time** 12:00. Click **Search**.
 
 **Expected Result**
 - [x] Garden Hall is listed. Only Tentative Hold and Confirmed bookings make a
       venue busy.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-garden-hall-listed](../screenshots/2026-10-09_TC-VSEARCH-006_step1-garden-hall-listed.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-garden-hall-listed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-006_step1-garden-hall-listed.png)
 
 ### TC-VSEARCH-007 A date beyond the booking horizon is excluded
 
 **Steps**
-1. Enter a **Date** 61 days from today, tick **AM**. Click **Search**.
+1. Enter a **Date** 61 days from today, **Start time** 07:00, **End time** 12:00.
+   Click **Search**.
 
 **Expected Result**
-- [x] No venues found; the summary says they cannot be booked as far ahead as
-      the searched date.
+- [x] Neither UAT-44 venue is listed; the summary says they cannot be booked as
+      far ahead as the searched date.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-61-days-ahead](../screenshots/2026-10-09_TC-VSEARCH-007_step1-61-days-ahead.png)
-
-### TC-VSEARCH-012 A venue that does not offer a chosen slot is excluded
-
-**Steps**
-1. Enter **Date** D, tick **Night**. Click **Search**.
-2. Open the page again. Enter **Date** D, tick **AM** and **Night**. Click **Search**.
-
-**Expected Result**
-- [x] Step 1: Harbour Room is listed. Garden Hall is not; the summary says it
-      does not offer every slot chosen (Night).
-- [x] Step 2: the same. A venue must offer *every* chosen slot, so Garden Hall's
-      AM does not let it in.
-
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-night](../screenshots/2026-10-09_TC-VSEARCH-012_step1-night.png) · [step2-am-and-night](../screenshots/2026-10-09_TC-VSEARCH-012_step2-am-and-night.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-61-days-ahead](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-007_step1-61-days-ahead.png)
 
 ### TC-VSEARCH-009 Attribute and date filters combine into a candidate list
 
 **Steps**
 1. Choose **Room layout** Theatre, **Attendance** `150`; tick **Video-conferencing**
-   and **Step-free access**; **Date** D, tick **Night**. Click **Search**.
+   and **Step-free access**; **Date** D, **Start time** 19:00, **End time** 24:00.
+   Click **Search**.
 
 **Expected Result**
 - [x] Only Harbour Room is listed, with its attributes and no pass/fail or
       suitability column (#83).
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-combined-filters](../screenshots/2026-10-09_TC-VSEARCH-009_step1-combined-filters.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-combined-filters](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-009_step1-combined-filters.png)
 
 ### TC-VSEARCH-010 Blank filters and an empty result
 
@@ -167,23 +155,119 @@ with that seed loaded as well, step 2 lists it.
 **Expected Result**
 - [x] Step 1: every venue in the catalogue is listed, with "N venues found".
 - [x] Step 2: no venues found, with the reason (no Exhibition layout) and a tip
-      to widen the search.
+      to widen the search ("a different date or time").
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-blank-filters](../screenshots/2026-10-09_TC-VSEARCH-010_step1-blank-filters.png) · [step2-alt-exhibition-attendance-200](../screenshots/2026-10-09_TC-VSEARCH-010_step2-alt-exhibition-attendance-200.png) · [step2-exhibition-as-written](../screenshots/2026-10-09_TC-VSEARCH-010_step2-exhibition-as-written.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Rooftop Terrace (seed-venues) has Exhibition 150, as the setup warns, so step 2 as written listed it; the alternative Exhibition with attendance 200 gave no venues, the reason and the tip. Screenshots: [step1-blank-filters](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-010_step1-blank-filters.png) · [step2-alt-exhibition-attendance-200](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-010_step2-alt-exhibition-attendance-200.png) · [step2-exhibition-as-written](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-010_step2-exhibition-as-written.png)
 
 ### TC-VSEARCH-011 Clear empties every filter
 
 **Steps**
-1. Choose Theatre, tick **Wi-Fi** and **Hearing loop**, **Date** D, tick **AM**.
-   Click **Search**.
+1. Choose Theatre, tick **Wi-Fi** and **Hearing loop**, **Date** D, **Start time**
+   07:00, **End time** 12:00. Click **Search**.
 2. Click **Clear**.
 3. Choose Banquet, tick **Catering area** and **Lift access** without searching.
 4. Click **Clear**.
 
 **Expected Result**
-- [x] After steps 2 and 4: date, layout and attendance are blank, no checkbox
-      (slot, facility or accessibility) is ticked, and the whole catalogue is
-      listed.
+- [x] After steps 2 and 4: date, start and end time, layout and attendance are
+      blank, no facility or accessibility box is ticked, and the whole catalogue
+      is listed.
 
-**Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-filters-set-and-searched](../screenshots/2026-10-09_TC-VSEARCH-011_step1-filters-set-and-searched.png) · [step2-after-clear](../screenshots/2026-10-09_TC-VSEARCH-011_step2-after-clear.png) · [step4-after-clear](../screenshots/2026-10-09_TC-VSEARCH-011_step4-after-clear.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-filters-set-and-searched](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step1-filters-set-and-searched.png) · [step2-after-clear](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step2-after-clear.png) · [step3-unsearched-filters](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step3-unsearched-filters.png) · [step4-after-clear](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step4-after-clear.png)
 
+---
+
+## SPM-322 — Search venues by start and end time
+
+**Shared Pre-Conditions:** as for SPM-44. Run 013 to 016 in order: 014 and 015
+change Harbour Room's opening hours and add a block, and 015 puts both back.
+
+### TC-VSEARCH-013 A venue closed for any part of the time is left out (AC1)
+
+**Steps**
+1. Enter **Date** D, **Start time** 07:00, **End time** 12:00. Click **Search**.
+2. Change the times to 11:45–12:15. Click **Search**.
+3. Change the times to 17:00–19:30. Click **Search**.
+
+**Expected Result**
+- [x] Step 1: both UAT-44 venues are listed. A time that matches an opening
+      window exactly is open.
+- [x] Step 2: neither is listed. The summary counts them as "closed for part of
+      11:45–12:15": both close for lunch at 12:00.
+- [x] Step 3: neither is listed, under "closed for part of 17:00–19:30". Harbour
+      Room is also booked 13:00–18:00, but a venue is counted once, under the
+      first filter it fails.
+
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-07-00-12-00-both-listed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-013_step1-07-00-12-00-both-listed.png) · [step2-11-45-12-15-closed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-013_step2-11-45-12-15-closed.png) · [step3-17-00-19-30-closed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-013_step3-17-00-19-30-closed.png)
+
+### TC-VSEARCH-014 An overlapping booking leaves a venue out; one that only touches does not (AC1, AC2)
+
+**Pre-Conditions:** as `venue@test.com`, open **UAT-44 Harbour Room** in the
+venue catalogue (`/staff/venue/catalogue`) and set its opening hours to one
+window, **07:00–24:00**. Save. Then sign in as `coordinator@test.com` and open
+**Find a venue**. The Confirmed booking on D 13:00–18:00 now has open time on
+both sides.
+
+**Steps**
+1. Enter **Date** D, **Start time** 17:45, **End time** 18:15. Click **Search**.
+2. Change the times to 13:15–13:30. Click **Search**.
+3. Change the times to 18:00–19:00. Click **Search**.
+4. Change the times to 12:00–13:00. Click **Search**.
+
+**Expected Result**
+- [x] Step 1: Harbour Room is not listed. The summary counts it as "already
+      booked or blocked for part of 17:45–18:15": 15 minutes overlap.
+- [x] Step 2: Harbour Room is not listed; a time inside the booking overlaps it.
+- [x] Step 3: Harbour Room is listed. The booking ends at 18:00, when this time
+      starts.
+- [x] Step 4: Harbour Room is listed. The booking starts at 13:00, when this
+      time ends.
+
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Harbour Room was opened 07:00–24:00 in the catalogue first, as the pre-condition says. Screenshots: [step1-17-45-18-15-overlap](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step1-17-45-18-15-overlap.png) · [step2-13-15-13-30-inside-booking](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step2-13-15-13-30-inside-booking.png) · [step3-18-00-19-00-touches-end](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png) · [step4-12-00-13-00-touches-start](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step4-12-00-13-00-touches-start.png)
+
+### TC-VSEARCH-015 An In force block leaves a venue out until it is lifted (AC1, AC2)
+
+**Pre-Conditions:** TC-VSEARCH-014 has run, so Harbour Room is open 07:00–24:00.
+As `venue@test.com`, open **Unavailability**, choose **UAT-44 Harbour Room**,
+From and To D, tick **Night**, Reason **Equipment failure**, and press **Mark
+unavailable**. The block covers 19:00–24:00.
+
+**Steps**
+1. As `coordinator@test.com`, search **Date** D, **Start time** 23:45, **End
+   time** 24:00.
+2. Search D 18:00–19:00.
+3. As `venue@test.com`, press **Lift** on the Harbour Room block. As the
+   coordinator, search D 23:45–24:00 again.
+4. Clean-up: as `venue@test.com`, set Harbour Room's opening hours back to
+   07:00–12:00, 13:00–18:00 and 19:00–24:00.
+
+**Expected Result**
+- [x] Step 1: Harbour Room is not listed, under "already booked or blocked for
+      part of 23:45–24:00". The last 15 minutes of the day can be searched.
+- [x] Step 2: Harbour Room is listed. The booking ends at 18:00 and the block
+      starts at 19:00, and this time touches both.
+- [x] Step 3: Harbour Room is listed. A lifted block holds nothing.
+- [x] Step 4: the catalogue shows the three windows again.
+
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step2-18-00-19-00-touches-both](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step2-18-00-19-00-touches-both.png) · [step3-after-lift-listed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step3-after-lift-listed.png) · [step4-hours-restored](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-015_step4-hours-restored.png)
+
+### TC-VSEARCH-016 A time that cannot be searched is refused, naming the problem (AC3)
+
+**Steps**
+1. Enter **Date** D only. Click **Search**.
+2. Enter **Date** D, **Start time** 14:00, **End time** 13:00. Click **Search**.
+3. Enter **Start time** 07:00 and **End time** 08:00 with no date. Click **Search**.
+4. Open `/staff/coordinator/venues?date=D&start=07:10&end=09:00`. The picker
+   offers only :00, :15, :30 and :45, so an off-grid time arrives by link.
+5. Open `/staff/coordinator/venues?date=D&start=24:00&end=24:00`.
+
+**Expected Result**
+- [x] Step 1: "Choose a start time." under **Start time**, and no results.
+- [x] Step 2: "The end time must be after the start time." under **End time**.
+- [x] Step 3: "Choose the event date." under **Date**.
+- [x] Step 4: "07:10 is not on the 15-minute grid -- use :00, :15, :30 or :45."
+      under **Start time**.
+- [x] Step 5: "A search cannot start at 24:00." under **Start time**.
+- [x] No step lists any venue or a summary.
+
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Step 2 was entered through the pickers, which posted `start=14:00&end=13:00`; steps 4 and 5 arrived by link, and the pickers then show 07:00 and a blank hour while the message names 07:10 and 24:00. Screenshots: [step1-date-only](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step1-date-only.png) · [step2-end-before-start](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step2-end-before-start.png) · [step3-no-date](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step3-no-date.png) · [step4-off-grid](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step4-off-grid.png) · [step5-start-24-00](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step5-start-24-00.png)

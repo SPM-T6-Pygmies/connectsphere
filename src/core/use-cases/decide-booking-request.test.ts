@@ -9,7 +9,7 @@ import { InMemoryBookingReviewRepository } from "@/adapters/outbound/in-memory/i
 import { InMemorySafetyCheckWatch } from "@/adapters/outbound/in-memory/in-memory-safety-check-watch";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 
-import type { BookingId, BookingStatus } from "../domain/booking";
+import { slotTime, type BookingId, type BookingStatus } from "../domain/booking";
 import {
   BookingNotDecidableError,
   BookingNotFoundError,
@@ -42,7 +42,7 @@ function booking(
     venueId: venueId(venue),
     venueLocation: `Venue ${venue}`,
     roomLayoutName: "Theatre",
-    slots: [{ date: "2026-10-22", slot }],
+    times: [slotTime({ date: "2026-10-22", slot })],
     requestedByName: "Coordinator",
     requestedAt: "2026-10-01T00:00:00.000Z",
     decidedByName: null,
@@ -80,7 +80,7 @@ function holdOnSlot(holdExpiresAt: Date | null): StoredBooking {
     venueLocation: "Venue v1",
     roomLayoutName: null,
     status: "Tentative Hold",
-    slots: [{ date: "2026-10-22", slot: "AM" }],
+    times: [{ date: "2026-10-22", start: "07:00", end: "12:00" }],
     requestedBy: "c2",
     requestedAt: "2026-09-20T00:00:00.000Z",
     holdExpiresAt,
@@ -105,7 +105,7 @@ function build(
       venueLocation: row.venueLocation,
       roomLayoutName: row.roomLayoutName,
       status: row.status,
-      slots: row.slots,
+      times: row.times,
       requestedBy: "c1",
       requestedAt: row.requestedAt,
     })),
@@ -316,7 +316,7 @@ describe("DecideBookingRequestUseCase placing a hold (SPM-218)", () => {
   });
 
   it("caps the hold at its slot's start when that is sooner than 72 hours (SPM-253 AC7)", async () => {
-    const tomorrowAm = { ...booking("b1", "Requested"), slots: [{ date: "2026-10-02", slot: "AM" as const }] };
+    const tomorrowAm = { ...booking("b1", "Requested"), times: [{ date: "2026-10-02", start: "07:00", end: "12:00" }] };
     const { useCase } = build([tomorrowAm]);
 
     const result = await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" });
@@ -325,7 +325,7 @@ describe("DecideBookingRequestUseCase placing a hold (SPM-218)", () => {
   });
 
   it("refuses a hold on a slot that has already started, and leaves the request waiting (SPM-253 AC7)", async () => {
-    const startedAm = { ...booking("b1", "Requested"), slots: [{ date: "2026-10-01", slot: "AM" as const }] };
+    const startedAm = { ...booking("b1", "Requested"), times: [{ date: "2026-10-01", start: "07:00", end: "12:00" }] };
     const { useCase, reviews, notifier } = build([startedAm]);
 
     await expect(
@@ -428,7 +428,7 @@ describe("DecideBookingRequestUseCase telling the coordinator (SPM-62)", () => {
         eventRequestId: "r1",
         eventName: "Summit",
         venueLocation: "Venue v1",
-        slots: [{ date: "2026-10-22", slot: "AM" }],
+        times: [{ date: "2026-10-22", start: "07:00", end: "12:00" }],
         outcome: "Confirmed",
         reason: null,
         suggestedAlternativeLocation: null,
@@ -550,7 +550,7 @@ describe("DecideBookingRequestUseCase confirming or releasing a hold (SPM-219)",
         eventRequestId: "r1",
         eventName: "Summit",
         venueLocation: "Venue v1",
-        slots: [{ date: "2026-10-22", slot: "AM" }],
+        times: [{ date: "2026-10-22", start: "07:00", end: "12:00" }],
         outcome: "Confirmed",
         reason: null,
         suggestedAlternativeLocation: null,
@@ -570,7 +570,7 @@ describe("DecideBookingRequestUseCase confirming or releasing a hold (SPM-219)",
       recipientUserAccountId: COORDINATOR,
       outcome: "Released",
       venueLocation: "Venue v1",
-      slots: [{ date: "2026-10-22", slot: "AM" }],
+      times: [{ date: "2026-10-22", start: "07:00", end: "12:00" }],
       reason: null,
     });
   });
@@ -611,7 +611,7 @@ describe("DecideBookingRequestUseCase confirming or releasing a hold (SPM-219)",
   it("a confirmation the store refuses over a block recorded after the hold changes nothing and tells nobody (AC7)", async () => {
     const { useCase, reviews, notifier } = build([held()]);
     reviews.resolveHold = async () => {
-      throw new VenueSlotBlockedError([{ date: "2026-10-22", slot: "AM" }]);
+      throw new VenueSlotBlockedError([{ date: "2026-10-22", start: "07:00", end: "12:00" }]);
     };
 
     await expect(

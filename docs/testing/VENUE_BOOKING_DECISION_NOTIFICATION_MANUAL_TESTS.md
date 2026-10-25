@@ -1,5 +1,10 @@
 # Venue Booking Decision Notification Manual Tests
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for **SPM-62 — Notify the coordinator of the venue booking
@@ -154,14 +159,15 @@ on `/staff/coordinator/notifications`.
 1. Click the Rooftop Terrace notice.
 
 **Expected Result:**
-- `/staff/coordinator/8/venue-booking?booking=<id>` opens. The Rooftop Terrace
+- The event's Venue tab opens, `/staff/coordinator/events/<event id>?tab=venue&booking=<id>`
+  (SPM-459). The Rooftop Terrace
   row is highlighted and shows **Rejected**. Under **Venue Staff's answer** it
   shows the reason, "Suggested instead: Main Hall", and a **Request Main Hall**
   button. Opening the notice marks it read.
 
-**Evidence:** [`TC-VBDECIDENOTE-004_step1-opened-booking-highlighted.png`](../screenshots/2026-10-13_TC-VBDECIDENOTE-004_step1-opened-booking-highlighted.png)
+**Evidence:** [`TC-VBDECIDENOTE-004_step1-opened-booking-highlighted.png`](../screenshots/2026-10-13_TC-VBDECIDENOTE-004_step1-opened-booking-highlighted.png) (before SPM-459)
 
-**Status:** [x] Pass [ ] Fail
+**Status:** [ ] Pass [ ] Fail
 
 ---
 

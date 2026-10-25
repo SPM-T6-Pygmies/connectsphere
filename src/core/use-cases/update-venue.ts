@@ -1,5 +1,7 @@
 import { VenueMaintenanceNotPermittedError } from "../domain/errors";
+import { VenueNotFoundError } from "../domain/errors";
 import { canMaintainVenues, defineVenue, venueId, type Venue } from "../domain/venue";
+import { buffersOf, checkBuffersChange } from "../domain/venue-buffers";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 
 export interface UpdateVenueCommand {
@@ -12,6 +14,9 @@ export interface UpdateVenueCommand {
   readonly openingHours: readonly { readonly start: string; readonly end: string }[];
   readonly capacity: number | null;
   readonly bookingHorizonDays: number | null;
+  /** SPM-23: defined once, then locked. Send the venue's own values back to leave them as they are. */
+  readonly setupMinutes: number | null;
+  readonly turnaroundMinutes: number | null;
   /** The venue's supported layouts after the update: one not listed here is removed. */
   readonly layouts: readonly { readonly name: string; readonly capacity: number }[];
 }
@@ -28,6 +33,8 @@ export interface UpdateVenueDeps {
 /**
  * SPM-147 (SPM-42 AC3): Venue Staff edit a venue's attributes, and add, edit or
  * remove its supported layouts, including a layout's capacity.
+ *
+ * SPM-23: setup and turnaround are defined once and then locked.
  */
 export class UpdateVenueUseCase {
   constructor(private readonly deps: UpdateVenueDeps) {}
@@ -37,18 +44,26 @@ export class UpdateVenueUseCase {
       throw new VenueMaintenanceNotPermittedError();
     }
 
-    const venue = await this.deps.venues.revise(
-      venueId(command.venueId),
-      defineVenue({
-        location: command.location,
-        facilities: command.facilities,
-        accessibility: command.accessibility,
-        openingHours: command.openingHours,
-        capacity: command.capacity,
-        bookingHorizonDays: command.bookingHorizonDays,
-        layouts: command.layouts,
-      }),
-    );
+    const id = venueId(command.venueId);
+    const details = defineVenue({
+      location: command.location,
+      facilities: command.facilities,
+      accessibility: command.accessibility,
+      openingHours: command.openingHours,
+      capacity: command.capacity,
+      bookingHorizonDays: command.bookingHorizonDays,
+      setupMinutes: command.setupMinutes,
+      turnaroundMinutes: command.turnaroundMinutes,
+      layouts: command.layouts,
+    });
+
+    const current = await this.deps.venues.find(id);
+    if (current === null) {
+      throw new VenueNotFoundError();
+    }
+    checkBuffersChange(buffersOf(current), buffersOf(details));
+
+    const venue = await this.deps.venues.revise(id, details);
 
     return { venue };
   }

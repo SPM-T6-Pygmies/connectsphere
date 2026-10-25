@@ -33,7 +33,8 @@ function search(overrides: Partial<VenueSearchInput> = {}): VenueSearchInput {
     facilities: [],
     accessibility: [],
     date: null,
-    slots: [],
+    start: null,
+    end: null,
     ...overrides,
   };
 }
@@ -49,24 +50,41 @@ function build(venues: Venue[], busy: BusyInterval[] = []) {
 
 const ids = (result: { venues: readonly Venue[] }) => result.venues.map((v) => v.id);
 
-describe("SearchVenuesUseCase (SPM-44)", () => {
-  it("excludes a venue booked in the searched slot, keeps one that is free", async () => {
-    const busy = [
-      {
-        venueId: venueId("a"),
-        startsAt: new Date("2026-11-05T12:00:00+08:00"),
-        endsAt: new Date("2026-11-05T18:00:00+08:00"),
-      },
-    ];
-    const useCase = build([venue("a"), venue("b")], busy);
+/** `id` held from `start` to `end` on 5 Nov 2026, Singapore time. */
+function held(id: string, start: string, end: string): BusyInterval {
+  return {
+    venueId: venueId(id),
+    startsAt: new Date(`2026-11-05T${start}:00+08:00`),
+    endsAt: new Date(`2026-11-05T${end}:00+08:00`),
+  };
+}
 
-    const result = await useCase.execute(
-      search({ date: "2026-11-05", slots: ["PM"] }),
-    );
+describe("SearchVenuesUseCase by start and end time (SPM-322)", () => {
+  const afternoon = { date: "2026-11-05", start: "15:00", end: "16:00" };
 
-    expect(ids(result)).toEqual(["b"]);
+  it("excludes a venue held for 15 minutes of the searched time, keeps one that is free", async () => {
+    const useCase = build([venue("a"), venue("b")], [held("a", "15:45", "16:00")]);
+
+    expect(ids(await useCase.execute(search(afternoon)))).toEqual(["b"]);
   });
 
+  it("keeps venues held only up to the start, or only from the end", async () => {
+    const useCase = build(
+      [venue("a"), venue("b")],
+      [held("a", "13:00", "15:00"), held("b", "16:00", "18:00")],
+    );
+
+    expect(ids(await useCase.execute(search(afternoon)))).toEqual(["a", "b"]);
+  });
+
+  it("refuses a time off the 15-minute grid", async () => {
+    await expect(
+      build([venue("a")]).execute(search({ ...afternoon, start: "15:10" })),
+    ).rejects.toBeInstanceOf(InvalidVenueSearchError);
+  });
+});
+
+describe("SearchVenuesUseCase (SPM-44)", () => {
   it("applies attribute and date filters together", async () => {
     const useCase = build([
       venue("a"),
@@ -80,7 +98,8 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
         attendance: 100,
         facilities: ["Wi-Fi"],
         date: "2026-11-05",
-        slots: ["PM"],
+        start: "13:00",
+        end: "18:00",
       }),
     );
 
@@ -105,7 +124,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
       venue("b", { facilities: "Catering area" }),
       venue("c", { bookingHorizonDays: 1 }),
     ]).execute(
-      search({ facilities: ["Wi-Fi"], date: "2026-11-05", slots: ["PM"] }),
+      search({ facilities: ["Wi-Fi"], date: "2026-11-05", start: "13:00", end: "18:00" }),
     );
 
     expect(ids(result)).toEqual(["a"]);
@@ -118,7 +137,7 @@ describe("SearchVenuesUseCase (SPM-44)", () => {
   it("refuses a search for a date already past in Singapore", async () => {
     await expect(
       build([venue("a")]).execute(
-        search({ date: "2026-10-31", slots: ["PM"] }),
+        search({ date: "2026-10-31", start: "13:00", end: "18:00" }),
       ),
     ).rejects.toBeInstanceOf(InvalidVenueSearchError);
   });

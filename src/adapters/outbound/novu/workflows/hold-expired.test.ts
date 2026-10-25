@@ -12,23 +12,23 @@ function notice(overrides: Partial<HoldExpiredNotice> = {}): HoldExpiredNotice {
     eventRequestId: "6",
     eventName: "Harbour Lights Gala",
     venueLocation: "Grand Ballroom",
-    slots: [{ date: "2026-11-20", slot: "PM" }],
+    times: [{ date: "2026-11-20", start: "13:00", end: "18:00" }],
     holdExpiresAt: "2026-11-18T05:00:00.000Z",
     ...overrides,
   };
 }
 
 describe("holdExpiredInApp (SPM-254)", () => {
-  it("opens the booking on its event's Request a venue page, in the same tab", () => {
+  it("opens the booking on its event's Venue tab, in the same tab", () => {
     expect(holdExpiredInApp(notice()).redirect).toEqual({
-      url: "/staff/coordinator/6/venue-booking?booking=31",
+      url: "/staff/coordinator/events/8?tab=venue&booking=31",
       target: "_self",
     });
   });
 
-  it("opens the event itself when it has no request to book venues from", () => {
+  it("opens the booking the same way when the event has no source request", () => {
     expect(holdExpiredInApp(notice({ eventRequestId: null })).redirect.url).toBe(
-      "/staff/coordinator/events/8",
+      "/staff/coordinator/events/8?tab=venue&booking=31",
     );
   });
 });

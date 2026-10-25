@@ -30,10 +30,10 @@ const REQUEST: BookingRequest = {
   eventId: "1",
   venueId: venueId("5"),
   roomLayout: "Theatre",
-  slots: [
-    { date: "2026-10-22", slot: "AM" },
-    { date: "2026-10-22", slot: "PM" },
-    { date: "2026-10-23", slot: "AM" },
+  times: [
+    { date: "2026-10-22", start: "07:00", end: "12:00" },
+    { date: "2026-10-22", start: "13:00", end: "18:00" },
+    { date: "2026-10-23", start: "07:00", end: "12:00" },
   ],
   requestedBy: userAccountId("2"),
   status: "Requested",
@@ -41,7 +41,7 @@ const REQUEST: BookingRequest = {
 
 const REFUSED_BY_TRIGGER = {
   data: null,
-  error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 AM" },
+  error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 07:00–07:15" },
 };
 
 describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
@@ -53,7 +53,7 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
     );
   });
 
-  it("AC12: names every requested slot a block covers, not only the first the trigger hit", async () => {
+  it("AC12: names every block hour that reaches the request, not only the first the trigger hit", async () => {
     const { client, calls } = fakeClient({
       coordinator_submit_booking_request: REFUSED_BY_TRIGGER,
       venue_blocked_slots: {
@@ -69,18 +69,39 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
     const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(VenueSlotBlockedError);
-    expect((error as VenueSlotBlockedError).slots).toEqual([
-      { date: "2026-10-22", slot: "AM" },
-      { date: "2026-10-22", slot: "PM" },
+    expect((error as VenueSlotBlockedError).times).toEqual([
+      { date: "2026-10-22", start: "07:00", end: "12:00" },
+      { date: "2026-10-22", start: "13:00", end: "18:00" },
     ]);
-    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 AM, 2026-10-22 PM");
+    expect((error as VenueSlotBlockedError).message).toContain(
+      "2026-10-22 07:00–12:00, 2026-10-22 13:00–18:00",
+    );
     expect(calls[1]).toEqual({
       name: "venue_blocked_slots",
       args: { p_venue_id: 5, p_from: "2026-10-22", p_to: "2026-10-23" },
     });
   });
 
-  it("AC12: falls back to the slot the trigger named when a lift landed in between", async () => {
+  it("names the shared time, 09:00 to 11:30, for a request on AM, once however many blocks hold it (SPM-321)", async () => {
+    const quarters = Array.from({ length: 10 }, (_, i) => ({
+      venue_id: 5,
+      date: "2026-10-22",
+      slot: String(36 + i),
+      reason_category: "Renovation",
+    }));
+    const { client } = fakeClient({
+      coordinator_submit_booking_request: REFUSED_BY_TRIGGER,
+      // Two blocks hold the same quarter hours, so the read gives each row twice.
+      venue_blocked_slots: { data: [...quarters, ...quarters], error: null },
+    });
+
+    const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
+
+    expect((error as VenueSlotBlockedError).times).toEqual([{ date: "2026-10-22", start: "09:00", end: "11:30" }]);
+    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 09:00–11:30");
+  });
+
+  it("AC12: falls back to the time the trigger named when a lift landed in between", async () => {
     const { client } = fakeClient({
       coordinator_submit_booking_request: REFUSED_BY_TRIGGER,
       venue_blocked_slots: { data: [], error: null },
@@ -88,7 +109,9 @@ describe("SupabaseBookingRepository, blocked slots (SPM-270)", () => {
 
     const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
 
-    expect((error as VenueSlotBlockedError).slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
+    expect((error as VenueSlotBlockedError).times).toEqual([
+      { date: "2026-10-22", start: "07:00", end: "07:15" },
+    ]);
   });
 });
 

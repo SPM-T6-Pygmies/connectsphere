@@ -115,6 +115,9 @@ export function buildEquipmentDeps(
  * SPM-262: has the safety watch see event-1 as it stands in the equipment store
  * -- one Confirmed venue booking and whatever lines are stored -- before and
  * after each write, as the real store's read would.
+ *
+ * Every line is seen as essential, so an unreserved one still keeps the event
+ * off the list: since SPM-319 only an essential line does.
  */
 export function watchEquipmentForSafety(deps: ReturnType<typeof buildEquipmentDeps>): void {
   const { equipment, safetyWatch } = deps;
@@ -128,7 +131,7 @@ export function watchEquipmentForSafety(deps: ReturnType<typeof buildEquipmentDe
         expectedAttendance: 220,
       },
       bookings: [{ status: "Confirmed", venueName: "Grand Ballroom" }],
-      equipmentLines: equipment.stored("event-1").lines,
+      equipmentLines: equipment.stored("event-1").lines.map((line) => ({ ...line, essential: true })),
       checked: false,
     });
 

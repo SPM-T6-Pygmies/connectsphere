@@ -170,6 +170,27 @@ not invalidate it, so nobody retests the whole suite after every merge: re-run a
 case in the PR that changes its feature, and the ledger remembers when and in
 which PR it last passed.
 
+### Naming screenshots
+
+Screenshots live in [`../screenshots/`](../screenshots) and are named so that
+`ls docs/screenshots | grep SPM-320` finds a ticket's evidence:
+
+```
+YYYY-MM-DD_SPM-<n>_TC-<case>_step<N>-<what-it-shows>.png
+2026-10-21_SPM-320_TC-VCAT-004_step3-opening-windows-after-reload.png
+```
+
+- **Date** is the day the screenshot was taken, so files sort by date.
+- **`SPM-<n>`** is the ticket the PR is for, not the case's own ticket in
+  `manual-registry.csv`. A case written for SPM-42 that is re-run as evidence
+  for SPM-320 is tagged `SPM-320`, so each PR's evidence can be found together.
+- **`TC-<case>_step<N>`** ties the image to the case and step it proves.
+- A PR's before/after shots that prove no case drop the case:
+  `2026-10-13_SPM-62_before-booking-table.png`.
+
+Older files follow earlier patterns. Leave them, because their paths are
+already recorded in `manual-runs.csv`.
+
 ## The run record
 
 Written only by CI, only on a green merge to `main`. One row per merge with the

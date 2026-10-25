@@ -7,11 +7,12 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BOOKING_SLOTS, type BookingSlot } from "@/core/domain/booking";
+import { describeBuffers } from "@/core/domain/venue-buffers";
 import type { Venue, VenueLayoutSuitability } from "@/core/use-cases/view-venue-booking-options";
 
 import { submitVenueBookingRequestAction, type SubmitVenueBookingRequestState } from "./actions";
-import { SuitabilityChecklist } from "../../../suitability-checklist";
+import { SuitabilityChecklist } from "../../../../suitability-checklist";
+import { TimePicker } from "../../../../time-picker";
 
 const INITIAL: SubmitVenueBookingRequestState = { status: "idle" };
 
@@ -21,12 +22,15 @@ const SELECT_CLASS =
 interface DateRow {
   readonly key: number;
   readonly date: string;
-  readonly slots: readonly BookingSlot[];
+  /** `HH:MM`, or empty until picked. */
+  readonly start: string;
+  readonly end: string;
 }
 
 function venueMeta(venue: Venue): string {
   return [
     venue.capacity === null ? null : `holds ${venue.capacity}`,
+    describeBuffers(venue),
     venue.facilities,
     venue.accessibility,
   ]
@@ -40,8 +44,8 @@ function defaultLayout(venue: Venue | undefined): string {
 }
 
 /**
- * SPM-46 / SPM-104: one venue, its layout, and one or more slots on one or
- * more days. SPM-45: once the venue (and its layout) is chosen, a checklist says
+ * SPM-46 / SPM-104 / SPM-324: one venue, its layout, and a start and end time
+ * on each of one or more dates, on the 15-minute grid. SPM-45: once the venue (and its layout) is chosen, a checklist says
  * whether it fits the event's needs -- advice only, the request can still be sent. Every field is held in state, so a refused request keeps what
  * was chosen. The server decides everything -- a clash, a missing layout --
  * and this only keeps the Submit button honest.
@@ -49,7 +53,6 @@ function defaultLayout(venue: Venue | undefined): string {
 export function BookingRequestForm({
   initialVenueId,
   eventId,
-  eventRequestId,
   defaultDate,
   venues,
   suitability,
@@ -57,7 +60,6 @@ export function BookingRequestForm({
   /** SPM-62 AC3: the venue Venue Staff suggested, when the coordinator chose to request it. */
   initialVenueId?: string;
   eventId: string;
-  eventRequestId: string;
   defaultDate: string | null;
   venues: readonly Venue[];
   /** The server's verdict for each venue and layout, worked out from the event's needs now. */
@@ -72,7 +74,7 @@ export function BookingRequestForm({
   );
   const [nextKey, setNextKey] = useState(1);
   const [rows, setRows] = useState<readonly DateRow[]>([
-    { key: 0, date: defaultDate ?? "", slots: [] },
+    { key: 0, date: defaultDate ?? "", start: "", end: "" },
   ]);
 
   // A sent request starts the form afresh -- its row is in the list below now.
@@ -83,7 +85,7 @@ export function BookingRequestForm({
     setClearedFor(state.bookingId);
     setVenueId("");
     setLayout("");
-    setRows([{ key: 0, date: defaultDate ?? "", slots: [] }]);
+    setRows([{ key: 0, date: defaultDate ?? "", start: "", end: "" }]);
     setNextKey(1);
   }
 
@@ -96,11 +98,8 @@ export function BookingRequestForm({
           (entry) => entry.venueId === venue.id && entry.layout === (layout === "" ? null : layout),
         )?.suitability
       : undefined;
-  const chosenSlots = rows.flatMap((row) =>
-    row.date === "" ? [] : row.slots.map((slot) => `${row.date}|${slot}`),
-  );
-  const canSubmit =
-    venue !== undefined && chosenSlots.length > 0 && (!needsLayoutChoice || layout !== "");
+  // A missing date or time is the server's to name (SPM-324 AC1).
+  const canSubmit = venue !== undefined && (!needsLayoutChoice || layout !== "");
 
   function chooseVenue(id: string) {
     setVenueId(id);
@@ -111,16 +110,8 @@ export function BookingRequestForm({
     setRows((current) => current.map((row) => (row.key === key ? { ...row, ...change } : row)));
   }
 
-  function toggleSlot(row: DateRow, slot: BookingSlot) {
-    updateRow(row.key, {
-      slots: row.slots.includes(slot)
-        ? row.slots.filter((candidate) => candidate !== slot)
-        : BOOKING_SLOTS.filter((candidate) => candidate === slot || row.slots.includes(candidate)),
-    });
-  }
-
   function addRow() {
-    setRows((current) => [...current, { key: nextKey, date: "", slots: [] }]);
+    setRows((current) => [...current, { key: nextKey, date: "", start: "", end: "" }]);
     setNextKey((key) => key + 1);
   }
 
@@ -146,13 +137,7 @@ export function BookingRequestForm({
       className="space-y-5"
     >
       <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <input type="hidden" name="roomLayout" value={layout} />
-      {chosenSlots.map((value, index) => (
-        // Keyed by position: two rows on the same day can repeat a slot, and
-        // the server, not a duplicate-key collision here, should refuse that.
-        <input key={`${index}-${value}`} type="hidden" name="slot" value={value} />
-      ))}
 
       <fieldset className="space-y-5" disabled={pending}>
         <div className="space-y-1.5">
@@ -220,33 +205,55 @@ export function BookingRequestForm({
         ) : null}
 
         <div className="space-y-2">
-          <p className="text-sm font-medium">Dates and slots</p>
+          <p className="text-sm font-medium">Dates and times</p>
+          <p className="text-muted-foreground text-xs">
+            One start and end time per date, on the quarter hour, Singapore time. An event that runs
+            to midnight ends at 24:00.
+          </p>
           {rows.map((row, index) => (
             <div
               key={row.key}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border p-3"
+              className="flex flex-wrap items-end gap-x-4 gap-y-2 rounded-lg border p-3"
             >
-              <Label htmlFor={`${idPrefix}-date-${row.key}`} className="sr-only">
-                Date {index + 1}
-              </Label>
-              <Input
-                id={`${idPrefix}-date-${row.key}`}
-                type="date"
-                value={row.date}
-                onChange={(change) => updateRow(row.key, { date: change.target.value })}
-                className="w-auto"
-              />
-              <div className="flex gap-4" role="group" aria-label={`Slots on date ${index + 1}`}>
-                {BOOKING_SLOTS.map((slot) => (
-                  <label key={slot} className="flex items-center gap-1.5 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={row.slots.includes(slot)}
-                      onChange={() => toggleSlot(row, slot)}
-                    />
-                    {slot}
-                  </label>
-                ))}
+              <div className="space-y-1.5">
+                <Label htmlFor={`${idPrefix}-date-${row.key}`} className="text-xs">
+                  Date {index + 1}
+                </Label>
+                <Input
+                  id={`${idPrefix}-date-${row.key}`}
+                  name="bookingDate"
+                  type="date"
+                  value={row.date}
+                  onChange={(change) => updateRow(row.key, { date: change.target.value })}
+                  className="w-auto"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`${idPrefix}-start-${row.key}`} className="text-xs">
+                  Start
+                </Label>
+                <TimePicker
+                  id={`${idPrefix}-start-${row.key}`}
+                  name="bookingStart"
+                  label={`Start time on date ${index + 1}`}
+                  required={false}
+                  value={row.start}
+                  onChange={(start) => updateRow(row.key, { start })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`${idPrefix}-end-${row.key}`} className="text-xs">
+                  End
+                </Label>
+                <TimePicker
+                  id={`${idPrefix}-end-${row.key}`}
+                  name="bookingEnd"
+                  label={`End time on date ${index + 1}`}
+                  endOfDay
+                  required={false}
+                  value={row.end}
+                  onChange={(end) => updateRow(row.key, { end })}
+                />
               </div>
               {rows.length > 1 ? (
                 <Button

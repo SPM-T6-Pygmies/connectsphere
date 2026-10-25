@@ -17,7 +17,7 @@ const row: BookingReviewRow = {
   venue_id: 3,
   venue_location: "Hall A",
   room_layout_name: "Theatre",
-  slots: [{ date: "2026-10-22", slot: "AM" }],
+  slots: [{ date: "2026-10-22", start: "07:00:00", end: "12:00:00" }],
   requested_by_name: "Nadia",
   requested_at: "2026-10-01T00:00:00Z",
   decided_by_name: null,
@@ -50,7 +50,7 @@ describe("booking review mapper (SPM-22)", () => {
       status: "Requested",
       venueId: "3",
       venueLocation: "Hall A",
-      slots: [{ date: "2026-10-22", slot: "AM" }],
+      times: [{ date: "2026-10-22", start: "07:00", end: "12:00" }],
       event: { name: "Summit", organisationName: "Org", expectedAttendance: 100 },
     });
   });
@@ -67,18 +67,15 @@ describe("booking review mapper (SPM-22)", () => {
       },
     });
 
-    expect(review.slots).toEqual([{ date: "2026-10-22", slot: "AM" }]);
+    expect(review.times).toEqual([{ date: "2026-10-22", start: "07:00", end: "12:00" }]);
     expect(review.event.times).toEqual([
       { date: "2026-10-22", start: "07:00", end: "07:15" },
       { date: "2026-10-23", start: "19:00", end: "19:15" },
     ]);
   });
 
-  it("refuses a status or slot the schema does not allow", () => {
+  it("refuses a status the schema does not allow", () => {
     expect(() => toBookingForReview({ ...row, status: "Maybe" })).toThrow();
-    expect(() =>
-      toBookingForReview({ ...row, slots: [{ date: "2026-10-22", slot: "Evening" }] }),
-    ).toThrow();
   });
 
   it("carries a held booking's expiry to Venue Staff (SPM-218)", () => {
@@ -188,5 +185,23 @@ describe("booking review mapper -- resolving a hold (SPM-219)", () => {
   it("is null when an id is not one this store issued", () => {
     expect(toResolveHoldArgs(resolved("Confirmed", "not-a-number"))).toBeNull();
     expect(toResolveHoldArgs(resolved("Released", "2", "nope"))).toBeNull();
+  });
+});
+
+describe("toBookingForReview reading booking times (SPM-351)", () => {
+  it("joins touching 15-minute slots into the start and end time Venue Staff read (AC4)", () => {
+    const review = toBookingForReview({
+      ...row,
+      slots: [
+        { date: "2026-10-22", start: "15:00:00", end: "15:15:00" },
+        { date: "2026-10-22", start: "15:15:00", end: "15:30:00" },
+        { date: "2026-10-22", start: "17:00:00", end: "17:15:00" },
+      ],
+    });
+
+    expect(review.times).toEqual([
+      { date: "2026-10-22", start: "15:00", end: "15:30" },
+      { date: "2026-10-22", start: "17:00", end: "17:15" },
+    ]);
   });
 });

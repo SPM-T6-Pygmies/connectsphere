@@ -28,13 +28,11 @@ const SELECT_CLASS =
  */
 export function ChangeLayoutForm({
   eventId,
-  eventRequestId,
   bookingId,
   venue,
   currentLayout,
 }: {
   eventId: string;
-  eventRequestId: string;
   bookingId: string;
   venue: Venue;
   currentLayout: string | null;
@@ -61,7 +59,6 @@ export function ChangeLayoutForm({
   return (
     <form action={formAction} className="space-y-1.5">
       <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <input type="hidden" name="bookingId" value={bookingId} />
       <div className="flex flex-wrap items-center gap-2">
         <label htmlFor={selectId} className="sr-only">

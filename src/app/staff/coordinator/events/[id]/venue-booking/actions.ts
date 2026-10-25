@@ -15,7 +15,7 @@ import {
 } from "@/composition/container";
 import { CoordinatorEventNotFoundError, DomainError } from "@/core/domain/errors";
 
-import { describeCapacity } from "../../../booking-capacity-message";
+import { describeCapacity } from "../../../../booking-capacity-message";
 
 export type SubmitVenueBookingRequestState =
   | { status: "idle" }
@@ -35,17 +35,21 @@ export async function submitVenueBookingRequestAction(
 ): Promise<SubmitVenueBookingRequestState> {
   const parsed = submitVenueBookingRequestSchema.safeParse({
     eventId: String(formData.get("eventId") ?? ""),
-    eventRequestId: String(formData.get("eventRequestId") ?? ""),
     venueId: String(formData.get("venueId") ?? ""),
     roomLayout: String(formData.get("roomLayout") ?? ""),
-    slots: formData.getAll("slot").map(String),
+    // One entry per row of the form, in order (SPM-324).
+    times: formData.getAll("bookingDate").map((date, index) => ({
+      date: String(date),
+      start: String(formData.getAll("bookingStart")[index] ?? ""),
+      end: String(formData.getAll("bookingEnd")[index] ?? ""),
+    })),
   });
 
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the request." };
   }
 
-  const { eventRequestId, ...command } = parsed.data;
+  const command = parsed.data;
 
   let submitted: { bookingId: string; venueLocation: string };
   try {
@@ -64,7 +68,7 @@ export async function submitVenueBookingRequestAction(
     throw error;
   }
 
-  revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
+  revalidatePath(`/staff/coordinator/events/${command.eventId}`);
 
   return {
     status: "submitted",
@@ -92,7 +96,6 @@ export async function changeBookingRoomLayoutAction(
 ): Promise<ChangeBookingRoomLayoutState> {
   const parsed = changeBookingRoomLayoutSchema.safeParse({
     eventId: String(formData.get("eventId") ?? ""),
-    eventRequestId: String(formData.get("eventRequestId") ?? ""),
     bookingId: String(formData.get("bookingId") ?? ""),
     roomLayout: String(formData.get("roomLayout") ?? ""),
   });
@@ -101,7 +104,7 @@ export async function changeBookingRoomLayoutAction(
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the layout." };
   }
 
-  const { eventRequestId, ...command } = parsed.data;
+  const command = parsed.data;
 
   let changed: { bookingId: string; summary: string };
   try {
@@ -120,7 +123,7 @@ export async function changeBookingRoomLayoutAction(
     throw error;
   }
 
-  revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
+  revalidatePath(`/staff/coordinator/events/${command.eventId}`);
 
   return { status: "changed", ...changed };
 }
@@ -142,7 +145,6 @@ export async function setEventRequiredFacilitiesAction(
 ): Promise<SetEventRequiredFacilitiesState> {
   const parsed = setEventRequiredFacilitiesSchema.safeParse({
     eventId: String(formData.get("eventId") ?? ""),
-    eventRequestId: String(formData.get("eventRequestId") ?? ""),
     facilities: String(formData.get("facilities") ?? ""),
   });
 
@@ -150,7 +152,7 @@ export async function setEventRequiredFacilitiesAction(
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the facilities." };
   }
 
-  const { eventRequestId, ...command } = parsed.data;
+  const command = parsed.data;
 
   try {
     const coordinator = await getCurrentCoordinator();
@@ -167,7 +169,7 @@ export async function setEventRequiredFacilitiesAction(
     throw error;
   }
 
-  revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
+  revalidatePath(`/staff/coordinator/events/${command.eventId}`);
 
   return { status: "saved" };
 }
@@ -189,7 +191,6 @@ export async function cancelVenueBookingAction(
 ): Promise<CancelVenueBookingState> {
   const parsed = cancelVenueBookingSchema.safeParse({
     eventId: String(formData.get("eventId") ?? ""),
-    eventRequestId: String(formData.get("eventRequestId") ?? ""),
     bookingId: String(formData.get("bookingId") ?? ""),
   });
 
@@ -197,7 +198,7 @@ export async function cancelVenueBookingAction(
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the booking." };
   }
 
-  const { eventRequestId, ...command } = parsed.data;
+  const command = parsed.data;
 
   let cancelled: { bookingId: string; venueLocation: string };
   try {
@@ -215,7 +216,7 @@ export async function cancelVenueBookingAction(
     throw error;
   }
 
-  revalidatePath(`/staff/coordinator/${eventRequestId}/venue-booking`);
+  revalidatePath(`/staff/coordinator/events/${command.eventId}`);
 
   return { status: "cancelled", ...cancelled };
 }

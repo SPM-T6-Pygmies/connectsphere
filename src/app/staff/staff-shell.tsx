@@ -195,8 +195,8 @@ async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneIte
     id: booking.id,
     href: `/staff/venue/${booking.id}`,
     title: booking.venueLocation,
-    meta: booking.slots[0]?.date ?? "No date",
-    teaser: `${booking.event.name} · ${booking.slots.map(({ slot }) => slot).join(" + ")}${
+    meta: booking.times[0]?.date ?? "No date",
+    teaser: `${booking.event.name} · ${booking.times.map(({ start, end }) => `${start}–${end}`).join(" + ")}${
       booking.status === "Tentative Hold" && booking.holdExpiresAt !== null
         ? ` · on hold until ${formatHoldExpiry(booking.holdExpiresAt)}`
         : ""

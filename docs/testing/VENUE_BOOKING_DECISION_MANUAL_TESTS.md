@@ -1,5 +1,10 @@
 # Venue Booking Decision Manual Tests (SPM-22)
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for Venue Staff reviewing a coordinator's booking request and
@@ -212,7 +217,7 @@ select b.booking_id, v.location, b.status, e.name
 
 **Preconditions:** As `coordinator@test.com`, request **Studio** on
 **2026-12-08 AM** for event A. Then, as `venue@test.com`, block **Studio** for
-**AM** on **2026-12-08** at `/staff/venue/unavailability`, reason Maintenance.
+**07:00 to 12:00** on **2026-12-08** at `/staff/venue/unavailability`, reason Maintenance.
 The request is still **Requested**: a block does not change existing bookings.
 
 **Steps:**
@@ -221,9 +226,9 @@ The request is still **Requested**: a block does not change existing bookings.
 2. Reload the page.
 
 **Expected Result:**
-- The form shows *The venue is unavailable for 2026-12-08 AM. Choose other
-  slots or another venue.*, the same words the coordinator gets for a blocked
-  slot
+- The form shows *The venue is unavailable for 2026-12-08 07:00–12:00. Choose
+  other times or another venue.*, the same words the coordinator gets for a
+  blocked time
 - After reload the booking is still **Requested**, with the decision form
 - Rejecting it instead still works: a rejection holds nothing (do not reject
   it here, TC-VBDECIDE-008 needs it)
@@ -239,7 +244,7 @@ The request is still **Requested**: a block does not change existing bookings.
 **Preconditions:** As left by TC-VBDECIDE-007.
 
 **Steps:**
-1. At `/staff/venue/unavailability`, lift the Studio 2026-12-08 AM block.
+1. At `/staff/venue/unavailability`, lift the Studio 2026-12-08 07:00–12:00 block.
 2. Open the Studio 2026-12-08 request and click **Approve booking**.
 3. As `coordinator@test.com`, open event A's **Request a venue** page.
 
