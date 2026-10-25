@@ -4,10 +4,13 @@ import {
   clarificationMessage,
   eventRequestFixture,
 } from "@/adapters/outbound/in-memory/event-request-fixture";
+import { InMemoryChangeRequestRepository } from "@/adapters/outbound/in-memory/in-memory-change-request-repository";
 import { InMemoryClarificationThreadRepository } from "@/adapters/outbound/in-memory/in-memory-clarification-thread-repository";
 import { InMemoryEventRequestRepository } from "@/adapters/outbound/in-memory/in-memory-event-request-repository";
 import { InMemoryUserAccountRepository } from "@/adapters/outbound/in-memory/in-memory-user-account-repository";
+import type { ChangeRequestTarget } from "@/core/domain/change-request";
 import { clientOrganisationId } from "@/core/domain/client-organisation";
+import { eventId } from "@/core/domain/event";
 import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
@@ -31,12 +34,16 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
   });
 }
 
-function buildHarness(seed: readonly EventRequest[]) {
+function buildHarness(
+  seed: readonly EventRequest[],
+  changeRequestTargets: Readonly<Record<string, ChangeRequestTarget>> = {},
+) {
   const clarificationThread = new InMemoryClarificationThreadRepository();
   const useCase = new ViewOrganiserEventRequestUseCase({
     eventRequests: new InMemoryEventRequestRepository(seed, clarificationThread),
     clarificationThread,
     userAccounts: new InMemoryUserAccountRepository({ names: NAMES }),
+    changeRequests: new InMemoryChangeRequestRepository(changeRequestTargets),
   });
   return { useCase, clarificationThread };
 }
@@ -212,5 +219,50 @@ describe("ViewOrganiserEventRequestUseCase event times (SPM-326)", () => {
     });
 
     expect(result?.eventTimes).toBeNull();
+  });
+});
+
+describe("ViewOrganiserEventRequestUseCase change requests (SPM-52)", () => {
+  const confirmedEvent: ChangeRequestTarget = {
+    eventId: eventId("event-1"),
+    status: "Confirmed",
+    owningOrganiserUserAccountId: RESPONSIBLE,
+    hasOpenChangeRequest: false,
+  };
+
+  it("AC3: offers the event's owner a change request on a Confirmed event", async () => {
+    const { useCase } = buildHarness([request({ status: "Approved" })], { "request-1": confirmedEvent });
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.changeRequest).toBe("available");
+  });
+
+  it("AC4: offers a colleague who does not own the event nothing", async () => {
+    const { useCase } = buildHarness([request({ status: "Approved" })], { "request-1": confirmedEvent });
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: COLLEAGUE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.changeRequest).toBe("none");
+  });
+
+  it("offers nothing before the request becomes an event", async () => {
+    const { useCase } = buildHarness([request({ status: "Submitted" })]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.changeRequest).toBe("none");
   });
 });

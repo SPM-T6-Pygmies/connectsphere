@@ -234,6 +234,7 @@ export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEve
     eventRequests: new SupabaseEventRequestRepository(client),
     clarificationThread: new SupabaseClarificationThreadRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
+    changeRequests: new SupabaseChangeRequestRepository(client),
   });
 }
 
