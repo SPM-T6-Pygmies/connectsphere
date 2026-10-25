@@ -21,7 +21,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ## Test Environment Setup
 
-- Local Supabase, rebuilt from every migration (`20261024000000` adds the padded check), then:
+- Local Supabase, rebuilt from every migration (`20261026000000` adds the padded check), then:
   ```bash
   supabase start
   supabase db reset
