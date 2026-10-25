@@ -12,7 +12,8 @@ const FORM = {
   description: "",
   purpose: "",
   preferredDate: "2026-11-04",
-  preferredSlots: "AM, PM",
+  preferredStartTime: "09:00",
+  preferredEndTime: "17:00",
   expectedAttendance: "120",
   venueRequirements: "",
   roomLayoutPreferences: "",
@@ -31,7 +32,8 @@ describe("submitEventRequestSchema (SPM-88)", () => {
     expect(parsed.data).toMatchObject({
       eventName: "Founders' Day",
       preferredDate: "2026-11-04",
-      preferredSlots: ["AM", "PM"],
+      preferredStartTime: "09:00",
+      preferredEndTime: "17:00",
       expectedAttendance: 120,
     });
   });
@@ -60,7 +62,8 @@ describe("submitEventRequestSchema (SPM-88)", () => {
       ...FORM,
       eventName: "",
       preferredDate: "",
-      preferredSlots: "",
+      preferredStartTime: "",
+      preferredEndTime: "",
       expectedAttendance: "",
     });
 
@@ -68,7 +71,8 @@ describe("submitEventRequestSchema (SPM-88)", () => {
     expect(parsed.data).toMatchObject({
       eventName: "",
       preferredDate: null,
-      preferredSlots: [],
+      preferredStartTime: null,
+      preferredEndTime: null,
       expectedAttendance: null,
     });
   });
@@ -90,18 +94,6 @@ describe("submitEventRequestSchema (SPM-88)", () => {
 
   it("rejects a date that is not a calendar date", () => {
     const parsed = submitEventRequestSchema.safeParse({ ...FORM, preferredDate: "04/11/2026" });
-
-    expect(parsed.success).toBe(false);
-  });
-
-  it("reads the slots the checkboxes post as one comma-separated value", () => {
-    expect(submitEventRequestSchema.parse({ ...FORM, preferredSlots: "Night" }).preferredSlots).toEqual(
-      ["Night"],
-    );
-  });
-
-  it("rejects a slot that is not AM, PM or Night", () => {
-    const parsed = submitEventRequestSchema.safeParse({ ...FORM, preferredSlots: "AM, Evening" });
 
     expect(parsed.success).toBe(false);
   });
@@ -176,5 +168,20 @@ describe("submitEventRequestSchema: accessibility and layout come from the venue
     const parsed = submitEventRequestSchema.safeParse({ ...FORM, roomLayoutPreferences: "Theatre, Banquet" });
 
     expect(parsed.success).toBe(false);
+  });
+});
+
+describe("submitEventRequestSchema preferred times (SPM-327)", () => {
+  it("accepts 24:00 as an end time, leaving the grid to the core", () => {
+    expect(submitEventRequestSchema.parse({ ...FORM, preferredEndTime: "24:00" })).toMatchObject({
+      preferredEndTime: "24:00",
+    });
+  });
+
+  it.each(["9am", "09:00:00", "AM"])("rejects %s as a time, naming the field", (value) => {
+    const parsed = submitEventRequestSchema.safeParse({ ...FORM, preferredStartTime: value });
+
+    expect(parsed.success).toBe(false);
+    expect(parsed.error?.issues[0].path).toEqual(["preferredStartTime"]);
   });
 });

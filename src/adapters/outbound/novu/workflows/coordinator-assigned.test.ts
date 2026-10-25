@@ -10,7 +10,8 @@ describe("coordinatorAssignedInApp (SPM-173)", () => {
       eventName: "Founders' Day",
       clientOrganisationName: "Acme Holdings",
       preferredDate: "2026-11-04",
-      preferredSlots: [],
+      preferredStartTime: null,
+      preferredEndTime: null,
     });
 
     expect(inApp).toEqual({
@@ -44,7 +45,8 @@ describe("coordinatorAssignedInApp (SPM-257)", () => {
       eventName: "Founders' Day",
       clientOrganisationName: "Acme Holdings",
       preferredDate: "2026-11-04",
-      preferredSlots: [],
+      preferredStartTime: null,
+      preferredEndTime: null,
     });
 
     expect(inApp).toEqual({

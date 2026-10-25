@@ -14,6 +14,7 @@ import {
   EventRequestNotReturnableError,
   EventRequestNotWithdrawableError,
   IncompleteEventRequestError,
+  InvalidPreferredTimeError,
   PreferredDateNotInFutureError,
 } from "./errors";
 import {
@@ -30,6 +31,7 @@ import {
   isSubmittable,
   missingMandatoryFields,
   operationsQueueFor,
+  preferredTimeRange,
   reassignResponsibleOrganiser,
   rejectEventRequest,
   resolveClarification,
@@ -175,7 +177,8 @@ describe("missingMandatoryFields (SPM-88)", () => {
   it.each([
     ["eventName", { eventName: "" }],
     ["preferredDate", { preferredDate: null }],
-    ["preferredSlots", { preferredSlots: [] }],
+    ["preferredStartTime", { preferredStartTime: null }],
+    ["preferredEndTime", { preferredEndTime: null }],
     ["expectedAttendance", { expectedAttendance: null }],
   ] as const)("reports %s when it is absent", (field, override) => {
     expect(missingMandatoryFields(eventRequestDetails(override))).toEqual([field]);
@@ -185,10 +188,6 @@ describe("missingMandatoryFields (SPM-88)", () => {
     expect(missingMandatoryFields(eventRequestDetails({ eventName: "   " }))).toEqual([
       "eventName",
     ]);
-  });
-
-  it("counts a single preferred slot as given", () => {
-    expect(missingMandatoryFields(eventRequestDetails({ preferredSlots: ["Night"] }))).toEqual([]);
   });
 
   it("reports every missing field at once rather than the first", () => {
@@ -242,16 +241,16 @@ describe("submitEventRequest (SPM-31)", () => {
 
   it("refuses an incomplete request and names every missing field (AC3)", () => {
     expect(() =>
-      submit(eventRequestDetails({ eventName: "", preferredSlots: [] })),
+      submit(eventRequestDetails({ eventName: "", preferredStartTime: null })),
     ).toThrow(IncompleteEventRequestError);
 
     try {
-      submit(eventRequestDetails({ eventName: "", preferredSlots: [] }));
+      submit(eventRequestDetails({ eventName: "", preferredStartTime: null }));
       expect.unreachable("submitEventRequest should have refused");
     } catch (error) {
       expect((error as IncompleteEventRequestError).missing).toEqual([
         "eventName",
-        "preferredSlots",
+        "preferredStartTime",
       ]);
     }
   });
@@ -290,12 +289,6 @@ describe("submitEventRequest (SPM-31)", () => {
         organiserTimeZone: "Etc/GMT+12",
       }),
     ).not.toThrow();
-  });
-
-  it("records the preferred slots in the order the day runs, each once", () => {
-    const request = submit(eventRequestDetails({ preferredSlots: ["Night", "AM", "Night"] }));
-
-    expect(request.details.preferredSlots).toEqual(["AM", "Night"]);
   });
 
   it("is submitted read-only: the Organiser keeps view access and loses edit (AC4)", () => {
@@ -337,7 +330,8 @@ describe("saveEventRequestDraft (SPM-93)", () => {
       draft(
         eventRequestDetails({
           preferredDate: null,
-          preferredSlots: [],
+          preferredStartTime: null,
+          preferredEndTime: null,
           expectedAttendance: null,
         }),
       ),
@@ -346,25 +340,6 @@ describe("saveEventRequestDraft (SPM-93)", () => {
 
   it("does not enforce the preferred-date-in-future rule", () => {
     expect(() => draft(eventRequestDetails({ preferredDate: "2020-01-01" }))).not.toThrow();
-  });
-
-  it("refuses slots with no date to hold them, naming the date as missing", () => {
-    expect(() =>
-      draft(eventRequestDetails({ preferredDate: null, preferredSlots: ["AM"] })),
-    ).toThrow(IncompleteEventRequestError);
-
-    try {
-      draft(eventRequestDetails({ preferredDate: null, preferredSlots: ["AM"] }));
-      expect.unreachable("saveEventRequestDraft should have refused");
-    } catch (error) {
-      expect((error as IncompleteEventRequestError).missing).toEqual(["preferredDate"]);
-    }
-  });
-
-  it("keeps a draft's slots in the order the day runs", () => {
-    expect(draft(eventRequestDetails({ preferredSlots: ["PM", "AM"] })).details.preferredSlots).toEqual(
-      ["AM", "PM"],
-    );
   });
 
   it("still refuses a request with no name, matching the store's own constraint", () => {
@@ -386,6 +361,148 @@ describe("saveEventRequestDraft (SPM-93)", () => {
     expect(
       eventRequestAccessFor(request, { userAccountId: RESPONSIBLE, clientOrganisationId: ORG_A }),
     ).toBe("edit");
+  });
+});
+
+describe("preferred start and end time (SPM-327)", () => {
+  const SUBMITTED_AT = new Date("2026-09-09T10:00:00.000Z");
+
+  function submit(times: { preferredStartTime: string | null; preferredEndTime: string | null }) {
+    return submitEventRequest({
+      details: eventRequestDetails(times),
+      clientOrganisationId: ORG_A,
+      responsibleOrganiserId: RESPONSIBLE,
+      submittedAt: SUBMITTED_AT,
+      organiserTimeZone: "UTC",
+    });
+  }
+
+  function draft(overrides: Parameters<typeof eventRequestDetails>[0]) {
+    return saveEventRequestDraft({
+      details: eventRequestDetails(overrides),
+      clientOrganisationId: ORG_A,
+      responsibleOrganiserId: RESPONSIBLE,
+    });
+  }
+
+  function refusal(act: () => unknown): InvalidPreferredTimeError {
+    try {
+      act();
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidPreferredTimeError);
+      return error as InvalidPreferredTimeError;
+    }
+    return expect.unreachable("the time should have been refused");
+  }
+
+  describe("AC1 request by time", () => {
+    it("accepts a start and end on the 15-minute grid", () => {
+      const request = submit({ preferredStartTime: "09:15", preferredEndTime: "17:45" });
+
+      expect(request.details.preferredStartTime).toBe("09:15");
+      expect(request.details.preferredEndTime).toBe("17:45");
+    });
+
+    it("accepts the shortest span, one 15-minute slot", () => {
+      expect(() => submit({ preferredStartTime: "10:00", preferredEndTime: "10:15" })).not.toThrow();
+    });
+
+    it("accepts the whole day, 00:00 to 24:00", () => {
+      expect(() => submit({ preferredStartTime: "00:00", preferredEndTime: "24:00" })).not.toThrow();
+    });
+
+    it("accepts 24:00 as an end", () => {
+      expect(() => submit({ preferredStartTime: "19:00", preferredEndTime: "24:00" })).not.toThrow();
+    });
+
+    it("refuses an end equal to the start, naming the end time", () => {
+      expect(
+        refusal(() => submit({ preferredStartTime: "10:00", preferredEndTime: "10:00" })).field,
+      ).toBe("preferredEndTime");
+    });
+
+    it("refuses an end before the start, naming the end time", () => {
+      expect(
+        refusal(() => submit({ preferredStartTime: "10:00", preferredEndTime: "09:45" })).field,
+      ).toBe("preferredEndTime");
+    });
+
+    it.each(["09:10", "09:14", "09:16"])("refuses a start of %s, off the grid", (start) => {
+      expect(refusal(() => submit({ preferredStartTime: start, preferredEndTime: "12:00" })).field).toBe(
+        "preferredStartTime",
+      );
+    });
+
+    it("refuses an end off the grid, naming the end time", () => {
+      expect(
+        refusal(() => submit({ preferredStartTime: "09:00", preferredEndTime: "11:50" })).field,
+      ).toBe("preferredEndTime");
+    });
+
+    it("refuses 24:00 as a start, since nothing of the day is left", () => {
+      expect(
+        refusal(() => submit({ preferredStartTime: "24:00", preferredEndTime: "24:00" })).field,
+      ).toBe("preferredStartTime");
+    });
+
+    it.each(["24:15", "25:00", "9:00", "noon"])("refuses %s, which is not a time of day", (end) => {
+      expect(refusal(() => submit({ preferredStartTime: "09:00", preferredEndTime: end })).field).toBe(
+        "preferredEndTime",
+      );
+    });
+
+    it("names a missing end time as missing", () => {
+      try {
+        submit({ preferredStartTime: "09:00", preferredEndTime: null });
+        expect.unreachable("submitEventRequest should have refused");
+      } catch (error) {
+        expect((error as IncompleteEventRequestError).missing).toEqual(["preferredEndTime"]);
+      }
+    });
+  });
+
+  describe("AC2 drafts", () => {
+    it("saves a draft with no date and no times", () => {
+      const saved = draft({ preferredDate: null, preferredStartTime: null, preferredEndTime: null });
+
+      expect(saved.details.preferredStartTime).toBeNull();
+      expect(saved.details.preferredEndTime).toBeNull();
+    });
+
+    it("saves a draft with a date and no times", () => {
+      expect(() => draft({ preferredStartTime: null, preferredEndTime: null })).not.toThrow();
+    });
+
+    it("keeps a draft's times as given", () => {
+      const saved = draft({ preferredStartTime: "13:30", preferredEndTime: "15:00" });
+
+      expect(saved.details.preferredStartTime).toBe("13:30");
+      expect(saved.details.preferredEndTime).toBe("15:00");
+    });
+
+    it("refuses times with no date to hold them, naming the date as missing", () => {
+      try {
+        draft({ preferredDate: null });
+        expect.unreachable("saveEventRequestDraft should have refused");
+      } catch (error) {
+        expect((error as IncompleteEventRequestError).missing).toEqual(["preferredDate"]);
+      }
+    });
+
+    it("refuses half a span, naming the missing time", () => {
+      try {
+        draft({ preferredStartTime: null, preferredEndTime: "12:00" });
+        expect.unreachable("saveEventRequestDraft should have refused");
+      } catch (error) {
+        expect((error as IncompleteEventRequestError).missing).toEqual(["preferredStartTime"]);
+      }
+    });
+
+    it("refuses an end before the start, as a submission would", () => {
+      expect(
+        refusal(() => draft({ preferredStartTime: "12:00", preferredEndTime: "11:00" })).field,
+      ).toBe("preferredEndTime");
+    });
   });
 });
 
@@ -733,4 +850,22 @@ describe("canWithdrawEventRequest (SPM-169)", () => {
       expect(canWithdrawEventRequest(status)).toBe(false);
     },
   );
+});
+
+describe("preferredTimeRange (SPM-327)", () => {
+  it("is the preferred time as one range on the preferred date", () => {
+    expect(preferredTimeRange(eventRequestDetails())).toEqual({
+      date: "2026-11-04",
+      start: "09:00",
+      end: "17:00",
+    });
+  });
+
+  it.each([
+    ["date", { preferredDate: null }],
+    ["start time", { preferredStartTime: null }],
+    ["end time", { preferredEndTime: null }],
+  ] as const)("is null while the %s is missing", (_part, override) => {
+    expect(preferredTimeRange(eventRequestDetails(override))).toBeNull();
+  });
 });
