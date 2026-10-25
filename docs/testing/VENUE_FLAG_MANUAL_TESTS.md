@@ -250,14 +250,24 @@ day), that block is what flags the neighbours: run the teardown and seed command
 
 Earlier run: Pass, 21/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step1-coordinator-2-workshop](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-workshop.png) · [step1-coordinator-2-gala](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-gala.png) · [step1-coordinator-2-quiz](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-quiz.png)
 
-**A boundary not tried in the browser:** a booking that only *touches* a block needs a block that
-starts or ends exactly where AM, PM or Night does. When this case was first run the seeded venues were closed
-for the hour on either side of the PM slot (12:00 to 13:00 and 18:00 to 19:00), so the form would not
-record one. Since SPM-320 they open 07:00 to 24:00 with no break, so the form can now record one, but
-the 25/10/2026 re-run checked the case as written and no touching block has been tried in the browser. The
-unit tests cover it with times (a block 13:00 to 15:00 and a booking starting 15:00 do not overlap; 15:15
-does), and `scripts/seed-booking-flags/checks.sql` covers it in the database by opening Main Hall for the
-lunch hour for the length of the check.
+**The touching boundary, tried in the browser (not a registered case):** a booking that only *touches* a
+block needs a block that starts or ends exactly where AM, PM or Night does. When this case was first run the
+seeded venues were closed for the hour on either side of the PM slot (12:00 to 13:00 and 18:00 to 19:00), so
+the form would not record one. Since SPM-320 they open 07:00 to 24:00 with no break, so on 25/10/2026, straight
+after the re-run above, Venue Staff recorded two Safety blocks on Main Hall on F: 12:00 to 13:00, starting where the
+Workshop's AM booking ends, and 18:00 to 19:00, ending where the Gala's Night booking starts. Each saved with
+*No bookings are affected*, Coordinator 2 still saw no **Flagged for review** on the Workshop or the Gala, and
+`booking_review_flag` held only the Tech Summit's Maintenance reason. As a control, so the check cannot pass
+vacuously, two more blocks a quarter-hour into each booking, 11:45 to 12:00 and 19:00 to 19:15, each listed the
+one booking in their overlap list; both events then showed **Flagged** for Coordinator 2 and the table held one
+Safety reason for each. The unit tests cover the same boundary with times (a block 13:00 to 15:00 and a booking
+starting 15:00 do not overlap; 15:15 does), and `scripts/seed-booking-flags/checks.sql` covers it in the
+database.
+
+**Screenshots:** [boundary1-touch-workshop-end](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary1-touch-workshop-end.jpg) · [boundary2-touch-gala-start](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary2-touch-gala-start.jpg) · [boundary3-workshop-not-flagged](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary3-workshop-not-flagged.jpg) · [boundary4-gala-not-flagged](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary4-gala-not-flagged.jpg) · [boundary5-control-workshop](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary5-control-workshop.jpg) · [boundary6-control-gala](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary6-control-gala.jpg) · [boundary7-workshop-flagged](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary7-workshop-flagged.jpg) · [boundary8-gala-flagged](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_boundary8-gala-flagged.jpg)
+
+These blocks flag the Workshop and the Gala, so run the teardown and seed commands before running this file's
+cases again.
 
 ---
 
