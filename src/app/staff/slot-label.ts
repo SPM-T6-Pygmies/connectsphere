@@ -1,7 +1,7 @@
 import { SLOT_HOURS, type BookingSlot } from "@/core/domain/booking";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import { paddedWindows } from "@/core/domain/padded-window";
-import { bufferMinutes, type VenueBuffers } from "@/core/domain/venue-buffers";
+import { bufferMinutes, describeBuffers, type VenueBuffers } from "@/core/domain/venue-buffers";
 
 import { formatTimeOnly } from "./time-picker";
 
@@ -29,6 +29,16 @@ export function roomInUse(
   if (setup === 0 && turnaround === 0) return null;
   const windows = times.flatMap((time) => paddedWindows(time, { setup, turnaround }));
   return { inUse: formatTimes(windows), setup, turnaround };
+}
+
+/**
+ * SPM-19: the note beside a venue's name on Venue Staff's booking pages and lists: its setup and
+ * turnaround, or plainly that none are set. Null when the venue is no longer in the catalogue.
+ */
+export function venueBufferNote(venue: Partial<VenueBuffers> | null): string | null {
+  if (venue === null) return null;
+  const described = describeBuffers(venue);
+  return described === "Not set" ? "No setup or turnaround set" : described;
 }
 
 /** The slot codes as a list, or a dash when there are none. */

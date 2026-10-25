@@ -278,6 +278,8 @@ export interface ListPaneItem {
   readonly id: string;
   readonly href: string;
   readonly title: string;
+  /** Small text beside the title, e.g. a venue's setup and turnaround (SPM-19). */
+  readonly titleNote?: string;
   readonly meta: string;
   readonly teaser: string;
   /** Absent for a notification whose trigger the inbox does not name yet. */

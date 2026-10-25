@@ -28,6 +28,7 @@ import {
   buildViewArchivedEventRequests,
   buildViewAssignedEventRequests,
   buildListEquipmentQueue,
+  buildListVenues,
   buildNotifyExpiredHolds,
   buildReviewBookingRequests,
   buildViewAssignedEvents,
@@ -48,6 +49,7 @@ import {
 
 import { requestStateLabel } from "./coordinator/request-state-badge"
 import { formatHoldExpiry } from "./hold-expiry"
+import { venueBufferNote } from "./slot-label"
 import { queueTeaser } from "./technical/queue-teaser"
 
 export { PageHeader } from "./page-header"
@@ -192,11 +194,14 @@ async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneIte
 
   const reviewBookingRequests = await buildReviewBookingRequests()
   const bookings = await reviewBookingRequests.list(staff.userAccountId, section)
+  const { venues } = await (await buildListVenues()).execute()
 
   return bookings.map((booking) => ({
     id: booking.id,
     href: `/staff/venue/${booking.id}`,
     title: booking.venueLocation,
+    titleNote:
+      venueBufferNote(venues.find((venue) => venue.id === booking.venueId) ?? null) ?? undefined,
     meta: booking.times[0]?.date ?? "No date",
     teaser: `${booking.event.name} · ${booking.times.map(({ start, end }) => `${start}–${end}`).join(" + ")}${
       booking.status === "Tentative Hold" && booking.holdExpiresAt !== null

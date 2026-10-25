@@ -40,6 +40,11 @@ export function QueueList({
           >
             <div className="flex w-full min-w-0 items-center gap-2">
               <span className="min-w-0 truncate font-medium">{item.title}</span>
+              {item.titleNote ? (
+                <span className="text-muted-foreground min-w-0 truncate text-xs">
+                  {item.titleNote}
+                </span>
+              ) : null}
               <span className="text-muted-foreground ml-auto shrink-0 text-xs">
                 {item.meta}
               </span>

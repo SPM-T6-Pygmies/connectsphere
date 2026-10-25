@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { roomInUse, slotLabel } from "./slot-label";
+import { roomInUse, slotLabel, venueBufferNote } from "./slot-label";
 
 describe("slotLabel (SPM-46)", () => {
   it("names each slot with its hours", () => {
@@ -34,5 +34,17 @@ describe("roomInUse (SPM-19)", () => {
     expect(roomInUse(times, { setupMinutes: null, turnaroundMinutes: null })).toBeNull();
     expect(roomInUse(times, { setupMinutes: 0, turnaroundMinutes: 0 })).toBeNull();
     expect(roomInUse(times, null)).toBeNull();
+  });
+});
+
+describe("venueBufferNote (SPM-19)", () => {
+  it("reads a venue's two values for the note beside its name", () => {
+    expect(venueBufferNote({ setupMinutes: 30, turnaroundMinutes: 45 })).toBe("Setup 30 min · Turnaround 45 min");
+    expect(venueBufferNote({ setupMinutes: 0, turnaroundMinutes: 0 })).toBe("Setup 0 min · Turnaround 0 min");
+  });
+
+  it("says plainly when none are set, or the venue has gone", () => {
+    expect(venueBufferNote({ setupMinutes: null, turnaroundMinutes: null })).toBe("No setup or turnaround set");
+    expect(venueBufferNote(null)).toBeNull();
   });
 });

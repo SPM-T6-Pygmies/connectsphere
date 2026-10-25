@@ -20,7 +20,7 @@ import type { BookingReviewDetail } from "@/core/use-cases/review-booking-reques
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { formatHoldExpiry } from "../hold-expiry";
-import { formatTimes, roomInUse } from "../slot-label";
+import { formatTimes, roomInUse, venueBufferNote } from "../slot-label";
 import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 import { DecisionForm } from "./[id]/decision-form";
@@ -118,6 +118,7 @@ export async function BookingDetail({
     >
       <PageHeader
         title={booking.venueLocation}
+        titleNote={venueBufferNote(venue) ?? undefined}
         description={`${times} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}${
           onHold ? ` · on hold until ${formatHoldExpiry(booking.holdExpiresAt!)}` : ""
         }`}

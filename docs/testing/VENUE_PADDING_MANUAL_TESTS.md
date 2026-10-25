@@ -65,7 +65,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 3. Look at the booking's status and the buttons.
 
 **Expected Result:**
-- Step 1: a light-blue box under the title reads *Room in use 2026-12-14 09:30–12:45*, then *The booked time 2026-12-14 10:00–12:00 plus 30 min of setup before it and 45 min of turnaround after it.* The same box appears on every booking page (Requests, Decided and Archive) for a venue with setup or turnaround, and is left out for one with none.
+- Step 1: beside **Main Hall** (in the title, and in every row of the list on the left) it reads *Setup 30 min · Turnaround 45 min*. A light-blue box under the title reads *Room in use 2026-12-14 09:30–12:45*, then *The booked time 2026-12-14 10:00–12:00 plus 30 min of setup before it and 45 min of turnaround after it.* The same box and note appear on every booking page (Requests, Decided and Archive) for a venue with setup or turnaround, and is left out for one with none.
 - Step 2: refused with *This booking is blocked by Charity Run on 2026-12-14, 09:30–10:00, counting setup and turnaround time. Choose other times or another venue.*
 - Step 3: the booking is still **Requested**, and **Reject** is still available.
 
