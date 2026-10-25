@@ -53,6 +53,8 @@ function banquetSeats(capacity: number, overrides: Partial<UpdateVenueCommand> =
     openingHours: MAIN_HALL.openingHours,
     capacity: MAIN_HALL.capacity,
     bookingHorizonDays: MAIN_HALL.bookingHorizonDays,
+    setupMinutes: MAIN_HALL.setupMinutes ?? null,
+    turnaroundMinutes: MAIN_HALL.turnaroundMinutes ?? null,
     layouts: [
       { name: "Theatre", capacity: 300 },
       { name: "Banquet", capacity },

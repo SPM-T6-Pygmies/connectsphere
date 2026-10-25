@@ -39,6 +39,8 @@ function newVenue(overrides: Partial<CreateVenueCommand> = {}): CreateVenueComma
     openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }, { start: "19:00", end: "24:00" }],
     capacity: 300,
     bookingHorizonDays: 180,
+    setupMinutes: null,
+    turnaroundMinutes: null,
     layouts: [
       { name: "Theatre", capacity: 200 },
       { name: "Banquet", capacity: 120 },
@@ -233,5 +235,136 @@ describe("Access control for venue maintenance (SPM-148)", () => {
     const { venues: all } = await list.execute();
     expect(all).toHaveLength(1);
     expect(all[0].location).toBe(existing.location);
+  });
+});
+
+describe("Setup and turnaround time on create and update (SPM-23)", () => {
+  it("AC1: stores the setup and turnaround a new venue is given", async () => {
+    const { create, view } = build();
+
+    const { venue } = await create.execute(newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }));
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC1: stores a venue given 0 and 0 as defined, which is not the same as none", async () => {
+    const { create } = build();
+
+    const { venue } = await create.execute(newVenue({ setupMinutes: 0, turnaroundMinutes: 0 }));
+
+    expect(venue.setupMinutes).toBe(0);
+    expect(venue.turnaroundMinutes).toBe(0);
+  });
+
+  it("AC1, AC2: refuses a new venue with only one of them, or an off-grid one, and stores nothing", async () => {
+    const { create, list } = build();
+
+    await expect(create.execute(newVenue({ setupMinutes: 30 }))).rejects.toThrow("Enter the turnaround time too");
+    await expect(create.execute(newVenue({ setupMinutes: 20, turnaroundMinutes: 30 }))).rejects.toThrow(
+      /multiple of 15/,
+    );
+    expect((await list.execute()).venues).toEqual([]);
+  });
+
+  it("AC1: lets a venue with none defined be given both, once", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue());
+
+    await update.execute({ ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }), venueId: venue.id });
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC3: refuses changing a defined venue's values and leaves them as they were", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }));
+
+    await expect(
+      update.execute({ ...newVenue({ setupMinutes: 60, turnaroundMinutes: 45 }), venueId: venue.id }),
+    ).rejects.toThrow(/locked/);
+    await expect(
+      update.execute({ ...newVenue({ setupMinutes: null, turnaroundMinutes: null }), venueId: venue.id }),
+    ).rejects.toThrow(/locked/);
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC3: lets other details change while the locked values are sent back unchanged", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue({ setupMinutes: 30, turnaroundMinutes: 45 }));
+
+    await update.execute({
+      ...newVenue({ setupMinutes: 30, turnaroundMinutes: 45, location: "Sentosa Pavilion" }),
+      venueId: venue.id,
+    });
+
+    expect((await view.execute({ venueId: venue.id })).venue).toMatchObject({
+      location: "Sentosa Pavilion",
+      setupMinutes: 30,
+      turnaroundMinutes: 45,
+    });
+  });
+
+  it("AC3: a venue defined as 0 and 0 is locked at 0", async () => {
+    const { create, update } = build();
+    const { venue } = await create.execute(newVenue({ setupMinutes: 0, turnaroundMinutes: 0 }));
+
+    await expect(
+      update.execute({ ...newVenue({ setupMinutes: 15, turnaroundMinutes: 0 }), venueId: venue.id }),
+    ).rejects.toThrow(/locked/);
+  });
+});
+
+describe("A venue's location is unique", () => {
+  it("refuses a second venue with the same location, and stores nothing", async () => {
+    const { create, list } = build();
+    await create.execute(newVenue());
+
+    await expect(create.execute(newVenue())).rejects.toThrow(/already exists/);
+    expect((await list.execute()).venues).toHaveLength(1);
+  });
+
+  it("treats a location that differs only by case or spacing as the same", async () => {
+    const { create } = build();
+    await create.execute(newVenue({ location: "Marina Bay Hall" }));
+
+    await expect(create.execute(newVenue({ location: "  marina  BAY hall " }))).rejects.toThrow(/already exists/);
+  });
+
+  it("names the location field in the refusal", async () => {
+    const { create } = build();
+    await create.execute(newVenue());
+
+    const error = await create.execute(newVenue()).catch((e: unknown) => e);
+
+    expect((error as InvalidVenueError).field).toBe("location");
+  });
+
+  it("refuses renaming a venue onto another venue's location", async () => {
+    const { create, update } = build();
+    await create.execute(newVenue({ location: "Marina Bay Hall" }));
+    const { venue } = await create.execute(newVenue({ location: "Sentosa Pavilion" }));
+
+    await expect(
+      update.execute({ ...newVenue({ location: "Marina Bay Hall" }), venueId: venue.id }),
+    ).rejects.toThrow(/already exists/);
+  });
+
+  it("lets a venue be saved under its own location", async () => {
+    const { create, update, view } = build();
+    const { venue } = await create.execute(newVenue());
+
+    await update.execute({ ...newVenue({ facilities: "Wi-Fi, Catering area" }), venueId: venue.id });
+
+    expect((await view.execute({ venueId: venue.id })).venue.facilities).toBe("Wi-Fi, Catering area");
   });
 });

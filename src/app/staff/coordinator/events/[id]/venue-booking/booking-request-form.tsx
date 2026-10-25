@@ -7,6 +7,7 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { describeBuffers } from "@/core/domain/venue-buffers";
 import type { Venue, VenueLayoutSuitability } from "@/core/use-cases/view-venue-booking-options";
 
 import { submitVenueBookingRequestAction, type SubmitVenueBookingRequestState } from "./actions";
@@ -29,6 +30,7 @@ interface DateRow {
 function venueMeta(venue: Venue): string {
   return [
     venue.capacity === null ? null : `holds ${venue.capacity}`,
+    describeBuffers(venue),
     venue.facilities,
     venue.accessibility,
   ]
