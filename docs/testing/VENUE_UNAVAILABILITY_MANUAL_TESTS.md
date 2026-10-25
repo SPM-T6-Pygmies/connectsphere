@@ -307,46 +307,52 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 ### TC-VBLOCK-009: The form lists the opening hours and will not let closed time be picked (SPM-321 AC7)
 
-**Scenario:** Main Hall is open 07:00–12:00, 13:00–18:00 and 19:00–24:00. Venue Staff choosing times for it should see those hours, be unable to pick time the hall is closed, and be unable to pick an end that would stretch over the lunch closure.
+**Scenario:** Main Hall is open 07:00–24:00, one window with no break (SPM-320). Venue Staff choosing times for it should see those hours and be unable to pick time the hall is closed.
 
 **Preconditions:** Signed in as `venue@test.com`; **Unavailability** open.
 
 **Steps:**
 1. Choose **Main Hall**. Read the line under the times.
-2. Open the **Start time** list. Find 06:45, 12:00, 12:45 and 18:00, then 07:00, 11:45, 13:00 and 23:45.
-3. Choose Start **09:00**, then open the **End time** list. Find 12:00, 12:15, 13:00 and 09:00.
+2. Open the **Start time** list. Find 06:45, then 07:00, 11:45, 12:00, 12:45, 13:00, 18:00 and 23:45.
+3. Choose Start **09:00**, then open the **End time** list. Find 09:00, 12:00, 12:15, 13:00 and 24:00.
 4. Choose a different venue.
 
 **Expected Result:**
-- Step 1: *Opening hours: 07:00–12:00, 13:00–18:00, 19:00–24:00. A block can only cover time the venue is open.*
-- Step 2: 06:45, 12:00, 12:45 and 18:00 are greyed and marked *(closed)* and cannot be picked; 07:00, 11:45, 13:00 and 23:45 can.
-- Step 3: End 12:00 can be picked. 12:15 and 13:00 are greyed *(closed in between)*: a block from 09:00 cannot run past 12:00 without covering the closed hour. 09:00 is greyed *(not after the start)*.
+- Step 1: *Opening hours: 07:00–24:00. A block can only cover time the venue is open.*
+- Step 2: 06:45 (and every time before 07:00) is greyed and marked *(closed)* and cannot be picked; 07:00, 11:45, 12:00, 12:45, 13:00, 18:00 and 23:45 can.
+- Step 3: 12:00, 12:15, 13:00 and 24:00 can be picked: with one window nothing between 09:00 and 24:00 is closed. 09:00 is greyed *(not after the start)*.
 - Step 4: the Start and End times are cleared, so closed time cannot be carried to a venue where it is open.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (7/7 checks)
+A venue now opens once a day, so the *(closed in between)* mark on an end time can no longer arise.
 
-**Screenshots:** [step2-start-times-closed-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step2-start-times-closed-disabled.png) · [step3-end-times-after-start-0900](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step3-end-times-after-start-0900.png)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by Claude Code, after Main Hall became one window (SPM-320)
+
+**Screenshots:** [step3-one-window-end-times-open](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-009_step3-one-window-end-times-open.jpg)
+
+Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): Pass, 2026-10-22, Chrome via Playwright by Claude Code for JameszLau. Screenshots: [step2-start-times-closed-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step2-start-times-closed-disabled.png) · [step3-end-times-after-start-0900](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step3-end-times-after-start-0900.png)
 
 ---
 
 ### TC-VBLOCK-010: A block over closed time is refused, naming it (SPM-321 AC7)
 
-**Scenario:** Venue Staff A opens the form for UAT-44 Harbour Room and picks 09:00–11:30 on 2026-12-28. Before A saves, a colleague shortens the Harbour Room's morning hours to end at 11:00. A's page still shows 11:00–12:00 as open, but the server knows better.
+**Scenario:** Venue Staff A opens the form for UAT-44 Harbour Room and picks 09:00–11:30 on 2026-12-28. Before A saves, a colleague changes the Harbour Room's closing time to 11:00. A's page still shows 11:00–11:30 as open, but the server knows better.
 
 **Preconditions:** Signed in as `venue@test.com`.
 
 **Steps:**
 1. Open the form, choose **UAT-44 Harbour Room**, From and To `2026-12-28`, Start **09:00**, End **11:30**, Reason **Maintenance**. Do not save yet.
-2. In a second tab, as `venue@test.com`, open **Venues**, then **UAT-44 Harbour Room**, change the first opening window's **Closes** hour from 12 to **11** (minute 00) and press **Save venue**.
+2. In a second tab, as `venue@test.com`, open **Venues**, then **UAT-44 Harbour Room**, change **Closes** from 24 to **11** (minute 00) and press **Save venue**.
 3. Back in the first tab press **Mark unavailable**.
-4. Put the hours back: in the second tab set the first window's **Closes** hour back to **12** and press **Save venue**.
+4. Put the hours back: in the second tab set **Closes** back to **24** and press **Save venue**.
 
 **Expected Result:**
-- Step 3: refused with *The venue is closed 11:00–11:30, so it cannot be blocked then. Choose times within its opening hours (07:00–11:00, 13:00–18:00, 19:00–24:00).* The form still shows the venue and times chosen, and nothing is saved for 2026-12-28.
+- Step 3: refused with *The venue is closed 11:00–11:30, so it cannot be blocked then. Choose times within its opening hours (07:00–11:00).* The form still shows the venue and times chosen, and nothing is saved for 2026-12-28.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks), with the hours changed and restored through the venue form
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by Claude Code, with the hours changed and restored through the venue form; no block slot was saved for 2026-12-28 and Harbour Room was back to 07:00–24:00
 
-**Screenshots:** [step1-form-filled-before-hours-change](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
+**Screenshots:** [step3-refused-naming-11-00-11-30](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-010_step3-refused-naming-11-00-11-30.jpg)
+
+Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright by Claude Code for JameszLau. Screenshots: [step1-form-filled-before-hours-change](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
 
 ---
 
