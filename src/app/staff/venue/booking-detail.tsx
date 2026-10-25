@@ -20,7 +20,7 @@ import type { BookingReviewDetail } from "@/core/use-cases/review-booking-reques
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { formatHoldExpiry } from "../hold-expiry";
-import { formatTimes } from "../slot-label";
+import { formatOccupied, formatTimes } from "../slot-label";
 import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 import { DecisionForm } from "./[id]/decision-form";
@@ -102,6 +102,8 @@ export async function BookingDetail({
   const decided = booking.status !== "Requested";
   const { section, queueLabel, queueHref } = sectionOf(booking.status);
   const times = formatTimes(booking.times);
+  // SPM-19: what the booking really takes from the room, next to the venue's name.
+  const occupied = formatOccupied(booking.times, venue);
   const onHold = booking.status === "Tentative Hold" && booking.holdExpiresAt !== null;
   // SPM-253: a hold that ran out and was marked Expired. Its expiry stays on record.
   const expired = booking.status === "Expired" && booking.holdExpiresAt !== null;
@@ -116,7 +118,7 @@ export async function BookingDetail({
     >
       <PageHeader
         title={booking.venueLocation}
-        description={`${times} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}${
+        description={`${times}${occupied === null ? "" : ` · ${occupied}`} · requested by ${booking.requestedByName} on ${formatInstantDate(booking.requestedAt)}${
           onHold ? ` · on hold until ${formatHoldExpiry(booking.holdExpiresAt!)}` : ""
         }`}
         actions={<StatusBadge status={booking.status} />}
