@@ -902,6 +902,11 @@
       "parent": "SPM-276",
       "status": "Todo"
     },
+    "SPM-327": {
+      "title": "Request an event with a preferred start and end time",
+      "parent": "SPM-276",
+      "status": "Todo"
+    },
     "SPM-331": {
       "title": "Store opening hours as 15-minute slots and convert existing venue slots",
       "parent": "SPM-320",

@@ -1,4 +1,3 @@
-import type { BookingSlot } from "../domain/booking";
 import type { ClientOrganisationId } from "../domain/client-organisation";
 import type { EventRequest, EventRequestStatus } from "../domain/event-request";
 
@@ -9,7 +8,8 @@ export interface OperationsEventRequest {
   readonly description: string | null;
   readonly purpose: string | null;
   readonly preferredDate: string | null;
-  readonly preferredSlots: readonly BookingSlot[];
+  readonly preferredStartTime: string | null;
+  readonly preferredEndTime: string | null;
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly accessibilityNeeds: string | null;
@@ -40,7 +40,8 @@ export function toOperationsEventRequest(
     description: request.details.description,
     purpose: request.details.purpose,
     preferredDate: request.details.preferredDate,
-    preferredSlots: request.details.preferredSlots,
+    preferredStartTime: request.details.preferredStartTime,
+    preferredEndTime: request.details.preferredEndTime,
     expectedAttendance: request.details.expectedAttendance,
     venueRequirements: request.details.venueRequirements,
     accessibilityNeeds: request.details.accessibilityNeeds,

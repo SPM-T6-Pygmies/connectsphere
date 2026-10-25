@@ -101,9 +101,7 @@ async function getQueueItemsForLead(assigned: boolean): Promise<ListPaneItem[]> 
       id: request.id,
       href: `/staff/lead/${request.id}`,
       title: request.eventName,
-      meta: [request.preferredDate ?? "No date", request.preferredSlots.join(", ")]
-        .filter(Boolean)
-        .join(" · "),
+      meta: request.preferredDate ?? "No date",
       teaser: [
         request.clientOrganisationName,
         request.assignedCoordinatorUserAccountId === null
