@@ -17,18 +17,18 @@ export function formatTimes(times: readonly TimeRangeOnDate[]): string {
 }
 
 /**
- * SPM-19: the time a booking really takes from its venue, setup and turnaround included, with
- * the two values, e.g. "room in use 2026-12-14 09:30–12:45 (setup 30 min, turnaround 45 min)".
- * Null when the venue adds nothing (none set, or 0 and 0), so there is nothing more to say.
+ * SPM-19: the time a booking really takes from its venue, setup and turnaround included, e.g.
+ * `{ inUse: "2026-12-14 09:30–12:45", setup: 30, turnaround: 45 }`. Null when the venue adds
+ * nothing (none set, or 0 and 0), so there is nothing more to say.
  */
-export function formatOccupied(
+export function roomInUse(
   times: readonly TimeRangeOnDate[],
   venue: Partial<VenueBuffers> | null,
-): string | null {
+): { readonly inUse: string; readonly setup: number; readonly turnaround: number } | null {
   const { setup, turnaround } = bufferMinutes(venue ?? {});
   if (setup === 0 && turnaround === 0) return null;
   const windows = times.flatMap((time) => paddedWindows(time, { setup, turnaround }));
-  return `room in use ${formatTimes(windows)} (setup ${setup} min, turnaround ${turnaround} min)`;
+  return { inUse: formatTimes(windows), setup, turnaround };
 }
 
 /** The slot codes as a list, or a dash when there are none. */

@@ -60,12 +60,12 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 **Scenario:** Charity Run ends at 09:15, and Main Hall needs 45 minutes to be turned around, so the room is busy until 10:00. Spring Gala is 10:00–12:00 but its setup starts at 09:30. The booked times do not touch, but the padded times overlap by 30 minutes.
 
 **Steps:**
-1. As Venue Staff, open **Spring Gala** (Main Hall, Mon 14 Dec 2026, 10:00–12:00) from **Requests**, and read the line under **Main Hall**.
+1. As Venue Staff, open **Spring Gala** (Main Hall, Mon 14 Dec 2026, 10:00–12:00) from **Requests**, and read the box under **Main Hall**.
 2. Press **Approve booking**.
 3. Look at the booking's status and the buttons.
 
 **Expected Result:**
-- Step 1: the line reads *2026-12-14 10:00–12:00 · room in use 2026-12-14 09:30–12:45 (setup 30 min, turnaround 45 min) · requested by Test Coordinator …*. The same line appears on every booking page (Requests, Decided and Archive) for a venue with setup or turnaround, and is left out for one with none.
+- Step 1: a light-blue box under the title reads *Room in use 2026-12-14 09:30–12:45*, then *The booked time 2026-12-14 10:00–12:00 plus 30 min of setup before it and 45 min of turnaround after it.* The same box appears on every booking page (Requests, Decided and Archive) for a venue with setup or turnaround, and is left out for one with none.
 - Step 2: refused with *This booking is blocked by Charity Run on 2026-12-14, 09:30–10:00, counting setup and turnaround time. Choose other times or another venue.*
 - Step 3: the booking is still **Requested**, and **Reject** is still available.
 
