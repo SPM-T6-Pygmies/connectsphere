@@ -81,7 +81,8 @@ them, tick the boxes below **and** report each in the PR description's
 - [x] Step 2: with hour `24` the minute picker offers only `00`, so `24:00` is
       the latest end and no window crosses midnight.
 
-**Run:** Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the one-window form.
+Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VHOURS-002 A window must end after it starts
 
@@ -91,11 +92,12 @@ them, tick the boxes below **and** report each in the PR description's
 3. Reload the page.
 
 **Expected Result**
-- [ ] Step 1 is refused under the opening hours with "The window 13:00–12:00
+- [x] Step 1 is refused under the opening hours with "The window 13:00–12:00
       must end after it starts."
-- [ ] Step 2 is refused with "The window 13:00–13:00 must end after it starts."
-- [ ] Step 3: the venue still opens `13:00` and closes `24:00`; nothing was saved.
+- [x] Step 2 is refused with "The window 13:00–13:00 must end after it starts."
+- [x] Step 3: the venue still opens `13:00` and closes `24:00`; nothing was saved.
 
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`). Screenshot: [step1-13-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-002_step1-13-00-12-00-refused.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VHOURS-004 A request over closed time is refused
@@ -111,16 +113,18 @@ yet.
 3. Change the times to `13:00` to `24:00` and send.
 
 **Expected Result**
-- [ ] Step 1 is refused with "The venue is closed 2026-12-12 07:00–12:00.
+- [x] Step 1 is refused with "The venue is closed 2026-12-12 07:00–12:00.
       Choose times within its opening hours or another venue." No request is
       added to *Booking requests for this event*.
-- [ ] Step 2 is refused, naming only the closed part: "The venue is closed
+- [x] Step 2 is refused, naming only the closed part: "The venue is closed
       2026-12-12 12:45–13:00."
-- [ ] Step 3 is accepted: "Booking request sent for UAT-42 Lecture Hall", and
+- [x] Step 3 is accepted: "Booking request sent for UAT-42 Lecture Hall", and
       the request is listed as **Requested** with 2026-12-12 13:00–24:00.
 
 **Clean up:** `delete from booking where event_id = (select event_id from event where name = 'Founders'' Gala Dinner') and status = 'Requested';`
 
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the Venue tab, with the Theatre layout; then cleaned up.
+Screenshots: [step1-07-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step1-07-00-12-00-refused.jpg) · [step2-12-45-13-30-names-12-45-13-00](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step2-12-45-13-30-names-12-45-13-00.jpg) · [step3-13-00-24-00-requested](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step3-13-00-24-00-requested.jpg)
 Earlier run on slots: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VHOURS-005 AM, PM and Night convert to the slots they cover
@@ -172,15 +176,19 @@ migration's own run on the two converted seed venues also kept their open time
 3. Search 2026-12-12, `19:00` to `24:00`.
 
 **Expected Result**
-- [ ] Step 1: the column is headed **Opening hours** and lists each venue's
+- [x] Step 1: the column is headed **Opening hours** and lists each venue's
       window as times, e.g. UAT-42 Lecture Hall `13:00–24:00`; a venue with none
       shows `—`. AM, PM and Night appear nowhere on the page.
-- [ ] Step 2: the results table has the same **Opening hours** column.
-- [ ] Step 3: venues open until 24:00 are listed (UAT-42 Lecture Hall, and
+- [x] Step 2: the results table has the same **Opening hours** column.
+- [x] Step 3: venues open until 24:00 are listed (UAT-42 Lecture Hall, and
       UAT-44 Harbour Room if `seed-venue-search-uat` is loaded); the rest are
       explained as "closed for part of 19:00–24:00" or "no opening hours or
       booking horizon recorded".
 
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), with `seed-venues` and `seed-venue-search-uat` loaded: every venue
+shows one window and none shows `—`; step 3 lists UAT-42 Lecture Hall and UAT-44 Harbour Room, and
+explains 4 as "no opening hours or booking horizon recorded" and Garden Hall as "closed for part of 19:00–24:00".
+Screenshots: [step1-catalogue-one-window-each](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step1-catalogue-one-window-each.jpg) · [step2-find-a-venue-opening-hours](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step2-find-a-venue-opening-hours.jpg) · [step3-19-00-24-00-search](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step3-19-00-24-00-search.jpg)
 Earlier run on slots and two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hours](../screenshots/2026-10-21_SPM-320_TC-VHOURS-006_step1-catalogue-opening-hours.png)
 
@@ -212,10 +220,12 @@ transaction that is rolled back, so the local data is untouched.
    ```
 
 **Expected Result**
-- [ ] Step 2 raises nothing (it checks that no venue is left with a break).
-- [ ] Every venue reads one window: **AM PM** `07:00–18:00`, **PM Night**
+- [x] Step 2 raises nothing (it checks that no venue is left with a break).
+- [x] Every venue reads one window: **AM PM** `07:00–18:00`, **PM Night**
       `13:00–24:00`, **AM PM Night** `07:00–24:00`, **AM Night** `07:00–24:00`
       and **AM** `07:00–12:00`.
+
+**Run:** Pass, 25/10/2026, local Supabase after a fresh reset, by Claude Code. Nothing was left after the rollback.
 
 ### TC-VHOURS-008 A venue opens once a day
 
@@ -236,5 +246,8 @@ SPM-332 AC2: one opening and one closing time. The form offers only one pair
    ```
 
 **Expected Result**
-- [ ] One window saves: slots `32` to `79`, 48 of them (08:00–20:00).
-- [ ] Two windows are refused with `CS022` "A venue needs one opening window".
+- [x] One window saves: slots `32` to `79`, 48 of them (08:00–20:00).
+- [x] Two windows are refused with `CS022` "A venue needs one opening window".
+
+**Run:** Pass, 25/10/2026, local Supabase, by Claude Code, after TC-VCAT-004. Outside the
+transaction the refusal left UAT-42 Lecture Hall at `13:00–24:00` (slots 52–95).
