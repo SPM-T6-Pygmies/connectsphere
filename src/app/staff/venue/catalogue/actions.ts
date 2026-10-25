@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import {
   createVenueSchema,
@@ -19,6 +18,8 @@ import { DomainError, InvalidVenueError } from "@/core/domain/errors";
 export type VenueFormState =
   | { status: "idle" }
   | { status: "saved" }
+  /** A new venue was added: the Add venue form clears itself and says so. */
+  | { status: "created" }
   | {
       status: "error";
       message: string;
@@ -40,7 +41,7 @@ function refusal(error: DomainError): VenueFormState {
   };
 }
 
-/** SPM-146: create a venue, then open it. */
+/** SPM-146: create a venue; the form clears so the next one can be entered. */
 export async function createVenueAction(
   _previous: VenueFormState,
   formData: FormData,
@@ -50,17 +51,15 @@ export async function createVenueAction(
     return { status: "error", message: FLAGGED, fieldErrors: venueFieldErrors(parsed.error) };
   }
 
-  let venueId: string;
   try {
     // A Server Action is reachable without its page, so the page's role check
     // does not cover it. The use case refuses anyone but Venue Staff, and the
     // database checks again.
     const createVenue = await buildCreateVenue();
-    const { venue } = await createVenue.execute({
+    await createVenue.execute({
       roles: await getVenueMaintenanceRoles(),
       ...parsed.data,
     });
-    venueId = venue.id;
   } catch (error) {
     if (error instanceof DomainError) {
       return refusal(error);
@@ -69,7 +68,7 @@ export async function createVenueAction(
   }
 
   revalidatePath("/staff/venue/catalogue");
-  redirect(`/staff/venue/catalogue/${venueId}`);
+  return { status: "created" };
 }
 
 /** SPM-147: update a venue in place. */

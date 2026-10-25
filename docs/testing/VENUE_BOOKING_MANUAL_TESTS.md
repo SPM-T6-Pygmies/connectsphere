@@ -1,5 +1,10 @@
 # Venue Booking Request Manual Tests (SPM-46, SPM-104, SPM-45, SPM-324)
 
+> **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
+> event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
+> *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
+> `/staff/coordinator/<request id>/venue-booking` URL redirects there.
+
 ## Overview
 
 Browser checks for the coordinator's **Request a venue** page. The rules behind
@@ -52,10 +57,11 @@ cases only use the four above.
 
 ### TC-VENUE-BOOK-001 Reach the page from an approved event
 
-- [x] On the approved request, the **Venue** card shows **Request a venue**.
-- [x] In *My events*, the event's row has a **Request a venue** link.
-- [x] Both open the same page, titled *Request a venue*, with the event's
-      preferred date, time, attendance and venue requirements on the right.
+- [ ] On the approved request, the **Venue** card shows **Request a venue**.
+- [ ] In *My events*, the event's row has a **Request a venue** link.
+- [ ] Both open the event page on its **Venue** tab (SPM-459), with the event's
+      preferred date, time, attendance and venue requirements above the
+      **New booking request** form.
 
 **Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-approved-request-venue-card](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step1-approved-request-venue-card.png) · [step3-request-a-venue-page](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step3-request-a-venue-page.png)
 
@@ -359,9 +365,9 @@ transaction that is rolled back, so the local data is untouched, against a
 
 ### TC-VENUE-BOOK-030 A block still refuses the time it covers (SPM-347)
 
-Blocks stay on AM, PM and Night until SPM-321; they are compared with times by their hours.
+A block is a start and end time (SPM-321); it is compared with the requested times by the time they share.
 
-- [x] As `venue@test.com`, block **UAT-44 Harbour Room** for **AM** on D+6.
+- [x] As `venue@test.com`, block **UAT-44 Harbour Room** from **07:00** to **12:00** on D+6.
 - [x] As the coordinator, request it on D+6, `11:45` to `12:15`: refused with *The venue is
       unavailable for D+6 11:45–12:00. Choose other times or another venue.*
 - [x] D+6, `12:00` to `13:00`: accepted.

@@ -13,7 +13,6 @@ import { parseOptionList } from "@/core/domain/venue-options";
  */
 export const setEventRequiredFacilitiesSchema = z.object({
   eventId: z.string().trim().min(1, "The event is missing."),
-  eventRequestId: z.string().trim().min(1, "The event is missing."),
   facilities: z.string().transform((value) => parseOptionList(value)),
 });
 

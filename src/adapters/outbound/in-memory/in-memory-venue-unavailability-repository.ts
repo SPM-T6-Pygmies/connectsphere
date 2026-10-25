@@ -16,6 +16,7 @@ import {
   UnavailabilityAlreadyLiftedError,
   VenueUnavailabilityNotFoundError,
 } from "@/core/domain/errors";
+import type { SlotCodeOnDate } from "@/core/domain/slot-grid";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
 import type { CalendarBlock } from "@/core/domain/venue-calendar";
@@ -203,7 +204,7 @@ export class InMemoryVenueUnavailabilityRepository
   async affectedBookings(
     _reader: UserAccountId,
     venueId: VenueId,
-    slots: readonly SlotOnDate[],
+    slots: readonly SlotCodeOnDate[],
   ): Promise<readonly AffectedBooking[]> {
     return this.bookings
       .filter((booking) => booking.venueId === venueId && LIVE.includes(booking.status))

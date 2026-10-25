@@ -7,11 +7,12 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { describeBuffers } from "@/core/domain/venue-buffers";
 import type { Venue, VenueLayoutSuitability } from "@/core/use-cases/view-venue-booking-options";
 
 import { submitVenueBookingRequestAction, type SubmitVenueBookingRequestState } from "./actions";
-import { SuitabilityChecklist } from "../../../suitability-checklist";
-import { TimePicker } from "../../../time-picker";
+import { SuitabilityChecklist } from "../../../../suitability-checklist";
+import { TimePicker } from "../../../../time-picker";
 
 const INITIAL: SubmitVenueBookingRequestState = { status: "idle" };
 
@@ -29,6 +30,7 @@ interface DateRow {
 function venueMeta(venue: Venue): string {
   return [
     venue.capacity === null ? null : `holds ${venue.capacity}`,
+    describeBuffers(venue),
     venue.facilities,
     venue.accessibility,
   ]
@@ -51,7 +53,6 @@ function defaultLayout(venue: Venue | undefined): string {
 export function BookingRequestForm({
   initialVenueId,
   eventId,
-  eventRequestId,
   defaultDate,
   venues,
   suitability,
@@ -59,7 +60,6 @@ export function BookingRequestForm({
   /** SPM-62 AC3: the venue Venue Staff suggested, when the coordinator chose to request it. */
   initialVenueId?: string;
   eventId: string;
-  eventRequestId: string;
   defaultDate: string | null;
   venues: readonly Venue[];
   /** The server's verdict for each venue and layout, worked out from the event's needs now. */
@@ -137,7 +137,6 @@ export function BookingRequestForm({
       className="space-y-5"
     >
       <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <input type="hidden" name="roomLayout" value={layout} />
 
       <fieldset className="space-y-5" disabled={pending}>
