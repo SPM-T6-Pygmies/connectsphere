@@ -24,6 +24,7 @@ import {
   END_OF_DAY,
   formatRange,
   fromMinutes,
+  GRID_MINUTES,
   isOnGrid,
   overlaps,
   toMinutes,
@@ -92,9 +93,20 @@ export interface SlotOnDate {
   readonly slot: BookingSlot;
 }
 
-/** The hours `slot` covers on its date, so a block's slot can be compared with a booking's time. */
-export function slotTime({ date, slot }: SlotOnDate): TimeRangeOnDate {
-  return { date, ...SLOT_HOURS[slot] };
+/**
+ * The hours `slot` covers on its date, so a block's slot can be compared with a booking's time.
+ * A slot is AM, PM or Night, or a 15-minute code '0' to '95' (SPM-331): a block recorded since
+ * SPM-321 is on the codes, and a booking's own slots are too once converted (SPM-324).
+ */
+export function slotTime({ date, slot }: { readonly date: string; readonly slot: string }): TimeRangeOnDate {
+  if (isBookingSlot(slot)) {
+    return { date, ...SLOT_HOURS[slot] };
+  }
+  const n = Number(slot);
+  if (!Number.isInteger(n) || String(n) !== slot || n < 0 || n >= END_OF_DAY / GRID_MINUTES) {
+    throw new Error(`Unknown slot code "${slot}"`);
+  }
+  return { date, start: fromMinutes(n * GRID_MINUTES), end: fromMinutes((n + 1) * GRID_MINUTES) };
 }
 
 /** Time some existing booking at the venue already has (SPM-324). */
@@ -320,12 +332,12 @@ export function clashingTimes(
 
 /**
  * SPM-21 AC12, SPM-324: the parts of `times` that blocks over these slots
- * cover, joined into ranges. Blocks are still AM, PM and Night (SPM-321), so
- * they are compared by their hours.
+ * cover, joined into ranges. Blocks are compared by their hours, whether they are on
+ * AM, PM and Night or on the 15-minute codes (SPM-321).
  */
 export function blockedTimes(
   times: readonly TimeRangeOnDate[],
-  blocks: readonly SlotOnDate[],
+  blocks: readonly { readonly date: string; readonly slot: string }[],
 ): TimeRangeOnDate[] {
   return sharedTimes(times, blocks.map(slotTime));
 }
@@ -572,6 +584,15 @@ export function resolveHold(
  */
 export function bookingCancellable(status: BookingStatus): boolean {
   return status === "Requested" || status === "Tentative Hold" || status === "Confirmed";
+}
+
+/**
+ * SPM-63: whether Venue Staff are told a cancelled booking was released --
+ * only a Confirmed one, since that is the venue they may be preparing. A
+ * pending request or a hold was never confirmed to them as going ahead.
+ */
+export function cancellationNotifiesVenueStaff(status: BookingStatus): boolean {
+  return status === "Confirmed";
 }
 
 /**

@@ -20,12 +20,10 @@ const INITIAL: CancelVenueBookingState = { status: "idle" };
  */
 export function CancelBookingForm({
   eventId,
-  eventRequestId,
   bookingId,
   venueLocation,
 }: {
   eventId: string;
-  eventRequestId: string;
   bookingId: string;
   venueLocation: string;
 }) {
@@ -52,7 +50,6 @@ export function CancelBookingForm({
   return (
     <form action={formAction} className="space-y-1.5">
       <input type="hidden" name="eventId" value={eventId} />
-      <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <input type="hidden" name="bookingId" value={bookingId} />
       <p className="text-xs">Release {venueLocation} for this event? This cannot be undone.</p>
       <div className="flex flex-wrap gap-2">

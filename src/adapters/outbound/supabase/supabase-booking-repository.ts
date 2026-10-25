@@ -31,7 +31,6 @@ import {
   toChangeRoomLayoutArgs,
   toEventBookingSummary,
   toOccupiedTime,
-  toSlot,
   toSubmitBookingArgs,
   type BookedSlotRow,
   type EventBookingRow,
@@ -259,7 +258,7 @@ export class SupabaseBookingRepository implements BookingRepository {
         p_to: dates[dates.length - 1],
       });
       const blocks = ((data ?? []) as unknown as Array<{ date: string; slot: string }>).map(
-        ({ date, slot }) => ({ date: date.slice(0, 10), slot: toSlot(slot) }),
+        ({ date, slot }) => ({ date: date.slice(0, 10), slot }),
       );
       const named = blockedTimes(times, blocks);
       if (named.length > 0) {

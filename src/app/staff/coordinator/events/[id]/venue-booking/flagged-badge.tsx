@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { EventBookingFlag } from "@/core/ports/outbound/booking-flag-repository";
 
-import { FlagReasons } from "../../flag-reasons";
+import { FlagReasons } from "../../../flag-reasons";
 
 /**
  * SPM-313 AC4: a booking something has changed under shows a "Flagged" badge beside its

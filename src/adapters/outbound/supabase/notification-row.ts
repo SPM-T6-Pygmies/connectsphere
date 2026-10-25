@@ -11,6 +11,7 @@ import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notific
 import { organiserMessagePostedMessage } from "@/adapters/outbound/notification-content/organiser-message-posted";
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
 import { safetyCheckRecordedMessage } from "@/adapters/outbound/notification-content/safety-check-recorded";
+import { venueBookingCancelledMessage } from "@/adapters/outbound/notification-content/venue-booking-cancelled";
 import { venueBookingDecidedMessage } from "@/adapters/outbound/notification-content/venue-booking-decided";
 import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
@@ -24,6 +25,7 @@ import type {
   OrganiserMessagePostedNotice,
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
+  VenueBookingCancelledNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -186,6 +188,19 @@ export function holdExpiredRow(notice: HoldExpiredNotice): NotificationRow {
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: "hold-expired",
+    channel: "in_app",
+    status: "Pending",
+    related_booking_id: notice.bookingId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling Venue Staff a confirmed booking was cancelled (SPM-63). */
+export function venueBookingCancelledRow(notice: VenueBookingCancelledNotice): NotificationRow {
+  const { subject, body } = venueBookingCancelledMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "venue-booking-cancelled",
     channel: "in_app",
     status: "Pending",
     related_booking_id: notice.bookingId,

@@ -88,6 +88,8 @@ catalogue (`/staff/venue/catalogue`).
       facilities Wi-Fi and Video-conferencing.
 - [ ] Opening it shows every value entered, including both accessibility
       features and **Opens** `07:00`, **Closes** `18:00`.
+- [x] Straight after step 3, a *Venue created.* toast shows and the Add venue
+      form is empty again (checked 2026-10-23 in TC-VBUFFER-001).
 
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../screenshots/2026-10-09_TC-VCAT-002_step3-catalogue-row.png)).
@@ -197,3 +199,18 @@ select count(*) from v;
 
 **Run:** Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step1-catalogue-shows-stored-text](../screenshots/2026-10-09_TC-VCAT-006_step1-catalogue-shows-stored-text.png) · [step2-legacy-hall-nothing-ticked](../screenshots/2026-10-09_TC-VCAT-006_step2-legacy-hall-nothing-ticked.png) · [step2-save-refused](../screenshots/2026-10-09_TC-VCAT-006_step2-save-refused.png) · [step3-saved-after-ticking-wifi](../screenshots/2026-10-09_TC-VCAT-006_step3-saved-after-ticking-wifi.png) · [step4-partly-legacy-wifi-ticked](../screenshots/2026-10-09_TC-VCAT-006_step4-partly-legacy-wifi-ticked.png) · [step4-save-refused](../screenshots/2026-10-09_TC-VCAT-006_step4-save-refused.png) · [step5-saved-after-reticking](../screenshots/2026-10-09_TC-VCAT-006_step5-saved-after-reticking.png)
 
+### TC-VCAT-007 No two venues share a location
+
+**Scenario:** Venue Staff try to add a second *Main Hall*, and to rename another venue to it.
+
+**Preconditions:** The seeds from `VENUE_BUFFERS_MANUAL_TESTS.md` Test Environment Setup are loaded (Main Hall exists; UAT-44 Harbour Room is a complete venue).
+
+**Steps**
+1. Open **Venues**, then **Add venue**. Enter Location `  main   HALL ` (extra spaces, any case), Capacity `80`, tick **Wi-Fi** and **Lift access**, Opens `07`:`00`, Closes `12`:`00`, Booking horizon `90`, Layout **Theatre** capacity `60`. Press **Add venue**.
+2. Open **UAT-44 Harbour Room**, change the Location to `main hall`, and press **Save venue**.
+
+**Expected Result**
+- [x] Step 1: refused beside **Location**: *A venue with this location already exists. Choose a different location.* No venue is added, and the form keeps what was typed.
+- [x] Step 2: refused the same way; Harbour Room keeps its name.
+
+**Run:** Pass, 23/10/2026, Chrome via Playwright for JameszLau (3/3 checks) ([step1-same-location-typed](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step1-same-location-typed.png) · [step2-refused-as-duplicate](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step2-refused-as-duplicate.png)).
