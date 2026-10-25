@@ -131,10 +131,16 @@ export async function BookingDetail({
           className="border-sky-500/40 bg-sky-500/10 text-sky-900 dark:text-sky-200"
         >
           <ClockIcon />
-          <AlertTitle>Room in use {occupied.inUse}</AlertTitle>
+          <AlertTitle>
+            Room in use -{" "}
+            {occupied.windows.map(({ date, start, end }) => `${date} (${start}–${end})`).join(", ")}
+          </AlertTitle>
           <AlertDescription className="text-sky-900/80 dark:text-sky-200/80">
-            The booked time {times} plus {occupied.setup} min of setup before it and{" "}
-            {occupied.turnaround} min of turnaround after it.
+            This time was booked from{" "}
+            {booking.times.length === 1
+              ? `${booking.times[0].start}–${booking.times[0].end}`
+              : times}
+            , {occupied.setup} min setup &amp; {occupied.turnaround} min turnaround
           </AlertDescription>
         </Alert>
       )}

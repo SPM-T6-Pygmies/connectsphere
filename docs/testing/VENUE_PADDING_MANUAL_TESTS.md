@@ -65,8 +65,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 3. Look at the booking's status and the buttons.
 
 **Expected Result:**
-- Step 1: beside **Main Hall** (in the title, and in every row of the list on the left) it reads *Setup 30 min · Turnaround 45 min*. A light-blue box under the title reads *Room in use 2026-12-14 09:30–12:45*, then *The booked time 2026-12-14 10:00–12:00 plus 30 min of setup before it and 45 min of turnaround after it.* The same box and note appear on every booking page (Requests, Decided and Archive) for a venue with setup or turnaround, and is left out for one with none.
-- Step 2: refused with *This booking is blocked by Charity Run on 2026-12-14, 09:30–10:00, counting setup and turnaround time. Choose other times or another venue.*
+- Step 1: beside **Main Hall** (in the title, and in every row of the list on the left) it reads *Setup 30 min · Turnaround 45 min*. A light-blue box under the title reads *Room in use - 2026-12-14 (09:30–12:45)*, then *This time was booked from 10:00–12:00, 30 min setup & 45 min turnaround*. The same box and note appear on every booking page (Requests, Decided and Archive) for a venue with setup or turnaround, and is left out for one with none.
+- Step 2: refused with a list: *This booking is blocked by the following event:* / *• Charity Run on 2026-12-14 (09:30–10:00, incl. setup & turnaround)* / *Choose other times or another venue.*
 - Step 3: the booking is still **Requested**, and **Reject** is still available.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (3/3 checks)
@@ -79,7 +79,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Scenario:** Venue Staff try to hold Spring Gala instead of approving it.
 
-**Preconditions:** After TC-VPAD-001, with Spring Gala still open.
+**Preconditions:** After TC-VPAD-001, with Spring Gala still open. Load `seed.sql` fresh before each run: another run, or an earlier approval, may already have decided a request, and an open page then answers *This booking request has already been decided.*
 
 **Steps:**
 1. On **Spring Gala**, press **Place hold**.
@@ -119,7 +119,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 2. Press **Approve booking**.
 
 **Expected Result:**
-- Refused with *This booking is blocked by Quiz Night on 2026-12-15, 09:30–10:00, counting setup and turnaround time. …*, and the booking stays **Requested**.
+- Refused with a list line *• Quiz Night on 2026-12-15 (09:30–10:00, incl. setup & turnaround): already temporarily reserved (held), the hold expires on <expiry, Singapore time>*, and the booking stays **Requested**.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
@@ -153,7 +153,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 2. Press **Approve booking**.
 
 **Expected Result:**
-- Refused naming *Night Gala on 2026-12-17, 23:45–24:00* and *Night Gala on 2026-12-18, 00:00–00:45*, and the booking stays **Requested**.
+- Refused naming two list lines, *• Night Gala on 2026-12-17 (23:45–24:00, incl. setup & turnaround)* and *• Night Gala on 2026-12-18 (00:00–00:45, incl. setup & turnaround)*, and the booking stays **Requested**.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
@@ -194,7 +194,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 2. Press **Approve booking**.
 
 **Expected Result:**
-- Refused with *This booking is blocked by Charity Run on 2026-12-14, 07:30–09:45, counting setup and turnaround time. Choose other times or another venue.* The booking stays **Requested**.
+- Refused with a list line *• Charity Run on 2026-12-14 (07:30–09:45, incl. setup & turnaround)* The booking stays **Requested**.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 

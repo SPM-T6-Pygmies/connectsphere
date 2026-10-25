@@ -258,8 +258,30 @@ describe("SupabaseBookingReviewRepository, padded clashes (SPM-19)", () => {
 
     expect(error).toBeInstanceOf(VenuePaddedClashError);
     expect((error as VenuePaddedClashError).clashes).toEqual([
-      { eventName: "Charity Run", date: "2026-12-14", start: "09:30", end: "10:00" },
+      { eventName: "Charity Run", date: "2026-12-14", start: "09:30", end: "10:00", hold: null },
     ]);
+  });
+
+  it("AC4: carries the hold, and when it expires, when the booking in the way is a Tentative Hold", async () => {
+    const { client } = fakeClient({
+      venue_staff_decide_booking: {
+        data: null,
+        error: {
+          code: "CS082",
+          message: "Venue 5 has another booking within this booking's setup or turnaround time",
+          details: JSON.stringify([
+            { event: "Quiz Night", date: "2026-12-15", start: "09:30", end: "10:00", holdExpiresAt: "2026-11-24T06:30:00+00:00" },
+          ]),
+        },
+      },
+    });
+
+    const error = await new SupabaseBookingReviewRepository(client).decide(APPROVED).catch((e: unknown) => e);
+
+    expect((error as VenuePaddedClashError).clashes).toEqual([
+      { eventName: "Quiz Night", date: "2026-12-15", start: "09:30", end: "10:00", hold: { expiresAt: "2026-11-24T06:30:00+00:00" } },
+    ]);
+    expect((error as VenuePaddedClashError).message).toContain("already temporarily reserved (held), the hold expires on 2026-11-24 14:30 (Singapore time)");
   });
 
   it("AC3: maps it the same way when placing a hold", async () => {

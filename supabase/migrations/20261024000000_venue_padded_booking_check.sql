@@ -8,7 +8,8 @@
 --    date. The unique index on (venue, date, slot) sees only the booked slots, so this is where
 --    padding is compared.
 -- 2. `booking_padded_clashes`: the parts of those windows another live booking at the venue also
---    takes, with that booking's event name, one row per date.
+--    takes, with that booking's event name and, for a hold, that it is one and when it expires,
+--    one row per date.
 -- 3. `venue_staff_decide_booking` refuses with CS082, the clashes in the error detail as JSON, after
 --    its block check (CS028) and inside the venue lock it already takes, so two approvals racing
 --    for padded-overlapping times cannot both succeed. CS082 replaces CS025 here: the padded check
@@ -56,14 +57,15 @@ as $$
 $$;
 
 create function public.booking_padded_clashes(p_booking_id bigint)
-returns table (event_name text, clash_date date, clash_start time, clash_end time)
+returns table (event_name text, clash_date date, clash_start time, clash_end time, is_hold boolean, hold_expires_at timestamptz)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
   with others as (
-    select ev.name as event_name, w.window_start, w.window_end
+    select ev.name as event_name, w.window_start, w.window_end,
+           (o.status = 'Tentative Hold') as is_hold, o.hold_expires_at
     from public.booking me
     join public.booking o on o.venue_id = me.venue_id and o.booking_id <> me.booking_id
     join public.event ev on ev.event_id = o.event_id
@@ -74,12 +76,13 @@ as $$
   shared as (
     select o.event_name,
            greatest(m.window_start, o.window_start) as shared_start,
-           least(m.window_end, o.window_end) as shared_end
+           least(m.window_end, o.window_end) as shared_end,
+           o.is_hold, o.hold_expires_at
     from public.booking_padded_windows(p_booking_id) m
     join others o on m.window_start < o.window_end and o.window_start < m.window_end
   ),
   per_date as (
-    select s.event_name, d::date as day, s.shared_start, s.shared_end
+    select s.event_name, d::date as day, s.shared_start, s.shared_end, s.is_hold, s.hold_expires_at
     from shared s
     cross join lateral generate_series(
       s.shared_start::date, (s.shared_end - interval '1 microsecond')::date, interval '1 day') d
@@ -87,7 +90,9 @@ as $$
   select p.event_name,
          p.day,
          greatest(p.shared_start, p.day::timestamp)::time,
-         case when p.shared_end >= (p.day + 1)::timestamp then time '24:00' else p.shared_end::time end
+         case when p.shared_end >= (p.day + 1)::timestamp then time '24:00' else p.shared_end::time end,
+         p.is_hold,
+         p.hold_expires_at
   from per_date p
   order by p.day, 3;
 $$;
@@ -173,6 +178,9 @@ begin
                'date', c.clash_date,
                'start', to_char(c.clash_start, 'HH24:MI'),
                'end', case when c.clash_end = time '24:00' then '24:00' else to_char(c.clash_end, 'HH24:MI') end)
+             || case when c.is_hold
+                     then jsonb_build_object('holdExpiresAt', c.hold_expires_at)
+                     else '{}'::jsonb end
              order by c.clash_date, c.clash_start)
     into v_padded
     from public.booking_padded_clashes(p_booking_id) c;

@@ -442,6 +442,40 @@ export class BookingRoomLayoutNotChangeableError extends DomainError {
   }
 }
 
+type Clash = TimeOnDate & {
+  readonly eventName: string;
+  readonly hold: { readonly expiresAt: string | null } | null;
+};
+
+/**
+ * What Venue Staff read: a list with one line for each date an event is in the way on, naming the
+ * times. A held venue says so, and when the hold expires.
+ */
+function lines(clashes: readonly Clash[]): string[] {
+  return clashes.map(({ eventName, date, start, end, hold }) => {
+    const base = `• ${eventName} on ${date} (${start}–${end}, incl. setup & turnaround)`;
+    if (hold === null) return base;
+    const expires =
+      hold.expiresAt === null ? "" : `, the hold expires on ${singaporeTime(hold.expiresAt)} (Singapore time)`;
+    return `${base}: already temporarily reserved (held)${expires}`;
+  });
+}
+
+/** An instant as `2026-11-24 14:30` in Singapore time, whatever zone the server runs in. */
+function singaporeTime(iso: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Singapore",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(iso));
+  const part = (type: string) => parts.find((each) => each.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}`;
+}
+
 /** A date with a start and end time, as the booking refusals name them. */
 type TimeOnDate = { readonly date: string; readonly start: string; readonly end: string };
 
@@ -469,11 +503,21 @@ export class VenueSlotUnavailableError extends DomainError {
 export class VenuePaddedClashError extends DomainError {
   readonly code = "venue_padded_clash";
 
-  constructor(readonly clashes: ReadonlyArray<TimeOnDate & { readonly eventName: string }>) {
+  constructor(
+    readonly clashes: ReadonlyArray<
+      TimeOnDate & {
+        readonly eventName: string;
+        /** Set when the booking in the way is a Tentative Hold; null for a Confirmed one. */
+        readonly hold: { readonly expiresAt: string | null } | null;
+      }
+    >,
+  ) {
     super(
-      `This booking is blocked by ${clashes
-        .map(({ eventName, date, start, end }) => `${eventName} on ${date}, ${start}–${end}`)
-        .join("; ")}, counting setup and turnaround time. Choose other times or another venue.`,
+      [
+        `This booking is blocked by the following ${clashes.length === 1 ? "event" : "events"}:`,
+        ...lines(clashes),
+        "Choose other times or another venue.",
+      ].join("\n"),
     );
   }
 }

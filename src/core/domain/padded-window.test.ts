@@ -134,7 +134,7 @@ describe("paddedClashes (SPM-19)", () => {
 
   it("AC1: names the other event and the overlap when a request's setup runs into its turnaround: 10:00 after 07:00-09:15 at Main Hall", () => {
     expect(paddedClashes([{ date: DAY, start: "10:00", end: "12:00" }], [charityRun], MAIN_HALL)).toEqual([
-      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00" },
+      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00", hold: null },
     ]);
   });
 
@@ -149,8 +149,19 @@ describe("paddedClashes (SPM-19)", () => {
   it("AC6: names each date a clash falls on when the windows run across midnight: a 00:15 request after a 22:00-24:00 Gala", () => {
     const lateEvent = { eventName: "Gala", times: [{ date: DAY, start: "22:00", end: "24:00" }] };
     expect(paddedClashes([{ date: "2026-12-15", start: "00:15", end: "01:15" }], [lateEvent], MAIN_HALL)).toEqual([
-      { eventName: "Gala", date: DAY, start: "23:45", end: "24:00" },
-      { eventName: "Gala", date: "2026-12-15", start: "00:00", end: "00:45" },
+      { eventName: "Gala", date: DAY, start: "23:45", end: "24:00", hold: null },
+      { eventName: "Gala", date: "2026-12-15", start: "00:00", end: "00:45", hold: null },
+    ]);
+  });
+
+  it("AC4: says when the blocking booking is a hold, and when the hold expires", () => {
+    const hold = {
+      eventName: "Quiz Night",
+      times: [{ date: DAY, start: "07:00", end: "09:15" }],
+      hold: { expiresAt: "2026-11-24T06:30:00.000Z" },
+    };
+    expect(paddedClashes([{ date: DAY, start: "10:00", end: "12:00" }], [hold], MAIN_HALL)).toEqual([
+      { eventName: "Quiz Night", date: DAY, start: "09:30", end: "10:00", hold: { expiresAt: "2026-11-24T06:30:00.000Z" } },
     ]);
   });
 
@@ -162,12 +173,60 @@ describe("paddedClashes (SPM-19)", () => {
   });
 });
 
-describe("VenuePaddedClashError (SPM-19 AC1)", () => {
-  it("says which event blocks the booking, naming the date and the times, whether the overlap is in the booked time or only in setup or turnaround", () => {
-    const error = new VenuePaddedClashError([{ eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00" }]);
+describe("VenuePaddedClashError (SPM-19 AC1, AC4)", () => {
+  const SG_EXPIRY = "2026-11-24T06:30:00.000Z"; // 2026-11-24 14:30 in Singapore
+
+  it("lists the event that blocks the booking, with its date and times, whether the overlap is in the booked time or only in setup or turnaround", () => {
+    const error = new VenuePaddedClashError([
+      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00", hold: null },
+    ]);
 
     expect(error.message).toBe(
-      "This booking is blocked by Charity Run on 2026-12-14, 09:30–10:00, counting setup and turnaround time. Choose other times or another venue.",
+      [
+        "This booking is blocked by the following event:",
+        "• Charity Run on 2026-12-14 (09:30–10:00, incl. setup & turnaround)",
+        "Choose other times or another venue.",
+      ].join("\n"),
     );
+  });
+
+  it("lists each date an event is in the way on its own line, as when a turnaround runs past midnight", () => {
+    const error = new VenuePaddedClashError([
+      { eventName: "Night Gala", date: "2026-12-17", start: "23:45", end: "24:00", hold: null },
+      { eventName: "Night Gala", date: "2026-12-18", start: "00:00", end: "00:45", hold: null },
+    ]);
+
+    expect(error.message).toBe(
+      [
+        "This booking is blocked by the following events:",
+        "• Night Gala on 2026-12-17 (23:45–24:00, incl. setup & turnaround)",
+        "• Night Gala on 2026-12-18 (00:00–00:45, incl. setup & turnaround)",
+        "Choose other times or another venue.",
+      ].join("\n"),
+    );
+  });
+
+  it("says plainly that a held venue is temporarily reserved, and when the hold expires (Singapore time)", () => {
+    const error = new VenuePaddedClashError([
+      { eventName: "Quiz Night", date: "2026-12-15", start: "09:30", end: "10:00", hold: { expiresAt: SG_EXPIRY } },
+    ]);
+
+    expect(error.message).toBe(
+      [
+        "This booking is blocked by the following event:",
+        "• Quiz Night on 2026-12-15 (09:30–10:00, incl. setup & turnaround): already temporarily reserved (held), the hold expires on 2026-11-24 14:30 (Singapore time)",
+        "Choose other times or another venue.",
+      ].join("\n"),
+    );
+  });
+
+  it("lists a hold and a confirmed booking together", () => {
+    const error = new VenuePaddedClashError([
+      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00", hold: null },
+      { eventName: "Quiz Night", date: DAY, start: "12:00", end: "12:45", hold: { expiresAt: SG_EXPIRY } },
+    ]);
+
+    expect(error.message).toContain("• Charity Run on 2026-12-14 (09:30–10:00, incl. setup & turnaround)\n");
+    expect(error.message).toContain("• Quiz Night on 2026-12-14 (12:00–12:45, incl. setup & turnaround): already temporarily reserved (held)");
   });
 });

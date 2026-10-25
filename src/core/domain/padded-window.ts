@@ -52,6 +52,8 @@ export interface PaddedClash {
   readonly date: string;
   readonly start: string;
   readonly end: string;
+  /** Set when the booking in the way is a Tentative Hold: when it expires (null: no expiry). */
+  readonly hold: { readonly expiresAt: string | null } | null;
 }
 
 /**
@@ -62,18 +64,25 @@ export interface PaddedClash {
  */
 export function paddedClashes(
   requested: readonly TimeRangeOnDate[],
-  others: ReadonlyArray<{ readonly eventName: string; readonly times: readonly TimeRangeOnDate[] }>,
+  others: ReadonlyArray<{
+    readonly eventName: string;
+    readonly times: readonly TimeRangeOnDate[];
+    /** Set for a Tentative Hold, so the refusal can say so and when it expires. */
+    readonly hold?: { readonly expiresAt: string | null };
+  }>,
   buffers: Buffers,
 ): PaddedClash[] {
   const mine = requested.flatMap((time) => paddedWindows(time, buffers));
   return others
-    .flatMap(({ eventName, times }) =>
+    .flatMap(({ eventName, times, hold }) =>
       times.flatMap((time) => paddedWindows(time, buffers)).flatMap((theirs) =>
         mine.flatMap((window) => {
           if (window.date !== theirs.date) return [];
           const start = Math.max(minutes(window).start, minutes(theirs).start);
           const end = Math.min(minutes(window).end, minutes(theirs).end);
-          return start < end ? [{ eventName, date: window.date, start: fromMinutes(start), end: fromMinutes(end) }] : [];
+          return start < end
+            ? [{ eventName, date: window.date, start: fromMinutes(start), end: fromMinutes(end), hold: hold ?? null }]
+            : [];
         }),
       ),
     )

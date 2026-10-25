@@ -130,6 +130,14 @@ begin
         end if;
       end if;
 
+      -- A hold in the way is named as one, with when it expires.
+      if c.label like 'AC4 approve 10:00 after an unexpired hold%' then
+        v_checks := v_checks + 1;
+        if v_detail is null or v_detail not like '%holdExpiresAt%' then
+          v_failed := array_append(v_failed, 'AC4 the refusal does not say the booking in the way is a hold, and when it expires: ' || coalesce(v_detail, 'no detail'));
+        end if;
+      end if;
+
       raise exception 'rolled back' using errcode = 'CS999';
     exception when sqlstate 'CS999' then
       null;

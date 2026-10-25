@@ -175,6 +175,14 @@ function toPaddedClashes(details: string | null | undefined) {
     date: string;
     start: string;
     end: string;
+    /** Set when the booking in the way is a Tentative Hold: when it expires, or null. */
+    holdExpiresAt?: string | null;
   }>;
-  return rows.map(({ event, date, start, end }) => ({ eventName: event, date, start, end }));
+  return rows.map(({ event, date, start, end, holdExpiresAt }) => ({
+    eventName: event,
+    date,
+    start,
+    end,
+    hold: holdExpiresAt === undefined ? null : { expiresAt: holdExpiresAt },
+  }));
 }

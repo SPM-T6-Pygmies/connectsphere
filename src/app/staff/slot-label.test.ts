@@ -18,7 +18,7 @@ describe("roomInUse (SPM-19)", () => {
 
   it("names the time the room is used with setup and turnaround, and each value, for Main Hall 30 and 45", () => {
     expect(roomInUse(times, { setupMinutes: 30, turnaroundMinutes: 45 })).toEqual({
-      inUse: "2026-12-14 09:30–12:45",
+      windows: [{ date: "2026-12-14", start: "09:30", end: "12:45" }],
       setup: 30,
       turnaround: 45,
     });
@@ -26,8 +26,11 @@ describe("roomInUse (SPM-19)", () => {
 
   it("splits a window that runs past midnight by date", () => {
     expect(
-      roomInUse([{ date: "2026-12-17", start: "22:00", end: "24:00" }], { setupMinutes: 30, turnaroundMinutes: 45 })?.inUse,
-    ).toBe("2026-12-17 21:30–24:00, 2026-12-18 00:00–00:45");
+      roomInUse([{ date: "2026-12-17", start: "22:00", end: "24:00" }], { setupMinutes: 30, turnaroundMinutes: 45 })?.windows,
+    ).toEqual([
+      { date: "2026-12-17", start: "21:30", end: "24:00" },
+      { date: "2026-12-18", start: "00:00", end: "00:45" },
+    ]);
   });
 
   it("says nothing for a venue with none set, or 0 and 0, since nothing is added", () => {

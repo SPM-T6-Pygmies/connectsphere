@@ -686,7 +686,7 @@ describe("DecideBookingRequestUseCase, setup and turnaround (SPM-19)", () => {
 
     expect(error).toBeInstanceOf(VenuePaddedClashError);
     expect((error as VenuePaddedClashError).clashes).toEqual([
-      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00" },
+      { eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00", hold: null },
     ]);
     expect(reviews.all()[0]?.status).toBe("Requested");
   });
@@ -714,15 +714,18 @@ describe("DecideBookingRequestUseCase, setup and turnaround (SPM-19)", () => {
     expect(reviews.all()[0]?.status).toBe("Requested");
   });
 
-  it("AC4: a Tentative Hold in the way is padded like a Confirmed booking", async () => {
+  it("AC4: a Tentative Hold in the way is padded like a Confirmed booking, and the refusal says it is held", async () => {
     const { useCase } = atMainHall(
       { status: "Tentative Hold", start: "07:00", end: "09:15" },
       { start: "10:00", end: "12:00" },
     );
 
-    await expect(
-      useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
-    ).rejects.toBeInstanceOf(VenuePaddedClashError);
+    const error = await useCase
+      .execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenuePaddedClashError);
+    expect((error as VenuePaddedClashError).message).toContain("• Charity Run on 2026-12-14 (09:30–10:00, incl. setup & turnaround): already temporarily reserved (held)");
   });
 
   it("AC5: a Rejected booking in the way does not block", async () => {

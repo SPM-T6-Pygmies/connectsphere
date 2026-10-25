@@ -18,17 +18,17 @@ export function formatTimes(times: readonly TimeRangeOnDate[]): string {
 
 /**
  * SPM-19: the time a booking really takes from its venue, setup and turnaround included, e.g.
- * `{ inUse: "2026-12-14 09:30–12:45", setup: 30, turnaround: 45 }`. Null when the venue adds
+ * `{ windows: [{ date: "2026-12-14", start: "09:30", end: "12:45" }], setup: 30, turnaround: 45 }`. Null when the venue adds
  * nothing (none set, or 0 and 0), so there is nothing more to say.
  */
 export function roomInUse(
   times: readonly TimeRangeOnDate[],
   venue: Partial<VenueBuffers> | null,
-): { readonly inUse: string; readonly setup: number; readonly turnaround: number } | null {
+): { readonly windows: TimeRangeOnDate[]; readonly setup: number; readonly turnaround: number } | null {
   const { setup, turnaround } = bufferMinutes(venue ?? {});
   if (setup === 0 && turnaround === 0) return null;
   const windows = times.flatMap((time) => paddedWindows(time, { setup, turnaround }));
-  return { inUse: formatTimes(windows), setup, turnaround };
+  return { windows, setup, turnaround };
 }
 
 /**

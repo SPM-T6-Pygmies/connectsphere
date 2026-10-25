@@ -78,7 +78,11 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
               this.now(),
             ),
         )
-        .map((other) => ({ eventName: other.event.name, times: other.times }));
+        .map((other) => ({
+          eventName: other.event.name,
+          times: other.times,
+          ...(other.status === "Tentative Hold" ? { hold: { expiresAt: other.holdExpiresAt } } : {}),
+        }));
       const padded = paddedClashes(row.times, inTheWay, this.venueBuffers[row.venueId] ?? { setup: 0, turnaround: 0 });
       if (padded.length > 0) {
         throw new VenuePaddedClashError(padded);
