@@ -254,8 +254,11 @@ AC1.
 
 **Expected Result:**
 - The first approval adds one row.
-- The second approval is refused with "The venue is already booked for
-  2027-01-25 AM.", the booking stays **Requested**, and no row is added.
+- The second approval is refused with "This booking is blocked by <the first
+  booking's event> on <date>, <times>, counting setup and turnaround time.
+  Choose other times or another venue." (wording changed by SPM-19 on
+  2026-10-25; this case has not been re-run since), the booking stays
+  **Requested**, and no row is added.
 
 **Evidence:** [`TC-VBDECIDENOTE-008_step2-approval-refused.png`](../screenshots/2026-10-13_TC-VBDECIDENOTE-008_step2-approval-refused.png)
 

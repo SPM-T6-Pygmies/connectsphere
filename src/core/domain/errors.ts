@@ -462,17 +462,18 @@ export class VenueSlotUnavailableError extends DomainError {
 }
 
 /**
- * SPM-19: a booking's setup or turnaround time overlaps another live booking's (a hold counts
- * too), though the booked times themselves are free. Names each overlap and the event in the way.
+ * SPM-19: a booking, counting its setup and turnaround time, overlaps another live booking's (a hold
+ * counts too). Whether the overlap is in the booked times or only in the padding, Venue Staff are told
+ * the same thing: which event is in the way, on which date, at which times.
  */
 export class VenuePaddedClashError extends DomainError {
   readonly code = "venue_padded_clash";
 
   constructor(readonly clashes: ReadonlyArray<TimeOnDate & { readonly eventName: string }>) {
     super(
-      `The padded time (setup and turnaround) overlaps with ${clashes
+      `This booking is blocked by ${clashes
         .map(({ eventName, date, start, end }) => `${eventName} on ${date}, ${start}–${end}`)
-        .join("; ")}. Choose other times or another venue.`,
+        .join("; ")}, counting setup and turnaround time. Choose other times or another venue.`,
     );
   }
 }

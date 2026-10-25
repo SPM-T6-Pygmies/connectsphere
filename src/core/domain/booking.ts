@@ -479,15 +479,15 @@ export interface DecidedBooking {
  * already holds refuses the approval, however many requests asked for it.
  * Placing a hold keeps the same slots from the same moment, so it meets the
  * same block; it lapses `DEFAULT_HOLD_HOURS` later.
- * `occupied` is what the venue carries on the booking's own days. Rejecting
- * must say why -- the reason is what the coordinator acts on -- and holds
+ * Whether another booking is in the way, setup and turnaround included, is the
+ * store's call at the moment of the decision (SPM-19), not this function's.
+ * Rejecting must say why -- the reason is what the coordinator acts on -- and holds
  * nothing, so it needs no clash check.
  */
 export function decideBooking(
   booking: BookingForDecision,
   decision: BookingDecision,
   decidedBy: UserAccountId,
-  occupied: readonly OccupiedTime[],
   now: Date,
 ): DecidedBooking {
   if (booking.status !== "Requested") {
@@ -495,10 +495,6 @@ export function decideBooking(
   }
 
   if (decision.kind === "approve" || decision.kind === "hold") {
-    const clashes = clashingTimes(booking.times, occupied, now);
-    if (clashes.length > 0) {
-      throw new VenueSlotUnavailableError(clashes);
-    }
     if (decision.kind === "hold") {
       return {
         id: booking.id,

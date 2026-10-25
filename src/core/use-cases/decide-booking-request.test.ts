@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
-import {
-  InMemoryBookingRepository,
-  type StoredBooking,
-} from "@/adapters/outbound/in-memory/in-memory-booking-repository";
 import { InMemoryBookingReviewRepository } from "@/adapters/outbound/in-memory/in-memory-booking-review-repository";
 import { InMemorySafetyCheckWatch } from "@/adapters/outbound/in-memory/in-memory-safety-check-watch";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
@@ -18,7 +14,6 @@ import {
   HoldSlotStartedError,
   VenuePaddedClashError,
   VenueSlotBlockedError,
-  VenueSlotUnavailableError,
 } from "../domain/errors";
 import { eventId } from "../domain/event";
 import type { SafetyCheckCandidate } from "../domain/safety-check";
@@ -73,45 +68,22 @@ function booking(
 const NOW = new Date("2026-10-01T09:00:00+08:00");
 
 /** A Tentative Hold on b1's slot, raised for another event, that lapses at `holdExpiresAt`. */
-function holdOnSlot(holdExpiresAt: Date | null): StoredBooking {
+function holdOnSlot(holdExpiresAt: Date | null): BookingForReview {
+  const base = booking("hold-1", "Tentative Hold", "AM", "v1");
   return {
-    id: "hold-1",
-    eventId: "e2",
-    venueId: "v1",
-    venueLocation: "Venue v1",
-    roomLayoutName: null,
-    status: "Tentative Hold",
-    times: [{ date: "2026-10-22", start: "07:00", end: "12:00" }],
-    requestedBy: "c2",
-    requestedAt: "2026-09-20T00:00:00.000Z",
-    holdExpiresAt,
+    ...base,
+    holdExpiresAt: holdExpiresAt === null ? null : holdExpiresAt.toISOString(),
+    event: { ...base.event, id: "e2", name: "Other event" },
   };
 }
 
-/**
- * `holds` sit only in the booking store: Venue Staff's review rows carry no
- * expiry, and the store releases an expired hold before it confirms.
- */
+/** `holds` are other events' Tentative Holds, which lapse at the time each carries. */
 function build(
   rows: BookingForReview[],
   safetyWatch = new InMemorySafetyCheckWatch(),
-  holds: readonly StoredBooking[] = [],
+  holds: readonly BookingForReview[] = [],
 ) {
-  const reviews = new InMemoryBookingReviewRepository(rows, [STAFF], { v2: "Venue v2" });
-  const bookings = new InMemoryBookingRepository([
-    ...rows.map((row) => ({
-      id: row.id,
-      eventId: "e1",
-      venueId: row.venueId,
-      venueLocation: row.venueLocation,
-      roomLayoutName: row.roomLayoutName,
-      status: row.status,
-      times: row.times,
-      requestedBy: "c1",
-      requestedAt: row.requestedAt,
-    })),
-    ...holds,
-  ]);
+  const reviews = new InMemoryBookingReviewRepository([...rows, ...holds], [STAFF], { v2: "Venue v2" }, {}, () => NOW);
   const notifier = new RecordingNotifier();
   const safetyCheck = new SafetyCheckEntryAnnouncer({ watch: safetyWatch, notifier });
   return {
@@ -120,7 +92,6 @@ function build(
     notifier,
     useCase: new DecideBookingRequestUseCase({
       reviews,
-      bookings,
       safetyCheck,
       clock: new FixedClock(NOW),
       notifier,
@@ -175,7 +146,7 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
 
     await expect(
       useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
     expect(reviews.all()[0]?.status).toBe("Requested");
   });
 
@@ -185,7 +156,7 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
 
     await expect(
       useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
     expect(reviews.all()[0]?.status).toBe("Requested");
   });
 
@@ -216,7 +187,7 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
 
     await expect(
       useCase.execute({ bookingId: "b2", userAccountId: STAFF, decision: "approve" }),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
   });
 
   it("refuses a booking that has already been decided", async () => {
@@ -341,7 +312,7 @@ describe("DecideBookingRequestUseCase placing a hold (SPM-218)", () => {
 
     await expect(
       useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" }),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
     expect(reviews.all()[0]?.status).toBe("Requested");
   });
 
@@ -349,7 +320,7 @@ describe("DecideBookingRequestUseCase placing a hold (SPM-218)", () => {
     const live = build([booking("b1", "Requested")], undefined, [holdOnSlot(new Date(NOW.getTime() + 1000))]);
     await expect(
       live.useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" }),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
 
     const expired = build([booking("b1", "Requested")], undefined, [holdOnSlot(new Date(NOW.getTime() - 1000))]);
     await expired.useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "hold" });
@@ -513,7 +484,7 @@ describe("DecideBookingRequestUseCase telling the coordinator (SPM-62)", () => {
 
     await expect(
       useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" }),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
     await expect(
       useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "reject", reason: " ", suggestedAlternative: null }),
     ).rejects.toBeInstanceOf(DecisionReasonRequiredError);
@@ -692,12 +663,10 @@ describe("DecideBookingRequestUseCase, setup and turnaround (SPM-19)", () => {
         event: { ...there.event, name: "Charity Run" },
       },
     ];
-    const reviews = new InMemoryBookingReviewRepository(rows, [STAFF], {}, { v1: MAIN_HALL });
-    const bookings = new InMemoryBookingRepository([]);
+    const reviews = new InMemoryBookingReviewRepository(rows, [STAFF], {}, { v1: MAIN_HALL }, () => NOW);
     const notifier = new RecordingNotifier();
     const useCase = new DecideBookingRequestUseCase({
       reviews,
-      bookings,
       safetyCheck: new SafetyCheckEntryAnnouncer({ watch: new InMemorySafetyCheckWatch(), notifier }),
       clock: new FixedClock(NOW),
       notifier,

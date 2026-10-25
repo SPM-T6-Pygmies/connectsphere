@@ -7,7 +7,6 @@ import {
   HoldNotLiveError,
   VenuePaddedClashError,
   VenueSlotBlockedError,
-  VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 
@@ -114,20 +113,6 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
       { date: "2026-10-22", start: "13:00", end: "13:15" },
     ]);
   });
-
-  it("still maps CS025 to the slot-taken error, not the blocked one", async () => {
-    const { client } = fakeClient({
-      venue_staff_decide_booking: {
-        data: null,
-        error: { code: "CS025", message: "Venue 5 is already booked for 2026-10-22 AM" },
-      },
-      venue_staff_bookings: { data: [BOOKING_ROW], error: null },
-    });
-
-    await expect(new SupabaseBookingReviewRepository(client).decide(APPROVED)).rejects.toBeInstanceOf(
-      VenueSlotUnavailableError,
-    );
-  });
 });
 
 describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
@@ -160,7 +145,7 @@ describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
     ]);
   });
 
-  it("maps a clash, a block and a booking no longer waiting the same way an approval does", async () => {
+  it("maps a padded clash, a block and a booking no longer waiting the same way an approval does", async () => {
     const refuse = (code: string, message: string) =>
       fakeClient({
         venue_staff_decide_booking: { data: null, error: { code, message } },
@@ -168,8 +153,10 @@ describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
       });
 
     await expect(
-      new SupabaseBookingReviewRepository(refuse("CS025", "Venue 5 is already booked for 2026-10-22 AM").client).decide(HELD),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+      new SupabaseBookingReviewRepository(
+        refuse("CS082", "Venue 5 has another booking within this booking's setup or turnaround time").client,
+      ).decide(HELD),
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
     await expect(
       new SupabaseBookingReviewRepository(refuse("CS028", "Venue 5 is blocked for 2026-10-22 PM").client).decide(HELD),
     ).rejects.toBeInstanceOf(VenueSlotBlockedError);

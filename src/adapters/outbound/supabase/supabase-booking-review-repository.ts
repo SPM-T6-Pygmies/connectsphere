@@ -1,9 +1,4 @@
-import {
-  clashingTimes,
-  type BookingId,
-  type DecidedBooking,
-  type ResolvedHold,
-} from "@/core/domain/booking";
+import type { BookingId, DecidedBooking, ResolvedHold } from "@/core/domain/booking";
 import {
   BookingNotDecidableError,
   BookingNotFoundError,
@@ -11,10 +6,8 @@ import {
   HoldNotLiveError,
   VenuePaddedClashError,
   VenueSlotBlockedError,
-  VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
-import { venueId } from "@/core/domain/venue";
 import type {
   BookingForReview,
   BookingReviewRepository,
@@ -36,7 +29,6 @@ import { SupabaseBookingRepository } from "./supabase-booking-repository";
 const NOT_FOUND = "CS030";
 const NOT_DECIDABLE = "CS031";
 const REASON_REQUIRED = "CS032";
-const SLOT_TAKEN = "CS025";
 // A Venue Staff block covers one of the booking's slots (SPM-22), the same
 // code the booking_slot trigger raises for a request.
 const SLOT_BLOCKED = "CS028";
@@ -101,8 +93,6 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
         throw new BookingNotDecidableError();
       case REASON_REQUIRED:
         throw new DecisionReasonRequiredError();
-      case SLOT_TAKEN:
-        throw new VenueSlotUnavailableError(await this.takenBy(decided));
       case SLOT_BLOCKED:
         throw new VenueSlotBlockedError(await this.blockedBy(decided.id, decided.decidedBy, error.message));
       case PADDED_CLASH:
@@ -176,17 +166,6 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
   }
 
   /** Which of the booking's times were taken, for a message that names them. */
-  private async takenBy(decided: DecidedBooking) {
-    const booking = await this.find(decided.decidedBy, decided.id);
-    if (booking === null) {
-      return [];
-    }
-    const occupied = await this.bookings.listSlotsAt(
-      venueId(booking.venueId),
-      [...new Set(booking.times.map(({ date }) => date))],
-    );
-    return clashingTimes(booking.times, occupied, new Date());
-  }
 }
 
 /** The clashes the decide function names in its error detail (CS082). */

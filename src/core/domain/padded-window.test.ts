@@ -163,11 +163,11 @@ describe("paddedClashes (SPM-19)", () => {
 });
 
 describe("VenuePaddedClashError (SPM-19 AC1)", () => {
-  it("says the padded time overlaps, naming the event, the date and the times", () => {
+  it("says which event blocks the booking, naming the date and the times, whether the overlap is in the booked time or only in setup or turnaround", () => {
     const error = new VenuePaddedClashError([{ eventName: "Charity Run", date: DAY, start: "09:30", end: "10:00" }]);
 
     expect(error.message).toBe(
-      "The padded time (setup and turnaround) overlaps with Charity Run on 2026-12-14, 09:30–10:00. Choose other times or another venue.",
+      "This booking is blocked by Charity Run on 2026-12-14, 09:30–10:00, counting setup and turnaround time. Choose other times or another venue.",
     );
   });
 });

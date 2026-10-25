@@ -10,8 +10,9 @@
 -- 2. `booking_padded_clashes`: the parts of those windows another live booking at the venue also
 --    takes, with that booking's event name, one row per date.
 -- 3. `venue_staff_decide_booking` refuses with CS082, the clashes in the error detail as JSON, after
---    its existing checks (a block is CS028, the same booked time is CS025) and inside the venue lock
---    it already takes, so two approvals racing for padded-overlapping times cannot both succeed.
+--    its block check (CS028) and inside the venue lock it already takes, so two approvals racing
+--    for padded-overlapping times cannot both succeed. CS082 replaces CS025 here: the padded check
+--    finds every overlap CS025 did, the booked times themselves included, and names the event.
 --    Confirming a hold is not re-checked: the hold was checked with its padding when it was placed.
 
 begin;
@@ -104,7 +105,6 @@ declare
   v_venue_id bigint;
   v_status text;
   v_note text := nullif(btrim(p_note), '');
-  v_clash text;
   v_blocked text;
   v_padded jsonb;
 begin
@@ -162,25 +162,11 @@ begin
         using errcode = 'CS028';
     end if;
 
-    select string_agg(bs.slot_date::text || ' ' || bs.slot, ', ' order by bs.slot_date, bs.slot)
-    into v_clash
-    from public.booking_slot bs
-    join public.booking_slot mine
-      on mine.slot_date = bs.slot_date and mine.slot = bs.slot and mine.booking_id = p_booking_id
-    join public.booking other on other.booking_id = bs.booking_id
-    where other.venue_id = v_venue_id
-      and other.booking_id <> p_booking_id
-      and public.booking_holds_slot(other.status, other.hold_expires_at);
-
-    if v_clash is not null then
-      raise exception 'Venue % is already booked for %', v_venue_id, v_clash
-        using errcode = 'CS025';
-    end if;
-
-    -- SPM-19: the same booking times padded with the venue's setup before and turnaround
-    -- after, against every live booking's padded times. Holds are padded too. A request
-    -- whose own times are free can still start setting up while the room is being turned
-    -- around for another event.
+    -- SPM-19: the booking's times, padded with the venue's setup before and turnaround after,
+    -- against every live booking's padded times, holds included. This is the one overlap
+    -- check: a booking whose own times are free can still start setting up while the room is
+    -- being turned around for another event, and one whose times overlap is found the same
+    -- way, so Venue Staff are told which event is in the way whichever it is.
     select jsonb_agg(
              jsonb_build_object(
                'event', c.event_name,
