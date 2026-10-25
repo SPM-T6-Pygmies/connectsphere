@@ -260,7 +260,8 @@ begin
   --     with it, joined where the codes run into each other, and not when it only touches.
   --     Skipped until the slot table has those codes.
   if exists (select 1 from public.slot where slot_code = '48') then
-    -- Main Hall is closed 12:00-13:00; open it for this check so a block can start exactly as AM ends.
+    -- Make sure Main Hall is open 12:00-13:00 (seed-venues opens it 07:00-24:00 since SPM-320, but an
+    -- older seed left a lunch gap), so a block can start exactly as AM ends.
     insert into public.venue_slot (venue_id, slot_code)
     select v_main, n::text from generate_series(48, 51) n on conflict do nothing;
     v_checks := v_checks + 1;

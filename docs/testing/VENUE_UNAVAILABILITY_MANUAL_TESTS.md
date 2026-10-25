@@ -73,11 +73,12 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 | Venue | Where it comes from | Opening hours | Used for |
 | --- | --- | --- | --- |
-| Main Hall, Studio, Rooftop Terrace | `seed-venues` | 07:00–12:00, 13:00–18:00, 19:00–24:00 | Blocks and booking requests. They have no booking horizon recorded, so venue search never lists them |
-| UAT-44 Harbour Room | `seed-venue-search-uat` | 07:00–12:00, 13:00–18:00, 19:00–24:00 | TC-VBLOCK-010 and the venue search in TC-VBLOCK-005 |
-| UAT-44 Garden Hall | `seed-venue-search-uat` | 07:00–12:00, 13:00–18:00 | The venue venue search lists, for TC-VBLOCK-005 |
+| Main Hall, Studio, Rooftop Terrace | `seed-venues` | 07:00–24:00 | Blocks and booking requests. They have no booking horizon recorded, so venue search never lists them |
+| UAT-44 Harbour Room | `seed-venue-search-uat` | 07:00–24:00 | TC-VBLOCK-010 and the venue search in TC-VBLOCK-005 |
+| UAT-44 Garden Hall | `seed-venue-search-uat` | 07:00–18:00 | The venue venue search lists, for TC-VBLOCK-005 |
 
-Every seeded venue is closed 12:00–13:00 and 18:00–19:00 (and, for Garden Hall, from 18:00).
+Every seeded venue is closed before 07:00, and Garden Hall from 18:00. A venue opens once a day,
+with no break (SPM-320).
 
 ### The dates used on this run
 

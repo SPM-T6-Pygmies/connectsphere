@@ -248,12 +248,13 @@ day), that block is what flags the neighbours: run the teardown and seed command
 
 **Screenshots:** [step1-coordinator-2-workshop](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-workshop.png) · [step1-coordinator-2-gala](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-gala.png) · [step1-coordinator-2-quiz](../screenshots/2026-10-21_TC-VFLAG-004_step1-coordinator-2-quiz.png)
 
-**A boundary the browser still cannot reach:** a booking that only *touches* a block needs a block
-that starts or ends exactly where AM, PM or Night does, and the seeded venues are closed for the hour on
-either side of the PM slot (12:00 to 13:00 and 18:00 to 19:00), so the form will not record one. The unit
-tests cover it with times (a block 13:00 to 15:00 and a booking starting 15:00 do not overlap; 15:15 does),
-and `scripts/seed-booking-flags/checks.sql` covers it in the database by opening Main Hall for the lunch
-hour for the length of the check.
+**A boundary not tried in the browser:** a booking that only *touches* a block needs a block that
+starts or ends exactly where AM, PM or Night does. When this case was run the seeded venues were closed
+for the hour on either side of the PM slot (12:00 to 13:00 and 18:00 to 19:00), so the form would not
+record one; since SPM-320 they open 07:00 to 24:00 with no break, but the case has not been re-run. The
+unit tests cover it with times (a block 13:00 to 15:00 and a booking starting 15:00 do not overlap; 15:15
+does), and `scripts/seed-booking-flags/checks.sql` covers it in the database by opening Main Hall for the
+lunch hour for the length of the check.
 
 ---
 
