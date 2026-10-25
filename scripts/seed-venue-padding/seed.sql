@@ -10,6 +10,7 @@
 --   Mon 14 Dec  Charity Run  Confirmed 07:00-09:15, its turnaround keeps the room until 10:00
 --               Spring Gala  Requested 10:00-12:00, setting up from 09:30  -> overlaps Charity Run
 --               Book Fair    Requested 10:30-12:00, setting up from 10:00  -> only touches it
+--               Early Bird   Requested 08:00-09:00, inside Charity Run's own time -> overlaps it
 --   Tue 15 Dec  Quiz Night   Tentative Hold 07:00-09:15 (expires 30 days from now, so unexpired)
 --               Open Mic     Requested 10:00-12:00                         -> overlaps the hold
 --   Wed 16 Dec  Old Fete     Rejected 07:00-09:15, and Lapsed Fair, a hold that expired an hour ago
@@ -49,13 +50,16 @@ begin
     raise exception 'The test accounts are missing' using hint = 'Run supabase db reset first.';
   end if;
 
-  delete from public.event where name like '%' and client_organisation_id = v_organisation;
+  delete from public.event
+  where name in ('Charity Run', 'Spring Gala', 'Book Fair', 'Early Bird', 'Quiz Night', 'Open Mic', 'Old Fete', 'Lapsed Fair', 'Wine Tasting', 'Night Gala', 'After Party', 'Race A', 'Race B')
+    and client_organisation_id = v_organisation;
 
   for c in
     select * from (values
       ('Charity Run',  date '2026-12-14', 28, 36, 'Confirmed'),
       ('Spring Gala',  date '2026-12-14', 40, 47, 'Requested'),
       ('Book Fair',    date '2026-12-14', 42, 47, 'Requested'),
+      ('Early Bird',   date '2026-12-14', 32, 35, 'Requested'),
       ('Quiz Night',   date '2026-12-15', 28, 36, 'Hold'),
       ('Open Mic',     date '2026-12-15', 40, 47, 'Requested'),
       ('Old Fete',     date '2026-12-16', 28, 36, 'Rejected'),

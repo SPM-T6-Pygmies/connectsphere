@@ -12,7 +12,7 @@
 -- two UAT-44 events):
 --   supabase db query --file scripts/seed-venue-padding/checks.sql --local
 --
--- Every case books on Monday 14 December 2026. Booking A is already there; booking B is the
+-- Every case books on Monday 21 December 2026. Booking A is already there; booking B is the
 -- request Venue Staff decide. Time is 15-minute slots: code n is n*15 minutes after midnight, so
 -- 28 is 07:00, 36 is 09:00-09:15, 40 is 10:00, 47 is 11:45-12:00, 88 is 22:00, 95 is 23:45-24:00.
 
@@ -49,31 +49,31 @@ begin
     select * from (values
       -- AC1: Main Hall (30 / 45). A 07:00-09:15 keeps the room until 10:00 (turnaround), so a
       -- request for 10:00-12:00, which starts setting up at 09:30, is refused though 09:15 and 10:00 do not touch.
-      ('AC1 approve 10:00 after a Confirmed 07:00-09:15 is refused', 'Main Hall', 'Confirmed', date '2026-12-14', 28, 36, date '2026-12-14', 40, 47, 'approve', 'CS082'),
-      ('AC1 the overlap is a setup against a turnaround: 10:15 still refused', 'Main Hall', 'Confirmed', date '2026-12-14', 28, 36, date '2026-12-14', 41, 47, 'approve', 'CS082'),
+      ('AC1 approve 10:00 after a Confirmed 07:00-09:15 is refused', 'Main Hall', 'Confirmed', date '2026-12-21', 28, 36, date '2026-12-21', 40, 47, 'approve', 'CS082'),
+      ('AC1 the overlap is a setup against a turnaround: 10:15 still refused', 'Main Hall', 'Confirmed', date '2026-12-21', 28, 36, date '2026-12-21', 41, 47, 'approve', 'CS082'),
       -- AC2: B at 10:30 sets up from exactly 10:00, when A's turnaround ends
-      ('AC2 approve 10:30 (setup begins as A''s turnaround ends) is accepted', 'Main Hall', 'Confirmed', date '2026-12-14', 28, 36, date '2026-12-14', 42, 47, 'approve', 'ok'),
+      ('AC2 approve 10:30 (setup begins as A''s turnaround ends) is accepted', 'Main Hall', 'Confirmed', date '2026-12-21', 28, 36, date '2026-12-21', 42, 47, 'approve', 'ok'),
       -- the same the other way round: A after B
-      ('AC1 approve 07:00-09:15 before a Confirmed 10:00-12:00 is refused (its turnaround runs into the other setup)', 'Main Hall', 'Confirmed', date '2026-12-14', 40, 47, date '2026-12-14', 28, 36, 'approve', 'CS082'),
-      ('AC1 approve 07:00-09:00 before a Confirmed 10:00-12:00 is refused (turnaround to 09:45, setup from 09:30)', 'Main Hall', 'Confirmed', date '2026-12-14', 40, 47, date '2026-12-14', 28, 35, 'approve', 'CS082'),
-      ('AC2 approve 07:00-08:45 before a Confirmed 10:00-12:00 is accepted (turnaround ends 09:30, as setup starts)', 'Main Hall', 'Confirmed', date '2026-12-14', 40, 47, date '2026-12-14', 28, 34, 'approve', 'ok'),
+      ('AC1 approve 07:00-09:15 before a Confirmed 10:00-12:00 is refused (its turnaround runs into the other setup)', 'Main Hall', 'Confirmed', date '2026-12-21', 40, 47, date '2026-12-21', 28, 36, 'approve', 'CS082'),
+      ('AC1 approve 07:00-09:00 before a Confirmed 10:00-12:00 is refused (turnaround to 09:45, setup from 09:30)', 'Main Hall', 'Confirmed', date '2026-12-21', 40, 47, date '2026-12-21', 28, 35, 'approve', 'CS082'),
+      ('AC2 approve 07:00-08:45 before a Confirmed 10:00-12:00 is accepted (turnaround ends 09:30, as setup starts)', 'Main Hall', 'Confirmed', date '2026-12-21', 40, 47, date '2026-12-21', 28, 34, 'approve', 'ok'),
       -- AC3: placing a hold is refused the same way
-      ('AC3 placing a hold at 10:00 after a Confirmed 07:00-09:15 is refused', 'Main Hall', 'Confirmed', date '2026-12-14', 28, 36, date '2026-12-14', 40, 47, 'hold', 'CS082'),
-      ('AC3 placing a hold at 10:30 is accepted', 'Main Hall', 'Confirmed', date '2026-12-14', 28, 36, date '2026-12-14', 42, 47, 'hold', 'ok'),
+      ('AC3 placing a hold at 10:00 after a Confirmed 07:00-09:15 is refused', 'Main Hall', 'Confirmed', date '2026-12-21', 28, 36, date '2026-12-21', 40, 47, 'hold', 'CS082'),
+      ('AC3 placing a hold at 10:30 is accepted', 'Main Hall', 'Confirmed', date '2026-12-21', 28, 36, date '2026-12-21', 42, 47, 'hold', 'ok'),
       -- AC4: a live hold is padded too
-      ('AC4 approve 10:00 after an unexpired hold 07:00-09:15 is refused', 'Main Hall', 'Hold', date '2026-12-14', 28, 36, date '2026-12-14', 40, 47, 'approve', 'CS082'),
-      ('AC4 placing a hold at 10:00 after an unexpired hold 07:00-09:15 is refused', 'Main Hall', 'Hold', date '2026-12-14', 28, 36, date '2026-12-14', 40, 47, 'hold', 'CS082'),
+      ('AC4 approve 10:00 after an unexpired hold 07:00-09:15 is refused', 'Main Hall', 'Hold', date '2026-12-21', 28, 36, date '2026-12-21', 40, 47, 'approve', 'CS082'),
+      ('AC4 placing a hold at 10:00 after an unexpired hold 07:00-09:15 is refused', 'Main Hall', 'Hold', date '2026-12-21', 28, 36, date '2026-12-21', 40, 47, 'hold', 'CS082'),
       -- AC5: only live bookings count
-      ('AC5 a lapsed hold does not block', 'Main Hall', 'LapsedHold', date '2026-12-14', 28, 36, date '2026-12-14', 40, 47, 'approve', 'ok'),
-      ('AC5 a Rejected booking does not block', 'Main Hall', 'Rejected', date '2026-12-14', 28, 36, date '2026-12-14', 40, 47, 'approve', 'ok'),
+      ('AC5 a lapsed hold does not block', 'Main Hall', 'LapsedHold', date '2026-12-21', 28, 36, date '2026-12-21', 40, 47, 'approve', 'ok'),
+      ('AC5 a Rejected booking does not block', 'Main Hall', 'Rejected', date '2026-12-21', 28, 36, date '2026-12-21', 40, 47, 'approve', 'ok'),
       -- AC1: each venue's own values; a venue with none, or 0 and 0, is checked on the booked times
-      ('AC1 Studio (0 / 0): 09:15-10:00 right after 07:00-09:15 is accepted', 'Studio', 'Confirmed', date '2026-12-14', 28, 36, date '2026-12-14', 37, 39, 'approve', 'ok'),
-      ('AC1 Seminar Room 2-1 (not set): 09:15-10:00 right after 07:00-09:15 is accepted', 'Seminar Room 2-1', 'Confirmed', date '2026-12-14', 28, 36, date '2026-12-14', 37, 39, 'approve', 'ok'),
-      ('AC1 the exact overlap is still its own refusal (CS025)', 'Main Hall', 'Confirmed', date '2026-12-14', 40, 47, date '2026-12-14', 44, 50, 'approve', 'CS025'),
+      ('AC1 Studio (0 / 0): 09:15-10:00 right after 07:00-09:15 is accepted', 'Studio', 'Confirmed', date '2026-12-21', 28, 36, date '2026-12-21', 37, 39, 'approve', 'ok'),
+      ('AC1 Seminar Room 2-1 (not set): 09:15-10:00 right after 07:00-09:15 is accepted', 'Seminar Room 2-1', 'Confirmed', date '2026-12-21', 28, 36, date '2026-12-21', 37, 39, 'approve', 'ok'),
+      ('AC1 an overlap in the booked times themselves is refused the same way', 'Main Hall', 'Confirmed', date '2026-12-21', 40, 47, date '2026-12-21', 44, 50, 'approve', 'CS082'),
       -- AC6: across midnight. A 22:00-24:00 keeps the room until 00:45 the next day
-      ('AC6 B 00:15-01:15 the next day, inside A''s turnaround past midnight, is refused', 'Main Hall', 'Confirmed', date '2026-12-14', 88, 95, date '2026-12-15', 1, 4, 'approve', 'CS082'),
-      ('AC6 B 01:15-02:15 the next day, whose setup starts 00:45 as A''s turnaround ends, is accepted', 'Main Hall', 'Confirmed', date '2026-12-14', 88, 95, date '2026-12-15', 5, 8, 'approve', 'ok'),
-      ('AC6 B 22:00-24:00 is refused by an A the next day at 00:00-01:00 (A''s setup starts 23:30)', 'Main Hall', 'Confirmed', date '2026-12-15', 0, 3, date '2026-12-14', 88, 95, 'approve', 'CS082')
+      ('AC6 B 00:15-01:15 the next day, inside A''s turnaround past midnight, is refused', 'Main Hall', 'Confirmed', date '2026-12-21', 88, 95, date '2026-12-22', 1, 4, 'approve', 'CS082'),
+      ('AC6 B 01:15-02:15 the next day, whose setup starts 00:45 as A''s turnaround ends, is accepted', 'Main Hall', 'Confirmed', date '2026-12-21', 88, 95, date '2026-12-22', 5, 8, 'approve', 'ok'),
+      ('AC6 B 22:00-24:00 is refused by an A the next day at 00:00-01:00 (A''s setup starts 23:30)', 'Main Hall', 'Confirmed', date '2026-12-22', 0, 3, date '2026-12-21', 88, 95, 'approve', 'CS082')
     ) as t (label, venue, a_state, a_date, a_first, a_last, b_date, b_first, b_last, decision, expect)
   loop
     begin
@@ -119,7 +119,7 @@ begin
       -- The refusal names the clash: the other booking's event, the date and the overlapping times.
       if c.label like 'AC1 approve 10:00 after a Confirmed 07:00-09:15 is refused' then
         v_checks := v_checks + 1;
-        if v_detail is null or v_detail not like '%UAT-44 Booked Harbour%' or v_detail not like '%2026-12-14%'
+        if v_detail is null or v_detail not like '%UAT-44 Booked Harbour%' or v_detail not like '%2026-12-21%'
            or v_detail not like '%09:30%' or v_detail not like '%10:00%' then
           v_failed := array_append(v_failed, 'AC1 the refusal does not name the event, date and times: ' || coalesce(v_detail, 'no detail'));
         end if;

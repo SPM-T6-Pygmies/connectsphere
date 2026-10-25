@@ -10,10 +10,10 @@ refused when that padded time overlaps another live booking's padded time (Confi
 has not lapsed; a hold is padded too). Two bookings whose padded times only touch are fine.
 
 The cases are registered in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as
-`TC-VPAD-001` to `TC-VPAD-007`. Report what you ran in the PR description's `## Manual test results`
+`TC-VPAD-001` to `TC-VPAD-008`. Report what you ran in the PR description's `## Manual test results`
 table; CI records it in `manual-runs.csv` when the PR merges.
 
-**Last run:** all seven cases passed on 2026-10-24. A browser script drove TC-VPAD-001 to 006 and checked
+**Last run:** all eight cases passed on 2026-10-25. A browser script drove TC-VPAD-001 to 006 and 008 and checked
 each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a freshly seeded database:
 001 and 002 refuse the same request, and 003 approves Book Fair, which Spring Gala would then also touch.
 
@@ -41,6 +41,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 | Mon 14 Dec 2026 | Charity Run | Confirmed | 07:00–09:15 | 06:30–10:00 |
 | Mon 14 Dec 2026 | Spring Gala | Requested | 10:00–12:00 | 09:30–12:45 |
 | Mon 14 Dec 2026 | Book Fair | Requested | 10:30–12:00 | 10:00–12:45 |
+| Mon 14 Dec 2026 | Early Bird | Requested | 08:00–09:00 | 07:30–09:45 |
 | Tue 15 Dec 2026 | Quiz Night | Tentative Hold (30 days) | 07:00–09:15 | 06:30–10:00 |
 | Tue 15 Dec 2026 | Open Mic | Requested | 10:00–12:00 | 09:30–12:45 |
 | Wed 16 Dec 2026 | Old Fete | Rejected | 07:00–09:15 | not live |
@@ -64,10 +65,10 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 3. Look at the booking's status and the buttons.
 
 **Expected Result:**
-- Step 2: refused with *The padded time (setup and turnaround) overlaps with Charity Run on 2026-12-14, 09:30–10:00. Choose other times or another venue.*
+- Step 2: refused with *This booking is blocked by Charity Run on 2026-12-14, 09:30–10:00, counting setup and turnaround time. Choose other times or another venue.*
 - Step 3: the booking is still **Requested**, and **Reject** is still available.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-24, run in Chrome via Playwright for JameszLau (2/2 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
 **Screenshots:** [step1-spring-gala-request](../screenshots/2026-10-24_SPM-19_TC-VPAD-001_step1-spring-gala-request.png) · [step2-approval-refused](../screenshots/2026-10-24_SPM-19_TC-VPAD-001_step2-approval-refused.png)
 
@@ -85,7 +86,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 **Expected Result:**
 - Refused with the same message as TC-VPAD-001, and the booking stays **Requested**.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-24, run in Chrome via Playwright for JameszLau (2/2 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
 **Screenshots:** [step1-hold-refused](../screenshots/2026-10-24_SPM-19_TC-VPAD-002_step1-hold-refused.png)
 
@@ -102,7 +103,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 **Expected Result:**
 - Book Fair becomes **Confirmed**.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-24, run in Chrome via Playwright for JameszLau (1/1 check)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (1/1 check)
 
 **Screenshots:** [step1-book-fair-request](../screenshots/2026-10-24_SPM-19_TC-VPAD-003_step1-book-fair-request.png) · [step2-approved](../screenshots/2026-10-24_SPM-19_TC-VPAD-003_step2-approved.png)
 
@@ -117,9 +118,9 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 2. Press **Approve booking**.
 
 **Expected Result:**
-- Refused with *The padded time (setup and turnaround) overlaps with Quiz Night on 2026-12-15, 09:30–10:00. …*, and the booking stays **Requested**.
+- Refused with *This booking is blocked by Quiz Night on 2026-12-15, 09:30–10:00, counting setup and turnaround time. …*, and the booking stays **Requested**.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-24, run in Chrome via Playwright for JameszLau (2/2 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
 **Screenshots:** [step1-refused-by-a-hold](../screenshots/2026-10-24_SPM-19_TC-VPAD-004_step1-refused-by-a-hold.png)
 
@@ -136,7 +137,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 **Expected Result:**
 - Wine Tasting becomes **Confirmed**.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-24, run in Chrome via Playwright for JameszLau (1/1 check)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (1/1 check)
 
 **Screenshots:** [step1-approved-past-a-rejected-and-a-lapsed](../screenshots/2026-10-24_SPM-19_TC-VPAD-005_step1-approved-past-a-rejected-and-a-lapsed.png)
 
@@ -153,7 +154,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 **Expected Result:**
 - Refused naming *Night Gala on 2026-12-17, 23:45–24:00* and *Night Gala on 2026-12-18, 00:00–00:45*, and the booking stays **Requested**.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-24, run in Chrome via Playwright for JameszLau (2/2 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
 **Screenshots:** [step1-refused-across-midnight](../screenshots/2026-10-24_SPM-19_TC-VPAD-006_step1-refused-across-midnight.png)
 
@@ -177,6 +178,23 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 - `same-answers.mjs` prints `ok: all 10 cases give the same answer as the code`: the database gives the same answers as the code for the cases in `cases.json`, which a unit test runs through the code.
 - `race.mjs` prints `ok: one approval succeeded and one was refused`.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-24, the three scripts ended with their ok lines
+**Status:** [x] Pass [ ] Fail — 2026-10-25, the three scripts ended with their ok lines
 
 **Screenshots:** none (database checks)
+
+---
+
+### TC-VPAD-008: An overlap in the booked times is refused the same way (AC1)
+
+**Scenario:** Early Bird is 08:00–09:00, inside Charity Run's own booked time (07:00–09:15). Venue Staff are told which event is in the way, exactly as when only the padding overlaps; there is one message for both.
+
+**Steps:**
+1. Open **Early Bird** (Main Hall, Mon 14 Dec 2026, 08:00–09:00).
+2. Press **Approve booking**.
+
+**Expected Result:**
+- Refused with *This booking is blocked by Charity Run on 2026-12-14, 07:30–09:45, counting setup and turnaround time. Choose other times or another venue.* The booking stays **Requested**.
+
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
+
+**Screenshots:** [step1-refused-in-the-booked-time](../screenshots/2026-10-25_SPM-19_TC-VPAD-008_step1-refused-in-the-booked-time.png)

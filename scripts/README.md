@@ -180,7 +180,7 @@ Some of the scripts have extra read-only files:
   (a bad reason, a note under Safety, a 501-character note) and writes nothing.
 - `seed-venue-buffers/checks.sql` checks a venue's setup and turnaround: the constraint, the lock, and the catalogue functions (TC-VBUFFER-005). It needs `seed-venues`.
 - `seed-venue-padding/seed.sql` loads the bookings the padded approval cases decide (TC-VPAD-001 to 006); `race.mjs` starts two approvals at once and really approves one, so run `seed.sql` again afterwards.
-- `seed-venue-padding/checks.sql` checks that approving or holding a booking is refused when its setup or turnaround overlaps another live booking, and accepted when they only touch (SPM-19). Every case books on Monday 14 December 2026 and rolls back; it ends `error: ok: all N checks held` when it passes.
+- `seed-venue-padding/checks.sql` checks that approving or holding a booking is refused when its setup or turnaround overlaps another live booking, and accepted when they only touch (SPM-19). Every case books on Monday 21 December 2026 (not a date seed.sql uses, so both can be loaded) and rolls back; it ends `error: ok: all N checks held` when it passes.
 - `seed-venue-padding/same-answers.mjs` runs `seed-venue-padding/cases.json` through the database's padded-window function and fails if its answers differ from the list. `src/core/domain/padded-window-cases.test.ts` runs the same list through the code, so the two copies of the rule stay the same (SPM-19 AC7). Run it with `node scripts/seed-venue-padding/same-answers.mjs`.
 - `seed-venue-unavailability/checks.sql` checks the functions, audit rows, busy-time
   read, the booking refusals by time, the closed-time refusal and the order of reasons (TC-VBLOCK-008). It needs `seed-venue-search-uat`

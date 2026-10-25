@@ -8,8 +8,9 @@ has a **setup time** (minutes to prepare the room before an event) and a **turna
 setup and 45 turnaround, an event 10:00–12:00 occupies the venue from 09:30 to 12:45.
 
 This story stores the two values and defines the one padded-window rule. The clash checks that use
-the rule belong to SPM-272 (on submit), SPM-250 (search) and SPM-19 (approval), so no screen
-shows the padding yet; the rule itself (AC6 to AC9) is covered by unit tests. The cases below are
+the rule belong to SPM-272 (on submit), SPM-250 (search) and SPM-19 (approval). SPM-19 now refuses
+an approval or a hold over the padding (`VENUE_PADDING_MANUAL_TESTS.md`); the rule itself (AC6 to AC9)
+is covered by unit tests. The cases below are
 registered in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as `TC-VBUFFER-001` to
 `TC-VBUFFER-006`. Report what you ran in the PR description's `## Manual test results` table; CI
 records it in `manual-runs.csv` when the PR merges.
