@@ -13,6 +13,7 @@ import { registrationConfirmed } from "@/adapters/outbound/novu/workflows/regist
 import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { safetyCheckRecorded } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
 import { venueBookingCancelled } from "@/adapters/outbound/novu/workflows/venue-booking-cancelled";
+import { venueBookingFlagged } from "@/adapters/outbound/novu/workflows/venue-booking-flagged";
 import { venueBookingDecided } from "@/adapters/outbound/novu/workflows/venue-booking-decided";
 import { venueBookingRequested } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 
@@ -47,6 +48,7 @@ function handlers(): Bridge {
       holdExpired,
       venueBookingCancelled,
       eventConfirmed,
+      venueBookingFlagged,
       registrationConfirmed,
     ],
   });

@@ -1328,3 +1328,37 @@ export class NoFlagToClearError extends DomainError {
     super("This booking has no open flag to clear.");
   }
 }
+
+/**
+ * SPM-52: a change request that breaks one of its rules -- no fields, a field
+ * twice, or a requested value the field cannot take. `field` is the one to
+ * point at, or null when the request as a whole is wrong.
+ */
+export class InvalidChangeRequestError extends DomainError {
+  readonly code = "invalid_change_request";
+
+  constructor(
+    readonly field: string | null,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** SPM-52: a Completed or Cancelled event takes no change requests. */
+export class ChangeRequestClosedError extends DomainError {
+  readonly code = "change_request_closed";
+
+  constructor(readonly status: string) {
+    super(`A ${status} event can no longer be changed.`);
+  }
+}
+
+/** SPM-52: only one change request may be open on an event at a time (2026-10-18 team decision). */
+export class ChangeRequestAlreadyOpenError extends DomainError {
+  readonly code = "change_request_already_open";
+
+  constructor() {
+    super("This event already has a change request waiting on its coordinator.");
+  }
+}

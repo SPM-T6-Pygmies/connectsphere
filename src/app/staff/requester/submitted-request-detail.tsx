@@ -1,7 +1,9 @@
 import { CheckIcon } from "lucide-react";
+import Link from "next/link";
 
 import { EventTimes } from "@/app/events/event-times";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { ChangeRequestState } from "@/core/domain/change-request";
 import { preferredTimeRange } from "@/core/domain/event-request";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type { OrganiserEventArrangements } from "@/core/ports/outbound/event-request-repository";
@@ -78,6 +81,7 @@ export function SubmittedRequestDetail({
   assignedCoordinatorName,
   eventTimes,
   eventArrangements,
+  changeRequest,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -93,6 +97,8 @@ export function SubmittedRequestDetail({
   eventTimes: readonly TimeRangeOnDate[] | null;
   /** SPM-66 AC3: the event's status and what has been arranged for it, once the request is approved; null before. */
   eventArrangements: OrganiserEventArrangements | null;
+  /** SPM-52: whether the signed-in Organiser may ask for a change to the event now. */
+  changeRequest: ChangeRequestState;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -107,7 +113,17 @@ export function SubmittedRequestDetail({
       <PageHeader
         title={details.eventName}
         description={`Submitted ${eventRequest.submittedAt?.slice(0, 10) ?? "—"}`}
-        actions={<StatusBadge status={eventRequest.status} />}
+        actions={
+          <div className="flex items-center gap-2">
+            {changeRequest === "available" && (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/staff/requester/${eventRequest.id}/change-request`}>Request a change</Link>
+              </Button>
+            )}
+            {changeRequest === "open" && <Badge variant="secondary">Change request pending</Badge>}
+            <StatusBadge status={eventRequest.status} />
+          </div>
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-3">

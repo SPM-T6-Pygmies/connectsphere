@@ -7,6 +7,7 @@ import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
 } from "@/adapters/outbound/supabase/client";
+import { SupabaseChangeRequestRepository } from "@/adapters/outbound/supabase/supabase-change-request-repository";
 import { SupabaseClarificationThreadRepository } from "@/adapters/outbound/supabase/supabase-clarification-thread-repository";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
@@ -74,6 +75,7 @@ import { NotifyExpiredHoldsUseCase } from "@/core/use-cases/notify-expired-holds
 import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request";
 import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
+import { SubmitChangeRequestUseCase } from "@/core/use-cases/submit-change-request";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
 import { ResolveClarificationThreadUseCase } from "@/core/use-cases/resolve-clarification-thread";
@@ -234,6 +236,7 @@ export async function buildViewOrganiserEventRequest(): Promise<ViewOrganiserEve
     eventRequests: new SupabaseEventRequestRepository(client),
     clarificationThread: new SupabaseClarificationThreadRepository(client),
     userAccounts: new SupabaseUserAccountRepository(client),
+    changeRequests: new SupabaseChangeRequestRepository(client),
   });
 }
 
@@ -379,6 +382,12 @@ export async function buildPostClarificationMessage(): Promise<PostClarification
     clarificationThread: new SupabaseClarificationThreadRepository(client),
     notifier: recordedNotifier(),
   });
+}
+
+/** SPM-52: the event's owning Organiser asks for significant fields to change. */
+export async function buildSubmitChangeRequest(): Promise<SubmitChangeRequestUseCase> {
+  const client = await createSupabaseServerClient();
+  return new SubmitChangeRequestUseCase({ changeRequests: new SupabaseChangeRequestRepository(client) });
 }
 
 /** SPM-33 AC5: the assigned Coordinator follows up, without returning the request again. */
@@ -982,13 +991,14 @@ export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
   return new CreateVenueUseCase({ venues: await venueCatalogue() });
 }
 
-/** SPM-147: Venue Staff update a venue and its layouts; SPM-105: flag the bookings it no longer fits. */
+/** SPM-147: Venue Staff update a venue and its layouts; SPM-105: flag the bookings it no longer fits; SPM-71: tell their coordinators. */
 export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
   const client = await createSupabaseServerClient();
   return new UpdateVenueUseCase({
     venues: new SupabaseVenueCatalogue(client),
     review: new SupabaseVenueChangeReview(client),
     clock: systemClock,
+    notifier: recordedNotifier(),
   });
 }
 
@@ -1001,13 +1011,14 @@ export async function getVenueMaintenanceRoles(): Promise<readonly string[]> {
   return (await getStaffWorkspaces()).includes("venue") ? ["Venue Staff"] : [];
 }
 
-/** SPM-21: Venue Staff block a venue for a period, with a reason. */
+/** SPM-21: Venue Staff block a venue for a period, with a reason; SPM-71: tell each flagged booking's coordinator. */
 export async function buildRecordVenueUnavailability(): Promise<RecordVenueUnavailabilityUseCase> {
   const client = await createSupabaseServerClient();
   return new RecordVenueUnavailabilityUseCase({
     unavailability: new SupabaseVenueUnavailabilityRepository(client),
     venues: new SupabaseVenueCatalogue(client),
     clock: systemClock,
+    notifier: recordedNotifier(),
   });
 }
 

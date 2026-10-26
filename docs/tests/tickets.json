@@ -147,6 +147,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-52": {
+      "title": "Submit a change request",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-55": {
       "title": "Cancel an event",
       "parent": null,
@@ -195,6 +200,11 @@
     "SPM-65": {
       "title": "Notify the coordinator of the equipment outcome",
       "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-71": {
+      "title": "Notify the coordinator of a flagged venue booking",
+      "parent": "SPM-47",
       "status": "In Progress"
     },
     "SPM-73": {

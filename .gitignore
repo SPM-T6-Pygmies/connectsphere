@@ -48,3 +48,7 @@ spm-brain
 
 # supabase cli local state
 supabase/.temp
+
+# local tool output
+.playwright-mcp/
+.vscode/

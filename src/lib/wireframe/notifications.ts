@@ -15,6 +15,7 @@ export type NotificationTrigger =
   | "Booking requested"
   | "Booking decided"
   | "Booking cancelled"
+  | "Booking flagged"
   | "Equipment recorded"
   | "Equipment decided"
   | "Event confirmed"

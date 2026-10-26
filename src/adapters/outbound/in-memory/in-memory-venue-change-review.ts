@@ -1,6 +1,6 @@
-import type { VenueChangeBooking, VenueChangeFlag } from "@/core/domain/venue-change-flag";
+import type { VenueChangeFlag } from "@/core/domain/venue-change-flag";
 import type { VenueId } from "@/core/domain/venue";
-import type { VenueChangeReview } from "@/core/ports/outbound/venue-change-review";
+import type { ReviewedBooking, VenueChangeReview } from "@/core/ports/outbound/venue-change-review";
 
 /** A flag as stored, open until a test clears it. */
 export interface StoredVenueChangeFlag {
@@ -14,9 +14,9 @@ export interface StoredVenueChangeFlag {
 export class InMemoryVenueChangeReview implements VenueChangeReview {
   private rows: StoredVenueChangeFlag[] = [];
 
-  constructor(private readonly bookings: ReadonlyMap<VenueId, readonly VenueChangeBooking[]> = new Map()) {}
+  constructor(private readonly bookings: ReadonlyMap<VenueId, readonly ReviewedBooking[]> = new Map()) {}
 
-  async bookingsAt(venueId: VenueId): Promise<readonly VenueChangeBooking[]> {
+  async bookingsAt(venueId: VenueId): Promise<readonly ReviewedBooking[]> {
     return this.bookings.get(venueId) ?? [];
   }
 

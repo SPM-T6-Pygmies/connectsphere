@@ -629,25 +629,20 @@ create table change_request (
   change_request_id          bigint generated always as identity primary key,
   event_id                   bigint not null references event (event_id) on delete cascade,
   requesting_user_account_id bigint not null references user_account (user_account_id) on delete restrict,
-  requested_change_description text not null,
-  significance_flag          boolean not null default false,
-  fields_affected            text,
-  coordinator_decision       text,
-  impact_assessment          text,
   created_at                 timestamptz not null default now(),
   updated_at                 timestamptz not null default now()
 );
 
--- significance_flag, fields_affected and coordinator_decision above are
--- retained but stop being authoritative once a request has change_request_item
--- rows (added 2026-09-09, D4, #104): a request may span several fields, each
--- independently accepted or rejected, with a reason on a rejected field.
+-- change_request is only the header; each item is one significant field (#4)
+-- and its requested new value, independently accepted or rejected, with a
+-- reason on a rejected field (#104, SPM-52). requested_value is null only for
+-- "Not applicable", which only equipment and registration may ask for. A
+-- request is open while any item is Pending.
 create table change_request_item (
   change_request_item_id bigint generated always as identity primary key,
   change_request_id      bigint not null references change_request (change_request_id) on delete cascade,
   field_name              text not null,
   requested_value         text,
-  significance_flag       boolean not null default false,
   decision                text not null default 'Pending',
   decision_reason         text,
   created_at              timestamptz not null default now(),
@@ -655,7 +650,17 @@ create table change_request_item (
   constraint change_request_item_decision_chk
     check (decision in ('Pending', 'Accepted', 'Rejected')),
   constraint change_request_item_reason_chk
-    check (decision <> 'Rejected' or decision_reason is not null)
+    check (decision <> 'Rejected' or decision_reason is not null),
+  constraint change_request_item_field_chk
+    check (field_name in (
+      'times', 'venue_requirements', 'expected_attendance',
+      'equipment_requirements', 'registration'
+    )),
+  constraint change_request_item_not_applicable_chk
+    check (requested_value is not null
+           or field_name in ('equipment_requirements', 'registration')),
+  constraint change_request_item_field_once
+    unique (change_request_id, field_name)
 );
 
 -- ---------------------------------------------------------------------------

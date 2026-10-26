@@ -14,6 +14,7 @@ import type {
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingCancelledNotice,
+  VenueBookingFlaggedNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -113,6 +114,12 @@ export class LoggingNotifier implements Notifier {
   async eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} told event ${notice.eventId} is confirmed`,
+    );
+  }
+
+  async venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told booking ${notice.bookingId} was flagged (${notice.reasonCode})`,
     );
   }
 
