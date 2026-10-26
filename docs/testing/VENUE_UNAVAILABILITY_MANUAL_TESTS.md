@@ -118,7 +118,7 @@ progress can only be tested with the day it runs. The run recorded below was on 
 - The form is empty again, with **Mark unavailable** disabled, so the block is not one click from being saved a second time.
 - The count is **50**: five days × ten quarter hours (codes 36 to 45 each day).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (6/6 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (6/6 checks)
 
 **Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step1-form-filled.png) · [step2-saved-in-force](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step2-saved-in-force.png)
 
@@ -154,7 +154,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 - Each refused row shows one red message and saves nothing; the accepted rows save.
 - `refusals.sql` ends with *ok: all refusals held (rolled back on purpose)* (AC6, AC7, AC8).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (9/9 checks). `refusals.sql` ended with "ok: all refusals held"
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (9/9 checks). `refusals.sql` ended with "ok: all refusals held"
 
 **Screenshots:** [step1-end-date-before-start-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step1-end-date-before-start-refused.png) · [step2-ended-yesterday-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step2-ended-yesterday-refused.png) · [step3-501-character-note-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step3-501-character-note-refused.png) · [step4-no-end-time-button-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step4-no-end-time-button-disabled.png) · [step5-one-day-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step5-one-day-block-saved.png) · [step6-ends-tonight-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step6-ends-tonight-saved.png) · [step7-500-character-note-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step7-500-character-note-saved.png) · [step8-no-note-box-under-safety](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step8-no-note-box-under-safety.png)
 
@@ -184,7 +184,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 - Step 4: the card lists *Venue Safety Review · 2026-12-16 09:30–10:30 · Confirmed*: the time the block takes from the booking, not the booking's whole morning. It says the bookings and their events are unchanged.
 - Step 5: the booking is still `Confirmed` and the event still `Planning`.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (5/5 checks)
 
 **Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step1-form-filled.png) · [step2-affected-bookings-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step2-affected-bookings-listed.png)
 
@@ -208,7 +208,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 - Step 3: accepted: it starts at 11:30, exactly when the block ends, so they share no time.
 - Step 4: accepted: the day after the block ends.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (5/5 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (5/5 checks)
 
 **Screenshots:** [step1-refused-naming-date-and-slot](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step1-refused-naming-date-and-slot.png) · [step2-another-slot-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step2-another-slot-accepted.png) · [step3-touching-time-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step3-touching-time-accepted.png) · [step4-day-after-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step4-day-after-accepted.png)
 
@@ -230,7 +230,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 - Step 2: both venues are listed. The search starts at 10:00, exactly when the block ends, so they share no time.
 - Step 3: both venues are listed: the block does not reach the afternoon.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (4/4 checks)
 
 **Screenshots:** [step1-blocked-venue-left-out](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step1-blocked-venue-left-out.png) · [step2-touching-time-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step2-touching-time-listed.png) · [step3-other-time-both-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step3-other-time-both-listed.png)
 
@@ -254,7 +254,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 - Step 3: refused: *The venue is unavailable for 2026-12-15 10:00–12:00. Choose other times or another venue.* The Safety block still covers it.
 - Step 4: accepted: only the lifted block covered 2026-12-16.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (4/4 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (4/4 checks)
 
 **Screenshots:** [step1-overlapping-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step1-overlapping-block-saved.png) · [step2-renovation-lifted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step2-renovation-lifted.png) · [step3-still-refused-covered-by-second-block](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step3-still-refused-covered-by-second-block.png) · [step4-freed-time-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step4-freed-time-accepted.png)
 
@@ -269,7 +269,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 **Expected Result:**
 - Each shows *You don’t have access to this page.* with a **403** for the page request (SPM-16), and none of the blocks or the form.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (2/2 checks)
 
 **Screenshots:** [step-coordinator-access-denied](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-007_step-coordinator-access-denied.png) · [step-technical-support-access-denied](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-007_step-technical-support-access-denied.png)
 
@@ -295,7 +295,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 - Step 1: one `recorded` row per block and one `lifted` row per lifted block. On the run date: 7 recorded, 1 lifted, for 7 blocks and 1 lifted.
 - Step 2: ends with *ok: all 35 checks held*. They cover a non-Venue-Staff session being refused on record, lift, list and affected bookings, the audit rows, the busy-time read of 09:00 to 10:00, a booking slot whose hours a block reaches being refused with `CS028` while a slot it does not reach is accepted, a block touching only a quarter hour of AM refusing AM, a block that starts as AM ends not refusing it, approving, holding and confirming a hold over a block recorded later being refused, the same block twice being refused with `CS079` while another reason, shorter times, or the same block after a lift are accepted, a block over the 12:00 to 13:00 lunch gap being refused with `CS078` and leaving nothing behind, the calendar read giving quarter hours in order, and lifting twice being refused.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 35 checks held"
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (2/2 checks). `checks.sql` ended with "ok: all 35 checks held"
 
 **Reading the result:** the CLI prints `failed to execute query: error: ok: all 35 checks held`. That
 is the pass. The script ends with an error on purpose, so that everything it wrote is rolled back,
@@ -329,7 +329,7 @@ A venue now opens once a day, so the *(closed in between)* mark on an end time c
 
 **Screenshots:** [step3-one-window-end-times-open](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-009_step3-one-window-end-times-open.jpg)
 
-Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): Pass, 2026-10-22, Chrome via Playwright by Claude Code for JameszLau. Screenshots: [step2-start-times-closed-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step2-start-times-closed-disabled.png) · [step3-end-times-after-start-0900](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step3-end-times-after-start-0900.png)
+Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): Pass, 2026-10-22, Chrome via Playwright for JameszLau (7/7 checks). Screenshots: [step2-start-times-closed-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step2-start-times-closed-disabled.png) · [step3-end-times-after-start-0900](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step3-end-times-after-start-0900.png)
 
 ---
 
@@ -352,7 +352,7 @@ Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): 
 
 **Screenshots:** [step3-refused-naming-11-00-11-30](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-010_step3-refused-naming-11-00-11-30.jpg)
 
-Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright by Claude Code for JameszLau. Screenshots: [step1-form-filled-before-hours-change](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
+Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for JameszLau (5/5 checks). Screenshots: [step1-form-filled-before-hours-change](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
 
 ---
 
@@ -368,7 +368,7 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright by Claud
 **Expected Result:**
 - Monday 2026-12-14 to Friday 2026-12-18: **AM** reads **Blocked** with *Renovation*. **PM** and **Night** read **Available** (the block does not reach them).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau (1/1 check)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (1/1 check)
 
 **Screenshots:** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
 
@@ -393,7 +393,7 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright by Claud
 - Step 4: both save. The same Other block, even with the same note, is never refused (TC-VBLOCK-002 row 7 already recorded an Other block for those hours).
 - A lifted block no longer counts: after lifting, the identical block can be saved again (unit and database checks).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-same-block-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step1-same-block-refused.png) · [step2-other-reason-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step2-other-reason-saved.png) · [step3-shorter-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step3-shorter-block-saved.png) · [step4-other-block-saved-1](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-1.png) · [step4-other-block-saved-2](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-2.png)
 
@@ -433,6 +433,6 @@ select (select count(*) from s1) as renovation_rows, (select count(*) from s2) a
 - Before: Renovation, In force, 4 slots, 4 old codes; Safety, Lifted, 1 slot, 1 old code.
 - After: Renovation, In force, **80** slots (2 days × AM 28–47 and Night 76–95), **0** old codes; Safety, **Lifted**, **20** slots (PM 52–71), 0 old codes. No block is lost and the lifted block is still lifted.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run by Claude Code for JameszLau against local Supabase (before and after read as above)
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run for JameszLau against local Supabase (before and after read as above)
 
 **Screenshots:** none (database case)

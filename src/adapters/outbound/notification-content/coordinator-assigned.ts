@@ -1,3 +1,4 @@
+import { rangeEndsAt, rangeStartsAt } from "@/core/domain/event-times";
 import type { EventCoordinatorAssignedNotice } from "@/core/ports/outbound/notifier";
 
 /**
@@ -24,13 +25,26 @@ export const calendarDayFormat = new Intl.DateTimeFormat("en-SG", {
   year: "numeric",
 });
 
+// A notice has no viewer timezone to follow, so the requested time stays in
+// venue time and names the zone, as the registration email does (SPM-326).
+const venueTimeFormat = new Intl.DateTimeFormat("en-SG", {
+  timeZone: "Asia/Singapore",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
 function requestedWhen(notice: EventCoordinatorAssignedNotice): string | null {
-  const { preferredDate, preferredSlots } = notice;
-  if (preferredDate === null) {
+  const { preferredDate: date, preferredStartTime: start, preferredEndTime: end } = notice;
+  if (date === null) {
     return null;
   }
-  const day = calendarDayFormat.format(new Date(`${preferredDate}T00:00:00Z`));
-  return preferredSlots.length === 0 ? day : `${day}, ${preferredSlots.join(", ")}`;
+  const day = calendarDayFormat.format(new Date(`${date}T00:00:00Z`));
+  if (start === null || end === null) {
+    return day;
+  }
+  const range = { date, start, end };
+  return `${day}, ${venueTimeFormat.format(rangeStartsAt(range))} – ${venueTimeFormat.format(rangeEndsAt(range))} (GMT+8)`;
 }
 
 export function coordinatorAssignedMessage(

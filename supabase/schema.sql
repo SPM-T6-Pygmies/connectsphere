@@ -69,7 +69,7 @@ create table event_request (
   description               text,
   purpose                   text,
   preferred_date            date,
-    -- the slots wanted on it are event_request_slot rows (10b)
+    -- the start-to-end time wanted on it is event_request_slot rows (10b)
   expected_attendance       integer check (expected_attendance is null or expected_attendance >= 0),
   venue_requirements        text,
   accessibility_needs       text,
@@ -374,8 +374,11 @@ create table event_request_slot (
   slot_date        date   not null,
     -- the request's preferred_date; organiser_save/submit keep the two equal
   slot_code        text   not null references slot (slot_code) on delete restrict,
-  primary key (event_request_id, slot_date, slot_code)
+  primary key (event_request_id, slot_date, slot_code),
+  constraint event_request_slot_fifteen_minute_chk check (slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
+-- 15-minute codes only (SPM-327, 2026-10-21): one consecutive span per request,
+-- its preferred start to end time. AM, PM and Night rows became that span.
 
 create table event_slot (
   event_id  bigint not null references event (event_id) on delete cascade,

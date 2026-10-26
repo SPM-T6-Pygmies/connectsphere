@@ -723,7 +723,6 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
   const client = await createSupabaseServerClient();
   return new DecideBookingRequestUseCase({
     reviews: new SupabaseBookingReviewRepository(client),
-    bookings: new SupabaseBookingRepository(client),
     safetyCheck: safetyCheckAnnouncer(),
     clock: systemClock,
     notifier: recordedNotifier(),

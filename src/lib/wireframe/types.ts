@@ -109,7 +109,6 @@ export interface EventRequestRecord {
   readonly categoryType: string | null;
   readonly preferredDate: string | null;
   /** The slots wanted on `preferredDate`; empty when none chosen yet. */
-  readonly preferredSlots: readonly BookingSlot[];
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly accessibilityNeeds: string | null;
