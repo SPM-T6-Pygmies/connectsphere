@@ -6,7 +6,7 @@
 -- Staff approval is asked for. It restates the core's rule (`flagsToClear`):
 --   CS026  no such booking, or not on one of this coordinator's events (#91), shared
 --          with the other coordinator booking writes
---   CS082  the booking has no open flag (new): never flagged, already cleared, or its
+--   CS083  the booking has no open flag (new): never flagged, already cleared, or its
 --          booking no longer holds its venue
 --
 -- A flag can come back: the open-row index only covers open rows, so a later block over
@@ -47,7 +47,7 @@ begin
   -- there is nothing on the page to clear.
   if not public.booking_holds_slot(v_status, v_hold_expires_at) then
     raise exception 'Booking % is % and has no open flag to clear', p_booking_id, v_status
-      using errcode = 'CS082';
+      using errcode = 'CS083';
   end if;
 
   update public.booking_review_flag
@@ -59,7 +59,7 @@ begin
 
   if not found then
     raise exception 'Booking % has no open flag to clear', p_booking_id
-      using errcode = 'CS082';
+      using errcode = 'CS083';
   end if;
 end;
 $$;

@@ -9,7 +9,7 @@ import { toKey } from "./coordinator-event-mapper";
 
 // SQLSTATEs raised by coordinator_clear_booking_flags (CS026 is shared with the other booking writes).
 const BOOKING_NOT_FOUND = "CS026";
-const NO_FLAG_TO_CLEAR = "CS082";
+const NO_FLAG_TO_CLEAR = "CS083";
 
 /**
  * Reached through `coordinator_event_flags`, a `security definer` function: the flag table
