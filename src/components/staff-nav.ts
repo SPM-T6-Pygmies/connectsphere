@@ -202,6 +202,14 @@ export function currentSection(role: StaffRole, pathname: string): SidebarSectio
  * stable during SSR, so the server HTML is already correct. `useIsMobile()`
  * reports false on the server and would pop the list in after hydration.
  */
+/**
+ * The sidebar section a Venue Staff booking belongs to, from its own status: the page keeps the
+ * booking's address (`/staff/venue/<id>`), so the heading and list follow the booking, not the URL.
+ */
+export function venueSidebarSection(venueSection: "requests" | "decided" | "archive"): SidebarSection {
+  return venueSection === "requests" ? "requested" : venueSection
+}
+
 export function isRailDestination(role: StaffRole, pathname: string): boolean {
   return railItems(role).some(
     (item) => item.section !== "action" && item.url === pathname,

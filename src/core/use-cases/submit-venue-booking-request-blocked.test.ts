@@ -57,7 +57,7 @@ function build() {
   const bookings = new InMemoryBookingRepository([], new Map(), unavailability);
   return {
     bookings,
-    record: new RecordVenueUnavailabilityUseCase({ unavailability, venues, clock }),
+    record: new RecordVenueUnavailabilityUseCase({ unavailability, venues, clock, notifier: new RecordingNotifier() }),
     lift: new LiftVenueUnavailabilityUseCase({ unavailability, clock }),
     submit: new SubmitVenueBookingRequestUseCase({
       events: new InMemoryCoordinatorEventRepository([EVENT]),

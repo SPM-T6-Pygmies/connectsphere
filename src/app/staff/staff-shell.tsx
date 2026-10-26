@@ -28,6 +28,7 @@ import {
   buildViewArchivedEventRequests,
   buildViewAssignedEventRequests,
   buildListEquipmentQueue,
+  buildListVenues,
   buildNotifyExpiredHolds,
   buildReviewBookingRequests,
   buildViewAssignedEvents,
@@ -38,6 +39,7 @@ import {
   getCurrentVenueStaff,
   getSignedInStaffMember,
 } from "@/composition/container"
+import { venueSidebarSection } from "@/components/staff-nav"
 import type { EquipmentQueue } from "@/core/domain/equipment-review"
 import {
   ROLE_LABELS,
@@ -48,6 +50,7 @@ import {
 
 import { requestStateLabel } from "./coordinator/request-state-badge"
 import { formatHoldExpiry } from "./hold-expiry"
+import { venueBufferNote } from "./slot-label"
 import { queueTeaser } from "./technical/queue-teaser"
 
 export { PageHeader } from "./page-header"
@@ -190,11 +193,14 @@ async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneIte
 
   const reviewBookingRequests = await buildReviewBookingRequests()
   const bookings = await reviewBookingRequests.list(staff.userAccountId, section)
+  const { venues } = await (await buildListVenues()).execute()
 
   return bookings.map((booking) => ({
     id: booking.id,
     href: `/staff/venue/${booking.id}`,
     title: booking.venueLocation,
+    titleNote:
+      venueBufferNote(venues.find((venue) => venue.id === booking.venueId) ?? null) ?? undefined,
     meta: booking.times[0]?.date ?? "No date",
     teaser: `${booking.event.name} · ${booking.times.map(({ start, end }) => `${start}–${end}`).join(" + ")}${
       booking.status === "Tentative Hold" && booking.holdExpiresAt !== null
@@ -335,6 +341,11 @@ export async function StaffShell({
     }
   })
 
+  // A venue booking keeps its own address, so the sidebar's heading follows the booking's
+  // status (its list already does), not the URL.
+  const sidebarSection =
+    activeSection ?? (role === "venue" && venueSection !== undefined ? venueSidebarSection(venueSection) : undefined)
+
   const queueItems = await getRespectiveQueueItems(
     role,
     crumbs,
@@ -369,7 +380,7 @@ export async function StaffShell({
           role={role}
           name={member.name}
           queueItems={queueItems}
-          activeSection={activeSection}
+          activeSection={sidebarSection}
         />
         {/*
           min-w-0: SidebarInset is a flex item in SidebarProvider's row, so its
@@ -426,7 +437,7 @@ export async function StaffShell({
           <div className="flex flex-1 flex-col gap-6 p-4 pb-[calc(var(--staff-bottom-nav-height)+env(safe-area-inset-bottom))] md:p-6 md:pb-6">
             <MobileQueue
               role={role}
-              activeSection={activeSection}
+              activeSection={sidebarSection}
               queueItems={queueItems}
             />
             {children}

@@ -12,6 +12,7 @@ import {
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
   venueBookingCancelledRow,
+  venueBookingFlaggedRow,
   venueBookingDecidedRow,
   venueBookingRequestedRow,
 } from "./notification-row";
@@ -312,6 +313,30 @@ describe("venueBookingCancelledRow (SPM-63)", () => {
       related_booking_id: "31",
       message_content:
         "Grand Ballroom booking cancelled for Harbour Lights Gala\nThe coordinator cancelled the confirmed booking of Grand Ballroom for Fri, 20 Nov 2026 (13:00–18:00). It is now Released, and that time is free to book again.",
+    });
+  });
+});
+
+describe("venueBookingFlaggedRow (SPM-71)", () => {
+  it("AC1, AC2: records the notice as Pending against the coordinator and the booking", () => {
+    expect(
+      venueBookingFlaggedRow({
+        recipientUserAccountId: "3",
+        bookingId: "31",
+        eventId: "8",
+        eventName: "Harbour Lights Gala",
+        venueLocation: "Grand Ballroom",
+        reasonCode: "venue-unavailable",
+        reasons: ["Maintenance: 2026-11-16 13:00 to 18:00"],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "venue-booking-flagged",
+      channel: "in_app",
+      status: "Pending",
+      related_booking_id: "31",
+      message_content:
+        "Grand Ballroom booking flagged for Harbour Lights Gala\nYour booking of Grand Ballroom for Harbour Lights Gala is flagged for review. Venue unavailable: Maintenance: 2026-11-16 13:00 to 18:00. Nothing has been cancelled or rebooked; open the event's Venue tab to decide what to do.",
     });
   });
 });

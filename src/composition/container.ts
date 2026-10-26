@@ -29,6 +29,7 @@ import { SupabaseRegistrationRepository } from "@/adapters/outbound/supabase/sup
 import { SupabaseMemberDirectory } from "@/adapters/outbound/supabase/supabase-member-directory";
 import { SupabaseVenueAvailability } from "@/adapters/outbound/supabase/supabase-venue-availability";
 import { SupabaseVenueCatalogue } from "@/adapters/outbound/supabase/supabase-venue-catalogue";
+import { SupabaseVenueChangeReview } from "@/adapters/outbound/supabase/supabase-venue-change-review";
 import { SupabaseBookingFlagRepository } from "@/adapters/outbound/supabase/supabase-booking-flag-repository";
 import { SupabaseVenueUnavailabilityRepository } from "@/adapters/outbound/supabase/supabase-venue-unavailability-repository";
 import { SupabaseUserAccountRepository } from "@/adapters/outbound/supabase/supabase-user-account-repository";
@@ -62,6 +63,7 @@ import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-re
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { CancelVenueBookingUseCase } from "@/core/use-cases/cancel-venue-booking";
+import { ClearBookingFlagUseCase } from "@/core/use-cases/clear-booking-flag";
 import { CancelEventUseCase } from "@/core/use-cases/cancel-event";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
@@ -649,6 +651,15 @@ export async function buildCancelVenueBooking(): Promise<CancelVenueBookingUseCa
   });
 }
 
+/** SPM-310: the assigned coordinator clears a flag on a booking that still fits. */
+export async function buildClearBookingFlag(): Promise<ClearBookingFlagUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ClearBookingFlagUseCase({
+    events: new SupabaseCoordinatorEventRepository(client),
+    flags: new SupabaseBookingFlagRepository(client),
+  });
+}
+
 /** SPM-247: the assigned coordinator records the facilities an event needs. */
 export async function buildSetEventRequiredFacilities(): Promise<SetEventRequiredFacilitiesUseCase> {
   return new SetEventRequiredFacilitiesUseCase({ events: (await venueBookingAdapters()).events });
@@ -732,7 +743,6 @@ export async function buildDecideBookingRequest(): Promise<DecideBookingRequestU
   const client = await createSupabaseServerClient();
   return new DecideBookingRequestUseCase({
     reviews: new SupabaseBookingReviewRepository(client),
-    bookings: new SupabaseBookingRepository(client),
     safetyCheck: safetyCheckAnnouncer(),
     clock: systemClock,
     notifier: recordedNotifier(),
@@ -981,10 +991,15 @@ export async function buildCreateVenue(): Promise<CreateVenueUseCase> {
   return new CreateVenueUseCase({ venues: await venueCatalogue() });
 }
 
-/** SPM-147: Venue Staff update a venue and its layouts. */
+/** SPM-147: Venue Staff update a venue and its layouts; SPM-105: flag the bookings it no longer fits; SPM-71: tell their coordinators. */
 export async function buildUpdateVenue(): Promise<UpdateVenueUseCase> {
   const client = await createSupabaseServerClient();
-  return new UpdateVenueUseCase({ venues: new SupabaseVenueCatalogue(client) });
+  return new UpdateVenueUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    review: new SupabaseVenueChangeReview(client),
+    clock: systemClock,
+    notifier: recordedNotifier(),
+  });
 }
 
 /**
@@ -996,13 +1011,14 @@ export async function getVenueMaintenanceRoles(): Promise<readonly string[]> {
   return (await getStaffWorkspaces()).includes("venue") ? ["Venue Staff"] : [];
 }
 
-/** SPM-21: Venue Staff block a venue for a period, with a reason. */
+/** SPM-21: Venue Staff block a venue for a period, with a reason; SPM-71: tell each flagged booking's coordinator. */
 export async function buildRecordVenueUnavailability(): Promise<RecordVenueUnavailabilityUseCase> {
   const client = await createSupabaseServerClient();
   return new RecordVenueUnavailabilityUseCase({
     unavailability: new SupabaseVenueUnavailabilityRepository(client),
     venues: new SupabaseVenueCatalogue(client),
     clock: systemClock,
+    notifier: recordedNotifier(),
   });
 }
 
