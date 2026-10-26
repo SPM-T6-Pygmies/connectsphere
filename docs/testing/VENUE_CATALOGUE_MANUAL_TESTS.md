@@ -116,7 +116,8 @@ Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../scree
 - [x] After step 4, the save is refused with "The Theatre layout is listed more
       than once." and the venue still has one Theatre at 200.
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the venue from this run's TC-VCAT-002.
+**Run:** Pass, 26/10/2026, Chromium via Playwright (local, `pnpm dev:local`), on the venue from this run's TC-VCAT-002. Screenshots: [step3-classroom-120-beside-theatre-200](../screenshots/2026-10-26_SPM-320_TC-VCAT-003_step3-classroom-120-beside-theatre-200.png) · [step4-second-theatre-refused](../screenshots/2026-10-26_SPM-320_TC-VCAT-003_step4-second-theatre-refused.png)
+Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the venue from that run's TC-VCAT-002.
 Earlier run: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step3-two-layouts-in-catalogue](../screenshots/2026-10-09_TC-VCAT-003_step3-two-layouts-in-catalogue.png) · [step4-duplicate-theatre-refused](../screenshots/2026-10-09_TC-VCAT-003_step4-duplicate-theatre-refused.png)
 
