@@ -81,7 +81,8 @@ them, tick the boxes below **and** report each in the PR description's
 - [x] Step 2: with hour `24` the minute picker offers only `00`, so `24:00` is
       the latest end and no window crosses midnight.
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the one-window form.
+**Run:** Pass, 26/10/2026, Chromium via Playwright (local, `pnpm dev:local`), on the one-window form. A native dropdown does not show in a screenshot, so each picker was expanded in place to list its options. Screenshots: [step1-pickers-on-15-minute-grid](../screenshots/2026-10-26_SPM-320_TC-VHOURS-001_step1-pickers-on-15-minute-grid.png) · [step2-closes-24-offers-only-00](../screenshots/2026-10-26_SPM-320_TC-VHOURS-001_step2-closes-24-offers-only-00.png)
+Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the one-window form.
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VHOURS-002 A window must end after it starts
@@ -225,7 +226,19 @@ transaction that is rolled back, so the local data is untouched.
       `13:00–24:00`, **AM PM Night** `07:00–24:00`, **AM Night** `07:00–24:00`
       and **AM** `07:00–12:00`.
 
-**Run:** Pass, 25/10/2026, local Supabase after a fresh reset, by Claude Code. Nothing was left after the rollback.
+**Run:** Pass, 26/10/2026, local Supabase, by joyceetran. Step 2 printed `DO` and raised
+nothing; step 3 read:
+
+```
+ UAT-320 AM          | [{"end": "12:00", "start": "07:00"}]
+ UAT-320 AM Night    | [{"end": "24:00", "start": "07:00"}]
+ UAT-320 AM PM       | [{"end": "18:00", "start": "07:00"}]
+ UAT-320 AM PM Night | [{"end": "24:00", "start": "07:00"}]
+ UAT-320 PM Night    | [{"end": "24:00", "start": "13:00"}]
+```
+
+No `UAT-320` venue was left after the rollback.
+Earlier run: Pass, 25/10/2026, local Supabase after a fresh reset, by joyceetran. Nothing was left after the rollback.
 
 ### TC-VHOURS-008 A venue opens once a day
 
@@ -249,5 +262,15 @@ SPM-332 AC2: one opening and one closing time. The form offers only one pair
 - [x] One window saves: slots `32` to `79`, 48 of them (08:00–20:00).
 - [x] Two windows are refused with `CS022` "A venue needs one opening window".
 
-**Run:** Pass, 25/10/2026, local Supabase, by Claude Code, after TC-VCAT-004. Outside the
+**Run:** Pass, 26/10/2026, local Supabase, by joyceetran, after TC-VCAT-003. The output:
+
+```
+ min | max | count
+-----+-----+-------
+  32 |  79 |    48
+ERROR:  CS022: A venue needs one opening window
+```
+
+After the rollback UAT-42 Lecture Hall was back at `07:00–18:00` (slots 28–71).
+Earlier run: Pass, 25/10/2026, local Supabase, by joyceetran, after TC-VCAT-004. Outside the
 transaction the refusal left UAT-42 Lecture Hall at `13:00–24:00` (slots 52–95).
