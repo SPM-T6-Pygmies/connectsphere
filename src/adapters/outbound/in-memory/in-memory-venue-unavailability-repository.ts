@@ -13,6 +13,8 @@ import {
   type FlagReasonCode,
 } from "@/core/domain/booking-review-flag";
 import {
+  BookingNotFoundError,
+  NoFlagToClearError,
   UnavailabilityAlreadyLiftedError,
   VenueUnavailabilityNotFoundError,
 } from "@/core/domain/errors";
@@ -58,6 +60,16 @@ interface StoredFlag {
   readonly flaggedAt: string;
 }
 
+/** SPM-310: a cleared flag as `booking_review_flag` keeps it. */
+export interface ClearedFlag {
+  readonly bookingId: string;
+  readonly reasonCode: FlagReasonCode;
+  readonly detail: string;
+  readonly clearedAt: string;
+  readonly clearedBy: string;
+  readonly clearedHow: "coordinator";
+}
+
 const LIVE: readonly BookingStatus[] = ["Requested", "Tentative Hold", "Confirmed"];
 
 /**
@@ -70,6 +82,8 @@ export class InMemoryVenueUnavailabilityRepository
 {
   private readonly rows: VenueUnavailabilityEntry[] = [];
   private readonly flags: StoredFlag[] = [];
+  /** SPM-310: by flag id. A flag in here is closed; its row is kept. */
+  private readonly cleared = new Map<string, ClearedFlag>();
   /** SPM-313: a booking's status once something has ended it (cancelled, released, expired). */
   private readonly endedAs = new Map<string, BookingStatus>();
   private sequence = 0;
@@ -187,6 +201,7 @@ export class InMemoryVenueUnavailabilityRepository
           booking.coordinatorUserAccountId === coordinatorId &&
           this.stillHolds(booking),
       )
+      .filter((flag) => !this.cleared.has(flag.id))
       .map((flag) => ({
         flagId: flag.id,
         bookingId: flag.booking.id as BookingId,
@@ -199,6 +214,37 @@ export class InMemoryVenueUnavailabilityRepository
         flaggedAt: flag.flaggedAt,
         sourceLiftedAt: this.rows.find((row) => row.id === flag.blockId)?.liftedAt ?? null,
       }));
+  }
+
+  async clear(coordinatorId: UserAccountId, bookingId: BookingId): Promise<void> {
+    const booking = this.bookings.find(
+      (candidate) => candidate.id === bookingId && candidate.coordinatorUserAccountId === coordinatorId,
+    );
+    if (booking === undefined) {
+      throw new BookingNotFoundError(bookingId);
+    }
+    const open = this.flags.filter(
+      (flag) => flag.booking.id === bookingId && !this.cleared.has(flag.id) && this.stillHolds(booking),
+    );
+    if (open.length === 0) {
+      throw new NoFlagToClearError(bookingId);
+    }
+    const clearedAt = this.clock.now().toISOString();
+    for (const flag of open) {
+      this.cleared.set(flag.id, {
+        bookingId,
+        reasonCode: flag.reasonCode,
+        detail: flag.detail,
+        clearedAt,
+        clearedBy: coordinatorId,
+        clearedHow: "coordinator",
+      });
+    }
+  }
+
+  /** Test helper: the flags cleared so far, oldest flag first (SPM-310 AC2). */
+  clearedFlags(): readonly ClearedFlag[] {
+    return this.flags.flatMap((flag) => this.cleared.get(flag.id) ?? []);
   }
 
   async affectedBookings(

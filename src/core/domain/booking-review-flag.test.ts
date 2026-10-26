@@ -4,12 +4,14 @@ import {
   blockFlagDetail,
   bookingsToFlagForBlock,
   bookingWindow,
+  flagsToClear,
   timeSpans,
   windowsOverlap,
   type FlaggingBlock,
   VENUE_UNAVAILABLE_FLAG,
   type FlaggableBooking,
 } from "./booking-review-flag";
+import { NoFlagToClearError } from "./errors";
 import { venueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
@@ -259,5 +261,26 @@ describe("timeSpans (SPM-313, SPM-331)", () => {
 
   it("refuses a slot code the slot table does not have", () => {
     expect(() => timeSpans([{ date: "2026-11-06", slot: "96" }])).toThrow(/Unknown slot code/);
+  });
+});
+
+describe("flagsToClear (SPM-310)", () => {
+  const FLAGS = [
+    { flagId: "1", bookingId: "812" },
+    { flagId: "2", bookingId: "813" },
+    { flagId: "3", bookingId: "812" },
+  ];
+
+  it("AC1: clears every open reason on the booking, not one", () => {
+    expect(flagsToClear(FLAGS, "812").map(({ flagId }) => flagId)).toEqual(["1", "3"]);
+  });
+
+  it("AC4: leaves the event's other bookings' reasons out", () => {
+    expect(flagsToClear(FLAGS, "813").map(({ flagId }) => flagId)).toEqual(["2"]);
+  });
+
+  it("AC6: refuses a booking with no open flag", () => {
+    expect(() => flagsToClear(FLAGS, "814")).toThrow(NoFlagToClearError);
+    expect(() => flagsToClear([], "812")).toThrow("This booking has no open flag to clear.");
   });
 });
