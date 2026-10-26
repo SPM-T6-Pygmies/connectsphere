@@ -8,11 +8,13 @@ import {
   checkLayoutCapacity,
   chooseLayoutChange,
   chooseRoomLayout,
+  clashDates,
   clashingTimes,
   decideBooking,
   defineBookingTimes,
   DEFAULT_HOLD_HOURS,
   holdsSlot,
+  paddedClashingTimes,
   requestVenueBooking,
   resolveHold,
   slotTime,
@@ -831,6 +833,126 @@ describe("clashingTimes (SPM-350)", () => {
     expect(
       clashingTimes(want, [booked("15:00", "16:00", "Tentative Hold", BEFORE_NOW)], NOW),
     ).toEqual([]);
+  });
+});
+
+describe("paddedClashingTimes (SPM-475)", () => {
+  const D = "2026-12-14";
+  // Main Hall's values in the SPM-19 example: 30 minutes' setup, 45 minutes' turnaround.
+  const MAIN_HALL = { setup: 30, turnaround: 45 };
+  const NONE = { setup: 0, turnaround: 0 };
+  // Held until 10:00 once its turnaround is counted.
+  const charityRun = (status: BookingStatus = "Confirmed", holdExpiresAt: Date | null = null): OccupiedTime => ({
+    date: D,
+    start: "07:00",
+    end: "09:15",
+    status,
+    holdExpiresAt,
+  });
+
+  it("names the padded overlap when setup runs into another booking's turnaround, though the times do not touch", () => {
+    expect(
+      paddedClashingTimes([{ date: D, start: "10:00", end: "12:00" }], [charityRun()], MAIN_HALL, NOW),
+    ).toEqual([{ date: D, start: "09:30", end: "10:00" }]);
+  });
+
+  it("is no clash when the padded windows only touch", () => {
+    expect(
+      paddedClashingTimes([{ date: D, start: "10:30", end: "12:00" }], [charityRun()], MAIN_HALL, NOW),
+    ).toEqual([]);
+  });
+
+  it("clashes one 15-minute step before the windows touch", () => {
+    expect(
+      paddedClashingTimes([{ date: D, start: "10:15", end: "12:00" }], [charityRun()], MAIN_HALL, NOW),
+    ).toEqual([{ date: D, start: "09:45", end: "10:00" }]);
+  });
+
+  it("names the whole padded overlap when the booked times overlap too", () => {
+    expect(
+      paddedClashingTimes([{ date: D, start: "08:00", end: "09:00" }], [charityRun()], MAIN_HALL, NOW),
+    ).toEqual([{ date: D, start: "07:30", end: "09:45" }]);
+  });
+
+  it("is the plain overlap check at a venue with no setup or turnaround", () => {
+    const want = [{ date: D, start: "09:15", end: "10:00" }];
+    expect(paddedClashingTimes(want, [charityRun()], NONE, NOW)).toEqual(
+      clashingTimes(want, [charityRun()], NOW),
+    );
+    expect(paddedClashingTimes(want, [charityRun()], NONE, NOW)).toEqual([]);
+  });
+
+  it("pads a live hold like a Confirmed booking", () => {
+    expect(
+      paddedClashingTimes(
+        [{ date: D, start: "10:00", end: "12:00" }],
+        [charityRun("Tentative Hold", AFTER_NOW)],
+        MAIN_HALL,
+        NOW,
+      ),
+    ).toEqual([{ date: D, start: "09:30", end: "10:00" }]);
+  });
+
+  it.each(["Requested", "Rejected", "Released", "Cancelled", "Expired"] as const)(
+    "is no clash with a booking that is %s",
+    (status) => {
+      expect(
+        paddedClashingTimes([{ date: D, start: "10:00", end: "12:00" }], [charityRun(status)], MAIN_HALL, NOW),
+      ).toEqual([]);
+    },
+  );
+
+  it("is no clash with a hold that lapsed before now", () => {
+    expect(
+      paddedClashingTimes(
+        [{ date: D, start: "10:00", end: "12:00" }],
+        [charityRun("Tentative Hold", BEFORE_NOW)],
+        MAIN_HALL,
+        NOW,
+      ),
+    ).toEqual([]);
+  });
+
+  it("compares a turnaround that runs past midnight on the next date", () => {
+    const nightGala: OccupiedTime = { date: D, start: "22:00", end: "23:30", status: "Confirmed", holdExpiresAt: null };
+    expect(
+      paddedClashingTimes([{ date: "2026-12-15", start: "00:30", end: "01:00" }], [nightGala], MAIN_HALL, NOW),
+    ).toEqual([{ date: "2026-12-15", start: "00:00", end: "00:15" }]);
+  });
+
+  it("compares a setup that starts before midnight on the previous date", () => {
+    const earlyStart: OccupiedTime = {
+      date: "2026-12-15",
+      start: "00:15",
+      end: "02:00",
+      status: "Confirmed",
+      holdExpiresAt: null,
+    };
+    expect(
+      paddedClashingTimes([{ date: D, start: "22:00", end: "23:30" }], [earlyStart], MAIN_HALL, NOW),
+    ).toEqual([
+      { date: D, start: "23:45", end: "24:00" },
+      { date: "2026-12-15", start: "00:00", end: "00:15" },
+    ]);
+  });
+});
+
+describe("clashDates (SPM-475)", () => {
+  it("adds the day either side of each date, once", () => {
+    expect(clashDates(["2026-12-14", "2026-12-15"])).toEqual([
+      "2026-12-13",
+      "2026-12-14",
+      "2026-12-15",
+      "2026-12-16",
+    ]);
+  });
+
+  it("crosses month and year ends", () => {
+    expect(clashDates(["2026-12-31"])).toEqual(["2026-12-30", "2026-12-31", "2027-01-01"]);
+  });
+
+  it("keeps a date that is not a calendar day as it is, for the times rule to refuse", () => {
+    expect(clashDates(["2026-02-30"])).toEqual(["2026-02-30"]);
   });
 });
 
