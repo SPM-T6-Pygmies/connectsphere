@@ -57,9 +57,9 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 | Venue | Opening hours | On the calendar |
 | --- | --- | --- |
-| UAT-44 Harbour Room | open 07:00–12:00, 13:00–18:00, 19:00–24:00 | Confirmed booking on D PM |
-| UAT-44 Garden Hall | open 07:00–12:00, 13:00–18:00 | Rejected booking on D AM (frees the slot) |
-| Main Hall | open 07:00–12:00, 13:00–18:00, 19:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on D+7 (AM expired, PM lapsing in 30 days) |
+| UAT-44 Harbour Room | open 07:00–24:00 | Confirmed booking on D PM |
+| UAT-44 Garden Hall | open 07:00–18:00 | Rejected booking on D AM (frees the slot) |
+| Main Hall | open 07:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on D+7 (AM expired, PM lapsing in 30 days) |
 
 ---
 

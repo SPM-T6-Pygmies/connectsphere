@@ -29,7 +29,6 @@ import type { VenueFormState } from "./actions";
 const INITIAL: VenueFormState = { status: "idle" };
 
 type LayoutRow = { key: number; name: string; capacity: string };
-type WindowRow = { key: number; start: string; end: string };
 
 function isFilled(value: string): boolean {
   return value.trim().length > 0;
@@ -77,12 +76,10 @@ export function VenueForm({
   const [capacity, setCapacity] = useState(venue?.capacity?.toString() ?? "");
   const [facilities, setFacilities] = useState(venue?.facilities ?? "");
   const [accessibility, setAccessibility] = useState(venue?.accessibility ?? "");
-  const [nextWindowKey, setNextWindowKey] = useState(() => (venue?.openingHours.length ?? 0) + 1);
-  const [windows, setWindows] = useState<WindowRow[]>(() =>
-    venue && venue.openingHours.length > 0
-      ? venue.openingHours.map((window, index) => ({ key: index, ...window }))
-      : [{ key: 0, start: "", end: "" }],
-  );
+  // One opening and one closing time a day (SPM-320). Hours saved before that
+  // rule load as the span from the first opening to the last closing.
+  const [opens, setOpens] = useState(venue?.openingHours[0]?.start ?? "");
+  const [closes, setCloses] = useState(venue?.openingHours.at(-1)?.end ?? "");
   const [horizon, setHorizon] = useState(venue?.bookingHorizonDays?.toString() ?? "");
   // SPM-23: defined once, then locked. A locked box is read-only, not disabled, so the venue's own
   // values are still sent back with the rest of the form and the save is not a change.
@@ -107,9 +104,7 @@ export function VenueForm({
   );
 
   const readyToSubmit =
-    [location, capacity, facilities, accessibility, horizon].every(isFilled) &&
-    windows.length > 0 &&
-    windows.every((window) => isFilled(window.start) && isFilled(window.end)) &&
+    [location, capacity, facilities, accessibility, horizon, opens, closes].every(isFilled) &&
     layouts.length > 0 &&
     layouts.every(
       (layout) =>
@@ -117,19 +112,6 @@ export function VenueForm({
         isFilled(layout.capacity) &&
         layoutCapacityError(layout.capacity, capacity) === undefined,
     );
-
-  function updateWindow(key: number, patch: Partial<WindowRow>) {
-    setWindows((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
-  }
-
-  function addWindow() {
-    setWindows((current) => [...current, { key: nextWindowKey, start: "", end: "" }]);
-    setNextWindowKey((current) => current + 1);
-  }
-
-  function removeWindow(key: number) {
-    setWindows((current) => current.filter((row) => row.key !== key));
-  }
 
   function updateLayout(key: number, patch: Partial<LayoutRow>) {
     setLayouts((current) => current.map((row) => (row.key === key ? { ...row, ...patch } : row)));
@@ -253,64 +235,45 @@ export function VenueForm({
               Opening hours<span className="text-destructive" aria-label="required">*</span>
             </p>
             <p className="text-muted-foreground text-xs">
-              The same hours apply every day, Singapore time. Add a window for each period the venue is
-              open.
+              The same hours apply every day, Singapore time, with no break in between.
             </p>
-            {windows.map((row, index) => (
-              <div key={row.key} className="grid items-start gap-4 sm:grid-cols-[1fr_1fr_auto]">
-                <Field
-                  id={`openingStart-${row.key}`}
+            <div className="grid items-start gap-4 sm:grid-cols-2">
+              <Field
+                id="openingStart"
+                label="Opens"
+                required
+                error={errors?.["openingHours.0.start"]}
+              >
+                <TimePicker
+                  id="openingStart"
+                  name="openingStart"
                   label="Opens"
-                  required
-                  error={errors?.[`openingHours.${index}.start`]}
-                >
-                  <TimePicker
-                    id={`openingStart-${row.key}`}
-                    name="openingStart"
-                    label="Opens"
-                    invalid={errors?.[`openingHours.${index}.start`] !== undefined}
-                    value={row.start}
-                    onChange={(start) => updateWindow(row.key, { start })}
-                  />
-                </Field>
-                <Field
-                  id={`openingEnd-${row.key}`}
+                  invalid={errors?.["openingHours.0.start"] !== undefined}
+                  value={opens}
+                  onChange={setOpens}
+                />
+              </Field>
+              <Field
+                id="openingEnd"
+                label="Closes"
+                required
+                error={errors?.["openingHours.0.end"]}
+              >
+                <TimePicker
+                  id="openingEnd"
+                  name="openingEnd"
                   label="Closes"
-                  required
-                  error={errors?.[`openingHours.${index}.end`]}
-                >
-                  <TimePicker
-                    id={`openingEnd-${row.key}`}
-                    name="openingEnd"
-                    label="Closes"
-                    endOfDay
-                    invalid={errors?.[`openingHours.${index}.end`] !== undefined}
-                    value={row.end}
-                    onChange={(end) => updateWindow(row.key, { end })}
-                  />
-                </Field>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="sm:mt-[1.625rem]"
-                  aria-label={`Remove opening window ${index + 1}`}
-                  disabled={windows.length === 1}
-                  onClick={() => removeWindow(row.key)}
-                >
-                  <Trash2Icon className="size-4" />
-                </Button>
-              </div>
-            ))}
+                  endOfDay
+                  invalid={errors?.["openingHours.0.end"] !== undefined}
+                  value={closes}
+                  onChange={setCloses}
+                />
+              </Field>
+            </div>
 
             {errors?.openingHours ? (
               <p className="text-destructive text-xs">{errors.openingHours}</p>
             ) : null}
-
-            <Button type="button" variant="outline" onClick={addWindow}>
-              <PlusIcon className="size-4" />
-              Add opening window
-            </Button>
           </div>
           <Field
             id="bookingHorizonDays"
