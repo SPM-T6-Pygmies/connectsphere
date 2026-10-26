@@ -739,3 +739,38 @@ describe("DecideBookingRequestUseCase, setup and turnaround (SPM-19)", () => {
     expect(reviews.all()[0]?.status).toBe("Confirmed");
   });
 });
+
+describe("DecideBookingRequestUseCase, an approval refused over a live booking (SPM-353)", () => {
+  it("names the clashing date and times, leaves the request Requested and tells nobody", async () => {
+    const { useCase, reviews, notifier } = build([booking("b1", "Requested"), booking("b2", "Confirmed")]);
+
+    const error = await useCase
+      .execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" })
+      .catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenuePaddedClashError);
+    expect((error as VenuePaddedClashError).clashes).toEqual([
+      { eventName: "Summit", date: "2026-10-22", start: "07:00", end: "12:00", hold: null },
+    ]);
+    expect(reviews.all()[0]?.status).toBe("Requested");
+    expect(notifier.bookingsDecided).toEqual([]);
+  });
+
+  it("can still be rejected afterwards, and the coordinator is told", async () => {
+    const { useCase, reviews, notifier } = build([booking("b1", "Requested"), booking("b2", "Confirmed")]);
+    await useCase
+      .execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" })
+      .catch(() => undefined);
+
+    await useCase.execute({
+      bookingId: "b1",
+      userAccountId: STAFF,
+      decision: "reject",
+      reason: "Already booked then.",
+      suggestedAlternative: null,
+    });
+
+    expect(reviews.all()[0]).toMatchObject({ status: "Rejected", rejectionNote: "Already booked then." });
+    expect(notifier.bookingsDecided.map(({ outcome }) => outcome)).toEqual(["Rejected"]);
+  });
+});

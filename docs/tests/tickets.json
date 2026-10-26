@@ -992,6 +992,11 @@
       "parent": "SPM-324",
       "status": "Todo"
     },
+    "SPM-353": {
+      "title": "Refuse approval when the booking overlaps a live booking",
+      "parent": "SPM-325",
+      "status": "Todo"
+    },
     "SPM-450": {
       "title": "Domain: define a block by date range and start and end time",
       "parent": "SPM-321",
