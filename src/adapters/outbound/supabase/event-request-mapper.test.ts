@@ -26,7 +26,7 @@ describe("event request mapper", () => {
       description: "Client briefing",
       purpose: "Share the annual plan",
       preferred_date: "2026-12-10",
-      preferred_slots: ["AM", "PM"],
+      preferred_time: { start: "09:00", end: "10:00" },
       expected_attendance: 240,
       venue_requirements: "Main hall",
       room_layout_preferences: "Theatre",
@@ -58,7 +58,8 @@ describe("event request mapper", () => {
         description: "Client briefing",
         purpose: "Share the annual plan",
         preferredDate: "2026-12-10",
-        preferredSlots: ["AM", "PM"],
+        preferredStartTime: "09:00",
+        preferredEndTime: "10:00",
         expectedAttendance: 240,
         venueRequirements: "Main hall",
         roomLayoutPreferences: "Theatre",
@@ -78,7 +79,7 @@ describe("event request mapper", () => {
       description: null,
       purpose: null,
       preferred_date: null,
-      preferred_slots: [],
+      preferred_time: null,
       expected_attendance: null,
       venue_requirements: null,
       room_layout_preferences: null,
@@ -146,7 +147,7 @@ describe("event request mapper", () => {
         description: "Client briefing",
         purpose: null,
         preferred_date: "2026-12-10",
-        preferred_slots: [],
+        preferred_time: null,
         expected_attendance: null,
         venue_requirements: null,
         room_layout_preferences: null,
@@ -217,7 +218,7 @@ describe("toWithdrawArgs (SPM-168)", () => {
   });
 });
 
-describe("event request preferred slots", () => {
+describe("event request preferred time (SPM-327)", () => {
   const row: EventRequestRow = {
     event_request_id: 5,
     event_name: "Founders' Day",
@@ -241,24 +242,42 @@ describe("event request preferred slots", () => {
     updated_at: "2026-09-01T00:00:00.000Z",
   };
 
-  it("reads a row whose query did not select preferred_slots as having none", () => {
-    expect(toDomain(row).details.preferredSlots).toEqual([]);
+  it("reads a row whose query did not select preferred_time as having no time", () => {
+    expect(toDomain(row).details).toMatchObject({ preferredStartTime: null, preferredEndTime: null });
   });
 
-  it("refuses a slot code the slot table should never hold", () => {
-    expect(() => toDomain({ ...row, preferred_slots: ["Evening"] })).toThrow(/Unknown slot/);
+  it("reads the span preferred_time returns, 24:00 included", () => {
+    expect(toDomain({ ...row, preferred_time: { start: "23:30", end: "24:00" } }).details).toMatchObject({
+      preferredStartTime: "23:30",
+      preferredEndTime: "24:00",
+    });
   });
 
-  it("sends the slots, and no start or end time, when submitting and saving", () => {
+  it("sends the start and end time, and no slots, when submitting and saving", () => {
     const request = eventRequestFixture({
       id: eventRequestId("5"),
-      details: eventRequestDetails({ preferredSlots: ["PM", "Night"] }),
+      details: eventRequestDetails({ preferredStartTime: "09:15", preferredEndTime: "10:00" }),
     });
 
     for (const args of [toSubmitArgs(request), toSaveArgs(request)]) {
-      expect(args).toMatchObject({ p_preferred_date: "2026-11-04", p_preferred_slots: ["PM", "Night"] });
-      expect(args).not.toHaveProperty("p_preferred_start_time");
-      expect(args).not.toHaveProperty("p_preferred_end_time");
+      expect(args).toMatchObject({
+        p_preferred_date: "2026-11-04",
+        p_preferred_start_time: "09:15",
+        p_preferred_end_time: "10:00",
+      });
+      expect(args).not.toHaveProperty("p_preferred_slots");
     }
+  });
+
+  it("sends no time for a draft without one", () => {
+    const request = eventRequestFixture({
+      id: eventRequestId("5"),
+      details: eventRequestDetails({ preferredStartTime: null, preferredEndTime: null }),
+    });
+
+    expect(toSaveArgs(request)).toMatchObject({
+      p_preferred_start_time: null,
+      p_preferred_end_time: null,
+    });
   });
 });

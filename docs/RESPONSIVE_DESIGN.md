@@ -82,8 +82,6 @@ For a queue this is free: render `QueueList` and hide the table. For the
 remaining tables it is per-screen work, because each needs its own per-column
 labels and its own idea of which fields matter:
 
-- `src/app/staff/coordinator/[id]/tabs.tsx` — candidate venues (6 cols),
-  equipment reservations (5), arrangements (4), registrations (4)
 - `src/app/staff/technical/reservation-detail.tsx` — equipment lines (6), with
   a per-row `<Input className="h-7 w-20">`
 - `src/app/staff/requester/organisation/page.tsx` — organisation events (5),

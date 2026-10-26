@@ -25,7 +25,7 @@ import type {
 import type { SupabaseServerClient } from "./client";
 import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
 import {
-  PREFERRED_SLOTS_SELECT,
+  PREFERRED_TIME_SELECT,
   toAssignEventCoordinatorArgs,
   toDecideArgs,
   toDeleteArgs,
@@ -75,7 +75,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
   async listAll(): Promise<readonly EventRequest[]> {
     const { data, error } = await this.client
       .rpc("operations_event_requests")
-      .select(PREFERRED_SLOTS_SELECT);
+      .select(PREFERRED_TIME_SELECT);
 
     if (error) {
       throw new Error(`Failed to list all event requests: ${error.message}`, { cause: error });
@@ -95,7 +95,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     const { data, error } = await this.client
       .rpc("organiser_event_requests", { p_client_organisation_id: key })
-      .select(PREFERRED_SLOTS_SELECT);
+      .select(PREFERRED_TIME_SELECT);
 
     if (error) {
       throw new Error(`Failed to list event requests: ${error.message}`, { cause: error });
@@ -141,7 +141,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     const { data, error } = await this.client
       .rpc("coordinator_event_requests", { p_coordinator_user_account_id: key })
-      .select(PREFERRED_SLOTS_SELECT);
+      .select(PREFERRED_TIME_SELECT);
 
     if (error) {
       throw new Error(`Failed to list assigned event requests: ${error.message}`, { cause: error });
@@ -159,7 +159,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
 
     const { data, error } = await this.client
       .rpc("organiser_event_request", { p_event_request_id: key })
-      .select(PREFERRED_SLOTS_SELECT)
+      .select(PREFERRED_TIME_SELECT)
       .single();
 
     if (error) {
@@ -203,7 +203,7 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
   async create(request: NewEventRequest): Promise<EventRequest> {
     const { data, error } = await this.client
       .rpc("organiser_submit_event_request", toSubmitArgs(request))
-      .select(PREFERRED_SLOTS_SELECT)
+      .select(PREFERRED_TIME_SELECT)
       .single();
 
     if (error) {

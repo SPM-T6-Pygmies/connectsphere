@@ -1,5 +1,6 @@
 import { forbidden } from "next/navigation";
 
+import { EventTimes } from "@/app/events/event-times";
 import {
   Card,
   CardContent,
@@ -12,6 +13,7 @@ import {
   buildViewOperationsEventRequest,
   getStaffWorkspaces,
 } from "@/composition/container";
+import { preferredTimeRange } from "@/core/domain/event-request";
 import type { EventCoordinatorDetails } from "@/core/use-cases/view-all-event-coordinators";
 import type { OperationsEventRequest } from "@/core/use-cases/operations-event-request";
 
@@ -75,6 +77,7 @@ export function AssignDetail({
       coordinator.userAccountId === eventRequest.assignedCoordinatorUserAccountId,
   );
   const isAssigned = eventRequest.assignedCoordinatorUserAccountId !== null;
+  const preferredTime = preferredTimeRange(eventRequest);
   const assignedCoordinatorName =
     assignedCoordinator?.name ??
     (eventRequest.assignedCoordinatorUserAccountId === null
@@ -116,8 +119,8 @@ export function AssignDetail({
                 fields={[
                   { label: "Preferred date", value: eventRequest.preferredDate },
                   {
-                    label: "Preferred slots",
-                    value: eventRequest.preferredSlots.join(", ") || null,
+                    label: "Preferred time",
+                    value: preferredTime === null ? null : <EventTimes times={[preferredTime]} />,
                   },
                   {
                     label: "Expected attendance",
