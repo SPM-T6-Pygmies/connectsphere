@@ -3,9 +3,10 @@
 import { CheckCircle2Icon, ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { EventTimes } from "@/app/events/event-times";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -19,15 +20,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { BOOKING_SLOTS } from "@/core/domain/booking";
-import { MANDATORY_SUBMISSION_FIELDS } from "@/core/domain/event-request";
+import { MANDATORY_SUBMISSION_FIELDS, preferredTimeRange } from "@/core/domain/event-request";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
 import { OptionCheckboxes, OptionSelect } from "../../option-fields";
 import { PageHeader } from "../../page-header";
-import { slotLabel } from "../../slot-label";
+import { TimePicker } from "../../time-picker";
 import {
   discardEventRequestDraftAction,
   saveEventRequestDraftAction,
@@ -160,7 +160,22 @@ export function NewRequestForm({
   }
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form
+      // Submitted by hand, not through `action`, as the venue form is
+      // (SPM-320): React resets a form after its action runs, which blanks
+      // every select (a time, a layout) while the state behind it keeps the
+      // value, so a refused submit would show emptied fields that are not.
+      // The pressed button's `data-intent` says which action to run.
+      onSubmit={(event) => {
+        event.preventDefault();
+        const intent = (event.nativeEvent as SubmitEvent).submitter?.dataset.intent;
+        const run =
+          intent === "draft" ? draftFormAction : intent === "discard" ? discardFormAction : formAction;
+        const formData = new FormData(event.currentTarget);
+        startTransition(() => run(formData));
+      }}
+      className="space-y-6"
+    >
       <input type="hidden" name="organiserTimeZone" value={organiserTimeZone} />
       <input type="hidden" name="eventRequestId" value={eventRequestId} />
       <PageHeader
@@ -233,39 +248,60 @@ export function NewRequestForm({
             <CardHeader>
               <CardTitle>When and how many</CardTitle>
               <CardDescription>
-                Tell us your preferred date and the slots you need on it (Singapore time).
+                Tell us your preferred date and when the event starts and ends on it, in
+                venue time (GMT+8).
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <Field id="preferredDate" label="Preferred date" required errors={errors?.preferredDate}>
-                <DatePicker
-                  id="preferredDate"
-                  value={values.preferredDate}
-                  onChange={(date) => {
-                    set("preferredDate", date);
-                    // A slot is stored against the date, so it cannot outlive it.
-                    if (date === "") set("preferredSlots", "");
-                  }}
-                  aria-invalid={errors?.preferredDate !== undefined}
-                />
-                <input type="hidden" name="preferredDate" value={values.preferredDate} />
-              </Field>
-              <Field
-                id="preferredSlots"
-                label="Preferred slots"
-                required
-                hint={values.preferredDate === "" ? "Choose the date first." : undefined}
-                errors={errors?.preferredSlots}
-              >
-                <OptionCheckboxes
-                  name="preferredSlots"
-                  options={BOOKING_SLOTS}
-                  value={values.preferredSlots}
-                  onChange={(slots) => set("preferredSlots", slots)}
-                  label={slotLabel}
-                  disabled={values.preferredDate === ""}
-                />
-              </Field>
+              <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
+                <Field id="preferredDate" label="Preferred date" required errors={errors?.preferredDate}>
+                  <DatePicker
+                    id="preferredDate"
+                    value={values.preferredDate}
+                    onChange={(date) => {
+                      set("preferredDate", date);
+                      // The times are stored against the date, so they cannot outlive it.
+                      if (date === "") {
+                        set("preferredStartTime", "");
+                        set("preferredEndTime", "");
+                      }
+                    }}
+                    aria-invalid={errors?.preferredDate !== undefined}
+                  />
+                  <input type="hidden" name="preferredDate" value={values.preferredDate} />
+                </Field>
+                <Field
+                  id="preferredStartTime"
+                  label="Start time (GMT+8)"
+                  required
+                  errors={errors?.preferredStartTime}
+                >
+                  <TimePicker
+                    id="preferredStartTime"
+                    name="preferredStartTime"
+                    label="Start time"
+                    invalid={errors?.preferredStartTime !== undefined}
+                    value={values.preferredStartTime}
+                    onChange={(value) => set("preferredStartTime", value)}
+                  />
+                </Field>
+                <Field
+                  id="preferredEndTime"
+                  label="End time (GMT+8)"
+                  required
+                  errors={errors?.preferredEndTime}
+                >
+                  <TimePicker
+                    id="preferredEndTime"
+                    name="preferredEndTime"
+                    label="End time"
+                    endOfDay
+                    invalid={errors?.preferredEndTime !== undefined}
+                    value={values.preferredEndTime}
+                    onChange={(value) => set("preferredEndTime", value)}
+                  />
+                </Field>
+              </div>
               <Field
                 id="expectedAttendance"
                 label="Expected attendance"
@@ -390,7 +426,7 @@ export function NewRequestForm({
                   <Button
                     variant="destructive"
                     type="submit"
-                    formAction={discardFormAction}
+                    data-intent="discard"
                     formNoValidate
                     disabled={discardPending}
                   >
@@ -406,7 +442,7 @@ export function NewRequestForm({
             <Button
               variant="outline"
               type="submit"
-              formAction={draftFormAction}
+              data-intent="draft"
               formNoValidate
               disabled={draftPending}
             >
@@ -565,7 +601,7 @@ function Acknowledgement({ result }: { result: SubmitEventRequestResult }) {
               value={`${formatInstantDate(result.submittedAt)}, ${formatInstantTime(result.submittedAt)}`}
             />
             <Recorded
-              label="Preferred date & slots"
+              label="Preferred date & time"
               value={preferredWhen(result.summary)}
               className="sm:col-span-2"
             />
@@ -586,7 +622,7 @@ function Recorded({
   className,
 }: {
   label: string;
-  value: string | null;
+  value: React.ReactNode;
   className?: string;
 }) {
   return (
@@ -617,11 +653,16 @@ function formatInstantTime(iso: string): string {
     .toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
-/** One line: the calendar date the Organiser asked for, and the slots on it. */
-function preferredWhen(summary: SubmitEventRequestResult["summary"]): string | null {
-  if (!summary.preferredDate || summary.preferredSlots.length === 0) {
+/** One line: the calendar date the Organiser asked for, and the time on it in theirs. */
+function preferredWhen(summary: SubmitEventRequestResult["summary"]): React.ReactNode {
+  const range = preferredTimeRange(summary);
+  if (range === null) {
     return null;
   }
 
-  return `${formatCalendarDate(summary.preferredDate)}, ${summary.preferredSlots.join(", ")}`;
+  return (
+    <>
+      {formatCalendarDate(range.date)}, <EventTimes times={[range]} />
+    </>
+  );
 }

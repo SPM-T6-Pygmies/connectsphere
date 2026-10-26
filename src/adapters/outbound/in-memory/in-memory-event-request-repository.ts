@@ -1,11 +1,11 @@
 import type { ClientOrganisationId } from "@/core/domain/client-organisation";
 import {
   eventRequestId,
+  preferredTimeRange,
   type EventRequest,
   type EventRequestId,
   type NewEventRequest,
 } from "@/core/domain/event-request";
-import { SLOT_HOURS } from "@/core/domain/booking";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { ClarificationMessageId } from "@/core/domain/clarification-message";
@@ -81,14 +81,15 @@ export class InMemoryEventRequestRepository implements EventRequestRepository {
     return this.rows.get(id) ?? null;
   }
 
-  /** An approved request's event runs at its preferred slots' hours, as approval copies them. */
+  /** An approved request's event runs at its preferred time, as approval copies it. */
   async findEventTimes(id: EventRequestId): Promise<readonly TimeRangeOnDate[] | null> {
     const request = this.rows.get(id);
     const date = request?.details.preferredDate;
     if (request?.status !== "Approved" || date == null) {
       return null;
     }
-    return request.details.preferredSlots.map((slot) => ({ date, ...SLOT_HOURS[slot] }));
+    const range = preferredTimeRange(request.details);
+    return range === null ? [] : [range];
   }
 
   async findEventArrangements(id: EventRequestId): Promise<OrganiserEventArrangements | null> {

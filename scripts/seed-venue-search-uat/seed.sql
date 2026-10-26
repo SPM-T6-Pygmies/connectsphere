@@ -10,11 +10,13 @@
 -- D below is the booking day: 14 days after today in Singapore, so it is
 -- inside both venues' 60-day booking horizon whenever the cases are run.
 --
---   UAT-44 Harbour Room  slots AM, PM, Night; horizon 60, venue capacity 250
+--   UAT-44 Harbour Room  open 07:00-24:00 (once AM, PM and Night); horizon 60,
+--                        venue capacity 250
 --                        Theatre 200, Boardroom 20
 --                        Wi-Fi, Video-conferencing / Step-free access, Hearing loop
 --                        Confirmed booking on D, PM
---   UAT-44 Garden Hall   slots AM, PM; horizon 60, venue capacity 500
+--   UAT-44 Garden Hall   open 07:00-18:00 (once AM and PM); horizon 60,
+--                        venue capacity 500
 --                        Banquet 150, Classroom 80
 --                        Catering area / Lift access
 --                        Rejected booking on D, AM (must not block)
@@ -55,10 +57,10 @@ begin
       booking_horizon_days)
     values ('UAT-44 Harbour Room', 250, 'Wi-Fi, Video-conferencing', 'Step-free access, Hearing loop', 60)
     returning venue_id into v_harbour;
-    -- Opening hours as 15-minute slots (SPM-320): 07:00-12:00, 13:00-18:00 and 19:00-24:00.
+    -- Opening hours as 15-minute slots, AM, PM and Night joined into one
+    -- window as they convert (SPM-320 AC4): 07:00-24:00.
     insert into public.venue_slot (venue_id, slot_code)
-    select v_harbour, n::text from generate_series(28, 95) n
-    where n between 28 and 47 or n between 52 and 71 or n between 76 and 95;
+    select v_harbour, n::text from generate_series(28, 95) as n;
     insert into public.venue_supported_layout (venue_id, room_layout_id, capacity)
     select v_harbour, room_layout_id, c.capacity
     from (values ('Theatre', 200), ('Boardroom', 20)) c(name, capacity)
@@ -71,10 +73,9 @@ begin
       booking_horizon_days)
     values ('UAT-44 Garden Hall', 500, 'Catering area', 'Lift access', 60)
     returning venue_id into v_garden;
-    -- Open 07:00-12:00 and 13:00-18:00 (no evening).
+    -- AM and PM joined: 07:00-18:00.
     insert into public.venue_slot (venue_id, slot_code)
-    select v_garden, n::text from generate_series(28, 71) n
-    where n between 28 and 47 or n between 52 and 71;
+    select v_garden, n::text from generate_series(28, 71) as n;
     insert into public.venue_supported_layout (venue_id, room_layout_id, capacity)
     select v_garden, room_layout_id, c.capacity
     from (values ('Banquet', 150), ('Classroom', 80)) c(name, capacity)

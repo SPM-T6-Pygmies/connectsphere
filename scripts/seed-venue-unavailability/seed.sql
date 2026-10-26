@@ -2,12 +2,12 @@
 -- coordinator's venue search and the booking refusal can be tried in the app:
 --
 --   Main Hall   Renovation   09:00-11:30 on five days, starting 14 days from today
---   Main Hall   Maintenance  every open hour (07:00-12:00, 13:00-18:00, 19:00-24:00) on the
+--   Main Hall   Maintenance  every open hour (07:00-24:00) on the
 --                            middle day of that week, so 09:00-11:30 that day is covered by two blocks
 --   Studio      Safety       13:00-18:00 on one day, already lifted
 --
--- Blocks are 15-minute slots (SPM-321): 09:00-11:30 is codes 36-45; 07:00-12:00 is 28-47,
--- 13:00-18:00 is 52-71 and 19:00-24:00 is 76-95. Needs the venues' opening hours from seed-venues.
+-- Blocks are 15-minute slots (SPM-321): 09:00-11:30 is codes 36-45, 13:00-18:00 is 52-71 and
+-- 07:00-24:00 is 28-95. Needs the venues' opening hours from seed-venues.
 --
 -- Dates are relative to today so the seed never goes stale. Needs the venues
 -- from seed-venues and the Venue Staff account from the base seed. Run
@@ -58,8 +58,7 @@ begin
     returning venue_unavailability_id into v_block;
     insert into public.venue_unavailability_slot (venue_unavailability_id, slot_date, slot)
     select v_block, v_start + 2, n::text
-    from generate_series(28, 95) n
-    where n between 28 and 47 or n between 52 and 71 or n between 76 and 95;
+    from generate_series(28, 95) n;
   end if;
 
   if not exists (select 1 from public.venue_unavailability

@@ -203,10 +203,7 @@ describe("ViewOrganiserEventRequestUseCase event times (SPM-326)", () => {
       clientOrganisationId: ORG_A,
     });
 
-    expect(result?.eventTimes).toEqual([
-      { date: "2026-11-04", start: "07:00", end: "12:00" },
-      { date: "2026-11-04", start: "13:00", end: "18:00" },
-    ]);
+    expect(result?.eventTimes).toEqual([{ date: "2026-11-04", start: "09:00", end: "17:00" }]);
   });
 
   it("has no event times while the request is still being decided", async () => {

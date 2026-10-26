@@ -10,19 +10,27 @@ import type { ReactNode } from "react"
  */
 export function PageHeader({
   title,
+  titleNote,
   description,
   actions,
 }: {
   title: string
+  /** Small text beside the title, e.g. a venue's setup and turnaround. */
+  titleNote?: string
   description?: string
   actions?: ReactNode
 }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="space-y-1">
-        <h1 className="font-heading text-xl font-semibold tracking-tight">
-          {title}
-        </h1>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 className="font-heading text-xl font-semibold tracking-tight">
+            {title}
+          </h1>
+          {titleNote ? (
+            <span className="text-sm text-muted-foreground">{titleNote}</span>
+          ) : null}
+        </div>
         {description ? (
           <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}

@@ -1,4 +1,3 @@
-import type { BookingSlot } from "../../domain/booking";
 import type { Connection } from "../../domain/connection";
 import type { ConfirmedEquipmentLine } from "../../domain/event-readiness";
 import type { TimeRangeOnDate } from "../../domain/event-times";
@@ -23,7 +22,9 @@ export interface EventCoordinatorAssignedNotice {
   readonly eventName: string;
   readonly clientOrganisationName: string | null;
   readonly preferredDate: string | null;
-  readonly preferredSlots: readonly BookingSlot[];
+  /** `HH:MM`, venue time (SPM-327); null when the request has no time yet. */
+  readonly preferredStartTime: string | null;
+  readonly preferredEndTime: string | null;
 }
 
 /**
