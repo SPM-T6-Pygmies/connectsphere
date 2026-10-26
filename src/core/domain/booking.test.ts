@@ -348,7 +348,7 @@ describe("decideBooking (SPM-22)", () => {
   };
 
   it("approving confirms the booking and records who decided", () => {
-    expect(decideBooking(waiting, { kind: "approve" }, staff, [], NOW)).toEqual({
+    expect(decideBooking(waiting, { kind: "approve" }, staff, NOW)).toEqual({
       id: waiting.id,
       status: "Confirmed",
       decidedBy: staff,
@@ -357,63 +357,12 @@ describe("decideBooking (SPM-22)", () => {
     });
   });
 
-  it("approving is blocked when another booking holds one of its slots", () => {
-    for (const status of ["Confirmed", "Tentative Hold"] as const) {
-      expect(() =>
-        decideBooking(waiting, { kind: "approve" }, staff, [occupied("2026-10-22", "PM", status)], NOW),
-      ).toThrow(VenueSlotUnavailableError);
-    }
-  });
-
-  it("approving is blocked by a hold that has not expired yet", () => {
-    expect(() =>
-      decideBooking(
-        waiting,
-        { kind: "approve" },
-        staff,
-        [occupied("2026-10-22", "AM", "Tentative Hold", AFTER_NOW)],
-        NOW,
-      ),
-    ).toThrow(VenueSlotUnavailableError);
-  });
-
-  it("approving is not blocked by a hold that expired before now", () => {
-    expect(
-      decideBooking(
-        waiting,
-        { kind: "approve" },
-        staff,
-        [occupied("2026-10-22", "AM", "Tentative Hold", BEFORE_NOW)],
-        NOW,
-      ).status,
-    ).toBe("Confirmed");
-  });
-
-  it("approving is not blocked by requests, rejections or releases on the same slot", () => {
-    const others = (["Requested", "Rejected", "Released", "Cancelled"] as const).map((status) =>
-      occupied("2026-10-22", "AM", status),
-    );
-
-    expect(decideBooking(waiting, { kind: "approve" }, staff, others, NOW).status).toBe("Confirmed");
-  });
-
-  it("approving is not blocked by a hold on a different slot or day", () => {
-    const elsewhere = [
-      occupied("2026-10-22", "Night", "Confirmed"),
-      occupied("2026-10-23", "AM", "Confirmed"),
-    ];
-
-    expect(decideBooking(waiting, { kind: "approve" }, staff, elsewhere, NOW).status).toBe("Confirmed");
-  });
-
   it("rejecting keeps the trimmed reason and the suggested alternative", () => {
     expect(
       decideBooking(
         waiting,
         { kind: "reject", reason: "  Closed for maintenance  ", suggestedAlternative: venueId("v2") },
-        staff,
-        [],
-        NOW,
+        staff, NOW,
       ),
     ).toEqual({
       id: waiting.id,
@@ -427,28 +376,19 @@ describe("decideBooking (SPM-22)", () => {
   it("rejecting without a reason is refused", () => {
     for (const reason of ["", "   "]) {
       expect(() =>
-        decideBooking(waiting, { kind: "reject", reason, suggestedAlternative: null }, staff, [], NOW),
+        decideBooking(waiting, { kind: "reject", reason, suggestedAlternative: null }, staff, NOW),
       ).toThrow(DecisionReasonRequiredError);
     }
-  });
-
-  it("rejecting is not held up by a clash, since it holds nothing", () => {
-    const taken = [occupied("2026-10-22", "AM", "Confirmed")];
-
-    expect(
-      decideBooking(waiting, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, taken, NOW)
-        .status,
-    ).toBe("Rejected");
   });
 
   it("refuses a booking that is no longer waiting, whichever way it is decided", () => {
     for (const status of ["Tentative Hold", "Confirmed", "Rejected", "Released", "Cancelled"] as const) {
       const decided = { ...waiting, status };
-      expect(() => decideBooking(decided, { kind: "approve" }, staff, [], NOW)).toThrow(
+      expect(() => decideBooking(decided, { kind: "approve" }, staff, NOW)).toThrow(
         BookingNotDecidableError,
       );
       expect(() =>
-        decideBooking(decided, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, [], NOW),
+        decideBooking(decided, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, NOW),
       ).toThrow(BookingNotDecidableError);
     }
   });
@@ -472,7 +412,7 @@ describe("decideBooking placing a hold (SPM-218)", () => {
   });
 
   it("holding a request puts it on hold, records who, and expires it 72 hours after now (AC1)", () => {
-    const decided = decideBooking(waiting, hold, staff, [], NOW);
+    const decided = decideBooking(waiting, hold, staff, NOW);
 
     expect(decided).toEqual({
       id: waiting.id,
@@ -487,56 +427,16 @@ describe("decideBooking placing a hold (SPM-218)", () => {
 
   it("only a request still waiting can be held, whatever its status is (AC1)", () => {
     for (const status of ["Tentative Hold", "Confirmed", "Rejected", "Released", "Cancelled"] as const) {
-      expect(() => decideBooking({ ...waiting, status }, hold, staff, [], NOW)).toThrow(
+      expect(() => decideBooking({ ...waiting, status }, hold, staff, NOW)).toThrow(
         BookingNotDecidableError,
       );
     }
   });
 
-  it("is refused when a Confirmed booking or a live hold has one of its slots, naming it (AC2)", () => {
-    const confirmed = occupied("2026-10-22", "PM", "Confirmed");
-    const live = occupied("2026-10-22", "AM", "Tentative Hold", AFTER_NOW);
-
-    expect(() => decideBooking(waiting, hold, staff, [confirmed], NOW)).toThrow(VenueSlotUnavailableError);
-    expect(() => decideBooking(waiting, hold, staff, [live], NOW)).toThrow(VenueSlotUnavailableError);
-    try {
-      decideBooking(waiting, hold, staff, [confirmed, live], NOW);
-      expect.unreachable();
-    } catch (error) {
-      expect((error as VenueSlotUnavailableError).times).toEqual([
-        { date: "2026-10-22", start: "07:00", end: "12:00" },
-        { date: "2026-10-22", start: "13:00", end: "18:00" },
-      ]);
-    }
-  });
-
-  it("is not refused by a hold that has already expired, nor one expiring exactly now (AC2)", () => {
-    expect(
-      decideBooking(waiting, hold, staff, [occupied("2026-10-22", "AM", "Tentative Hold", BEFORE_NOW)], NOW).status,
-    ).toBe("Tentative Hold");
-    expect(
-      decideBooking(waiting, hold, staff, [occupied("2026-10-22", "AM", "Tentative Hold", NOW)], NOW).status,
-    ).toBe("Tentative Hold");
-  });
-
-  it("is not refused by a request still waiting, or by a rejected, released or cancelled booking (AC2)", () => {
-    const others = (["Requested", "Rejected", "Released", "Cancelled"] as const).map((status) =>
-      occupied("2026-10-22", "AM", status),
-    );
-
-    expect(decideBooking(waiting, hold, staff, others, NOW).status).toBe("Tentative Hold");
-  });
-
-  it("is not refused by a booking on a different slot or day (AC2)", () => {
-    const elsewhere = [occupied("2026-10-22", "Night", "Confirmed"), occupied("2026-10-23", "AM", "Confirmed")];
-
-    expect(decideBooking(waiting, hold, staff, elsewhere, NOW).status).toBe("Tentative Hold");
-  });
-
   it("needs no reason, and approving or rejecting still carry no expiry", () => {
-    expect(decideBooking(waiting, { kind: "approve" }, staff, [], NOW).holdExpiresAt).toBeUndefined();
+    expect(decideBooking(waiting, { kind: "approve" }, staff, NOW).holdExpiresAt).toBeUndefined();
     expect(
-      decideBooking(waiting, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, [], NOW)
+      decideBooking(waiting, { kind: "reject", reason: "No", suggestedAlternative: null }, staff, NOW)
         .holdExpiresAt,
     ).toBeUndefined();
   });
@@ -712,21 +612,21 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
   const SEVENTY_TWO_HOURS = DEFAULT_HOLD_HOURS * 60 * 60 * 1000;
 
   it("expires at the slot's start when that is sooner than 72 hours (AC7)", () => {
-    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), hold, staff, [], NOW);
+    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), hold, staff, NOW);
 
     expect(decided.holdExpiresAt).toEqual(new Date("2026-10-02T07:00:00+08:00"));
   });
 
   it("keeps the 72-hour default when the slot starts later than that (AC7)", () => {
-    const decided = decideBooking(waitingOn({ date: "2026-10-22", slot: "AM" }), hold, staff, [], NOW);
+    const decided = decideBooking(waitingOn({ date: "2026-10-22", slot: "AM" }), hold, staff, NOW);
 
     expect(decided.holdExpiresAt!.getTime() - NOW.getTime()).toBe(SEVENTY_TWO_HOURS);
   });
 
   it("is capped at the slot's start when the slot starts exactly 72 hours out (AC7 boundary)", () => {
     // 2026-10-04 09:00 is exactly 72 hours after NOW; no slot starts then, so use a PM-before and an AM-after.
-    const justBefore = decideBooking(waitingOn({ date: "2026-10-04", slot: "AM" }), hold, staff, [], NOW);
-    const justAfter = decideBooking(waitingOn({ date: "2026-10-04", slot: "PM" }), hold, staff, [], NOW);
+    const justBefore = decideBooking(waitingOn({ date: "2026-10-04", slot: "AM" }), hold, staff, NOW);
+    const justAfter = decideBooking(waitingOn({ date: "2026-10-04", slot: "PM" }), hold, staff, NOW);
 
     expect(justBefore.holdExpiresAt).toEqual(new Date("2026-10-04T07:00:00+08:00"));
     expect(justAfter.holdExpiresAt).toEqual(new Date("2026-10-04T09:00:00+08:00"));
@@ -736,20 +636,18 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
     const decided = decideBooking(
       waitingOn({ date: "2026-10-03", slot: "PM" }, { date: "2026-10-02", slot: "PM" }),
       hold,
-      staff,
-      [],
-      NOW,
+      staff, NOW,
     );
 
     expect(decided.holdExpiresAt).toEqual(new Date("2026-10-02T13:00:00+08:00"));
   });
 
   it("refuses a hold on a slot that has started, or starts this instant (AC7)", () => {
-    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "AM" }), hold, staff, [], NOW)).toThrow(
+    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "AM" }), hold, staff, NOW)).toThrow(
       HoldSlotStartedError,
     );
     const startsNow = new Date("2026-10-01T13:00:00+08:00");
-    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "PM" }), hold, staff, [], startsNow)).toThrow(
+    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "PM" }), hold, staff, startsNow)).toThrow(
       HoldSlotStartedError,
     );
   });
@@ -759,15 +657,13 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
       decideBooking(
         waitingOn({ date: "2026-10-01", slot: "AM" }, { date: "2026-10-05", slot: "AM" }),
         hold,
-        staff,
-        [],
-        NOW,
+        staff, NOW,
       ),
     ).toThrow(HoldSlotStartedError);
   });
 
   it("does not cap or refuse an approval: only a hold lapses (AC7)", () => {
-    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), { kind: "approve" }, staff, [], NOW);
+    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), { kind: "approve" }, staff, NOW);
 
     expect(decided.status).toBe("Confirmed");
     expect(decided.holdExpiresAt).toBeUndefined();
