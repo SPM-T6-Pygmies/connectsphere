@@ -325,7 +325,7 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 A venue now opens once a day, so the *(closed in between)* mark on an end time can no longer arise.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by Claude Code, after Main Hall became one window (SPM-320)
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by joyceetran, after Main Hall became one window (SPM-320)
 
 **Screenshots:** [step3-one-window-end-times-open](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-009_step3-one-window-end-times-open.jpg)
 
@@ -348,7 +348,7 @@ Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): 
 **Expected Result:**
 - Step 3: refused with *The venue is closed 11:00–11:30, so it cannot be blocked then. Choose times within its opening hours (07:00–11:00).* The form still shows the venue and times chosen, and nothing is saved for 2026-12-28.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by Claude Code, with the hours changed and restored through the venue form; no block slot was saved for 2026-12-28 and Harbour Room was back to 07:00–24:00
+**Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by joyceetran, with the hours changed and restored through the venue form; no block slot was saved for 2026-12-28 and Harbour Room was back to 07:00–24:00
 
 **Screenshots:** [step3-refused-naming-11-00-11-30](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-010_step3-refused-naming-11-00-11-30.jpg)
 

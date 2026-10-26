@@ -244,7 +244,7 @@ day), that block is what flags the neighbours: run the teardown and seed command
 **Expected Result:**
 - None shows a **Flagged for review** section.
 
-**Status:** [x] Pass [ ] Fail — 25/10/2026, run in Chrome via Claude in Chrome by Claude Code, on the one-window build after a fresh reset and the Setup seeds (F = 2026-11-22). TC-VFLAG-001 step 1 recorded the one block first, and its overlap list named only Tech Summit; `blocks.sql` listed that block alone. Each of the three still reads **Confirmed**.
+**Status:** [x] Pass [ ] Fail — 25/10/2026, run in Chrome via Claude in Chrome by joyceetran, on the one-window build after a fresh reset and the Setup seeds (F = 2026-11-22). TC-VFLAG-001 step 1 recorded the one block first, and its overlap list named only Tech Summit; `blocks.sql` listed that block alone. Each of the three still reads **Confirmed**.
 
 **Screenshots:** [step1-coordinator-2-workshop](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_step1-coordinator-2-workshop.jpg) · [step1-coordinator-2-gala](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_step1-coordinator-2-gala.jpg) · [step1-coordinator-2-quiz](../screenshots/2026-10-25_SPM-320_TC-VFLAG-004_step1-coordinator-2-quiz.jpg)
 
