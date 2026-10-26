@@ -45,6 +45,7 @@ function booking(
     holdExpiresAt: null,
     rejectionNote: null,
     suggestedAlternativeLocation: null,
+    replaces: null,
     event: {
       id: "e1",
       requestId: "r1",
