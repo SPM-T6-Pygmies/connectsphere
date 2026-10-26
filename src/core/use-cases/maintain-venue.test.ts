@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
+import { InMemoryVenueChangeReview } from "@/adapters/outbound/in-memory/in-memory-venue-change-review";
 
 import {
   InvalidVenueError,
@@ -18,7 +20,11 @@ function build() {
   return {
     venues,
     create: new CreateVenueUseCase({ venues }),
-    update: new UpdateVenueUseCase({ venues }),
+    update: new UpdateVenueUseCase({
+      venues,
+      review: new InMemoryVenueChangeReview(),
+      clock: new FixedClock(new Date("2026-10-23T10:00:00+08:00")),
+    }),
     list: new ListVenuesUseCase({ venues }),
     view: new ViewVenueUseCase({ venues }),
   };
@@ -30,7 +36,7 @@ function newVenue(overrides: Partial<CreateVenueCommand> = {}): CreateVenueComma
     location: "Marina Bay Hall",
     facilities: "Wi-Fi",
     accessibility: "Step-free access",
-    openingHours: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }, { start: "19:00", end: "24:00" }],
+    openingHours: [{ start: "07:00", end: "24:00" }],
     capacity: 300,
     bookingHorizonDays: 180,
     setupMinutes: null,

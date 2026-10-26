@@ -1,19 +1,13 @@
-import {
-  clashingTimes,
-  type BookingId,
-  type DecidedBooking,
-  type ResolvedHold,
-} from "@/core/domain/booking";
+import type { BookingId, DecidedBooking, ResolvedHold } from "@/core/domain/booking";
 import {
   BookingNotDecidableError,
   BookingNotFoundError,
   DecisionReasonRequiredError,
   HoldNotLiveError,
+  VenuePaddedClashError,
   VenueSlotBlockedError,
-  VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
-import { venueId } from "@/core/domain/venue";
 import type {
   BookingForReview,
   BookingReviewRepository,
@@ -35,10 +29,12 @@ import { SupabaseBookingRepository } from "./supabase-booking-repository";
 const NOT_FOUND = "CS030";
 const NOT_DECIDABLE = "CS031";
 const REASON_REQUIRED = "CS032";
-const SLOT_TAKEN = "CS025";
 // A Venue Staff block covers one of the booking's slots (SPM-22), the same
 // code the booking_slot trigger raises for a request.
 const SLOT_BLOCKED = "CS028";
+// SPM-19: the booking's setup or turnaround time overlaps another live booking's. The clashes come as JSON in
+// the error detail: `[{ event, date, start, end }]`.
+const PADDED_CLASH = "CS082";
 // SQLSTATE raised by venue_staff_resolve_hold (SPM-219): not a live hold. CS030 is its not-found,
 // and CS028 (above) its refusal to confirm over a block.
 const HOLD_NOT_LIVE = "CS074";
@@ -97,10 +93,10 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
         throw new BookingNotDecidableError();
       case REASON_REQUIRED:
         throw new DecisionReasonRequiredError();
-      case SLOT_TAKEN:
-        throw new VenueSlotUnavailableError(await this.takenBy(decided));
       case SLOT_BLOCKED:
         throw new VenueSlotBlockedError(await this.blockedBy(decided.id, decided.decidedBy, error.message));
+      case PADDED_CLASH:
+        throw new VenuePaddedClashError(toPaddedClashes(error.details));
       default:
         throw new Error(`Failed to decide the booking: ${error.message}`, { cause: error });
     }
@@ -170,15 +166,23 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
   }
 
   /** Which of the booking's times were taken, for a message that names them. */
-  private async takenBy(decided: DecidedBooking) {
-    const booking = await this.find(decided.decidedBy, decided.id);
-    if (booking === null) {
-      return [];
-    }
-    const occupied = await this.bookings.listSlotsAt(
-      venueId(booking.venueId),
-      [...new Set(booking.times.map(({ date }) => date))],
-    );
-    return clashingTimes(booking.times, occupied, new Date());
-  }
+}
+
+/** The clashes the decide function names in its error detail (CS082). */
+function toPaddedClashes(details: string | null | undefined) {
+  const rows = JSON.parse(details ?? "[]") as ReadonlyArray<{
+    event: string;
+    date: string;
+    start: string;
+    end: string;
+    /** Set when the booking in the way is a Tentative Hold: when it expires, or null. */
+    holdExpiresAt?: string | null;
+  }>;
+  return rows.map(({ event, date, start, end, holdExpiresAt }) => ({
+    eventName: event,
+    date,
+    start,
+    end,
+    hold: holdExpiresAt === undefined ? null : { expiresAt: holdExpiresAt },
+  }));
 }
