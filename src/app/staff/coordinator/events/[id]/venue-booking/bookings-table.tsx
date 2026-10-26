@@ -34,9 +34,12 @@ export function BookingsTable({
   suitability,
   openedBookingId,
   flags,
+  reRequestsWaiting,
 }: {
   /** SPM-313: the event's open flags; a booking with some shows a Flagged badge. */
   flags: readonly EventBookingFlag[];
+  /** SPM-251 AC9: flagged bookings with a re-request waiting, which offer none. */
+  reRequestsWaiting: readonly string[];
   bookings: readonly EventBookingSummary[];
   venues: readonly Venue[];
   event: CoordinatorEventDetails;
@@ -70,6 +73,9 @@ export function BookingsTable({
         {bookings.map((booking) => {
           const venue = venues.find((candidate) => candidate.id === booking.venueId);
           const verdict = suitability[booking.id];
+          // SPM-251: a re-request and the booking it replaced name each other.
+          const replaces = bookings.find((other) => other.id === booking.replacesBookingId);
+          const replacedBy = bookings.find((other) => other.id === booking.replacedByBookingId);
 
           return (
             <TableRow
@@ -85,6 +91,16 @@ export function BookingsTable({
                     On hold until {formatHoldExpiry(booking.holdExpiresAt)}
                   </div>
                 ) : null}
+                {replaces === undefined ? null : (
+                  <div className="text-muted-foreground text-xs font-normal">
+                    Re-request for {replaces.venueLocation}
+                  </div>
+                )}
+                {replacedBy === undefined ? null : (
+                  <div className="text-muted-foreground text-xs font-normal">
+                    Replaced by {replacedBy.venueLocation}
+                  </div>
+                )}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs whitespace-normal">
                 {formatTimes(booking.times)}
@@ -123,6 +139,7 @@ export function BookingsTable({
                       <FlaggedBadge
                         flags={flags.filter((flag) => flag.bookingId === booking.id)}
                         eventId={event.id}
+                        reRequestWaiting={reRequestsWaiting.includes(booking.id)}
                       />
                     </div>
                   ) : null}

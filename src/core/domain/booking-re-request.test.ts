@@ -8,7 +8,7 @@ import {
   type BookingStatus,
   type OccupiedTime,
 } from "./booking";
-import { bookingToReplace, reRequestPending } from "./booking-review-flag";
+import { bookingToReplace, reRequestDraft, reRequestPending } from "./booking-review-flag";
 import {
   CancelledEventBookingError,
   NoFlagToReRequestError,
@@ -176,5 +176,47 @@ describe("decideBooking on a re-request (SPM-251)", () => {
     expect(decideBooking({ ...reRequested, replaces: null }, { kind: "hold" }, staff, NOW).status).toBe(
       "Tentative Hold",
     );
+  });
+});
+
+describe("reRequestDraft (SPM-251)", () => {
+  const flagged = {
+    venueId: venueId("5"),
+    roomLayoutName: "Theatre",
+    times: [{ date: "2026-11-16", start: "13:00", end: "18:00" }],
+  };
+  const hall = { layouts: [{ name: "Theatre", capacity: 200 }, { name: "Banquet", capacity: 120 }] };
+  const moved = [
+    { date: "2026-11-17", start: "09:00", end: "12:00" },
+    { date: "2026-11-18", start: "09:00", end: "12:00" },
+  ];
+
+  it("AC2: starts at the booking's venue, from the event's current times, one per date", () => {
+    expect(reRequestDraft({ times: moved, roomLayoutPreference: null }, flagged, hall)).toEqual({
+      venueId: "5",
+      roomLayout: "Theatre",
+      times: moved,
+    });
+  });
+
+  it("AC2: falls back to the booking's own times when the event has none", () => {
+    expect(reRequestDraft({ times: [], roomLayoutPreference: null }, flagged, hall).times).toEqual(flagged.times);
+  });
+
+  it("AC2: takes the event's layout preference when the venue supports it, whatever its case", () => {
+    expect(reRequestDraft({ times: moved, roomLayoutPreference: " banquet" }, flagged, hall).roomLayout).toBe("Banquet");
+  });
+
+  it("AC2: keeps the booking's layout when the venue does not support the preference", () => {
+    expect(reRequestDraft({ times: moved, roomLayoutPreference: "Cabaret" }, flagged, hall).roomLayout).toBe("Theatre");
+  });
+
+  it("AC2: takes a venue's only layout, and none when nothing fits a venue with several", () => {
+    const noLayout = { ...flagged, roomLayoutName: null };
+    expect(reRequestDraft({ times: moved, roomLayoutPreference: null }, noLayout, { layouts: [{ name: "Classroom", capacity: 30 }] }).roomLayout).toBe(
+      "Classroom",
+    );
+    expect(reRequestDraft({ times: moved, roomLayoutPreference: null }, noLayout, hall).roomLayout).toBeNull();
+    expect(reRequestDraft({ times: moved, roomLayoutPreference: null }, noLayout, undefined).roomLayout).toBeNull();
   });
 });

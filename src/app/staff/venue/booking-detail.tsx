@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, CheckIcon, ClockIcon } from "lucide-react";
+import { AlertTriangleIcon, CheckIcon, ClockIcon, RefreshCwIcon } from "lucide-react";
 import { forbidden } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -124,6 +124,21 @@ export async function BookingDetail({
         }`}
         actions={<StatusBadge status={booking.status} />}
       />
+
+      {booking.replaces === null ? null : (
+        // SPM-251 AC4: a re-request says which flagged booking it replaces.
+        <Alert role="status">
+          <RefreshCwIcon />
+          <AlertTitle>
+            Replaces: {booking.replaces.venueLocation}, {formatTimes(booking.replaces.times)} (
+            {booking.replaces.status})
+          </AlertTitle>
+          <AlertDescription>
+            The coordinator re-requested a flagged booking. Approving this one releases that booking.
+            A re-request can be approved or rejected, not held.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {occupied === null ? null : (
         <Alert
@@ -259,6 +274,7 @@ export async function BookingDetail({
               ) : (
                 <DecisionForm
                   bookingId={booking.id}
+                  canHold={booking.replaces === null}
                   alternatives={alternatives.map((candidate) => ({
                     id: candidate.id,
                     location: candidate.location,

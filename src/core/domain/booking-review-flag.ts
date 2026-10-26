@@ -1,8 +1,9 @@
 import { holdsSlot, type BookingStatus } from "./booking";
 import { NoFlagToClearError, NoFlagToReRequestError, ReRequestPendingError } from "./errors";
 import { joinSlotCodes, slotCodeRange, type SlotCodeOnDate } from "./slot-grid";
+import type { TimeRangeOnDate } from "./event-times";
 import { fromMinutes } from "./time-of-day";
-import type { VenueId } from "./venue";
+import type { Venue, VenueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
 /** The reason code for a booking flagged because a block covers it (SPM-313). */
@@ -179,4 +180,35 @@ export function bookingToReplace(
     throw new ReRequestPendingError(bookingId);
   }
   return bookingId;
+}
+
+/** SPM-251 AC2: what the re-request form starts from. */
+export interface ReRequestDraft {
+  readonly venueId: VenueId;
+  readonly roomLayout: string | null;
+  readonly times: readonly TimeRangeOnDate[];
+}
+
+/**
+ * SPM-251 AC2: a re-request starts from the event as it is now, not as it was booked: its
+ * current times, or the booking's when the event has none, at the booking's own venue. The
+ * layout is the event's preference if that venue supports it, else the booking's layout, else
+ * the venue's only one. The coordinator can change any of it before sending (AC3).
+ */
+export function reRequestDraft(
+  event: { readonly times: readonly TimeRangeOnDate[]; readonly roomLayoutPreference: string | null },
+  flagged: { readonly venueId: VenueId; readonly roomLayoutName: string | null; readonly times: readonly TimeRangeOnDate[] },
+  venue: Pick<Venue, "layouts"> | undefined,
+): ReRequestDraft {
+  const supported = (name: string | null) =>
+    name === null
+      ? undefined
+      : venue?.layouts.find((layout) => layout.name.toLowerCase() === name.trim().toLowerCase())?.name;
+  const onlyLayout = venue?.layouts.length === 1 ? venue.layouts[0].name : undefined;
+
+  return {
+    venueId: flagged.venueId,
+    roomLayout: supported(event.roomLayoutPreference) ?? supported(flagged.roomLayoutName) ?? onlyLayout ?? null,
+    times: event.times.length > 0 ? event.times : flagged.times,
+  };
 }
