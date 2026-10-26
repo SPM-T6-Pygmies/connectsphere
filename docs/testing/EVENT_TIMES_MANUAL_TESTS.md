@@ -59,12 +59,16 @@ run in the PR description's `## Manual test results` table.
                                     then current_date - 1 else current_date + 14 end
         where event_request_id = r.event_request_id;
        delete from event_request_slot where event_request_id = r.event_request_id;
+       -- 15-minute codes since SPM-327: Night is '76'-'95', AM '28'-'47' and
+       -- PM '52'-'71'. The request form only makes one span; writing AM and
+       -- PM here keeps the lunch gap, so the event gets two ranges.
        if r.event_name = 'Vendor Appreciation Day' then
-         insert into event_request_slot values (r.event_request_id, current_date - 1, 'Night');
+         insert into event_request_slot
+         select r.event_request_id, current_date - 1, n::text from generate_series(76, 95) n;
        else
-         insert into event_request_slot values
-           (r.event_request_id, current_date + 14, 'AM'),
-           (r.event_request_id, current_date + 14, 'PM');
+         insert into event_request_slot
+         select r.event_request_id, current_date + 14, n::text
+         from generate_series(28, 71) n where n not between 48 and 51;
        end if;
        perform coordinator_decide_event_request(r.event_request_id, v_coordinator, 'Approved', null);
      end loop;

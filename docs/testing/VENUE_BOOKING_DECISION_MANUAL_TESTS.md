@@ -184,8 +184,9 @@ select b.booking_id, v.location, b.status, e.name
 
 **Expected Result:**
 - Step 1: Confirmed, as in TC-VBDECIDE-004
-- Step 2: an error reads "The venue is already booked for 2026-12-15 AM. Choose
-  other slots or another venue."
+- Step 2: an error reads "This booking is blocked by <event A> on <date>,
+  <times>, counting setup and turnaround time. Choose other times or another
+  venue." (wording changed by SPM-19 on 2026-10-25; not re-run since)
 - After reload event B's booking is still **Requested**
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau

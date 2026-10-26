@@ -114,7 +114,8 @@ describe("ReassignEventCoordinatorUseCase (SPM-257)", () => {
         eventName: "Venue Safety Review",
         clientOrganisationName: "Acme Holdings",
         preferredDate: "2026-11-04",
-        preferredSlots: [],
+        preferredStartTime: null,
+        preferredEndTime: null,
       },
     ]);
     expect(notifier.organiserCoordinatorAssignments).toEqual([

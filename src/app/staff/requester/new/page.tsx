@@ -1,8 +1,6 @@
 import { forbidden } from "next/navigation";
 
 import { buildViewOrganiserEventRequest, getCurrentOrganiser } from "@/composition/container";
-import { formatOptionList } from "@/core/domain/venue-options";
-
 import { StaffShell } from "../../staff-shell";
 import type { FormValues } from "./form-fields";
 import { NewRequestForm } from "./new-request-form";
@@ -38,7 +36,8 @@ async function draftFor(
       description: details.description ?? "",
       purpose: details.purpose ?? "",
       preferredDate: details.preferredDate ?? "",
-      preferredSlots: formatOptionList(details.preferredSlots),
+      preferredStartTime: details.preferredStartTime ?? "",
+      preferredEndTime: details.preferredEndTime ?? "",
       expectedAttendance: details.expectedAttendance?.toString() ?? "",
       venueRequirements: details.venueRequirements ?? "",
       roomLayoutPreferences: details.roomLayoutPreferences ?? "",
