@@ -22,6 +22,9 @@ function fakeClient(answers: Record<string, RpcResult>) {
 
 const BOOKING_ROW = {
   booking_id: 812,
+  event_id: 40,
+  event_name: "Harbour Lights Gala",
+  coordinator_user_account_id: 3,
   status: "Tentative Hold",
   hold_expires_at: "2026-11-01T02:00:00Z",
   room_layout_name: "Banquet",
@@ -41,6 +44,9 @@ describe("SupabaseVenueChangeReview (SPM-105)", () => {
     expect(bookings).toEqual([
       {
         id: "812",
+        eventId: "40",
+        eventName: "Harbour Lights Gala",
+        coordinatorUserAccountId: "3",
         status: "Tentative Hold",
         holdExpiresAt: new Date("2026-11-01T02:00:00Z"),
         slots: [{ date: "2026-11-16", slot: "52" }],
@@ -91,5 +97,17 @@ describe("SupabaseVenueChangeReview (SPM-105)", () => {
     await expect(new SupabaseVenueChangeReview(client).bookingsAt(venueId("5"))).rejects.toThrow(
       /Failed to read the venue's bookings: boom/,
     );
+  });
+});
+
+describe("SupabaseVenueChangeReview (SPM-71)", () => {
+  it("AC6: reads an event with no coordinator as nobody to tell", async () => {
+    const { client } = fakeClient({
+      venue_change_bookings: { data: [{ ...BOOKING_ROW, coordinator_user_account_id: null }], error: null },
+    });
+
+    const [booking] = await new SupabaseVenueChangeReview(client).bookingsAt(venueId("5"));
+
+    expect(booking.coordinatorUserAccountId).toBeNull();
   });
 });

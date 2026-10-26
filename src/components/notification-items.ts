@@ -30,6 +30,7 @@ const TRIGGERS: Readonly<Record<string, NotificationTrigger>> = {
   "equipment-decided": "Equipment decided",
   "venue-booking-decided": "Booking decided",
   "venue-booking-cancelled": "Booking cancelled",
+  "venue-booking-flagged": "Booking flagged",
 }
 
 /**
