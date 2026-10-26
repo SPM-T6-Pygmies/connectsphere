@@ -554,3 +554,8 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-26,TC-FLAGNOTE-003,Pass,A further cut that only restates the reason sends nothing new,"Chrome, local, run before main was merged in",arinmakk,181,6a9000d,,docs/screenshots/2026-10-24_TC-FLAGNOTE-003_step2-inbox-still-one-notice.png
 2026-10-26,TC-FLAGNOTE-004,Pass,One notice listing both broken checks,"Chrome, local, run before main was merged in",arinmakk,181,6a9000d,,docs/screenshots/2026-10-24_TC-FLAGNOTE-004_step2-inbox-one-notice-two-reasons.png
 2026-10-26,TC-FLAGNOTE-005,Pass,A block over two bookings sends two notices,"Chrome, local, run before main was merged in",arinmakk,181,6a9000d,,docs/screenshots/2026-10-24_TC-FLAGNOTE-005_step2-inbox-two-block-notices.png
+2026-10-26,TC-CHANGE-001,Pass,"Five fields offered; three Pending items stored (times JSON, 350, null); header reads Change request pending",Planning event,Isaidchia,177,c99fc43,,"Screenshots 02, 03 below"
+2026-10-26,TC-CHANGE-002,Pass,"""Expected attendance must be a whole number, 0 or more.""; times kept; nothing stored",,Isaidchia,177,c99fc43,,
+2026-10-26,TC-CHANGE-003,Pass,Form page shows the waiting message; SQL refused with CS092,,Isaidchia,177,c99fc43,,
+2026-10-26,TC-CHANGE-004,Pass,No button or badge; form URL 403; SQL refused with CS090,,Isaidchia,177,c99fc43,,Screenshot 04 below
+2026-10-26,TC-CHANGE-005,Pass,"No button; ""This event can no longer be changed.""; SQL refused with CS091",Event reset to Planning after,Isaidchia,177,c99fc43,,
