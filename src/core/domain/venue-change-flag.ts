@@ -88,3 +88,16 @@ export function flagsForVenueChange(
 function sameFailure(previous: SuitabilityRow | undefined, row: SuitabilityRow): boolean {
   return previous?.status === "fail" && previous.detail === row.detail;
 }
+
+/**
+ * SPM-71: the reasons each booking starts failing for, one entry per booking in the order
+ * flagged: what its coordinator is told. A reason that only restates a check already failing
+ * tells nobody: the booking was flagged for it before (AC4).
+ */
+export function newlyFlaggedReasons(flags: readonly VenueChangeFlag[]): ReadonlyMap<string, readonly string[]> {
+  const reasons = new Map<string, string[]>();
+  for (const { bookingId, detail, startsFailing } of flags) {
+    if (startsFailing) reasons.set(bookingId, [...(reasons.get(bookingId) ?? []), detail]);
+  }
+  return reasons;
+}

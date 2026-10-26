@@ -205,6 +205,21 @@ describe("notificationItem (SPM-63)", () => {
   })
 })
 
+describe("notificationItem (SPM-71)", () => {
+  it("AC5: names a flagged booking's notice and opens the booking on the event's Venue tab as it is", () => {
+    const item = notificationItem(
+      "coordinator",
+      notification({
+        redirect: { url: "/staff/coordinator/events/8?tab=venue&booking=31" },
+        tags: ["venue-booking-flagged"],
+      }),
+    )
+
+    expect(item.status).toBe("Booking flagged")
+    expect(item.href).toBe("/staff/coordinator/events/8?tab=venue&booking=31")
+  })
+})
+
 describe("notificationItem (SPM-164)", () => {
   it("AC3: opens the request from the coordinator's inbox and names it an organiser message", () => {
     const item = notificationItem(

@@ -1,7 +1,7 @@
 import { VenueMaintenanceNotPermittedError } from "@/core/domain/errors";
-import type { VenueChangeBooking, VenueChangeFlag } from "@/core/domain/venue-change-flag";
+import type { VenueChangeFlag } from "@/core/domain/venue-change-flag";
 import type { VenueId } from "@/core/domain/venue";
-import type { VenueChangeReview } from "@/core/ports/outbound/venue-change-review";
+import type { ReviewedBooking, VenueChangeReview } from "@/core/ports/outbound/venue-change-review";
 
 import type { SupabaseServerClient } from "./client";
 import { toVenueChangeBooking, toVenueChangeFlagArgument, type VenueChangeBookingRow } from "./venue-change-mapper";
@@ -16,7 +16,7 @@ const NOT_PERMITTED = "CS020";
 export class SupabaseVenueChangeReview implements VenueChangeReview {
   constructor(private readonly client: SupabaseServerClient) {}
 
-  async bookingsAt(venueId: VenueId): Promise<readonly VenueChangeBooking[]> {
+  async bookingsAt(venueId: VenueId): Promise<readonly ReviewedBooking[]> {
     const { data, error } = await this.client.rpc("venue_change_bookings", { p_venue_id: Number(venueId) });
     if (error) throw translate(error, "read the venue's bookings");
 

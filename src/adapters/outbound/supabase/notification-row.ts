@@ -12,6 +12,7 @@ import { organiserMessagePostedMessage } from "@/adapters/outbound/notification-
 import { safetyCheckReadyMessage } from "@/adapters/outbound/notification-content/safety-check-ready";
 import { safetyCheckRecordedMessage } from "@/adapters/outbound/notification-content/safety-check-recorded";
 import { venueBookingCancelledMessage } from "@/adapters/outbound/notification-content/venue-booking-cancelled";
+import { venueBookingFlaggedMessage } from "@/adapters/outbound/notification-content/venue-booking-flagged";
 import { venueBookingDecidedMessage } from "@/adapters/outbound/notification-content/venue-booking-decided";
 import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
@@ -26,6 +27,7 @@ import type {
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingCancelledNotice,
+  VenueBookingFlaggedNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -201,6 +203,19 @@ export function venueBookingCancelledRow(notice: VenueBookingCancelledNotice): N
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: "venue-booking-cancelled",
+    channel: "in_app",
+    status: "Pending",
+    related_booking_id: notice.bookingId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a coordinator one of their bookings was flagged (SPM-71). */
+export function venueBookingFlaggedRow(notice: VenueBookingFlaggedNotice): NotificationRow {
+  const { subject, body } = venueBookingFlaggedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "venue-booking-flagged",
     channel: "in_app",
     status: "Pending",
     related_booking_id: notice.bookingId,

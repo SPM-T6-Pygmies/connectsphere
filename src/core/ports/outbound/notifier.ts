@@ -237,6 +237,23 @@ export interface VenueBookingCancelledNotice {
 }
 
 /**
+ * What an event's assigned Event Coordinator is told when Venue Staff's change
+ * to a venue flags one of its bookings (SPM-71): a block over it (SPM-313) or
+ * an edit it no longer fits (SPM-105). One notice per booking, with every
+ * reason that change gave it. Nothing about the booking has changed.
+ */
+export interface VenueBookingFlaggedNotice {
+  readonly recipientUserAccountId: string;
+  readonly bookingId: string;
+  readonly eventId: string;
+  readonly eventName: string;
+  readonly venueLocation: string;
+  readonly reasonCode: "venue-unavailable" | "venue-attributes";
+  /** Each reason as the event page shows it, e.g. `Capacity: Banquet seats 80, 40 over`. */
+  readonly reasons: readonly string[];
+}
+
+/**
  * What an Attendee is told once their registration is recorded (SPM-87): the
  * event, as the on-screen confirmation shows it, and the reference that is
  * their only way back to the registration.
@@ -278,5 +295,6 @@ export interface Notifier {
   venueBookingDecided(notice: VenueBookingDecidedNotice): Promise<void>;
   holdExpired(notice: HoldExpiredNotice): Promise<void>;
   venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void>;
+  venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }
