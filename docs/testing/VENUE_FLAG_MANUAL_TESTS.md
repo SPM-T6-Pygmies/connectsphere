@@ -465,6 +465,6 @@ Main Hall on F from 19:00. Signed in as Venue Staff, then Coordinator 2 (`coordi
 - Step 2: **Flagged for review** with the reason "Maintenance: F 19:00 to 20:00", and the booking still **Confirmed**.
 - Step 3: no **Flagged for review** section.
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright by Claude Code for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-venue-staff-affected-list](../screenshots/2026-10-22_SPM-321_TC-VFLAG-011_step1-venue-staff-affected-list.png) · [step2-coordinator-2-gala-flagged](../screenshots/2026-10-22_SPM-321_TC-VFLAG-011_step2-coordinator-2-gala-flagged.png) · [step3-coordinator-2-workshop-not-flagged](../screenshots/2026-10-22_SPM-321_TC-VFLAG-011_step3-coordinator-2-workshop-not-flagged.png)

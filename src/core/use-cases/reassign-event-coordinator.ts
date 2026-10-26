@@ -71,8 +71,9 @@ export class ReassignEventCoordinatorUseCase {
       eventName: event.name,
       clientOrganisationName: organisationNames.get(event.clientOrganisationId) ?? null,
       preferredDate: event.preferredDate,
-      // An event carries its own slots once planned; the notice names only the date.
-      preferredSlots: [],
+      // An event carries its own times once planned; the notice names only the date.
+      preferredStartTime: null,
+      preferredEndTime: null,
     });
     await this.deps.notifier.organiserCoordinatorAssigned({
       recipientUserAccountId: event.owningOrganiserUserAccountId,

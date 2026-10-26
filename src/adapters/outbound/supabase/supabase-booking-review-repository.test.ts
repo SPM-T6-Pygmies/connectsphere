@@ -5,8 +5,8 @@ import {
   BookingNotDecidableError,
   BookingNotFoundError,
   HoldNotLiveError,
+  VenuePaddedClashError,
   VenueSlotBlockedError,
-  VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 
@@ -14,7 +14,7 @@ import type { SupabaseServerClient } from "./client";
 import type { BookingReviewRow } from "./booking-review-mapper";
 import { SupabaseBookingReviewRepository } from "./supabase-booking-review-repository";
 
-type RpcResult = { data: unknown; error: { code?: string; message: string } | null };
+type RpcResult = { data: unknown; error: { code?: string; message: string; details?: string } | null };
 
 function fakeClient(answers: Record<string, RpcResult>) {
   const calls: Array<{ name: string; args: unknown }> = [];
@@ -113,20 +113,6 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
       { date: "2026-10-22", start: "13:00", end: "13:15" },
     ]);
   });
-
-  it("still maps CS025 to the slot-taken error, not the blocked one", async () => {
-    const { client } = fakeClient({
-      venue_staff_decide_booking: {
-        data: null,
-        error: { code: "CS025", message: "Venue 5 is already booked for 2026-10-22 AM" },
-      },
-      venue_staff_bookings: { data: [BOOKING_ROW], error: null },
-    });
-
-    await expect(new SupabaseBookingReviewRepository(client).decide(APPROVED)).rejects.toBeInstanceOf(
-      VenueSlotUnavailableError,
-    );
-  });
 });
 
 describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
@@ -159,7 +145,7 @@ describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
     ]);
   });
 
-  it("maps a clash, a block and a booking no longer waiting the same way an approval does", async () => {
+  it("maps a padded clash, a block and a booking no longer waiting the same way an approval does", async () => {
     const refuse = (code: string, message: string) =>
       fakeClient({
         venue_staff_decide_booking: { data: null, error: { code, message } },
@@ -167,8 +153,10 @@ describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
       });
 
     await expect(
-      new SupabaseBookingReviewRepository(refuse("CS025", "Venue 5 is already booked for 2026-10-22 AM").client).decide(HELD),
-    ).rejects.toBeInstanceOf(VenueSlotUnavailableError);
+      new SupabaseBookingReviewRepository(
+        refuse("CS082", "Venue 5 has another booking within this booking's setup or turnaround time").client,
+      ).decide(HELD),
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
     await expect(
       new SupabaseBookingReviewRepository(refuse("CS028", "Venue 5 is blocked for 2026-10-22 PM").client).decide(HELD),
     ).rejects.toBeInstanceOf(VenueSlotBlockedError);
@@ -250,5 +238,61 @@ describe("SupabaseBookingReviewRepository, lapsed holds (SPM-253)", () => {
       "Failed to expire lapsed holds: boom",
     );
     expect(calls.map((call) => call.name)).toEqual(["expire_lapsed_holds"]);
+  });
+});
+
+describe("SupabaseBookingReviewRepository, padded clashes (SPM-19)", () => {
+  const PADDED_CLASH = {
+    data: null,
+    error: {
+      code: "CS082",
+      message: "Venue 5 has another booking within this booking's setup or turnaround time",
+      details: JSON.stringify([{ event: "Charity Run", date: "2026-12-14", start: "09:30", end: "10:00" }]),
+    },
+  };
+
+  it("AC1: maps CS082 to the padded-clash error, naming the event, date and times from the detail", async () => {
+    const { client } = fakeClient({ venue_staff_decide_booking: PADDED_CLASH });
+
+    const error = await new SupabaseBookingReviewRepository(client).decide(APPROVED).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenuePaddedClashError);
+    expect((error as VenuePaddedClashError).clashes).toEqual([
+      { eventName: "Charity Run", date: "2026-12-14", start: "09:30", end: "10:00", hold: null },
+    ]);
+  });
+
+  it("AC4: carries the hold, and when it expires, when the booking in the way is a Tentative Hold", async () => {
+    const { client } = fakeClient({
+      venue_staff_decide_booking: {
+        data: null,
+        error: {
+          code: "CS082",
+          message: "Venue 5 has another booking within this booking's setup or turnaround time",
+          details: JSON.stringify([
+            { event: "Quiz Night", date: "2026-12-15", start: "09:30", end: "10:00", holdExpiresAt: "2026-11-24T06:30:00+00:00" },
+          ]),
+        },
+      },
+    });
+
+    const error = await new SupabaseBookingReviewRepository(client).decide(APPROVED).catch((e: unknown) => e);
+
+    expect((error as VenuePaddedClashError).clashes).toEqual([
+      { eventName: "Quiz Night", date: "2026-12-15", start: "09:30", end: "10:00", hold: { expiresAt: "2026-11-24T06:30:00+00:00" } },
+    ]);
+    expect((error as VenuePaddedClashError).message).toContain("already temporarily reserved (held), the hold expires on 2026-11-24 14:30 (Singapore time)");
+  });
+
+  it("AC3: maps it the same way when placing a hold", async () => {
+    const { client } = fakeClient({ venue_staff_decide_booking: PADDED_CLASH });
+
+    await expect(
+      new SupabaseBookingReviewRepository(client).decide({
+        ...APPROVED,
+        status: "Tentative Hold",
+        holdExpiresAt: new Date("2026-12-10T01:00:00.000Z"),
+      }),
+    ).rejects.toBeInstanceOf(VenuePaddedClashError);
   });
 });

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { STANDARD_LAYOUTS } from "@/core/domain/venue";
 import { ACCESSIBILITY_OPTIONS } from "@/core/domain/venue-options";
 
-import { optionalOptions, slotList } from "./option-list-schema";
+import { optionalOptions } from "./option-list-schema";
 
 /**
  * The event request form's shape -- and only its shape.
@@ -53,6 +53,15 @@ const optionalDate = optionalText.refine(
 );
 
 /**
+ * A time of day as the form's time picker posts it, `HH:MM`. Whether it is on
+ * the 15-minute grid and after the start is a rule, so the core decides that
+ * (SPM-327).
+ */
+const optionalTime = optionalText.refine((value) => value === null || /^\d{2}:\d{2}$/.test(value), {
+  message: "Enter the time as HH:MM.",
+});
+
+/**
  * IANA zone, e.g. `"Asia/Singapore"` -- validated by asking the runtime's own
  * timezone database rather than a regex, since that is the actual authority
  * on what counts as a recognised zone.
@@ -85,7 +94,8 @@ export const submitEventRequestSchema = z.object({
   description: optionalText,
   purpose: optionalText,
   preferredDate: optionalDate,
-  preferredSlots: slotList(),
+  preferredStartTime: optionalTime,
+  preferredEndTime: optionalTime,
   expectedAttendance: optionalAttendance,
   venueRequirements: optionalText,
   roomLayoutPreferences: optionalOptions(STANDARD_LAYOUTS, 1),

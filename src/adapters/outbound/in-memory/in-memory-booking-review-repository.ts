@@ -1,5 +1,5 @@
 import {
-  clashingTimes,
+  holdsSlot,
   type BookingId,
   type DecidedBooking,
   type ResolvedHold,
@@ -7,8 +7,9 @@ import {
 import {
   BookingNotDecidableError,
   HoldNotLiveError,
-  VenueSlotUnavailableError,
+  VenuePaddedClashError,
 } from "@/core/domain/errors";
+import { paddedClashes, type Buffers } from "@/core/domain/padded-window";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type {
   BookingForReview,
@@ -32,6 +33,10 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
     private readonly venueStaff: readonly string[] = [],
     /** Venue names by id, so a suggested alternative reads back by name, as the store's does. */
     private readonly venueNames: Readonly<Record<string, string>> = {},
+    /** Each venue's setup and turnaround in minutes by id (SPM-23); a venue left out has none. */
+    private readonly venueBuffers: Readonly<Record<string, Buffers>> = {},
+    /** What "now" is, for telling a lapsed hold from a live one. */
+    private readonly now: () => Date = () => new Date(),
   ) {
     this.rows = [...seed];
   }
@@ -61,16 +66,26 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
     }
 
     if (decided.status === "Confirmed" || decided.status === "Tentative Hold") {
-      // Both keep the slots from now on. Review rows carry no hold expiry, so a
-      // hold here counts as live, as one with no expiry does.
-      const held = this.rows
-        .filter((other) => other.id !== row.id && other.venueId === row.venueId)
-        .flatMap((other) =>
-          other.times.map((time) => ({ ...time, status: other.status, holdExpiresAt: null })),
-        );
-      const clashes = clashingTimes(row.times, held, new Date());
-      if (clashes.length > 0) {
-        throw new VenueSlotUnavailableError(clashes);
+      // Both keep the slots from now on, so the booking must not overlap any other live booking's
+      // time, setup and turnaround included (SPM-19).
+      const inTheWay = this.rows
+        .filter(
+          (other) =>
+            other.id !== row.id &&
+            other.venueId === row.venueId &&
+            holdsSlot(
+              { status: other.status, holdExpiresAt: other.holdExpiresAt === null ? null : new Date(other.holdExpiresAt) },
+              this.now(),
+            ),
+        )
+        .map((other) => ({
+          eventName: other.event.name,
+          times: other.times,
+          ...(other.status === "Tentative Hold" ? { hold: { expiresAt: other.holdExpiresAt } } : {}),
+        }));
+      const padded = paddedClashes(row.times, inTheWay, this.venueBuffers[row.venueId] ?? { setup: 0, turnaround: 0 });
+      if (padded.length > 0) {
+        throw new VenuePaddedClashError(padded);
       }
     }
 

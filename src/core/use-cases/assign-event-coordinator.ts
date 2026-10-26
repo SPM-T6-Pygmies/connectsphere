@@ -68,7 +68,8 @@ export class AssignEventCoordinatorUseCase {
         eventName: assigned.details.eventName,
         clientOrganisationName: names.get(assigned.clientOrganisationId) ?? null,
         preferredDate: assigned.details.preferredDate,
-        preferredSlots: assigned.details.preferredSlots,
+        preferredStartTime: assigned.details.preferredStartTime,
+        preferredEndTime: assigned.details.preferredEndTime,
       });
 
       const coordinatorNames = await this.deps.userAccounts.findNamesByIds([coordinatorId]);

@@ -78,7 +78,8 @@ describe("SubmitEventRequestUseCase (SPM-31)", () => {
       description: "Annual gathering for our clients.",
       purpose: "Relationship building",
       preferredDate: "2026-11-04",
-      preferredSlots: ["AM", "PM"],
+      preferredStartTime: "09:00",
+      preferredEndTime: "17:00",
       expectedAttendance: 120,
       venueRequirements: "Central, step-free",
       roomLayoutPreferences: "Theatre",
@@ -100,7 +101,8 @@ describe("SubmitEventRequestUseCase (SPM-31)", () => {
     expect(result.summary).toEqual({
       eventName: "Q4 Partner Summit",
       preferredDate: "2026-11-04",
-      preferredSlots: ["AM", "PM"],
+      preferredStartTime: "09:00",
+      preferredEndTime: "17:00",
       expectedAttendance: 240,
     });
   });
@@ -119,8 +121,8 @@ describe("SubmitEventRequestUseCase (SPM-31)", () => {
     const { useCase } = buildUseCase();
 
     await expect(
-      useCase.execute(command({ eventName: "  ", preferredSlots: [] })),
-    ).rejects.toMatchObject({ missing: ["eventName", "preferredSlots"] });
+      useCase.execute(command({ eventName: "  ", preferredStartTime: null, preferredEndTime: null })),
+    ).rejects.toMatchObject({ missing: ["eventName", "preferredStartTime", "preferredEndTime"] });
   });
 
   it("rejects a blank organiser or organisation rather than storing an unowned request", async () => {

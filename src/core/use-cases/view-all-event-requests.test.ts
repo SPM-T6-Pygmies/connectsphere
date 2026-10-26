@@ -53,7 +53,8 @@ describe("ViewAllEventRequestsUseCase (SPM-29)", () => {
       description: "Annual client forum",
       purpose: null,
       preferredDate: "2026-11-04",
-      preferredSlots: ["AM", "PM"],
+      preferredStartTime: "09:00",
+      preferredEndTime: "17:00",
       expectedAttendance: 120,
       venueRequirements: null,
       accessibilityNeeds: null,
@@ -111,7 +112,8 @@ describe("ViewAllEventRequestsUseCase (SPM-255)", () => {
     expect(eventRequests[0]).toMatchObject({
       clientOrganisationName: "Sunrise Events Co",
       preferredDate: "2026-11-04",
-      preferredSlots: ["AM", "PM"],
+      preferredStartTime: "09:00",
+      preferredEndTime: "17:00",
       queue: "unassigned",
     });
   });
