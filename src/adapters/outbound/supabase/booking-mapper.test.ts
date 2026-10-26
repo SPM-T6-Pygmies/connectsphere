@@ -133,6 +133,7 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
     times: [{ date: "2026-10-05", start: "07:00", end: "07:45" }],
     requestedBy: userAccountId("2"),
     status: "Requested",
+    replacesBookingId: null,
   };
 
   it("sends the chosen layout by name, for the database to resolve", () => {
@@ -308,6 +309,7 @@ describe("booking mapper -- requested times as 15-minute slots (SPM-347)", () =>
       ],
       requestedBy: userAccountId("2"),
       status: "Requested",
+      replacesBookingId: null,
     };
 
     const slots = toSubmitBookingArgs(request)?.p_slots ?? [];

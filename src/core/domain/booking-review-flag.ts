@@ -1,5 +1,5 @@
 import { holdsSlot, type BookingStatus } from "./booking";
-import { NoFlagToClearError } from "./errors";
+import { NoFlagToClearError, NoFlagToReRequestError, ReRequestPendingError } from "./errors";
 import { joinSlotCodes, slotCodeRange, type SlotCodeOnDate } from "./slot-grid";
 import { fromMinutes } from "./time-of-day";
 import type { VenueId } from "./venue";
@@ -146,4 +146,37 @@ export function flagsToClear<F extends { readonly bookingId: string }>(
     throw new NoFlagToClearError(bookingId);
   }
   return clearing;
+}
+
+/** A booking as the re-request rule sees it: its status, and the flagged booking it asks to replace. */
+export interface ReRequestingBooking {
+  readonly status: BookingStatus;
+  readonly replacesBookingId: string | null;
+}
+
+/**
+ * SPM-251 AC9: whether a re-request for `bookingId` is still waiting for Venue Staff. Once one
+ * is decided it is not: a rejected one leaves the booking to be re-requested again (AC7).
+ */
+export function reRequestPending(bookings: readonly ReRequestingBooking[], bookingId: string): boolean {
+  return bookings.some((booking) => booking.replacesBookingId === bookingId && booking.status === "Requested");
+}
+
+/**
+ * SPM-251 AC1, AC9: the flagged booking a coordinator asks a venue for again. Only a booking with
+ * an open flag can be re-requested -- `openFlags` holds none for one that no longer holds its
+ * venue -- and only one re-request for it waits for Venue Staff at a time.
+ */
+export function bookingToReplace(
+  openFlags: readonly { readonly bookingId: string }[],
+  eventBookings: readonly ReRequestingBooking[],
+  bookingId: string,
+): string {
+  if (!openFlags.some((flag) => flag.bookingId === bookingId)) {
+    throw new NoFlagToReRequestError(bookingId);
+  }
+  if (reRequestPending(eventBookings, bookingId)) {
+    throw new ReRequestPendingError(bookingId);
+  }
+  return bookingId;
 }
