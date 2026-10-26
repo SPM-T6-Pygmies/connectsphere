@@ -197,7 +197,7 @@ Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hour
 SPM-331 AC4, under the one-window rule: each venue opens from its earliest
 opening to its latest closing, so neighbouring slots join and a break closes up.
 The conversion is `20261020010000` (AM, PM and Night to 15-minute slots) then
-`20261025000000` (one window). Run both against one venue of each kind inside a
+`20261026020000` (one window). Run both against one venue of each kind inside a
 transaction that is rolled back, so the local data is untouched.
 
 **Steps** — in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
@@ -211,7 +211,7 @@ transaction that is rolled back, so the local data is untouched.
    ```
 2. Paste the statements under `-- 1. Convert the existing rows.` from `20261020010000`
    (the `insert … select` and the `delete`), then the `do $$ … $$;` block from
-   `20261025000000`.
+   `20261026020000`.
 3. ```sql
    set local request.jwt.claims = '{"sub":"00000000-0000-4000-8000-000000000005"}';
    select r->>'location', r->'opening_hours' from jsonb_array_elements(public.venue_catalogue()) r
