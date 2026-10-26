@@ -4,6 +4,7 @@ import {
   InMemoryCoordinatorEventRepository,
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
 import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
 import {
@@ -94,12 +95,14 @@ function buildUseCase(
       safetyCheckReview({ coordinatorUserAccountId: event.assignedCoordinatorUserAccountId, checks }),
     ),
   );
+  const notifier = new RecordingNotifier();
   const useCase = new ConfirmEventUseCase({
     events: eventsRepo,
     readiness: readinessRepo,
     safetyChecks,
+    notifier,
   });
-  return { useCase, eventsRepo };
+  return { useCase, eventsRepo, notifier };
 }
 
 describe("ConfirmEventUseCase (SPM-50)", () => {
@@ -261,5 +264,65 @@ describe("ConfirmEventUseCase (SPM-318)", () => {
       eventId: "event-1",
       status: "Confirmed",
     });
+  });
+});
+
+describe("ConfirmEventUseCase (SPM-66)", () => {
+  const MICROPHONES = { equipmentType: "Wireless microphone", state: "Reserved", quantityRequested: 4, quantityReserved: 4 } as const;
+  const TIMES = [{ date: "2026-10-14", start: "09:00", end: "12:00" }] as const;
+
+  it("AC1/AC2: tells the Organiser, and only the Organiser, that their event is confirmed", async () => {
+    const { useCase, notifier } = buildUseCase(
+      [seedEvent({ times: TIMES })],
+      [seedFacts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall", essentialEquipment: [MICROPHONES] })],
+    );
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.eventsConfirmed).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventId: "event-1",
+        eventRequestId: "request-1",
+        eventName: "Founders' Day",
+        times: TIMES,
+        venueLocation: "Main Hall",
+        equipment: [{ equipmentType: "Wireless microphone", quantityReserved: 4 }],
+      },
+    ]);
+  });
+
+  it("leaves out a venue that is Not applicable to the event", async () => {
+    const { useCase, notifier } = buildUseCase(
+      [seedEvent()],
+      [seedFacts({ essentialTypes: [], confirmedVenueLocation: "Main Hall" })],
+    );
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.eventsConfirmed).toEqual([
+      expect.objectContaining({ venueLocation: null, equipment: [] }),
+    ]);
+  });
+
+  it("tells no one when confirmation is refused", async () => {
+    const { useCase, notifier } = buildUseCase(
+      [seedEvent()],
+      [seedFacts({ essentialTypes: ["venue"] })],
+    );
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toBeInstanceOf(
+      EventNotReadyForConfirmationError,
+    );
+    expect(notifier.eventsConfirmed).toEqual([]);
+  });
+
+  it("tells no one when the caller is not the assigned coordinator", async () => {
+    const { useCase, notifier } = buildUseCase([seedEvent()], [seedFacts()]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: OTHER_COORDINATOR })).rejects.toBeInstanceOf(
+      EventNotFoundError,
+    );
+    expect(notifier.eventsConfirmed).toEqual([]);
   });
 });

@@ -14,6 +14,7 @@ import {
 import type { ChangeRequestState } from "@/core/domain/change-request";
 import { preferredTimeRange } from "@/core/domain/event-request";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
+import type { OrganiserEventArrangements } from "@/core/ports/outbound/event-request-repository";
 import type {
   ClarificationMessageView,
   EventRequestView,
@@ -79,6 +80,7 @@ export function SubmittedRequestDetail({
   canDiscuss,
   assignedCoordinatorName,
   eventTimes,
+  eventArrangements,
   changeRequest,
   origin = "queue",
 }: {
@@ -93,6 +95,8 @@ export function SubmittedRequestDetail({
   assignedCoordinatorName: string | null;
   /** SPM-326 AC6: when the event runs, once the request is approved; null before. */
   eventTimes: readonly TimeRangeOnDate[] | null;
+  /** SPM-66 AC3: the event's status and what has been arranged for it, once the request is approved; null before. */
+  eventArrangements: OrganiserEventArrangements | null;
   /** SPM-52: whether the signed-in Organiser may ask for a change to the event now. */
   changeRequest: ChangeRequestState;
   origin?: DetailOrigin;
@@ -160,6 +164,43 @@ export function SubmittedRequestDetail({
               />
             </CardContent>
           </Card>
+
+          {eventArrangements === null ? null : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your event</CardTitle>
+                <CardDescription>
+                  What your coordinator has arranged. Once Confirmed,
+                  ConnectSphere is committed to these arrangements.
+                </CardDescription>
+                <div>
+                  <StatusBadge status={eventArrangements.status} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <FieldList
+                  fields={[
+                    {
+                      label: "Venue",
+                      value:
+                        eventArrangements.venues.length === 0
+                          ? "None confirmed yet"
+                          : eventArrangements.venues.join(", "),
+                    },
+                    {
+                      label: "Equipment reserved",
+                      value:
+                        eventArrangements.equipment.length === 0
+                          ? "None reserved"
+                          : eventArrangements.equipment
+                              .map((line) => `${line.quantityReserved} × ${line.equipmentType}`)
+                              .join(", "),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <ClarificationThread
             messages={clarificationThread}
