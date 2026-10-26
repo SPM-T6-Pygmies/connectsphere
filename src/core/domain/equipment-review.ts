@@ -147,6 +147,17 @@ export function unitsAvailableForLine(
   return available === null ? null : available - line.quantityReserved;
 }
 
+/**
+ * SPM-316: how many units Technical Support could reserve for the line in
+ * all, given the figure it shows (`unitsAvailableForLine`) -- reserving
+ * replaces what it holds, so those units count as free for it. Compared with
+ * the quantity requested, it says whether the line can be reserved in full
+ * (SPM-274 AC1) or must be marked unfulfilled (AC3).
+ */
+export function freeToReserve(line: Pick<EquipmentRequirement, "quantityReserved">, availableForLine: number): number {
+  return availableForLine + line.quantityReserved;
+}
+
 /** SPM-274: an event's date and status, as far as deciding on its lines needs. */
 export interface EquipmentDecisionEvent {
   readonly status: CoordinatorEventStatus;

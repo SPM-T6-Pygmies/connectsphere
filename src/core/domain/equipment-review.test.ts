@@ -11,6 +11,7 @@ import {
   equipmentQueueOf,
   daysShortOfService,
   finishesReview,
+  freeToReserve,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
   releaseEquipmentLine,
@@ -656,6 +657,15 @@ describe("re-reserving a changed line (SPM-316)", () => {
     const reserved = reserveEquipmentLine(dated, changedAfterReserved(0, { quantityRequested: 3 }), SUPPORT);
 
     expect(reserved).toMatchObject({ quantityReserved: 3, state: "Reserved" });
+  });
+
+  it("AC1: what the line holds counts as free for it, so a line holding 4 that needs 6 needs only 2 more", () => {
+    expect(freeToReserve(line({ quantityReserved: 4 }), 2)).toBe(6);
+    expect(freeToReserve(line({ quantityReserved: 4 }), 1)).toBe(5);
+  });
+
+  it("AC1: a line holding nothing has exactly what it shows", () => {
+    expect(freeToReserve(newLine(), 5)).toBe(5);
   });
 
   it("AC5: the line no longer needs attention once reserved or marked unfulfilled", () => {
