@@ -17,7 +17,7 @@
 
 with block (venue, reason, expected) as (
   values ('Main Hall', 'Renovation',  '50 slots, In force'),
-         ('Main Hall', 'Maintenance', '60 slots, In force'),
+         ('Main Hall', 'Maintenance', '68 slots, In force'),
          ('Studio',    'Safety',      '20 slots, Lifted')
 ),
 checks as (

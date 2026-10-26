@@ -74,7 +74,7 @@ export function DecisionForm({
       {state.status === "error" ? (
         <Alert variant="destructive">
           <CircleAlert aria-hidden />
-          <AlertTitle>{state.message}</AlertTitle>
+          <AlertTitle className="whitespace-pre-line">{state.message}</AlertTitle>
         </Alert>
       ) : null}
 

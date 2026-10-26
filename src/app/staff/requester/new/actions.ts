@@ -11,7 +11,11 @@ import {
   buildSubmitEventRequest,
   getCurrentOrganiser,
 } from "@/composition/container";
-import { DomainError, IncompleteEventRequestError } from "@/core/domain/errors";
+import {
+  DomainError,
+  IncompleteEventRequestError,
+  InvalidPreferredTimeError,
+} from "@/core/domain/errors";
 import type { SaveEventRequestDraftResult } from "@/core/use-cases/save-event-request-draft";
 import type { SubmitEventRequestResult } from "@/core/use-cases/submit-event-request";
 
@@ -163,6 +167,17 @@ export async function submitEventRequestAction(
       };
     }
 
+    // SPM-327 AC1: a time off the grid, or an end not after the start, is
+    // named against the time it is about.
+    if (error instanceof InvalidPreferredTimeError) {
+      return {
+        status: "error",
+        message: "Check the highlighted fields.",
+        fieldErrors: { [error.field]: [error.message] },
+        values,
+      };
+    }
+
     if (error instanceof DomainError) {
       return { status: "error", message: error.message, values };
     }
@@ -182,7 +197,8 @@ export type SaveDraftState =
  * Same shape as `submitEventRequestAction` -- read the `FormData`, check it,
  * call the use case, translate the outcome -- but a draft never refuses on
  * shape (every field is optional) and the only domain refusals it can hit are
- * a blank event name or slots with no date, so there is no per-field error
+ * a blank event name, or a preferred time that is not a whole span on a date
+ * (SPM-327), so there is no per-field error
  * rendering to do here.
  */
 export async function saveEventRequestDraftAction(
@@ -216,7 +232,9 @@ export async function saveEventRequestDraftAction(
         status: "error",
         message: error.missing.includes("eventName")
           ? "Give the event a name before saving a draft."
-          : "Choose the preferred date for the slots before saving a draft.",
+          : error.missing.includes("preferredDate")
+            ? "Choose the preferred date for the times before saving a draft."
+            : "Choose both a start and an end time, or neither, before saving a draft.",
       };
     }
 

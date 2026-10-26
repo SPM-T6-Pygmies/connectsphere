@@ -8,7 +8,6 @@ import {
 import { BookingNotFoundError } from "../domain/errors";
 import { userAccountId, type UserAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
-import type { BookingRepository } from "../ports/outbound/booking-repository";
 import type {
   BookingForReview,
   BookingReviewRepository,
@@ -45,7 +44,6 @@ export interface DecideBookingRequestResult {
 
 export interface DecideBookingRequestDeps {
   readonly reviews: BookingReviewRepository;
-  readonly bookings: BookingRepository;
   readonly safetyCheck: Pick<SafetyCheckEntryAnnouncer, "around">;
   readonly clock: Clock;
   readonly notifier: Pick<Notifier, "venueBookingDecided">;
@@ -76,7 +74,7 @@ export class DecideBookingRequestUseCase {
   }
 
   private async decide(command: DecideBookingRequestCommand): Promise<DecideBookingRequestResult> {
-    const { reviews, bookings, clock } = this.deps;
+    const { reviews, clock } = this.deps;
     const staff = userAccountId(command.userAccountId);
 
     const booking = await reviews.find(staff, command.bookingId as BookingId);
@@ -87,9 +85,6 @@ export class DecideBookingRequestUseCase {
     if (command.decision === "confirm" || command.decision === "release") {
       return this.resolve(command.decision, staff, booking);
     }
-
-    const dates = [...new Set(booking.times.map(({ date }) => date))];
-    const occupied = dates.length === 0 ? [] : await bookings.listSlotsAt(booking.venueId, dates);
 
     const decision: BookingDecision =
       command.decision === "approve"
@@ -103,7 +98,7 @@ export class DecideBookingRequestUseCase {
                 command.suggestedAlternative === null ? null : venueId(command.suggestedAlternative),
             };
 
-    const decided = decideBooking(booking, decision, staff, occupied, clock.now());
+    const decided = decideBooking(booking, decision, staff, clock.now());
     await reviews.decide(decided);
     // A hold is not an answer to the request, so the coordinator is told nothing yet: they
     // see "On hold until …" on the booking, and confirming or releasing it is SPM-219.

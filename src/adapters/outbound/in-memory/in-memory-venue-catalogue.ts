@@ -1,5 +1,5 @@
 import { VenueNotFoundError } from "@/core/domain/errors";
-import { venueId, type Venue, type VenueDetails, type VenueId } from "@/core/domain/venue";
+import { venueId, venueNameKey, venueNameTaken, type Venue, type VenueDetails, type VenueId } from "@/core/domain/venue";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 
 /** A `Map`-backed catalogue that obeys the same contract as the Supabase one. */
@@ -22,6 +22,7 @@ export class InMemoryVenueCatalogue implements VenueCatalogue {
   }
 
   async add(details: VenueDetails): Promise<Venue> {
+    this.refuseTakenLocation(details.location);
     this.sequence += 1;
     const venue: Venue = { id: venueId(`venue-${this.sequence}`), ...details };
     this.rows.set(venue.id, venue);
@@ -32,8 +33,18 @@ export class InMemoryVenueCatalogue implements VenueCatalogue {
     if (!this.rows.has(id)) {
       throw new VenueNotFoundError();
     }
+    this.refuseTakenLocation(details.location, id);
     const venue: Venue = { id, ...details };
     this.rows.set(id, venue);
     return venue;
+  }
+
+  /** A location another venue already has, compared as the database's unique index does. */
+  private refuseTakenLocation(location: string, except?: VenueId): void {
+    for (const venue of this.rows.values()) {
+      if (venue.id !== except && venueNameKey(venue.location) === venueNameKey(location)) {
+        throw venueNameTaken();
+      }
+    }
   }
 }

@@ -10,6 +10,9 @@ export interface VenueRow {
   opening_hours: { start: string; end: string }[];
   capacity: number | null;
   booking_horizon_days: number | null;
+  /** SPM-23: null until defined. */
+  setup_minutes: number | null;
+  turnaround_minutes: number | null;
   layouts: { name: string; capacity: number }[];
 }
 
@@ -22,6 +25,8 @@ export function toVenue(row: VenueRow): Venue {
     openingHours: row.opening_hours.map(({ start, end }) => ({ start, end })),
     capacity: row.capacity,
     bookingHorizonDays: row.booking_horizon_days,
+    setupMinutes: row.setup_minutes,
+    turnaroundMinutes: row.turnaround_minutes,
     layouts: row.layouts.map(({ name, capacity }) => ({ name, capacity })),
   };
 }
@@ -35,6 +40,8 @@ export function toVenueArgument(details: VenueDetails) {
     opening_hours: details.openingHours.map(({ start, end }) => ({ start, end })),
     capacity: details.capacity,
     booking_horizon_days: details.bookingHorizonDays,
+    setup_minutes: details.setupMinutes ?? null,
+    turnaround_minutes: details.turnaroundMinutes ?? null,
     layouts: details.layouts.map(({ name, capacity }) => ({ name, capacity })),
   };
 }

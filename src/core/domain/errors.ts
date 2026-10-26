@@ -269,6 +269,21 @@ export class PreferredDateNotInFutureError extends DomainError {
   }
 }
 
+/**
+ * SPM-327 AC1: a preferred start or end time that is not on the 15-minute
+ * grid, or an end that is not after the start. `field` is the one to point at.
+ */
+export class InvalidPreferredTimeError extends DomainError {
+  readonly code = "invalid_preferred_time";
+
+  constructor(
+    readonly field: "preferredStartTime" | "preferredEndTime",
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
 export class InvalidCredentialsError extends DomainError {
   readonly code = "invalid_credentials";
 
@@ -442,6 +457,40 @@ export class BookingRoomLayoutNotChangeableError extends DomainError {
   }
 }
 
+type Clash = TimeOnDate & {
+  readonly eventName: string;
+  readonly hold: { readonly expiresAt: string | null } | null;
+};
+
+/**
+ * What Venue Staff read: a list with one line for each date an event is in the way on, naming the
+ * times. A held venue says so, and when the hold expires.
+ */
+function lines(clashes: readonly Clash[]): string[] {
+  return clashes.map(({ eventName, date, start, end, hold }) => {
+    const base = `• ${eventName} on ${date} (${start}–${end}, incl. setup & turnaround)`;
+    if (hold === null) return base;
+    const expires =
+      hold.expiresAt === null ? "" : `, the hold expires on ${singaporeTime(hold.expiresAt)} (Singapore time)`;
+    return `${base}: already temporarily reserved (held)${expires}`;
+  });
+}
+
+/** An instant as `2026-11-24 14:30` in Singapore time, whatever zone the server runs in. */
+function singaporeTime(iso: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Singapore",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(iso));
+  const part = (type: string) => parts.find((each) => each.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}`;
+}
+
 /** A date with a start and end time, as the booking refusals name them. */
 type TimeOnDate = { readonly date: string; readonly start: string; readonly end: string };
 
@@ -458,6 +507,33 @@ export class VenueSlotUnavailableError extends DomainError {
 
   constructor(readonly times: ReadonlyArray<TimeOnDate>) {
     super(`The venue is already booked for ${namedTimes(times)}. Choose other times or another venue.`);
+  }
+}
+
+/**
+ * SPM-19: a booking, counting its setup and turnaround time, overlaps another live booking's (a hold
+ * counts too). Whether the overlap is in the booked times or only in the padding, Venue Staff are told
+ * the same thing: which event is in the way, on which date, at which times.
+ */
+export class VenuePaddedClashError extends DomainError {
+  readonly code = "venue_padded_clash";
+
+  constructor(
+    readonly clashes: ReadonlyArray<
+      TimeOnDate & {
+        readonly eventName: string;
+        /** Set when the booking in the way is a Tentative Hold; null for a Confirmed one. */
+        readonly hold: { readonly expiresAt: string | null } | null;
+      }
+    >,
+  ) {
+    super(
+      [
+        `This booking is blocked by the following ${clashes.length === 1 ? "event" : "events"}:`,
+        ...lines(clashes),
+        "Choose other times or another venue.",
+      ].join("\n"),
+    );
   }
 }
 
@@ -810,6 +886,8 @@ export type VenueField =
   | "openingHours"
   | "capacity"
   | "bookingHorizonDays"
+  | "setupMinutes"
+  | "turnaroundMinutes"
   | "layouts";
 
 /**
@@ -1239,5 +1317,14 @@ export class InvalidCalendarRangeError extends DomainError {
 
   constructor(reason: string) {
     super(reason);
+  }
+}
+
+/** SPM-310 AC6: a booking with no open flag has nothing to clear, e.g. it was cleared in another tab. */
+export class NoFlagToClearError extends DomainError {
+  readonly code = "no_flag_to_clear";
+
+  constructor(readonly bookingId: string) {
+    super("This booking has no open flag to clear.");
   }
 }

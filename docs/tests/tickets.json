@@ -25,7 +25,7 @@
     "SPM-19": {
       "title": "Automatic Venue Availability Update upon Booking Confirmation",
       "parent": null,
-      "status": "Backlog"
+      "status": "In Progress"
     },
     "SPM-20": {
       "title": "Cancel Venue Booking and Free Up Availability",
@@ -36,6 +36,11 @@
       "title": "Review and Decide on Venue Booking Requests",
       "parent": null,
       "status": "Backlog"
+    },
+    "SPM-23": {
+      "title": "Configure Venue Turnaround and Setup Buffer",
+      "parent": null,
+      "status": "In Progress"
     },
     "SPM-24": {
       "title": "Register for a confirmed event",
@@ -867,6 +872,11 @@
       "parent": "SPM-87",
       "status": "In Progress"
     },
+    "SPM-310": {
+      "title": "Clear a flag when the booking still fits",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-313": {
       "title": "Flag bookings when a venue is marked unavailable",
       "parent": null,
@@ -904,6 +914,11 @@
     },
     "SPM-326": {
       "title": "Run events on start and end times",
+      "parent": "SPM-276",
+      "status": "Todo"
+    },
+    "SPM-327": {
+      "title": "Request an event with a preferred start and end time",
       "parent": "SPM-276",
       "status": "Todo"
     },
@@ -1010,6 +1025,66 @@
     "SPM-458": {
       "title": "Seed, checks, manual cases and the existing cases that use the old form",
       "parent": "SPM-321",
+      "status": "In Progress"
+    },
+    "SPM-462": {
+      "title": "Domain: define and validate a venue's setup and turnaround time",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-463": {
+      "title": "Domain: the one padded-window rule",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-464": {
+      "title": "Database: validate the two values, lock them once defined",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-465": {
+      "title": "Catalogue read and write: carry the two values through create, update and read",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-466": {
+      "title": "Venue form: setup and turnaround fields, read-only once defined",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-467": {
+      "title": "Seeds, manual cases, registry and the cases that padding will change",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-468": {
+      "title": "Show setup and turnaround on the venue list and to Coordinators",
+      "parent": "SPM-23",
+      "status": "In Progress"
+    },
+    "SPM-469": {
+      "title": "Domain: a hold is padded like any other booking",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-470": {
+      "title": "Database: refuse an approval or a hold whose padded window overlaps a live booking",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-471": {
+      "title": "The refusal names the date, overlapping times, event and the padded overlap",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-472": {
+      "title": "Test that the database and the code give the same padded-overlap answers",
+      "parent": "SPM-19",
+      "status": "In Progress"
+    },
+    "SPM-473": {
+      "title": "Seeds, manual cases and registry for the padded approval check",
+      "parent": "SPM-19",
       "status": "In Progress"
     }
   }

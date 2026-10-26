@@ -1,4 +1,3 @@
-import type { BookingSlot } from "../domain/booking";
 import { clientOrganisationId, type ClientOrganisationId } from "../domain/client-organisation";
 import { DraftNotEditableError } from "../domain/errors";
 import {
@@ -38,7 +37,8 @@ export interface SubmitEventRequestCommand {
   readonly description: string | null;
   readonly purpose: string | null;
   readonly preferredDate: string | null;
-  readonly preferredSlots: readonly BookingSlot[];
+  readonly preferredStartTime: string | null;
+  readonly preferredEndTime: string | null;
   readonly expectedAttendance: number | null;
   readonly venueRequirements: string | null;
   readonly roomLayoutPreferences: string | null;
@@ -64,7 +64,8 @@ export interface SubmitEventRequestResult {
   readonly summary: {
     readonly eventName: string;
     readonly preferredDate: string | null;
-    readonly preferredSlots: readonly BookingSlot[];
+    readonly preferredStartTime: string | null;
+    readonly preferredEndTime: string | null;
     readonly expectedAttendance: number | null;
   };
 }
@@ -80,7 +81,8 @@ function detailsOf(command: SubmitEventRequestCommand): EventRequestDetails {
     description: command.description,
     purpose: command.purpose,
     preferredDate: command.preferredDate,
-    preferredSlots: command.preferredSlots,
+    preferredStartTime: command.preferredStartTime,
+    preferredEndTime: command.preferredEndTime,
     expectedAttendance: command.expectedAttendance,
     venueRequirements: command.venueRequirements,
     roomLayoutPreferences: command.roomLayoutPreferences,
@@ -131,7 +133,8 @@ export class SubmitEventRequestUseCase {
       summary: {
         eventName: stored.details.eventName,
         preferredDate: stored.details.preferredDate,
-        preferredSlots: stored.details.preferredSlots,
+        preferredStartTime: stored.details.preferredStartTime,
+        preferredEndTime: stored.details.preferredEndTime,
         expectedAttendance: stored.details.expectedAttendance,
       },
     };

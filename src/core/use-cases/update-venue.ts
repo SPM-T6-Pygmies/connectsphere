@@ -1,5 +1,7 @@
 import { VenueMaintenanceNotPermittedError } from "../domain/errors";
+import { VenueNotFoundError } from "../domain/errors";
 import { canMaintainVenues, defineVenue, venueId, type Venue } from "../domain/venue";
+import { buffersOf, checkBuffersChange } from "../domain/venue-buffers";
 import { flagsForVenueChange, newlyFlaggedReasons, VENUE_ATTRIBUTES_FLAG } from "../domain/venue-change-flag";
 import type { Clock } from "../ports/outbound/clock";
 import type { Notifier } from "../ports/outbound/notifier";
@@ -16,6 +18,9 @@ export interface UpdateVenueCommand {
   readonly openingHours: readonly { readonly start: string; readonly end: string }[];
   readonly capacity: number | null;
   readonly bookingHorizonDays: number | null;
+  /** SPM-23: defined once, then locked. Send the venue's own values back to leave them as they are. */
+  readonly setupMinutes: number | null;
+  readonly turnaroundMinutes: number | null;
   /** The venue's supported layouts after the update: one not listed here is removed. */
   readonly layouts: readonly { readonly name: string; readonly capacity: number }[];
 }
@@ -36,6 +41,8 @@ export interface UpdateVenueDeps {
  * SPM-147 (SPM-42 AC3): Venue Staff edit a venue's attributes, and add, edit or
  * remove its supported layouts, including a layout's capacity.
  *
+ * SPM-23: setup and turnaround are defined once and then locked.
+ *
  * SPM-105: the live bookings the edit no longer fits are then flagged for their
  * coordinator. The booking itself is left as it is.
  *
@@ -51,42 +58,45 @@ export class UpdateVenueUseCase {
     }
 
     const id = venueId(command.venueId);
+    const details = defineVenue({
+      location: command.location,
+      facilities: command.facilities,
+      accessibility: command.accessibility,
+      openingHours: command.openingHours,
+      capacity: command.capacity,
+      bookingHorizonDays: command.bookingHorizonDays,
+      setupMinutes: command.setupMinutes,
+      turnaroundMinutes: command.turnaroundMinutes,
+      layouts: command.layouts,
+    });
+
     const before = await this.deps.venues.find(id);
-    const venue = await this.deps.venues.revise(
-      id,
-      defineVenue({
-        location: command.location,
-        facilities: command.facilities,
-        accessibility: command.accessibility,
-        openingHours: command.openingHours,
-        capacity: command.capacity,
-        bookingHorizonDays: command.bookingHorizonDays,
-        layouts: command.layouts,
-      }),
-    );
+    if (before === null) {
+      throw new VenueNotFoundError();
+    }
+    checkBuffersChange(buffersOf(before), buffersOf(details));
 
-    // `revise` has already thrown if there is no such venue.
-    if (before !== null) {
-      const bookings = await this.deps.review.bookingsAt(id);
-      const flags = flagsForVenueChange(before, venue, bookings, this.deps.clock.now());
-      if (flags.length > 0) {
-        await this.deps.review.flag(id, flags);
-      }
+    const venue = await this.deps.venues.revise(id, details);
 
-      const reasons = newlyFlaggedReasons(flags);
-      for (const booking of bookings) {
-        const details = reasons.get(booking.id);
-        if (details === undefined || booking.coordinatorUserAccountId === null) continue;
-        await this.deps.notifier.venueBookingFlagged({
-          recipientUserAccountId: booking.coordinatorUserAccountId,
-          bookingId: booking.id,
-          eventId: booking.eventId,
-          eventName: booking.eventName,
-          venueLocation: venue.location,
-          reasonCode: VENUE_ATTRIBUTES_FLAG,
-          reasons: details,
-        });
-      }
+    const bookings = await this.deps.review.bookingsAt(id);
+    const flags = flagsForVenueChange(before, venue, bookings, this.deps.clock.now());
+    if (flags.length > 0) {
+      await this.deps.review.flag(id, flags);
+    }
+
+    const reasons = newlyFlaggedReasons(flags);
+    for (const booking of bookings) {
+      const flagged = reasons.get(booking.id);
+      if (flagged === undefined || booking.coordinatorUserAccountId === null) continue;
+      await this.deps.notifier.venueBookingFlagged({
+        recipientUserAccountId: booking.coordinatorUserAccountId,
+        bookingId: booking.id,
+        eventId: booking.eventId,
+        eventName: booking.eventName,
+        venueLocation: venue.location,
+        reasonCode: VENUE_ATTRIBUTES_FLAG,
+        reasons: flagged,
+      });
     }
 
     return { venue };

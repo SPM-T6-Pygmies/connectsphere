@@ -69,7 +69,7 @@ create table event_request (
   description               text,
   purpose                   text,
   preferred_date            date,
-    -- the slots wanted on it are event_request_slot rows (10b)
+    -- the start-to-end time wanted on it is event_request_slot rows (10b)
   expected_attendance       integer check (expected_attendance is null or expected_attendance >= 0),
   venue_requirements        text,
   accessibility_needs       text,
@@ -249,8 +249,19 @@ create table venue (
   turnaround_time_minutes integer check (turnaround_time_minutes is null or turnaround_time_minutes >= 0),
   booking_horizon_days   integer check (booking_horizon_days is null or booking_horizon_days >= 0),
   created_at             timestamptz not null default now(),
-  updated_at             timestamptz not null default now()
+  updated_at             timestamptz not null default now(),
+    -- SPM-23: both or neither, 15-minute steps, at most 150 minutes; defined once, then locked by a trigger
+  constraint venue_buffers_chk check (
+    (setup_time_minutes is null and turnaround_time_minutes is null)
+    or (setup_time_minutes is not null and turnaround_time_minutes is not null
+        and setup_time_minutes % 15 = 0 and turnaround_time_minutes % 15 = 0
+        and setup_time_minutes <= 150 and turnaround_time_minutes <= 150)
+  )
 );
+
+-- Two venues cannot share a location, ignoring case and extra spaces.
+create unique index venue_location_unique_idx
+  on venue (lower(regexp_replace(btrim(location), '\s+', ' ', 'g')));
 
 create table room_layout (
   room_layout_id bigint generated always as identity primary key,
@@ -363,8 +374,11 @@ create table event_request_slot (
   slot_date        date   not null,
     -- the request's preferred_date; organiser_save/submit keep the two equal
   slot_code        text   not null references slot (slot_code) on delete restrict,
-  primary key (event_request_id, slot_date, slot_code)
+  primary key (event_request_id, slot_date, slot_code),
+  constraint event_request_slot_fifteen_minute_chk check (slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$')
 );
+-- 15-minute codes only (SPM-327, 2026-10-21): one consecutive span per request,
+-- its preferred start to end time. AM, PM and Night rows became that span.
 
 create table event_slot (
   event_id  bigint not null references event (event_id) on delete cascade,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { currentSection, railItems, resolveQueue } from "./staff-nav"
+import { currentSection, railItems, resolveQueue, venueSidebarSection } from "./staff-nav"
 
 describe("Safety Officer navigation (SPM-258)", () => {
   it("gives the Safety Officer their own rail: the check list and their inbox", () => {
@@ -50,3 +50,23 @@ describe("Event Coordinator Lead navigation (SPM-257)", () => {
     expect(currentSection("lead", "/staff/lead/events/9")).toBe("coordinators")
   })
 })
+
+describe("venueSidebarSection (quick fix after SPM-19)", () => {
+  it("names the sidebar section a venue booking belongs to, so the heading follows the booking and not the address", () => {
+    expect(venueSidebarSection("requests")).toBe("requested")
+    expect(venueSidebarSection("decided")).toBe("decided")
+    expect(venueSidebarSection("archive")).toBe("archive")
+  })
+
+  it("gives a decided booking opened at its own address the Decided heading", () => {
+    const { heading, section } = resolveQueue({
+      role: "venue",
+      pathname: "/staff/venue/12",
+      activeSection: venueSidebarSection("decided"),
+    })
+
+    expect(section).toBe("decided")
+    expect(heading).toBe("Decided")
+  })
+})
+
