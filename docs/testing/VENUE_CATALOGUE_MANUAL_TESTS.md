@@ -2,7 +2,7 @@
 
 ## Overview
 Manual browser tests for Venue Staff maintaining the venue catalogue (SPM-42).
-Since SPM-320 a venue has **opening hours**: one or more windows a day on the
+Since SPM-320 a venue has **opening hours**: one window a day on the
 15-minute grid, Singapore time, the same every day. The AM/PM/Night "slots
 offered" are gone, so SPM-42 is back to its original "operating hours".
 TC-VCAT-001, -002 and -004 were rewritten for the opening-hours picker on
