@@ -61,6 +61,7 @@ import { SetEventRequiredFacilitiesUseCase } from "@/core/use-cases/set-event-re
 import { UpdateEventDetailsUseCase } from "@/core/use-cases/update-event-details";
 import { ChangeBookingRoomLayoutUseCase } from "@/core/use-cases/change-booking-room-layout";
 import { CancelVenueBookingUseCase } from "@/core/use-cases/cancel-venue-booking";
+import { ClearBookingFlagUseCase } from "@/core/use-cases/clear-booking-flag";
 import { CancelEventUseCase } from "@/core/use-cases/cancel-event";
 import { CompleteEventUseCase } from "@/core/use-cases/complete-event";
 import { ConfirmEventUseCase } from "@/core/use-cases/confirm-event";
@@ -637,6 +638,15 @@ export async function buildCancelVenueBooking(): Promise<CancelVenueBookingUseCa
     ...(await venueBookingAdapters()),
     venueStaff: new SupabaseVenueStaffDirectory(createSupabaseAdminClient()),
     notifier: recordedNotifier(),
+  });
+}
+
+/** SPM-310: the assigned coordinator clears a flag on a booking that still fits. */
+export async function buildClearBookingFlag(): Promise<ClearBookingFlagUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ClearBookingFlagUseCase({
+    events: new SupabaseCoordinatorEventRepository(client),
+    flags: new SupabaseBookingFlagRepository(client),
   });
 }
 

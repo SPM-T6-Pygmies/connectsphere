@@ -28,11 +28,19 @@ export interface EventBookingFlag {
   readonly sourceLiftedAt: string | null;
 }
 
-/** Driven port: the review flags on an event's venue bookings (SPM-313). */
+/** Driven port: the review flags on an event's venue bookings (SPM-313, SPM-310). */
 export interface BookingFlagRepository {
   /**
    * The open flags on one of the coordinator's events, oldest first. Empty if the event
    * is not theirs, the same as an event that does not exist (#91).
    */
   openForEvent(coordinatorId: UserAccountId, eventId: string): Promise<readonly EventBookingFlag[]>;
+
+  /**
+   * SPM-310: the coordinator decided the booking still fits. Closes every open flag on it as
+   * cleared by them, now; each row stays as the record of what was cleared. Throws
+   * `BookingNotFoundError` if the booking is not on one of their events (#91), and
+   * `NoFlagToClearError` if it has no open flag left, e.g. it was cleared a moment ago.
+   */
+  clear(coordinatorId: UserAccountId, bookingId: BookingId): Promise<void>;
 }
