@@ -1,3 +1,4 @@
+import { changeRequestStateFor, type ChangeRequestState } from "../domain/change-request";
 import { clientOrganisationId } from "../domain/client-organisation";
 import {
   canDiscussEventRequest,
@@ -7,6 +8,7 @@ import {
 } from "../domain/event-request";
 import type { TimeRangeOnDate } from "../domain/event-times";
 import { userAccountId } from "../domain/user-account";
+import type { ChangeRequestRepository } from "../ports/outbound/change-request-repository";
 import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
 import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
@@ -41,12 +43,19 @@ export interface ViewOrganiserEventRequestResult {
   readonly assignedCoordinatorName: string | null;
   /** SPM-326 AC6: when the event the request became runs. Null until it is approved. */
   readonly eventTimes: readonly TimeRangeOnDate[] | null;
+  /**
+   * SPM-52: whether this caller may ask for a change to the event now -- see
+   * `changeRequestStateFor`. `none` for a colleague who does not own the event,
+   * and before the request becomes one.
+   */
+  readonly changeRequest: ChangeRequestState;
 }
 
 export interface ViewOrganiserEventRequestDeps {
   readonly eventRequests: EventRequestRepository;
   readonly clarificationThread: ClarificationThreadRepository;
   readonly userAccounts: UserAccountRepository;
+  readonly changeRequests: ChangeRequestRepository;
 }
 
 /**
@@ -79,9 +88,10 @@ export class ViewOrganiserEventRequestUseCase {
       return null;
     }
 
-    const [messages, eventTimes] = await Promise.all([
+    const [messages, eventTimes, changeRequestTarget] = await Promise.all([
       this.deps.clarificationThread.messagesFor(request.id),
       this.deps.eventRequests.findEventTimes(request.id),
+      this.deps.changeRequests.findTarget(request.id),
     ]);
     const coordinatorId = request.assignedCoordinatorUserAccountId;
     // One batched lookup for the whole thread and the coordinator rather than one per person.
@@ -96,6 +106,7 @@ export class ViewOrganiserEventRequestUseCase {
       canDiscuss: canDiscussEventRequest(request.status),
       assignedCoordinatorName: coordinatorId === null ? null : (names.get(coordinatorId) ?? null),
       eventTimes,
+      changeRequest: changeRequestStateFor(changeRequestTarget, organiser.userAccountId),
     };
   }
 }
