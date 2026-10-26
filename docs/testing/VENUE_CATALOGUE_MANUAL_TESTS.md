@@ -73,7 +73,7 @@ catalogue (`/staff/venue/catalogue`).
 - [x] After step 3, **Add venue** is still disabled; setting the opening and
       closing times enables it.
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`). Screenshot: [step3-add-venue-disabled-until-times-set](../screenshots/2026-10-25_SPM-320_TC-VCAT-001_step3-add-venue-disabled-until-times-set.jpg)
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step3-add-venue-disabled-until-times-set](../screenshots/2026-10-25_SPM-320_TC-VCAT-001_step3-add-venue-disabled-until-times-set.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VCAT-002 Create a venue
@@ -94,7 +94,7 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 - [x] Straight after step 3, a *Venue created.* toast shows and the Add venue
       form is empty again (checked 2026-10-23 in TC-VBUFFER-001).
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`). The toast and the emptied form were seen again.
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). The toast and the emptied form were seen again.
 Screenshot: [step3-catalogue-row-07-00-18-00](../screenshots/2026-10-25_SPM-320_TC-VCAT-002_step3-catalogue-row-07-00-18-00.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../screenshots/2026-10-09_TC-VCAT-002_step3-catalogue-row.png)).
@@ -136,7 +136,7 @@ Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: 
       **Opens** `13:00`, **Closes** `24:00`; Classroom 100. The catalogue row
       shows **Opening hours** `13:00–24:00`.
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`). Screenshot: [step3-opens-13-00-closes-24-00-after-reload](../screenshots/2026-10-25_SPM-320_TC-VCAT-004_step3-opens-13-00-closes-24-00-after-reload.jpg)
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step3-opens-13-00-closes-24-00-after-reload](../screenshots/2026-10-25_SPM-320_TC-VCAT-004_step3-opens-13-00-closes-24-00-after-reload.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Screenshots, retaken 21/10/2026 on the same build: [step3-opening-windows-after-reload](../screenshots/2026-10-21_SPM-320_TC-VCAT-004_step3-opening-windows-after-reload.png)
 Earlier run on slots: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-edits-before-save](../screenshots/2026-10-09_TC-VCAT-004_step2-edits-before-save.png) · [step3-after-reload](../screenshots/2026-10-09_TC-VCAT-004_step3-after-reload.png) · [step4-save-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-004_step4-save-disabled-no-slot.png)

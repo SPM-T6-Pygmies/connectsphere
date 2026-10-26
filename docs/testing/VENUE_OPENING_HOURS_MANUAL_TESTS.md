@@ -98,7 +98,7 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 - [x] Step 2 is refused with "The window 13:00–13:00 must end after it starts."
 - [x] Step 3: the venue still opens `13:00` and closes `24:00`; nothing was saved.
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`). Screenshot: [step1-13-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-002_step1-13-00-12-00-refused.jpg)
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step1-13-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-002_step1-13-00-12-00-refused.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
 ### TC-VHOURS-004 A request over closed time is refused
@@ -124,7 +124,7 @@ yet.
 
 **Clean up:** `delete from booking where event_id = (select event_id from event where name = 'Founders'' Gala Dinner') and status = 'Requested';`
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the Venue tab, with the Theatre layout; then cleaned up.
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`), on the Venue tab, with the Theatre layout; then cleaned up.
 Screenshots: [step1-07-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step1-07-00-12-00-refused.jpg) · [step2-12-45-13-30-names-12-45-13-00](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step2-12-45-13-30-names-12-45-13-00.jpg) · [step3-13-00-24-00-requested](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step3-13-00-24-00-requested.jpg)
 Earlier run on slots: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
@@ -186,7 +186,7 @@ migration's own run on the two converted seed venues also kept their open time
       explained as "closed for part of 19:00–24:00" or "no opening hours or
       booking horizon recorded".
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), with `seed-venues` and `seed-venue-search-uat` loaded: every venue
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`), with `seed-venues` and `seed-venue-search-uat` loaded: every venue
 shows one window and none shows `—`; step 3 lists UAT-42 Lecture Hall and UAT-44 Harbour Room, and
 explains 4 as "no opening hours or booking horizon recorded" and Garden Hall as "closed for part of 19:00–24:00".
 Screenshots: [step1-catalogue-one-window-each](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step1-catalogue-one-window-each.jpg) · [step2-find-a-venue-opening-hours](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step2-find-a-venue-opening-hours.jpg) · [step3-19-00-24-00-search](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step3-19-00-24-00-search.jpg)
