@@ -116,6 +116,7 @@ needs. This table says what that is.
 | Venue setup and turnaround | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-booking-holds`; `seed-venue-buffers/checks.sql` for the database cases |
 | Venue booking cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel` |
 | Venue flag clear | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel`, `seed-booking-flag-clear/blocks.sql` |
+| Venue re-request | `seed-coordinator-view`, `seed-venues`, `seed-venue-re-request` |
 | Safety check essential lines | `seed-venues`, `seed-safety-check` (its `verify` must read 29 rows `ok = true`) |
 | Event cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel`, `seed-event-cancel` |
 | **Equipment review** | `seed-equipment-review` **only** |
@@ -172,6 +173,7 @@ local subscribers and notifications stay behind otherwise.
 | `seed-venue-change-flags` | *Change Test Hall* and 6 *Venue Change:* events with 7 bookings, 42 days from today (and one 3 days ago), for the venue change flag cases to edit | `seed-coordinator-view`, `seed-venues` | Yes, puts the hall back and replaces its own events | `seed`, `show` (7 rows, no flags), `teardown` |
 | `seed-booking-cancel` | 5 bookings on the *Founders' Gala Dinner* at the two UAT-44 venues, 10 days from today: two Confirmed, one Requested, one Tentative Hold, one Rejected | `seed-equipment`, `seed-venue-search-uat` | Yes | `seed`, `verify` (7 rows), `teardown` |
 | `seed-booking-flag-clear` | 3 blocks on UAT-44 Harbour Room, 10 days from today, that flag the *Founders' Gala Dinner*'s two Confirmed bookings there (two reasons on the AM one, one on the Night one), for the flag clear cases | `seed-booking-cancel` | No: run `teardown` first | `blocks`, `reblock` (one more block, TC-VFCLR-004), `flags` (every flag row on the event), `teardown` (removes the blocks and the event's flag rows) |
+| `seed-venue-re-request` | 2 *Re-request Test:* events, 49 days from today: the Tech Summit's Main Hall and Studio bookings (Confirmed), each flagged by a block, and an Evening Gala on Main Hall after them, for the venue re-request cases (SPM-251) | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events and blocks | `seed`, `show` (3 rows before any re-request), `teardown` (also removes the blocks on that day) |
 | `seed-event-cancel` | A lapsed Tentative Hold on the *Founders' Gala Dinner* at UAT-44 Garden Hall, 10 days from today, beside `seed-booking-cancel`'s five. `teardown` also puts the event back in Planning | `seed-booking-cancel` | Yes | `seed`, `verify` (2 rows), `teardown` |
 | `apply-ssot` | Nothing: corrects venue and equipment data already there | A database that already has data | Yes | `verify` (31 rows), `apply` |
 

@@ -44,160 +44,63 @@ description's `## Manual test results` table. CI records it in
 
 ## Test Environment Setup
 
-### Prerequisites
+### Before you start
 
-- Local Supabase, reset:
-  ```bash
-  supabase start
-  supabase db reset
-  ```
+- Docker is running, `pnpm install` has been run, and the Supabase CLI is installed.
 - `pnpm dev` is enough: nothing here needs Novu. With `pnpm dev:local`, Venue Staff also get
   the ordinary new-request notice (SPM-61) for each re-request, and the coordinator the
   ordinary decision notice (SPM-62).
 - Two browser profiles or private windows: the cases switch between `coordinator@test.com`,
   `coordinator2@test.com` and `venue@test.com`. Every password is `TestPass123!`.
 
-### Fixture
+### Steps
 
-**D** is 35 days from today in Singapore time, a day no other seed uses. The fixture adds:
+1. Rebuild the database. This **drops all your local data**:
+   ```bash
+   supabase start
+   supabase db reset
+   ```
+2. Load the baseline these cases need, then this ticket's seed, in this order:
+   ```bash
+   supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+   supabase db query --file scripts/seed-venues/seed.sql --local
+   supabase db query --file scripts/seed-venue-re-request/seed.sql --local
+   ```
+3. Check what loaded:
+   ```bash
+   supabase db query --file scripts/seed-venue-re-request/show.sql --local
+   ```
+   It lists 3 bookings: A and B Confirmed with an `open` flag each, and the Evening Gala's with
+   none.
+4. Start the app: `pnpm dev`, then open <http://localhost:3000/auth/login>.
 
-- three venues, all open 07:00–24:00:
-  - **RR Grand Hall:** Theatre 200, Banquet 120; 30 minutes setup, 30 minutes turnaround;
-  - **RR Studio:** Theatre 60;
-  - **RR Terrace:** Banquet 150;
-- two events:
+**D** is 49 days from today in Singapore time, a day no other seed uses. `seed-venues` gives:
+
+- **Main Hall:** Theatre 300, Banquet 180, Classroom 150; 30 minutes setup, 45 turnaround;
+- **Studio:** Theatre 60;
+- **Rooftop Terrace:** Banquet 120, Exhibition 150.
+
+All three are open 07:00–24:00. `seed-venue-re-request` adds:
 
 | Event | Coordinator | Event times | Bookings |
 | --- | --- | --- | --- |
-| Re-request Test: Tech Summit | Test Coordinator | D 14:00–17:00, 110 expected, prefers Banquet | **A** RR Grand Hall D 13:00–18:00, Theatre, Confirmed; **B** RR Studio D 13:00–18:00, Confirmed |
-| Re-request Test: Evening Gala | Test Coordinator 2 | D 19:00–24:00 | RR Grand Hall D 19:00–24:00, Confirmed |
+| Re-request Test: Tech Summit | Test Coordinator | D 14:00–17:00, 110 expected, prefers Banquet | **A** Main Hall D 13:00–18:00, Theatre, Confirmed; **B** Studio D 13:00–18:00, Confirmed |
+| Re-request Test: Evening Gala | Test Coordinator 2 | D 19:00–24:00 | Main Hall D 19:00–24:00, Confirmed |
 
 It then records two blocks as Test Venue Staff, through the same function the Unavailability
 form calls:
 
-- Maintenance on RR Grand Hall, D 13:00–14:00, flags **A**;
-- Renovation on RR Studio, D 13:00–18:00, flags **B**.
+- Maintenance on Main Hall, D 13:00–14:00, flags **A**;
+- Renovation on Studio, D 13:00–18:00, flags **B**.
 
 A was booked 13:00–18:00, but the event has since moved to 14:00–17:00 and now prefers Banquet.
 That is why the form starts from the event, not from A.
 
-Load it after the reset. Running it again puts everything back as above, so the cases can be
-re-run without a reset. To load it without `psql` installed:
+To run the cases again without a reset, re-run step 2's last command: the seed replaces its own
+events, bookings, re-requests and blocks. To remove them:
 
 ```bash
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/VENUE_RE_REQUEST_MANUAL_TESTS.md \
-  | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
-```
-
-```sql
-do $$
-declare
-  d           date   := (now() at time zone 'Asia/Singapore')::date + 35;
-  v_org       bigint := (select client_organisation_id from public.client_organisation where name = 'Test Organisation');
-  v_organiser bigint := (select user_account_id from public.user_account where name = 'Test Organiser');
-  v_staff     bigint := (select user_account_id from public.user_account where name = 'Test Venue Staff');
-  v_coord     bigint := (select user_account_id from public.user_account where name = 'Test Coordinator' and client_organisation_id is null);
-  v_coord2    bigint := (select user_account_id from public.user_account where name = 'Test Coordinator 2' and client_organisation_id is null);
-  v_hall      bigint;
-  v_studio    bigint;
-  v_terrace   bigint;
-  v_event     bigint;
-  v_booking   bigint;
-  r           record;
-begin
-  if v_org is null or v_staff is null or v_coord is null or v_coord2 is null then
-    raise exception 'The test accounts are missing' using hint = 'Run supabase db reset first.';
-  end if;
-
-  -- Earlier runs go: the events take their bookings, re-requests and flags with them, then the blocks.
-  delete from public.event where name like 'Re-request Test: %' and client_organisation_id = v_org;
-  delete from public.venue_unavailability
-  where venue_id in (select venue_id from public.venue where location like 'RR %');
-
-  for r in
-    select * from (values
-      ('RR Grand Hall', 200, 30, 30),
-      ('RR Studio',      60,  0,  0),
-      ('RR Terrace',    150,  0,  0)
-    ) as v (location, capacity, setup, turnaround)
-  loop
-    if not exists (select 1 from public.venue where location = r.location) then
-      insert into public.venue (location, capacity, setup_time_minutes, turnaround_time_minutes)
-      values (r.location, r.capacity, r.setup, r.turnaround);
-    end if;
-    -- Open 07:00-24:00 on the 15-minute grid.
-    insert into public.venue_slot (venue_id, slot_code)
-    select v.venue_id, n::text
-    from public.venue v cross join generate_series(28, 95) n
-    where v.location = r.location
-      and not exists (select 1 from public.venue_slot s where s.venue_id = v.venue_id);
-  end loop;
-  select venue_id into v_hall from public.venue where location = 'RR Grand Hall';
-  select venue_id into v_studio from public.venue where location = 'RR Studio';
-  select venue_id into v_terrace from public.venue where location = 'RR Terrace';
-
-  insert into public.venue_supported_layout (venue_id, room_layout_id, capacity)
-  select v.venue_id, rl.room_layout_id, l.capacity
-  from (values (v_hall, 'Theatre', 200), (v_hall, 'Banquet', 120),
-               (v_studio, 'Theatre', 60), (v_terrace, 'Banquet', 150)) as l (venue_id, layout, capacity)
-  join public.venue v on v.venue_id = l.venue_id
-  join public.room_layout rl on rl.name = l.layout
-  on conflict (venue_id, room_layout_id) do nothing;
-
-  for r in
-    select * from (values
-      ('Re-request Test: Tech Summit',  v_coord,  110, 'Banquet', 56, 67),
-      ('Re-request Test: Evening Gala', v_coord2,  80, null,      76, 95)
-    ) as e (name, coordinator, attendance, layout, first_code, last_code)
-  loop
-    insert into public.event (
-      name, preferred_date, status, assigned_coordinator_user_account_id,
-      owning_organiser_user_account_id, client_organisation_id, expected_attendance, room_layout_preference
-    )
-    values (r.name, d, 'Planning', r.coordinator, v_organiser, v_org, r.attendance, r.layout)
-    returning event_id into v_event;
-    insert into public.event_slot (event_id, slot_date, slot_code)
-    select v_event, d, n::text from generate_series(r.first_code, r.last_code) n;
-  end loop;
-
-  for r in
-    select * from (values
-      ('Re-request Test: Tech Summit',  v_hall,   'Theatre', 52, 71),
-      ('Re-request Test: Tech Summit',  v_studio, 'Theatre', 52, 71),
-      ('Re-request Test: Evening Gala', v_hall,   'Theatre', 76, 95)
-    ) as b (event_name, venue_id, layout, first_code, last_code)
-  loop
-    insert into public.booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, room_layout_id)
-    select b.venue_id, e.event_id, e.assigned_coordinator_user_account_id, v_staff, 'Confirmed',
-           (select room_layout_id from public.room_layout where name = b.layout)
-    from (select r.event_name as name, r.venue_id, r.layout) b
-    join public.event e on e.name = b.name and e.client_organisation_id = v_org
-    returning booking_id into v_booking;
-    insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_booking, d, n::text from generate_series(r.first_code, r.last_code) n;
-  end loop;
-
-  -- The blocks that flag A (its first hour) and B (all of it).
-  perform public.venue_staff_record_unavailability(v_staff, v_hall, 'Maintenance', null,
-    (select jsonb_agg(jsonb_build_object('date', d, 'slot', n::text) order by n) from generate_series(52, 55) n));
-  perform public.venue_staff_record_unavailability(v_staff, v_studio, 'Renovation', null,
-    (select jsonb_agg(jsonb_build_object('date', d, 'slot', n::text) order by n) from generate_series(52, 71) n));
-end $$;
-```
-
-To see where the bookings stand at any point, run this. It is read-only:
-
-```bash
-cat <<'SQL' | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
-select b.booking_id, e.name as event, v.location, b.status, b.replaces_booking_id, b.replaced_by_booking_id,
-       (select string_agg(coalesce(f.cleared_how, 'open'), ', ') from public.booking_review_flag f
-         where f.booking_id = b.booking_id) as flags
-from public.booking b
-join public.event e using (event_id)
-join public.venue v using (venue_id)
-where e.name like 'Re-request Test: %'
-order by b.booking_id;
-SQL
+supabase db query --file scripts/seed-venue-re-request/teardown.sql --local
 ```
 
 ---
@@ -213,8 +116,8 @@ Run them in order: each starts where the one before left off.
 **Steps and expected results:**
 
 1. Open **My events → Re-request Test: Tech Summit → Venue**.
-   - **Flagged for review** lists A (RR Grand Hall, Maintenance: D 13:00 to 14:00) and B
-     (RR Studio, Renovation: D 13:00 to 18:00).
+   - **Flagged for review** lists A (Main Hall, Maintenance: D 13:00 to 14:00) and B
+     (Studio, Renovation: D 13:00 to 18:00).
    - Under **Booking requests for this event**, A and B are Confirmed with an amber
      **Flagged** badge.
    - The Evening Gala's booking is not listed.
@@ -222,16 +125,18 @@ Run them in order: each starts where the one before left off.
    - The card shows the reason, **Re-request venue** and **Clear flag**.
 3. Click **Re-request venue**.
    - The URL ends `?tab=venue&replace=<A's id>#new-request`.
-   - The form card is titled **Re-request a venue** and reads "Replacing RR Grand Hall, booked
+   - The form card is titled **Re-request a venue** and reads "Replacing Main Hall, booked
      for D 13:00 to 18:00."
-   - **Venue** is RR Grand Hall and **Room layout** is Banquet: the event's preference, not A's
+   - **Venue** is Main Hall and **Room layout** is Banquet: the event's preference, not A's
      Theatre.
-   - The checklist reads Suitable (Banquet seats 120, fits the 110 expected).
+   - The checklist reads Suitable (Banquet seats 180, fits the 110 expected).
    - **Dates and times** has one row, D 14:00 to 17:00.
    - The button reads **Send re-request**.
 4. Click **Search venues with these details**.
    - Find a venue opens with date D, 14:00 to 17:00, attendance 110 and layout Banquet filled
-     in, and lists venues for them.
+     in. Its results follow Find a venue's own rules (SPM-44): `seed-venues` records no booking
+     horizon, so it reports those venues as not shown for "no opening hours or booking horizon
+     recorded".
 5. Go back, then click **Cancel re-request**.
    - The card is the ordinary **New booking request** again.
 
@@ -245,17 +150,17 @@ Run them in order: each starts where the one before left off.
 
 **Steps and expected results:**
 
-1. Open A's card again, click **Re-request venue**, choose **RR Terrace** and click **Send
-   re-request**.
-   - A toast reads "Re-request sent for RR Terrace. Venue Staff will review it. The booking at
-     RR Grand Hall stays until they approve it."
+1. Open A's card again, click **Re-request venue**, choose **Rooftop Terrace** with **Banquet** and click
+   **Send re-request**.
+   - A toast reads "Re-request sent for Rooftop Terrace. Venue Staff will review it. The booking at
+     Main Hall stays until they approve it."
    - The form card is back to **New booking request**.
-   - The list has a new RR Terrace row: Requested, "Re-request for RR Grand Hall". A is still
+   - The list has a new Rooftop Terrace row: Requested, "Re-request for Main Hall". A is still
      Confirmed and Flagged.
 2. In the other window, sign in as `venue@test.com` and open **Requests**.
-   - The RR Terrace request is listed like any other.
+   - The Rooftop Terrace request is listed like any other.
 3. Open it.
-   - An alert reads "Replaces: RR Grand Hall, D 13:00–18:00 (Confirmed)".
+   - An alert reads "Replaces: Main Hall, D 13:00–18:00 (Confirmed)".
    - The decision form has **Approve booking** and **Reject**, and no **Place hold**.
 
 **Evidence:** `docs/screenshots/<date>_TC-VREQ-002_step3-venue-staff-replaces.png`
@@ -264,7 +169,7 @@ Run them in order: each starts where the one before left off.
 
 ### TC-VREQ-003: One re-request at a time, even from two tabs (AC9)
 
-**Preconditions:** TC-VREQ-002 done (the RR Terrace re-request is waiting). Signed in as
+**Preconditions:** TC-VREQ-002 done (the Rooftop Terrace re-request is waiting). Signed in as
 `coordinator@test.com`.
 
 **Steps and expected results:**
@@ -274,8 +179,8 @@ Run them in order: each starts where the one before left off.
      still there.
 2. Open B's **Flagged** card.
    - It still offers **Re-request venue**: the waiting re-request is A's alone (AC8).
-3. Open B's re-request in two tabs (B's card → **Re-request venue** in each). Choose RR Terrace
-   in tab 1 and RR Grand Hall in tab 2. Click **Send re-request** in tab 1, then in tab 2.
+3. Open B's re-request in two tabs (B's card → **Re-request venue** in each). Choose Rooftop Terrace
+   with Banquet in tab 1 and Main Hall in tab 2. Click **Send re-request** in tab 1, then in tab 2.
    - Tab 1 is sent.
    - Tab 2 shows "A re-request for this booking is already waiting for Venue Staff." and saves
      nothing.
@@ -291,11 +196,11 @@ Run them in order: each starts where the one before left off.
 
 **Steps and expected results:**
 
-1. As Venue Staff, open the RR Terrace re-request for A. Enter "Terrace is closed for a private
+1. As Venue Staff, open the Rooftop Terrace re-request for A. Enter "Terrace is closed for a private
    event" and click **Reject**.
    - It is Rejected.
 2. As the coordinator, reload the Venue tab.
-   - The RR Terrace row is Rejected and shows the reason.
+   - The Rooftop Terrace row is Rejected and shows the reason.
    - A is still Confirmed and Flagged, and still listed under **Flagged for review**.
    - A's card offers **Re-request venue** again.
    - The event is still Planning.
@@ -310,17 +215,17 @@ Run them in order: each starts where the one before left off.
 
 **Steps and expected results:**
 
-1. As the coordinator, click A's **Re-request venue** and send it as pre-filled: RR Grand Hall,
+1. As the coordinator, click A's **Re-request venue** and send it as pre-filled: Main Hall,
    Banquet, D 14:00 to 17:00.
    - It is sent. It overlaps A, but A is the booking it replaces, so there is no clash.
 2. As Venue Staff, open it and click **Approve booking**.
-   - It is Confirmed. Its padded time, 13:30 to 17:30, overlaps A, but A is the booking it
+   - It is Confirmed. Its padded time, 13:30 to 17:45, overlaps A, but A is the booking it
      replaces; it does not reach the Gala's padded 18:30.
 3. As the coordinator, reload the Venue tab.
-   - A is Released, with "Replaced by RR Grand Hall" and no badge.
-   - The new RR Grand Hall row is Confirmed, "Re-request for RR Grand Hall".
+   - A is Released, with "Replaced by Main Hall" and no badge.
+   - The new Main Hall row is Confirmed, "Re-request for Main Hall".
    - **Flagged for review** lists only B, which is still flagged and offers re-request (AC8).
-4. Run the bookings query from Setup.
+4. Run `scripts/seed-venue-re-request/show.sql`.
    - A is Released, `replaced_by_booking_id` is the new booking, and its flag reads `replaced`,
      not `booking-ended`.
    - B's flag is still `open`.
