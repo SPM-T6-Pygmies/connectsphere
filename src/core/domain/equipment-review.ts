@@ -167,14 +167,14 @@ export const UNFULFILLED_COMMENT_MAX_LENGTH = 500;
 
 /**
  * SPM-274: whether Technical Support can reserve this line or mark it
- * unfulfilled -- it needs their attention and nothing is held against it: a
- * New line (AC1), or one marked unfulfilled that the coordinator then changed
- * (AC4). A reserved line that changed is released or replaced instead (SPM-108).
+ * unfulfilled -- a New line (AC1), or one marked unfulfilled that the
+ * coordinator then changed (AC4). SPM-316 AC1: or a reserved line the
+ * coordinator changed, its units still held, which is decided on afresh. A
+ * line whose removal was requested is released instead (SPM-108).
  */
 export function awaitsDecision(status: CoordinatorEventStatus, line: EquipmentRequirement): boolean {
   return (
     isActiveEvent(status) &&
-    line.quantityReserved === 0 &&
     (line.state === "Requested" || (line.state === "Under review" && !line.removalRequested))
   );
 }
@@ -182,7 +182,9 @@ export function awaitsDecision(status: CoordinatorEventStatus, line: EquipmentRe
 /**
  * SPM-274 AC1: reserves the full quantity requested, recording who did. AC2:
  * not before the event has a date. AC3: all or nothing -- with too few units
- * free, nothing is reserved.
+ * free, nothing is reserved. SPM-316: on a changed line this replaces what it
+ * held, so the units it already has count as free for it, and a lowered
+ * quantity frees the surplus (AC3).
  */
 export function reserveEquipmentLine(
   event: EquipmentDecisionEvent,
@@ -205,8 +207,9 @@ export function reserveEquipmentLine(
 
 /**
  * SPM-274 AC3: with too few units free, the line is marked unfulfilled with a
- * comment saying why, and nothing is reserved. Not while enough are free --
- * then it is reserved instead.
+ * comment saying why, and nothing is reserved -- SPM-316 AC2: a changed line
+ * releases what it held. Not while enough are free -- then it is reserved
+ * instead.
  */
 export function markEquipmentLineUnfulfilled(
   event: EquipmentDecisionEvent,
@@ -221,6 +224,7 @@ export function markEquipmentLineUnfulfilled(
   }
   return {
     ...line,
+    quantityReserved: 0,
     state: "Unfulfilled",
     reviewBaseline: null,
     decision: { by, comment: validComment(comment) },
