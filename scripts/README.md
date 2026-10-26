@@ -60,7 +60,7 @@ What you now have:
 | Seed | Gives you |
 | --- | --- |
 | `seed-coordinator-view` | 8 event requests, one in each state the screens tell apart. Includes *Founders' Gala Dinner*, Approved, assigned to Test Coordinator. No events yet. |
-| `seed-venues` | Main Hall, Seminar Room 2-1, Studio and Rooftop Terrace, with their layouts, each open 07:00–12:00, 13:00–18:00 and 19:00–24:00. Setup and turnaround show each state (an earlier seed gave 60, 30, 90 and 120 minutes, now locked in a database seeded before; run `supabase db reset` once to pick up these): Main Hall 30 and 45 minutes, Studio 0 and 0, the other two not defined. |
+| `seed-venues` | Main Hall, Seminar Room 2-1, Studio and Rooftop Terrace, with their layouts, each open 07:00–24:00. Setup and turnaround show each state (an earlier seed gave 60, 30, 90 and 120 minutes, now locked in a database seeded before; run `supabase db reset` once to pick up these): Main Hall 30 and 45 minutes, Studio 0 and 0, the other two not defined. |
 | `seed-venue-search-uat` | UAT-44 Harbour Room and UAT-44 Garden Hall, with slots and a booking horizon, and two bookings on them. |
 | `seed-equipment` | The six equipment types (Projector 10, Wireless microphone 30, PA speaker 5, Presentation laptop 8, Livestream kit 2, Crowd barrier 40) and the *Founders' Gala Dinner* event, with two equipment lines. |
 
