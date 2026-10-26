@@ -312,6 +312,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-105": {
+      "title": "Flag bookings when venue attributes change",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-106": {
       "title": "Resolve venue.capacity vs per-layout capacity precedence",
       "parent": null,
