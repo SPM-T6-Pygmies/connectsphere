@@ -177,9 +177,9 @@ or after `teardown.sql`).
   - *Projector* · Requested **4** · Reserved **0** · *HDMI and USB-C* · **New**
   - *Wireless microphone* · Requested **6**, *was 4* · Reserved **4** · *Two on the
     stage*, *was: One on the stage* · **Changed**
-- In the **Decision** column, *Projector* has **Reserve 4** (SPM-274) and *PA speaker*
-  has **Release 2** (SPM-108). The Changed line, which has equipment reserved, has
-  none: replacing it is SPM-316.
+- In the **Decision** column, *Projector* has **Reserve 4** (SPM-274), *PA speaker*
+  has **Release 2** (SPM-108), and *Wireless microphone*, Changed with equipment
+  reserved, has **Reserve 6** (SPM-316).
 
 **Status:** [ ] Pass [ ] Fail
 
