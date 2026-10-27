@@ -3,6 +3,7 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   HoldExpiredNotice,
@@ -33,6 +34,7 @@ export class RecordingNotifier implements Notifier {
   readonly bookingsDecided: VenueBookingDecidedNotice[] = [];
   readonly holdsExpired: HoldExpiredNotice[] = [];
   readonly bookingsCancelled: VenueBookingCancelledNotice[] = [];
+  readonly eventsConfirmed: EventConfirmedNotice[] = [];
   readonly bookingsFlagged: VenueBookingFlaggedNotice[] = [];
   readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
@@ -90,6 +92,10 @@ export class RecordingNotifier implements Notifier {
 
   async venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void> {
     this.bookingsCancelled.push(notice);
+  }
+
+  async eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
+    this.eventsConfirmed.push(notice);
   }
 
   async venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {

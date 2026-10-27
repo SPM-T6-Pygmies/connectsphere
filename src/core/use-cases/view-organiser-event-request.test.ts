@@ -13,6 +13,7 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import { eventId } from "@/core/domain/event";
 import { eventRequestId, type EventRequest } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
+import type { OrganiserEventArrangements } from "@/core/ports/outbound/event-request-repository";
 
 import { ViewOrganiserEventRequestUseCase } from "./view-organiser-event-request";
 
@@ -37,10 +38,11 @@ function request(overrides: Partial<EventRequest> = {}): EventRequest {
 function buildHarness(
   seed: readonly EventRequest[],
   changeRequestTargets: Readonly<Record<string, ChangeRequestTarget>> = {},
+  eventArrangements: ReadonlyMap<string, OrganiserEventArrangements> = new Map(),
 ) {
   const clarificationThread = new InMemoryClarificationThreadRepository();
   const useCase = new ViewOrganiserEventRequestUseCase({
-    eventRequests: new InMemoryEventRequestRepository(seed, clarificationThread),
+    eventRequests: new InMemoryEventRequestRepository(seed, clarificationThread, eventArrangements),
     clarificationThread,
     userAccounts: new InMemoryUserAccountRepository({ names: NAMES }),
     changeRequests: new InMemoryChangeRequestRepository(changeRequestTargets),
@@ -219,6 +221,38 @@ describe("ViewOrganiserEventRequestUseCase event times (SPM-326)", () => {
     });
 
     expect(result?.eventTimes).toBeNull();
+  });
+});
+
+describe("ViewOrganiserEventRequestUseCase event arrangements (SPM-66)", () => {
+  const CONFIRMED: OrganiserEventArrangements = {
+    status: "Confirmed",
+    venues: ["Main Hall"],
+    equipment: [{ equipmentType: "Wireless microphone", quantityReserved: 4 }],
+  };
+
+  it("AC3: shows the Organiser the confirmed event's status, venue and equipment", async () => {
+    const { useCase } = buildHarness([request({ status: "Approved" })], {}, new Map([["request-1", CONFIRMED]]));
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.eventArrangements).toEqual(CONFIRMED);
+  });
+
+  it("has no arrangements while the request has no event", async () => {
+    const useCase = buildUseCase([request({ status: "Submitted" })]);
+
+    const result = await useCase.execute({
+      id: "request-1",
+      userAccountId: RESPONSIBLE,
+      clientOrganisationId: ORG_A,
+    });
+
+    expect(result?.eventArrangements).toBeNull();
   });
 });
 

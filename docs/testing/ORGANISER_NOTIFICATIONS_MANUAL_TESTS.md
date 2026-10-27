@@ -1,15 +1,16 @@
-# Organiser Notifications Manual Tests (SPM-58, SPM-59, SPM-60)
+# Organiser Notifications Manual Tests (SPM-58, SPM-59, SPM-60, SPM-66)
 
 ## Overview
 Manual browser tests for the in-app notifications the Event Organiser receives
 when their request gets a coordinator (SPM-58), is returned with a
-clarification question (SPM-59), or is approved or rejected (SPM-60).
+clarification question (SPM-59), or is approved or rejected (SPM-60), and
+when the event it became is confirmed (SPM-66).
 
 The inbox is a client component fed by Novu, which vitest does not exercise,
 so delivery, opening and read state are checked here. Wording and routing are
-covered by the automated `(SPM-58)`, `(SPM-59)` and `(SPM-60)` tests.
+covered by the automated `(SPM-58)`, `(SPM-59)`, `(SPM-60)` and `(SPM-66)` tests.
 
-These cases are registered as `TC-ORGNOTIFY-001`–`TC-ORGNOTIFY-006` in
+These cases are registered as `TC-ORGNOTIFY-001`–`TC-ORGNOTIFY-008` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, tick the boxes below **and** report each in the PR description's
 `## Manual test results` table. CI records them in
@@ -129,3 +130,47 @@ than committed here.
 - [x] The notification reads "<event> was rejected" and gives the reason.
 - [x] It does not suggest resubmitting.
 - [ ] Clicking it opens the request, and the notification is now read.
+
+---
+
+## SPM-66: event confirmed
+
+Last run 2026-10-24, local (`pnpm dev:local`, Novu Development), by Isaiah
+Chia, on Operations Roadmap Conference (`organiser2@test.com`). The first run
+found no **Event confirmed** badge; the badge was added and checked again.
+Screenshots are attached to PR #175. Studio should also list `event-confirmed`.
+
+**Pre-conditions:** an approved request whose event is ready to confirm,
+assigned to `coordinator@test.com`: a Confirmed venue booking, every
+essential equipment line reserved in full, and an Approved safety check.
+`CONFIRM_EVENT_MANUAL_TESTS.md` sets one up. Mark the venue and one
+equipment line essential. Also add a second, non-essential equipment line
+with something reserved.
+
+### TC-ORGNOTIFY-007 Organiser is told their event is Confirmed, and the coordinator is not
+
+**Steps**
+1. As `coordinator@test.com`, open the event and click **Confirm event**.
+2. As `organiser@test.com`, open **Notifications**.
+3. As `coordinator@test.com`, open **Notifications**.
+
+**Expected Result**
+- [x] One new unread notification for the organiser, badged **Event
+      confirmed**, reading "<event> is confirmed". It says the event is now
+      Confirmed and ConnectSphere is committed to delivering it, then gives
+      the times, the venue and the essential equipment line.
+- [x] The non-essential equipment line is not mentioned.
+- [x] The coordinator has no new notification for the confirmation.
+- [x] `notification` has a row with `trigger_scenario = 'event-confirmed'`,
+      the organiser as recipient, and `status = 'Sent'`.
+
+### TC-ORGNOTIFY-008 Opening the notification shows the confirmed arrangements and reads it
+
+**Steps**
+1. As `organiser@test.com`, click the notification from TC-ORGNOTIFY-007.
+
+**Expected Result**
+- [x] The request opens. Its **Your event** card shows **Confirmed**, the
+      venue and every reserved equipment line (both lines, with their
+      quantities), and **Event times** shows the event's dates and times.
+- [x] The notification is now read, and the unread count drops by one.

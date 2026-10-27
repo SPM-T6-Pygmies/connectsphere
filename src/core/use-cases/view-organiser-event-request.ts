@@ -10,7 +10,10 @@ import type { TimeRangeOnDate } from "../domain/event-times";
 import { userAccountId } from "../domain/user-account";
 import type { ChangeRequestRepository } from "../ports/outbound/change-request-repository";
 import type { ClarificationThreadRepository } from "../ports/outbound/clarification-thread-repository";
-import type { EventRequestRepository } from "../ports/outbound/event-request-repository";
+import type {
+  EventRequestRepository,
+  OrganiserEventArrangements,
+} from "../ports/outbound/event-request-repository";
 import type { UserAccountRepository } from "../ports/outbound/user-account-repository";
 
 import {
@@ -43,6 +46,8 @@ export interface ViewOrganiserEventRequestResult {
   readonly assignedCoordinatorName: string | null;
   /** SPM-326 AC6: when the event the request became runs. Null until it is approved. */
   readonly eventTimes: readonly TimeRangeOnDate[] | null;
+  /** SPM-66 AC3: the event's status and what has been arranged for it. Null until it is approved. */
+  readonly eventArrangements: OrganiserEventArrangements | null;
   /**
    * SPM-52: whether this caller may ask for a change to the event now -- see
    * `changeRequestStateFor`. `none` for a colleague who does not own the event,
@@ -88,9 +93,10 @@ export class ViewOrganiserEventRequestUseCase {
       return null;
     }
 
-    const [messages, eventTimes, changeRequestTarget] = await Promise.all([
+    const [messages, eventTimes, eventArrangements, changeRequestTarget] = await Promise.all([
       this.deps.clarificationThread.messagesFor(request.id),
       this.deps.eventRequests.findEventTimes(request.id),
+      this.deps.eventRequests.findEventArrangements(request.id),
       this.deps.changeRequests.findTarget(request.id),
     ]);
     const coordinatorId = request.assignedCoordinatorUserAccountId;
@@ -106,6 +112,7 @@ export class ViewOrganiserEventRequestUseCase {
       canDiscuss: canDiscussEventRequest(request.status),
       assignedCoordinatorName: coordinatorId === null ? null : (names.get(coordinatorId) ?? null),
       eventTimes,
+      eventArrangements,
       changeRequest: changeRequestStateFor(changeRequestTarget, organiser.userAccountId),
     };
   }
