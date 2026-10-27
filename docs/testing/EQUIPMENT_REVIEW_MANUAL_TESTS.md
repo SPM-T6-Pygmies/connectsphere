@@ -181,7 +181,7 @@ or after `teardown.sql`).
   has **Release 2** (SPM-108), and *Wireless microphone*, Changed with equipment
   reserved, has **Reserve 6** (SPM-316).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 28/10/2026, run locally by Jerrick
 
 ---
 

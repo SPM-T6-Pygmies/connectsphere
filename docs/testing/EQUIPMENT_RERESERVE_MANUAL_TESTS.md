@@ -103,7 +103,7 @@ out of service leaves 6 free for it: the 4 it holds plus 2 more.
   Needs attention mark and *Reserved by Test Support Staff*.
 - Step 4: *2 lines of 3 need attention* (it was 3 of 3).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 28/10/2026, run locally by Jerrick
 
 ### TC-RERESERVE-002: Mark a raised line unfulfilled when one short, releasing what it held (AC2)
 
@@ -125,7 +125,7 @@ out of service leaves 6 free for it: the 4 it holds plus 2 more.
   **Unfulfilled**, the comment and *Marked by Test Support Staff*. The 6 it held are
   free again.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 28/10/2026, run locally by Jerrick
 
 ### TC-RERESERVE-003: A lowered line waits for Technical Support, then frees the surplus (AC3)
 
@@ -146,4 +146,4 @@ out of service leaves 6 free for it: the 4 it holds plus 2 more.
 - Step 4: Requested **2** · Reserved **2** · Available **3**, with no Needs attention
   mark. The 2 surplus units are free again.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 28/10/2026, run locally by Jerrick
