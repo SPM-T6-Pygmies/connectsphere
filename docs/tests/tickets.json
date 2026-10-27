@@ -922,6 +922,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-325": {
+      "title": "Approve and hold venue bookings by time",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-326": {
       "title": "Run events on start and end times",
       "parent": "SPM-276",
@@ -990,6 +995,16 @@
     "SPM-352": {
       "title": "Test and verify booking requests against AC1–AC5",
       "parent": "SPM-324",
+      "status": "Todo"
+    },
+    "SPM-353": {
+      "title": "Refuse approval when the booking overlaps a live booking",
+      "parent": "SPM-325",
+      "status": "Todo"
+    },
+    "SPM-358": {
+      "title": "Test and verify approvals and holds against AC1–AC6",
+      "parent": "SPM-325",
       "status": "Todo"
     },
     "SPM-450": {
@@ -1096,6 +1111,11 @@
       "title": "Seeds, manual cases and registry for the padded approval check",
       "parent": "SPM-19",
       "status": "In Progress"
+    },
+    "SPM-475": {
+      "title": "Block submitted requests whose padded window overlaps a live booking",
+      "parent": "SPM-325",
+      "status": "Todo"
     }
   }
 }

@@ -500,13 +500,22 @@ function namedTimes(times: ReadonlyArray<TimeOnDate>): string {
 
 /**
  * SPM-46: a hold or confirmed booking already has some of the time -- a hard
- * block (#35, #41). Names the overlapping part (SPM-324 AC2).
+ * block (#35, #41). Names the overlapping part (SPM-324 AC2). At a venue with
+ * setup or turnaround time the part named can lie in that time, so the
+ * message says it is counted (SPM-325 AC6).
  */
 export class VenueSlotUnavailableError extends DomainError {
   readonly code = "venue_slot_unavailable";
 
-  constructor(readonly times: ReadonlyArray<TimeOnDate>) {
-    super(`The venue is already booked for ${namedTimes(times)}. Choose other times or another venue.`);
+  constructor(
+    readonly times: ReadonlyArray<TimeOnDate>,
+    padded = false,
+  ) {
+    super(
+      `The venue is already booked for ${namedTimes(times)}${
+        padded ? ", counting its setup and turnaround time" : ""
+      }. Choose other times or another venue.`,
+    );
   }
 }
 
