@@ -22,7 +22,8 @@ import {
  * SPM-273, through `technical_support_equipment_events` and
  * `technical_support_event_equipment`, and SPM-274, through
  * `technical_support_reserve_equipment` and
- * `technical_support_mark_equipment_unfulfilled` -- not the tables, as RLS is
+ * `technical_support_mark_equipment_unfulfilled`, and SPM-108, through
+ * `technical_support_release_equipment` -- not the tables, as RLS is
  * on with no policies. Each re-checks that the caller is Technical Support
  * Staff and answers CS040 if not, which comes back as the domain's own error.
  */
@@ -98,6 +99,21 @@ export class SupabaseTechnicalEquipmentRepository implements TechnicalEquipmentR
         new Error(`Failed to mark ${line.equipmentItemId} unfulfilled for event ${eventId}: ${error.message}`, {
           cause: error,
         })
+      );
+    }
+  }
+
+  async release(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void> {
+    const { error } = await this.client.rpc("technical_support_release_equipment", {
+      p_user_account_id: readerKey(reviewer),
+      p_event_id: writeKey(eventId),
+      p_equipment_item_id: writeKey(line.equipmentItemId),
+    });
+
+    if (error) {
+      throw (
+        toTechnicalEquipmentError(error, line) ??
+        new Error(`Failed to release ${line.equipmentItemId} for event ${eventId}: ${error.message}`, { cause: error })
       );
     }
   }

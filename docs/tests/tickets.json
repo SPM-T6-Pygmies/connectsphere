@@ -332,6 +332,11 @@
       "parent": null,
       "status": "Backlog"
     },
+    "SPM-108": {
+      "title": "Release equipment on a removal request",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-109": {
       "title": "Mark an equipment line as essential",
       "parent": null,

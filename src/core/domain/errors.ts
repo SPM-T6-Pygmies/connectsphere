@@ -810,6 +810,18 @@ export class EquipmentLineNotAwaitingDecisionError extends DomainError {
   }
 }
 
+/**
+ * SPM-108 AC3: the line has no removal request to release -- the coordinator
+ * withdrew it, or it was released already.
+ */
+export class EquipmentNothingToReleaseError extends DomainError {
+  readonly code = "equipment_nothing_to_release";
+
+  constructor() {
+    super("This line has nothing to release. Reload the page to see where it stands.");
+  }
+}
+
 /** SPM-274 AC2: availability is judged against the event's date, so there must be one. */
 export class EventDateRequiredForEquipmentError extends DomainError {
   readonly code = "event_date_required_for_equipment";

@@ -22,9 +22,8 @@ What these do **not** cover, so is not tested here:
 
 - **Email delivery** — every notification so far is in-app only (SPM-47).
 - **Lines put under review by a reschedule** — SPM-54.
-- **An event with a removal-requested line** never leaves Needs review until
-  Technical Support can release the line (SPM-108), so it sends no SPM-65
-  notice yet.
+- **Releasing a removal-requested line** (SPM-108): releasing the last line that
+  needs attention sends this same notice, and is unit-tested under SPM-108.
 
 The rules — what each change says, which changes do not notify, and when an
 event is finished — are unit-tested (`finishesReview` and the use cases, tagged

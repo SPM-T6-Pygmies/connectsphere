@@ -7,11 +7,13 @@ import { editEquipmentRequirement, type EquipmentRequirement } from "./equipment
 import {
   attentionReason,
   awaitsDecision,
+  awaitsRelease,
   equipmentQueueOf,
   daysShortOfService,
   finishesReview,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
+  releaseEquipmentLine,
   reserveEquipmentLine,
   reservedAs,
   unitsAvailable,
@@ -24,6 +26,7 @@ import {
 import {
   EquipmentAvailableToReserveError,
   EquipmentLineNotAwaitingDecisionError,
+  EquipmentNothingToReleaseError,
   EventDateRequiredForEquipmentError,
   NotEnoughEquipmentAvailableError,
   UnfulfilledCommentRequiredError,
@@ -511,5 +514,50 @@ describe("finishesReview (SPM-65)", () => {
 
   it("AC2: nothing needed attention before", () => {
     expect(finishesReview([line()], [line()])).toBe(false);
+  });
+
+  it("AC1: releasing the last line needing attention finishes the review (SPM-108)", () => {
+    expect(finishesReview([line(), removalRequestedLine()], [line()])).toBe(true);
+  });
+
+  it("AC1: releasing the event's only line leaves no outcome to tell (SPM-108)", () => {
+    expect(finishesReview([removalRequestedLine()], [])).toBe(false);
+  });
+});
+
+describe("awaitsRelease (SPM-108)", () => {
+  it("AC1: a line the coordinator asked to remove awaits release on an active event", () => {
+    for (const status of ACTIVE) {
+      expect(awaitsRelease(status, removalRequestedLine())).toBe(true);
+    }
+  });
+
+  it("AC1: not on a Completed or Cancelled event", () => {
+    for (const status of INACTIVE) {
+      expect(awaitsRelease(status, removalRequestedLine())).toBe(false);
+    }
+  });
+
+  it("AC3: not once the coordinator withdrew the removal request, changed or not", () => {
+    expect(awaitsRelease("Planning", line())).toBe(false);
+    expect(awaitsRelease("Planning", changedLine())).toBe(false);
+  });
+
+  it("AC1: not a line that holds nothing", () => {
+    expect(awaitsRelease("Planning", newLine())).toBe(false);
+  });
+});
+
+describe("releaseEquipmentLine (SPM-108)", () => {
+  it("AC2: releases every unit the line holds", () => {
+    expect(releaseEquipmentLine("Confirmed", removalRequestedLine())).toBe(2);
+  });
+
+  it("AC3: refuses a line with no removal request", () => {
+    expect(() => releaseEquipmentLine("Planning", line())).toThrow(EquipmentNothingToReleaseError);
+  });
+
+  it("AC1: refuses on a Completed event", () => {
+    expect(() => releaseEquipmentLine("Completed", removalRequestedLine())).toThrow(EquipmentNothingToReleaseError);
   });
 });
