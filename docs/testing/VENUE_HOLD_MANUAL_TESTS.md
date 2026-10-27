@@ -1,23 +1,28 @@
-# Venue Hold Manual Tests (SPM-218, SPM-219, SPM-253, SPM-254)
+# Venue Hold Manual Tests (SPM-218, SPM-219, SPM-253, SPM-254, SPM-325)
 
 > **SPM-459:** the coordinator's *Request a venue* page is now the **Venue** tab of the
 > event page, `/staff/coordinator/events/<event id>?tab=venue`. Where a case below says
 > *Request a venue*, use that tab. *My events* → **Request a venue** opens it, and the old
 > `/staff/coordinator/<request id>/venue-booking` URL redirects there.
 
+> **SPM-325:** a booking is a start and end time on each date, on the 15-minute grid (SPM-324),
+> and approving or holding counts each venue's setup and turnaround time (SPM-19). These cases
+> were rewritten in times on 27 Oct 2026. The runs ticked before then used AM, PM and Night; they
+> are in the git history.
+
 ## Overview
 
 Browser checks for **SPM-218: Place a tentative hold on a venue slot**, **SPM-219: Confirm or
 release a tentative hold**, **SPM-253: Expire an unconfirmed hold** and **SPM-254: Warn the coordinator of hold expiry**. Venue
 Staff place a hold on a booking request while the Event Coordinator is
-finalising the event. The hold keeps the request's slots from everyone else for
-72 hours (`DEFAULT_HOLD_HOURS`), or until its slot starts if that is sooner, and then lapses to
+finalising the event. The hold keeps the request's times from everyone else for
+72 hours (`DEFAULT_HOLD_HOURS`), or until its earliest time starts if that is sooner, and then lapses to
 **Expired** (SPM-253). The rules behind it
 are unit-tested (`decideBooking placing a hold (SPM-218)` and the use case, mapper and
 repository tests tagged SPM-218) and the database function was proven on a scratch
 Postgres; these cases check the pages end to end against Supabase.
 
-These cases are registered as `TC-VHOLD-001`–`TC-VHOLD-013` in
+These cases are registered as `TC-VHOLD-001`–`TC-VHOLD-014` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). Report what you ran in the
 PR description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not edit that file.
@@ -55,8 +60,8 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
    supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
    supabase db query --file scripts/seed-equipment/seed.sql --local
    ```
-3. Add the two holds at Main Hall on day **H**, 21 days from today (AM expired an hour ago, PM
-   expiring in thirty days). They belong to their own event, *Holds Test Event*:
+3. Add the two holds at Main Hall on day **H**, 21 days from today (07:00–12:00 expired an hour
+   ago, 14:00–18:00 expiring in thirty days). They belong to their own event, *Holds Test Event*:
    ```bash
    supabase db query --file scripts/seed-booking-holds/seed.sql --local
    ```
@@ -67,7 +72,7 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
    ```
 5. Check the fixture loaded. This lists the Founders' Gala Dinner's bookings, and must show **9 rows**:
    ```bash
-   supabase db query --local "select b.booking_id, v.location, bs.slot_date, bs.slot, b.status from booking b join venue v on v.venue_id = b.venue_id join booking_slot bs on bs.booking_id = b.booking_id where b.event_id = (select event_id from event where name = 'Founders'' Gala Dinner') order by b.booking_id"
+   supabase db query --local "select b.booking_id, v.location, bs.slot_date, min(sl.start_time) as starts, max(sl.end_time) as ends, b.status from booking b join venue v on v.venue_id = b.venue_id join booking_slot bs on bs.booking_id = b.booking_id join slot sl on sl.slot_code = bs.slot where b.event_id = (select event_id from event where name = 'Founders'' Gala Dinner') group by b.booking_id, v.location, bs.slot_date, b.status order by b.booking_id"
    ```
    Note the nine booking ids. In id order they are **A, B, C, X, Y, D, E, F, G** (the table below).
    The cases write `<booking A>` where you put A's id.
@@ -79,20 +84,28 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
 **T** is 14 days from today and **H** is 21 days from today, both in Singapore time. Venue search
 looks 60 days ahead, so it can still see T.
 
-| In id order | Booking | Venue | Day, slot | Status | Used in |
+| In id order | Booking | Venue | Day, times | Status | Used in |
 | --- | --- | --- | --- | --- | --- |
-| 1st | A | Studio | T, AM | Requested | held in TC-VHOLD-001 |
-| 2nd | B | Studio | T, AM | Requested | same slot as A, refused in TC-VHOLD-002 |
-| 3rd | C | Studio | T + 1, PM | Requested | a different slot, unaffected, TC-VHOLD-002 |
-| 4th | X | Main Hall | T + 2, Night | Confirmed | already confirmed, TC-VHOLD-003 and 005 |
-| 5th | Y | Main Hall | T + 2, Night | Requested | same slot as X, refused in TC-VHOLD-003 |
-| 6th | D | Main Hall | H, AM | Requested | over the expired hold, TC-VHOLD-004 |
-| 7th | E | Main Hall | H, PM | Requested | over the live hold, TC-VHOLD-004 |
-| 8th | F | Rooftop Terrace | T + 6, AM | Requested | its slot blocked after the request, TC-VHOLD-003 |
-| 9th | G | UAT-44 Harbour Room | T + 3, AM | Requested | held, then searched for, TC-VHOLD-002 |
+| 1st | A | Studio | T, 07:00–12:00 | Requested | held in TC-VHOLD-001 |
+| 2nd | B | Studio | T, 07:00–12:00 | Requested | same times as A, refused in TC-VHOLD-002 |
+| 3rd | C | Studio | T + 1, 13:00–18:00 | Requested | other times, unaffected, TC-VHOLD-002 |
+| 4th | X | Main Hall | T + 2, 19:00–24:00 | Confirmed | already confirmed, TC-VHOLD-003 and 005 |
+| 5th | Y | Main Hall | T + 2, 19:00–24:00 | Requested | same times as X, refused in TC-VHOLD-003 |
+| 6th | D | Main Hall | H, 07:00–12:00 | Requested | over the expired hold, TC-VHOLD-004 |
+| 7th | E | Main Hall | H, 14:00–18:00 | Requested | over the live hold, TC-VHOLD-004 |
+| 8th | F | Rooftop Terrace | T + 6, 07:00–12:00 | Requested | its times blocked after the request, TC-VHOLD-003 |
+| 9th | G | UAT-44 Harbour Room | T + 3, 07:00–12:00 | Requested | held, then searched for, TC-VHOLD-002 |
 
-Only the two UAT venues have slots and a booking horizon recorded, so only they can be found by a
-date-and-slot search. Open any booking as `/staff/venue/<booking id>`, or from **Requests** and
+Main Hall has 30 minutes' setup and 45 minutes' turnaround, so a refusal there names the padded
+times: the live hold on day H keeps the room 13:30–18:45, and booking X keeps it from 18:30 on
+T + 2 to 00:45 on T + 3. Studio has none, and Rooftop Terrace and Harbour Room have none set. A
+refusal by another booking reads "This booking is blocked by the following event:", then one
+line per date, "• <event> on <date> (<start>–<end>, incl. setup & turnaround)", with ": already
+temporarily reserved (held), the hold expires on <date time> (Singapore time)" after it when that
+booking is a hold.
+
+Only the two UAT venues have a booking horizon recorded, so only they can be found by a
+date-and-time search. Open any booking as `/staff/venue/<booking id>`, or from **Requests** and
 **Decided** on the left.
 
 ### Running the SQL checks
@@ -112,12 +125,12 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-001: Place a hold on a request (AC1, AC3)
 
-**What this tests:** A hold is Venue Staff saying "keep this slot for the coordinator while they finish planning". Here Venue Staff place one on a waiting request (booking A). It should turn into a Tentative Hold that lasts 72 hours, and everyone should be able to see it: Venue Staff in their lists, the coordinator on the event's booking page, and the database (who placed it, when it lapses).
+**What this tests:** A hold is Venue Staff saying "keep these times for the coordinator while they finish planning". Here Venue Staff place one on a waiting request (booking A). It should turn into a Tentative Hold that lasts 72 hours, keep the booking's times, and everyone should be able to see it: Venue Staff in their lists, the coordinator on the event's booking page, and the database (who placed it, when it lapses).
 
 **Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open **Requests** and the **Studio** request for T AM (booking A).
+1. Open **Requests** and the **Studio** request for T 07:00–12:00 (booking A).
 2. Read the **Decision** card, then click **Place hold**.
 3. Open **Requests**, then **Decided**.
 4. Sign in as `coordinator@test.com`, open the Founders' Gala Dinner and choose **Request a venue**.
@@ -126,6 +139,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
    select b.status, b.hold_expires_at - now() as time_left, ua.name as decided_by
      from booking b join user_account ua on ua.user_account_id = b.decided_by_user_account_id
     where b.booking_id = <booking A>;
+   select min(sl.start_time), max(sl.end_time), count(*) from booking_slot bs join slot sl on sl.slot_code = bs.slot
+    where bs.booking_id = <booking A>;
    select action from audit_record where entity_type = 'booking' and entity_id = <booking A> order by audit_record_id;
    ```
 
@@ -133,54 +148,57 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 1: the Decision card offers **Approve booking**, **Place hold** and **Reject**.
 - Step 2: the card reads "On hold until <day, time> by Test Venue Staff", the header says
   the same, the badge reads **Tentative Hold**, and **Approve booking**, **Place hold** and **Reject** are gone. **Confirm hold** and **Release hold** are offered instead (SPM-219, see TC-VHOLD-006 and 007) (AC1).
-- Step 3: booking A has left **Requests** and is listed in **Decided** as "on hold until …" (AC3).
+- Step 3: booking A has left **Requests** and is listed in **Decided** as "on hold until …", reading 07:00–12:00 (AC3).
 - Step 4: the Studio row on *Booking requests for this event* shows **Tentative Hold** with
-  "On hold until …" under it (AC3).
-- Step 5: `Tentative Hold`, about 72 hours left (between 71 and 73), decided by Test Venue Staff, and
+  "On hold until …" under it, and the times 07:00–12:00 (AC3).
+- Step 5: `Tentative Hold`, about 72 hours left (between 71 and 73), decided by Test Venue Staff; the
+  booking still holds 07:00 to 12:00 in 20 slots, the times it was requested for (SPM-325 AC2); and
   one audit row, `hold` (AC1).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-decision-card-with-hold](../screenshots/2026-10-13_TC-VHOLD-001_step1-decision-card-with-hold.png) · [step2-on-hold-card](../screenshots/2026-10-13_TC-VHOLD-001_step2-on-hold-card.png) · [step3-decided-list](../screenshots/2026-10-13_TC-VHOLD-001_step3-decided-list.png) · [step4-coordinator-row](../screenshots/2026-10-13_TC-VHOLD-001_step4-coordinator-row.png)
+**Screenshots:** [step1-decision-card-offers-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step1-decision-card-offers-hold.png) · [step2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step2-header-tentative-hold.png) · [step2-on-hold-until-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step2-on-hold-until-confirm-release.png) · [step3-decided-lists-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step3-decided-lists-hold.png) · [step3-requests-no-longer-lists-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step3-requests-no-longer-lists-a.png) · [step4-coordinator-sees-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step4-coordinator-sees-tentative-hold.png)
 
 ---
 
-### TC-VHOLD-002: Held slots are taken (AC2, AC3)
+### TC-VHOLD-002: Held times are taken (AC2, AC3)
 
-**What this tests:** Once a slot is held, nobody else can get it. After booking A holds Studio at T AM, a second request for that same slot (booking B) must be refused, whether Venue Staff try to hold it or approve it, because only one hold or confirmed booking can own a slot. The held slot also disappears from venue search (the coordinator can't find it as free), while a different slot (booking C) is unaffected. Booking B being in the list beside A did not stop A's hold: a request that is merely waiting reserves nothing.
+**What this tests:** Once times are held, nobody else can get them. After booking A holds Studio at T 07:00–12:00, a second request for those same times (booking B) must be refused, whether Venue Staff try to hold it or approve it, because only one hold or confirmed booking can own a time. The refusal names the event in the way and the date and times. The held times also disappear from venue search (the coordinator can't find them as free), while other times (booking C) are unaffected. Booking B being in the list beside A did not stop A's hold: a request that is merely waiting reserves nothing.
 
-**Preconditions:** After TC-VHOLD-001: booking A is on hold for Studio, T AM. The 9 fixture rows from Setup step 5 are there.
+**Preconditions:** After TC-VHOLD-001: booking A is on hold for Studio, T 07:00–12:00. The 9 fixture rows from Setup step 5 are there.
 
 **Steps:**
-1. As `coordinator@test.com`, open **Find a venue** (`/staff/coordinator/venues`) and search on T + 3, **AM**.
-2. As `venue@test.com`, open the **UAT-44 Harbour Room** request for T + 3 AM (booking G) and click **Place hold**.
-3. Search again on T + 3, **AM**.
-4. Open the other **Studio** request for T AM (booking B) and click **Place hold**, then **Approve booking**.
-5. Open the **Studio** request for T + 1 PM (booking C).
+1. As `coordinator@test.com`, open **Find a venue** (`/staff/coordinator/venues`) and search on **Date** T + 3, **Start time** 07:00, **End time** 12:00.
+2. As `venue@test.com`, open the **UAT-44 Harbour Room** request for T + 3 07:00–12:00 (booking G) and click **Place hold**.
+3. Search again on T + 3, 07:00 to 12:00.
+4. Open the other **Studio** request for T 07:00–12:00 (booking B) and click **Place hold**, then **Approve booking**.
+5. Open the **Studio** request for T + 1 13:00–18:00 (booking C).
 
 **Expected Result:**
 - Step 1: **UAT-44 Harbour Room** is listed.
-- Step 3: Harbour Room is no longer listed, because it is already booked in that slot (AC3).
-- Step 4: both are refused, naming "T AM" as a date and slot; booking B stays **Requested** and shows no hold (AC2).
-- Step 5: booking C is unaffected, still **Requested**, and its slot is free.
+- Step 3: Harbour Room is no longer listed, because it is already booked at those times (AC3).
+- Step 4: both are refused with "This booking is blocked by the following event:" and one line,
+  "• Founders' Gala Dinner on <T> (07:00–12:00, incl. setup & turnaround): already temporarily
+  reserved (held), the hold expires on <date time> (Singapore time)". Booking B stays **Requested** and shows no hold (AC2).
+- Step 5: booking C is unaffected, still **Requested**, and its times are free.
 - Booking B was **Requested** beside booking A when A was held: a request still waiting
   blocks nothing, so it did not stop the hold (AC2).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-search-lists-harbour-room](../screenshots/2026-10-13_TC-VHOLD-002_step1-search-lists-harbour-room.png) · [step3-search-without-harbour-room](../screenshots/2026-10-13_TC-VHOLD-002_step3-search-without-harbour-room.png) · [step4-second-hold-refused](../screenshots/2026-10-13_TC-VHOLD-002_step4-second-hold-refused.png) · [step5-other-slot-unaffected](../screenshots/2026-10-13_TC-VHOLD-002_step5-other-slot-unaffected.png)
+**Screenshots:** [step1-harbour-room-listed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step1-harbour-room-listed.png) · [step1-search-t3-0700-1200](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step1-search-t3-0700-1200.png) · [step2-harbour-room-held](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step2-harbour-room-held.png) · [step2-harbour-room-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step2-harbour-room-on-hold-until.png) · [step3-harbour-room-not-listed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step3-harbour-room-not-listed.png) · [step4-approve-b-refused-held-by-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step4-approve-b-refused-held-by-a.png) · [step4-hold-b-refused-held-by-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step4-hold-b-refused-held-by-a.png) · [step5-c-still-requested](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step5-c-still-requested.png)
 
 ---
 
 ### TC-VHOLD-003: A clash or a block refuses the hold and leaves nothing behind (AC2)
 
-**What this tests:** A hold must be refused when the slot cannot be kept, and a refusal must change nothing. Two different reasons are tried. Booking Y wants a slot that booking X has already *Confirmed*, so it is refused as a clash. Booking F wants a slot Venue Staff *blocked* (renovation) after the request was made, so it is refused as unavailable. In both cases the request stays Requested, with no expiry and no audit record, as if nothing had been tried.
+**What this tests:** A hold must be refused when its times cannot be kept, and a refusal must change nothing. Two different reasons are tried. Booking Y wants times that booking X has already *Confirmed* at Main Hall, so it is refused as a clash, naming X's event and the times counting Main Hall's setup and turnaround. Booking F wants times Venue Staff *blocked* (renovation) after the request was made, so it is refused as unavailable. In both cases the request stays Requested, with no expiry and no audit record, as if nothing had been tried.
 
 **Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open the **Main Hall** request for T + 2 Night (booking Y), beside Confirmed booking X, and click **Place hold**.
-2. Open the **Rooftop Terrace** request for T + 6 AM (booking F, whose slot was blocked after the request) and click **Place hold**.
+1. Open the **Main Hall** request for T + 2 19:00–24:00 (booking Y), beside Confirmed booking X, and click **Place hold**.
+2. Open the **Rooftop Terrace** request for T + 6 07:00–12:00 (booking F, whose times were blocked after the request) and click **Place hold**.
 3. Check the database:
    ```sql
    select booking_id, status, hold_expires_at from booking where booking_id in (<booking Y>, <booking F>);
@@ -188,41 +206,47 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
    ```
 
 **Expected Result:**
-- Step 1: refused, naming the date T + 2 and "Night"; the booking stays **Requested** (AC2).
-- Step 2: refused with "The venue is unavailable for <T + 6> 07:00–12:00" (AC2).
+- Step 1: refused with "This booking is blocked by the following events:" and two lines, one per date:
+  "• Founders' Gala Dinner on <T + 2> (18:30–24:00, incl. setup & turnaround)" and
+  "• Founders' Gala Dinner on <T + 3> (00:00–00:45, incl. setup & turnaround)". The booking stays **Requested** (AC2).
+- Step 2: refused with "The venue is unavailable for <T + 6> 07:00–12:00. Choose other times or another venue." (AC2).
 - Step 3: both are `Requested` with no expiry, and no audit rows (AC2).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-clash-with-confirmed](../screenshots/2026-10-13_TC-VHOLD-003_step1-clash-with-confirmed.png) · [step2-blocked-slot](../screenshots/2026-10-13_TC-VHOLD-003_step2-blocked-slot.png)
+**Screenshots:** [step1-y-refused-padded-two-dates](../screenshots/2026-10-27_SPM-325_TC-VHOLD-003_step1-y-refused-padded-two-dates.png) · [step2-f-refused-venue-unavailable](../screenshots/2026-10-27_SPM-325_TC-VHOLD-003_step2-f-refused-venue-unavailable.png)
 
 ---
 
 ### TC-VHOLD-004: An expired hold does not block, and a live one does (AC2)
 
-**What this tests:** Only a hold that is still running blocks a slot. Main Hall has two holds on day H: the morning one ran out an hour ago (expired), the afternoon one has 30 days left (live). A new hold over the live PM one (booking E) must be refused. A new hold over the expired AM one (booking D) must be accepted, and the old expired hold is then marked Expired, with an audit record, so the slot is free again.
+**What this tests:** Only a hold that is still running blocks its times. Main Hall has two holds on day H: the 07:00–12:00 one ran out an hour ago (expired), the 14:00–18:00 one has 30 days left (live). A new hold over the live one (booking E) must be refused. A new hold over the expired one (booking D) must be accepted, and the old expired hold is then marked Expired, with an audit record, so its times are free again. D's padded window (06:30–12:45) ends before the live hold's begins (13:30), so the live hold does not stop it.
 
-**Preconditions:** The fixture from Setup, with the two holds from the setup (AM expired, PM live). Signed in as `venue@test.com`.
+**Preconditions:** The fixture from Setup, with the two holds from the setup (07:00–12:00 expired, 14:00–18:00 live). Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open the **Main Hall** request for the PM slot on day H (booking E), over the live hold, and click **Place hold**.
-2. Open the **Main Hall** request for the AM slot on day H (booking D), over the expired hold, and click **Place hold**.
+1. Open the **Main Hall** request for day H 14:00–18:00 (booking E), over the live hold, and click **Place hold**.
+2. Open the **Main Hall** request for day H 07:00–12:00 (booking D), over the expired hold, and click **Place hold**.
 3. Check the database:
    ```sql
-   select b.booking_id, b.status from booking b join booking_slot bs using (booking_id)
-    where b.venue_id = (select venue_id from venue where location = 'Main Hall') and bs.slot_date = (now() at time zone 'Asia/Singapore')::date + 21
-    order by bs.slot, b.booking_id;
+   select b.booking_id, e.name as event, min(sl.start_time) as starts, max(sl.end_time) as ends, b.status
+     from booking b join event e on e.event_id = b.event_id
+     join booking_slot bs on bs.booking_id = b.booking_id join slot sl on sl.slot_code = bs.slot
+    where b.venue_id = (select venue_id from venue where location = 'Main Hall')
+      and bs.slot_date = (now() at time zone 'Asia/Singapore')::date + 21
+    group by b.booking_id, e.name, b.status order by starts, b.booking_id;
    select entity_id, action from audit_record where action = 'expire hold';
    ```
 
 **Expected Result:**
-- Step 1: refused, naming that date and PM; booking E stays **Requested**.
+- Step 1: refused with "This booking is blocked by the following event:" and "• Holds Test Event on <day H>
+  (13:30–18:45, incl. setup & turnaround): already temporarily reserved (held), the hold expires on <date time> (Singapore time)"; booking E stays **Requested**.
 - Step 2: accepted: booking D reads "On hold until …" (AC2).
-- Step 3: the expired hold on the AM slot is now `Expired`, with an `expire hold` audit row; the live PM hold is unchanged and booking D is `Tentative Hold` (AC2).
+- Step 3: the expired 07:00–12:00 hold is now `Expired`, with an `expire hold` audit row; the live 14:00–18:00 hold is unchanged and booking D is `Tentative Hold` (AC2).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-live-hold-refuses](../screenshots/2026-10-13_TC-VHOLD-004_step1-live-hold-refuses.png) · [step2-expired-hold-does-not-block](../screenshots/2026-10-13_TC-VHOLD-004_step2-expired-hold-does-not-block.png)
+**Screenshots:** [step1-e-refused-live-hold-padded](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step1-e-refused-live-hold-padded.png) · [step2-d-held-room-in-use](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step2-d-held-room-in-use.png) · [step2-d-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step2-d-on-hold-until.png)
 
 ---
 
@@ -240,23 +264,23 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 1: the access-denied screen with a 403 (SPM-16), and none of the booking's details; nothing changes (AC4).
 - Step 2: neither the held booking nor the Confirmed one offers **Place hold**, **Approve booking** or **Reject** (AC1). The held booking offers only **Confirm hold** and **Release hold**; the Confirmed one offers no button.
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-coordinator-denied](../screenshots/2026-10-13_TC-VHOLD-005_step1-coordinator-denied.png) · [step2-confirmed-booking-no-buttons](../screenshots/2026-10-13_TC-VHOLD-005_step2-confirmed-booking-no-buttons.png) · [step2-held-booking-confirm-release-only](../screenshots/2026-10-14_TC-VHOLD-005_step2-held-booking-confirm-release-only.png)
+**Screenshots:** [step1-coordinator-access-denied-403](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step1-coordinator-access-denied-403.png) · [step2-confirmed-x-offers-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step2-confirmed-x-offers-no-buttons.png) · [step2-held-a-offers-only-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step2-held-a-offers-only-confirm-release.png)
 
 ---
 
 ### TC-VHOLD-006: Confirm a live hold (AC1, AC3, AC5)
 
-**What this tests:** A hold is temporary. Confirming it makes it a firm booking: the booking becomes **Confirmed**, the hold's expiry disappears, and the slots stay taken. The database records who confirmed and when, and the coordinator is told, exactly as for an approval. Here Venue Staff confirm booking A, the hold placed in TC-VHOLD-001.
+**What this tests:** A hold is temporary. Confirming it makes it a firm booking: the booking becomes **Confirmed**, the hold's expiry disappears, and its times stay taken. The database records who confirmed and when, and the coordinator is told, exactly as for an approval, with the venue, the date and the times. Here Venue Staff confirm booking A, the hold placed in TC-VHOLD-001.
 
-**Preconditions:** After TC-VHOLD-001: booking A is on hold for Studio, T AM. Signed in as `venue@test.com`.
+**Preconditions:** After TC-VHOLD-001: booking A is on hold for Studio, T 07:00–12:00. Signed in as `venue@test.com`.
 
 **Steps:**
 1. Open booking A (`/staff/venue/<booking A>`) and read the **Decision** card.
 2. Click **Confirm hold**.
 3. Open **Decided**.
-4. Open booking B (the other Studio request for T AM) and click **Place hold**.
+4. Open booking B (the other Studio request for T 07:00–12:00) and click **Place hold**.
 5. Sign in as `coordinator@test.com`, open the Founders' Gala Dinner and choose **Request a venue**.
 6. Read the database:
    ```sql
@@ -269,27 +293,27 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 1: the card reads "On hold until <day, time> by Test Venue Staff" and offers **Confirm hold** and **Release hold**, and no Approve or Reject.
 - Step 2: the card reads "Already decided — Confirmed by Test Venue Staff", the badge reads **Confirmed**, and no buttons remain (AC1).
 - Step 3: booking A is listed in **Decided** as Confirmed.
-- Step 4: refused, naming T and AM. The confirmed booking still owns the slot (AC1).
+- Step 4: refused with "• Founders' Gala Dinner on <T> (07:00–12:00, incl. setup & turnaround)", with no "held" after it. The confirmed booking still owns its times (AC1).
 - Step 5: the Studio row reads **Confirmed**, with no "On hold until" line (AC1).
-- Step 6: `Confirmed` with an empty expiry; two audit rows, `hold` then `confirm hold`, the second by Test Venue Staff (AC3); one `Sent` notification for the coordinator, reading "Studio approved for Founders' Gala Dinner", the same as for an approval (AC5).
+- Step 6: `Confirmed` with an empty expiry; two audit rows, `hold` then `confirm hold`, the second by Test Venue Staff (AC3); one `Sent` notification for the coordinator, "Studio approved for Founders' Gala Dinner", whose text reads "Venue Staff confirmed Studio for <T, e.g. Tue, 10 Nov 2026> (07:00–12:00). The venue is secured.", the same as for an approval and with no AM, PM or Night (AC5; SPM-325 AC5).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-hold-offers-confirm-and-release](../screenshots/2026-10-14_TC-VHOLD-006_step1-hold-offers-confirm-and-release.png) · [step2-confirmed](../screenshots/2026-10-14_TC-VHOLD-006_step2-confirmed.png) · [step5-coordinator-row-confirmed](../screenshots/2026-10-14_TC-VHOLD-006_step5-coordinator-row-confirmed.png)
+**Screenshots:** [step1-a-on-hold-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step1-a-on-hold-confirm-release.png) · [step2-already-decided-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step2-already-decided-confirmed.png) · [step2-header-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step2-header-confirmed.png) · [step3-decided-lists-a-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step3-decided-lists-a-confirmed.png) · [step4-b-refused-by-confirmed-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step4-b-refused-by-confirmed-a.png) · [step5-coordinator-sees-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step5-coordinator-sees-confirmed.png)
 
 ---
 
 ### TC-VHOLD-007: Release a live hold (AC2, AC3, AC6)
 
-**What this tests:** Releasing gives a hold up, so its slots go free **at once**: the booking becomes **Released**, venue search lists the venue as available again, and another request can take the slot. The database records who released and when, and the coordinator is told it was released, so they do not keep thinking they hold the venue. Here Venue Staff release booking G, the UAT-44 Harbour Room hold placed in TC-VHOLD-002.
+**What this tests:** Releasing gives a hold up, so its times go free **at once**: the booking becomes **Released**, venue search lists the venue as available again, and another request can take the times. The database records who released and when, and the coordinator is told it was released, naming the venue, date and times, so they do not keep thinking they hold the venue. Here Venue Staff release booking G, the UAT-44 Harbour Room hold placed in TC-VHOLD-002.
 
-**Preconditions:** After TC-VHOLD-002: booking G is on hold for UAT-44 Harbour Room, T + 3 AM, and Harbour Room is not listed by a search on that slot. Signed in as `venue@test.com`.
+**Preconditions:** After TC-VHOLD-002: booking G is on hold for UAT-44 Harbour Room, T + 3 07:00–12:00, and Harbour Room is not listed by a search on those times. Signed in as `venue@test.com`.
 
 **Steps:**
 1. Open booking G and click **Release hold**.
 2. Open **Archive**.
-3. As `coordinator@test.com`, open **Find a venue** (`/staff/coordinator/venues`) and search on T + 3, **AM**.
-4. As the coordinator, open the Founders' Gala Dinner, choose **Request a venue**, and request **UAT-44 Harbour Room** on T + 3, **AM**. This is a new request; call it booking G2.
+3. As `coordinator@test.com`, open **Find a venue** (`/staff/coordinator/venues`) and search on T + 3, 07:00 to 12:00.
+4. As the coordinator, open the Founders' Gala Dinner, choose **Request a venue**, and request **UAT-44 Harbour Room**, layout **Theatre**, on T + 3, 07:00 to 12:00. This is a new request; call it booking G2.
 5. As `venue@test.com`, open booking G2 and click **Place hold**.
 6. Read the database:
    ```sql
@@ -302,20 +326,21 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 1: the card reads "Already decided — Released by Test Venue Staff", the badge reads **Released**, and no buttons remain (AC2).
 - Step 2: booking G is listed in **Archive**, not in Requests or Decided.
 - Step 3: **UAT-44 Harbour Room** is listed again (AC2).
-- Step 5: accepted. Booking G2 reads "On hold until …", because the released slot was free at once (AC2).
-- Step 6: `Released`; two audit rows, `hold` then `release hold` (AC3); one `Sent` notification for the coordinator, reading "UAT-44 Harbour Room hold released for Founders' Gala Dinner" (AC6).
+- Step 4: the request is sent: the released times were free at once.
+- Step 5: accepted. Booking G2 reads "On hold until …" (AC2).
+- Step 6: `Released`; two audit rows, `hold` then `release hold` (AC3); one `Sent` notification for the coordinator, "UAT-44 Harbour Room hold released for Founders' Gala Dinner", whose text reads "Venue Staff released the hold on UAT-44 Harbour Room for <T + 3> (07:00–12:00). The times are free for other events; send a new request if you still need them." (AC6; SPM-325 AC5).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-released](../screenshots/2026-10-14_TC-VHOLD-007_step1-released.png) · [step3-search-lists-harbour-room-again](../screenshots/2026-10-14_TC-VHOLD-007_step3-search-lists-harbour-room-again.png) · [step5-new-hold-accepted](../screenshots/2026-10-14_TC-VHOLD-007_step5-new-hold-accepted.png)
+**Screenshots:** [step1-already-decided-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step1-already-decided-released.png) · [step1-header-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step1-header-released.png) · [step2-archive-lists-g-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step2-archive-lists-g-released.png) · [step3-harbour-room-listed-again](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step3-harbour-room-listed-again.png) · [step4-g2-request-sent](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step4-g2-request-sent.png) · [step5-g2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step5-g2-header-tentative-hold.png) · [step5-g2-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step5-g2-on-hold-until.png)
 
 ---
 
 ### TC-VHOLD-008: Only a live hold can be confirmed or released (AC4)
 
-**What this tests:** Confirming or releasing needs a hold that is still running. If it ran out, or was already decided, the action is refused with a message and nothing changes. The sharpest case is a hold that expires **while the page is open**: Venue Staff load the page, the hold runs out, and the click then comes too late. A hold that ran out is expired, so its slots no longer belong to the event.
+**What this tests:** Confirming or releasing needs a hold that is still running. If it ran out, or was already decided, the action is refused with a message and nothing changes. The sharpest case is a hold that expires **while the page is open**: Venue Staff load the page, the hold runs out, and the click then comes too late. A hold that ran out is expired, so its times no longer belong to the event.
 
-**Preconditions:** After TC-VHOLD-006: booking A is Confirmed. Booking C (Studio, T + 1 PM) is still **Requested**. Signed in as `venue@test.com`.
+**Preconditions:** After TC-VHOLD-006: booking A is Confirmed. Booking C (Studio, T + 1 13:00–18:00) is still **Requested**. Signed in as `venue@test.com`.
 
 **Steps:**
 1. Open booking C and click **Place hold**. Leave the page open.
@@ -340,20 +365,20 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 6: booking B, still waiting, offers Approve, Place hold and Reject, and no Confirm hold or Release hold (AC4).
 - Step 7: booking C is `Expired` (it was marked when you reloaded in step 4) and has two audit rows, `hold` then `expire hold`: the refused confirmation wrote nothing (AC4).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step3-refused-after-expiry](../screenshots/2026-10-14_TC-VHOLD-008_step3-refused-after-expiry.png) · [step4-hold-expired](../screenshots/2026-10-14_TC-VHOLD-008_step4-hold-expired.png) · [step5-confirmed-offers-neither](../screenshots/2026-10-14_TC-VHOLD-008_step5-confirmed-offers-neither.png)
+**Screenshots:** [step3-confirm-refused-hold-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step3-confirm-refused-hold-expired.png) · [step4-header-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step4-header-expired.png) · [step4-hold-expired-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step4-hold-expired-no-buttons.png) · [step5-a-decided-no-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step5-a-decided-no-confirm-release.png) · [step6-b-offers-approve-hold-reject](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step6-b-offers-approve-hold-reject.png)
 
 ---
 
 ### TC-VHOLD-009: A block recorded after the hold stops it being confirmed (AC7)
 
-**What this tests:** Confirming commits the slots, just as an approval does, and a venue that is blocked (maintenance, renovation) cannot be committed. So if Venue Staff block a venue **after** a hold was placed on it, confirming that hold is refused, as approving a request over a block is. The hold is left as it was. Releasing is still allowed, because giving a hold up needs nothing free. Here the hold is booking D, placed in TC-VHOLD-004 on Main Hall, day H, AM.
+**What this tests:** Confirming commits the times, just as an approval does, and a venue that is blocked (maintenance, renovation) cannot be committed. So if Venue Staff block a venue **after** a hold was placed on it, confirming that hold is refused, as approving a request over a block is. The hold is left as it was. Releasing is still allowed, because giving a hold up needs nothing free. Here the hold is booking D, placed in TC-VHOLD-004 on Main Hall, day H, 07:00–12:00.
 
-**Preconditions:** After TC-VHOLD-004: booking D is on hold for Main Hall, day H, AM. Signed in as `venue@test.com`.
+**Preconditions:** After TC-VHOLD-004: booking D is on hold for Main Hall, day H, 07:00–12:00. Signed in as `venue@test.com`.
 
 **Steps:**
-1. Open `/staff/venue/unavailability` and block **Main Hall** on day H from **07:00** to **12:00**, reason **Maintenance**.
+1. Open `/staff/venue/unavailability` and block **Main Hall** on day H from **09:00** to **10:00**, reason **Maintenance**.
 2. Open booking D and read the **Decision** card.
 3. Click **Confirm hold**.
 4. Click **Release hold**.
@@ -365,19 +390,19 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 2: the card still reads "On hold until …" and offers **Confirm hold** and **Release hold**: a block does not change an existing hold.
-- Step 3: refused with "The venue is unavailable for <day H> 07:00–12:00. Choose other times or another venue."; booking D stays on hold (AC7).
-- Step 4: accepted: the card reads "Already decided — Released by Test Venue Staff" (AC7).
+- Step 3: refused with "The venue is unavailable for <day H> 09:00–10:00. Choose other times or another venue."; booking D stays on hold (AC7; SPM-325 AC3).
+- Step 4: accepted: the card reads "Already decided — Released by Test Venue Staff" (AC7; SPM-325 AC3).
 - Step 5: `Released`; the audit rows are `hold` then `release hold`, with no `confirm hold`: the refused confirmation wrote nothing (AC7).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step3-confirm-refused-over-block](../screenshots/2026-10-14_TC-VHOLD-009_step3-confirm-refused-over-block.png) · [step4-released-over-block](../screenshots/2026-10-14_TC-VHOLD-009_step4-released-over-block.png)
+**Screenshots:** [step1-block-overlaps-d-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step1-block-overlaps-d-hold.png) · [step1-main-hall-blocked-0900-1000](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step1-main-hall-blocked-0900-1000.png) · [step2-d-still-on-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step2-d-still-on-hold.png) · [step3-confirm-refused-venue-unavailable](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step3-confirm-refused-venue-unavailable.png) · [step4-d-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step4-d-released.png)
 
 ---
 
 ### TC-VHOLD-010: A hold that ran out reads Expired and moves to Archive (AC1, AC2, AC4, AC5, AC6)
 
-**What this tests:** When a hold runs out unconfirmed it stops being a hold. It reads **Expired** (not Tentative Hold), moves from **Decided** to **Archive**, and is never shown as Confirmed. Its slots are free at once for someone else. Its expiry stays on record, and exactly one audit row says it **expired** (not that a person released it). There is no timer, so a hold is marked the next time it is read. Booking C, whose hold ran out in TC-VHOLD-008, is the example.
+**What this tests:** When a hold runs out unconfirmed it stops being a hold. It reads **Expired** (not Tentative Hold), moves from **Decided** to **Archive**, and is never shown as Confirmed. Its times are free at once for someone else. Its expiry stays on record, and exactly one audit row says it **expired** (not that a person released it). There is no timer, so a hold is marked the next time it is read. Booking C, whose hold ran out in TC-VHOLD-008, is the example.
 
 **Preconditions:** After TC-VHOLD-008: booking C's hold has an expiry in the past and was marked when its page was reloaded. Signed in as `venue@test.com`.
 
@@ -385,8 +410,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 1. Open **Decided**.
 2. Open **Archive**, then open booking C.
 3. Reload booking C's page twice.
-4. As `coordinator@test.com`, open the Founders' Gala Dinner, choose **Request a venue**, and read the Studio row for T + 1 PM.
-5. As the coordinator, request **Studio** on T + 1, **PM** again from the same page. This is a new request; call it booking C2. As `venue@test.com`, open booking C2 and click **Place hold**.
+4. As `coordinator@test.com`, open the Founders' Gala Dinner, choose **Request a venue**, and read the Studio row for T + 1 13:00–18:00.
+5. As the coordinator, request **Studio** on T + 1, 13:00 to 18:00 again from the same page. This is a new request; call it booking C2. As `venue@test.com`, open booking C2 and click **Place hold**.
 6. Read the database:
    ```sql
    select status, hold_expires_at from booking where booking_id = <booking C>;
@@ -398,29 +423,29 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 2: booking C is listed in **Archive**; the card reads "Hold expired <day, time>", the badge reads **Expired**, and no buttons are offered (AC1, AC6).
 - Step 3: nothing changes.
 - Step 4: the row reads **Expired**, with no "On hold until" line, and is not shown as Confirmed (AC4, AC6).
-- Step 5: the new request is accepted and its hold is accepted: booking C2 reads "On hold until …", because the expired hold freed the slot (AC2).
+- Step 5: the new request is accepted and its hold is accepted: booking C2 reads "On hold until …", because the expired hold freed the times (AC2).
 - Step 6: `Expired`, with the expiry still set to the moment it ran out; the audit rows are `hold` then `expire hold`, **one** `expire hold` however many times it was read, with no actor because time did it (AC5).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step2-expired-in-archive](../screenshots/2026-10-17_TC-VHOLD-010_step2-expired-in-archive.png) · [step4-coordinator-row-expired](../screenshots/2026-10-17_TC-VHOLD-010_step4-coordinator-row-expired.png) · [step5-new-hold-accepted](../screenshots/2026-10-17_TC-VHOLD-010_step5-new-hold-accepted.png)
+**Screenshots:** [step1-decided-does-not-list-c](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step1-decided-does-not-list-c.png) · [step2-archive-lists-c-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-archive-lists-c-expired.png) · [step2-header-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-header-expired.png) · [step2-hold-expired-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-hold-expired-no-buttons.png) · [step4-coordinator-sees-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step4-coordinator-sees-expired.png) · [step5-c2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-header-tentative-hold.png) · [step5-c2-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-on-hold-until.png) · [step5-c2-request-sent](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-request-sent.png)
 
 ---
 
-### TC-VHOLD-011: A hold is capped at its slot's start (AC7)
+### TC-VHOLD-011: A hold is capped at its earliest start time (AC7)
 
-**What this tests:** A hold lasts 72 hours or until its slot starts, whichever comes first, because a hold that outlives its slot means nothing. So a hold on a slot that starts tomorrow at 1 pm expires at 1 pm tomorrow, not 72 hours from now, and a hold on a slot that has already started is refused.
+**What this tests:** A hold lasts 72 hours or until the start of its earliest booked time, whichever comes first, because a hold that outlives its time means nothing. So a hold on times that start tomorrow at 1 pm expires at 1 pm tomorrow, not 72 hours from now, and a hold on times that have already started is refused (SPM-325 AC4).
 
 **Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
 
 **Steps:**
-1. As `coordinator@test.com`, open the Founders' Gala Dinner, choose **Request a venue**, and request **Studio** for **tomorrow** (Singapore date), **PM**. Call it booking Z.
+1. As `coordinator@test.com`, open the Founders' Gala Dinner, choose **Request a venue**, and request **Studio** for **tomorrow** (Singapore date), 13:00 to 18:00. Call it booking Z.
 2. As `venue@test.com`, open booking Z and click **Place hold**.
 3. Read the database:
    ```sql
    select hold_expires_at at time zone 'Asia/Singapore' from booking where booking_id = <booking Z>;
    ```
-4. Make a slot that has already started: set booking E's slot to yesterday.
+4. Make times that have already started: move booking E's date to yesterday.
    ```sql
    update booking_slot set slot_date = (now() at time zone 'Asia/Singapore')::date - 1 where booking_id = <booking E>;
    ```
@@ -428,23 +453,23 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 2: accepted: the card reads "On hold until <tomorrow>, 1:00 pm" (AC7).
-- Step 3: tomorrow at 13:00:00, the PM slot's start, and not 72 hours from now (AC7).
+- Step 3: tomorrow at 13:00:00, the start of its time, and not 72 hours from now (AC7).
 - Step 5: refused with "A hold can't be placed on a slot that has already started."; booking E stays **Requested** and has no audit row (AC7).
 
-**Status:** [x] Pass [ ] Fail — 17/10/2026, run in Chrome via Playwright for JameszLau
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step2-hold-capped-at-slot-start](../screenshots/2026-10-17_TC-VHOLD-011_step2-hold-capped-at-slot-start.png) · [step5-started-slot-refused](../screenshots/2026-10-17_TC-VHOLD-011_step5-started-slot-refused.png)
+**Screenshots:** [step1-z-requested-tomorrow](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step1-z-requested-tomorrow.png) · [step2-z-header-hold-capped](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step2-z-header-hold-capped.png) · [step2-z-on-hold-until-1pm-tomorrow](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step2-z-on-hold-until-1pm-tomorrow.png) · [step5-e-refused-already-started](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step5-e-refused-already-started.png)
 
 ---
 
 ### TC-VHOLD-012: The coordinator is told when a hold expires (SPM-254 AC1, AC2)
 
-**What this tests:** When a hold runs out unconfirmed, the event's coordinator gets one Inbox notice saying so. It names the venue, the held slot and when the hold expired, and says the venue is no longer held. There is no timer: the notice goes out after the next staff page loads, whoever loads it. The setup's live PM hold on *Holds Test Event* is the example.
+**What this tests:** When a hold runs out unconfirmed, the event's coordinator gets one Inbox notice saying so. It names the venue, the held date and times and when the hold expired, and says the venue is no longer held. There is no timer: the notice goes out after the next staff page loads, whoever loads it. The setup's live 14:00–18:00 hold on *Holds Test Event* is the example.
 
 **Preconditions:** The fixture from Setup. The app runs with Novu reachable (`NOVU_BRIDGE_URL` set to a `novu dev` tunnel); without it the notice is only recorded, so steps 3 and 4 cannot be checked. Signed in as `venue@test.com` in one window and `coordinator@test.com` in another.
 
 **Steps:**
-1. Make the PM hold lapse:
+1. Make the 14:00–18:00 hold lapse:
    ```sql
    update booking set hold_expires_at = now() - interval '1 minute'
    where status = 'Tentative Hold'
@@ -462,14 +487,14 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
    ```
 
 **Expected Result:**
-- Step 2: the page loads as usual; the PM hold is no longer listed under **Decided**.
-- Step 3: one notice, "Main Hall hold expired for Holds Test Event", reading "The hold on Main Hall for <day H> (PM) expired at <today, time> without being confirmed. The venue is no longer held; send a new request if you still need it." (AC1, AC2).
+- Step 2: the page loads as usual; the hold is no longer listed under **Decided**.
+- Step 3: a new notice at the top, "Main Hall hold expired for Holds Test Event", reading "The hold on Main Hall for <day H, e.g. Tue, 17 Nov 2026> (14:00–18:00) expired at <today, time> without being confirmed. The venue is no longer held; send a new request if you still need it." (AC1, AC2; SPM-325 AC5).
 - Step 4: it opens the event.
 - Step 5: one row per expired hold of the event, addressed to the Test Coordinator, `Sent`, with `expiry_notified_at` set (AC1).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step2-holds-gone-from-decided](../screenshots/2026-10-18_TC-VHOLD-012_step2-holds-gone-from-decided.png)
+**Screenshots:** [step2-decided-no-longer-lists-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step2-decided-no-longer-lists-hold.png) · [step3-inbox-hold-expired-notice](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step3-inbox-hold-expired-notice.png) · [step4-notice-opens-event](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step4-notice-opens-event.png)
 
 ---
 
@@ -493,6 +518,27 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 3: every booking has exactly **1** row (AC3).
 - Step 4: no new hold-expired notice since TC-VHOLD-012 (AC3).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
+
+**Screenshots:** [step4-inbox-no-new-notice](../screenshots/2026-10-27_SPM-325_TC-VHOLD-013_step4-inbox-no-new-notice.png)
+
+---
+
+### TC-VHOLD-014: The database keeps the approval and hold rules by time (SPM-325 AC1, AC2, AC3)
+
+**What this tests:** The rules the pages rely on, checked straight against the database functions, so they hold however the functions are called. A refused approval leaves the request to be rejected; a request still waiting blocks no hold; confirming a hold keeps its times taken and releasing frees them at once; and a block recorded after a hold stops it being confirmed but not released. Each case is built and rolled back, so nothing is kept. The padded refusals are checked by TC-VPAD-007.
+
+**Preconditions:** A local stack reset and loaded with `seed-coordinator-view`, `seed-venues` and `seed-venue-search-uat` (Setup steps 1 and 2 are enough). The fixture is not needed.
+
+**Steps:**
+1. Run:
+   ```bash
+   supabase db query --file scripts/seed-booking-holds/checks.sql --local
+   ```
+
+**Expected Result:**
+- Step 1: it ends `error: ok: all 7 checks held`. The CLI words this "failed to execute query"; the script ends in an error on purpose, so everything it wrote rolls back, and the `ok:` is the pass.
+
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
 **Screenshots:**

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import cases from "../../../scripts/seed-venue-padding/cases.json";
+import { paddedClashingTimes, type BookingStatus } from "./booking";
 import { paddedClashes } from "./padded-window";
 
 /**
@@ -24,5 +25,29 @@ describe("the padded-window cases the database is also held to (SPM-19)", () => 
     );
 
     expect(found.map(({ date, start, end }) => ({ date, start, end }))).toEqual(clashes);
+  });
+});
+
+describe("the padded-window cases, as a coordinator submits them (SPM-475)", () => {
+  // A hold in the list is live: it lapses a day after NOW, as `same-answers.mjs` gives it a day.
+  const NOW = new Date("2026-10-01T09:00:00+08:00");
+
+  it.each(cases)("$label", ({ venue, existing, request, clashes }) => {
+    const found = paddedClashingTimes(
+      [{ date: request.date, start: request.start, end: request.end }],
+      [
+        {
+          date: existing.date,
+          start: existing.start,
+          end: existing.end,
+          status: existing.status as BookingStatus,
+          holdExpiresAt: existing.status === "Tentative Hold" ? new Date("2026-10-02T09:00:00+08:00") : null,
+        },
+      ],
+      BUFFERS[venue],
+      NOW,
+    );
+
+    expect(found).toEqual(clashes);
   });
 });

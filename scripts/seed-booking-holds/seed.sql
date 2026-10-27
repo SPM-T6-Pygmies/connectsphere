@@ -1,7 +1,12 @@
--- SPM-46 / SPM-22 manual tests: two Tentative Holds at Main Hall, three weeks from today, Singapore time.
+-- Venue hold manual tests (docs/testing/VENUE_HOLD_MANUAL_TESTS.md): two Tentative Holds at Main
+-- Hall, three weeks from today, Singapore time.
 --
---   AM  expired an hour ago      -- must not block (TC-VENUE-BOOK-019)
---   PM  expires in thirty days   -- must block    (TC-VENUE-BOOK-020)
+--   07:00-12:00  expired an hour ago      -- must not block (TC-VHOLD-004)
+--   14:00-18:00  expires in thirty days   -- must block    (TC-VHOLD-004, TC-VHOLD-012)
+--
+-- Main Hall has 30 minutes' setup and 45 minutes' turnaround (SPM-23), so the live hold keeps the
+-- room from 13:30 to 18:45 (SPM-19). A request for 07:00-12:00 that day, padded to 06:30-12:45,
+-- clears it.
 --
 -- Venue Staff place holds from the decision page (SPM-218), and an expiry is always 72
 -- hours from placement, so to have one already expired, or expiring on a chosen day,
@@ -57,21 +62,15 @@ begin
     (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, hold_expires_at)
   values (v_venue, v_event, v_staff, v_staff, 'Tentative Hold', now() - interval '1 hour')
   returning booking_id into v_hold;
-  -- The slot's hours as 15-minute slots (SPM-324).
+  -- 07:00-12:00, as 15-minute codes 28-47 (SPM-324).
   insert into public.booking_slot (booking_id, slot_date, slot)
-  select v_hold, v_day, g.slot_code
-  from public.slot s
-  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-  where s.slot_code = 'AM';
+  select v_hold, v_day, n::text from generate_series(28, 47) n;
 
   insert into public.booking
     (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, hold_expires_at)
   values (v_venue, v_event, v_staff, v_staff, 'Tentative Hold', now() + interval '30 days')
   returning booking_id into v_hold;
-  -- The slot's hours as 15-minute slots (SPM-324).
+  -- 14:00-18:00, as 15-minute codes 56-71 (SPM-324).
   insert into public.booking_slot (booking_id, slot_date, slot)
-  select v_hold, v_day, g.slot_code
-  from public.slot s
-  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-  where s.slot_code = 'PM';
+  select v_hold, v_day, n::text from generate_series(56, 71) n;
 end $$;

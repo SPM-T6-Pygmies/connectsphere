@@ -20,6 +20,7 @@ import {
 } from "./errors";
 import { joinSlots, rangeStartsAt, type TimeRangeOnDate } from "./event-times";
 import { closedPeriods } from "./opening-hours";
+import { paddedWindows, shiftDate, type Buffers } from "./padded-window";
 import {
   END_OF_DAY,
   formatRange,
@@ -32,6 +33,7 @@ import {
 } from "./time-of-day";
 import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
+import { bufferMinutes } from "./venue-buffers";
 
 /** `booking_slot_value_chk`: venues are booked in three fixed slots a day (#50). */
 export type BookingSlot = "AM" | "PM" | "Night";
@@ -331,6 +333,39 @@ export function clashingTimes(
 }
 
 /**
+ * SPM-325 AC6 (SPM-475): `clashingTimes`, counting setup and turnaround. The requested times and
+ * every live booking's are each widened by the one padded-window rule (SPM-463), with the venue's
+ * own values, and the parts those windows share are named, joined. Windows that only touch do not
+ * clash, and a window past midnight is compared on the neighbouring date, so `occupied` must cover
+ * `clashDates`. With no setup or turnaround this is `clashingTimes`. Venue Staff's approval applies
+ * the same rule in `booking_padded_clashes` (SPM-470).
+ */
+export function paddedClashingTimes(
+  requested: readonly TimeRangeOnDate[],
+  occupied: readonly OccupiedTime[],
+  buffers: Buffers,
+  now: Date,
+): TimeRangeOnDate[] {
+  const pad = (times: readonly TimeRangeOnDate[]) => times.flatMap((time) => paddedWindows(time, buffers));
+  return sharedTimes(pad(requested), pad(occupied.filter((o) => holdsSlot(o, now))));
+}
+
+/**
+ * SPM-475: the dates whose bookings a request on `dates` is compared with -- each one and the day
+ * either side, since a padded window can run past midnight. A date that is not a calendar day is
+ * kept as it is, for `defineBookingTimes` to refuse by name.
+ */
+export function clashDates(dates: readonly string[]): string[] {
+  return [
+    ...new Set(
+      dates.flatMap((date) =>
+        isCalendarDate(date) ? [shiftDate(date, -1), date, shiftDate(date, 1)] : [date],
+      ),
+    ),
+  ];
+}
+
+/**
  * SPM-21 AC12, SPM-324: the parts of `times` that blocks over these slots
  * cover, joined into ranges. Blocks are compared by their hours, whether they are on
  * AM, PM and Night or on the 15-minute codes (SPM-321).
@@ -375,7 +410,9 @@ function sharedTimes(
  * `occupied` is what the venue already carries on the requested days. Overlap
  * with a live hold or confirmed booking by any amount refuses the request
  * outright, naming the overlap (#35, #41, SPM-324 AC2); clashing with another
- * pending request, or a hold that expired before `now`, does not.
+ * pending request, or a hold that expired before `now`, does not. Both sides
+ * count with the venue's setup and turnaround time (SPM-325 AC6), so `occupied`
+ * covers `clashDates`.
  *
  * SPM-55 AC6: a Cancelled event takes no new requests, whatever else it asks
  * for. `coordinator_submit_booking_request` restates this under a lock on the
@@ -409,9 +446,10 @@ export function requestVenueBooking(input: {
     throw new VenueClosedError(closed);
   }
 
-  const clashes = clashingTimes(times, input.occupied, input.now);
+  const buffers = bufferMinutes(input.venue);
+  const clashes = paddedClashingTimes(times, input.occupied, buffers, input.now);
   if (clashes.length > 0) {
-    throw new VenueSlotUnavailableError(clashes);
+    throw new VenueSlotUnavailableError(clashes, buffers.setup > 0 || buffers.turnaround > 0);
   }
 
   return {

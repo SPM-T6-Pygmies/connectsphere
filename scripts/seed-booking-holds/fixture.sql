@@ -9,7 +9,9 @@
 --
 -- T is 14 days from today, Singapore time, so venue search (60 days ahead) can still see it.
 -- Main Hall's two bookings D and E sit on the day the holds are on: 21 days from today,
--- the same day seed.sql uses.
+-- the same day seed.sql uses. Times are 15-minute codes, first to last: code n starts n*15
+-- minutes after midnight, so 28-47 is 07:00-12:00, 52-71 13:00-18:00, 56-71 14:00-18:00 and
+-- 76-95 19:00-24:00.
 --
 -- The nine rows are inserted in the order A, B, C, X, Y, D, E, F, G, so ordered by
 -- booking id they are exactly that sequence.
@@ -31,27 +33,23 @@ begin
 
   for r in
     select * from (values
-      ('Studio',              t,     'AM',    'Requested'),   -- A: held in TC-VHOLD-001
-      ('Studio',              t,     'AM',    'Requested'),   -- B: same slot as A, refused in TC-VHOLD-002
-      ('Studio',              t + 1, 'PM',    'Requested'),   -- C: a different slot, unaffected
-      ('Main Hall',           t + 2, 'Night', 'Confirmed'),   -- X: already confirmed
-      ('Main Hall',           t + 2, 'Night', 'Requested'),   -- Y: same slot as X, refused in TC-VHOLD-003
-      ('Main Hall',           h,     'AM',    'Requested'),   -- D: over the expired hold, TC-VHOLD-004
-      ('Main Hall',           h,     'PM',    'Requested'),   -- E: over the live hold, TC-VHOLD-004
-      ('Rooftop Terrace',     t + 6, 'AM',    'Requested'),   -- F: blocked afterwards, TC-VHOLD-003
-      ('UAT-44 Harbour Room', t + 3, 'AM',    'Requested')    -- G: held, then searched for, TC-VHOLD-002
-    ) as v(venue, slot_date, slot, status)
+      ('Studio',              t,     28, 47, 'Requested'),   -- A 07:00-12:00: held in TC-VHOLD-001
+      ('Studio',              t,     28, 47, 'Requested'),   -- B: same times as A, refused in TC-VHOLD-002
+      ('Studio',              t + 1, 52, 71, 'Requested'),   -- C 13:00-18:00: other times, unaffected
+      ('Main Hall',           t + 2, 76, 95, 'Confirmed'),   -- X 19:00-24:00: already confirmed
+      ('Main Hall',           t + 2, 76, 95, 'Requested'),   -- Y: same times as X, refused in TC-VHOLD-003
+      ('Main Hall',           h,     28, 47, 'Requested'),   -- D 07:00-12:00: over the expired hold, TC-VHOLD-004
+      ('Main Hall',           h,     56, 71, 'Requested'),   -- E 14:00-18:00: over the live hold, TC-VHOLD-004
+      ('Rooftop Terrace',     t + 6, 28, 47, 'Requested'),   -- F 07:00-12:00: blocked afterwards, TC-VHOLD-003
+      ('UAT-44 Harbour Room', t + 3, 28, 47, 'Requested')    -- G 07:00-12:00: held, then searched for, TC-VHOLD-002
+    ) as v(venue, slot_date, first_code, last_code, status)
   loop
     insert into public.booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
     values ((select venue_id from public.venue where location = r.venue), v_event, v_coord,
             case when r.status = 'Requested' then null else v_staff end, r.status)
     returning booking_id into v_id;
-    -- The slot's hours as 15-minute slots (SPM-324).
     insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_id, r.slot_date, g.slot_code
-    from public.slot s
-    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-    where s.slot_code = r.slot;
+    select v_id, r.slot_date, n::text from generate_series(r.first_code, r.last_code) n;
   end loop;
 
   perform public.venue_staff_record_unavailability(
