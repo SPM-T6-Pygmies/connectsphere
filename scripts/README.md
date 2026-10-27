@@ -107,7 +107,7 @@ needs. This table says what that is.
 | Event registration | `seed-venues` |
 | Equipment requirements | `seed-coordinator-view`, `seed-equipment` |
 | Equipment out of service | `seed-equipment-review`; case 005 also `seed-coordinator-view`, `seed-equipment` |
-| Venue booking | `seed-coordinator-view`, `seed-venues`, `seed-equipment`; cases 019, 020 also `seed-booking-holds` |
+| Venue booking | `seed-coordinator-view`, `seed-venues`, `seed-equipment` |
 | Venue hold | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-holds`, then `seed-booking-holds/fixture.sql` (its Setup lists every command) |
 | Venue unavailability | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-venue-unavailability` |
 | Venue flag | `seed-coordinator-view`, `seed-venues`, `seed-booking-flags` (its Setup lists every command) |
