@@ -500,13 +500,22 @@ function namedTimes(times: ReadonlyArray<TimeOnDate>): string {
 
 /**
  * SPM-46: a hold or confirmed booking already has some of the time -- a hard
- * block (#35, #41). Names the overlapping part (SPM-324 AC2).
+ * block (#35, #41). Names the overlapping part (SPM-324 AC2). At a venue with
+ * setup or turnaround time the part named can lie in that time, so the
+ * message says it is counted (SPM-325 AC6).
  */
 export class VenueSlotUnavailableError extends DomainError {
   readonly code = "venue_slot_unavailable";
 
-  constructor(readonly times: ReadonlyArray<TimeOnDate>) {
-    super(`The venue is already booked for ${namedTimes(times)}. Choose other times or another venue.`);
+  constructor(
+    readonly times: ReadonlyArray<TimeOnDate>,
+    padded = false,
+  ) {
+    super(
+      `The venue is already booked for ${namedTimes(times)}${
+        padded ? ", counting its setup and turnaround time" : ""
+      }. Choose other times or another venue.`,
+    );
   }
 }
 
@@ -1356,5 +1365,39 @@ export class ReRequestNotHoldableError extends DomainError {
 
   constructor() {
     super("A re-request can only be approved or rejected, not held.");
+  }
+}
+
+/**
+ * SPM-52: a change request that breaks one of its rules -- no fields, a field
+ * twice, or a requested value the field cannot take. `field` is the one to
+ * point at, or null when the request as a whole is wrong.
+ */
+export class InvalidChangeRequestError extends DomainError {
+  readonly code = "invalid_change_request";
+
+  constructor(
+    readonly field: string | null,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** SPM-52: a Completed or Cancelled event takes no change requests. */
+export class ChangeRequestClosedError extends DomainError {
+  readonly code = "change_request_closed";
+
+  constructor(readonly status: string) {
+    super(`A ${status} event can no longer be changed.`);
+  }
+}
+
+/** SPM-52: only one change request may be open on an event at a time (2026-10-18 team decision). */
+export class ChangeRequestAlreadyOpenError extends DomainError {
+  readonly code = "change_request_already_open";
+
+  constructor() {
+    super("This event already has a change request waiting on its coordinator.");
   }
 }

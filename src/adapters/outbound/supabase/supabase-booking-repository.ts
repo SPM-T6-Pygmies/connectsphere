@@ -21,7 +21,7 @@ import {
   VenueSlotBlockedError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
-import type { TimeRangeOnDate } from "@/core/domain/event-times";
+import { joinSlots, type TimeRangeOnDate } from "@/core/domain/event-times";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { VenueId } from "@/core/domain/venue";
 import type {
@@ -48,6 +48,9 @@ const LAYOUT_REQUIRED = "CS022";
 const LAYOUT_UNSUPPORTED = "CS023";
 const SLOTS_INVALID = "CS024";
 const SLOT_TAKEN = "CS025";
+// SPM-475: only the setup or turnaround time overlaps a live booking's. The shared times come as
+// JSON in the error detail: `[{ date, start, end }]`, one row per booking in the way and date.
+const PADDED_SLOT_TAKEN = "CS088";
 // Raised by the booking_slot trigger when a Venue Staff block covers a requested slot (SPM-21).
 const SLOT_BLOCKED = "CS028";
 // The event was cancelled (SPM-55 AC6).
@@ -147,6 +150,8 @@ export class SupabaseBookingRepository implements BookingRepository {
             : new InvalidBookingDateError(request.times.map(({ date }) => date).join(", "));
         case SLOT_TAKEN:
           throw new VenueSlotUnavailableError(await this.takenOf(request));
+        case PADDED_SLOT_TAKEN:
+          throw new VenueSlotUnavailableError(toPaddedTimes(error.details), true);
         case SLOT_BLOCKED:
           throw new VenueSlotBlockedError(
             await this.blockedOf(request.venueId, request.times, error.message),
@@ -288,4 +293,9 @@ export class SupabaseBookingRepository implements BookingRepository {
       ? []
       : [{ date: fromMessage[1], start: fromMessage[2], end: fromMessage[3] }];
   }
+}
+
+/** The times the submit function names in its error detail (CS088), joined where bookings meet. */
+function toPaddedTimes(details: string | null | undefined): TimeRangeOnDate[] {
+  return joinSlots(JSON.parse(details ?? "[]") as TimeRangeOnDate[]);
 }

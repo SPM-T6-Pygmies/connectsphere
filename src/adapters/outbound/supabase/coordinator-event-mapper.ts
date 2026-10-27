@@ -66,7 +66,7 @@ const STATUSES: readonly CoordinatorEventStatus[] = [
   "Cancelled",
 ];
 
-function toStatus(raw: string): CoordinatorEventStatus {
+export function toStatus(raw: string): CoordinatorEventStatus {
   const status = STATUSES.find((candidate) => candidate === raw);
   if (status === undefined) {
     // Data crossing inward is untrusted too, even from our own database.

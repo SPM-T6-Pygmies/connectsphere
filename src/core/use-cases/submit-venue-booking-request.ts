@@ -1,4 +1,9 @@
-import { requestVenueBooking, type BookingId, type BookingTimeInput } from "../domain/booking";
+import {
+  clashDates,
+  requestVenueBooking,
+  type BookingId,
+  type BookingTimeInput,
+} from "../domain/booking";
 import { bookingToReplace } from "../domain/booking-review-flag";
 import { CoordinatorEventNotFoundError, VenueNotFoundError } from "../domain/errors";
 import { userAccountId, type UserAccountId } from "../domain/user-account";
@@ -82,7 +87,7 @@ export class SubmitVenueBookingRequestUseCase {
       command.replacesBookingId == null ? null : await this.flaggedBooking(requestedBy, event.id, command.replacesBookingId);
 
     const dates = [...new Set(command.times.map(({ date }) => date.trim()).filter((date) => date !== ""))];
-    const occupied = dates.length === 0 ? [] : await bookings.listSlotsAt(venue.id, dates);
+    const occupied = dates.length === 0 ? [] : await bookings.listSlotsAt(venue.id, clashDates(dates));
 
     const request = requestVenueBooking({
       eventId: event.id,

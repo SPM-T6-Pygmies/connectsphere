@@ -6,6 +6,7 @@ import {
   BookingNotFoundError,
   CancelledEventBookingError,
   VenueSlotBlockedError,
+  VenueSlotUnavailableError,
 } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
@@ -13,7 +14,7 @@ import { venueId } from "@/core/domain/venue";
 import type { SupabaseServerClient } from "./client";
 import { SupabaseBookingRepository } from "./supabase-booking-repository";
 
-type RpcResult = { data: unknown; error: { code?: string; message: string } | null };
+type RpcResult = { data: unknown; error: { code?: string; message: string; details?: string } | null };
 
 function fakeClient(answers: Record<string, RpcResult>) {
   const calls: Array<{ name: string; args: unknown }> = [];
@@ -127,6 +128,32 @@ describe("SupabaseBookingRepository, a cancelled event (SPM-55)", () => {
 
     await expect(new SupabaseBookingRepository(client).submit(REQUEST)).rejects.toBeInstanceOf(
       CancelledEventBookingError,
+    );
+  });
+});
+
+describe("SupabaseBookingRepository, setup and turnaround on submit (SPM-475)", () => {
+  it("maps the submit function's CS088 to a taken-time error naming the detail's times, joined where they meet", async () => {
+    const { client } = fakeClient({
+      coordinator_submit_booking_request: {
+        data: null,
+        error: {
+          code: "CS088",
+          message: "Venue 5 has another booking within this request's setup or turnaround time",
+          details: JSON.stringify([
+            { date: "2026-10-21", start: "23:45", end: "24:00" },
+            { date: "2026-10-22", start: "00:00", end: "00:30" },
+            { date: "2026-10-22", start: "00:15", end: "00:45" },
+          ]),
+        },
+      },
+    });
+
+    const error = await new SupabaseBookingRepository(client).submit(REQUEST).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenueSlotUnavailableError);
+    expect((error as VenueSlotUnavailableError).message).toBe(
+      "The venue is already booked for 2026-10-21 23:45–24:00, 2026-10-22 00:00–00:45, counting its setup and turnaround time. Choose other times or another venue.",
     );
   });
 });
