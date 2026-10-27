@@ -212,7 +212,7 @@ describe("requestVenueBooking (SPM-46)", () => {
     },
   );
 
-  it("allows the adjacent slot to a Confirmed booking (buffers are a known gap, #123)", () => {
+  it("allows the adjacent slot to a Confirmed booking at a venue with no setup or turnaround", () => {
     expect(
       request([{ date: "2026-10-05", slot: "PM" }], [occupied("2026-10-05", "AM", "Confirmed")])
         .times,
