@@ -178,7 +178,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 2. Run `supabase db query --file scripts/seed-venue-padding/seed.sql --local` again, because the race approves one of the two.
 
 **Expected Result:**
-- `checks.sql` prints `failed to execute query: error: ok: all 20 checks held` (the script ends with an error on purpose, so everything it wrote rolls back).
+- `checks.sql` prints `failed to execute query: error: ok: all 21 checks held` (the script ends with an error on purpose, so everything it wrote rolls back).
 - `same-answers.mjs` prints `ok: all 10 cases give the same answer as the code`: the database gives the same answers as the code for the cases in `cases.json`, which a unit test runs through the code. Each case is also submitted by a coordinator, which must be refused naming the same times, or accepted when there are none (SPM-475).
 - `race.mjs` prints `ok: one approval succeeded and one was refused`.
 
