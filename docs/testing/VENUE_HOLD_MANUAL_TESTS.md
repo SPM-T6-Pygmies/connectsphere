@@ -155,9 +155,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
   booking still holds 07:00 to 12:00 in 20 slots, the times it was requested for (SPM-325 AC2); and
   one audit row, `hold` (AC1).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-decision-card-offers-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step1-decision-card-offers-hold.png) · [step2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step2-header-tentative-hold.png) · [step2-on-hold-until-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step2-on-hold-until-confirm-release.png) · [step3-decided-lists-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step3-decided-lists-hold.png) · [step3-requests-no-longer-lists-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step3-requests-no-longer-lists-a.png) · [step4-coordinator-sees-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step4-coordinator-sees-tentative-hold.png)
 
 ---
 
@@ -184,9 +184,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Booking B was **Requested** beside booking A when A was held: a request still waiting
   blocks nothing, so it did not stop the hold (AC2).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-harbour-room-listed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step1-harbour-room-listed.png) · [step1-search-t3-0700-1200](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step1-search-t3-0700-1200.png) · [step2-harbour-room-held](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step2-harbour-room-held.png) · [step2-harbour-room-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step2-harbour-room-on-hold-until.png) · [step3-harbour-room-not-listed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step3-harbour-room-not-listed.png) · [step4-approve-b-refused-held-by-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step4-approve-b-refused-held-by-a.png) · [step4-hold-b-refused-held-by-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step4-hold-b-refused-held-by-a.png) · [step5-c-still-requested](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step5-c-still-requested.png)
 
 ---
 
@@ -212,9 +212,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 2: refused with "The venue is unavailable for <T + 6> 07:00–12:00. Choose other times or another venue." (AC2).
 - Step 3: both are `Requested` with no expiry, and no audit rows (AC2).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-y-refused-padded-two-dates](../screenshots/2026-10-27_SPM-325_TC-VHOLD-003_step1-y-refused-padded-two-dates.png) · [step2-f-refused-venue-unavailable](../screenshots/2026-10-27_SPM-325_TC-VHOLD-003_step2-f-refused-venue-unavailable.png)
 
 ---
 
@@ -244,9 +244,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 2: accepted: booking D reads "On hold until …" (AC2).
 - Step 3: the expired 07:00–12:00 hold is now `Expired`, with an `expire hold` audit row; the live 14:00–18:00 hold is unchanged and booking D is `Tentative Hold` (AC2).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-e-refused-live-hold-padded](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step1-e-refused-live-hold-padded.png) · [step2-d-held-room-in-use](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step2-d-held-room-in-use.png) · [step2-d-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step2-d-on-hold-until.png)
 
 ---
 
@@ -264,9 +264,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 1: the access-denied screen with a 403 (SPM-16), and none of the booking's details; nothing changes (AC4).
 - Step 2: neither the held booking nor the Confirmed one offers **Place hold**, **Approve booking** or **Reject** (AC1). The held booking offers only **Confirm hold** and **Release hold**; the Confirmed one offers no button.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-coordinator-access-denied-403](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step1-coordinator-access-denied-403.png) · [step2-confirmed-x-offers-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step2-confirmed-x-offers-no-buttons.png) · [step2-held-a-offers-only-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step2-held-a-offers-only-confirm-release.png)
 
 ---
 
@@ -297,9 +297,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 5: the Studio row reads **Confirmed**, with no "On hold until" line (AC1).
 - Step 6: `Confirmed` with an empty expiry; two audit rows, `hold` then `confirm hold`, the second by Test Venue Staff (AC3); one `Sent` notification for the coordinator, "Studio approved for Founders' Gala Dinner", whose text reads "Venue Staff confirmed Studio for <T, e.g. Tue, 10 Nov 2026> (07:00–12:00). The venue is secured.", the same as for an approval and with no AM, PM or Night (AC5; SPM-325 AC5).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-a-on-hold-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step1-a-on-hold-confirm-release.png) · [step2-already-decided-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step2-already-decided-confirmed.png) · [step2-header-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step2-header-confirmed.png) · [step3-decided-lists-a-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step3-decided-lists-a-confirmed.png) · [step4-b-refused-by-confirmed-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step4-b-refused-by-confirmed-a.png) · [step5-coordinator-sees-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step5-coordinator-sees-confirmed.png)
 
 ---
 
@@ -330,9 +330,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 5: accepted. Booking G2 reads "On hold until …" (AC2).
 - Step 6: `Released`; two audit rows, `hold` then `release hold` (AC3); one `Sent` notification for the coordinator, "UAT-44 Harbour Room hold released for Founders' Gala Dinner", whose text reads "Venue Staff released the hold on UAT-44 Harbour Room for <T + 3> (07:00–12:00). The times are free for other events; send a new request if you still need them." (AC6; SPM-325 AC5).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-already-decided-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step1-already-decided-released.png) · [step1-header-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step1-header-released.png) · [step2-archive-lists-g-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step2-archive-lists-g-released.png) · [step3-harbour-room-listed-again](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step3-harbour-room-listed-again.png) · [step4-g2-request-sent](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step4-g2-request-sent.png) · [step5-g2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step5-g2-header-tentative-hold.png) · [step5-g2-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step5-g2-on-hold-until.png)
 
 ---
 
@@ -365,9 +365,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 6: booking B, still waiting, offers Approve, Place hold and Reject, and no Confirm hold or Release hold (AC4).
 - Step 7: booking C is `Expired` (it was marked when you reloaded in step 4) and has two audit rows, `hold` then `expire hold`: the refused confirmation wrote nothing (AC4).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step3-confirm-refused-hold-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step3-confirm-refused-hold-expired.png) · [step4-header-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step4-header-expired.png) · [step4-hold-expired-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step4-hold-expired-no-buttons.png) · [step5-a-decided-no-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step5-a-decided-no-confirm-release.png) · [step6-b-offers-approve-hold-reject](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step6-b-offers-approve-hold-reject.png)
 
 ---
 
@@ -394,9 +394,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 4: accepted: the card reads "Already decided — Released by Test Venue Staff" (AC7; SPM-325 AC3).
 - Step 5: `Released`; the audit rows are `hold` then `release hold`, with no `confirm hold`: the refused confirmation wrote nothing (AC7).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-block-overlaps-d-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step1-block-overlaps-d-hold.png) · [step1-main-hall-blocked-0900-1000](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step1-main-hall-blocked-0900-1000.png) · [step2-d-still-on-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step2-d-still-on-hold.png) · [step3-confirm-refused-venue-unavailable](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step3-confirm-refused-venue-unavailable.png) · [step4-d-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step4-d-released.png)
 
 ---
 
@@ -426,9 +426,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 5: the new request is accepted and its hold is accepted: booking C2 reads "On hold until …", because the expired hold freed the times (AC2).
 - Step 6: `Expired`, with the expiry still set to the moment it ran out; the audit rows are `hold` then `expire hold`, **one** `expire hold` however many times it was read, with no actor because time did it (AC5).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-decided-does-not-list-c](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step1-decided-does-not-list-c.png) · [step2-archive-lists-c-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-archive-lists-c-expired.png) · [step2-header-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-header-expired.png) · [step2-hold-expired-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-hold-expired-no-buttons.png) · [step4-coordinator-sees-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step4-coordinator-sees-expired.png) · [step5-c2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-header-tentative-hold.png) · [step5-c2-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-on-hold-until.png) · [step5-c2-request-sent](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-request-sent.png)
 
 ---
 
@@ -456,9 +456,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 3: tomorrow at 13:00:00, the start of its time, and not 72 hours from now (AC7).
 - Step 5: refused with "A hold can't be placed on a slot that has already started."; booking E stays **Requested** and has no audit row (AC7).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step1-z-requested-tomorrow](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step1-z-requested-tomorrow.png) · [step2-z-header-hold-capped](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step2-z-header-hold-capped.png) · [step2-z-on-hold-until-1pm-tomorrow](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step2-z-on-hold-until-1pm-tomorrow.png) · [step5-e-refused-already-started](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step5-e-refused-already-started.png)
 
 ---
 
@@ -492,9 +492,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 4: it opens the event.
 - Step 5: one row per expired hold of the event, addressed to the Test Coordinator, `Sent`, with `expiry_notified_at` set (AC1).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step2-decided-no-longer-lists-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step2-decided-no-longer-lists-hold.png) · [step3-inbox-hold-expired-notice](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step3-inbox-hold-expired-notice.png) · [step4-notice-opens-event](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step4-notice-opens-event.png)
 
 ---
 
@@ -518,9 +518,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 3: every booking has exactly **1** row (AC3).
 - Step 4: no new hold-expired notice since TC-VHOLD-012 (AC3).
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step4-inbox-no-new-notice](../screenshots/2026-10-27_SPM-325_TC-VHOLD-013_step4-inbox-no-new-notice.png)
 
 ---
 
@@ -539,6 +539,6 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 **Expected Result:**
 - Step 1: it ends `error: ok: all 7 checks held`. The CLI words this "failed to execute query"; the script ends in an error on purpose, so everything it wrote rolls back, and the `ok:` is the pass.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** none (database checks)
+**Screenshots:**

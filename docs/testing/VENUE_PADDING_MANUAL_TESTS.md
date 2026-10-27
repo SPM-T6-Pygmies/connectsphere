@@ -227,6 +227,6 @@ this case can be run before or after the others.
   turnaround time. Choose other times or another venue." No request is added to the bookings table.
 - Step 3: accepted. The bookings table lists Main Hall, 2026-12-17 19:00–20:45, **Requested**.
 
-**Status:** [ ] Pass [ ] Fail
+**Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:**
+**Screenshots:** [step2-main-hall-theatre-2000-2100](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step2-main-hall-theatre-2000-2100.png) · [step2-refused-padded-2130-2145](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step2-refused-padded-2130-2145.png) · [step3-1900-2045-accepted-requested](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step3-1900-2045-accepted-requested.png)
