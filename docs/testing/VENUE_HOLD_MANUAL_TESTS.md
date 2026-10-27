@@ -206,7 +206,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
    ```
 
 **Expected Result:**
-- Step 1: refused with "This booking is blocked by the following event:" and two lines, one per date:
+- Step 1: refused with "This booking is blocked by the following events:" and two lines, one per date:
   "• Founders' Gala Dinner on <T + 2> (18:30–24:00, incl. setup & turnaround)" and
   "• Founders' Gala Dinner on <T + 3> (00:00–00:45, incl. setup & turnaround)". The booking stays **Requested** (AC2).
 - Step 2: refused with "The venue is unavailable for <T + 6> 07:00–12:00. Choose other times or another venue." (AC2).
@@ -313,7 +313,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 1. Open booking G and click **Release hold**.
 2. Open **Archive**.
 3. As `coordinator@test.com`, open **Find a venue** (`/staff/coordinator/venues`) and search on T + 3, 07:00 to 12:00.
-4. As the coordinator, open the Founders' Gala Dinner, choose **Request a venue**, and request **UAT-44 Harbour Room** on T + 3, 07:00 to 12:00. This is a new request; call it booking G2.
+4. As the coordinator, open the Founders' Gala Dinner, choose **Request a venue**, and request **UAT-44 Harbour Room**, layout **Theatre**, on T + 3, 07:00 to 12:00. This is a new request; call it booking G2.
 5. As `venue@test.com`, open booking G2 and click **Place hold**.
 6. Read the database:
    ```sql
@@ -488,7 +488,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 2: the page loads as usual; the hold is no longer listed under **Decided**.
-- Step 3: one notice, "Main Hall hold expired for Holds Test Event", reading "The hold on Main Hall for <day H, e.g. Tue, 17 Nov 2026> (14:00–18:00) expired at <today, time> without being confirmed. The venue is no longer held; send a new request if you still need it." (AC1, AC2; SPM-325 AC5).
+- Step 3: a new notice at the top, "Main Hall hold expired for Holds Test Event", reading "The hold on Main Hall for <day H, e.g. Tue, 17 Nov 2026> (14:00–18:00) expired at <today, time> without being confirmed. The venue is no longer held; send a new request if you still need it." (AC1, AC2; SPM-325 AC5).
 - Step 4: it opens the event.
 - Step 5: one row per expired hold of the event, addressed to the Test Coordinator, `Sent`, with `expiry_notified_at` set (AC1).
 
