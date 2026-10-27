@@ -68,6 +68,15 @@ const STUDIO: Venue = {
   layouts: [{ name: "Classroom", capacity: 40 }],
 };
 
+/** SPM-475: like Main Hall in the SPM-19 example, 30 minutes' setup and 45 minutes' turnaround. */
+const PADDED_HALL: Venue = {
+  ...HALL,
+  id: venueId("venue-padded"),
+  location: "Padded Hall",
+  setupMinutes: 30,
+  turnaroundMinutes: 45,
+};
+
 function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): StoredBooking {
   return {
     id: "existing-1",
@@ -96,7 +105,7 @@ function buildUseCase(
   const notifier = new RecordingNotifier();
   const useCase = new SubmitVenueBookingRequestUseCase({
     events: new InMemoryCoordinatorEventRepository([EVENT, CANCELLED_EVENT]),
-    venues: new InMemoryVenueCatalogue([HALL, STUDIO]),
+    venues: new InMemoryVenueCatalogue([HALL, STUDIO, PADDED_HALL]),
     bookings,
     venueStaff: new InMemoryVenueStaffDirectory(venueStaff),
     notifier,
@@ -399,5 +408,81 @@ describe("SubmitVenueBookingRequestUseCase by time (SPM-350)", () => {
 
   it("accepts a time that ends as the confirmed booking starts (AC2)", async () => {
     await expect(submit("06:00", "07:00")).resolves.toMatchObject({ status: "Requested" });
+  });
+});
+
+describe("SubmitVenueBookingRequestUseCase counting setup and turnaround (SPM-475)", () => {
+  function confirmed(venue: string, date: string, start: string, end: string): StoredBooking {
+    return { ...confirmedAt(venue, date, "AM"), times: [{ date, start, end }] };
+  }
+
+  // Held until 10:00 at Padded Hall once its turnaround is counted.
+  const charityRun = confirmed("venue-padded", "2026-10-05", "07:00", "09:15");
+
+  function submit(existing: readonly StoredBooking[], venue: string, date: string, start: string, end: string) {
+    const built = buildUseCase(existing);
+    const result = built.useCase.execute({
+      eventId: "event-1",
+      userAccountId: COORDINATOR,
+      venueId: venue,
+      roomLayout: "Banquet",
+      times: [{ date, start, end }],
+    });
+    return { ...built, result };
+  }
+
+  it("blocks a request whose setup runs into a booking's turnaround, naming the date and times, storing and telling nothing", async () => {
+    const { result, bookings, notifier } = submit([charityRun], "venue-padded", "2026-10-05", "10:00", "12:00");
+    const error = await result.catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenueSlotUnavailableError);
+    expect((error as VenueSlotUnavailableError).message).toBe(
+      "The venue is already booked for 2026-10-05 09:30–10:00, counting its setup and turnaround time. Choose other times or another venue.",
+    );
+    expect(bookings.all()).toHaveLength(1);
+    expect(notifier.bookingRequests).toEqual([]);
+  });
+
+  it("accepts a request whose padded window only touches the booking's", async () => {
+    const { result } = submit([charityRun], "venue-padded", "2026-10-05", "10:30", "12:00");
+    await expect(result).resolves.toMatchObject({ status: "Requested" });
+  });
+
+  it("uses each venue's own values: the same times at a venue with none are accepted", async () => {
+    const { result } = submit(
+      [confirmed("venue-hall", "2026-10-05", "07:00", "09:15")],
+      "venue-hall",
+      "2026-10-05",
+      "10:00",
+      "12:00",
+    );
+    await expect(result).resolves.toMatchObject({ status: "Requested" });
+  });
+
+  it("reads the previous date, so a turnaround past midnight still blocks", async () => {
+    const { result } = submit(
+      [confirmed("venue-padded", "2026-10-04", "22:00", "23:30")],
+      "venue-padded",
+      "2026-10-05",
+      "00:30",
+      "01:00",
+    );
+    const error = await result.catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(VenueSlotUnavailableError);
+    expect((error as VenueSlotUnavailableError).times).toEqual([
+      { date: "2026-10-05", start: "00:00", end: "00:15" },
+    ]);
+  });
+
+  it("reads the next date, so a setup before midnight still blocks", async () => {
+    const { result } = submit(
+      [confirmed("venue-padded", "2026-10-06", "00:15", "02:00")],
+      "venue-padded",
+      "2026-10-05",
+      "22:00",
+      "23:30",
+    );
+    await expect(result).rejects.toBeInstanceOf(VenueSlotUnavailableError);
   });
 });

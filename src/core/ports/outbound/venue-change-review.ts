@@ -1,6 +1,14 @@
 import type { VenueChangeBooking, VenueChangeFlag } from "../../domain/venue-change-flag";
 import type { VenueId } from "../../domain/venue";
 
+/** A booking at the changed venue, with its event and the coordinator to tell (SPM-71). */
+export interface ReviewedBooking extends VenueChangeBooking {
+  readonly eventId: string;
+  readonly eventName: string;
+  /** Null when the event has no assigned coordinator yet. */
+  readonly coordinatorUserAccountId: string | null;
+}
+
 /**
  * Driven port: the bookings a venue edit is judged against, and the flags it raises
  * (SPM-105). Which bookings to flag is the domain's call; this reads and stores.
@@ -8,11 +16,11 @@ import type { VenueId } from "../../domain/venue";
 export interface VenueChangeReview {
   /**
    * The Confirmed bookings and Tentative Holds at `venueId`, each with its layout, its
-   * slots and its event's needs as they are now.
+   * slots, its event's needs as they are now, and the event's coordinator.
    *
    * Throws `VenueMaintenanceNotPermittedError` if the store refuses the caller.
    */
-  bookingsAt(venueId: VenueId): Promise<readonly VenueChangeBooking[]>;
+  bookingsAt(venueId: VenueId): Promise<readonly ReviewedBooking[]>;
 
   /**
    * Stores the reasons as `venue-attributes` flags, one open row per booking and source:

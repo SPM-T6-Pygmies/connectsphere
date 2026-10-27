@@ -12,6 +12,7 @@ import {
   type VenueUnavailabilityEntry,
 } from "../domain/venue-unavailability";
 import type { Clock } from "../ports/outbound/clock";
+import type { Notifier } from "../ports/outbound/notifier";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 import type {
   AffectedBooking,
@@ -49,6 +50,7 @@ export interface RecordVenueUnavailabilityDeps {
   readonly unavailability: VenueUnavailabilityRepository;
   readonly venues: VenueCatalogue;
   readonly clock: Clock;
+  readonly notifier: Pick<Notifier, "venueBookingFlagged">;
 }
 
 /**
@@ -58,6 +60,10 @@ export interface RecordVenueUnavailabilityDeps {
  *
  * SPM-313: the store flags the Confirmed bookings and live holds the block overlaps as it
  * records the block, so this reads them back for whoever tells their coordinators.
+ *
+ * SPM-71: each flagged booking's coordinator is told, one notice per booking. A refused
+ * block is never saved, so never told; a booking whose event has no coordinator has
+ * nobody to tell.
  */
 export class RecordVenueUnavailabilityUseCase {
   constructor(private readonly deps: RecordVenueUnavailabilityDeps) {}
@@ -97,6 +103,20 @@ export class RecordVenueUnavailabilityUseCase {
     const entry = await unavailability.record(block, staff);
     const affectedBookings = await unavailability.affectedBookings(staff, id, block.slots);
     const flaggedBookings = await unavailability.flaggedBookings(staff, entry.id);
+
+    for (const flagged of flaggedBookings) {
+      if (flagged.coordinatorUserAccountId === null) continue;
+      await this.deps.notifier.venueBookingFlagged({
+        recipientUserAccountId: flagged.coordinatorUserAccountId,
+        bookingId: flagged.bookingId,
+        eventId: flagged.eventId,
+        eventName: flagged.eventName,
+        venueLocation: flagged.venueLocation,
+        reasonCode: "venue-unavailable",
+        reasons: [flagged.detail],
+      });
+    }
+
     return { entry, affectedBookings, flaggedBookings };
   }
 }

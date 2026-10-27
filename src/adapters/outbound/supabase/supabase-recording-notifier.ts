@@ -4,6 +4,7 @@ import {
   coordinatorAssignedRow,
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
+  eventConfirmedRow,
   eventRequestDecidedRow,
   holdExpiredRow,
   organiserCoordinatorAssignedRow,
@@ -11,6 +12,7 @@ import {
   safetyCheckReadyRow,
   safetyCheckRecordedRow,
   venueBookingCancelledRow,
+  venueBookingFlaggedRow,
   venueBookingDecidedRow,
   venueBookingRequestedRow,
   type NotificationRow,
@@ -20,6 +22,7 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   HoldExpiredNotice,
@@ -30,6 +33,7 @@ import type {
   SafetyCheckReadyNotice,
   SafetyCheckRecordedNotice,
   VenueBookingCancelledNotice,
+  VenueBookingFlaggedNotice,
   VenueBookingDecidedNotice,
   VenueBookingRequestedNotice,
 } from "@/core/ports/outbound/notifier";
@@ -124,6 +128,14 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.recordAndDeliver(venueBookingCancelledRow(notice), () =>
       this.inner.venueBookingCancelled(notice),
     );
+  }
+
+  eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
+    return this.recordAndDeliver(eventConfirmedRow(notice), () => this.inner.eventConfirmed(notice));
+  }
+
+  venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
+    return this.recordAndDeliver(venueBookingFlaggedRow(notice), () => this.inner.venueBookingFlagged(notice));
   }
 
   /**

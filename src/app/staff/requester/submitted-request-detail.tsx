@@ -1,7 +1,9 @@
 import { CheckIcon } from "lucide-react";
+import Link from "next/link";
 
 import { EventTimes } from "@/app/events/event-times";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,8 +11,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { ChangeRequestState } from "@/core/domain/change-request";
 import { preferredTimeRange } from "@/core/domain/event-request";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
+import type { OrganiserEventArrangements } from "@/core/ports/outbound/event-request-repository";
 import type {
   ClarificationMessageView,
   EventRequestView,
@@ -76,6 +80,8 @@ export function SubmittedRequestDetail({
   canDiscuss,
   assignedCoordinatorName,
   eventTimes,
+  eventArrangements,
+  changeRequest,
   origin = "queue",
 }: {
   eventRequest: EventRequestView;
@@ -89,6 +95,10 @@ export function SubmittedRequestDetail({
   assignedCoordinatorName: string | null;
   /** SPM-326 AC6: when the event runs, once the request is approved; null before. */
   eventTimes: readonly TimeRangeOnDate[] | null;
+  /** SPM-66 AC3: the event's status and what has been arranged for it, once the request is approved; null before. */
+  eventArrangements: OrganiserEventArrangements | null;
+  /** SPM-52: whether the signed-in Organiser may ask for a change to the event now. */
+  changeRequest: ChangeRequestState;
   origin?: DetailOrigin;
 }) {
   const { details } = eventRequest;
@@ -103,7 +113,17 @@ export function SubmittedRequestDetail({
       <PageHeader
         title={details.eventName}
         description={`Submitted ${eventRequest.submittedAt?.slice(0, 10) ?? "—"}`}
-        actions={<StatusBadge status={eventRequest.status} />}
+        actions={
+          <div className="flex items-center gap-2">
+            {changeRequest === "available" && (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/staff/requester/${eventRequest.id}/change-request`}>Request a change</Link>
+              </Button>
+            )}
+            {changeRequest === "open" && <Badge variant="secondary">Change request pending</Badge>}
+            <StatusBadge status={eventRequest.status} />
+          </div>
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -144,6 +164,43 @@ export function SubmittedRequestDetail({
               />
             </CardContent>
           </Card>
+
+          {eventArrangements === null ? null : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your event</CardTitle>
+                <CardDescription>
+                  What your coordinator has arranged. Once Confirmed,
+                  ConnectSphere is committed to these arrangements.
+                </CardDescription>
+                <div>
+                  <StatusBadge status={eventArrangements.status} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <FieldList
+                  fields={[
+                    {
+                      label: "Venue",
+                      value:
+                        eventArrangements.venues.length === 0
+                          ? "None confirmed yet"
+                          : eventArrangements.venues.join(", "),
+                    },
+                    {
+                      label: "Equipment reserved",
+                      value:
+                        eventArrangements.equipment.length === 0
+                          ? "None reserved"
+                          : eventArrangements.equipment
+                              .map((line) => `${line.quantityReserved} × ${line.equipmentType}`)
+                              .join(", "),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <ClarificationThread
             messages={clarificationThread}

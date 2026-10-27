@@ -97,7 +97,7 @@ function piece(date: string, range: TimeRange): TimeRangeOnDate {
   return { date, start: fromMinutes(range.start), end: fromMinutes(range.end) };
 }
 
-function shiftDate(date: string, days: number): string {
+export function shiftDate(date: string, days: number): string {
   const moved = new Date(`${date}T00:00:00.000Z`);
   moved.setUTCDate(moved.getUTCDate() + days);
   return moved.toISOString().slice(0, 10);

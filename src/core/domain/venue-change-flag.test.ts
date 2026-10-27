@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { venueId, type Venue } from "./venue";
-import { flagsForVenueChange, type VenueChangeBooking } from "./venue-change-flag";
+import { flagsForVenueChange, newlyFlaggedReasons, type VenueChangeBooking } from "./venue-change-flag";
 
 const NOW = new Date("2026-10-23T10:00:00+08:00");
 
@@ -177,5 +177,28 @@ describe("flagsForVenueChange (SPM-105)", () => {
 
   it("AC8: says nothing when the same venue is saved again unchanged", () => {
     expect(flagsForVenueChange(banquetSeats(80), banquetSeats(80), [booking()], NOW)).toEqual([]);
+  });
+});
+
+describe("newlyFlaggedReasons (SPM-71)", () => {
+  it("AC4: gives each booking one entry, with every reason it starts failing for, in order", () => {
+    const reasons = newlyFlaggedReasons([
+      { bookingId: "812", sourceRef: "capacity:Banquet", detail: "Capacity: Banquet seats 80, 40 over", startsFailing: true },
+      { bookingId: "813", sourceRef: "facilities", detail: "Facilities: Missing: Wi-Fi", startsFailing: true },
+      { bookingId: "812", sourceRef: "facilities", detail: "Facilities: Missing: Wi-Fi", startsFailing: true },
+    ]);
+
+    expect([...reasons]).toEqual([
+      ["812", ["Capacity: Banquet seats 80, 40 over", "Facilities: Missing: Wi-Fi"]],
+      ["813", ["Facilities: Missing: Wi-Fi"]],
+    ]);
+  });
+
+  it("AC4: leaves out a reason that only restates a check already failing", () => {
+    const reasons = newlyFlaggedReasons([
+      { bookingId: "812", sourceRef: "capacity:Banquet", detail: "Capacity: Banquet seats 70, 50 over", startsFailing: false },
+    ]);
+
+    expect([...reasons]).toEqual([]);
   });
 });

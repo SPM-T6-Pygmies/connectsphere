@@ -1,4 +1,4 @@
-# Padded Approval Manual Tests (SPM-19)
+# Padded Approval Manual Tests (SPM-19, SPM-325)
 
 ## Overview
 
@@ -8,9 +8,11 @@ A booking occupies its venue from its start minus the venue's **setup time** to 
 10:00–12:00 uses the room from 09:30 to 12:45. Approving a booking, or placing a hold on it, is now
 refused when that padded time overlaps another live booking's padded time (Confirmed, or a hold that
 has not lapsed; a hold is padded too). Two bookings whose padded times only touch are fine.
+Since SPM-325 AC6 (SPM-475) a coordinator's request is refused on submit by the same rule
+(TC-VPAD-009), so a request that would be refused at approval is never sent.
 
 The cases are registered in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as
-`TC-VPAD-001` to `TC-VPAD-008`. Report what you ran in the PR description's `## Manual test results`
+`TC-VPAD-001` to `TC-VPAD-009`. Report what you ran in the PR description's `## Manual test results`
 table; CI records it in `manual-runs.csv` when the PR merges.
 
 **Last run:** all eight cases passed on 2026-10-25. A browser script drove TC-VPAD-001 to 006 and 008 and checked
@@ -21,7 +23,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ## Test Environment Setup
 
-- Local Supabase, rebuilt from every migration (`20261026000000` adds the padded check), then:
+- Local Supabase, rebuilt from every migration (`20261026000000` adds the padded check, `20261027000000`
+  adds it on submit), then:
   ```bash
   supabase start
   supabase db reset
@@ -175,8 +178,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 2. Run `supabase db query --file scripts/seed-venue-padding/seed.sql --local` again, because the race approves one of the two.
 
 **Expected Result:**
-- `checks.sql` prints `failed to execute query: error: ok: all 20 checks held` (the script ends with an error on purpose, so everything it wrote rolls back).
-- `same-answers.mjs` prints `ok: all 10 cases give the same answer as the code`: the database gives the same answers as the code for the cases in `cases.json`, which a unit test runs through the code.
+- `checks.sql` prints `failed to execute query: error: ok: all 21 checks held` (the script ends with an error on purpose, so everything it wrote rolls back).
+- `same-answers.mjs` prints `ok: all 10 cases give the same answer as the code`: the database gives the same answers as the code for the cases in `cases.json`, which a unit test runs through the code. Each case is also submitted by a coordinator, which must be refused naming the same times, or accepted when there are none (SPM-475).
 - `race.mjs` prints `ok: one approval succeeded and one was refused`.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, the three scripts ended with their ok lines
@@ -199,3 +202,31 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
 **Screenshots:** [step1-refused-in-the-booked-time](../screenshots/2026-10-25_SPM-19_TC-VPAD-008_step1-refused-in-the-booked-time.png)
+
+---
+
+### TC-VPAD-009: A coordinator's request is refused on submit when its padded times overlap (SPM-325 AC6)
+
+**Scenario:** Night Gala is Confirmed at Main Hall on Thu 17 Dec 2026, 22:00–24:00, so with 30
+minutes' setup it occupies the room from 21:30. A coordinator asks for 20:00–21:00 the same evening.
+The times do not touch, but its turnaround runs to 21:45, so the request is refused before it reaches
+Venue Staff, naming the date and the overlapping times. Asking for 19:00–20:45 instead, whose turnaround
+ends at 21:30 exactly as Night Gala's setup begins, is accepted. Nothing else is booked that day, so
+this case can be run before or after the others.
+
+**Preconditions:** The setup above, signed in as `coordinator@test.com` (password `TestPass123!`).
+
+**Steps:**
+1. Open *Wine Tasting* from **My events**, then the **Venue** tab.
+2. In **New booking request** choose **Main Hall**, layout **Theatre**, date **2026-12-17**, start
+   **20:00**, end **21:00**, and send it.
+3. Change the times to start **19:00**, end **20:45**, and send it.
+
+**Expected Result:**
+- Step 2: refused with "The venue is already booked for 2026-12-17 21:30–21:45, counting its setup and
+  turnaround time. Choose other times or another venue." No request is added to the bookings table.
+- Step 3: accepted. The bookings table lists Main Hall, 2026-12-17 19:00–20:45, **Requested**.
+
+**Status:** [x] Pass [ ] Fail — 2026-10-27
+
+**Screenshots:** [step2-main-hall-theatre-2000-2100](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step2-main-hall-theatre-2000-2100.png) · [step2-refused-padded-2130-2145](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step2-refused-padded-2130-2145.png) · [step3-1900-2045-accepted-requested](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step3-1900-2045-accepted-requested.png)

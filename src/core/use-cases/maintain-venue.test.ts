@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 import { InMemoryVenueChangeReview } from "@/adapters/outbound/in-memory/in-memory-venue-change-review";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 
 import {
   InvalidVenueError,
@@ -24,6 +25,7 @@ function build() {
       venues,
       review: new InMemoryVenueChangeReview(),
       clock: new FixedClock(new Date("2026-10-23T10:00:00+08:00")),
+      notifier: new RecordingNotifier(),
     }),
     list: new ListVenuesUseCase({ venues }),
     view: new ViewVenueUseCase({ venues }),

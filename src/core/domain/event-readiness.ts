@@ -139,6 +139,34 @@ export function assessReadiness(facts: ReadinessFacts): EventReadiness {
   };
 }
 
+/** One essential equipment line as confirmed (SPM-66). */
+export interface ConfirmedEquipmentLine {
+  readonly equipmentType: string;
+  readonly quantityReserved: number;
+}
+
+/**
+ * What a confirmed event's Organiser is told was arranged (SPM-66). Only
+ * essential arrangements enter: one not marked essential is Not applicable to
+ * this event and is left out.
+ */
+export interface ConfirmedArrangements {
+  /** Null when the venue is not essential to this event. */
+  readonly venueLocation: string | null;
+  readonly equipment: readonly ConfirmedEquipmentLine[];
+}
+
+/** SPM-66: the essential arrangements a just-confirmed event's Organiser is told about. */
+export function confirmedArrangements(facts: ReadinessFacts): ConfirmedArrangements {
+  return {
+    venueLocation: facts.essentialTypes.includes("venue") ? facts.confirmedVenueLocation : null,
+    equipment: facts.essentialEquipment.map(({ equipmentType, quantityReserved }) => ({
+      equipmentType,
+      quantityReserved,
+    })),
+  };
+}
+
 /** The essential arrangements still not complete -- what AC1 names when confirmation is refused. */
 export function blockingArrangements(readiness: EventReadiness): readonly ArrangementType[] {
   return readiness.essentialArrangements

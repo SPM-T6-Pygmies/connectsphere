@@ -6,8 +6,22 @@ import type {
   EventRequestStatus,
   NewEventRequest,
 } from "../../domain/event-request";
+import type { CoordinatorEventStatus } from "../../domain/coordinator-event";
+import type { ConfirmedEquipmentLine } from "../../domain/event-readiness";
 import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { UserAccountId } from "../../domain/user-account";
+
+/**
+ * The arrangements made for the event a request became, as its Organiser sees
+ * them (SPM-66) -- plain data, the view the screen needs.
+ */
+export interface OrganiserEventArrangements {
+  readonly status: CoordinatorEventStatus;
+  /** The venue of each Confirmed booking, on the event or any of its sessions, alphabetically. */
+  readonly venues: readonly string[];
+  /** Each equipment line with anything reserved, by type. */
+  readonly equipment: readonly ConfirmedEquipmentLine[];
+}
 
 /**
  * One row of an Organiser's own "My event requests" list.
@@ -43,6 +57,8 @@ export interface EventRequestRepository {
    * start order (SPM-326 AC6). Null while the request has no event.
    */
   findEventTimes(id: EventRequestId): Promise<readonly TimeRangeOnDate[] | null>;
+  /** What has been arranged for the event the request became (SPM-66 AC3). Null while the request has no event. */
+  findEventArrangements(id: EventRequestId): Promise<OrganiserEventArrangements | null>;
   /** Stores a request the core has built and hands back the id the store chose. */
   create(request: NewEventRequest): Promise<EventRequest>;
   save(request: EventRequest): Promise<void>;

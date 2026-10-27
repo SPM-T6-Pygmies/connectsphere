@@ -3,6 +3,10 @@
 // through the code by src/core/domain/padded-window-cases.test.ts, so the two copies of the
 // padded-window rule cannot drift apart unnoticed.
 //
+// SPM-475: each case is also submitted through `coordinator_submit_booking_request`, which must
+// refuse it with CS088 naming the same clashes, or accept it when there are none, so a request is
+// answered at submit as it would be at approval.
+//
 // Needs a local stack with the base seed, seed-venues and seed-venue-search-uat:
 //   node scripts/seed-venue-padding/same-answers.mjs
 //
@@ -44,12 +48,41 @@ const caseBlock = (c, index) => `
       raise exception 'rolled back' using errcode = 'CS999';
     exception when sqlstate 'CS999' then
       null;
+    end;
+    begin
+      select venue_id into v_venue from public.venue where location = ${quote(c.venue)};
+      insert into public.booking (venue_id, event_id, requested_by_user_account_id)
+        values (v_venue, v_event_a, v_coord) returning booking_id into v_a;
+      insert into public.booking_slot (booking_id, slot_date, slot)
+        select v_a, date ${quote(c.existing.date)}, n::text from generate_series(${firstSlot(c.existing.start)}, ${lastSlot(c.existing.end)}) n;
+      update public.booking set status = ${quote(c.existing.status)}, decided_by_user_account_id = v_staff,
+        hold_expires_at = ${c.existing.status === "Tentative Hold" ? "now() + interval '1 day'" : "null"}
+        where booking_id = v_a;
+      update public.event set assigned_coordinator_user_account_id = v_coord where event_id = v_event_b;
+      select rl.name into v_layout
+        from public.venue_supported_layout vsl join public.room_layout rl on rl.room_layout_id = vsl.room_layout_id
+        where vsl.venue_id = v_venue order by rl.name limit 1;
+      begin
+        perform public.coordinator_submit_booking_request(v_coord, v_event_b, v_venue, v_layout,
+          (select jsonb_agg(jsonb_build_object('date', ${quote(c.request.date)}, 'slot', n::text))
+             from generate_series(${firstSlot(c.request.start)}, ${lastSlot(c.request.end)}) n));
+        v_found := '[]'::jsonb;
+      exception when sqlstate 'CS088' then
+        get stacked diagnostics v_detail = pg_exception_detail;
+        v_found := v_detail::jsonb;
+      end;
+      if v_found <> ${quote(JSON.stringify(c.clashes))}::jsonb then
+        v_failed := array_append(v_failed, ${quote(`case ${index + 1} (${c.label})`)} || ': submitting gave ' || v_found::text);
+      end if;
+      raise exception 'rolled back' using errcode = 'CS999';
+    exception when sqlstate 'CS999' then
+      null;
     end;`;
 
 const sql = `do $$
 declare
   v_staff bigint; v_coord bigint; v_event_a bigint; v_event_b bigint;
-  v_venue bigint; v_a bigint; v_b bigint; v_found jsonb;
+  v_venue bigint; v_a bigint; v_b bigint; v_found jsonb; v_layout text; v_detail text;
   v_failed text[] := '{}'; v_checks int := 0;
 begin
   select user_account_id into v_staff from public.user_account where name = 'Test Venue Staff' and client_organisation_id is null;
