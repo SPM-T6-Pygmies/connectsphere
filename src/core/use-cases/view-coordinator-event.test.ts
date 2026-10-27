@@ -59,6 +59,7 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationOpenDate: null,
     registrationCloseDate: null,
     essentialEquipment: [],
+    flaggedBookings: [],
     ...overrides,
   };
 }

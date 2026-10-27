@@ -667,6 +667,18 @@ export class EssentialEquipmentNotReservedError extends DomainError {
   }
 }
 
+/** SPM-312 AC1: a venue booking of the event is flagged for re-checking. Names each such booking. */
+export class BookingFlaggedError extends DomainError {
+  readonly code = "booking_flagged";
+
+  constructor(readonly bookings: readonly string[]) {
+    super(
+      `This event cannot be confirmed: the venue ${bookings.length === 1 ? "booking" : "bookings"} at ` +
+        `${bookings.join(", ")} ${bookings.length === 1 ? "is" : "are"} flagged for re-checking.`,
+    );
+  }
+}
+
 /**
  * SPM-33 AC3: a clarification request must say what needs clarifying -- by the
  * same rule that makes a rejection state its reason.

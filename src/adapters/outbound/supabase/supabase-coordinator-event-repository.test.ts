@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { CoordinatorEventNotFoundError, EventNotCancellableError } from "@/core/domain/errors";
+import { clientOrganisationId } from "@/core/domain/client-organisation";
+import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
+import { BookingFlaggedError, CoordinatorEventNotFoundError, EventNotCancellableError } from "@/core/domain/errors";
+import { eventId } from "@/core/domain/event";
 import { userAccountId } from "@/core/domain/user-account";
 
 import type { SupabaseServerClient } from "./client";
@@ -66,5 +69,40 @@ describe("SupabaseCoordinatorEventRepository, cancelling an event (SPM-55)", () 
       new SupabaseCoordinatorEventRepository(client).cancelEvent(userAccountId("2"), "not-a-key"),
     ).rejects.toBeInstanceOf(CoordinatorEventNotFoundError);
     expect(calls).toEqual([]);
+  });
+});
+
+describe("SupabaseCoordinatorEventRepository, confirming an event (SPM-312)", () => {
+  const event: CoordinatorEvent = {
+    id: eventId("7"),
+    name: "Founders' Day",
+    description: null,
+    status: "Planning",
+    preferredDate: null,
+    expectedAttendance: null,
+    statedEquipmentNeeds: null,
+    clientOrganisationId: clientOrganisationId("1"),
+    owningOrganiserUserAccountId: userAccountId("5"),
+    assignedCoordinatorUserAccountId: userAccountId("2"),
+  };
+
+  it("AC1: reads a booking flagged under the row lock as flagged, naming each booking", async () => {
+    const { client } = fakeClient({
+      coordinator_confirm_event: {
+        data: null,
+        error: {
+          code: "CS094",
+          message: "flagged",
+          details: JSON.stringify([
+            { booking_id: 812, venue_location: "Main Hall", booked_for: "2026-11-16 13:00 to 18:00" },
+            { booking_id: 813, venue_location: "Studio", booked_for: "2026-11-16 13:00 to 18:00" },
+          ]),
+        },
+      },
+    });
+
+    await expect(new SupabaseCoordinatorEventRepository(client).confirmEvent(event, userAccountId("2"))).rejects.toThrow(
+      new BookingFlaggedError(["Main Hall (2026-11-16 13:00 to 18:00)", "Studio (2026-11-16 13:00 to 18:00)"]),
+    );
   });
 });
