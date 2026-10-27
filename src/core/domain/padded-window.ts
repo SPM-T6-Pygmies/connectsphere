@@ -36,6 +36,20 @@ export function paddedWindows(booked: TimeRangeOnDate, buffers: Buffers): TimeRa
 }
 
 /**
+ * SPM-250: `paddedWindows` for a span read as instants, as venue search reads busy time. The same
+ * rule, setup before and turnaround after; an instant needs no splitting at midnight.
+ */
+export function paddedSpan(
+  { startsAt, endsAt }: { readonly startsAt: Date; readonly endsAt: Date },
+  buffers: Buffers,
+): { startsAt: Date; endsAt: Date } {
+  return {
+    startsAt: new Date(startsAt.getTime() - buffers.setup * 60_000),
+    endsAt: new Date(endsAt.getTime() + buffers.turnaround * 60_000),
+  };
+}
+
+/**
  * Whether two bookings' windows share any time. They clash when one's turnaround meets the
  * other's event or setup; a window ending exactly when another begins does not (SPM-23 AC6).
  */

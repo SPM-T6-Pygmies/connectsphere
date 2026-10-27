@@ -45,7 +45,7 @@ function exclusionMessage(reason: ExclusionReason, values: VenueSearchValues): s
     case "beyondHorizon":
       return `cannot be booked as far ahead as ${values.date}`;
     case "booked":
-      return `already booked or blocked for part of ${values.start}–${values.end}`;
+      return `already booked or blocked for part of ${values.start}–${values.end}, setup and turnaround included`;
   }
 }
 
