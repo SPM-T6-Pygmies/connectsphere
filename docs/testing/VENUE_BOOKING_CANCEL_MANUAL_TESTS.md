@@ -91,7 +91,8 @@ shows its slot **Available** straight away, so another coordinator can book it.
 **Preconditions:** Setup done. Booking P is Confirmed. Signed in as `coordinator@test.com`.
 
 **Steps:**
-1. Open **Find a venue** → **UAT-44 Harbour Room** → its calendar, on the week holding C. Note the AM cell on C.
+1. Open **Find a venue** → **UAT-44 Harbour Room** → its calendar, on the week holding C. Note C from
+   07:00 to 12:00 (booking P's time, twenty 15-minute periods).
 2. Open the Founders' Gala Dinner's **Request a venue** page. On booking P's row, click **Cancel booking**.
 3. Click **Yes, cancel booking**.
 4. Open the Harbour Room calendar again, on the same week.
@@ -102,15 +103,16 @@ shows its slot **Available** straight away, so another coordinator can book it.
    ```
 
 **Expected Result:**
-- Step 1: C AM reads **Confirmed**.
+- Step 1: C `07:00–07:15` to `11:45–12:00` read **Confirmed**.
 - Step 2: the row asks "Release UAT-44 Harbour Room for this event? This cannot be undone." with **Yes, cancel booking** and **Keep booking**.
 - Step 3: a toast reads "Booking at UAT-44 Harbour Room cancelled. Its slots are free again." The row's badge reads **Released**, and it no longer offers **Cancel booking**.
-- Step 4: C AM reads **Available**.
+- Step 4: C `07:00–07:15` to `11:45–12:00` read **Available**; `19:00` to `24:00` (booking Q) still
+  read **Confirmed**.
 - Step 5: `Released`; one audit row by the coordinator, `status`, `Confirmed` → `Released`.
 
-**Status:** [x] Pass [ ] Fail — 19/10/2026, run in Chromium via Playwright against local Supabase, data from seed-booking-cancel
+**Status:** [x] Pass [ ] Fail — 27/10/2026, re-run for SPM-323 (the calendar on 15-minute periods) in Chrome against `pnpm dev:local`, data from seed-booking-cancel. Booking P is now cancelled from the event's **Venue** tab, which replaced the Request a venue page.
 
-**Screenshots:** [step1-calendar-confirmed](../screenshots/2026-10-19_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2-asks-before-cancelling](../screenshots/2026-10-19_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step3-released](../screenshots/2026-10-19_TC-VCANCEL-001_step3-released.png) · [step4-calendar-available](../screenshots/2026-10-19_TC-VCANCEL-001_step4-calendar-available.png)
+**Screenshots:** [step1-calendar-confirmed](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2-asks-before-cancelling](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step4-calendar-available](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step4-calendar-available.png). Earlier run on AM/PM/Night, 19/10/2026: [step1](../screenshots/2026-10-19_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2](../screenshots/2026-10-19_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step3](../screenshots/2026-10-19_TC-VCANCEL-001_step3-released.png) · [step4](../screenshots/2026-10-19_TC-VCANCEL-001_step4-calendar-available.png)
 
 ---
 

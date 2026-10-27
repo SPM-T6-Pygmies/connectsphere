@@ -356,9 +356,9 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 
 ---
 
-### TC-VBLOCK-011: A block on part of a slot blocks that slot on the calendar (SPM-321 AC8)
+### TC-VBLOCK-011: A block shows on exactly its periods of the calendar (SPM-321 AC8, SPM-323)
 
-**Scenario:** Studio is blocked 09:00 to 11:30 (Renovation) for the week of 2026-12-14. A Coordinator looking at Studio's calendar for that week should see the mornings as Blocked with the reason, and the afternoons and evenings as Available.
+**Scenario:** Studio is blocked 09:00 to 11:30 (Renovation) for the week of 2026-12-14. A Coordinator looking at Studio's calendar for that week should see 09:00 to 11:30 each weekday as Blocked with the reason, and every other period as Available.
 
 **Preconditions:** TC-VBLOCK-001 has run, and TC-VBLOCK-006 has not (it lifts the Renovation block). Signed in as `coordinator@test.com`.
 
@@ -366,11 +366,11 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 1. Open **Find a venue**, then Studio's calendar, and go to the week of Monday 2026-12-14 (or open the calendar with `?from=2026-12-14`).
 
 **Expected Result:**
-- Monday 2026-12-14 to Friday 2026-12-18: **AM** reads **Blocked** with *Renovation*. **PM** and **Night** read **Available** (the block does not reach them).
+- Monday 2026-12-14 to Friday 2026-12-18: `09:00–09:15` to `11:15–11:30` read **Blocked** with *Renovation*. `08:45–09:00`, `11:30–11:45` and every other period read **Available** (SPM-323 reads the block's own 15-minute periods, no longer the AM slot it falls in).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (1/1 check)
+**Status:** [x] Pass [ ] Fail — 2026-10-27, re-run for SPM-323 in Chrome against `pnpm dev:local`, after recording TC-VBLOCK-001's Studio block
 
-**Screenshots:** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
+**Screenshots:** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-27_SPM-323_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png). Earlier run on AM/PM/Night, 2026-10-22: [step1](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
 
 ---
 
