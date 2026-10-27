@@ -1,11 +1,11 @@
 import type { Badge } from "@/components/ui/badge";
-import type { CalendarSlot, CalendarSlotStatus } from "@/core/domain/venue-calendar";
+import type { CalendarPeriod, CalendarPeriodStatus } from "@/core/domain/venue-calendar";
 
 import { formatHoldExpiry } from "../../../hold-expiry";
 
 type Variant = React.ComponentProps<typeof Badge>["variant"];
 
-/** What one calendar slot reads as: a status badge, and a line under it when there is more to say. */
+/** What one calendar period reads as: a status badge, and a line under it when there is more to say. */
 export interface CalendarCellView {
   readonly label: string;
   readonly variant: Variant;
@@ -13,9 +13,9 @@ export interface CalendarCellView {
 }
 
 /** Green is free to request; amber and red are taken; grey is never bookable. */
-const STATUS: Record<CalendarSlotStatus, { label: string; variant: Variant }> = {
+const STATUS: Record<CalendarPeriodStatus, { label: string; variant: Variant }> = {
   available: { label: "Available", variant: "success" },
-  booked: { label: "Confirmed", variant: "secondary" },
+  confirmed: { label: "Confirmed", variant: "secondary" },
   held: { label: "Held", variant: "warning" },
   blocked: { label: "Blocked", variant: "destructive" },
   closed: { label: "Closed", variant: "outline" },
@@ -29,18 +29,23 @@ const dayHeadingFormat = new Intl.DateTimeFormat("en-SG", {
   month: "short",
 });
 
-/** SPM-155: how a slot reads on the calendar. A blocked slot gives its reasons (SPM-43 AC2). */
-export function calendarCell(slot: CalendarSlot): CalendarCellView {
+/** SPM-155: how a period reads on the calendar. A blocked period gives its reasons (SPM-323 AC3). */
+export function calendarCell(period: CalendarPeriod): CalendarCellView {
   let detail: string | null = null;
-  if (slot.status === "held" && slot.holdExpiresAt !== null) {
-    detail = `Until ${formatHoldExpiry(slot.holdExpiresAt.toISOString())}`;
-  } else if (slot.status === "blocked" && slot.reasons.length > 0) {
+  if (period.status === "held" && period.holdExpiresAt !== null) {
+    detail = `Until ${formatHoldExpiry(period.holdExpiresAt.toISOString())}`;
+  } else if (period.status === "blocked" && period.reasons.length > 0) {
     // Only Other carries a note, so the notes read as part of it.
-    detail = slot.reasons
-      .map((reason) => (reason === "Other" && slot.notes.length > 0 ? `Other: ${slot.notes.join("; ")}` : reason))
+    detail = period.reasons
+      .map((reason) => (reason === "Other" && period.notes.length > 0 ? `Other: ${period.notes.join("; ")}` : reason))
       .join(", ");
   }
-  return { ...STATUS[slot.status], detail };
+  return { ...STATUS[period.status], detail };
+}
+
+/** SPM-323: a period's row heading, its own times, e.g. "10:15–10:30". Never AM, PM or Night (AC5). */
+export function periodLabel({ start, end }: Pick<CalendarPeriod, "start" | "end">): string {
+  return `${start}–${end}`;
 }
 
 /** A calendar day's column heading, e.g. "Mon, 2 Nov". */

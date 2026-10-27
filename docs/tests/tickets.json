@@ -912,6 +912,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-323": {
+      "title": "View a venue's availability on the 15-minute grid",
+      "parent": "SPM-276",
+      "status": "In Progress"
+    },
     "SPM-324": {
       "title": "Request a venue booking by start and end time",
       "parent": null,

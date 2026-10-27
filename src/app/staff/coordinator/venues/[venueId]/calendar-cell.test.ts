@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { CalendarSlot } from "@/core/domain/venue-calendar";
+import type { CalendarPeriod } from "@/core/domain/venue-calendar";
 
-import { calendarCell, dayHeading } from "./calendar-cell";
+import { calendarCell, dayHeading, periodLabel } from "./calendar-cell";
 
-function slot(overrides: Partial<CalendarSlot>): CalendarSlot {
-  return { slot: "AM", status: "available", holdExpiresAt: null, reasons: [], notes: [], ...overrides };
+function slot(overrides: Partial<CalendarPeriod>): CalendarPeriod {
+  return { start: "10:15", end: "10:30", status: "available", holdExpiresAt: null, reasons: [], notes: [], ...overrides };
 }
 
 describe("calendarCell (SPM-155)", () => {
@@ -14,7 +14,7 @@ describe("calendarCell (SPM-155)", () => {
   });
 
   it("shows a Confirmed booking as Confirmed", () => {
-    expect(calendarCell(slot({ status: "booked" }))).toMatchObject({ label: "Confirmed", detail: null });
+    expect(calendarCell(slot({ status: "confirmed" }))).toMatchObject({ label: "Confirmed", detail: null });
   });
 
   it("shows a hold with when it lapses, in the words the other hold pages use", () => {
@@ -79,5 +79,12 @@ describe("calendarCell (SPM-155)", () => {
 describe("dayHeading (SPM-155)", () => {
   it("names the weekday and date of a calendar day, whatever the server's zone", () => {
     expect(dayHeading("2026-11-02")).toBe("Mon, 2 Nov");
+  });
+});
+
+describe("periodLabel (SPM-323)", () => {
+  it("heads a row with the period's own times, not a slot name (AC5)", () => {
+    expect(periodLabel({ start: "10:15", end: "10:30" })).toBe("10:15–10:30");
+    expect(periodLabel({ start: "23:45", end: "24:00" })).toBe("23:45–24:00");
   });
 });
