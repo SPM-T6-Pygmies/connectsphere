@@ -19,7 +19,6 @@ import {
   VenueNotFoundError,
   VenueSlotUnavailableError,
 } from "@/core/domain/errors";
-import { slotTime } from "@/core/domain/booking";
 import { venueId, type Venue } from "@/core/domain/venue";
 
 import { SubmitVenueBookingRequestUseCase } from "./submit-venue-booking-request";
@@ -77,7 +76,10 @@ const PADDED_HALL: Venue = {
   turnaroundMinutes: 45,
 };
 
-function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): StoredBooking {
+const MORNING = { start: "07:00", end: "12:00" };
+const AFTERNOON = { start: "13:00", end: "18:00" };
+
+function confirmedAt(venue: string, date: string, time: { start: string; end: string }): StoredBooking {
   return {
     id: "existing-1",
     eventId: "event-other",
@@ -85,7 +87,7 @@ function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): 
     venueLocation: venue,
     roomLayoutName: null,
     status: "Confirmed",
-    times: [slotTime({ date, slot })],
+    times: [{ date, ...time }],
     requestedBy: OTHER_COORDINATOR,
     requestedAt: "2026-09-20T00:00:00.000Z",
   };
@@ -93,8 +95,8 @@ function confirmedAt(venue: string, date: string, slot: "AM" | "PM" | "Night"): 
 
 const NOW = new Date("2026-10-01T09:00:00+08:00");
 
-function heldAt(venue: string, slot: "AM" | "PM" | "Night", holdExpiresAt: Date | null): StoredBooking {
-  return { ...confirmedAt(venue, "2026-10-05", slot), status: "Tentative Hold", holdExpiresAt };
+function heldAt(venue: string, time: { start: string; end: string }, holdExpiresAt: Date | null): StoredBooking {
+  return { ...confirmedAt(venue, "2026-10-05", time), status: "Tentative Hold", holdExpiresAt };
 }
 
 function buildUseCase(
@@ -175,7 +177,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
   });
 
   it("blocks a slot the venue already has confirmed, storing nothing (AC4)", async () => {
-    const { useCase, bookings } = buildUseCase([confirmedAt("venue-hall", "2026-10-05", "PM")]);
+    const { useCase, bookings } = buildUseCase([confirmedAt("venue-hall", "2026-10-05", AFTERNOON)]);
 
     await expect(
       useCase.execute({
@@ -190,7 +192,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
   });
 
   it("does not block on the same slot confirmed at a different venue (AC4)", async () => {
-    const { useCase, bookings } = buildUseCase([confirmedAt("venue-studio", "2026-10-05", "PM")]);
+    const { useCase, bookings } = buildUseCase([confirmedAt("venue-studio", "2026-10-05", AFTERNOON)]);
 
     await useCase.execute({
       eventId: "event-1",
@@ -205,7 +207,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
 
   it("accepts a slot whose only hold expired before now (AC4)", async () => {
     const expired = new Date(NOW.getTime() - 1000);
-    const { useCase, bookings } = buildUseCase([heldAt("venue-hall", "PM", expired)]);
+    const { useCase, bookings } = buildUseCase([heldAt("venue-hall", AFTERNOON, expired)]);
 
     await useCase.execute({
       eventId: "event-1",
@@ -220,7 +222,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
 
   it("blocks a slot on a hold that has not expired, naming it (AC4)", async () => {
     const live = new Date(NOW.getTime() + 1000);
-    const { useCase } = buildUseCase([heldAt("venue-hall", "PM", live)]);
+    const { useCase } = buildUseCase([heldAt("venue-hall", AFTERNOON, live)]);
 
     const error = await useCase
       .execute({
@@ -240,7 +242,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
 
   it("does not clash with the same event's own live booking at another venue (AC5)", async () => {
     const { useCase, bookings } = buildUseCase([
-      { ...confirmedAt("venue-studio", "2026-10-05", "PM"), eventId: "event-1", requestedBy: COORDINATOR },
+      { ...confirmedAt("venue-studio", "2026-10-05", AFTERNOON), eventId: "event-1", requestedBy: COORDINATOR },
     ]);
 
     await useCase.execute({
@@ -329,7 +331,7 @@ describe("SubmitVenueBookingRequestUseCase (SPM-61)", () => {
   });
 
   it("AC1: tells no one when the request is refused", async () => {
-    const { useCase, notifier } = buildUseCase([confirmedAt("venue-hall", "2026-10-05", "AM")]);
+    const { useCase, notifier } = buildUseCase([confirmedAt("venue-hall", "2026-10-05", MORNING)]);
 
     await expect(
       useCase.execute({
@@ -380,7 +382,7 @@ describe("SubmitVenueBookingRequestUseCase on a cancelled event (SPM-55)", () =>
 
 describe("SubmitVenueBookingRequestUseCase by time (SPM-350)", () => {
   const confirmedMorning: StoredBooking = {
-    ...confirmedAt("venue-hall", "2026-10-05", "AM"),
+    ...confirmedAt("venue-hall", "2026-10-05", MORNING),
     times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
   };
 
@@ -413,7 +415,7 @@ describe("SubmitVenueBookingRequestUseCase by time (SPM-350)", () => {
 
 describe("SubmitVenueBookingRequestUseCase counting setup and turnaround (SPM-475)", () => {
   function confirmed(venue: string, date: string, start: string, end: string): StoredBooking {
-    return { ...confirmedAt(venue, date, "AM"), times: [{ date, start, end }] };
+    return { ...confirmedAt(venue, date, MORNING), times: [{ date, start, end }] };
   }
 
   // Held until 10:00 at Padded Hall once its turnaround is counted.

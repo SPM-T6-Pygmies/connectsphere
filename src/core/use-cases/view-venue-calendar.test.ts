@@ -9,10 +9,17 @@ import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 
 import { InvalidCalendarRangeError, VenueNotFoundError } from "../domain/errors";
+import { slotCodesFor } from "../domain/slot-grid";
+import { toMinutes } from "../domain/time-of-day";
 import { userAccountId } from "../domain/user-account";
 import { venueId, type Venue } from "../domain/venue";
 import type { CalendarPeriod, CalendarPeriodStatus } from "../domain/venue-calendar";
 import { ViewVenueCalendarUseCase, type VenueCalendar } from "./view-venue-calendar";
+
+/** The 15-minute slots from `start` to `end` on `date`, as the slot tables hold them (SPM-331). */
+function slotsOf(date: string, start: string, end: string) {
+  return slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot }));
+}
 
 // 2 Nov 2026, 00:30 in Singapore -- still 1 Nov in UTC.
 const NOW = new Date("2026-11-01T16:30:00Z");
@@ -102,7 +109,7 @@ describe("ViewVenueCalendarUseCase (SPM-154)", () => {
         endDate: "2026-11-04",
         reason: "Safety",
         note: null,
-        slots: [{ date: "2026-11-04", slot: "Night" }],
+        slots: slotsOf("2026-11-04", "19:00", "24:00"),
       },
       STAFF,
     );
@@ -147,7 +154,7 @@ describe("ViewVenueCalendarUseCase block notes (SPM-43)", () => {
         endDate: "2026-11-03",
         reason: "Other",
         note: "Terrace closed for resurfacing",
-        slots: [{ date: "2026-11-03", slot: "PM" }],
+        slots: slotsOf("2026-11-03", "13:00", "18:00"),
       },
       STAFF,
     );
@@ -172,7 +179,7 @@ describe("ViewVenueCalendarUseCase reads live (SPM-43)", () => {
         endDate: "2026-11-02",
         reason: "Maintenance",
         note: null,
-        slots: [{ date: "2026-11-02", slot: "AM" }],
+        slots: slotsOf("2026-11-02", "07:00", "12:00"),
       },
       STAFF,
     );

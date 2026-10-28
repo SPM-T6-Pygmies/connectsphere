@@ -14,6 +14,8 @@ import {
   VenueNotFoundError,
   VenueUnavailabilityNotPermittedError,
 } from "../domain/errors";
+import { slotCodesFor } from "../domain/slot-grid";
+import { toMinutes } from "../domain/time-of-day";
 import { userAccountId } from "../domain/user-account";
 import { venueId, type Venue } from "../domain/venue";
 import { slotsStillBlocked } from "../domain/venue-unavailability";
@@ -23,6 +25,11 @@ import {
   RecordVenueUnavailabilityUseCase,
   type RecordVenueUnavailabilityCommand,
 } from "./record-venue-unavailability";
+
+/** The 15-minute slots from `start` to `end` on `date`, as the slot tables hold them (SPM-331). */
+function slotsOf(date: string, start: string, end: string) {
+  return slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot }));
+}
 
 const STAFF = ["Venue Staff"];
 /** Monday 5 October 2026, midday in Singapore. */
@@ -124,7 +131,7 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
       venueId: GRAND_HALL.id,
       eventName: "Founders' Gala Dinner",
       status: "Confirmed",
-      slots: [{ date: "2026-10-13", slot: "AM" }],
+      slots: slotsOf("2026-10-13", "07:00", "12:00"),
     };
     const { record, unavailability } = build([booking]);
 
@@ -142,8 +149,8 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
         eventName: "Founders' Gala Dinner",
         status: "Confirmed",
         slots: [
-          { date: "2026-10-13", slot: "AM" },
-          { date: "2026-10-13", slot: "Night" },
+          ...slotsOf("2026-10-13", "07:00", "12:00"),
+          ...slotsOf("2026-10-13", "19:00", "24:00"),
         ],
       },
       {
@@ -151,7 +158,7 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
         venueId: GRAND_HALL.id,
         eventName: "Rejected Workshop",
         status: "Rejected",
-        slots: [{ date: "2026-10-12", slot: "PM" }],
+        slots: slotsOf("2026-10-12", "13:00", "18:00"),
       },
     ]);
 
@@ -177,7 +184,7 @@ describe("RecordVenueUnavailabilityUseCase (SPM-267)", () => {
         venueId: GRAND_HALL.id,
         eventName: "Elsewhere",
         status: "Confirmed",
-        slots: [{ date: "2026-11-01", slot: "AM" }],
+        slots: slotsOf("2026-11-01", "07:00", "12:00"),
       },
     ]);
 
@@ -268,7 +275,7 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
       venueId: GRAND_HALL.id,
       eventName: "Tech Summit",
       status: "Confirmed",
-      slots: [{ date: "2026-10-13", slot: "PM" }],
+      slots: slotsOf("2026-10-13", "13:00", "18:00"),
       eventId: "event-1",
       coordinatorUserAccountId: COORDINATOR,
       ...overrides,
@@ -315,9 +322,9 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
 
   it("AC2: flags nothing for other slots, other days and other venues", async () => {
     const { record } = build([
-      seeded({ id: "am", slots: [{ date: "2026-10-13", slot: "AM" }] }),
-      seeded({ id: "night", slots: [{ date: "2026-10-13", slot: "Night" }] }),
-      seeded({ id: "next-day", slots: [{ date: "2026-10-14", slot: "PM" }] }),
+      seeded({ id: "am", slots: slotsOf("2026-10-13", "07:00", "12:00") }),
+      seeded({ id: "night", slots: slotsOf("2026-10-13", "19:00", "24:00") }),
+      seeded({ id: "next-day", slots: slotsOf("2026-10-14", "13:00", "18:00") }),
       seeded({ id: "elsewhere", venueId: OTHER_VENUE }),
     ]);
 
@@ -395,7 +402,7 @@ describe("RecordVenueUnavailabilityUseCase flags (SPM-313)", () => {
   it("AC4: shows no flag on a booking that has since been cancelled, and keeps it on its sibling", async () => {
     const { record, unavailability } = build([
       seeded({ id: "hall-a" }),
-      seeded({ id: "hall-b", slots: [{ date: "2026-10-13", slot: "PM" }] }),
+      seeded({ id: "hall-b", slots: slotsOf("2026-10-13", "13:00", "18:00") }),
     ]);
     await record.execute(block(PM_ON_13));
 
@@ -462,14 +469,14 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
       venueId: GRAND_HALL.id,
       eventName: "Tech Summit",
       status: "Confirmed",
-      slots: [{ date: "2026-10-13", slot: "PM" }],
+      slots: slotsOf("2026-10-13", "13:00", "18:00"),
       eventId: "event-1",
       coordinatorUserAccountId: "coordinator-1",
     };
   }
 
   it("flags a booking a shorter block only clips, and says only the clashing hours", async () => {
-    // The PM booking runs 13:00 to 18:00; the block is 17:00 to 18:00, its last hour.
+    // The booking runs 13:00 to 18:00; the block is 17:00 to 18:00, its last hour.
     const { record } = build([seeded()]);
 
     const { flaggedBookings, affectedBookings } = await record.execute(
@@ -550,7 +557,7 @@ describe("RecordVenueUnavailabilityUseCase notifies the coordinator (SPM-71)", (
       venueId: GRAND_HALL.id,
       eventName: "Tech Summit",
       status: "Confirmed",
-      slots: [{ date: "2026-10-13", slot: "PM" }],
+      slots: slotsOf("2026-10-13", "13:00", "18:00"),
       eventId: "event-1",
       coordinatorUserAccountId: COORDINATOR,
       ...overrides,
@@ -594,7 +601,7 @@ describe("RecordVenueUnavailabilityUseCase notifies the coordinator (SPM-71)", (
   it("AC1: tells nobody of a booking the block does not flag: a Requested one, or one outside it", async () => {
     const { record, notifier } = build([
       seeded({ id: "requested", status: "Requested" }),
-      seeded({ id: "morning", slots: [{ date: "2026-10-13", slot: "AM" }] }),
+      seeded({ id: "morning", slots: slotsOf("2026-10-13", "07:00", "12:00") }),
     ]);
 
     await record.execute(block(PM_ON_13));
