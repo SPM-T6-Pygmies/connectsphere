@@ -118,6 +118,7 @@ AC4.
 - [`TC-VCANCELNOTE-002_step1-calendar-freed-slot.png`](../screenshots/2026-10-21_TC-VCANCELNOTE-002_step1-calendar-freed-slot.png)
 - [`TC-VCANCELNOTE-002_step2-coordinator-forbidden.png`](../screenshots/2026-10-21_TC-VCANCELNOTE-002_step2-coordinator-forbidden.png)
 - Re-run 27/10/2026 for SPM-323 (the calendar on 15-minute periods): [step1-calendar-freed-time](../screenshots/2026-10-27_SPM-323_TC-VCANCELNOTE-002_step1-calendar-freed-time.png) · [step1-calendar-booking-q-kept](../screenshots/2026-10-27_SPM-323_TC-VCANCELNOTE-002_step1-calendar-booking-q-kept.png) · [step2-coordinator-forbidden](../screenshots/2026-10-27_SPM-323_TC-VCANCELNOTE-002_step2-coordinator-forbidden.png)
+- Re-run 28/10/2026 on the timeline (SPM-323), notice opened as `venue2@test.com` after TC-VCANCEL-001 cancelled P: [step1-calendar-freed-time](../screenshots/2026-10-28_SPM-323_TC-VCANCELNOTE-002_step1-calendar-freed-time-timeline.png) · [step1-calendar-booking-q-kept](../screenshots/2026-10-28_SPM-323_TC-VCANCELNOTE-002_step1-calendar-booking-q-kept-timeline.png) · [step2-coordinator-forbidden](../screenshots/2026-10-28_SPM-323_TC-VCANCELNOTE-002_step2-coordinator-forbidden-timeline.png)
 
 **Status:** [x] Pass [ ] Fail
 

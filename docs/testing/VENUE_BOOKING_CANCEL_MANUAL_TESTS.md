@@ -103,16 +103,18 @@ shows its slot **Available** straight away, so another coordinator can book it.
    ```
 
 **Expected Result:**
-- Step 1: C `07:00–07:15` to `11:45–12:00` read **Confirmed**.
+- Step 1: C has a **Confirmed** bar from `07:00` to `12:00`.
 - Step 2: the row asks "Release UAT-44 Harbour Room for this event? This cannot be undone." with **Yes, cancel booking** and **Keep booking**.
 - Step 3: a toast reads "Booking at UAT-44 Harbour Room cancelled. Its slots are free again." The row's badge reads **Released**, and it no longer offers **Cancel booking**.
-- Step 4: C `07:00–07:15` to `11:45–12:00` read **Available**; `19:00` to `24:00` (booking Q) still
-  read **Confirmed**.
+- Step 4: C is blank, **Available**, from `07:00` to `12:00`; the **Confirmed** bar from `19:00` to
+  `24:00` (booking Q) is still there.
 - Step 5: `Released`; one audit row by the coordinator, `status`, `Confirmed` → `Released`.
 
-**Status:** [x] Pass [ ] Fail — 27/10/2026, re-run for SPM-323 (the calendar on 15-minute periods) in Chrome against `pnpm dev:local`, data from seed-booking-cancel. Booking P is now cancelled from the event's **Venue** tab, which replaced the Request a venue page.
+**Status:** [x] Pass [ ] Fail — 27/10/2026, re-run for SPM-323 (the calendar on 15-minute periods) in Chrome against `pnpm dev:local`, data from seed-booking-cancel. Booking P is now cancelled from the event's **Venue** tab, which replaced the Request a venue page. Re-run 28/10/2026 on the timeline (SPM-323) after a `supabase db reset` and the setup seeds: [x] Pass.
 
-**Screenshots:** [step1-calendar-confirmed](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2-asks-before-cancelling](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step4-calendar-available](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step4-calendar-available.png). Earlier run on AM/PM/Night, 19/10/2026: [step1](../screenshots/2026-10-19_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2](../screenshots/2026-10-19_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step3](../screenshots/2026-10-19_TC-VCANCEL-001_step3-released.png) · [step4](../screenshots/2026-10-19_TC-VCANCEL-001_step4-calendar-available.png)
+**After (timeline, 2026-10-28):** [step1-calendar-confirmed](../screenshots/2026-10-28_SPM-323_TC-VCANCEL-001_step1-calendar-confirmed-timeline.png) · [step2-asks-before-cancelling](../screenshots/2026-10-28_SPM-323_TC-VCANCEL-001_step2-asks-before-cancelling-timeline.png) · [step3-released](../screenshots/2026-10-28_SPM-323_TC-VCANCEL-001_step3-released-timeline.png) · [step4-calendar-available](../screenshots/2026-10-28_SPM-323_TC-VCANCEL-001_step4-calendar-available-timeline.png)
+
+**Before (table, 2026-10-27):** [step1-calendar-confirmed](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2-asks-before-cancelling](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step4-calendar-available](../screenshots/2026-10-27_SPM-323_TC-VCANCEL-001_step4-calendar-available.png). Earlier run on AM/PM/Night, 19/10/2026: [step1](../screenshots/2026-10-19_TC-VCANCEL-001_step1-calendar-confirmed.png) · [step2](../screenshots/2026-10-19_TC-VCANCEL-001_step2-asks-before-cancelling.png) · [step3](../screenshots/2026-10-19_TC-VCANCEL-001_step3-released.png) · [step4](../screenshots/2026-10-19_TC-VCANCEL-001_step4-calendar-available.png)
 
 ---
 
