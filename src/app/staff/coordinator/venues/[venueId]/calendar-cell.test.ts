@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CalendarPeriod } from "@/core/domain/venue-calendar";
 
-import { calendarCell, calendarRuns, dayHeading, periodLabel } from "./calendar-cell";
+import { calendarCell, calendarRuns, dayHeading, longDayHeading, periodLabel } from "./calendar-cell";
 
 function slot(overrides: Partial<CalendarPeriod>): CalendarPeriod {
   return { start: "10:15", end: "10:30", status: "available", holdExpiresAt: null, reasons: [], notes: [], ...overrides };
@@ -128,5 +128,11 @@ describe("periodLabel (SPM-323)", () => {
   it("heads a row with the period's own times, not a slot name (AC5)", () => {
     expect(periodLabel({ start: "10:15", end: "10:30" })).toBe("10:15–10:30");
     expect(periodLabel({ start: "23:45", end: "24:00" })).toBe("23:45–24:00");
+  });
+});
+
+describe("longDayHeading (SPM-323)", () => {
+  it("names the weekday and full date of the day shown, whatever the server's zone", () => {
+    expect(longDayHeading("2026-11-02")).toBe("Monday, 2 November 2026");
   });
 });

@@ -31,6 +31,14 @@ const dayHeadingFormat = new Intl.DateTimeFormat("en-SG", {
   month: "short",
 });
 
+const longDayHeadingFormat = new Intl.DateTimeFormat("en-SG", {
+  timeZone: "UTC",
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 /** SPM-155: how a period reads on the calendar. A blocked period gives its reasons (SPM-323 AC3). */
 export function calendarCell(period: CalendarPeriod): CalendarCellView {
   let detail: string | null = null;
@@ -72,4 +80,9 @@ export function periodLabel({ start, end }: Pick<CalendarPeriod, "start" | "end"
 /** A calendar day's heading, e.g. "Mon, 2 Nov". */
 export function dayHeading(date: string): string {
   return dayHeadingFormat.format(new Date(`${date}T00:00:00.000Z`));
+}
+
+/** SPM-323: the one-day calendar's heading, e.g. "Monday, 2 November 2026". */
+export function longDayHeading(date: string): string {
+  return longDayHeadingFormat.format(new Date(`${date}T00:00:00.000Z`));
 }
