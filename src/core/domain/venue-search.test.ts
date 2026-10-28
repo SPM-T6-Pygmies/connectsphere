@@ -65,6 +65,7 @@ function booked(start: string, end: string, id = "1"): BusyInterval {
     venueId: venueId(id),
     startsAt: new Date(`2026-11-02T${start}:00+08:00`),
     endsAt: new Date(`2026-11-02T${end}:00+08:00`),
+    kind: "booking",
   };
 }
 
@@ -265,6 +266,105 @@ describe("isOpenFor a start and end time (SPM-322)", () => {
     expect(windowInstants(at("19:00", "24:00"), SG)).toEqual({
       from: new Date("2026-11-02T11:00:00Z"),
       to: new Date("2026-11-02T16:00:00Z"),
+    });
+  });
+});
+
+describe("isOpenFor with setup and turnaround (SPM-250)", () => {
+  // Setup 30 and turnaround 45, as Main Hall has.
+  const hall = venue({ setupMinutes: 30, turnaroundMinutes: 45 });
+
+  function hallOpenFor(start: string, end: string, busy: BusyInterval[]) {
+    return isOpenFor(hall, at(start, end), busy, TODAY, SG);
+  }
+
+  /** An In force block on `venue` from `start` to `end` on 2026-11-02. */
+  function blocked(start: string, end: string): BusyInterval {
+    return { ...booked(start, end), kind: "block" };
+  }
+
+  describe("AC1: a booking's padded time overlaps the search's", () => {
+    // Booked 07:00-09:15, so turned around until 10:00.
+    const early = [booked("07:00", "09:15")];
+
+    it.each([
+      ["10:15", "setting up from 09:45, 15 minutes into the turnaround", false],
+      ["10:30", "setting up from 10:00, as the turnaround ends", true],
+      ["10:45", "setting up from 10:15, 15 minutes after it", true],
+    ])("from %s, %s: open %s", (start, _case, open) => {
+      expect(hallOpenFor(start, "11:45", early)).toBe(open);
+    });
+
+    // Booked 15:00-16:00, so set up from 14:30.
+    const late = [booked("15:00", "16:00")];
+
+    it.each([
+      ["13:15", "turned around until 14:00, before the setup", true],
+      ["13:45", "turned around until 14:30, as the setup begins", true],
+      ["14:00", "turned around until 14:45, 15 minutes into the setup", false],
+    ])("until %s, %s: open %s", (end, _case, open) => {
+      expect(hallOpenFor("13:00", end, late)).toBe(open);
+    });
+  });
+
+  describe("AC2: the search's padding and the booking's both count", () => {
+    it("leaves the venue out when only the search's setup reaches the booking", () => {
+      const setupOnly = venue({ setupMinutes: 30, turnaroundMinutes: 0 });
+
+      expect(isOpenFor(setupOnly, at("09:15", "10:00"), [booked("07:00", "09:00")], TODAY, SG)).toBe(false);
+      expect(isOpenFor(setupOnly, at("09:30", "10:00"), [booked("07:00", "09:00")], TODAY, SG)).toBe(true);
+    });
+
+    it("leaves the venue out when only the booking's turnaround reaches the search", () => {
+      const turnaroundOnly = venue({ setupMinutes: 0, turnaroundMinutes: 45 });
+
+      expect(isOpenFor(turnaroundOnly, at("09:30", "10:00"), [booked("07:00", "09:00")], TODAY, SG)).toBe(false);
+      expect(isOpenFor(turnaroundOnly, at("09:45", "10:00"), [booked("07:00", "09:00")], TODAY, SG)).toBe(true);
+    });
+  });
+
+  it("AC3: pads each venue with its own setup and turnaround, none set counting as 0", () => {
+    const padded = venue({ id: venueId("1"), setupMinutes: 30, turnaroundMinutes: 45 });
+    const zero = venue({ id: venueId("2"), setupMinutes: 0, turnaroundMinutes: 0 });
+    const unset = venue({ id: venueId("3"), setupMinutes: null, turnaroundMinutes: null });
+    const busy = ["1", "2", "3"].map((id) => booked("07:00", "09:15", id));
+
+    expect(searchVenues([padded, zero, unset], criteria({ window: at("09:15", "10:00") }), busy, TODAY, SG)).toEqual({
+      venues: [zero, unset],
+      excluded: [{ reason: "booked", count: 1 }],
+    });
+  });
+
+  describe("AC4: a block is compared with the times searched, unpadded", () => {
+    it("lists the venue for a time that starts as the block ends, setup and all", () => {
+      expect(hallOpenFor("09:15", "10:00", [blocked("07:00", "09:15")])).toBe(true);
+    });
+
+    it("lists the venue for a time that ends as the block starts", () => {
+      expect(hallOpenFor("13:00", "14:00", [blocked("14:00", "15:00")])).toBe(true);
+    });
+
+    it("leaves the venue out when the block overlaps the time searched by 15 minutes", () => {
+      expect(hallOpenFor("09:00", "10:00", [blocked("07:00", "09:15")])).toBe(false);
+    });
+  });
+
+  describe("across midnight", () => {
+    const allDay = venue({ setupMinutes: 30, turnaroundMinutes: 45, openingHours: [{ start: "00:00", end: "24:00" }] });
+    // Booked 22:00-24:00 on 1 Nov, so turned around until 00:45 on 2 Nov.
+    const lateNight: BusyInterval = {
+      venueId: venueId("1"),
+      startsAt: new Date("2026-11-01T22:00:00+08:00"),
+      endsAt: new Date("2026-11-02T00:00:00+08:00"),
+      kind: "booking",
+    };
+
+    it("leaves the venue out when the turnaround runs into the next day's setup", () => {
+      expect(isOpenFor(allDay, at("01:00", "02:00"), [lateNight], TODAY, SG)).toBe(false);
+    });
+
+    it("lists it when the next day's setup begins as the turnaround ends", () => {
+      expect(isOpenFor(allDay, at("01:15", "02:00"), [lateNight], TODAY, SG)).toBe(true);
     });
   });
 });
