@@ -85,6 +85,8 @@ them, tick the boxes below **and** report each in the PR description's
 Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the one-window form.
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), on the Add venue form. Screenshot: [closes-24-offers-only-00](screenshots/spm-328/TC-VHOURS-001_closes-24-offers-only-00.jpg)
+
 ### TC-VHOURS-002 A window must end after it starts
 
 **Steps**
@@ -100,6 +102,8 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 
 **Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step1-13-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-002_step1-13-00-12-00-refused.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [13-00-12-00-refused](screenshots/spm-328/TC-VHOURS-002_13-00-12-00-refused.jpg)
 
 ### TC-VHOURS-004 A request over closed time is refused
 
@@ -127,6 +131,8 @@ yet.
 **Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`), on the Venue tab, with the Theatre layout; then cleaned up.
 Screenshots: [step1-07-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step1-07-00-12-00-refused.jpg) · [step2-12-45-13-30-names-12-45-13-00](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step2-12-45-13-30-names-12-45-13-00.jpg) · [step3-13-00-24-00-requested](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step3-13-00-24-00-requested.jpg)
 Earlier run on slots: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); then cleaned up. Screenshots: [step1-07-00-12-00-refused](screenshots/spm-328/TC-VHOURS-004_step1-07-00-12-00-refused.jpg) · [step2-names-12-45-13-00](screenshots/spm-328/TC-VHOURS-004_step2-names-12-45-13-00.jpg) · [step3-13-00-24-00-requested](screenshots/spm-328/TC-VHOURS-004_step3-13-00-24-00-requested.jpg)
 
 ### TC-VHOURS-005 AM, PM and Night convert to the slots they cover
 
@@ -197,6 +203,8 @@ explains 4 as "no opening hours or booking horizon recorded" and Garden Hall as 
 Screenshots: [step1-catalogue-one-window-each](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step1-catalogue-one-window-each.jpg) · [step2-find-a-venue-opening-hours](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step2-find-a-venue-opening-hours.jpg) · [step3-19-00-24-00-search](../screenshots/2026-10-25_SPM-320_TC-VHOURS-006_step3-19-00-24-00-search.jpg)
 Earlier run on slots and two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hours](../screenshots/2026-10-21_SPM-320_TC-VHOURS-006_step1-catalogue-opening-hours.png)
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), with `seed-venues` and `seed-venue-search-uat` loaded. Screenshots: [step1-catalogue-opening-hours](screenshots/spm-328/TC-VHOURS-006_step1-catalogue-opening-hours.jpg) · [step3-19-00-24-00-search](screenshots/spm-328/TC-VHOURS-006_step3-19-00-24-00-search.jpg)
 
 ### TC-VHOURS-007 Every venue's hours become one window
 
@@ -284,3 +292,5 @@ ERROR:  CS022: A venue needs one opening window
 After the rollback UAT-42 Lecture Hall was back at `07:00–18:00` (slots 28–71).
 Earlier run: Pass, 25/10/2026, local Supabase, by joyceetran, after TC-VCAT-004. Outside the
 transaction the refusal left UAT-42 Lecture Hall at `13:00–24:00` (slots 52–95).
+
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran: 32, 79, 48, then `CS022`; after the rollback UAT-42 Lecture Hall was back at slots 52–95.

@@ -110,6 +110,8 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran. `supabase migration up` now also applies `20261029000000`: 40 rows (07:00–18:00) and 20 rows (19:00–24:00) for the event, 40 for the session, no old codes, 96 rows in `slot`.
+
 ---
 
 ### TC-EVTIME-002: Attendee pages show start and end times with no slot labels

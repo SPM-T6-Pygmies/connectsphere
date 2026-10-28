@@ -75,6 +75,8 @@ AM; AM and PM; AM and Night (a Draft); Night; none (a Draft); AM, PM and Night.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran, with `supabase migration up` (which prints no notices), now through `20261029000000`: 20, 44, 68, 20 and 68 rows as above, `preferred_time` one span each and null for the request with none, 96 rows in `slot`.
+
 ---
 
 ### TC-REQTIME-002: Request an event by start and end time
