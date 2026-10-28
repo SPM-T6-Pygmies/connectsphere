@@ -1,4 +1,4 @@
-# Change Request Manual Tests (SPM-52)
+# Change Request Manual Tests (SPM-52, SPM-100)
 
 ## Overview
 
@@ -12,7 +12,11 @@ statuses) are unit-tested, tagged `SPM-52`. These cases cover what the unit
 tests cannot: the screens, what is stored, and that `submit_change_request`
 holds the rules against a caller that skips the application.
 
-These cases are registered as `TC-CHANGE-001`–`TC-CHANGE-005` in
+TC-CHANGE-006 to TC-CHANGE-009 cover the Coordinator deciding the request
+field by field (SPM-100): the decision screen, what a saved decision changes on
+the event, and that `coordinator_decide_change_request` holds the rules itself.
+
+These cases are registered as `TC-CHANGE-001`–`TC-CHANGE-009` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, report each in the PR description's `## Manual test results` table. CI
 records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
@@ -49,6 +53,7 @@ Password for both: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.
 | --- | --- |
 | `organiser2@test.com` | Event Organiser, owns Operations Roadmap Conference |
 | `organiser@test.com` | Event Organiser in the same organisation, does not own it |
+| `coordinator@test.com` | Event Coordinator assigned to Operations Roadmap Conference (user 2) |
 
 Run the cases in order: each starts from the state the previous one left. The
 ids below are the ones a fresh reset gives; look them up if yours differ.
@@ -139,3 +144,94 @@ waiting on your coordinator.* and shows no form. The SQL call is refused with
   no longer be changed.*
 - Step 3: refused with `CS091`, "Event 1 is Completed and takes no change
   requests".
+
+### TC-CHANGE-006: The coordinator sees each field and cannot save a decline without a reason (SPM-100 AC1-AC3)
+
+**Preconditions:** State left by TC-CHANGE-005: the request from TC-CHANGE-001
+is still open, asking for new times, attendance 350 and equipment Not
+applicable. Signed in as `coordinator@test.com`.
+
+**Steps:**
+1. Open `/staff/coordinator/events/1`.
+2. Click **Review it** in the *When and how many* card.
+3. Accept Date and times and Equipment requirements.
+4. Choose Decline on Expected attendance.
+5. Type only spaces in its reason.
+
+**Expected Result:**
+- Step 1: the card shows **Change request waiting** and a **Review it** link.
+- Step 2: one row per requested field, each with its current and requested
+  value: Date and times *— → 26 Nov 9:00 am – 5:00 pm*, Expected attendance
+  *300 → 350*, Equipment requirements *Projector, stage microphones, livestream
+  setup. → Not applicable*. **Save decision** is disabled.
+- Steps 3-5: a required reason box opens under Decline, and **Save decision**
+  stays disabled.
+
+### TC-CHANGE-007: A mixed decision applies only the accepted fields (SPM-100 AC2, AC4)
+
+**Preconditions:** State left by TC-CHANGE-006.
+
+**Steps:**
+1. Type the reason *The hall seats 300*.
+2. Click **Save decision**.
+3. Query the result:
+   ```sql
+   select field_name, decision, decision_reason from change_request_item where change_request_id = 1;
+   select preferred_date, expected_attendance, equipment_requirements from event where event_id = 1;
+   select slot_date, min(slot_code::int), max(slot_code::int) from event_slot where event_id = 1 group by 1;
+   select arrangement_type, is_essential from event_essential_arrangement where event_id = 1;
+   ```
+4. Open `/staff/coordinator/events/1`.
+
+**Expected Result:**
+- Step 2: the page says *No change request is waiting on you.* The request is
+  listed under **Decided** with each field's outcome, and the reason under the
+  declined one.
+- Step 3:
+  - Times and equipment are Accepted; attendance is Rejected with *The hall
+    seats 300*.
+  - The event runs 2026-11-26 from slot 36 to slot 67, which is 09:00 to
+    17:00, and its preferred date is 2026-11-26.
+  - Attendance is still 300, and equipment requirements are null.
+  - Equipment is no longer essential (`equipment | f`).
+- Step 4: the **Change request waiting** badge is gone.
+
+### TC-CHANGE-008: Accepting registration as Not applicable stops it being essential (SPM-100 AC4)
+
+**Preconditions:** State left by TC-CHANGE-007.
+
+**Steps:**
+1. SQL: `insert into event_essential_arrangement values (1, 'registration', true);`
+2. SQL: `select essential_types from event_readiness(1, 2);`
+3. SQL:
+   `select public.submit_change_request(6, 6, '[{"field_name":"registration","requested_value":null}]');`
+4. SQL:
+   `select public.coordinator_decide_change_request(2, 2, '[{"field_name":"registration","decision":"Accepted"}]');`
+5. SQL: `select essential_types, registration_enabled from event_readiness(1, 2);`
+
+**Expected Result:** Step 2 lists `{registration}`. After step 4, step 5 gives
+`{}` and `f`: registration is off and no longer needed for confirmation.
+
+### TC-CHANGE-009: The database holds the decision rules itself (SPM-100)
+
+**Preconditions:** State left by TC-CHANGE-008.
+
+**Steps:**
+1. SQL:
+   `select public.submit_change_request(6, 6, '[{"field_name":"expected_attendance","requested_value":"400"}]');`
+   This creates request 3.
+2. SQL, as a coordinator the event is not assigned to:
+   `select public.coordinator_decide_change_request(1, 3, '[{"field_name":"expected_attendance","decision":"Accepted"}]');`
+3. SQL, declining with a blank reason:
+   `select public.coordinator_decide_change_request(2, 3, '[{"field_name":"expected_attendance","decision":"Rejected","decision_reason":" "}]');`
+4. SQL: set event 1 Completed, then repeat step 2's call as user 2. Set the
+   event back to Planning afterwards.
+5. SQL: accept as user 2 (`coordinator_decide_change_request(2, 3, …Accepted…)`),
+   then repeat the same call.
+
+**Expected Result:**
+- Step 2: refused with `CS095`.
+- Step 3: refused with `CS098`.
+- Step 4: refused with `CS096`.
+- Step 5: the first call succeeds and sets attendance to 400. The second is
+  refused with `CS097`, *Change request 3 is already decided*.

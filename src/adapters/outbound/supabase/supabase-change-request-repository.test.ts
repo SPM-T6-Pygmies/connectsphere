@@ -150,14 +150,17 @@ describe("SupabaseChangeRequestRepository decisions (SPM-100)", () => {
   });
 
   it.each([
-    { field: "times", value: [{ date: "2026-12-01", start: "09:00", end: "24:00" }] },
-    { field: "venue_requirements", value: "Theatre seating" },
-    { field: "expected_attendance", value: 0 },
-    { field: "equipment_requirements", value: "Two mics" },
-    { field: "equipment_requirements", value: null },
-    { field: "registration", value: { enabled: true, opensOn: "2026-11-01", closesOn: "2026-11-25" } },
-    { field: "registration", value: null },
-  ] as const)("reads back $field as it was sent", (change) => {
+    ["times running to midnight", { field: "times", value: [{ date: "2026-12-01", start: "09:00", end: "24:00" }] }],
+    ["venue requirements", { field: "venue_requirements", value: "Theatre seating" }],
+    ["an attendance of 0", { field: "expected_attendance", value: 0 }],
+    ["equipment requirements", { field: "equipment_requirements", value: "Two mics" }],
+    ["equipment Not applicable", { field: "equipment_requirements", value: null }],
+    [
+      "registration settings",
+      { field: "registration", value: { enabled: true, opensOn: "2026-11-01", closesOn: "2026-11-25" } },
+    ],
+    ["registration Not applicable", { field: "registration", value: null }],
+  ] as const)("reads back %s as it was sent", (_label, change) => {
     expect(toRequestedChange(toChangeRequestItem(change))).toEqual(change);
   });
 

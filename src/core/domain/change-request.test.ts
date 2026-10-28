@@ -338,17 +338,17 @@ describe("decideChangeRequest (SPM-100)", () => {
       ["times", timesChange],
       ["expected_attendance", attendanceChange],
       ["venue_requirements", venueChange],
-    ] as const)("SPM-309: accepting %s flags the venue bookings", (field, change) => {
+    ] as const)("accepting %s flags the venue bookings", (field, change) => {
       const decision = decideChangeRequest(pending(change), [accept(field)], nowTimes);
       expect(decision.revalidation.bookingFlagFields).toEqual([field]);
     });
 
-    it("SPM-309 AC3: accepting only a revised equipment need flags no booking and reviews no equipment", () => {
+    it("accepting only a revised equipment need flags no booking and reviews no equipment", () => {
       const decision = decideChangeRequest(pending(equipmentChange), [accept("equipment_requirements")], nowTimes);
       expect(decision.revalidation).toEqual({ bookingFlagFields: [], equipmentReview: false });
     });
 
-    it("SPM-309 AC4: a declined field flags nothing", () => {
+    it("a declined field flags nothing", () => {
       const decision = decideChangeRequest(
         pending(attendanceChange, venueChange),
         [accept("expected_attendance"), decline("venue_requirements")],
@@ -357,19 +357,19 @@ describe("decideChangeRequest (SPM-100)", () => {
       expect(decision.revalidation.bookingFlagFields).toEqual(["expected_attendance"]);
     });
 
-    it("SPM-311 AC4: a new time on the same date puts no equipment under review", () => {
+    it("a new time on the same date puts no equipment under review", () => {
       const sameDate: RequestedChange = { field: "times", value: [{ date: "2026-12-01", start: "14:00", end: "18:00" }] };
       const decision = decideChangeRequest(pending(sameDate), [accept("times")], nowTimes);
       expect(decision.revalidation.equipmentReview).toBe(false);
       expect(decision.rescheduled).toBe(true);
     });
 
-    it("SPM-311 AC1: a new date puts the equipment under review", () => {
+    it("a new date puts the equipment under review", () => {
       const newDate: RequestedChange = { field: "times", value: [{ date: "2026-12-02", start: "09:00", end: "12:00" }] };
       expect(decideChangeRequest(pending(newDate), [accept("times")], nowTimes).revalidation.equipmentReview).toBe(true);
     });
 
-    it("SPM-311 AC1: an added date puts the equipment under review", () => {
+    it("an added date puts the equipment under review", () => {
       const addedDate: RequestedChange = {
         field: "times",
         value: [...nowTimes, { date: "2026-12-02", start: "09:00", end: "12:00" }],
