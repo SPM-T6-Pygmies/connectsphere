@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CalendarPeriod } from "@/core/domain/venue-calendar";
 
-import { calendarCell, dayHeading, periodLabel } from "./calendar-cell";
+import { calendarCell, calendarRuns, dayHeading, periodLabel } from "./calendar-cell";
 
 function slot(overrides: Partial<CalendarPeriod>): CalendarPeriod {
   return { start: "10:15", end: "10:30", status: "available", holdExpiresAt: null, reasons: [], notes: [], ...overrides };
@@ -10,7 +10,7 @@ function slot(overrides: Partial<CalendarPeriod>): CalendarPeriod {
 
 describe("calendarCell (SPM-155)", () => {
   it("shows an open slot as Available, with nothing more to say", () => {
-    expect(calendarCell(slot({}))).toEqual({ label: "Available", variant: "success", detail: null });
+    expect(calendarCell(slot({}))).toEqual({ status: "available", label: "Available", detail: null });
   });
 
   it("shows a Confirmed booking as Confirmed", () => {
@@ -22,7 +22,7 @@ describe("calendarCell (SPM-155)", () => {
       slot({ status: "held", holdExpiresAt: new Date("2026-11-05T04:00:00Z") }),
     );
 
-    expect(cell).toMatchObject({ label: "Held", variant: "warning" });
+    expect(cell).toMatchObject({ status: "held", label: "Held" });
     expect(cell.detail).toBe("Until Thu, 5 Nov, 12:00 pm");
   });
 
@@ -32,8 +32,8 @@ describe("calendarCell (SPM-155)", () => {
 
   it("shows a blocked slot with the reason Venue Staff recorded", () => {
     expect(calendarCell(slot({ status: "blocked", reasons: ["Renovation"] }))).toEqual({
+      status: "blocked",
       label: "Blocked",
-      variant: "destructive",
       detail: "Renovation",
     });
   });
@@ -73,6 +73,48 @@ describe("calendarCell (SPM-155)", () => {
 
   it("shows a slot the venue is closed for as Closed", () => {
     expect(calendarCell(slot({ status: "closed" }))).toMatchObject({ label: "Closed" });
+  });
+});
+
+describe("calendarRuns (SPM-323)", () => {
+  const at = (start: string, end: string, overrides: Partial<CalendarPeriod> = {}) => slot({ start, end, ...overrides });
+
+  it("draws a booking from 10:15 to 11:45 as one bar, and the periods either side apart (AC2)", () => {
+    const runs = calendarRuns([
+      at("10:00", "10:15"),
+      ...["10:15", "10:30", "10:45", "11:00", "11:15", "11:30"].map((start, i, all) =>
+        at(start, all[i + 1] ?? "11:45", { status: "confirmed" }),
+      ),
+      at("11:45", "12:00"),
+    ]);
+
+    expect(runs.map(({ status, start, end }) => ({ status, start, end }))).toEqual([
+      { status: "available", start: "10:00", end: "10:15" },
+      { status: "confirmed", start: "10:15", end: "11:45" },
+      { status: "available", start: "11:45", end: "12:00" },
+    ]);
+  });
+
+  it("starts a new bar where a block gives a different reason (AC3)", () => {
+    const runs = calendarRuns([
+      at("09:00", "09:15", { status: "blocked", reasons: ["Renovation"] }),
+      at("09:15", "09:30", { status: "blocked", reasons: ["Renovation", "Safety"] }),
+    ]);
+
+    expect(runs.map((run) => run.detail)).toEqual(["Renovation", "Renovation, Safety"]);
+  });
+
+  it("starts a new bar where two holds lapse at different times", () => {
+    const runs = calendarRuns([
+      at("14:00", "14:15", { status: "held", holdExpiresAt: new Date("2026-11-05T04:00:00Z") }),
+      at("14:15", "14:30", { status: "held", holdExpiresAt: new Date("2026-11-06T04:00:00Z") }),
+    ]);
+
+    expect(runs).toHaveLength(2);
+  });
+
+  it("draws nothing for a day with no periods", () => {
+    expect(calendarRuns([])).toEqual([]);
   });
 });
 

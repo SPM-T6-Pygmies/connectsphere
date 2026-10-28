@@ -1,24 +1,26 @@
-import type { Badge } from "@/components/ui/badge";
 import type { CalendarPeriod, CalendarPeriodStatus } from "@/core/domain/venue-calendar";
 
 import { formatHoldExpiry } from "../../../hold-expiry";
 
-type Variant = React.ComponentProps<typeof Badge>["variant"];
-
-/** What one calendar period reads as: a status badge, and a line under it when there is more to say. */
+/** What one calendar period reads as: its status, and a line more when there is more to say. */
 export interface CalendarCellView {
+  readonly status: CalendarPeriodStatus;
   readonly label: string;
-  readonly variant: Variant;
   readonly detail: string | null;
 }
 
-/** Green is free to request; amber and red are taken; grey is never bookable. */
-const STATUS: Record<CalendarPeriodStatus, { label: string; variant: Variant }> = {
-  available: { label: "Available", variant: "success" },
-  confirmed: { label: "Confirmed", variant: "secondary" },
-  held: { label: "Held", variant: "warning" },
-  blocked: { label: "Blocked", variant: "destructive" },
-  closed: { label: "Closed", variant: "outline" },
+/** SPM-323: back-to-back periods that read the same, drawn as one bar, e.g. Confirmed 10:15–11:45. */
+export interface CalendarRun extends CalendarCellView {
+  readonly start: string;
+  readonly end: string;
+}
+
+const LABEL: Record<CalendarPeriodStatus, string> = {
+  available: "Available",
+  confirmed: "Confirmed",
+  held: "Held",
+  blocked: "Blocked",
+  closed: "Closed",
 };
 
 // Calendar days are plain `YYYY-MM-DD`; read them at UTC midnight so the day never shifts.
@@ -40,7 +42,26 @@ export function calendarCell(period: CalendarPeriod): CalendarCellView {
       .map((reason) => (reason === "Other" && period.notes.length > 0 ? `Other: ${period.notes.join("; ")}` : reason))
       .join(", ");
   }
-  return { ...STATUS[period.status], detail };
+  return { status: period.status, label: LABEL[period.status], detail };
+}
+
+/**
+ * SPM-323: a day's periods as runs. A period joins the run before it when it follows straight on
+ * and reads the same, so a hold lapsing at another time, or a block for another reason, starts
+ * its own run. Two bookings back to back read the same, so they share one.
+ */
+export function calendarRuns(periods: readonly CalendarPeriod[]): CalendarRun[] {
+  const runs: CalendarRun[] = [];
+  for (const period of periods) {
+    const cell = calendarCell(period);
+    const last = runs.at(-1);
+    if (last?.end === period.start && last.status === cell.status && last.detail === cell.detail) {
+      runs[runs.length - 1] = { ...last, end: period.end };
+    } else {
+      runs.push({ ...cell, start: period.start, end: period.end });
+    }
+  }
+  return runs;
 }
 
 /** SPM-323: a period's row heading, its own times, e.g. "10:15–10:30". Never AM, PM or Night (AC5). */
@@ -48,7 +69,7 @@ export function periodLabel({ start, end }: Pick<CalendarPeriod, "start" | "end"
   return `${start}–${end}`;
 }
 
-/** A calendar day's column heading, e.g. "Mon, 2 Nov". */
+/** A calendar day's heading, e.g. "Mon, 2 Nov". */
 export function dayHeading(date: string): string {
   return dayHeadingFormat.format(new Date(`${date}T00:00:00.000Z`));
 }
