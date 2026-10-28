@@ -887,6 +887,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-312": {
+      "title": "Block confirmation while an arrangement is flagged",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-313": {
       "title": "Flag bookings when a venue is marked unavailable",
       "parent": null,

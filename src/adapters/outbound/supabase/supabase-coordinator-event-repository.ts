@@ -1,5 +1,6 @@
 import type { CoordinatorEvent } from "@/core/domain/coordinator-event";
 import {
+  BookingFlaggedError,
   CoordinatorEventNotFoundError,
   EssentialEquipmentNotReservedError,
   EventDetailsLockedError,
@@ -18,6 +19,7 @@ import type { RegistrationSettings } from "@/core/domain/event-registration-sett
 import {
   assessReadiness,
   blockingArrangements,
+  flaggedBookingName,
   type ArrangementType,
 } from "@/core/domain/event-readiness";
 import type { OrdinaryEventChanges } from "@/core/domain/event-details-edit";
@@ -29,7 +31,11 @@ import type {
 } from "@/core/ports/outbound/coordinator-event-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { SupabaseEventReadinessRepository } from "./supabase-event-readiness-repository";
+import {
+  SupabaseEventReadinessRepository,
+  toFlaggedBookingFacts,
+  type FlaggedBookingRow,
+} from "./supabase-event-readiness-repository";
 import {
   EVENT_SLOTS_SELECT,
   toAssignedEventSummary,
@@ -54,6 +60,7 @@ const NOT_CONFIRMABLE = "CS021";
 const NOT_READY = "CS022";
 const SAFETY_CHECK_NOT_APPROVED = "CS055";
 const ESSENTIAL_EQUIPMENT_NOT_RESERVED = "CS047";
+const BOOKING_FLAGGED = "CS094";
 
 /** SQLSTATEs `coordinator_set_event_required_facilities` comes back with. See its migration. */
 const FACILITIES_EVENT_NOT_FOUND = "CS029";
@@ -283,8 +290,8 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
 
   /**
    * SPM-50: goes through `coordinator_confirm_event`, which re-checks the
-   * assignment, status, readiness and (SPM-264) the latest safety check
-   * under a row lock, and -- in the same
+   * assignment, status, readiness, (SPM-312) booking flags and (SPM-264) the
+   * latest safety check under a row lock, and -- in the same
    * transaction -- writes the audit record. Its SQLSTATEs come back as the
    * domain's own errors, so losing a race to a concurrent change reads
    * exactly like losing it a moment earlier, rather than a 500.
@@ -316,6 +323,11 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
       if (error.code === ESSENTIAL_EQUIPMENT_NOT_RESERVED) {
         // DETAIL is a JSON array of the blocking lines' types, read under the row lock.
         throw new EssentialEquipmentNotReservedError(JSON.parse(error.details || "[]") as string[]);
+      }
+      if (error.code === BOOKING_FLAGGED) {
+        // DETAIL is the flagged bookings as `event_readiness` returns them, read under the row lock.
+        const rows = JSON.parse(error.details || "[]") as FlaggedBookingRow[];
+        throw new BookingFlaggedError(rows.map((row) => flaggedBookingName(toFlaggedBookingFacts(row))));
       }
       if (error.code === SAFETY_CHECK_NOT_APPROVED) {
         throw new SafetyCheckNotApprovedError();

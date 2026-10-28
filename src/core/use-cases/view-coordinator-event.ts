@@ -6,6 +6,7 @@ import {
   assessReadiness,
   blockingArrangements,
   blockingEquipment,
+  blockingFlags,
   confirmationState,
   type ArrangementType,
   type ConfirmationState,
@@ -41,6 +42,8 @@ export interface ViewCoordinatorEventResult {
   readonly blockingArrangements: readonly ArrangementType[];
   /** SPM-318 AC1: the essential equipment lines not reserved in full, by type. Empty when none are. */
   readonly blockingEquipment: readonly string[];
+  /** SPM-312 AC1: the flagged venue bookings, each by venue and time. Empty when none are. */
+  readonly blockingFlags: readonly string[];
   /** SPM-264: why the safety check blocks confirmation, or null once the latest check is Approved. */
   readonly safetyCheckBlocker: SafetyCheckBlocker | null;
   /** SPM-51: whether the event can be marked completed now -- Confirmed, and its latest end time passed. */
@@ -114,6 +117,7 @@ export class ViewCoordinatorEventUseCase {
       confirmation: confirmationState(event, readiness, latestSafetyCheck),
       blockingArrangements: blockingArrangements(readiness),
       blockingEquipment: blockingEquipment(readiness),
+      blockingFlags: blockingFlags(readiness),
       safetyCheckBlocker: safetyCheckBlocker(latestSafetyCheck),
       canComplete: canComplete(details, this.deps.clock.now()),
       endsAt: eventEndsAt(details)?.toISOString() ?? null,
