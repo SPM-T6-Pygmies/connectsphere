@@ -2,11 +2,11 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { formatOpeningHours } from "@/core/domain/opening-hours";
-import { toMinutes } from "@/core/domain/time-of-day";
+import { fromMinutes, toMinutes } from "@/core/domain/time-of-day";
 import { addDays, CALENDAR_WEEK_DAYS, type CalendarPeriod, type CalendarPeriodStatus } from "@/core/domain/venue-calendar";
 import type { VenueCalendar } from "@/core/use-cases/view-venue-calendar";
 
-import { calendarRuns, dayHeading, periodLabel } from "./coordinator/venues/[venueId]/calendar-cell";
+import { calendarRuns, closedAround, dayHeading, periodLabel } from "./coordinator/venues/[venueId]/calendar-cell";
 
 /**
  * One week of a venue's calendar and the links between weeks, shared by every
@@ -66,7 +66,7 @@ const minutes = (time: string) => toMinutes(time) ?? 0;
 /**
  * SPM-323: lanes on one time axis, left to right on the 15-minute grid, each period drawn where it
  * falls and back-to-back periods that read the same joined into one bar. The axis runs whole hours,
- * from the earliest period of any lane to the latest.
+ * from the earliest period of any lane to the latest; a lane reads closed where it has none.
  */
 export function VenueTimeline({ heading, lanes }: { heading?: string; lanes: readonly TimelineLane[] }) {
   const all = lanes.flatMap((lane) => lane.periods);
@@ -77,6 +77,7 @@ export function VenueTimeline({ heading, lanes }: { heading?: string; lanes: rea
   const last = Math.ceil(Math.max(...all.map((p) => minutes(p.end))) / 60) * 60;
   const span = last - first;
   const hours = Array.from({ length: span / 60 }, (_, i) => first + i * 60);
+  const axis = { start: fromMinutes(first), end: fromMinutes(last) };
   const at = (time: string) => `${((minutes(time) - first) / span) * 100}%`;
   // Dotted quarter-hour lines, a solid one on each hour.
   const grid = {
@@ -119,9 +120,11 @@ export function VenueTimeline({ heading, lanes }: { heading?: string; lanes: rea
                       No opening hours recorded
                     </span>
                   ) : null}
-                  {calendarRuns(lane.periods).map((run) => {
+                  {calendarRuns(closedAround(lane.periods, axis)).map((run) => {
                     const time = periodLabel(run);
                     const words = run.detail === null ? run.label : `${run.label}: ${run.detail}`;
+                    // The bar's colour already says Blocked, so its words give the reason (AC3).
+                    const short = run.status === "blocked" ? (run.detail ?? run.label) : run.label;
                     return (
                       <div
                         key={run.start}
@@ -135,7 +138,9 @@ export function VenueTimeline({ heading, lanes }: { heading?: string; lanes: rea
                           {time} {words}
                         </span>
                         {run.status === "available" || minutes(run.end) - minutes(run.start) < LABELLED_MINUTES ? null : (
-                          <span aria-hidden>{words}</span>
+                          <span aria-hidden className="block truncate">
+                            {short}
+                          </span>
                         )}
                       </div>
                     );

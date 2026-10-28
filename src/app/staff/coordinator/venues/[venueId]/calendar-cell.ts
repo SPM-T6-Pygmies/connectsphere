@@ -72,6 +72,20 @@ export function calendarRuns(periods: readonly CalendarPeriod[]): CalendarRun[] 
   return runs;
 }
 
+/**
+ * SPM-323: a venue's periods on an axis wider than its own day, closed before its first period and
+ * after its last: outside them the venue is shut. A venue with no periods stays empty, as there is
+ * nothing recorded to say it is closed.
+ */
+export function closedAround(periods: readonly CalendarPeriod[], axis: { start: string; end: string }): CalendarPeriod[] {
+  const first = periods.at(0);
+  const last = periods.at(-1);
+  if (first === undefined || last === undefined) return [];
+  const closed = (start: string, end: string): CalendarPeriod[] =>
+    start < end ? [{ start, end, status: "closed", holdExpiresAt: null, reasons: [], notes: [] }] : [];
+  return [...closed(axis.start, first.start), ...periods, ...closed(last.end, axis.end)];
+}
+
 /** SPM-323: a period's row heading, its own times, e.g. "10:15–10:30". Never AM, PM or Night (AC5). */
 export function periodLabel({ start, end }: Pick<CalendarPeriod, "start" | "end">): string {
   return `${start}–${end}`;

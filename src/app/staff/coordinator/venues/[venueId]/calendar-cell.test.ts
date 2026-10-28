@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CalendarPeriod } from "@/core/domain/venue-calendar";
 
-import { calendarCell, calendarRuns, dayHeading, longDayHeading, periodLabel } from "./calendar-cell";
+import { calendarCell, calendarRuns, closedAround, dayHeading, longDayHeading, periodLabel } from "./calendar-cell";
 
 function slot(overrides: Partial<CalendarPeriod>): CalendarPeriod {
   return { start: "10:15", end: "10:30", status: "available", holdExpiresAt: null, reasons: [], notes: [], ...overrides };
@@ -115,6 +115,44 @@ describe("calendarRuns (SPM-323)", () => {
 
   it("draws nothing for a day with no periods", () => {
     expect(calendarRuns([])).toEqual([]);
+  });
+});
+
+describe("closedAround (SPM-323)", () => {
+  const axis = { start: "07:00", end: "24:00" };
+
+  it("reads the axis after a venue's closing as closed, not available (AC1)", () => {
+    const runs = calendarRuns(closedAround([slot({ start: "17:45", end: "18:00" })], axis));
+
+    expect(runs.map(({ status, start, end }) => ({ status, start, end }))).toEqual([
+      { status: "closed", start: "07:00", end: "17:45" },
+      { status: "available", start: "17:45", end: "18:00" },
+      { status: "closed", start: "18:00", end: "24:00" },
+    ]);
+  });
+
+  it("joins the axis before opening to a closed period the venue already has", () => {
+    const runs = calendarRuns(
+      closedAround([slot({ start: "08:00", end: "08:15", status: "closed" }), slot({ start: "08:15", end: "08:30" })], {
+        start: "07:00",
+        end: "08:30",
+      }),
+    );
+
+    expect(runs.map(({ status, start, end }) => ({ status, start, end }))).toEqual([
+      { status: "closed", start: "07:00", end: "08:15" },
+      { status: "available", start: "08:15", end: "08:30" },
+    ]);
+  });
+
+  it("adds nothing when the venue's day already spans the axis", () => {
+    const periods = [slot({ start: "07:00", end: "07:15" }), slot({ start: "07:15", end: "07:30" })];
+
+    expect(closedAround(periods, { start: "07:00", end: "07:30" })).toEqual(periods);
+  });
+
+  it("leaves a venue with no periods empty", () => {
+    expect(closedAround([], axis)).toEqual([]);
   });
 });
 
