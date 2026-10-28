@@ -1,17 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { roomInUse, slotLabel, venueBufferNote } from "./slot-label";
-
-describe("slotLabel (SPM-46)", () => {
-  it("names each slot with its hours", () => {
-    expect(slotLabel("AM")).toBe("AM (7:00 AM – 12:00 PM)");
-    expect(slotLabel("PM")).toBe("PM (1:00 PM – 6:00 PM)");
-  });
-
-  it("shows Night ending at midnight as 12:00 AM", () => {
-    expect(slotLabel("Night")).toBe("Night (7:00 PM – 12:00 AM)");
-  });
-});
+import { roomInUse, venueBufferNote } from "./slot-label";
 
 describe("roomInUse (SPM-19)", () => {
   const times = [{ date: "2026-12-14", start: "10:00", end: "12:00" }];

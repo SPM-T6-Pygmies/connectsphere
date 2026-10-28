@@ -36,7 +36,12 @@ describe("blocked slots as busy time (SPM-268)", () => {
     const busy = await availability.busyIntervals(DAY_START, DAY_END);
 
     expect(busy).toEqual([
-      { venueId: HALL, startsAt: new Date("2026-10-20T07:00:00+08:00"), endsAt: new Date("2026-10-20T12:00:00+08:00") },
+      {
+        venueId: HALL,
+        startsAt: new Date("2026-10-20T07:00:00+08:00"),
+        endsAt: new Date("2026-10-20T12:00:00+08:00"),
+        kind: "block",
+      },
     ]);
   });
 
@@ -81,6 +86,7 @@ describe("blocked 15-minute slots as busy time (SPM-321)", () => {
       venueId: HALL,
       startsAt: new Date("2026-10-20T09:00:00+08:00"),
       endsAt: new Date("2026-10-20T09:15:00+08:00"),
+      kind: "block",
     });
     expect(busy).toHaveLength(10);
     expect(busy[9].endsAt).toEqual(new Date("2026-10-20T11:30:00+08:00"));
@@ -92,7 +98,12 @@ describe("blocked 15-minute slots as busy time (SPM-321)", () => {
     );
 
     expect(await availability.busyIntervals(DAY_START, new Date("2026-10-22T00:00:00+08:00"))).toEqual([
-      { venueId: HALL, startsAt: new Date("2026-10-20T23:45:00+08:00"), endsAt: new Date("2026-10-21T00:00:00+08:00") },
+      {
+        venueId: HALL,
+        startsAt: new Date("2026-10-20T23:45:00+08:00"),
+        endsAt: new Date("2026-10-21T00:00:00+08:00"),
+        kind: "block",
+      },
     ]);
   });
 });

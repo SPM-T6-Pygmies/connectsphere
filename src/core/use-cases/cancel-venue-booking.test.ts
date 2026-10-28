@@ -112,9 +112,9 @@ describe("CancelVenueBookingUseCase (SPM-20)", () => {
   it("shows the freed slot as available on the venue calendar straight away (AC2)", async () => {
     const { useCase, calendar } = build();
     const slotOn = async () =>
-      (await calendar.execute({ venueId: HALL.id, from: "2026-11-03" })).days[0].slots[0].status;
+      (await calendar.execute({ venueId: HALL.id, from: "2026-11-03" })).days[0].periods[0].status;
 
-    expect(await slotOn()).toBe("booked");
+    expect(await slotOn()).toBe("confirmed");
     await useCase.execute(command());
     expect(await slotOn()).toBe("available");
   });

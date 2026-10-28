@@ -300,5 +300,6 @@ export function blockedBusyIntervals(entries: readonly VenueUnavailabilityEntry[
   return slotsStillBlocked(entries).map(({ venueId, date, slot }) => ({
     venueId,
     ...bookingWindow({ date, slot }),
+    kind: "block",
   }));
 }
