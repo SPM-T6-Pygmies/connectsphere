@@ -1,10 +1,4 @@
-import {
-  BOOKING_SLOTS,
-  type BookingRequest,
-  type BookingSlot,
-  type BookingStatus,
-  type OccupiedTime,
-} from "@/core/domain/booking";
+import type { BookingRequest, BookingStatus, OccupiedTime } from "@/core/domain/booking";
 import { joinSlots, type TimeRangeOnDate } from "@/core/domain/event-times";
 import { slotCodes, toMinutes } from "@/core/domain/time-of-day";
 import type { UserAccountId } from "@/core/domain/user-account";
@@ -57,14 +51,6 @@ export function toStatus(raw: string): BookingStatus {
     throw new Error(`Unknown booking status "${raw}" in the booking table.`);
   }
   return status;
-}
-
-export function toSlot(raw: string): BookingSlot {
-  const slot = BOOKING_SLOTS.find((candidate) => candidate === raw);
-  if (slot === undefined) {
-    throw new Error(`Unknown booking slot "${raw}" in the booking_slot table.`);
-  }
-  return slot;
 }
 
 /** `date` columns arrive as `YYYY-MM-DD`; keep only that, whatever else comes with it. */

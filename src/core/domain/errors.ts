@@ -1266,7 +1266,7 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
 /**
  * SPM-21 AC12, SPM-321 AC3: a Venue Staff block shares time with what the request asks for.
  * `slots` are the block's own slots that overlap it, and `times` says them as a person reads
- * them (`2026-11-02 09:00 to 11:30`), not as the AM, PM or Night the request used. Unlike a
+ * them (`2026-11-02 09:00 to 11:30`). Unlike a
  * clash with another booking, there is nothing to choose around it and no override.
  */
 export class VenueSlotBlockedError extends DomainError {

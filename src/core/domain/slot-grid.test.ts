@@ -14,7 +14,7 @@ describe("slotCodeRange (SPM-321, SPM-331)", () => {
     expect(slotCodeRange("95")).toEqual(at("23:45", "24:00"));
   });
 
-  it.each(["96", "-1", "1.5", "07", "", "am", "Evening"])("refuses the code %j, which the slot table does not have", (code) => {
+  it.each(["96", "-1", "1.5", "07", "", "am", "Evening", "AM", "PM", "Night"])("refuses the code %j, which the slot table does not have", (code) => {
     expect(() => slotCodeRange(code)).toThrow(/Unknown slot code/);
   });
 });
