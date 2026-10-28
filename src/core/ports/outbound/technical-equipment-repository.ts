@@ -71,4 +71,13 @@ export interface TechnicalEquipmentRepository {
 
   /** Stores `line` as Unfulfilled, with its decision's comment (AC3). */
   markUnfulfilled(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void>;
+
+  /**
+   * SPM-108: frees every unit `line` holds and removes the line, ending the
+   * coordinator's removal request. A store re-checks, at the moment it writes,
+   * that the removal is still requested on an active event, refusing with
+   * `EquipmentNothingToReleaseError` if the coordinator withdrew it or someone
+   * released the line in between (AC3).
+   */
+  release(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void>;
 }

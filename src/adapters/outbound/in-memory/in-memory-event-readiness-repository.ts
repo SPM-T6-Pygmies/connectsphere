@@ -29,6 +29,7 @@ export class InMemoryEventReadinessRepository implements EventReadinessRepositor
         registrationOpenDate: null,
         registrationCloseDate: null,
         essentialEquipment: [],
+        flaggedBookings: [],
       }
     );
   }

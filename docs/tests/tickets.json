@@ -332,6 +332,11 @@
       "parent": null,
       "status": "Backlog"
     },
+    "SPM-108": {
+      "title": "Release equipment on a removal request",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-109": {
       "title": "Mark an equipment line as essential",
       "parent": null,
@@ -879,6 +884,11 @@
     },
     "SPM-310": {
       "title": "Clear a flag when the booking still fits",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-312": {
+      "title": "Block confirmation while an arrangement is flagged",
       "parent": null,
       "status": "In Progress"
     },
