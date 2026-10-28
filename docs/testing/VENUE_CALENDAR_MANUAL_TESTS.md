@@ -6,27 +6,35 @@ Browser checks for **SPM-323: View a venue's availability on the 15-minute grid*
 which replaces the AM/PM/Night calendar of SPM-43. They run against the real app and
 database. The status rules, the block reasons and the live read are unit-tested
 (tagged `SPM-323`); these cases cover what a unit test cannot: that the page shows the
-right badge in the right cell, and that a block recorded by Venue Staff shows on the
+right bar in the right place, and that a block recorded by Venue Staff shows on the
 Coordinator's next load.
 
-A Coordinator opens a venue from **Find a venue** and sees one week, Singapore time. Each
-row is one 15-minute period, headed with its times (`10:15–10:30`), from the venue's
-opening to its closing. A line above the grid gives the hours, e.g. *Open 07:00–18:00.
-Closed at other times.* Each period reads **Available**, **Confirmed**, **Held** (with when
-it lapses), **Blocked** (with the reason Venue Staff gave, and the note under Other) or
-**Closed**. A booking or block outside the opening hours adds rows for it, and the rest
-of those rows read Closed. AM, PM and Night appear nowhere.
-Previous week, This week and Next week move the week. Venue Staff see the same grid from
+A Coordinator opens a venue from **Find a venue** and sees one week, Singapore time, as a
+timeline: a row per day, time running left to right with an hour heading and a dotted line
+every 15 minutes, from the venue's opening to its closing. A line above it gives the hours,
+e.g. *Open 07:00–18:00. Closed at other times.* Back-to-back periods that read the same
+join into one bar: **Confirmed** (blue), **Held** (amber), **Blocked** (red, its words the
+reason Venue Staff gave) or **Closed** (hatched grey). **Available** time is left blank. A
+key under the timeline names each. Hovering a bar shows its times and full words, e.g.
+`14:00–18:00 Held: Until Thu, 26 Nov, 2:28 pm`; a bar under an hour shows its words only
+there. A booking or block outside the opening hours widens the axis for it, and the rest of
+the widening reads Closed. AM, PM and Night appear nowhere.
+Previous week, This week and Next week move the week. Venue Staff see the same timeline from
 a venue's catalogue page (SPM-63).
 
+**Availability by day**, on Find a venue, shows every venue on one day on the same timeline,
+a row per venue, with Previous day, Today and Next day. A venue's name opens its own week
+from that day. Where a venue is closed but another is open, its row reads Closed.
+
 The cases are specified in [`../tests/manual-registry.csv`](../tests/manual-registry.csv) as
-`TC-VCAL-001` to `TC-VCAL-009`. Report what you ran in the PR description's
+`TC-VCAL-001` to `TC-VCAL-010`. Report what you ran in the PR description's
 `## Manual test results` table (CaseID, Result, Actual result, Remarks, Evidence); CI
 records it in `manual-runs.csv` when the PR merges, so do not edit that file.
 
-**Last run:** all nine cases passed on 2026-10-27, in Chrome against `pnpm dev:local`;
-the screenshots are in [`../screenshots/`](../screenshots/). TC-VCAL-001 to 006 were
-first run on the AM/PM/Night calendar on 2026-10-15 and were rewritten for SPM-323.
+**Last run:** TC-VCAL-001 to 009 passed on 2026-10-27 on the table that the timeline replaced;
+they were rewritten for the timeline on 2026-10-28 and are due to be run again, with
+TC-VCAL-010. Until then the screenshots linked below show the table. TC-VCAL-001 to 006 were
+first run on the AM/PM/Night calendar on 2026-10-15.
 
 ---
 
@@ -81,13 +89,13 @@ Signed in as `coordinator@test.com`.
 2. Press **Next week** twice so D is in view.
 3. Go back to the search and open **UAT-44 Garden Hall**; move to the week with D.
 
-**Expected:** Harbour Room reads *Open 07:00–24:00* above the grid; its rows run
-`07:00–07:15` to `23:45–24:00`, and D reads **Confirmed** from `13:00–13:15` to
-`17:45–18:00`. Garden Hall reads *Open 07:00–18:00. Closed at other times.*, its rows end at
-`17:45–18:00`, and D `07:00` to `12:00` reads **Available** (the rejected booking holds
-nothing). Neither page shows AM, PM or Night.
+**Expected:** Harbour Room reads *Open 07:00–24:00* above the timeline; its axis runs from
+`07:00` to `24:00`, and D has one **Confirmed** bar from `13:00` to `18:00` (hover:
+`13:00–18:00 Confirmed`). Garden Hall reads *Open 07:00–18:00. Closed at other times.*, its
+axis ends at `18:00`, and D is blank, **Available**, from `07:00` to `12:00` (the rejected
+booking holds nothing). Neither page shows AM, PM or Night.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step2-harbour-room-confirmed](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step3-garden-hall-hours.png)
 
@@ -95,12 +103,12 @@ nothing). Neither page shows AM, PM or Night.
 
 1. From the search, open **Main Hall** and move to the week with D.
 
-**Expected:** on D to D+4, `09:00–09:15` to `11:15–11:30` read **Blocked** with
-*Renovation*, and `08:45–09:00` and `11:30–11:45` read **Available**, except on D+2: every
-period reads **Blocked**, with *Maintenance*, and `09:00` to `11:30` read *Renovation,
-Maintenance* (the order the blocks were recorded). Every other period reads **Available**.
+**Expected:** on D, D+1, D+3 and D+4 a **Blocked** bar runs from `09:00` to `11:30`, reading
+*Renovation*, with blank, **Available**, time either side. On D+2 the whole day is blocked,
+in three bars: `07:00–09:00` *Maintenance*, `09:00–11:30` *Renovation, Maintenance* (the
+order the blocks were recorded) and `11:30–24:00` *Maintenance*. The rest is **Available**.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step1-main-hall-block-reasons](../screenshots/2026-10-27_SPM-323_TC-VCAL-002_step1-main-hall-block-reasons.png)
 
@@ -108,11 +116,12 @@ Maintenance* (the order the blocks were recorded). Every other period reads **Av
 
 1. Open Main Hall's calendar and press **Next week** until D+7 is in view.
 
-**Expected:** D+7 `14:00–14:15` to `17:45–18:00` read **Held** with *Until* and a date about
-30 days after the seed ran, worded as on the Venue Staff decision page (e.g. *Until Thu, 26
-Nov, 2:28 pm*). D+7 `07:00` to `12:00` read **Available**, not Held: that hold has expired.
+**Expected:** D+7 has a **Held** bar from `14:00` to `18:00`. Hovering it shows *Until* and a
+date about 30 days after the seed ran, worded as on the Venue Staff decision page (e.g.
+`14:00–18:00 Held: Until Thu, 26 Nov, 2:28 pm`). D+7 `07:00` to `12:00` is blank,
+**Available**, not Held: that hold has expired.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step1-main-hall-held](../screenshots/2026-10-27_SPM-323_TC-VCAL-003_step1-main-hall-held.png)
 
@@ -126,12 +135,11 @@ signing out and in between steps.
 3. As the Coordinator, reload the page.
 4. As Venue Staff, lift that block. As the Coordinator, press **Next week**, then **Previous week**.
 
-**Expected:** step 1 shows D+1 `09:00` to `10:30` **Available**; step 3 shows
-`09:00–09:15` to `10:15–10:30` **Blocked** with *Safety*, and `08:45–09:00` and
-`10:30–10:45` still **Available**; step 4 shows them **Available** again. There is no
-refresh or sync button anywhere.
+**Expected:** step 1 shows D+1 blank, **Available**, from `09:00` to `10:30`; step 3 shows a
+**Blocked** bar from exactly `09:00` to `10:30` reading *Safety*, with blank time either
+side; step 4 shows it gone. There is no refresh or sync button anywhere.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step1-available-before](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step1-available-before.png) · [step3-blocked-after-reload](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step4-available-after-lift.png)
 
@@ -145,7 +153,7 @@ refresh or sync button anywhere.
 starting today. Step 2 shows *2026-13-01 is not a date.* with a **Show this week** link.
 Step 3 shows the not-found page.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step2-bad-date-message](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step3-unknown-venue-404.png)
 
@@ -158,11 +166,11 @@ Two browser sessions, as in TC-VCAL-004.
 2. As the Coordinator, open UAT-44 Harbour Room's calendar on the week with D.
 3. As Venue Staff, lift the block.
 
-**Expected:** step 2 shows D+2 `13:00–13:15` to `13:45–14:00` **Blocked** with *Other:
-Terrace closed for resurfacing*, and `14:00–14:15` **Available**. After step 3 they are
-Available.
+**Expected:** step 2 shows D+2 with a **Blocked** bar from `13:00` to `14:00` reading *Other:
+Terrace closed…*; hovering it shows `13:00–14:00 Blocked: Other: Terrace closed for
+resurfacing`. From `14:00` the day is blank, **Available**. After step 3 the bar is gone.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step2-coordinator-sees-note](../screenshots/2026-10-27_SPM-323_TC-VCAL-006_step2-coordinator-sees-note.png)
 
@@ -170,10 +178,11 @@ Available.
 
 1. Open UAT-44 Harbour Room's calendar on the week with D, and find D+3.
 
-**Expected:** `10:15–10:30` to `11:30–11:45` read **Confirmed**: six periods.
-`10:00–10:15` and `11:45–12:00` read **Available**.
+**Expected:** a **Confirmed** bar starts on the first dotted line after `10:00` and ends on
+the third after `11:00` (hover: `10:15–11:45 Confirmed`). `10:00–10:15` and `11:45–12:00`
+are blank, **Available**.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step1-exact-periods](../screenshots/2026-10-27_SPM-323_TC-VCAL-007_step1-exact-periods.png)
 
@@ -181,16 +190,16 @@ Available.
 
 1. Open UAT-44 Garden Hall's calendar on the week with D, then press **Next week**.
 
-**Expected:** the week with D ends at `17:45–18:00`. The next week, which starts on D+7, runs
-on past closing to `18:45–19:00`, for the booking kept from before the hall's hours: on D+7
-`18:30–18:45` and `18:45–19:00` read **Confirmed**; on every day `18:00–18:15` and
-`18:15–18:30` read **Closed**, as do `18:30` to `19:00` on the other days.
+**Expected:** the week with D has its axis end at `18:00`. The next week, which starts on D+7,
+runs on past closing to `19:00`, for the booking kept from before the hall's hours: D+7 has a
+**Closed** bar from `18:00` to `18:30` and a **Confirmed** one from `18:30` to `19:00`; every
+other day has a **Closed** bar from `18:00` to `19:00`.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step1-closed-after-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-008_step1-closed-after-hours.png)
 
-### TC-VCAL-009: Venue Staff see the same 15-minute grid (AC1, AC5)
+### TC-VCAL-009: Venue Staff see the same timeline (AC1, AC5)
 
 Signed in as `venue@test.com`.
 
@@ -199,10 +208,28 @@ Signed in as `venue@test.com`.
    (SPM-63); nothing else links to it.
 2. Press **Next week** twice so D is in view.
 
-**Expected:** the same grid as the Coordinator's: rows `07:00–07:15` to `23:45–24:00`,
-D `13:00` to `18:00` **Confirmed**, D+3 `10:15` to `11:45` **Confirmed**, and no AM, PM or
-Night.
+**Expected:** the same timeline as the Coordinator's: the axis from `07:00` to `24:00`, a
+**Confirmed** bar on D from `13:00` to `18:00` and on D+3 from `10:15` to `11:45`, and no
+AM, PM or Night.
 
-- [x] Pass
+- [ ] Pass
 
 **Screenshots:** [step2-venue-staff-grid](../screenshots/2026-10-27_SPM-323_TC-VCAL-009_step2-venue-staff-grid.png)
+
+### TC-VCAL-010: Every venue on one day (AC1, AC2, AC3)
+
+Signed in as `coordinator@test.com`.
+
+1. Open **Find a venue** and press **Availability by day**.
+2. Press **Next day** until D is shown, then **Previous day** once and **Next day** once.
+3. Press **Next day** until D+2 is shown.
+4. Click **UAT-44 Harbour Room**.
+
+**Expected:** step 1 heads the page with today's date, e.g. *Wednesday, 28 October 2026*, and
+lists every venue in the catalogue, a row each, on one axis. Step 2 moves one day each way;
+on D, UAT-44 Harbour Room has a **Confirmed** bar from `13:00` to `18:00`, UAT-44 Garden
+Hall a **Closed** bar from `18:00` to the end of the axis, and Main Hall a **Blocked** bar
+from `09:00` to `11:30` reading *Renovation*. Step 3 shows Main Hall's row blocked all day
+(as in TC-VCAL-002). Step 4 opens Harbour Room's week starting on D+2. No AM, PM or Night.
+
+- [ ] Pass
