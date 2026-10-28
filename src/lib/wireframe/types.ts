@@ -39,9 +39,6 @@ export type BookingStatus =
   | "Cancelled"
   | "Expired";
 
-/** `booking_slot_value_chk` -- venues book in three fixed slots (#50). */
-export type BookingSlot = "AM" | "PM" | "Night";
-
 /** `equipment_reservation_status_chk`. */
 export type EquipmentReservationStatus =
   | "Requested"
@@ -132,8 +129,6 @@ export interface VenueRecord {
   readonly capacity: number | null;
   readonly facilities: string | null;
   readonly accessibility: string | null;
-  /** The slots the venue can be booked in. */
-  readonly slots: readonly BookingSlot[];
   readonly setupTimeMinutes: number | null;
   readonly turnaroundTimeMinutes: number | null;
   readonly supportedLayouts: ReadonlyArray<{
@@ -148,7 +143,8 @@ export interface BookingRecord {
   readonly venue: VenueRecord;
   readonly status: BookingStatus;
   readonly slotDate: string;
-  readonly slots: readonly BookingSlot[];
+  /** The times booked on `slotDate`, in the order they fall in the day. */
+  readonly times: ReadonlyArray<{ readonly start: string; readonly end: string }>;
   readonly requestedBy: Person;
   readonly decidedBy: Person | null;
   readonly rejectionNote: string | null;
@@ -215,8 +211,6 @@ export interface EventRecord {
   readonly request: EventRequestRecord;
   readonly name: string;
   readonly status: EventStatus;
-  /** The slots the event runs in, in date then day order; empty until scheduled. */
-  readonly slots: ReadonlyArray<{ readonly date: string; readonly slot: BookingSlot }>;
   readonly eventCapacity: number | null;
   readonly programmeAgenda: string | null;
   readonly operationalNotes: string | null;
