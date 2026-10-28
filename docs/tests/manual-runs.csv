@@ -582,3 +582,6 @@ RunDate,CaseID,Result,ActualResult,Remarks,ExecutedBy,PR,Commit,Environment,Evid
 2026-10-27,TC-RELEASE-004,Pass,As specified,,jerricknsc,179,ba7c0c0,,
 2026-10-27,TC-RELEASE-005,Pass,As specified,,jerricknsc,179,ba7c0c0,,
 2026-10-27,TC-EQUIPREVIEW-006,Pass,As specified,Expected result changed by this PR,jerricknsc,179,ba7c0c0,,
+2026-10-28,TC-CONFIRM-FLAG-001,Pass,"""Cannot confirm -- 2 venue bookings flagged for re-checking"", listing UAT-44 Harbour Room 07:00 to 12:00 and 19:00 to 24:00 once each; safety check blocker too; Confirm event disabled","Chromium via Playwright, local",jerricknsc,186,8a5b028,,docs/screenshots/2026-10-27_SPM-312_TC-CONFIRM-FLAG-001_step1-two-bookings-flagged.png
+2026-10-28,TC-CONFIRM-FLAG-002,Pass,"Toast ""Flag cleared on UAT-44 Harbour Room. The booking stays Confirmed.""; card lists only the 19:00 to 24:00 booking; Confirm event disabled","Chromium via Playwright, local",jerricknsc,186,8a5b028,,docs/screenshots/2026-10-27_SPM-312_TC-CONFIRM-FLAG-002_step2-one-booking-flagged.png
+2026-10-28,TC-CONFIRM-FLAG-003,Pass,No venue booking blocker; safety check blocker remains; Confirm event disabled,"Chromium via Playwright, local",jerricknsc,186,8a5b028,,docs/screenshots/2026-10-27_SPM-312_TC-CONFIRM-FLAG-003_step2-only-safety-check-blocks.png
