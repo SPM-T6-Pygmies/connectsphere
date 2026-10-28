@@ -70,13 +70,17 @@ them, tick the boxes below **and** report each in the PR description's
    `scripts/seed-booking-flags/checks.sql`.
 
 **Expected Result**
-- [ ] Step 1: the reset applies every migration. `slot` holds 96 rows, `00:00`
+- [x] Step 1: the reset applies every migration. `slot` holds 96 rows, `00:00`
       to `24:00`, with no AM, PM or Night. Both inserts are refused by
       `slot_code_chk`.
-- [ ] Step 2: `slot` holds 99 rows (the grid plus AM, PM and Night).
-- [ ] Step 3: the migration stops with *Cannot retire AM, PM and Night:
+- [x] Step 2: `slot` holds 99 rows (the grid plus AM, PM and Night).
+- [x] Step 3: the migration stops with *Cannot retire AM, PM and Night:
       venue_slot still hold them*, and nothing is deleted.
-- [ ] Step 4: the migration applies. `slot` holds 96 rows; every other count
+- [x] Step 4: the migration applies. `slot` holds 96 rows; every other count
       is the same as in step 2.
-- [ ] Step 5: every verify row reads `ok = true`; the checks report *all 35
+- [x] Step 5: every verify row reads `ok = true`; the checks report *all 35
       checks held* and *all 40 checks held*.
+
+**Run:** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran. Step 2
+counted 99 slot, 340 booking_slot, 384 venue_slot and 40 event_slot rows; after
+step 4, 96 slot rows and the other three unchanged.

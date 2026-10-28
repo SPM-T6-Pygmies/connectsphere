@@ -133,7 +133,9 @@ Earlier run on slots: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetr
 The conversion is the first block of
 `supabase/migrations/20261020010000_venue_opening_hours_fifteen_minute_slots.sql`.
 Run it against a venue that offered AM and Night, inside a transaction that is
-rolled back, so the local data is untouched.
+rolled back, so the local data is untouched. Since SPM-328 `slot` no longer
+holds AM, PM or Night, so run it on a database reset to the last version that
+does: `supabase db reset --version 20261028010000`.
 
 **Steps** — in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
 1. ```sql
@@ -164,7 +166,10 @@ rolled back, so the local data is untouched.
 - [x] The catalogue reads the venue as `07:00–12:00` and `19:00–24:00`.
 - [x] Step 4 returns 0: `venue_slot` holds only 15-minute codes.
 
-**Run:** Pass, 20/10/2026, local Supabase, by Claude Code for joyceetran. The
+**Run:** Pass, 29/10/2026, local Supabase after `supabase db reset --version
+20261028010000`, by Claude Code for joyceetran (SPM-328). On a fully migrated
+database step 1 is refused by the foreign key to `slot`.
+Earlier run: Pass, 20/10/2026, local Supabase, by Claude Code for joyceetran. The
 migration's own run on the two converted seed venues also kept their open time
 (900 and 600 minutes).
 
@@ -199,7 +204,9 @@ SPM-331 AC4, under the one-window rule: each venue opens from its earliest
 opening to its latest closing, so neighbouring slots join and a break closes up.
 The conversion is `20261020010000` (AM, PM and Night to 15-minute slots) then
 `20261026020000` (one window). Run both against one venue of each kind inside a
-transaction that is rolled back, so the local data is untouched.
+transaction that is rolled back, so the local data is untouched. Since SPM-328
+`slot` no longer holds AM, PM or Night, so run it on a database reset to the
+last version that does: `supabase db reset --version 20261028010000`.
 
 **Steps** — in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
 1. ```sql
@@ -226,7 +233,10 @@ transaction that is rolled back, so the local data is untouched.
       `13:00–24:00`, **AM PM Night** `07:00–24:00`, **AM Night** `07:00–24:00`
       and **AM** `07:00–12:00`.
 
-**Run:** Pass, 26/10/2026, local Supabase, by joyceetran. Step 2 printed `DO` and raised
+**Run:** Pass, 29/10/2026, local Supabase after `supabase db reset --version
+20261028010000`, by Claude Code for joyceetran (SPM-328). Step 2 raised nothing
+and step 3 read the five windows below.
+Earlier run: Pass, 26/10/2026, local Supabase, by joyceetran. Step 2 printed `DO` and raised
 nothing; step 3 read:
 
 ```

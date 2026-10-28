@@ -329,6 +329,9 @@ The conversion is the `do` block under `-- 1. Convert the rows` in
 `supabase/migrations/20261022010100_booking_fifteen_minute_slots.sql`. Run it inside a
 transaction that is rolled back, so the local data is untouched, against a
 `booking_slot` that holds only slot rows, as it did before the migration.
+Since SPM-328 `slot` no longer holds AM, PM or Night, so in step 1 of the
+setup above reset to the last version that does:
+`supabase db reset --version 20261028010000`, then the three seeds.
 
 **Steps**, in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
 
@@ -361,7 +364,8 @@ transaction that is rolled back, so the local data is untouched, against a
 - [x] Step 3 reads the same two bookings with the same statuses: the Confirmed one
       `28 47 20` and `76 95 20` on its day, the Rejected one `52 71 20`; then `0`.
 
-**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Run in `psql`; each step's output matched.
+**Run:** Pass, 29/10/2026, local Supabase after `supabase db reset --version 20261028010000` and the three seeds, by Claude Code for joyceetran (SPM-328). Run in `psql`; each step's output matched. On a fully migrated database step 2 raises *lost rows*, as `slot` no longer has AM, PM or Night to join to.
+Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Run in `psql`; each step's output matched.
 
 ### TC-VENUE-BOOK-030 A block still refuses the time it covers (SPM-347)
 
