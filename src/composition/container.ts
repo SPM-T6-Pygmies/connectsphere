@@ -76,6 +76,8 @@ import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request
 import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
 import { SubmitChangeRequestUseCase } from "@/core/use-cases/submit-change-request";
+import { DecideChangeRequestUseCase } from "@/core/use-cases/decide-change-request";
+import { ViewEventChangeRequestsUseCase } from "@/core/use-cases/view-event-change-requests";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
 import { ResolveClarificationThreadUseCase } from "@/core/use-cases/resolve-clarification-thread";
@@ -389,6 +391,24 @@ export async function buildPostClarificationMessage(): Promise<PostClarification
 export async function buildSubmitChangeRequest(): Promise<SubmitChangeRequestUseCase> {
   const client = await createSupabaseServerClient();
   return new SubmitChangeRequestUseCase({ changeRequests: new SupabaseChangeRequestRepository(client) });
+}
+
+/** SPM-100 AC1: the assigned Coordinator's view of an event's change requests. */
+export async function buildViewEventChangeRequests(): Promise<ViewEventChangeRequestsUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewEventChangeRequestsUseCase({
+    changeRequests: new SupabaseChangeRequestRepository(client),
+    coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+  });
+}
+
+/** SPM-100: the assigned Coordinator accepts or declines each field of a change request. */
+export async function buildDecideChangeRequest(): Promise<DecideChangeRequestUseCase> {
+  const client = await createSupabaseServerClient();
+  return new DecideChangeRequestUseCase({
+    changeRequests: new SupabaseChangeRequestRepository(client),
+    coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+  });
 }
 
 /** SPM-33 AC5: the assigned Coordinator follows up, without returning the request again. */
