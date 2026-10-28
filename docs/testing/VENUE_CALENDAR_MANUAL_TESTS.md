@@ -31,10 +31,11 @@ The cases are specified in [`../tests/manual-registry.csv`](../tests/manual-regi
 `## Manual test results` table (CaseID, Result, Actual result, Remarks, Evidence); CI
 records it in `manual-runs.csv` when the PR merges, so do not edit that file.
 
-**Last run:** TC-VCAL-001 to 009 passed on 2026-10-27 on the table that the timeline replaced;
-they were rewritten for the timeline on 2026-10-28 and are due to be run again, with
-TC-VCAL-010. Until then the screenshots linked below show the table. TC-VCAL-001 to 006 were
-first run on the AM/PM/Night calendar on 2026-10-15.
+**Last run:** all ten cases passed on 2026-10-28 on the timeline, in Chrome against
+`pnpm dev:local` after a `supabase db reset` and the seeds below, with D = 2026-11-11. Each
+case links its screenshots twice: **Before**, the table the timeline replaced (run
+2026-10-27), and **After**, the timeline. TC-VCAL-001 to 006 were first run on the
+AM/PM/Night calendar on 2026-10-15.
 
 ---
 
@@ -95,9 +96,11 @@ Signed in as `coordinator@test.com`.
 axis ends at `18:00`, and D is blank, **Available**, from `07:00` to `12:00` (the rejected
 booking holds nothing). Neither page shows AM, PM or Night.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step2-harbour-room-confirmed](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step3-garden-hall-hours.png)
+**Before (table, 2026-10-27):** [step2-harbour-room-confirmed](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step3-garden-hall-hours.png)
+
+**After (timeline, 2026-10-28):** [step2-harbour-room-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-001_step2-harbour-room-timeline.png) · [step3-garden-hall-hours-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-001_step3-garden-hall-hours-timeline.png)
 
 ### TC-VCAL-002: Blocked periods give their reason (AC3)
 
@@ -108,9 +111,11 @@ booking holds nothing). Neither page shows AM, PM or Night.
 in three bars: `07:00–09:00` *Maintenance*, `09:00–11:30` *Renovation, Maintenance* (the
 order the blocks were recorded) and `11:30–24:00` *Maintenance*. The rest is **Available**.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step1-main-hall-block-reasons](../screenshots/2026-10-27_SPM-323_TC-VCAL-002_step1-main-hall-block-reasons.png)
+**Before (table, 2026-10-27):** [step1-main-hall-block-reasons](../screenshots/2026-10-27_SPM-323_TC-VCAL-002_step1-main-hall-block-reasons.png)
+
+**After (timeline, 2026-10-28):** [step1-main-hall-block-reasons-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-002_step1-main-hall-block-reasons-timeline.png)
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
@@ -121,9 +126,11 @@ date about 30 days after the seed ran, worded as on the Venue Staff decision pag
 `14:00–18:00 Held: Until Thu, 26 Nov, 2:28 pm`). D+7 `07:00` to `12:00` is blank,
 **Available**, not Held: that hold has expired.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step1-main-hall-held](../screenshots/2026-10-27_SPM-323_TC-VCAL-003_step1-main-hall-held.png)
+**Before (table, 2026-10-27):** [step1-main-hall-held](../screenshots/2026-10-27_SPM-323_TC-VCAL-003_step1-main-hall-held.png)
+
+**After (timeline, 2026-10-28):** [step1-main-hall-held-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-003_step1-main-hall-held-timeline.png)
 
 ### TC-VCAL-004: The calendar reads live, with no refresh step (AC4)
 
@@ -139,9 +146,11 @@ signing out and in between steps.
 **Blocked** bar from exactly `09:00` to `10:30` reading *Safety*, with blank time either
 side; step 4 shows it gone. There is no refresh or sync button anywhere.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step1-available-before](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step1-available-before.png) · [step3-blocked-after-reload](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step4-available-after-lift.png)
+**Before (table, 2026-10-27):** [step1-available-before](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step1-available-before.png) · [step3-blocked-after-reload](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step4-available-after-lift.png)
+
+**After (timeline, 2026-10-28):** [step1-available-before-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-004_step1-available-before-timeline.png) · [step3-blocked-after-reload-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-004_step3-blocked-after-reload-timeline.png) · [step4-available-after-lift-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-004_step4-available-after-lift-timeline.png)
 
 ### TC-VCAL-005: Moving between weeks, and a bad address
 
@@ -153,9 +162,11 @@ side; step 4 shows it gone. There is no refresh or sync button anywhere.
 starting today. Step 2 shows *2026-13-01 is not a date.* with a **Show this week** link.
 Step 3 shows the not-found page.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step2-bad-date-message](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step3-unknown-venue-404.png)
+**Before (table, 2026-10-27):** [step2-bad-date-message](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step3-unknown-venue-404.png)
+
+**After (timeline, 2026-10-28):** [step2-bad-date-message-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-005_step2-bad-date-message-timeline.png) · [step3-unknown-venue-404-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-005_step3-unknown-venue-404-timeline.png)
 
 ### TC-VCAL-006: An Other block shows its note (AC3)
 
@@ -170,9 +181,11 @@ Two browser sessions, as in TC-VCAL-004.
 Terrace closed…*; hovering it shows `13:00–14:00 Blocked: Other: Terrace closed for
 resurfacing`. From `14:00` the day is blank, **Available**. After step 3 the bar is gone.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step2-coordinator-sees-note](../screenshots/2026-10-27_SPM-323_TC-VCAL-006_step2-coordinator-sees-note.png)
+**Before (table, 2026-10-27):** [step2-coordinator-sees-note](../screenshots/2026-10-27_SPM-323_TC-VCAL-006_step2-coordinator-sees-note.png)
+
+**After (timeline, 2026-10-28):** [step2-coordinator-sees-note-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-006_step2-coordinator-sees-note-timeline.png)
 
 ### TC-VCAL-007: A booking shows on exactly its periods (AC2)
 
@@ -182,9 +195,11 @@ resurfacing`. From `14:00` the day is blank, **Available**. After step 3 the bar
 the third after `11:00` (hover: `10:15–11:45 Confirmed`). `10:00–10:15` and `11:45–12:00`
 are blank, **Available**.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step1-exact-periods](../screenshots/2026-10-27_SPM-323_TC-VCAL-007_step1-exact-periods.png)
+**Before (table, 2026-10-27):** [step1-exact-periods](../screenshots/2026-10-27_SPM-323_TC-VCAL-007_step1-exact-periods.png)
+
+**After (timeline, 2026-10-28):** [step1-exact-periods-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-007_step1-exact-periods-timeline.png)
 
 ### TC-VCAL-008: Time the venue is closed reads Closed (AC1)
 
@@ -195,9 +210,11 @@ runs on past closing to `19:00`, for the booking kept from before the hall's hou
 **Closed** bar from `18:00` to `18:30` and a **Confirmed** one from `18:30` to `19:00`; every
 other day has a **Closed** bar from `18:00` to `19:00`.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step1-closed-after-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-008_step1-closed-after-hours.png)
+**Before (table, 2026-10-27):** [step1-closed-after-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-008_step1-closed-after-hours.png)
+
+**After (timeline, 2026-10-28):** [step1-closed-after-hours-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-008_step1-closed-after-hours-timeline.png)
 
 ### TC-VCAL-009: Venue Staff see the same timeline (AC1, AC5)
 
@@ -212,9 +229,11 @@ Signed in as `venue@test.com`.
 **Confirmed** bar on D from `13:00` to `18:00` and on D+3 from `10:15` to `11:45`, and no
 AM, PM or Night.
 
-- [ ] Pass
+- [x] Pass
 
-**Screenshots:** [step2-venue-staff-grid](../screenshots/2026-10-27_SPM-323_TC-VCAL-009_step2-venue-staff-grid.png)
+**Before (table, 2026-10-27):** [step2-venue-staff-grid](../screenshots/2026-10-27_SPM-323_TC-VCAL-009_step2-venue-staff-grid.png)
+
+**After (timeline, 2026-10-28):** [step2-venue-staff-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-009_step2-venue-staff-timeline.png)
 
 ### TC-VCAL-010: Every venue on one day (AC1, AC2, AC3)
 
@@ -232,4 +251,6 @@ Hall a **Closed** bar from `18:00` to the end of the axis, and Main Hall a **Blo
 from `09:00` to `11:30` reading *Renovation*. Step 3 shows Main Hall's row blocked all day
 (as in TC-VCAL-002). Step 4 opens Harbour Room's week starting on D+2. No AM, PM or Night.
 
-- [ ] Pass
+- [x] Pass
+
+**Screenshots (new page, 2026-10-28):** [step1-today-every-venue](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step1-today-every-venue.png) · [step2-day-d](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step2-day-d.png) · [step3-day-d-plus-2](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step3-day-d-plus-2.png) · [step4-harbour-room-week](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step4-harbour-room-week.png)
