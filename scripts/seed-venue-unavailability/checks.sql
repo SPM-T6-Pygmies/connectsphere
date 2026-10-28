@@ -105,12 +105,9 @@ begin
   begin
     insert into public.booking (venue_id, event_id, requested_by_user_account_id)
     values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-    -- AM is 07:00-12:00 as 15-minute slots (SPM-324); the block is 09:00-10:00, so they share time.
+    -- 07:00-12:00 as 15-minute slots (SPM-324); the block is 09:00-10:00, so they share time.
     insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_booking, v_day, g.slot_code
-    from public.slot s
-    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-    where s.slot_code = 'AM';
+    select v_booking, v_day, n::text from generate_series(28, 47) as n;
     v_checks := v_checks + 1; v_failed := array_append(v_failed, 'AC12 booking over a block was accepted');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate, v_msg = message_text;
@@ -123,18 +120,12 @@ begin
   -- AC13: slots on the blocked day the block does not reach, and the day after the block, are accepted
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  -- The slot's hours as 15-minute slots (SPM-324).
+  -- One row per 15-minute slot of the time (SPM-324).
   insert into public.booking_slot (booking_id, slot_date, slot)
-  select v_booking, v_day, g.slot_code
-  from public.slot s
-  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-  where s.slot_code in ('PM', 'Night');
-  -- The slot's hours as 15-minute slots (SPM-324).
+  select v_booking, v_day, n::text from (select generate_series(52, 71) union all select generate_series(76, 95)) as g(n);
+  -- One row per 15-minute slot of the time (SPM-324).
   insert into public.booking_slot (booking_id, slot_date, slot)
-  select v_booking, v_day + 2, g.slot_code
-  from public.slot s
-  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-  where s.slot_code = 'AM';
+  select v_booking, v_day + 2, n::text from generate_series(28, 47) as n;
   v_checks := v_checks + 1;
 
   -- AC19: an overlapping second block saves
@@ -157,12 +148,9 @@ begin
   begin
     insert into public.booking (venue_id, event_id, requested_by_user_account_id)
     values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-    -- The slot's hours as 15-minute slots (SPM-324).
+    -- One row per 15-minute slot of the time (SPM-324).
     insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_booking, v_day + 1, g.slot_code
-    from public.slot s
-    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-    where s.slot_code = 'AM';
+    select v_booking, v_day + 1, n::text from generate_series(28, 47) as n;
     v_checks := v_checks + 1; v_failed := array_append(v_failed, 'AC15 slot another block covers was accepted');
   exception when others then
     get stacked diagnostics v_code = returned_sqlstate;
@@ -171,12 +159,9 @@ begin
   end;
   insert into public.booking (venue_id, event_id, requested_by_user_account_id)
   values (v_venue, v_event, v_coord) returning booking_id into v_booking;
-  -- The slot's hours as 15-minute slots (SPM-324).
+  -- One row per 15-minute slot of the time (SPM-324).
   insert into public.booking_slot (booking_id, slot_date, slot)
-  select v_booking, v_day, g.slot_code
-  from public.slot s
-  join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-  where s.slot_code = 'AM';
+  select v_booking, v_day, n::text from generate_series(28, 47) as n;
   v_checks := v_checks + 1;
 
   -- AC17: lifting twice is refused

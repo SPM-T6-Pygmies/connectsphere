@@ -14,12 +14,12 @@
 --                        venue capacity 250
 --                        Theatre 200, Boardroom 20
 --                        Wi-Fi, Video-conferencing / Step-free access, Hearing loop
---                        Confirmed booking on D, PM
+--                        Confirmed booking on D, 13:00-18:00
 --   UAT-44 Garden Hall   open 07:00-18:00 (once AM and PM); horizon 60,
 --                        venue capacity 500
 --                        Banquet 150, Classroom 80
 --                        Catering area / Lift access
---                        Rejected booking on D, AM (must not block)
+--                        Rejected booking on D, 07:00-12:00 (must not block)
 --
 -- Uses the test accounts from the migrations and supabase/seed.sql
 -- (supabase/SEED.md): Test Organiser owns the events, Test Coordinator
@@ -94,12 +94,9 @@ begin
       decided_by_user_account_id, status)
     values (v_harbour, v_event, v_coordinator, v_coordinator, 'Confirmed')
     returning booking_id into v_booking;
-    -- The slot's hours as 15-minute slots (SPM-324).
+    -- One row per 15-minute slot of the time (SPM-324).
     insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_booking, v_day, g.slot_code
-    from public.slot s
-    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-    where s.slot_code = 'PM';
+    select v_booking, v_day, n::text from generate_series(52, 71) as n;
   end if;
 
   if not exists (select 1 from public.event where name = 'UAT-44 Rejected Garden') then
@@ -113,12 +110,9 @@ begin
       decided_by_user_account_id, status)
     values (v_garden, v_event, v_coordinator, v_coordinator, 'Rejected')
     returning booking_id into v_booking;
-    -- The slot's hours as 15-minute slots (SPM-324).
+    -- One row per 15-minute slot of the time (SPM-324).
     insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_booking, v_day, g.slot_code
-    from public.slot s
-    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-    where s.slot_code = 'AM';
+    select v_booking, v_day, n::text from generate_series(28, 47) as n;
   end if;
 
   raise notice 'SPM-44 UAT data ready. Booking day D = %', v_day;

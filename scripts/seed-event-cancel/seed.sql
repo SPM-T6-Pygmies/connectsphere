@@ -2,9 +2,9 @@
 -- seed-booking-cancel's five bookings on the Founders' Gala Dinner, one Tentative Hold whose
 -- expiry has already passed but which nothing has marked Expired yet.
 --
---   Booking  Venue               Day, slot  Status          What it is for
---   L        UAT-44 Garden Hall  C, Night   Tentative Hold  lapsed an hour before seeding; it must end
---                                                           Expired, never Released by the cancel
+--   Booking  Venue               Day, time       Status          What it is for
+--   L        UAT-44 Garden Hall  C, 19:00-24:00  Tentative Hold  lapsed an hour before seeding; it must end
+--                                                                Expired, never Released by the cancel
 --
 -- C is 10 days from today, Singapore time, the same day as seed-booking-cancel's bookings.
 -- Every staff page sweeps lapsed holds after it renders (SPM-254, staff-shell.tsx), so L reads
@@ -47,7 +47,7 @@ begin
     from public.booking b
     join public.booking_slot bs on bs.booking_id = b.booking_id
     where b.event_id = v_event and b.venue_id = v_venue
-      and bs.slot_date = c and bs.slot = 'Night'
+      and bs.slot_date = c and bs.slot = '76'
   ) then
     insert into public.booking (
       venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id,
@@ -55,11 +55,8 @@ begin
     )
     values (v_venue, v_event, v_coord, v_staff, 'Tentative Hold', now() - interval '1 hour')
     returning booking_id into v_id;
-    -- The slot's hours as 15-minute slots (SPM-324).
+    -- One row per 15-minute slot of the time (SPM-324).
     insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_id, c, g.slot_code
-    from public.slot s
-    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-    where s.slot_code = 'Night';
+    select v_id, c, n::text from generate_series(76, 95) as n;
   end if;
 end $$;

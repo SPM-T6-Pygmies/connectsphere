@@ -14,41 +14,39 @@
 with c as (
   select (now() at time zone 'Asia/Singapore')::date + 10 as day
 ),
-expected (booking, venue, slot_date, slot, status) as (
-  select 'P', 'UAT-44 Harbour Room', day,     'AM',    'Confirmed'      from c union all
-  select 'Q', 'UAT-44 Harbour Room', day,     'Night', 'Confirmed'      from c union all
-  select 'R', 'UAT-44 Garden Hall',  day,     'AM',    'Requested'      from c union all
-  select 'S', 'UAT-44 Garden Hall',  day,     'PM',    'Tentative Hold' from c union all
-  select 'U', 'UAT-44 Harbour Room', day + 1, 'AM',    'Rejected'       from c
+expected (booking, venue, slot_date, starts, ends, status) as (
+  select 'P', 'UAT-44 Harbour Room', day,     time '07:00', time '12:00', 'Confirmed'      from c union all
+  select 'Q', 'UAT-44 Harbour Room', day,     time '19:00', time '24:00', 'Confirmed'      from c union all
+  select 'R', 'UAT-44 Garden Hall',  day,     time '07:00', time '12:00', 'Requested'      from c union all
+  select 'S', 'UAT-44 Garden Hall',  day,     time '13:00', time '18:00', 'Tentative Hold' from c union all
+  select 'U', 'UAT-44 Harbour Room', day + 1, time '07:00', time '12:00', 'Rejected'       from c
 ),
 actual as (
-  -- A booking's 15-minute slots read back as the AM, PM or Night they fill,
-  -- once per booking (SPM-324).
-  select distinct b.booking_id, v.location as venue, bs.slot_date, old.slot_code as slot,
-         b.status, b.hold_expires_at
+  -- A booking's 15-minute slots read back as the time they fill, once per booking (SPM-324).
+  select b.booking_id, v.location as venue, bs.slot_date,
+         min(sl.start_time) as starts, max(sl.end_time) as ends, b.status, b.hold_expires_at
   from public.booking b
   join public.event e on e.event_id = b.event_id
   join public.venue v on v.venue_id = b.venue_id
   join public.booking_slot bs on bs.booking_id = b.booking_id
   join public.slot sl on sl.slot_code = bs.slot
-  join public.slot old
-    on old.slot_code in ('AM', 'PM', 'Night')
-   and sl.start_time >= old.start_time and sl.end_time <= old.end_time
   where e.name = 'Founders'' Gala Dinner'
+  group by b.booking_id, v.location, bs.slot_date, b.status, b.hold_expires_at
 ),
 checks as (
   select
-    format('booking %s: %s %s %s is %s', x.booking, x.venue, x.slot_date, x.slot, x.status) as "check",
+    format('booking %s: %s %s %s-%s is %s', x.booking, x.venue, x.slot_date,
+           to_char(x.starts, 'HH24:MI'), case when x.ends = time '24:00' then '24:00' else to_char(x.ends, 'HH24:MI') end,
+           x.status) as "check",
     coalesce(string_agg(a.status, ', '), 'missing') as found,
     count(a.status) = 1 and bool_and(a.status = x.status)
       and bool_and(x.status <> 'Tentative Hold' or a.hold_expires_at > now()) as ok
   from expected x
   left join actual a
-    on a.venue = x.venue and a.slot_date = x.slot_date and a.slot = x.slot
-  group by x.booking, x.venue, x.slot_date, x.slot, x.status
+    on a.venue = x.venue and a.slot_date = x.slot_date and a.starts = x.starts and a.ends = x.ends
+  group by x.booking, x.venue, x.slot_date, x.starts, x.ends, x.status
   union all
-  -- Opening hours are 15-minute slot codes '0'-'95' (SPM-320): 07:00-24:00 is 28-95,
-  -- AM, PM and Night joined as they convert (AC4).
+  -- Opening hours are 15-minute slot codes '0'-'95' (SPM-320): 07:00-24:00 is 28-95.
   select 'UAT-44 Harbour Room is open 07:00-24:00',
          format('%s of 68 slots', count(*) filter (where vs.slot_code in (
            select generate_series(28, 95)::text))),
