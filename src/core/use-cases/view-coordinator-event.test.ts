@@ -59,6 +59,7 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationOpenDate: null,
     registrationCloseDate: null,
     essentialEquipment: [],
+    flaggedBookings: [],
     ...overrides,
   };
 }
@@ -423,6 +424,35 @@ describe("ViewCoordinatorEventUseCase essential equipment (SPM-318)", () => {
     const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
 
     expect(result?.blockingEquipment).toEqual([]);
+  });
+});
+
+describe("ViewCoordinatorEventUseCase flagged bookings (SPM-312)", () => {
+  it("AC1: blocks confirmation and names each flagged booking by venue and time", async () => {
+    const useCase = buildUseCase(
+      [seedEvent()],
+      [
+        seedFacts({
+          flaggedBookings: [
+            { bookingId: "812", venueLocation: "Main Hall", bookedFor: "2026-11-16 13:00 to 18:00" },
+            { bookingId: "813", venueLocation: "Studio", bookedFor: "2026-11-16 13:00 to 18:00" },
+          ],
+        }),
+      ],
+    );
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.confirmation).toBe("blocked");
+    expect(result?.blockingFlags).toEqual(["Main Hall (2026-11-16 13:00 to 18:00)", "Studio (2026-11-16 13:00 to 18:00)"]);
+  });
+
+  it("AC2: names nothing once no booking is flagged", async () => {
+    const useCase = buildUseCase([seedEvent()], [seedFacts({ flaggedBookings: [] })]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.blockingFlags).toEqual([]);
   });
 });
 

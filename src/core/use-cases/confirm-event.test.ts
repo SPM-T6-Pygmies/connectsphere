@@ -8,6 +8,7 @@ import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notif
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
 import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
 import {
+  BookingFlaggedError,
   EssentialEquipmentNotReservedError,
   EventNotConfirmableError,
   EventNotFoundError,
@@ -69,6 +70,7 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationOpenDate: null,
     registrationCloseDate: null,
     essentialEquipment: [],
+    flaggedBookings: [],
     ...overrides,
   };
 }
@@ -259,6 +261,29 @@ describe("ConfirmEventUseCase (SPM-318)", () => {
   it("AC3: confirms once every essential line is reserved in full", async () => {
     const reserved = { ...unreserved, state: "Reserved", quantityReserved: 4 } as const;
     const { useCase } = buildUseCase([seedEvent()], [seedFacts({ essentialEquipment: [reserved] })]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).resolves.toEqual({
+      eventId: "event-1",
+      status: "Confirmed",
+    });
+  });
+});
+
+describe("ConfirmEventUseCase (SPM-312)", () => {
+  const flagged = { bookingId: "812", venueLocation: "Main Hall", bookedFor: "2026-11-16 13:00 to 18:00" };
+
+  it("AC1: refuses while a booking is flagged, naming it, and leaves the event in Planning untold", async () => {
+    const { useCase, eventsRepo, notifier } = buildUseCase([seedEvent()], [seedFacts({ flaggedBookings: [flagged] })]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toThrow(
+      new BookingFlaggedError(["Main Hall (2026-11-16 13:00 to 18:00)"]),
+    );
+    expect(eventsRepo.all()).toEqual([expect.objectContaining({ status: "Planning" })]);
+    expect(notifier.eventsConfirmed).toEqual([]);
+  });
+
+  it("AC2: confirms once no booking is flagged", async () => {
+    const { useCase } = buildUseCase([seedEvent()], [seedFacts({ flaggedBookings: [] })]);
 
     await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).resolves.toEqual({
       eventId: "event-1",

@@ -332,6 +332,11 @@
       "parent": null,
       "status": "Backlog"
     },
+    "SPM-108": {
+      "title": "Release equipment on a removal request",
+      "parent": null,
+      "status": "Todo"
+    },
     "SPM-109": {
       "title": "Mark an equipment line as essential",
       "parent": null,
@@ -887,6 +892,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-312": {
+      "title": "Block confirmation while an arrangement is flagged",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-313": {
       "title": "Flag bookings when a venue is marked unavailable",
       "parent": null,
@@ -915,6 +925,11 @@
     "SPM-322": {
       "title": "Search venues by start and end time",
       "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-323": {
+      "title": "View a venue's availability on the 15-minute grid",
+      "parent": "SPM-276",
       "status": "In Progress"
     },
     "SPM-324": {

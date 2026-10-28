@@ -3,6 +3,7 @@ import { recheckReason, type EquipmentRequirement, type EquipmentReviewBaseline 
 import {
   EquipmentAvailableToReserveError,
   EquipmentLineNotAwaitingDecisionError,
+  EquipmentNothingToReleaseError,
   EventDateRequiredForEquipmentError,
   NotEnoughEquipmentAvailableError,
   UnfulfilledCommentRequiredError,
@@ -68,14 +69,15 @@ export function equipmentQueueOf(
 /**
  * SPM-65 AC1-2: whether a decision left an event that had lines needing
  * Technical Support's attention with none -- the moment its coordinator is
- * told the outcome.
+ * told the outcome. SPM-108: not when it left the event with no lines at all,
+ * having released its last one, since there is no outcome to tell.
  */
 export function finishesReview(
   before: readonly EquipmentRequirement[],
   after: readonly EquipmentRequirement[],
 ): boolean {
   const waiting = (line: EquipmentRequirement) => attentionReason(line) !== null;
-  return before.some(waiting) && !after.some(waiting);
+  return before.some(waiting) && after.length > 0 && !after.some(waiting);
 }
 
 /** Units of one equipment type another event has reserved, and when that event runs. */
@@ -223,6 +225,29 @@ export function markEquipmentLineUnfulfilled(
     reviewBaseline: null,
     decision: { by, comment: validComment(comment) },
   };
+}
+
+/**
+ * SPM-108: whether Technical Support can release this line -- the coordinator
+ * asked to remove it (SPM-41 AC11) on an event still running its course. Once
+ * the coordinator withdraws the request (SPM-41 AC17) there is nothing to
+ * release (AC3).
+ */
+export function awaitsRelease(status: CoordinatorEventStatus, line: EquipmentRequirement): boolean {
+  return isActiveEvent(status) && line.removalRequested;
+}
+
+/**
+ * SPM-108 AC1-2: releases everything the line holds, so the units are free
+ * for other events again, and the line goes -- the end of the coordinator's
+ * removal, as an unreserved line simply goes (SPM-41 AC10). Returns how many
+ * units were released. AC3: refused when there is nothing to release.
+ */
+export function releaseEquipmentLine(status: CoordinatorEventStatus, line: EquipmentRequirement): number {
+  if (!awaitsRelease(status, line)) {
+    throw new EquipmentNothingToReleaseError();
+  }
+  return line.quantityReserved;
 }
 
 function availableToDecide(event: EquipmentDecisionEvent, target: EquipmentDecisionLine): number {

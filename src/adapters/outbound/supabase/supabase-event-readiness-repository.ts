@@ -1,6 +1,6 @@
 import type { EventId } from "@/core/domain/event";
 import type { EquipmentLineState } from "@/core/domain/equipment-requirement";
-import type { ArrangementType, ReadinessFacts } from "@/core/domain/event-readiness";
+import type { ArrangementType, FlaggedBookingFacts, ReadinessFacts } from "@/core/domain/event-readiness";
 import type { UserAccountId } from "@/core/domain/user-account";
 import type { EventReadinessRepository } from "@/core/ports/outbound/event-readiness-repository";
 
@@ -18,6 +18,8 @@ export interface EventReadinessRow {
   registration_close_date: string | null;
   /** SPM-318: the event's essential equipment lines. */
   essential_equipment: EssentialEquipmentRow[] | null;
+  /** SPM-312: the event's bookings with an open flag, one each. */
+  flagged_bookings: FlaggedBookingRow[] | null;
 }
 
 interface EssentialEquipmentRow {
@@ -25,6 +27,17 @@ interface EssentialEquipmentRow {
   line_state: EquipmentLineState;
   quantity_requested: number;
   quantity_reserved: number;
+}
+
+/** One element of `flagged_bookings`; `coordinator_confirm_event`'s CS094 DETAIL is an array of these. */
+export interface FlaggedBookingRow {
+  booking_id: number;
+  venue_location: string;
+  booked_for: string;
+}
+
+export function toFlaggedBookingFacts(row: FlaggedBookingRow): FlaggedBookingFacts {
+  return { bookingId: String(row.booking_id), venueLocation: row.venue_location, bookedFor: row.booked_for };
 }
 
 export function toReadinessFacts(eventId: EventId, row: EventReadinessRow): ReadinessFacts {
@@ -42,6 +55,7 @@ export function toReadinessFacts(eventId: EventId, row: EventReadinessRow): Read
       quantityRequested: line.quantity_requested,
       quantityReserved: line.quantity_reserved,
     })),
+    flaggedBookings: (row.flagged_bookings ?? []).map(toFlaggedBookingFacts),
   };
 }
 

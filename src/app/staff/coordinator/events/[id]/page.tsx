@@ -102,6 +102,7 @@ export default async function CoordinatorEventPage({
     confirmation,
     blockingArrangements,
     blockingEquipment,
+    blockingFlags,
     safetyCheckBlocker,
     canComplete,
     endsAt,
@@ -202,6 +203,25 @@ export default async function CoordinatorEventPage({
                             </li>
                           ))}
                         </ul>
+                      </AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {blockingFlags.length > 0 ? (
+                    <Alert variant="destructive">
+                      <AlertTriangleIcon />
+                      <AlertTitle>
+                        Cannot confirm -- {blockingFlags.length} venue booking
+                        {blockingFlags.length === 1 ? "" : "s"} flagged for re-checking
+                      </AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-4">
+                          {blockingFlags.map((booking) => (
+                            <li key={booking}>
+                              <span className="font-medium">{booking}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <p>Clear the flag if the booking still fits, or re-request it.</p>
                       </AlertDescription>
                     </Alert>
                   ) : null}

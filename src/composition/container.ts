@@ -97,11 +97,13 @@ import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events
 import { FindAssignedEventByRequestUseCase } from "@/core/use-cases/find-assigned-event-by-request";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { ViewVenueCalendarUseCase } from "@/core/use-cases/view-venue-calendar";
+import { ViewVenuesOnDayUseCase } from "@/core/use-cases/view-venues-on-day";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
 import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue";
 import { MarkEquipmentLineUnfulfilledUseCase } from "@/core/use-cases/mark-equipment-line-unfulfilled";
 import { ListEventsAwaitingSafetyCheckUseCase } from "@/core/use-cases/list-events-awaiting-safety-check";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
+import { ReleaseEquipmentLineUseCase } from "@/core/use-cases/release-equipment-line";
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
 import { ReserveEquipmentLineUseCase } from "@/core/use-cases/reserve-equipment-line";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
@@ -470,6 +472,13 @@ export async function buildMarkEquipmentLineUnfulfilled(): Promise<MarkEquipment
   const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
   return new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
+}
+
+/** SPM-108: release a line the coordinator asked to remove. */
+export async function buildReleaseEquipmentLine(): Promise<ReleaseEquipmentLineUseCase> {
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
+
+  return new ReleaseEquipmentLineUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /**
@@ -978,6 +987,18 @@ export async function buildSearchVenues(): Promise<SearchVenuesUseCase> {
 export async function buildViewVenueCalendar(): Promise<ViewVenueCalendarUseCase> {
   const client = await createSupabaseServerClient();
   return new ViewVenueCalendarUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    bookings: new SupabaseBookingRepository(client),
+    blocks: new SupabaseVenueUnavailabilityRepository(client),
+    clock: systemClock,
+    timeZone: "Asia/Singapore",
+  });
+}
+
+/** SPM-323: every venue's calendar for one day, side by side. */
+export async function buildViewVenuesOnDay(): Promise<ViewVenuesOnDayUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewVenuesOnDayUseCase({
     venues: new SupabaseVenueCatalogue(client),
     bookings: new SupabaseBookingRepository(client),
     blocks: new SupabaseVenueUnavailabilityRepository(client),

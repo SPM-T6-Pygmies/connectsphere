@@ -2,6 +2,7 @@ import Link from "next/link";
 import { forbidden } from "next/navigation";
 
 import { venueSearchSchema } from "@/adapters/inbound/venue-search-schema";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -129,6 +130,11 @@ export default async function VenueSearchPage({
       <PageHeader
         title="Find a venue"
         description="Narrow the catalogue to venues that could host the event. Times are Singapore time. Check suitability before booking."
+        actions={
+          <Button asChild variant="outline" size="sm">
+            <Link href="/staff/coordinator/venues/calendar">Availability by day</Link>
+          </Button>
+        }
       />
       <div className="space-y-6">
         {/* Keyed on the search so Clear (same route, new query) remounts it with fresh state. */}
