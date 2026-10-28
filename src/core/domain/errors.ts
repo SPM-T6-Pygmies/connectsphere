@@ -1395,3 +1395,40 @@ export class ChangeRequestAlreadyOpenError extends DomainError {
     super("This event already has a change request waiting on its coordinator.");
   }
 }
+
+/**
+ * SPM-100: no change request with this id on an event assigned to this
+ * Coordinator -- whether it is someone else's or does not exist (#91).
+ */
+export class ChangeRequestNotFoundError extends DomainError {
+  readonly code = "change_request_not_found";
+
+  constructor(readonly changeRequestId: string) {
+    super(`No change request ${changeRequestId} on an event assigned to you.`);
+  }
+}
+
+/** SPM-100: a change request is decided once, in one save (2026-10-18 team decision). */
+export class ChangeRequestAlreadyDecidedError extends DomainError {
+  readonly code = "change_request_already_decided";
+
+  constructor() {
+    super("This change request has already been decided.");
+  }
+}
+
+/**
+ * SPM-100: a decision that leaves an item undecided, names a field the request
+ * does not cover, or declines one without a reason (#104). `field` is the one
+ * to point at, or null when the decision as a whole is wrong.
+ */
+export class InvalidChangeRequestDecisionError extends DomainError {
+  readonly code = "invalid_change_request_decision";
+
+  constructor(
+    readonly field: string | null,
+    message: string,
+  ) {
+    super(message);
+  }
+}
