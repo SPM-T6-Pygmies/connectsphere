@@ -53,6 +53,7 @@ function request(...changes: RequestedChange[]): ChangeRequest {
   return {
     id: changeRequestId("4"),
     submittedAt: new Date("2026-10-27T02:00:00Z"),
+    requestedBy: userAccountId("organiser-1"),
     items: changes.map((change) => ({ change, decision: "Pending", reason: null })),
   };
 }
@@ -278,5 +279,83 @@ describe("DecideChangeRequestUseCase notifies the Organiser of a reschedule (SPM
     );
 
     expect(notifier.eventsRescheduled).toHaveLength(1);
+  });
+});
+
+describe("DecideChangeRequestUseCase tells the Organiser the outcome (SPM-110)", () => {
+  const venue: RequestedChange = { field: "venue_requirements", value: "Step-free access" };
+  const decide = (useCase: DecideChangeRequestUseCase, decisions: readonly ItemDecision[], by = COORDINATOR) =>
+    useCase.execute({ eventId: EVENT, changeRequestId: "4", userAccountId: by, decisions });
+
+  it("AC1, AC2, AC4: a three-field mixed decision sends one notice, to the Organiser who asked", async () => {
+    const asked = { ...request(times, attendance, venue), requestedBy: userAccountId("organiser-7") };
+    const { useCase, notifier } = build(event(), asked);
+
+    await decide(useCase, [
+      { field: "times", outcome: "Accepted" },
+      { field: "expected_attendance", outcome: "Declined", reason: "Room caps at 300" },
+      { field: "venue_requirements", outcome: "Accepted" },
+    ]);
+
+    expect(notifier.changeRequestsDecided).toEqual([
+      {
+        recipientUserAccountId: "organiser-7",
+        eventId: EVENT,
+        changeRequestId: "4",
+        eventRequestId: "request-1",
+        eventName: "Annual Conference",
+        accepted: [times, venue],
+        declined: [{ change: attendance, reason: "Room caps at 300" }],
+      },
+    ]);
+  });
+
+  it("AC1: tells them when every field is declined, with each reason", async () => {
+    const { useCase, notifier } = build();
+
+    await decide(useCase, [
+      { field: "times", outcome: "Declined", reason: "The hall is booked" },
+      { field: "expected_attendance", outcome: "Declined", reason: "Room caps at 300" },
+    ]);
+
+    expect(notifier.changeRequestsDecided[0]).toMatchObject({
+      accepted: [],
+      declined: [
+        { change: times, reason: "The hall is booked" },
+        { change: attendance, reason: "Room caps at 300" },
+      ],
+    });
+  });
+
+  it("AC3: a decline with no reason is refused, so nothing is sent", async () => {
+    const { useCase, notifier } = build();
+
+    await expect(
+      decide(useCase, [
+        { field: "times", outcome: "Accepted" },
+        { field: "expected_attendance", outcome: "Declined", reason: "  " },
+      ]),
+    ).rejects.toThrow(InvalidChangeRequestDecisionError);
+    expect(notifier.changeRequestsDecided).toEqual([]);
+  });
+
+  it("access: a refused coordinator sends nothing", async () => {
+    const { useCase, notifier } = build();
+
+    await expect(decide(useCase, [{ field: "times", outcome: "Accepted" }], OTHER_COORDINATOR)).rejects.toThrow(
+      ChangeRequestNotFoundError,
+    );
+    expect(notifier.changeRequestsDecided).toEqual([]);
+  });
+
+  it("race: the second of two decisions is refused and sends no second notice", async () => {
+    const { useCase, notifier } = build(event(), request(times));
+
+    await decide(useCase, [{ field: "times", outcome: "Accepted" }]);
+    await expect(decide(useCase, [{ field: "times", outcome: "Accepted" }])).rejects.toThrow(
+      ChangeRequestAlreadyDecidedError,
+    );
+
+    expect(notifier.changeRequestsDecided).toHaveLength(1);
   });
 });

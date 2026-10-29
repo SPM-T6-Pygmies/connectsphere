@@ -147,6 +147,7 @@ describe("SupabaseChangeRequestRepository decisions (SPM-100)", () => {
           {
             change_request_id: 4,
             created_at: "2026-10-27T02:00:00+00:00",
+            requesting_user_account_id: 6,
             items: [
               { field_name: "expected_attendance", requested_value: "350", decision: "Rejected", decision_reason: "Too many" },
               { field_name: "equipment_requirements", requested_value: null, decision: "Accepted", decision_reason: null },
@@ -163,6 +164,7 @@ describe("SupabaseChangeRequestRepository decisions (SPM-100)", () => {
       {
         id: "4",
         submittedAt: new Date("2026-10-27T02:00:00Z"),
+        requestedBy: "6",
         items: [
           { change: { field: "expected_attendance", value: 350 }, decision: "Declined", reason: "Too many" },
           { change: { field: "equipment_requirements", value: null }, decision: "Accepted", reason: null },

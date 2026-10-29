@@ -69,6 +69,7 @@ export interface ChangeRequestRow {
   readonly change_request_id: number;
   readonly created_at: string;
   readonly items: readonly ChangeRequestItemRow[];
+  readonly requesting_user_account_id: number;
 }
 
 export interface ChangeRequestItemRow {
@@ -96,6 +97,7 @@ export function toChangeRequest(row: ChangeRequestRow): ChangeRequest {
   return {
     id: changeRequestId(String(row.change_request_id)),
     submittedAt: new Date(row.created_at),
+    requestedBy: userAccountId(String(row.requesting_user_account_id)),
     items: row.items.map(toChangeRequestItemState),
   };
 }
@@ -105,7 +107,11 @@ function toChangeRequestItemState(row: ChangeRequestItemRow): ChangeRequestItem 
   if (decision === undefined) {
     throw new Error(`Unknown change request decision: ${row.decision}`);
   }
-  return { change: toRequestedChange(row), decision, reason: row.decision_reason };
+  const change = toRequestedChange(row);
+  // coordinator_decide_change_request refuses a Rejected item without a reason.
+  return decision === "Declined"
+    ? { change, decision, reason: row.decision_reason ?? "" }
+    : { change, decision, reason: null };
 }
 
 /** The reverse of `toChangeRequestItem`. */
