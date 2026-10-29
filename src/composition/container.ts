@@ -409,6 +409,9 @@ export async function buildDecideChangeRequest(): Promise<DecideChangeRequestUse
   return new DecideChangeRequestUseCase({
     changeRequests: new SupabaseChangeRequestRepository(client),
     coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+    // SPM-311: Technical Support hear of the equipment new dates release.
+    equipment: new SupabaseEquipmentRequirementRepository(client),
+    attention: equipmentAttentionAnnouncer(),
   });
 }
 

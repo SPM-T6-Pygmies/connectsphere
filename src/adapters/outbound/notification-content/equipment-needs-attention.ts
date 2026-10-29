@@ -13,7 +13,8 @@ export function eventDateSentence(preferredDate: string | null): string {
  * The words Technical Support read when a coordinator changes a line (SPM-64
  * AC5): the event, its date, the type and quantity, what the coordinator did,
  * and whether it leaves anything for them to do -- a changed decision or a
- * removal request needing re-review rather than standing (AC2).
+ * removal request needing re-review rather than standing (AC2). SPM-311: and
+ * when accepting new dates released the line, which needs reserving again.
  */
 export function equipmentNeedsAttentionMessage(
   notice: EquipmentNeedsAttentionNotice,
@@ -58,6 +59,15 @@ export function equipmentNeedsAttentionMessage(
         subject: `${equipmentType} removal withdrawn on ${eventName}`,
         body: `The coordinator is keeping this line. ${
           notice.attention === null ? "Its reservation stands." : "It still needs re-review as changed."
+        } ${when}`,
+      };
+    case "rescheduled":
+      return {
+        subject: `${equipmentType} released on ${eventName}`,
+        body: `The event's dates changed, so its reservation was released. ${
+          notice.attention === null
+            ? "Its removal was requested, so the line is gone and there is nothing to do."
+            : `${quantityRequested} requested; reserve them again for the new date.`
         } ${when}`,
       };
   }
