@@ -35,6 +35,8 @@ function target(overrides: Partial<ChangeRequestTarget> = {}): ChangeRequestTarg
     status: "Confirmed",
     owningOrganiserUserAccountId: owner,
     hasOpenChangeRequest: false,
+    eventName: "Marina Bay Gala",
+    assignedCoordinatorUserAccountId: null,
     ...overrides,
   };
 }

@@ -18,6 +18,8 @@ export interface ChangeRequestTargetRow {
   readonly status: string;
   readonly owning_organiser_user_account_id: number;
   readonly has_open_change_request: boolean;
+  readonly event_name: string;
+  readonly assigned_coordinator_user_account_id: number | null;
 }
 
 /** One element of `submit_change_request`'s `p_items`. */
@@ -32,6 +34,11 @@ export function toChangeRequestTarget(row: ChangeRequestTargetRow): ChangeReques
     status: toStatus(row.status),
     owningOrganiserUserAccountId: userAccountId(String(row.owning_organiser_user_account_id)),
     hasOpenChangeRequest: row.has_open_change_request,
+    eventName: row.event_name,
+    assignedCoordinatorUserAccountId:
+      row.assigned_coordinator_user_account_id === null
+        ? null
+        : userAccountId(String(row.assigned_coordinator_user_account_id)),
   };
 }
 

@@ -65,6 +65,8 @@ function build(seed: SeedCoordinatorEvent = event(), pending: ChangeRequest = re
         status: seed.status,
         owningOrganiserUserAccountId: userAccountId("organiser-1"),
         hasOpenChangeRequest: true,
+        eventName: "Marina Bay Gala",
+        assignedCoordinatorUserAccountId: userAccountId(COORDINATOR),
       },
     },
     { [EVENT]: [pending] },

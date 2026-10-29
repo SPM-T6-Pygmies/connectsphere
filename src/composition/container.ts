@@ -391,7 +391,10 @@ export async function buildPostClarificationMessage(): Promise<PostClarification
 /** SPM-52: the event's owning Organiser asks for significant fields to change. */
 export async function buildSubmitChangeRequest(): Promise<SubmitChangeRequestUseCase> {
   const client = await createSupabaseServerClient();
-  return new SubmitChangeRequestUseCase({ changeRequests: new SupabaseChangeRequestRepository(client) });
+  return new SubmitChangeRequestUseCase({
+    changeRequests: new SupabaseChangeRequestRepository(client),
+    notifier: recordedNotifier(),
+  });
 }
 
 /** SPM-100 AC1: the assigned Coordinator's view of an event's change requests. */

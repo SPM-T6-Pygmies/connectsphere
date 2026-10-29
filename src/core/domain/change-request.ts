@@ -53,6 +53,10 @@ export interface ChangeRequestTarget {
   readonly status: CoordinatorEventStatus;
   readonly owningOrganiserUserAccountId: UserAccountId;
   readonly hasOpenChangeRequest: boolean;
+  /** Who is told of a submitted request (SPM-67), and what the notice calls the event. */
+  readonly eventName: string;
+  /** Null only if the event has no Coordinator; then no one is told. */
+  readonly assignedCoordinatorUserAccountId: UserAccountId | null;
 }
 
 /**

@@ -32,11 +32,34 @@ function fakeClient(answers: Record<string, RpcResult>) {
   return { client, calls };
 }
 
+describe("SupabaseChangeRequestRepository submit id (SPM-67)", () => {
+  it("returns the stored request's id, so the coordinator's notice can name it", async () => {
+    const { client } = fakeClient({ submit_change_request: { data: 11, error: null } });
+
+    const id = await new SupabaseChangeRequestRepository(client).submit({
+      eventRequestId: eventRequestId("7"),
+      requestedBy: userAccountId("6"),
+      changes: [{ field: "expected_attendance", value: 150 }],
+    });
+
+    expect(id).toBe("11");
+  });
+});
+
 describe("SupabaseChangeRequestRepository (SPM-52)", () => {
   it("reads the event opened from the request through organiser_change_request_target", async () => {
     const { client, calls } = fakeClient({
       organiser_change_request_target: {
-        data: [{ event_id: 2, status: "Confirmed", owning_organiser_user_account_id: 6, has_open_change_request: true }],
+        data: [
+          {
+            event_id: 2,
+            status: "Confirmed",
+            owning_organiser_user_account_id: 6,
+            has_open_change_request: true,
+            event_name: "Marina Bay Gala",
+            assigned_coordinator_user_account_id: 4,
+          },
+        ],
         error: null,
       },
     });
@@ -48,6 +71,8 @@ describe("SupabaseChangeRequestRepository (SPM-52)", () => {
       status: "Confirmed",
       owningOrganiserUserAccountId: "6",
       hasOpenChangeRequest: true,
+      eventName: "Marina Bay Gala",
+      assignedCoordinatorUserAccountId: "4",
     });
     expect(calls).toEqual([{ name: "organiser_change_request_target", args: { p_event_request_id: 7 } }]);
   });
