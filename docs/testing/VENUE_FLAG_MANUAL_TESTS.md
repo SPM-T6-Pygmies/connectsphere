@@ -461,7 +461,7 @@ Main Hall on F from 19:00. Signed in as Venue Staff, then Coordinator 2 (`coordi
 3. Open *Flag Test: Workshop* and its **Venue** tab.
 
 **Expected Result:**
-- Step 1: the list shows *Flag Test: Gala · F 19:00 to 24:00 · Confirmed* and not the Workshop, Quiz or Tech Summit.
+- Step 1: the list shows *Flag Test: Gala · F 19:00–20:00 · Confirmed*, the hour the block takes from the booking (as in TC-VBLOCK-003), and not the Workshop, Quiz or Tech Summit.
 - Step 2: **Flagged for review** with the reason "Maintenance: F 19:00 to 20:00", and the booking still **Confirmed**.
 - Step 3: no **Flagged for review** section.
 
