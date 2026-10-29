@@ -109,6 +109,8 @@ Keynote's Projector shows Available **5**, from the other events around 15 Nov.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
 
+**Screenshots:** [before-tech-summit-changed-and-removal-held](../screenshots/2026-10-29_SPM-311_before-tech-summit-changed-and-removal-held.png) · [step2-new-date-accepted](../screenshots/2026-10-29_SPM-311_TC-RESCHEDULE-001_step2-new-date-accepted.png) · [step3-needs-review-1-rescheduled](../screenshots/2026-10-29_SPM-311_TC-RESCHEDULE-001_step3-needs-review-1-rescheduled.png) · [step4-released-and-rescheduled](../screenshots/2026-10-29_SPM-311_TC-RESCHEDULE-001_step4-released-and-rescheduled.png) · [step5-released-notices](../screenshots/2026-10-29_SPM-311_TC-RESCHEDULE-001_step5-released-notices.png)
+
 ### TC-RESCHEDULE-002: The old date is freed, and the line is reserved again for the new one (AC2, AC3)
 
 **Steps:**
@@ -125,6 +127,8 @@ Keynote's Projector shows Available **5**, from the other events around 15 Nov.
 - Step 3: *1 line of 2 needs attention*, with nothing rescheduled.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
+
+**Screenshots:** [step1-old-date-freed](../screenshots/2026-10-29_SPM-311_TC-RESCHEDULE-002_step1-old-date-freed.png) · [step2-reserved-again](../screenshots/2026-10-29_SPM-311_TC-RESCHEDULE-002_step2-reserved-again.png)
 
 ### TC-RESCHEDULE-003: A new time on the same date puts nothing under review (AC4)
 
@@ -144,3 +148,5 @@ Keynote's Projector shows Available **5**, from the other events around 15 Nov.
 - Step 4: nothing new: no notice names *Board Strategy Day*.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
+
+**Screenshots:** [step3-same-date-still-reserved](../screenshots/2026-10-29_SPM-311_TC-RESCHEDULE-003_step3-same-date-still-reserved.png)
