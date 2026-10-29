@@ -23,7 +23,8 @@
 --   coordinator_decide_change_request
 --     Calls it at the SPM-311 hook when the set of dates changed, as the
 --     domain's Revalidation.equipmentReview says. Otherwise as in
---     20261028020000. Same signature, replaced in place.
+--     20261029010000 (SPM-309), keeping its booking flags. Same signature,
+--     replaced in place.
 --
 --   coordinator_update_equipment_requirement
 --     An edit back to the baseline no longer clears a Rescheduled line: with
@@ -220,7 +221,7 @@ begin
           p_coordinator_user_account_id, 'event', v_event.event_id, 'times', null, v_item.requested_value
         );
 
-        -- SPM-309: flag this event's live bookings ('event-change', source_ref 'times') here.
+        perform public.flag_event_bookings_for_change(v_event.event_id, 'times', 'Event date/time changed');
         -- SPM-311 AC4: a change of time on the same dates leaves the equipment be.
         if v_dates_were is distinct from (
           select array_agg(distinct (r ->> 'date')::date order by (r ->> 'date')::date)
@@ -242,7 +243,10 @@ begin
           v_event.expected_attendance::text, v_item.requested_value
         );
 
-        -- SPM-309: flag this event's live bookings ('event-change', source_ref 'expected_attendance') here.
+        perform public.flag_event_bookings_for_change(
+          v_event.event_id, 'expected_attendance',
+          'Expected attendance changed from ' || coalesce(v_event.expected_attendance::text, 'not set')
+            || ' to ' || v_item.requested_value);
 
       when 'venue_requirements' then
         update public.event
@@ -257,7 +261,7 @@ begin
           v_event.venue_requirements, v_item.requested_value
         );
 
-        -- SPM-309: flag this event's live bookings ('event-change', source_ref 'venue_requirements') here.
+        perform public.flag_event_bookings_for_change(v_event.event_id, 'venue_requirements', 'Venue requirements changed');
 
       when 'equipment_requirements' then
         update public.event
