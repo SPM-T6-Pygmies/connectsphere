@@ -147,7 +147,7 @@ export interface EquipmentNeedsAttentionNotice {
    * (SPM-273 AC3); null when it needs nothing -- deleted, or back to what they
    * decided (AC2).
    */
-  readonly attention: "new" | "changed" | "removalRequested" | null;
+  readonly attention: "new" | "changed" | "removalRequested" | "rescheduled" | null;
 }
 
 /** One line of an event Technical Support have finished deciding on (SPM-65 AC3). */

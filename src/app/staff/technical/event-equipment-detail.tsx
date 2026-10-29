@@ -26,6 +26,7 @@ const ATTENTION: Record<AttentionReason, { label: string; variant: "secondary" |
   new: { label: "New", variant: "secondary" },
   changed: { label: "Changed", variant: "warning" },
   removalRequested: { label: "Removal requested", variant: "destructive" },
+  rescheduled: { label: "Rescheduled", variant: "warning" },
 };
 
 function Was({ children }: { children: string }) {

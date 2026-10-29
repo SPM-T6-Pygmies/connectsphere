@@ -43,7 +43,7 @@ export const equipmentNeedsAttention = workflow(
         change: { type: "string", enum: ["added", "edited", "deleted", "removalRequested", "removalWithdrawn"] },
         quantityRequested: { type: "number" },
         quantityWas: { type: ["number", "null"] },
-        attention: { type: ["string", "null"], enum: ["new", "changed", "removalRequested", null] },
+        attention: { type: ["string", "null"], enum: ["new", "changed", "removalRequested", "rescheduled", null] },
       },
       required: [
         "recipientUserAccountId",

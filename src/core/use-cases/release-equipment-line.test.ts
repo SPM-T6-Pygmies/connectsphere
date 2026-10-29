@@ -29,6 +29,7 @@ function projector(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequ
     state: "Reserved",
     reviewBaseline: null,
     removalRequested: false,
+    rescheduled: false,
     decision: RESERVED_BY,
     essential: false,
     ...overrides,
