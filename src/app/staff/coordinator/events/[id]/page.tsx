@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import {
   buildViewCoordinatorEvent,
+  buildViewEventChangeRequests,
   buildViewEventEquipment,
   buildViewEventSafetyChecks,
   buildViewVenueBookingOptions,
@@ -93,6 +94,10 @@ export default async function CoordinatorEventPage({
     forbidden();
   }
 
+  // SPM-100: the event tab says when a change request is waiting, and links to it.
+  const viewEventChangeRequests = await buildViewEventChangeRequests();
+  const changeRequests = await viewEventChangeRequests.execute({ eventId: id, ...coordinator });
+
   const {
     event,
     details,
@@ -130,7 +135,14 @@ export default async function CoordinatorEventPage({
           <EventTabs
             initialTab={initialTab}
             panels={{
-              event: <EventDetailsTab event={event} details={details} readiness={readiness} />,
+              event: (
+                <EventDetailsTab
+                  event={event}
+                  details={details}
+                  readiness={readiness}
+                  changeRequestWaiting={changeRequests?.open != null}
+                />
+              ),
               venue: (
                 <VenueTab
                   readiness={readiness}
