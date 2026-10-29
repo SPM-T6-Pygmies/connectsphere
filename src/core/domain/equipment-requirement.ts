@@ -175,7 +175,8 @@ export function recordEquipmentRequirement(
 /**
  * AC7-9: a change to a reserved line is saved and puts it under review, and
  * what Technical Support reserved stays held -- even above a reduced quantity,
- * since releasing it is their call (SPM-108), not this edit's. SPM-274 AC4: a
+ * since every change is theirs to review (SPM-316 AC3), not this edit's to
+ * fulfil. SPM-274 AC4: a
  * change to a line they marked unfulfilled puts it under review the same way.
  *
  * AC19: the values the line had when it was Reserved or Unfulfilled are

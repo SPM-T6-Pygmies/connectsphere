@@ -125,6 +125,61 @@ describe("MarkEquipmentLineUnfulfilledUseCase (SPM-274)", () => {
   });
 });
 
+describe("MarkEquipmentLineUnfulfilledUseCase (SPM-316)", () => {
+  it("AC2: marking a changed reserved line unfulfilled releases what it held to other events at once", async () => {
+    const stock = (line: EquipmentRequirement) => ({
+      line,
+      equipmentType: "Projector",
+      owned: 10,
+      outOfService: 0,
+      otherHolds: [],
+      decidedByName: null,
+    });
+    const raised: EquipmentRequirement = {
+      ...newLine("item-projector", 7),
+      quantityReserved: 4,
+      state: "Under review",
+      reviewBaseline: { quantityRequested: 4, technicalRequirements: null },
+    };
+    const equipment = new InMemoryTechnicalEquipmentRepository(
+      [
+        { event: { id: eventId("A"), name: "Event A", status: "Planning", preferredDate: "2026-11-15" }, lines: [stock(raised)] },
+        {
+          event: { id: eventId("held"), name: "Held", status: "Planning", preferredDate: "2026-11-15" },
+          lines: [stock({ ...newLine("item-projector", 4), quantityReserved: 4, state: "Reserved" })],
+        },
+        {
+          event: { id: eventId("B"), name: "Event B", status: "Planning", preferredDate: "2026-11-15" },
+          lines: [stock(newLine("item-projector", 6))],
+        },
+      ],
+      { [SUPPORT]: "Test Support Staff" },
+    );
+    const outcome = new EquipmentOutcomeAnnouncer({
+      equipment,
+      directory: new InMemoryEquipmentNoticeDirectory([], { A: "coordinator-1" }),
+      notifier: new RecordingNotifier(),
+    });
+    const lineOf = async (id: string) =>
+      (await equipment.eventEquipment(userAccountId(SUPPORT), eventId(id)))?.lines[0]?.line;
+
+    await new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome }).execute({
+      eventId: "A",
+      equipmentItemId: "item-projector",
+      userAccountId: SUPPORT,
+      comment: "only 6 available",
+    });
+
+    expect(await lineOf("A")).toMatchObject({ state: "Unfulfilled", quantityReserved: 0 });
+    await new ReserveEquipmentLineUseCase({ equipment, outcome }).execute({
+      eventId: "B",
+      equipmentItemId: "item-projector",
+      userAccountId: SUPPORT,
+    });
+    expect(await lineOf("B")).toMatchObject({ state: "Reserved", quantityReserved: 6 });
+  });
+});
+
 describe("MarkEquipmentLineUnfulfilledUseCase telling the coordinator (SPM-65)", () => {
   it("AC3: one notice lists every line, reserved or unfulfilled, with the comment and who decided", async () => {
     const { equipment, notifier, mark } = setup();
