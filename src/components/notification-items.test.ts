@@ -216,6 +216,28 @@ describe("notificationItem (SPM-66)", () => {
   })
 })
 
+describe("notificationItem (SPM-68)", () => {
+  it("AC1, AC4: names a rescheduled event's notice and opens the request in the inbox", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["event-rescheduled"] }),
+    )
+
+    expect(item.status).toBe("Event rescheduled")
+    expect(item.href).toBe("/staff/requester/notifications/10")
+  })
+
+  it("AC1, AC4: names a cancelled event's notice and opens the request in the inbox", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["event-cancelled"] }),
+    )
+
+    expect(item.status).toBe("Event cancelled")
+    expect(item.href).toBe("/staff/requester/notifications/10")
+  })
+})
+
 describe("notificationItem (SPM-71)", () => {
   it("AC5: names a flagged booking's notice and opens the booking on the event's Venue tab as it is", () => {
     const item = notificationItem(
