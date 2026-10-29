@@ -301,6 +301,30 @@ export interface ChangeRequestedNotice {
   readonly changes: readonly RequestedChange[];
 }
 
+/** One field the Coordinator declined, with why (#104). */
+export interface DeclinedChange {
+  readonly change: RequestedChange;
+  /** Required: a decline with no reason cannot be sent (SPM-110 AC3). */
+  readonly reason: string;
+}
+
+/**
+ * What the Organiser who asked is told once the Coordinator decides their
+ * change request (SPM-110): one notice with every field's outcome, accepted
+ * and declined, each decline with its reason.
+ */
+export interface ChangeRequestDecidedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly changeRequestId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  /** In the request's order. */
+  readonly accepted: readonly RequestedChange[];
+  readonly declined: readonly DeclinedChange[];
+}
+
 /**
  * What an event's assigned Event Coordinator is told when Venue Staff's change
  * to a venue flags one of its bookings (SPM-71): a block over it (SPM-313) or
@@ -365,5 +389,6 @@ export interface Notifier {
   eventCancelled(notice: EventCancelledNotice): Promise<void>;
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void>;
   changeRequested(notice: ChangeRequestedNotice): Promise<void>;
+  changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

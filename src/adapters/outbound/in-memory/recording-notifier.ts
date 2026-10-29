@@ -1,5 +1,6 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestDecidedNotice,
   ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
@@ -42,6 +43,7 @@ export class RecordingNotifier implements Notifier {
   readonly eventsCancelled: EventCancelledNotice[] = [];
   readonly bookingsFlagged: VenueBookingFlaggedNotice[] = [];
   readonly changesRequested: ChangeRequestedNotice[] = [];
+  readonly changeRequestsDecided: ChangeRequestDecidedNotice[] = [];
   readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
@@ -118,6 +120,10 @@ export class RecordingNotifier implements Notifier {
 
   async changeRequested(notice: ChangeRequestedNotice): Promise<void> {
     this.changesRequested.push(notice);
+  }
+
+  async changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
+    this.changeRequestsDecided.push(notice);
   }
 
   async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {

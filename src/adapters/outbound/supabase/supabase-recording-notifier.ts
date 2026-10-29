@@ -1,5 +1,6 @@
 import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import {
+  changeRequestDecidedRow,
   changeRequestedRow,
   clarificationRequestedRow,
   coordinatorAssignedRow,
@@ -22,6 +23,7 @@ import {
 } from "@/adapters/outbound/supabase/notification-row";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestDecidedNotice,
   ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
@@ -154,6 +156,10 @@ export class SupabaseRecordingNotifier implements Notifier {
 
   changeRequested(notice: ChangeRequestedNotice): Promise<void> {
     return this.recordAndDeliver(changeRequestedRow(notice), () => this.inner.changeRequested(notice));
+  }
+
+  changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
+    return this.recordAndDeliver(changeRequestDecidedRow(notice), () => this.inner.changeRequestDecided(notice));
   }
 
   /**

@@ -2,6 +2,7 @@ import {
   coordinatorAssignedMessage,
   type NotificationMessage,
 } from "@/adapters/outbound/notification-content/coordinator-assigned";
+import { changeRequestDecidedMessage } from "@/adapters/outbound/notification-content/change-request-decided";
 import { changeRequestedMessage } from "@/adapters/outbound/notification-content/change-requested";
 import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
 import { equipmentDecidedMessage } from "@/adapters/outbound/notification-content/equipment-decided";
@@ -20,6 +21,7 @@ import { venueBookingFlaggedMessage } from "@/adapters/outbound/notification-con
 import { venueBookingDecidedMessage } from "@/adapters/outbound/notification-content/venue-booking-decided";
 import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
+  ChangeRequestDecidedNotice,
   ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
@@ -277,6 +279,20 @@ export function changeRequestedRow(notice: ChangeRequestedNotice): NotificationR
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: "change-requested",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    related_change_request_id: notice.changeRequestId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling an Organiser their change request is decided (SPM-110). */
+export function changeRequestDecidedRow(notice: ChangeRequestDecidedNotice): NotificationRow {
+  const { subject, body } = changeRequestDecidedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "change-request-decided",
     channel: "in_app",
     status: "Pending",
     related_event_id: notice.eventId,
