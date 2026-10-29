@@ -1,4 +1,4 @@
-# Change Request Manual Tests (SPM-52)
+# Change Request Manual Tests (SPM-52, SPM-100)
 
 ## Overview
 
@@ -12,7 +12,13 @@ statuses) are unit-tested, tagged `SPM-52`. These cases cover what the unit
 tests cannot: the screens, what is stored, and that `submit_change_request`
 holds the rules against a caller that skips the application.
 
-These cases are registered as `TC-CHANGE-001`–`TC-CHANGE-005` in
+TC-CHANGE-006 to TC-CHANGE-009 cover the Coordinator deciding the request
+field by field (SPM-100), all in the browser: the decision screen, what a saved
+decision changes on the event, and that only the assigned Coordinator can
+decide, once. How the application reports the database's refusals (`CS095`
+to `CS098`) is unit-tested in the Supabase adapter.
+
+These cases are registered as `TC-CHANGE-001`–`TC-CHANGE-009` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
 them, report each in the PR description's `## Manual test results` table. CI
 records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
@@ -43,12 +49,14 @@ records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
 
 ### Test Accounts
 
-Password for both: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
+Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 | Account | Role |
 | --- | --- |
 | `organiser2@test.com` | Event Organiser, owns Operations Roadmap Conference |
 | `organiser@test.com` | Event Organiser in the same organisation, does not own it |
+| `coordinator@test.com` | Event Coordinator assigned to Operations Roadmap Conference (user 2) |
+| `coordinator2@test.com` | Event Coordinator not assigned to it |
 
 Run the cases in order: each starts from the state the previous one left. The
 ids below are the ones a fresh reset gives; look them up if yours differ.
@@ -139,3 +147,136 @@ waiting on your coordinator.* and shows no form. The SQL call is refused with
   no longer be changed.*
 - Step 3: refused with `CS091`, "Event 1 is Completed and takes no change
   requests".
+
+### TC-CHANGE-006: The coordinator sees each field and cannot save a decline without a reason (SPM-100 AC1, AC3)
+
+**Preconditions:** State left by TC-CHANGE-005: the request from TC-CHANGE-001
+is still open, asking for new times, attendance 350 and no equipment. Signed
+in as `coordinator@test.com`.
+
+**Steps:**
+1. Open **My events**, then **Operations Roadmap Conference**.
+2. In the *When and how many* card, click **Review it**.
+3. Choose **Accept** for Date and times and for Equipment requirements.
+4. Choose **Decline** for Expected attendance.
+5. Type a few spaces, and nothing else, in the reason box.
+
+**Expected Result:**
+- Step 1: the *When and how many* card shows a grey **Change request waiting**
+  badge with a **Review it** link beside it.
+- Step 2: the *Change requests* page opens with a *Waiting on you* card. It has
+  one row for each field the Organiser asked to change, showing what the event
+  has now and what was requested:
+
+  | Field | Now | Requested |
+  | --- | --- | --- |
+  | Date and times | — | 26 Nov 9:00 am – 5:00 pm |
+  | Expected attendance | 300 | 350 |
+  | Equipment requirements | Projector, stage microphones, livestream setup. | Not applicable |
+
+  **Save decision** is greyed out, because nothing is decided yet.
+- Step 3: **Save decision** is still greyed out, because attendance is
+  undecided.
+- Step 4: a **Reason (required)** box appears under the attendance row, and
+  **Save decision** is still greyed out.
+- Step 5: **Save decision** stays greyed out, because spaces alone do not count
+  as a reason.
+
+**Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
+
+### TC-CHANGE-007: A mixed decision changes only what was accepted (SPM-100 AC2, AC4)
+
+**Preconditions:** State left by TC-CHANGE-006: still on the *Change requests*
+page with the three choices made.
+
+**Steps:**
+1. Replace the spaces in the reason box with *The hall seats 300*.
+2. Click **Save decision**.
+3. Click **Operations Roadmap Conference** in the breadcrumb to go back to the
+   event.
+4. Open the **Equipment** tab.
+
+**Expected Result:**
+- Step 1: **Save decision** becomes clickable.
+- Step 2: the page now says *No change request is waiting on you.* Below it, a
+  *Decided* card lists each field with its outcome:
+  - Date and times **Accepted**, 26 Nov 9:00 am – 5:00 pm
+  - Expected attendance **Declined**, 350, *Reason: The hall seats 300*
+  - Equipment requirements **Accepted**, Not applicable
+- Step 3: in *When and how many*, the waiting badge and **Review it** are gone,
+  and a plain **Change requests** link remains. The accepted changes show and
+  the declined one does not:
+  - Preferred date reads **2026-11-26**
+  - Times reads **26 Nov 9:00 am – 5:00 pm**
+  - Expected attendance still reads **300**
+- Step 4: under *Stated by the Organiser* the tab reads *The Organiser did not
+  state any equipment needs.*, where it used to list the projector,
+  microphones and livestream.
+
+**Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
+
+### TC-CHANGE-008: Accepting "registration not applicable" stops registration blocking confirmation (SPM-100 AC4)
+
+**Preconditions:** State left by TC-CHANGE-007. Registration has to be marked
+essential for this event, and no screen does that yet, so run this once in
+Supabase Studio's SQL editor (<http://127.0.0.1:54323>):
+
+```sql
+insert into event_essential_arrangement values (1, 'registration', true);
+```
+
+**Steps:**
+1. As `coordinator@test.com`, open Operations Roadmap Conference.
+2. Sign in as `organiser2@test.com`, open the request, click **Request a
+   change**, tick **Registration**, tick **Not applicable — a closed-door or
+   invite-only event with no registration**, and click **Submit change
+   request**.
+3. Sign in as `coordinator@test.com`, open the event and click **Review it**.
+   Choose **Accept** for Registration and click **Save decision**.
+4. Open the event's **Event** tab.
+5. Open the **Registration** tab.
+
+**Expected Result:**
+- Step 1: *Essential arrangements* lists **Registration** as *Outstanding*,
+  with *Registration is not enabled for this event.* The *Confirmation* card
+  says **Cannot confirm -- 1 essential arrangement incomplete** as well as the
+  safety-check message.
+- Step 3: before you save, the row reads Registration, *Now:* Off,
+  *Requested:* Not applicable. After saving, the page says *No change request
+  is waiting on you.* and a new *Decided* card shows Registration **Accepted**,
+  Not applicable.
+- Step 4: *Essential arrangements* reads *No essential arrangements are
+  recorded for this event.* The *Confirmation* card no longer mentions
+  registration; only the safety-check message remains.
+- Step 5: the tab reads *Not marked essential for this event.*, and
+  the **Registration enabled** switch is off.
+
+**Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
+
+### TC-CHANGE-009: Only the assigned coordinator can decide, and only once (SPM-100)
+
+**Preconditions:** State left by TC-CHANGE-008. As `organiser2@test.com`,
+submit one more change request: Expected attendance **400**.
+
+**Steps:**
+1. Sign in as `coordinator2@test.com`, who is not assigned to this event.
+2. Go to `/staff/coordinator/events/1/change-request`.
+3. Sign in as `coordinator@test.com` and open that same page in **two browser
+   tabs**.
+4. In the first tab, choose **Accept** for Expected attendance and click
+   **Save decision**.
+5. In the second tab, which still shows the form, choose **Decline**, type the
+   reason *Too many*, and click **Save decision**.
+6. Open the event's **Event** tab.
+
+**Expected Result:**
+- Step 2: an access-denied screen: *You don't have access to this page. Please
+  contact your respective Event Coordinator.* No event details and no form are
+  shown.
+- Step 4: the first tab says *No change request is waiting on you.*
+- Step 5: the second tab shows a red message, *This change request has already
+  been decided.*, and nothing changes.
+- Step 6: Expected attendance reads **400**, the first decision. The second
+  tab's decline was not applied.
+
+**Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright

@@ -1,4 +1,5 @@
 import { LockIcon } from "lucide-react";
+import Link from "next/link";
 
 import { EventTimes } from "@/app/events/event-times";
 import { Badge } from "@/components/ui/badge";
@@ -22,12 +23,16 @@ import { EventDetailsCard } from "./event-details-card";
  *
  * SPM-49: the ordinary details are edited here; when and how many are shown
  * locked, because they change only through a change request (#4).
+ *
+ * SPM-100: the locked card links to the event's change requests, and says so
+ * when one is waiting on the Coordinator.
  */
 export function EventDetailsTab({
   event,
   details,
   readiness,
-}: Pick<ViewCoordinatorEventResult, "event" | "details" | "readiness">) {
+  changeRequestWaiting,
+}: Pick<ViewCoordinatorEventResult, "event" | "details" | "readiness"> & { changeRequestWaiting: boolean }) {
   const ordinary = Object.fromEntries(
     ORDINARY_EVENT_FIELDS.map((field) => [field, details[field]]),
   ) as OrdinaryEventDetails;
@@ -43,6 +48,12 @@ export function EventDetailsTab({
             <LockIcon className="size-3.5" aria-hidden />
             Date and times, attendance, venue and equipment changes go through a change request.
           </CardDescription>
+          <div className="flex items-center gap-2 pt-1 text-sm">
+            {changeRequestWaiting && <Badge variant="secondary">Change request waiting</Badge>}
+            <Link href={`/staff/coordinator/events/${event.id}/change-request`} className="underline">
+              {changeRequestWaiting ? "Review it" : "Change requests"}
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">

@@ -1,14 +1,20 @@
 import { describe, expect, it } from "vitest";
 
+import { changeRequestId, type ChangeRequestItem } from "@/core/domain/change-request";
 import {
+  ChangeRequestAlreadyDecidedError,
   ChangeRequestAlreadyOpenError,
   ChangeRequestClosedError,
+  ChangeRequestNotFoundError,
   EventRequestNotFoundError,
+  InvalidChangeRequestDecisionError,
   InvalidChangeRequestError,
 } from "@/core/domain/errors";
+import { eventId } from "@/core/domain/event";
 import { eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
+import { toChangeRequestItem, toRequestedChange } from "./change-request-mapper";
 import type { SupabaseServerClient } from "./client";
 import { SupabaseChangeRequestRepository } from "./supabase-change-request-repository";
 
@@ -103,5 +109,106 @@ describe("SupabaseChangeRequestRepository (SPM-52)", () => {
         changes: [{ field: "expected_attendance", value: 150 }],
       }),
     ).rejects.toThrow(expected);
+  });
+});
+
+describe("SupabaseChangeRequestRepository decisions (SPM-100)", () => {
+  const coordinator = userAccountId("2");
+
+  it("AC1: reads each request's fields and decisions, spelling Rejected as Declined", async () => {
+    const { client, calls } = fakeClient({
+      coordinator_event_change_requests: {
+        data: [
+          {
+            change_request_id: 4,
+            created_at: "2026-10-27T02:00:00+00:00",
+            items: [
+              { field_name: "expected_attendance", requested_value: "350", decision: "Rejected", decision_reason: "Too many" },
+              { field_name: "equipment_requirements", requested_value: null, decision: "Accepted", decision_reason: null },
+            ],
+          },
+        ],
+        error: null,
+      },
+    });
+
+    const requests = await new SupabaseChangeRequestRepository(client).listForEvent(coordinator, eventId("1"));
+
+    expect(requests).toEqual([
+      {
+        id: "4",
+        submittedAt: new Date("2026-10-27T02:00:00Z"),
+        items: [
+          { change: { field: "expected_attendance", value: 350 }, decision: "Declined", reason: "Too many" },
+          { change: { field: "equipment_requirements", value: null }, decision: "Accepted", reason: null },
+        ],
+      },
+    ]);
+    expect(calls).toEqual([
+      { name: "coordinator_event_change_requests", args: { p_coordinator_user_account_id: 2, p_event_id: 1 } },
+    ]);
+  });
+
+  it.each([
+    ["times running to midnight", { field: "times", value: [{ date: "2026-12-01", start: "09:00", end: "24:00" }] }],
+    ["venue requirements", { field: "venue_requirements", value: "Theatre seating" }],
+    ["an attendance of 0", { field: "expected_attendance", value: 0 }],
+    ["equipment requirements", { field: "equipment_requirements", value: "Two mics" }],
+    ["equipment Not applicable", { field: "equipment_requirements", value: null }],
+    [
+      "registration settings",
+      { field: "registration", value: { enabled: true, opensOn: "2026-11-01", closesOn: "2026-11-25" } },
+    ],
+    ["registration Not applicable", { field: "registration", value: null }],
+  ] as const)("reads back %s as it was sent", (_label, change) => {
+    expect(toRequestedChange(toChangeRequestItem(change))).toEqual(change);
+  });
+
+  it("AC2, AC3: sends every decision, Declined as Rejected with its reason", async () => {
+    const { client, calls } = fakeClient({ coordinator_decide_change_request: { data: null, error: null } });
+    const items: ChangeRequestItem[] = [
+      { change: { field: "expected_attendance", value: 350 }, decision: "Accepted", reason: null },
+      { change: { field: "venue_requirements", value: "Theatre" }, decision: "Declined", reason: "No such hall" },
+    ];
+
+    await new SupabaseChangeRequestRepository(client).decide(coordinator, changeRequestId("4"), items);
+
+    expect(calls).toEqual([
+      {
+        name: "coordinator_decide_change_request",
+        args: {
+          p_coordinator_user_account_id: 2,
+          p_change_request_id: 4,
+          p_decisions: [
+            { field_name: "expected_attendance", decision: "Accepted", decision_reason: null },
+            { field_name: "venue_requirements", decision: "Rejected", decision_reason: "No such hall" },
+          ],
+        },
+      },
+    ]);
+  });
+
+  it.each([
+    ["CS095", ChangeRequestNotFoundError],
+    ["CS096", ChangeRequestClosedError],
+    ["CS097", ChangeRequestAlreadyDecidedError],
+    ["CS098", InvalidChangeRequestDecisionError],
+  ] as const)("turns %s into %o", async (code, errorType) => {
+    const { client } = fakeClient({
+      coordinator_decide_change_request: { data: null, error: { code, message: "refused" } },
+    });
+
+    await expect(
+      new SupabaseChangeRequestRepository(client).decide(coordinator, changeRequestId("4"), []),
+    ).rejects.toThrow(errorType);
+  });
+
+  it("refuses an id that is not a number as not found, without calling the database", async () => {
+    const { client, calls } = fakeClient({});
+
+    await expect(
+      new SupabaseChangeRequestRepository(client).decide(coordinator, changeRequestId("abc"), []),
+    ).rejects.toThrow(ChangeRequestNotFoundError);
+    expect(calls).toEqual([]);
   });
 });
