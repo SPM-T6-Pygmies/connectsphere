@@ -202,17 +202,6 @@ describe("deriveVenueCalendar on the 15-minute grid (SPM-323)", () => {
     );
   });
 
-  it("reads a block recorded on PM, before blocks moved to times, as its 15-minute periods", () => {
-    const pm: CalendarBlock = { date: DAY, slot: "PM", reason: "Safety", note: null };
-
-    expect(statuses(day({ blocked: [pm] }), "12:45", "18:15")).toMatchObject({
-      "12:45": "available",
-      "13:00": "blocked",
-      "17:45": "blocked",
-      "18:00": "available",
-    });
-  });
-
   it("widens the day to show a booking outside the opening hours, the rest of the widening closed (AC1)", () => {
     const calendarDay = day({
       openingHours: [{ start: "09:00", end: "10:00" }],

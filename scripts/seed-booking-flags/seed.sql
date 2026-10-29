@@ -4,16 +4,16 @@
 -- lands on the days the other seeds use (seed-venue-unavailability: +14 to +20,
 -- seed-booking-holds: +21).
 --
---   Event                          Coordinator          Venue            Day, slot   Status
---   Flag Test: Tech Summit         Test Coordinator     Main Hall        F, PM       Confirmed
---                                                       Studio           F, PM       Confirmed
---   Flag Test: Offsite Day         Test Coordinator     Main Hall        F + 4, PM   Confirmed
---   Flag Test: Second Event        Test Coordinator     Rooftop Terrace  F, PM       Requested
---   Flag Test: Hold Event          Test Coordinator     Studio           F + 2, PM   Tentative Hold, live
---                                                       Studio           F + 3, PM   Tentative Hold, expired an hour ago
---   Flag Test: Workshop            Test Coordinator 2   Main Hall        F, AM       Confirmed
---   Flag Test: Gala                Test Coordinator 2   Main Hall        F, Night    Confirmed
---   Flag Test: Quiz                Test Coordinator 2   Main Hall        F + 1, PM   Confirmed
+--   Event                          Coordinator          Venue            Day, time            Status
+--   Flag Test: Tech Summit         Test Coordinator     Main Hall        F, 13:00-18:00       Confirmed
+--                                                       Studio           F, 13:00-18:00       Confirmed
+--   Flag Test: Offsite Day         Test Coordinator     Main Hall        F + 4, 13:00-18:00   Confirmed
+--   Flag Test: Second Event        Test Coordinator     Rooftop Terrace  F, 13:00-18:00       Requested
+--   Flag Test: Hold Event          Test Coordinator     Studio           F + 2, 13:00-18:00   Tentative Hold, live
+--                                                       Studio           F + 3, 13:00-18:00   Tentative Hold, expired an hour ago
+--   Flag Test: Workshop            Test Coordinator 2   Main Hall        F, 07:00-12:00       Confirmed
+--   Flag Test: Gala                Test Coordinator 2   Main Hall        F, 19:00-24:00       Confirmed
+--   Flag Test: Quiz                Test Coordinator 2   Main Hall        F + 1, 13:00-18:00   Confirmed
 --
 -- Run after supabase db reset, seed-coordinator-view and seed-venues:
 --
@@ -51,16 +51,16 @@ begin
 
   for r in
     select * from (values
-      ('Flag Test: Tech Summit',  'Test Coordinator',   'Main Hall', f,     'PM',    'Confirmed',      null::interval),
-      ('Flag Test: Tech Summit',  'Test Coordinator',   'Studio',    f,     'PM',    'Confirmed',      null),
-      ('Flag Test: Offsite Day',  'Test Coordinator',   'Main Hall', f + 4, 'PM',    'Confirmed',      null),
-      ('Flag Test: Second Event', 'Test Coordinator',   'Rooftop Terrace', f, 'PM',    'Requested',      null),
-      ('Flag Test: Hold Event',   'Test Coordinator',   'Studio',    f + 2, 'PM',    'Tentative Hold', interval '20 days'),
-      ('Flag Test: Hold Event',   'Test Coordinator',   'Studio',    f + 3, 'PM',    'Tentative Hold', interval '-1 hour'),
-      ('Flag Test: Workshop',     'Test Coordinator 2', 'Main Hall', f,     'AM',    'Confirmed',      null),
-      ('Flag Test: Gala',         'Test Coordinator 2', 'Main Hall', f,     'Night', 'Confirmed',      null),
-      ('Flag Test: Quiz',         'Test Coordinator 2', 'Main Hall', f + 1, 'PM',    'Confirmed',      null)
-    ) as v(event_name, coordinator, venue, slot_date, slot, status, hold_for)
+      ('Flag Test: Tech Summit',  'Test Coordinator',   'Main Hall', f,     52, 71, 'Confirmed',      null::interval),
+      ('Flag Test: Tech Summit',  'Test Coordinator',   'Studio',    f,     52, 71, 'Confirmed',      null),
+      ('Flag Test: Offsite Day',  'Test Coordinator',   'Main Hall', f + 4, 52, 71, 'Confirmed',      null),
+      ('Flag Test: Second Event', 'Test Coordinator',   'Rooftop Terrace', f, 52, 71, 'Requested',      null),
+      ('Flag Test: Hold Event',   'Test Coordinator',   'Studio',    f + 2, 52, 71, 'Tentative Hold', interval '20 days'),
+      ('Flag Test: Hold Event',   'Test Coordinator',   'Studio',    f + 3, 52, 71, 'Tentative Hold', interval '-1 hour'),
+      ('Flag Test: Workshop',     'Test Coordinator 2', 'Main Hall', f,     28, 47, 'Confirmed',      null),
+      ('Flag Test: Gala',         'Test Coordinator 2', 'Main Hall', f,     76, 95, 'Confirmed',      null),
+      ('Flag Test: Quiz',         'Test Coordinator 2', 'Main Hall', f + 1, 52, 71, 'Confirmed',      null)
+    ) as v(event_name, coordinator, venue, slot_date, first_slot, last_slot, status, hold_for)
   loop
     select event_id into v_event
       from public.event where name = r.event_name and client_organisation_id = v_organisation;
@@ -89,11 +89,8 @@ begin
       case when r.hold_for is null then null else now() + r.hold_for end
     )
     returning booking_id into v_booking;
-    -- The slot's hours as 15-minute slots (SPM-324).
+    -- One row per 15-minute slot of the time (SPM-324).
     insert into public.booking_slot (booking_id, slot_date, slot)
-    select v_booking, r.slot_date, g.slot_code
-    from public.slot s
-    join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-    where s.slot_code = r.slot;
+    select v_booking, r.slot_date, n::text from generate_series(r.first_slot, r.last_slot) as n;
   end loop;
 end $$;

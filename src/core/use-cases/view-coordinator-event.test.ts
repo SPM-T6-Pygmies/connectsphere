@@ -14,11 +14,18 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import type { ReadinessFacts } from "@/core/domain/event-readiness";
+import { slotCodesFor } from "@/core/domain/slot-grid";
+import { toMinutes } from "@/core/domain/time-of-day";
 import { userAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 import type { SafetyCheckEntry } from "@/core/ports/outbound/safety-check-repository";
 
 import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
+
+/** The 15-minute slots from `start` to `end` on `date`, as the slot tables hold them (SPM-331). */
+function slotsOf(date: string, start: string, end: string) {
+  return slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot }));
+}
 
 const COORDINATOR = userAccountId("coordinator-1");
 const OTHER_COORDINATOR = userAccountId("coordinator-2");
@@ -306,7 +313,7 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
     venueId: venueId("venue-1"),
     startDate: "2026-11-06",
     endDate: "2026-11-06",
-    slots: [{ date: "2026-11-06", slot: "PM" }],
+    slots: slotsOf("2026-11-06", "13:00", "18:00"),
     reason: "Maintenance",
     note: null,
   } as const;
@@ -322,7 +329,7 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
           venueId: "venue-1",
           eventName: "Tech Summit",
           status: "Confirmed",
-          slots: [{ date: "2026-11-06", slot: "PM" }],
+          slots: slotsOf("2026-11-06", "13:00", "18:00"),
           eventId: "event-1",
           coordinatorUserAccountId: COORDINATOR,
         },

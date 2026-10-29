@@ -35,47 +35,6 @@ import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
 import { bufferMinutes } from "./venue-buffers";
 
-/** `booking_slot_value_chk`: venues are booked in three fixed slots a day (#50). */
-export type BookingSlot = "AM" | "PM" | "Night";
-
-/** In the order they fall in a day, which is also the order a request is shown in. */
-export const BOOKING_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
-
-/**
- * Each slot's span as `HH:MM` wall-clock time in Singapore, as the `slot` table
- * holds it. Night ends at midnight, written `24:00` so it falls after its start.
- */
-export const SLOT_HOURS: Readonly<Record<BookingSlot, { start: string; end: string }>> = {
-  AM: { start: "07:00", end: "12:00" },
-  PM: { start: "13:00", end: "18:00" },
-  Night: { start: "19:00", end: "24:00" },
-};
-
-/**
- * The instant `slot` starts on its date. Singapore observes no daylight
- * saving, so its +08:00 offset is exact (#36).
- */
-export function slotStartsAt({ date, slot }: SlotOnDate): Date {
-  return new Date(`${date}T${SLOT_HOURS[slot].start}:00+08:00`);
-}
-
-/** The instant `slot` ends on its date, on the same +08:00 footing as `slotStartsAt`. */
-export function slotEndsAt({ date, slot }: SlotOnDate): Date {
-  return new Date(`${date}T${SLOT_HOURS[slot].end}:00+08:00`);
-}
-
-/**
- * `slot`'s hours as a time of day, so a slot booking can be compared with
- * opening hours until bookings move to times (SPM-320, SPM-324).
- */
-export function slotRange(slot: BookingSlot): TimeRange {
-  return { start: toMinutes(SLOT_HOURS[slot].start) ?? 0, end: toMinutes(SLOT_HOURS[slot].end) ?? 0 };
-}
-
-export function isBookingSlot(raw: string): raw is BookingSlot {
-  return (BOOKING_SLOTS as readonly string[]).includes(raw);
-}
-
 /** `booking_status_chk`. */
 export type BookingStatus =
   | "Requested"
@@ -89,21 +48,11 @@ export type BookingStatus =
 
 export type BookingId = Brand<string, "BookingId">;
 
-/** One slot on one calendar day. `date` is `YYYY-MM-DD`, Singapore time (#36). */
-export interface SlotOnDate {
-  readonly date: string;
-  readonly slot: BookingSlot;
-}
-
 /**
  * The hours `slot` covers on its date, so a block's slot can be compared with a booking's time.
- * A slot is AM, PM or Night, or a 15-minute code '0' to '95' (SPM-331): a block recorded since
- * SPM-321 is on the codes, and a booking's own slots are too once converted (SPM-324).
+ * A slot is a 15-minute code, '0' (00:00-00:15) to '95' (23:45-24:00) (SPM-331).
  */
 export function slotTime({ date, slot }: { readonly date: string; readonly slot: string }): TimeRangeOnDate {
-  if (isBookingSlot(slot)) {
-    return { date, ...SLOT_HOURS[slot] };
-  }
   const n = Number(slot);
   if (!Number.isInteger(n) || String(n) !== slot || n < 0 || n >= END_OF_DAY / GRID_MINUTES) {
     throw new Error(`Unknown slot code "${slot}"`);
@@ -367,8 +316,7 @@ export function clashDates(dates: readonly string[]): string[] {
 
 /**
  * SPM-21 AC12, SPM-324: the parts of `times` that blocks over these slots
- * cover, joined into ranges. Blocks are compared by their hours, whether they are on
- * AM, PM and Night or on the 15-minute codes (SPM-321).
+ * cover, joined into ranges. Blocks are compared by their hours (SPM-321).
  */
 export function blockedTimes(
   times: readonly TimeRangeOnDate[],

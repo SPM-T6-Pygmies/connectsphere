@@ -179,3 +179,5 @@ SPM-324 AC4.
 - [`TC-VENUENOTE-005_step3-venue-inbox.png`](../screenshots/2026-10-22_SPM-324_TC-VENUENOTE-005_step3-venue-inbox.png)
 
 **Status:** [x] Pass [ ] Fail — 22/10/2026, Chrome via Claude in Chrome for joyceetran (`pnpm dev:local` with the Novu tunnel; the new booking was 10).
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), with the Novu tunnel; the new booking was 13, with one `Sent` row each for accounts 4 and 9. Screenshot: [venue-inbox](screenshots/spm-328/TC-VENUENOTE-005_venue-inbox.jpg)

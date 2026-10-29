@@ -1,4 +1,3 @@
-import type { BookingSlot } from "@/core/domain/booking";
 import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import { paddedWindows } from "@/core/domain/padded-window";
 import { bufferMinutes, describeBuffers, type VenueBuffers } from "@/core/domain/venue-buffers";
@@ -31,9 +30,4 @@ export function venueBufferNote(venue: Partial<VenueBuffers> | null): string | n
   if (venue === null) return null;
   const described = describeBuffers(venue);
   return described === "Not set" ? "No setup or turnaround set" : described;
-}
-
-/** The slot codes as a list, or a dash when there are none. */
-export function formatSlots(slots: readonly BookingSlot[]): string {
-  return slots.length === 0 ? "—" : slots.join(", ");
 }

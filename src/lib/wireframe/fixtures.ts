@@ -95,7 +95,6 @@ export const VENUES: readonly VenueRecord[] = [
     capacity: 120,
     facilities: "Projector, PA system, hearing loop, breakout corner",
     accessibility: "Step-free access, accessible WC on level",
-    slots: ["PM", "Night"],
     setupTimeMinutes: 45,
     turnaroundTimeMinutes: 30,
     supportedLayouts: [
@@ -110,7 +109,6 @@ export const VENUES: readonly VenueRecord[] = [
     capacity: 300,
     facilities: "Stage, dual projection, green room, loading bay",
     accessibility: "Step-free access, accessible stage lift",
-    slots: ["AM", "PM", "Night"],
     setupTimeMinutes: 90,
     turnaroundTimeMinutes: 60,
     supportedLayouts: [
@@ -124,7 +122,6 @@ export const VENUES: readonly VenueRecord[] = [
     capacity: 45,
     facilities: "Wall-mounted display, whiteboard",
     accessibility: "Lift access only, no hearing loop",
-    slots: ["PM"],
     setupTimeMinutes: 20,
     turnaroundTimeMinutes: 15,
     supportedLayouts: [
@@ -179,7 +176,7 @@ const BOOKING_CONFIRMED: BookingRecord = {
   venue: VENUES[0],
   status: "Confirmed",
   slotDate: "2026-10-14",
-  slots: ["AM", "PM"],
+  times: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }],
   requestedBy: PEOPLE.coordinatorAmara,
   decidedBy: PEOPLE.venueMei,
   rejectionNote: null,
@@ -193,7 +190,7 @@ const BOOKING_REQUESTED: BookingRecord = {
   venue: VENUES[1],
   status: "Requested",
   slotDate: "2026-11-18",
-  slots: ["AM", "PM"],
+  times: [{ start: "07:00", end: "12:00" }, { start: "13:00", end: "18:00" }],
   requestedBy: PEOPLE.coordinatorAmara,
   decidedBy: null,
   rejectionNote: null,
@@ -207,7 +204,7 @@ const BOOKING_REJECTED: BookingRecord = {
   venue: VENUES[1],
   status: "Rejected",
   slotDate: "2026-10-02",
-  slots: ["PM"],
+  times: [{ start: "13:00", end: "18:00" }],
   requestedBy: PEOPLE.coordinatorJonas,
   decidedBy: PEOPLE.venueMei,
   rejectionNote:
@@ -222,7 +219,7 @@ const BOOKING_PENDING_SMALL: BookingRecord = {
   venue: VENUES[2],
   status: "Requested",
   slotDate: "2026-12-03",
-  slots: ["AM"],
+  times: [{ start: "07:00", end: "12:00" }],
   requestedBy: PEOPLE.coordinatorJonas,
   decidedBy: null,
   rejectionNote: null,
@@ -362,7 +359,6 @@ function event(
     Pick<EventRecord, "id" | "name" | "status" | "request">,
 ): EventRecord {
   return {
-    slots: [],
     eventCapacity: null,
     programmeAgenda: null,
     operationalNotes: null,
@@ -452,7 +448,6 @@ export const EVENTS: readonly EventRecord[] = [
     name: "Hybrid Leadership Summit",
     status: "Planning",
     coordinator: PEOPLE.coordinatorAmara,
-    slots: [{ date: "2026-11-18", slot: "AM" }, { date: "2026-11-18", slot: "PM" }],
     eventCapacity: 180,
     programmeAgenda:
       "Four sessions across the day; two with remote speakers dialling in.",
@@ -526,7 +521,6 @@ export const EVENTS: readonly EventRecord[] = [
     name: "Graduate Recruitment Open Day",
     status: "Blocked",
     coordinator: PEOPLE.coordinatorJonas,
-    slots: [{ date: "2026-10-02", slot: "PM" }],
     eventCapacity: 250,
     booking: BOOKING_REJECTED,
     request: request({
@@ -580,7 +574,6 @@ export const EVENTS: readonly EventRecord[] = [
     name: "Autumn Product Showcase",
     status: "Confirmed",
     coordinator: PEOPLE.coordinatorAmara,
-    slots: [{ date: "2026-10-14", slot: "AM" }, { date: "2026-10-14", slot: "PM" }],
     eventCapacity: 120,
     programmeAgenda: "Keynote at 10:30, demo stations from 13:00.",
     registrationEnabled: true,
@@ -691,7 +684,6 @@ export const EVENTS: readonly EventRecord[] = [
     name: "Compliance Training Workshop",
     status: "Planning",
     coordinator: PEOPLE.coordinatorJonas,
-    slots: [{ date: "2026-12-03", slot: "AM" }, { date: "2026-12-03", slot: "PM" }],
     eventCapacity: 40,
     booking: BOOKING_PENDING_SMALL,
     equipment: EQUIPMENT_REQUESTED,
@@ -745,7 +737,6 @@ export const EVENTS: readonly EventRecord[] = [
     name: "Summer Networking Evening",
     status: "Completed",
     coordinator: PEOPLE.coordinatorAmara,
-    slots: [{ date: "2026-07-24", slot: "Night" }],
     eventCapacity: 80,
     registrationEnabled: true,
     registrationOpenDate: "2026-06-15",

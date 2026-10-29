@@ -46,7 +46,7 @@ export interface BlockedSlotRow {
   reason_note: string | null;
 }
 
-/** A block's slot code: AM/PM/Night or a 15-minute code. A code the `slot` table cannot hold is a fault, not data. */
+/** A block's 15-minute slot code. A code the `slot` table cannot hold is a fault, not data. */
 function toBlockSlot(raw: string): string {
   slotCodeRange(raw);
   return raw;

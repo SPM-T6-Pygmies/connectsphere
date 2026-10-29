@@ -4,7 +4,6 @@ import {
   slotTime,
   type BookingId,
   type BookingStatus,
-  type SlotOnDate,
 } from "@/core/domain/booking";
 import {
   blockFlagDetail,
@@ -43,7 +42,7 @@ export interface SeededBooking {
   readonly venueId: string;
   readonly eventName: string;
   readonly status: BookingStatus;
-  readonly slots: readonly SlotOnDate[];
+  readonly slots: readonly SlotCodeOnDate[];
   /** SPM-313: only needed by a case that reads flags. */
   readonly eventId?: string;
   readonly coordinatorUserAccountId?: string | null;
