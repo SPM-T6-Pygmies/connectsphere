@@ -88,6 +88,7 @@ describe("ListEquipmentQueueUseCase (SPM-273)", () => {
         status: "Planning",
         lineCount: 4,
         linesNeedingAttention: 3,
+        linesRescheduled: 0,
         linesUnfulfilled: 0,
       },
     ]);
@@ -149,5 +150,38 @@ describe("ListEquipmentQueueUseCase (SPM-274)", () => {
 
     expect((await list(seed)).events).toEqual([]);
     expect((await list(seed, "reviewed")).events[0]).toMatchObject({ lineCount: 2, linesNeedingAttention: 0, linesUnfulfilled: 1 });
+  });
+});
+
+function rescheduled(item = "item-screen"): EquipmentRequirement {
+  return {
+    ...reserved(item),
+    quantityReserved: 0,
+    state: "Under review",
+    reviewBaseline: { quantityRequested: 2, technicalRequirements: null },
+    rescheduled: true,
+  };
+}
+
+describe("ListEquipmentQueueUseCase (SPM-311)", () => {
+  it("AC1: an event whose dates changed is on Needs review under its new date, counting the lines released", async () => {
+    const lines = [rescheduled(), rescheduled("item-projector"), requested()];
+    const result = await list([entry("moved", lines, "Planning", "2026-12-20")]);
+
+    expect(result.events).toEqual([
+      expect.objectContaining({
+        eventId: "moved",
+        preferredDate: "2026-12-20",
+        lineCount: 3,
+        linesNeedingAttention: 3,
+        linesRescheduled: 2,
+      }),
+    ]);
+  });
+
+  it("AC1: a line changed after reserving is not counted as rescheduled", async () => {
+    const result = await list([entry("1", [changed(), rescheduled()])]);
+
+    expect(result.events[0]).toMatchObject({ linesNeedingAttention: 2, linesRescheduled: 1 });
   });
 });

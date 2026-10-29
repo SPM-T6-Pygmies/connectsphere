@@ -51,7 +51,15 @@ function Decision({ line }: { line: TechnicalSupportEquipmentLine }) {
   return null;
 }
 
-function EquipmentRow({ eventId, line }: { eventId: string; line: TechnicalSupportEquipmentLine }) {
+function EquipmentRow({
+  eventId,
+  eventDate,
+  line,
+}: {
+  eventId: string;
+  eventDate: string | null;
+  line: TechnicalSupportEquipmentLine;
+}) {
   const was = line.reservedAs;
   const quantityChanged = was !== null && was.quantityRequested !== line.quantityRequested;
   const notesChanged = was !== null && was.technicalRequirements !== line.technicalRequirements;
@@ -87,6 +95,10 @@ function EquipmentRow({ eventId, line }: { eventId: string; line: TechnicalSuppo
         {line.attention === null ? null : (
           <Badge variant={ATTENTION[line.attention].variant}>{ATTENTION[line.attention].label}</Badge>
         )}
+        {/* SPM-311 AC1: the units were released, so they are reserved again against the new date. */}
+        {line.attention === "rescheduled" && eventDate !== null ? (
+          <div className="text-muted-foreground text-xs">{`Reserve again for ${eventDate}`}</div>
+        ) : null}
       </TableCell>
       <TableCell className="w-72 max-w-72 align-top whitespace-normal">
         {line.canDecide ? (
@@ -179,7 +191,12 @@ export async function EventEquipmentDetail({ id, origin = "queue" }: { id: strin
               </TableHeader>
               <TableBody>
                 {lines.map((line) => (
-                  <EquipmentRow key={line.equipmentItemId} eventId={event.id} line={line} />
+                  <EquipmentRow
+                    key={line.equipmentItemId}
+                    eventId={event.id}
+                    eventDate={event.preferredDate}
+                    line={line}
+                  />
                 ))}
               </TableBody>
             </Table>
