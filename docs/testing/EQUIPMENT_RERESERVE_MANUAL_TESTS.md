@@ -27,8 +27,8 @@ What these cases do **not** cover:
 - **Re-checking availability at the moment of saving** (AC4). It is the SPM-274 AC6
   check, under the item's row lock, and is unit-tested (`ReserveEquipmentLineUseCase`,
   tagged SPM-316).
-- **A date change** (SPM-311, not yet built). Once it releases every held unit, those
-  lines go through SPM-274 as they are.
+- **A date change** (SPM-311). It releases every held unit, so those lines go through
+  SPM-274 as they are: see [`EQUIPMENT_RESCHEDULE_MANUAL_TESTS.md`](EQUIPMENT_RESCHEDULE_MANUAL_TESTS.md).
 
 The rules are unit-tested (`awaitsDecision`, `reserveEquipmentLine`,
 `markEquipmentLineUnfulfilled`, `freeToReserve` and the use cases, all tagged SPM-316).
