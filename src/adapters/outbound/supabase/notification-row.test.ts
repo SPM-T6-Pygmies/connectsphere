@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  changeRequestedRow,
   clarificationRequestedRow,
   coordinatorAssignedRow,
   equipmentDecidedRow,
@@ -383,6 +384,29 @@ describe("eventCancelledRow (SPM-68)", () => {
       related_event_id: "7",
       message_content:
         "Harbour Lights Gala is cancelled\nHarbour Lights Gala has been cancelled. Its venue bookings and equipment reservations have been released.",
+    });
+  });
+});
+
+describe("changeRequestedRow (SPM-67)", () => {
+  it("AC1: records the notice as Pending against the coordinator, the event and the change request", () => {
+    expect(
+      changeRequestedRow({
+        recipientUserAccountId: "4",
+        eventId: "7",
+        changeRequestId: "41",
+        eventName: "Harbour Lights Gala",
+        changes: [{ field: "expected_attendance", value: 320 }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "4",
+      trigger_scenario: "change-requested",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      related_change_request_id: "41",
+      message_content:
+        "Change requested for Harbour Lights Gala\nThe Organiser of Harbour Lights Gala asks to change: Expected attendance → 320. Open the change request to accept or decline each change.",
     });
   });
 });

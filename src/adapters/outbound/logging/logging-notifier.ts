@@ -1,5 +1,6 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
@@ -134,6 +135,12 @@ export class LoggingNotifier implements Notifier {
   async venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
     console.info(
       `[notifier] coordinator ${notice.recipientUserAccountId} told booking ${notice.bookingId} was flagged (${notice.reasonCode})`,
+    );
+  }
+
+  async changeRequested(notice: ChangeRequestedNotice): Promise<void> {
+    console.info(
+      `[notifier] coordinator ${notice.recipientUserAccountId} told change request ${notice.changeRequestId} was submitted (${notice.changes.map((change) => change.field).join(", ")})`,
     );
   }
 

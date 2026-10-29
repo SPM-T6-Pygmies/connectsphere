@@ -267,3 +267,15 @@ describe("notificationItem (SPM-164)", () => {
     expect(item.status).toBe("Organiser message")
   })
 })
+
+describe("notificationItem (SPM-67)", () => {
+  it("AC4: names a change request's notice and opens the event's change request as it is", () => {
+    const item = notificationItem(
+      "coordinator",
+      notification({ redirect: { url: "/staff/coordinator/events/7/change-request" }, tags: ["change-requested"] }),
+    )
+
+    expect(item.status).toBe("Change requested")
+    expect(item.href).toBe("/staff/coordinator/events/7/change-request")
+  })
+})

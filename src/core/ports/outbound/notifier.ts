@@ -1,3 +1,4 @@
+import type { RequestedChange } from "../../domain/change-request";
 import type { Connection } from "../../domain/connection";
 import type { ConfirmedEquipmentLine } from "../../domain/event-readiness";
 import type { TimeRangeOnDate } from "../../domain/event-times";
@@ -287,6 +288,20 @@ export interface EventCancelledNotice {
 }
 
 /**
+ * What an event's assigned Event Coordinator is told when its Organiser
+ * submits a change request (SPM-67): every field asked for, with the value
+ * wanted, so they know what to re-check. `null` is "Not applicable".
+ */
+export interface ChangeRequestedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly changeRequestId: string;
+  readonly eventName: string;
+  /** In the request's order, each field at most once. */
+  readonly changes: readonly RequestedChange[];
+}
+
+/**
  * What an event's assigned Event Coordinator is told when Venue Staff's change
  * to a venue flags one of its bookings (SPM-71): a block over it (SPM-313) or
  * an edit it no longer fits (SPM-105). One notice per booking, with every
@@ -349,5 +364,6 @@ export interface Notifier {
   eventRescheduled(notice: EventRescheduledNotice): Promise<void>;
   eventCancelled(notice: EventCancelledNotice): Promise<void>;
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void>;
+  changeRequested(notice: ChangeRequestedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

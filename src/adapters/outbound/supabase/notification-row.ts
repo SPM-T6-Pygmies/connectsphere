@@ -2,6 +2,7 @@ import {
   coordinatorAssignedMessage,
   type NotificationMessage,
 } from "@/adapters/outbound/notification-content/coordinator-assigned";
+import { changeRequestedMessage } from "@/adapters/outbound/notification-content/change-requested";
 import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
 import { equipmentDecidedMessage } from "@/adapters/outbound/notification-content/equipment-decided";
 import { equipmentNeedsAttentionMessage } from "@/adapters/outbound/notification-content/equipment-needs-attention";
@@ -19,6 +20,7 @@ import { venueBookingFlaggedMessage } from "@/adapters/outbound/notification-con
 import { venueBookingDecidedMessage } from "@/adapters/outbound/notification-content/venue-booking-decided";
 import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
+  ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
@@ -47,6 +49,7 @@ export interface NotificationRow {
   readonly related_event_request_id?: string;
   readonly related_event_id?: string;
   readonly related_booking_id?: string;
+  readonly related_change_request_id?: string;
   readonly message_content: string;
 }
 
@@ -264,6 +267,20 @@ export function venueBookingFlaggedRow(notice: VenueBookingFlaggedNotice): Notif
     channel: "in_app",
     status: "Pending",
     related_booking_id: notice.bookingId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a coordinator an Organiser asked to change their event (SPM-67). */
+export function changeRequestedRow(notice: ChangeRequestedNotice): NotificationRow {
+  const { subject, body } = changeRequestedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "change-requested",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    related_change_request_id: notice.changeRequestId,
     message_content: `${subject}\n${body}`,
   };
 }
