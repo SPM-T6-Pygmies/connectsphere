@@ -110,13 +110,15 @@ AC4.
 
 **Expected Result:**
 - Step 1: `/staff/venue/catalogue/<UAT-44 Harbour Room id>/calendar?from=<C>`, headed UAT-44 Harbour
-  Room, its week starting on C. C's AM reads **Available**; C's Night still reads **Confirmed**
-  (booking Q).
+  Room, its week starting on C. C `07:00` to `12:00` read **Available**; C `19:00` to `24:00` still
+  read **Confirmed** (booking Q).
 - Step 2: HTTP 403, "You don't have access to this page."
 
 **Evidence:**
 - [`TC-VCANCELNOTE-002_step1-calendar-freed-slot.png`](../screenshots/2026-10-21_TC-VCANCELNOTE-002_step1-calendar-freed-slot.png)
 - [`TC-VCANCELNOTE-002_step2-coordinator-forbidden.png`](../screenshots/2026-10-21_TC-VCANCELNOTE-002_step2-coordinator-forbidden.png)
+- Re-run 27/10/2026 for SPM-323 (the calendar on 15-minute periods): [step1-calendar-freed-time](../screenshots/2026-10-27_SPM-323_TC-VCANCELNOTE-002_step1-calendar-freed-time.png) · [step1-calendar-booking-q-kept](../screenshots/2026-10-27_SPM-323_TC-VCANCELNOTE-002_step1-calendar-booking-q-kept.png) · [step2-coordinator-forbidden](../screenshots/2026-10-27_SPM-323_TC-VCANCELNOTE-002_step2-coordinator-forbidden.png)
+- Re-run 28/10/2026 on the timeline (SPM-323), notice opened as `venue2@test.com` after TC-VCANCEL-001 cancelled P: [step1-calendar-freed-time](../screenshots/2026-10-28_SPM-323_TC-VCANCELNOTE-002_step1-calendar-freed-time-timeline.png) · [step1-calendar-booking-q-kept](../screenshots/2026-10-28_SPM-323_TC-VCANCELNOTE-002_step1-calendar-booking-q-kept-timeline.png) · [step2-coordinator-forbidden](../screenshots/2026-10-28_SPM-323_TC-VCANCELNOTE-002_step2-coordinator-forbidden-timeline.png)
 
 **Status:** [x] Pass [ ] Fail
 

@@ -7,6 +7,7 @@ import type {
 } from "./coordinator-event";
 import { eventId } from "./event";
 import {
+  BookingFlaggedError,
   EssentialEquipmentNotReservedError,
   EventNotConfirmableError,
   EventNotReadyForConfirmationError,
@@ -16,6 +17,7 @@ import {
   assessReadiness,
   blockingArrangements,
   blockingEquipment,
+  blockingFlags,
   canConfirm,
   confirmationState,
   confirmedArrangements,
@@ -55,7 +57,7 @@ function readiness(
   essentialArrangements: readonly ArrangementReadiness[],
   essentialEquipment: readonly EquipmentLineReadiness[] = [],
 ): EventReadiness {
-  return { eventId: EVENT_ID, essentialArrangements, essentialEquipment };
+  return { eventId: EVENT_ID, essentialArrangements, essentialEquipment, flaggedBookings: [] };
 }
 
 function facts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
@@ -68,6 +70,7 @@ function facts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationOpenDate: null,
     registrationCloseDate: null,
     essentialEquipment: [],
+    flaggedBookings: [],
     ...overrides,
   };
 }
@@ -507,6 +510,70 @@ describe("essential equipment and confirmation (SPM-318)", () => {
     const assessed = assessReadiness(facts({ essentialTypes: ["venue"], essentialEquipment: [projector] }));
 
     expect(() => confirmEvent(event(), assessed, APPROVED)).toThrow(EventNotReadyForConfirmationError);
+  });
+});
+
+describe("flagged bookings and confirmation (SPM-312)", () => {
+  const mainHall = { bookingId: "812", venueLocation: "Main Hall", bookedFor: "2026-11-16 13:00 to 18:00" };
+  const studio = { bookingId: "813", venueLocation: "Studio", bookedFor: "2026-11-16 13:00 to 18:00" };
+
+  it("AC1: names each flagged booking by its venue and the time it is booked for", () => {
+    const assessed = assessReadiness(facts({ flaggedBookings: [mainHall, studio] }));
+
+    expect(blockingFlags(assessed)).toEqual([
+      "Main Hall (2026-11-16 13:00 to 18:00)",
+      "Studio (2026-11-16 13:00 to 18:00)",
+    ]);
+  });
+
+  it("AC1: refuses while one booking is flagged, even with everything else ready", () => {
+    const assessed = assessReadiness(facts({ flaggedBookings: [mainHall] }));
+
+    expect(confirmationState(event(), assessed, APPROVED)).toBe("blocked");
+    expect(canConfirm(event(), assessed, APPROVED)).toBe(false);
+    expect(() => confirmEvent(event(), assessed, APPROVED)).toThrow(
+      new BookingFlaggedError(["Main Hall (2026-11-16 13:00 to 18:00)"]),
+    );
+  });
+
+  it("AC1: says which bookings block, one or several", () => {
+    expect(new BookingFlaggedError(["Main Hall (2026-11-16 13:00 to 18:00)"]).message).toBe(
+      "This event cannot be confirmed: the venue booking at Main Hall (2026-11-16 13:00 to 18:00) " +
+        "is flagged for re-checking.",
+    );
+    expect(new BookingFlaggedError(["Main Hall (2026-11-16 AM)", "Studio (2026-11-16 PM)"]).message).toBe(
+      "This event cannot be confirmed: the venue bookings at Main Hall (2026-11-16 AM), Studio (2026-11-16 PM) " +
+        "are flagged for re-checking.",
+    );
+  });
+
+  it("AC1: an essential line Under review blocks too, named as not reserved in full", () => {
+    const underReview = { equipmentType: "Projector", state: "Under review", quantityRequested: 6, quantityReserved: 4 } as const;
+    const assessed = assessReadiness(facts({ essentialEquipment: [underReview] }));
+
+    expect(blockingEquipment(assessed)).toEqual(["Projector"]);
+    expect(() => confirmEvent(event(), assessed, APPROVED)).toThrow(EssentialEquipmentNotReservedError);
+  });
+
+  it("AC2: confirms once no booking is flagged", () => {
+    const assessed = assessReadiness(facts({ flaggedBookings: [] }));
+
+    expect(blockingFlags(assessed)).toEqual([]);
+    expect(confirmationState(event(), assessed, APPROVED)).toBe("ready");
+    expect(confirmEvent(event(), assessed, APPROVED).status).toBe("Confirmed");
+  });
+
+  it("AC2: still refuses on an incomplete essential arrangement with no flags", () => {
+    const assessed = assessReadiness(facts({ essentialTypes: ["venue"] }));
+
+    expect(() => confirmEvent(event(), assessed, APPROVED)).toThrow(EventNotReadyForConfirmationError);
+  });
+
+  it("AC2: still refuses on a safety check not Approved with no flags", () => {
+    const assessed = assessReadiness(facts());
+
+    expect(confirmationState(event(), assessed, null)).toBe("blocked");
+    expect(() => confirmEvent(event(), assessed, null)).toThrow(SafetyCheckNotApprovedError);
   });
 });
 

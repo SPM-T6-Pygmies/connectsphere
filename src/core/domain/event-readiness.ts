@@ -2,6 +2,7 @@ import type { CoordinatorEvent } from "./coordinator-event";
 import { isReservedInFull, type EquipmentRequirement } from "./equipment-requirement";
 import type { EventId } from "./event";
 import {
+  BookingFlaggedError,
   EssentialEquipmentNotReservedError,
   EventNotConfirmableError,
   EventNotReadyForConfirmationError,
@@ -38,6 +39,8 @@ export interface EventReadiness {
   readonly essentialArrangements: readonly ArrangementReadiness[];
   /** SPM-318: each equipment line marked essential (SPM-109), and whether it is reserved in full. */
   readonly essentialEquipment: readonly EquipmentLineReadiness[];
+  /** SPM-312: the event's venue bookings with an open review flag. */
+  readonly flaggedBookings: readonly FlaggedBookingFacts[];
 }
 
 export interface EquipmentLineReadiness {
@@ -49,6 +52,14 @@ export interface EquipmentLineReadiness {
 export interface EssentialEquipmentFacts
   extends Pick<EquipmentRequirement, "state" | "quantityRequested" | "quantityReserved"> {
   readonly equipmentType: string;
+}
+
+/** SPM-312: one venue booking of the event with an open review flag (SPM-313, SPM-105). */
+export interface FlaggedBookingFacts {
+  readonly bookingId: string;
+  readonly venueLocation: string;
+  /** The day and hours it is booked for, e.g. `2026-11-16 13:00 to 18:00`. */
+  readonly bookedFor: string;
 }
 
 /**
@@ -68,6 +79,11 @@ export interface ReadinessFacts {
   readonly registrationCloseDate: string | null;
   /** SPM-318: the event's equipment lines marked essential. A line not marked never enters, as above. */
   readonly essentialEquipment: readonly EssentialEquipmentFacts[];
+  /**
+   * SPM-312: each booking with an open flag, once however many reasons it has. A booking
+   * that no longer holds its slot -- cancelled, released, a lapsed hold -- never enters.
+   */
+  readonly flaggedBookings: readonly FlaggedBookingFacts[];
 }
 
 /**
@@ -136,6 +152,7 @@ export function assessReadiness(facts: ReadinessFacts): EventReadiness {
       equipmentType: line.equipmentType,
       reservedInFull: isReservedInFull(line),
     })),
+    flaggedBookings: facts.flaggedBookings,
   };
 }
 
@@ -179,6 +196,19 @@ export function blockingEquipment(readiness: EventReadiness): readonly string[] 
   return readiness.essentialEquipment.filter((line) => !line.reservedInFull).map((line) => line.equipmentType);
 }
 
+/** SPM-312: a flagged booking as the coordinator reads it, e.g. `Main Hall (2026-11-16 13:00 to 18:00)`. */
+export function flaggedBookingName(booking: FlaggedBookingFacts): string {
+  return `${booking.venueLocation} (${booking.bookedFor})`;
+}
+
+/**
+ * SPM-312 AC1: every flagged booking blocks, by name. A flag stops blocking once it is
+ * cleared (SPM-310) or its booking stops holding the slot (AC2).
+ */
+export function blockingFlags(readiness: EventReadiness): readonly string[] {
+  return readiness.flaggedBookings.map(flaggedBookingName);
+}
+
 /**
  * Where an event stands on confirmation, and why -- so a screen can say why
  * it cannot be confirmed instead of deciding that from the status itself.
@@ -187,7 +217,8 @@ export type ConfirmationState =
   | "ready"
   /**
    * Planning, with an essential arrangement incomplete, an essential equipment
-   * line not reserved in full (SPM-318) and/or the safety check not Approved (SPM-264).
+   * line not reserved in full (SPM-318), a venue booking flagged (SPM-312) and/or the
+   * safety check not Approved (SPM-264).
    */
   | "blocked"
   /** Confirmed or Completed: there is nothing left to confirm. */
@@ -209,6 +240,7 @@ export function confirmationState(
   }
   return blockingArrangements(readiness).length > 0 ||
     blockingEquipment(readiness).length > 0 ||
+    blockingFlags(readiness).length > 0 ||
     safetyCheckBlocker(latestSafetyCheck) !== null
     ? "blocked"
     : "ready";
@@ -216,8 +248,8 @@ export function confirmationState(
 
 /**
  * Whether the event may be confirmed right now: `Planning`, nothing essential
- * incomplete, every essential equipment line reserved in full, and its latest
- * safety check Approved.
+ * incomplete, every essential equipment line reserved in full, no venue booking
+ * flagged, and its latest safety check Approved.
  */
 export function canConfirm(
   event: CoordinatorEvent,
@@ -230,12 +262,13 @@ export function canConfirm(
 /**
  * SPM-50: confirms the event once every essential arrangement is complete.
  * SPM-318: and once every essential equipment line is reserved in full.
+ * SPM-312: and once no venue booking is flagged for re-checking.
  * SPM-264: and once its latest safety check is Approved.
  *
  * The invariant itself, not just a use-case-level check -- callers cannot
  * reach `Confirmed` any other way than through this function agreeing to it.
- * `coordinator_confirm_event` restates the equipment and safety rules under
- * its row lock.
+ * `coordinator_confirm_event` restates the equipment, flag and safety rules
+ * under its row lock.
  */
 export function confirmEvent(
   event: CoordinatorEvent,
@@ -254,6 +287,11 @@ export function confirmEvent(
   const equipment = blockingEquipment(readiness);
   if (equipment.length > 0) {
     throw new EssentialEquipmentNotReservedError(equipment);
+  }
+
+  const flagged = blockingFlags(readiness);
+  if (flagged.length > 0) {
+    throw new BookingFlaggedError(flagged);
   }
 
   if (safetyCheckBlocker(latestSafetyCheck) !== null) {
