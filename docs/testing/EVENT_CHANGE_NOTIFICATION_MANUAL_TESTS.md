@@ -137,8 +137,8 @@ order by n.notification_id;"
 Signed in as `organiser2@test.com`.
 
 **Steps:**
-1. Open **My requests** → **Operations Roadmap Conference** → **Request a
-   change**. Tick **Date and times** and enter three times with **Add a
+1. In the sidebar open **Submitted** → **Operations Roadmap Conference** →
+   **Request a change** (or go to `/staff/requester/6/change-request`). Tick **Date and times** and enter three times with **Add a
    date**: 26 Nov 2026 09:00–12:00, 26 Nov 2026 14:00–17:00, 27 Nov 2026
    09:00–12:00. Click **Submit change request**.
 2. Sign in as `coordinator@test.com` and open
