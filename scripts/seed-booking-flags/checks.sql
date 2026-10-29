@@ -207,8 +207,8 @@ begin
      or (v_json -> 0 ->> 'venue_location') <> 'Main Hall' or (v_json -> 0 ->> 'status') <> 'Confirmed' then
     v_failed := array_append(v_failed, 'AC4 the Coordinator reads two flags on their event, with the booking''s venue and status'); end if;
   v_checks := v_checks + 1;
-  if (v_json -> 0 -> 'slots' -> 0 ->> 'slot') <> 'PM' or (v_json -> 0 ->> 'flagged_at') is null then
-    v_failed := array_append(v_failed, 'AC4 each flag carries the booking''s slots and when it was flagged'); end if;
+  if (v_json -> 0 ->> 'booked_for') is distinct from f || ' 13:00 to 18:00' or (v_json -> 0 ->> 'flagged_at') is null then
+    v_failed := array_append(v_failed, 'AC4 each flag carries the booking''s time and when it was flagged'); end if;
   v_checks := v_checks + 1;
   if public.coordinator_event_flags(v_coordinator_2, v_tech_event) <> '[]'::jsonb then
     v_failed := array_append(v_failed, 'AC4 another coordinator reads nothing'); end if;
@@ -255,28 +255,28 @@ begin
   select count(*) into v_n from public.booking_review_flag where booking_id = v_quiz and cleared_how = 'coordinator';
   if v_n <> 1 then v_failed := array_append(v_failed, 'AC8 a flag already cleared by the coordinator is left as it was'); end if;
 
-  -- 9c. Overlap is by time, not by slot code, and the reason is the block's own hours: a block on
-  --     the 15-minute codes of SPM-331 flags a booking made on AM/PM/Night when it shares time
-  --     with it, joined where the codes run into each other, and not when it only touches.
+  -- 9c. Overlap is by time, and the reason is the block's own hours: a block flags a 07:00-12:00
+  --     booking when it shares time with it, joined where the codes run into each other, and not
+  --     when it only touches.
   --     Skipped until the slot table has those codes.
   if exists (select 1 from public.slot where slot_code = '48') then
     -- Make sure Main Hall is open 12:00-13:00 (seed-venues opens it 07:00-24:00 since SPM-320, but an
-    -- older seed left a lunch gap), so a block can start exactly as AM ends.
+    -- older seed left a lunch gap), so a block can start exactly as the booking ends.
     insert into public.venue_slot (venue_id, slot_code)
     select v_main, n::text from generate_series(48, 51) n on conflict do nothing;
     v_checks := v_checks + 1;
     v_block3 := public.venue_staff_record_unavailability(
       v_staff, v_main, 'Safety', null,
-      jsonb_build_array(jsonb_build_object('date', f, 'slot', '48')));     -- 12:00-12:15, AM ends at 12:00
+      jsonb_build_array(jsonb_build_object('date', f, 'slot', '48')));     -- 12:00-12:15, the booking ends at 12:00
     select count(*) into v_n from public.booking_review_flag where booking_id = v_workshop and source_ref = v_block3::text;
-    if v_n <> 0 then v_failed := array_append(v_failed, 'a 15-minute block that only touches the AM slot flags nothing'); end if;
+    if v_n <> 0 then v_failed := array_append(v_failed, 'a 15-minute block that only touches the booking flags nothing'); end if;
     v_checks := v_checks + 1;
     v_block3 := public.venue_staff_record_unavailability(
       v_staff, v_main, 'Safety', null,
       jsonb_build_array(jsonb_build_object('date', f, 'slot', '46'), jsonb_build_object('date', f, 'slot', '47')));
     select detail into v_text from public.booking_review_flag where booking_id = v_workshop and source_ref = v_block3::text;
     if v_text is distinct from 'Safety: ' || f || ' 11:30 to 12:00' then
-      v_failed := array_append(v_failed, 'two 15-minute slots inside the AM slot flag the AM booking, naming the block''s 11:30 to 12:00'); end if;
+      v_failed := array_append(v_failed, 'two 15-minute slots inside the booking flag it, naming the block''s 11:30 to 12:00'); end if;
   end if;
   v_checks := v_checks + 1;
   if public.merge_time_spans('[{"date":"2026-11-06","start":"13:00","end":"13:15"},{"date":"2026-11-06","start":"13:15","end":"18:00"},{"date":"2026-11-07","start":"07:00","end":"12:00"}]'::jsonb)

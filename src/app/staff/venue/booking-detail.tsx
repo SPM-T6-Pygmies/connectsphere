@@ -20,7 +20,7 @@ import type { BookingReviewDetail } from "@/core/use-cases/review-booking-reques
 import { FieldList } from "../field-list";
 import { detailCrumbs, type DetailOrigin } from "../detail-origin";
 import { formatHoldExpiry } from "../hold-expiry";
-import { formatTimes, roomInUse, venueBufferNote } from "../slot-label";
+import { formatTimes, roomInUse, venueBufferNote } from "../booking-times";
 import { PageHeader, StaffShell, type VenueSection } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
 import { DecisionForm } from "./[id]/decision-form";

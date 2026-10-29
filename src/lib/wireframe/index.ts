@@ -331,7 +331,7 @@ function queueItemsFor(role: StaffRole, section: SidebarSection): ListPaneItem[]
         id: booking.id,
         href: `/staff/venue/${booking.id}`,
         title: booking.venue.location,
-        meta: `${booking.slotDate} · ${booking.slots.join(" + ")}`,
+        meta: `${booking.slotDate} · ${booking.times.map(({ start, end }) => `${start}–${end}`).join(", ")}`,
         teaser: `${event.name} · ${event.request.expectedAttendance ?? "—"} expected`,
         status: booking.status,
       }));

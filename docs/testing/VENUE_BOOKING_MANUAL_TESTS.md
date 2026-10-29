@@ -262,6 +262,8 @@ both for another event. Harbour Room is open `07:00`–`24:00` and Garden Hall
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step2-two-dates-end-24-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step2-two-dates-end-24-00.png), [step3-requested-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step3-requested-times.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset` and the three seeds; D = 2026-11-12. The row read `2026-11-13 07:00–07:15, 2026-11-14 23:45–24:00`. Screenshot: [requested-times](screenshots/spm-328/TC-VENUE-BOOK-023_requested-times.jpg)
+
 ### TC-VENUE-BOOK-024 A missing or impossible time is refused, naming it (SPM-349, AC1)
 
 Each step uses **UAT-44 Harbour Room** on D+3 and changes only what it says; nothing is
@@ -276,6 +278,8 @@ added to *Booking requests* by any of them.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step5-date-twice](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-024_step5-date-twice.png). The event still had only TC-VENUE-BOOK-023's booking afterwards.
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Each refusal named 2026-11-15, and the event still had only TC-VENUE-BOOK-023's booking. Screenshot: [date-twice](screenshots/spm-328/TC-VENUE-BOOK-024_date-twice.jpg)
+
 ### TC-VENUE-BOOK-025 Overlap by any amount clashes; touching does not (SPM-350, AC2)
 
 - [x] Request **UAT-44 Harbour Room** on D, `17:45` to `18:15`: refused with *The venue is
@@ -286,6 +290,8 @@ added to *Booking requests* by any of them.
 - [x] D, `12:00` to `13:00` (ends as it starts): accepted, **Requested**.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step1-17-45-18-15-overlap](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-025_step1-17-45-18-15-overlap.png)
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Screenshot: [17-45-18-15-overlap](screenshots/spm-328/TC-VENUE-BOOK-025_17-45-18-15-overlap.jpg)
 
 ### TC-VENUE-BOOK-026 Bookings that hold nothing do not clash (SPM-350, AC3)
 
@@ -305,6 +311,8 @@ added to *Booking requests* by any of them.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). The hold was booking 4; it read Tentative Hold and lapsed, then live, then Released.
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The hold was booking 4. Loading the page after step 2 expired the lapsed hold (`expire_lapsed_holds`, SPM-253), so step 3 also set `status = 'Tentative Hold'` with the new `hold_expires_at` to make it live again; it then refused *2026-11-12 18:00–19:00*, and once Released the time was accepted.
+
 ### TC-VENUE-BOOK-027 The same event at another venue is no clash (SPM-350, AC3)
 
 - [x] Request **UAT-44 Garden Hall** on D+5, `09:00` to `10:00`. As `venue@test.com`
@@ -313,6 +321,8 @@ added to *Booking requests* by any of them.
       the same event: accepted. Both rows are listed.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05).
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Garden Hall on 2026-11-17 was approved, and Harbour Room at the same time was accepted with both rows listed.
 
 ### TC-VENUE-BOOK-028 Venue Staff read the requested times (SPM-351, AC4)
 
@@ -323,12 +333,17 @@ added to *Booking requests* by any of them.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-review-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-028_step2-review-times.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The queue read `07:00–07:15 + 23:45–24:00`. Screenshot: [review-times](screenshots/spm-328/TC-VENUE-BOOK-028_review-times.jpg)
+
 ### TC-VENUE-BOOK-029 Existing AM, PM and Night bookings convert (SPM-347, AC5)
 
 The conversion is the `do` block under `-- 1. Convert the rows` in
 `supabase/migrations/20261022010100_booking_fifteen_minute_slots.sql`. Run it inside a
 transaction that is rolled back, so the local data is untouched, against a
 `booking_slot` that holds only slot rows, as it did before the migration.
+Since SPM-328 `slot` no longer holds AM, PM or Night, so in step 1 of the
+setup above reset to the last version that does:
+`supabase db reset --version 20261028010000`, then the three seeds.
 
 **Steps**, in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
 
@@ -361,7 +376,8 @@ transaction that is rolled back, so the local data is untouched, against a
 - [x] Step 3 reads the same two bookings with the same statuses: the Confirmed one
       `28 47 20` and `76 95 20` on its day, the Rejected one `52 71 20`; then `0`.
 
-**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Run in `psql`; each step's output matched.
+**Run:** Pass, 29/10/2026, local Supabase after `supabase db reset --version 20261028010000` and the three seeds, by Claude Code for joyceetran (SPM-328). Run in `psql`; each step's output matched. On a fully migrated database step 2 raises *lost rows*, as `slot` no longer has AM, PM or Night to join to.
+Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Run in `psql`; each step's output matched.
 
 ### TC-VENUE-BOOK-030 A block still refuses the time it covers (SPM-347)
 
@@ -373,3 +389,5 @@ A block is a start and end time (SPM-321); it is compared with the requested tim
 - [x] D+6, `12:00` to `13:00`: accepted.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-block-11-45-12-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-030_step2-block-11-45-12-00.png)
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12, block on 2026-11-18. Screenshot: [block-11-45-12-00](screenshots/spm-328/TC-VENUE-BOOK-030_block-11-45-12-00.jpg)

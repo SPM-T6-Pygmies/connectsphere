@@ -962,6 +962,11 @@
       "parent": "SPM-276",
       "status": "Todo"
     },
+    "SPM-328": {
+      "title": "Retire the AM/PM/Night slot codes",
+      "parent": "SPM-276",
+      "status": "In Progress"
+    },
     "SPM-331": {
       "title": "Store opening hours as 15-minute slots and convert existing venue slots",
       "parent": "SPM-320",
@@ -1031,6 +1036,11 @@
       "title": "Test and verify approvals and holds against AC1–AC6",
       "parent": "SPM-325",
       "status": "Todo"
+    },
+    "SPM-361": {
+      "title": "Write the contract migration that removes the AM/PM/Night slot codes",
+      "parent": "SPM-328",
+      "status": "In Progress"
     },
     "SPM-450": {
       "title": "Domain: define a block by date range and start and end time",

@@ -20,7 +20,7 @@ import type {
 
 import { EmptyState } from "../../../../field-list";
 import { formatHoldExpiry } from "../../../../hold-expiry";
-import { formatTimes } from "../../../../slot-label";
+import { formatTimes } from "../../../../booking-times";
 import { StatusBadge } from "../../../../status-badge";
 import { SuitabilityChecklist } from "../../../../suitability-checklist";
 import { CancelBookingForm } from "./cancel-booking-form";

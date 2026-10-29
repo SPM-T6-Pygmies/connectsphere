@@ -50,7 +50,7 @@ import {
 
 import { requestStateLabel } from "./coordinator/request-state-badge"
 import { formatHoldExpiry } from "./hold-expiry"
-import { venueBufferNote } from "./slot-label"
+import { venueBufferNote } from "./booking-times"
 import { queueTeaser } from "./technical/queue-teaser"
 
 export { PageHeader } from "./page-header"

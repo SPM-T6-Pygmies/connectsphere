@@ -8,25 +8,13 @@ const at = (start: string, end: string) => ({
 });
 
 describe("slotCodeRange (SPM-321, SPM-331)", () => {
-  it("gives AM, PM and Night the hours the slot table has", () => {
-    expect(slotCodeRange("AM")).toEqual(at("07:00", "12:00"));
-    expect(slotCodeRange("PM")).toEqual(at("13:00", "18:00"));
-    expect(slotCodeRange("Night")).toEqual(at("19:00", "24:00"));
-  });
-
   it("gives a 15-minute code its quarter hour, the first and last of the day included", () => {
     expect(slotCodeRange("0")).toEqual(at("00:00", "00:15"));
     expect(slotCodeRange("28")).toEqual(at("07:00", "07:15"));
     expect(slotCodeRange("95")).toEqual(at("23:45", "24:00"));
   });
 
-  it("agrees that AM, PM and Night are the 15-minute codes the conversion maps them to", () => {
-    expect(joinSlotCodes(Array.from({ length: 20 }, (_, i) => String(28 + i)))).toEqual([slotCodeRange("AM")]);
-    expect(joinSlotCodes(Array.from({ length: 20 }, (_, i) => String(52 + i)))).toEqual([slotCodeRange("PM")]);
-    expect(joinSlotCodes(Array.from({ length: 20 }, (_, i) => String(76 + i)))).toEqual([slotCodeRange("Night")]);
-  });
-
-  it.each(["96", "-1", "1.5", "07", "", "am", "Evening"])("refuses the code %j, which the slot table does not have", (code) => {
+  it.each(["96", "-1", "1.5", "07", "", "am", "Evening", "AM", "PM", "Night"])("refuses the code %j, which the slot table does not have", (code) => {
     expect(() => slotCodeRange(code)).toThrow(/Unknown slot code/);
   });
 });
@@ -63,7 +51,7 @@ describe("joinSlotCodes (SPM-321)", () => {
   });
 
   it("joins a slot inside another with one that touches its end, into one span", () => {
-    expect(joinSlotCodes(["PM", "60", "72"])).toEqual([at("13:00", "18:15")]);
+    expect(joinSlotCodes([...slotCodesFor(at("13:00", "18:00")), "60", "72"])).toEqual([at("13:00", "18:15")]);
   });
 
   it("is empty for no slots", () => {
@@ -72,29 +60,25 @@ describe("joinSlotCodes (SPM-321)", () => {
 });
 
 describe("slotsOverlapping (SPM-321)", () => {
-  const blockNineToHalfEleven = slotCodesFor(at("09:00", "11:30")).map((slot) => ({ date: "2026-11-18", slot }));
+  const on = (date: string, start: string, end: string) => slotCodesFor(at(start, end)).map((slot) => ({ date, slot }));
+  const blockNineToHalfEleven = on("2026-11-18", "09:00", "11:30");
 
-  it("finds the AM booking slot a 09:00-11:30 block sits inside, and not PM or Night", () => {
-    const requested = [
-      { date: "2026-11-18", slot: "AM" },
-      { date: "2026-11-18", slot: "PM" },
-      { date: "2026-11-18", slot: "Night" },
-    ];
-    expect(slotsOverlapping(requested, blockNineToHalfEleven)).toEqual([{ date: "2026-11-18", slot: "AM" }]);
+  it("finds the slots of a 07:00-24:00 booking a 09:00-11:30 block sits inside, and no others", () => {
+    expect(slotsOverlapping(on("2026-11-18", "07:00", "24:00"), blockNineToHalfEleven)).toEqual(blockNineToHalfEleven);
   });
 
-  it("does not find a slot that only touches the block: AM ends at 12:00, the block starts at 12:00", () => {
-    const noonToOne = slotCodesFor(at("12:00", "13:00")).map((slot) => ({ date: "2026-11-18", slot }));
-    expect(slotsOverlapping([{ date: "2026-11-18", slot: "AM" }, { date: "2026-11-18", slot: "PM" }], noonToOne)).toEqual([]);
+  it("does not find a slot that only touches the block: the booking ends at 12:00, the block starts at 12:00", () => {
+    const noonToOne = on("2026-11-18", "12:00", "13:00");
+    expect(slotsOverlapping([...on("2026-11-18", "07:00", "12:00"), ...on("2026-11-18", "13:00", "18:00")], noonToOne)).toEqual([]);
   });
 
-  it("finds a slot by one quarter hour of overlap: a block 11:45-12:00 reaches the AM slot", () => {
-    const lastQuarter = slotCodesFor(at("11:45", "12:00")).map((slot) => ({ date: "2026-11-18", slot }));
-    expect(slotsOverlapping([{ date: "2026-11-18", slot: "AM" }], lastQuarter)).toHaveLength(1);
+  it("finds a slot by one quarter hour of overlap: a block 11:45-12:00 reaches a 07:00-12:00 booking", () => {
+    const lastQuarter = on("2026-11-18", "11:45", "12:00");
+    expect(slotsOverlapping(on("2026-11-18", "07:00", "12:00"), lastQuarter)).toHaveLength(1);
   });
 
   it("only matches on the same date", () => {
-    expect(slotsOverlapping([{ date: "2026-11-19", slot: "AM" }], blockNineToHalfEleven)).toEqual([]);
+    expect(slotsOverlapping(on("2026-11-19", "09:00", "11:30"), blockNineToHalfEleven)).toEqual([]);
   });
 
   it("matches a 15-minute booking slot the same way, and keeps the caller's extra fields", () => {
