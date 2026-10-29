@@ -202,6 +202,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-68": {
+      "title": "Notify the organiser of a reschedule or cancellation",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-71": {
       "title": "Notify the coordinator of a flagged venue booking",
       "parent": "SPM-47",
