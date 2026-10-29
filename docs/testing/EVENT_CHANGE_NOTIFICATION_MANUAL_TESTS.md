@@ -175,11 +175,9 @@ Signed in as `organiser2@test.com`.
   9:00 am – 12:00 pm*, and **Your event** reads **Planning**.
 - Step 3: the unread dot and count follow each change.
 
-**Status:** [ ] Pass [ ] Fail — Not executed in the Inbox (needs Novu). The
-page step 2 opens was checked by going to `/staff/requester/notifications/6`
-directly on 29/10/2026: [x] Event times as above.
+**Status:** [x] Pass [ ] Fail — 29/10/2026, Chrome against `pnpm dev:local` (Novu Development), by Arin Mak
 
-Evidence: [step2-request-shows-new-times](../screenshots/2026-10-29_TC-EVCHANGE-002_step2-request-shows-new-times.png)
+Evidence: [step1-inbox-event-rescheduled](../screenshots/2026-10-29_TC-EVCHANGE-002_step1-inbox-event-rescheduled.png) · [step2-request-shows-new-times](../screenshots/2026-10-29_TC-EVCHANGE-002_step2-request-shows-new-times.png)
 
 ### TC-EVCHANGE-003: Declining the new times sends no reschedule notice (AC1)
 
@@ -263,11 +261,9 @@ Evidence: [step1-both-tabs-asking](../screenshots/2026-10-29_TC-EVCHANGE-005_ste
   event** reads **Cancelled**, and **Request a change** is gone.
 - Step 3: the notification is read and the unread count drops by one.
 
-**Status:** [ ] Pass [ ] Fail — Not executed in the Inbox (needs Novu). The
-page step 2 opens was checked by going to `/staff/requester/notifications/6`
-directly on 29/10/2026: [x] Your event reads Cancelled.
+**Status:** [x] Pass [ ] Fail — 29/10/2026, Chrome against `pnpm dev:local` (Novu Development), by Arin Mak
 
-Evidence: [step2-request-shows-cancelled](../screenshots/2026-10-29_TC-EVCHANGE-006_step2-request-shows-cancelled.png)
+Evidence: [step1-inbox-event-cancelled](../screenshots/2026-10-29_TC-EVCHANGE-006_step1-inbox-event-cancelled.png) · [step2-request-shows-cancelled](../screenshots/2026-10-29_TC-EVCHANGE-006_step2-request-shows-cancelled.png)
 
 ### TC-EVCHANGE-007: The database refuses everyone else, and a losing racer waits then fails (database checks)
 
@@ -315,12 +311,15 @@ notifier, so every notice is recorded in `notification` and logged, but not
 delivered to an Inbox). Chromium headless via Playwright, `Asia/Singapore`
 time zone. Branch `feat/spm-68-notify-organiser-reschedule-cancel`.
 
+TC-EVCHANGE-002 and TC-EVCHANGE-006 were run separately by Arin Mak in
+Chrome against `pnpm dev:local` (Novu Development), on the same branch.
+
 | Case | Result | Date | Notes |
 | --- | --- | --- | --- |
 | TC-EVCHANGE-001 | Pass | 2026-10-29 | Row and log checked |
-| TC-EVCHANGE-002 | Not Executed | — | Needs Novu; the page it opens was checked |
+| TC-EVCHANGE-002 | Pass | 2026-10-29 | Run by Arin Mak in Chrome with `pnpm dev:local` (Novu) |
 | TC-EVCHANGE-003 | Pass | 2026-10-29 | |
 | TC-EVCHANGE-004 | Pass | 2026-10-29 | |
 | TC-EVCHANGE-005 | Pass | 2026-10-29 | |
-| TC-EVCHANGE-006 | Not Executed | — | Needs Novu; the page it opens was checked |
+| TC-EVCHANGE-006 | Pass | 2026-10-29 | Run by Arin Mak in Chrome with `pnpm dev:local` (Novu) |
 | TC-EVCHANGE-007 | Pass | 2026-10-29 | |
