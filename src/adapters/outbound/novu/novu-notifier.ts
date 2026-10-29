@@ -6,8 +6,10 @@ import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/wo
 import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { EQUIPMENT_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-decided";
 import { EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
+import { EVENT_CANCELLED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-cancelled";
 import { EVENT_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-confirmed";
 import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
+import { EVENT_RESCHEDULED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-rescheduled";
 import { HOLD_EXPIRED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/hold-expired";
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { ORGANISER_MESSAGE_POSTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
@@ -23,9 +25,11 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -132,6 +136,14 @@ export class NovuNotifier implements Notifier {
 
   eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
     return this.trigger(EVENT_CONFIRMED_WORKFLOW_ID, notice);
+  }
+
+  eventRescheduled(notice: EventRescheduledNotice): Promise<void> {
+    return this.trigger(EVENT_RESCHEDULED_WORKFLOW_ID, notice);
+  }
+
+  eventCancelled(notice: EventCancelledNotice): Promise<void> {
+    return this.trigger(EVENT_CANCELLED_WORKFLOW_ID, notice);
   }
 
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {

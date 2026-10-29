@@ -7,9 +7,13 @@ import {
   type Revalidation,
 } from "../domain/change-request";
 import { eventId } from "../domain/event";
-import { userAccountId } from "../domain/user-account";
+import { userAccountId, type UserAccountId } from "../domain/user-account";
 import type { ChangeRequestRepository } from "../ports/outbound/change-request-repository";
-import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+import type {
+  CoordinatorEventDetails,
+  CoordinatorEventRepository,
+} from "../ports/outbound/coordinator-event-repository";
+import type { Notifier } from "../ports/outbound/notifier";
 
 export interface DecideChangeRequestCommand {
   readonly eventId: string;
@@ -22,6 +26,8 @@ export interface DecideChangeRequestCommand {
 export interface DecideChangeRequestDeps {
   readonly changeRequests: ChangeRequestRepository;
   readonly coordinatorEvents: CoordinatorEventRepository;
+  /** SPM-68: tells the event's Organiser it is rescheduled. */
+  readonly notifier: Pick<Notifier, "eventRescheduled">;
 }
 
 /**
@@ -44,6 +50,9 @@ export interface ChangeRequestOutcome {
  *
  * Who may decide is checked before what is decided, so a caller the event is
  * not assigned to learns nothing from a validation message (#91).
+ *
+ * SPM-68: an accepted change of times is a reschedule, so the event's
+ * Organiser is told the new times once the decision is stored.
  */
 export class DecideChangeRequestUseCase {
   constructor(private readonly deps: DecideChangeRequestDeps) {}
@@ -62,11 +71,35 @@ export class DecideChangeRequestUseCase {
     const decision = decideChangeRequest(request, command.decisions, event?.times ?? []);
     await this.deps.changeRequests.decide(coordinator, id, decision.items);
 
-    return {
+    const outcome: ChangeRequestOutcome = {
       items: decision.items,
       rescheduled: decision.rescheduled,
       revalidation: decision.revalidation,
       lapsed: false,
     };
+    if (event !== null && outcome.rescheduled) {
+      await this.announceReschedule(coordinator, event, outcome);
+    }
+    return outcome;
+  }
+
+  private async announceReschedule(
+    coordinator: UserAccountId,
+    event: CoordinatorEventDetails,
+    outcome: ChangeRequestOutcome,
+  ): Promise<void> {
+    const times = outcome.items.find((item) => item.decision === "Accepted" && item.change.field === "times");
+    const owned = await this.deps.coordinatorEvents.findAssignedById(coordinator, eventId(event.id));
+    if (times?.change.field !== "times" || owned === null) {
+      return;
+    }
+    await this.deps.notifier.eventRescheduled({
+      recipientUserAccountId: owned.owningOrganiserUserAccountId,
+      eventId: event.id,
+      eventRequestId: event.eventRequestId,
+      eventName: event.name,
+      times: times.change.value,
+      backToPlanning: outcome.lapsed,
+    });
   }
 }

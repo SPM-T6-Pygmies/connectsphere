@@ -4,8 +4,10 @@ import {
   coordinatorAssignedRow,
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
+  eventCancelledRow,
   eventConfirmedRow,
   eventRequestDecidedRow,
+  eventRescheduledRow,
   holdExpiredRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
@@ -22,9 +24,11 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -132,6 +136,14 @@ export class SupabaseRecordingNotifier implements Notifier {
 
   eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
     return this.recordAndDeliver(eventConfirmedRow(notice), () => this.inner.eventConfirmed(notice));
+  }
+
+  eventRescheduled(notice: EventRescheduledNotice): Promise<void> {
+    return this.recordAndDeliver(eventRescheduledRow(notice), () => this.inner.eventRescheduled(notice));
+  }
+
+  eventCancelled(notice: EventCancelledNotice): Promise<void> {
+    return this.recordAndDeliver(eventCancelledRow(notice), () => this.inner.eventCancelled(notice));
   }
 
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
