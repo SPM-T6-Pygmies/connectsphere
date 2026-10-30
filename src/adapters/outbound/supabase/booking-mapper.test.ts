@@ -15,6 +15,7 @@ describe("booking mapper (SPM-46)", () => {
   it("reads a booked slot as its hours, keeping only the calendar date and HH:MM", () => {
     expect(
       toOccupiedTime({
+        booking_id: 31,
         slot_date: "2026-10-05",
         start_time: "23:45:00",
         end_time: "24:00:00",
@@ -22,6 +23,7 @@ describe("booking mapper (SPM-46)", () => {
         hold_expires_at: null,
       }),
     ).toEqual({
+      bookingId: "31",
       date: "2026-10-05",
       start: "23:45",
       end: "24:00",
@@ -33,6 +35,7 @@ describe("booking mapper (SPM-46)", () => {
   it("reads a hold's expiry as an instant (AC4)", () => {
     expect(
       toOccupiedTime({
+        booking_id: 31,
         slot_date: "2026-10-05",
         start_time: "07:00:00",
         end_time: "07:15:00",
@@ -45,6 +48,7 @@ describe("booking mapper (SPM-46)", () => {
   it("refuses a status the schema does not allow", () => {
     expect(() =>
       toOccupiedTime({
+        booking_id: 31,
         slot_date: "2026-10-05",
         start_time: "07:00:00",
         end_time: "07:15:00",
@@ -68,6 +72,8 @@ describe("booking mapper (SPM-46)", () => {
         rejection_note: null,
         suggested_alternative_venue_id: null,
         suggested_alternative_location: null,
+        replaces_booking_id: null,
+        replaced_by_booking_id: null,
       }),
     ).toMatchObject({ status: "Tentative Hold", holdExpiresAt: "2026-10-04T01:00:00+00:00" });
   });
@@ -86,6 +92,8 @@ describe("booking mapper (SPM-46)", () => {
         rejection_note: null,
         suggested_alternative_venue_id: null,
         suggested_alternative_location: null,
+        replaces_booking_id: null,
+        replaced_by_booking_id: null,
       }),
     ).toEqual({
       id: "12",
@@ -98,6 +106,8 @@ describe("booking mapper (SPM-46)", () => {
       requestedAt: "2026-09-28T02:00:00+00:00",
       rejectionNote: null,
       suggestedAlternative: null,
+      replacesBookingId: null,
+      replacedByBookingId: null,
     });
   });
 });
@@ -117,6 +127,8 @@ describe("booking mapper -- Venue Staff's answer (SPM-62)", () => {
         rejection_note: "Closed for resurfacing.",
         suggested_alternative_venue_id: 1,
         suggested_alternative_location: "Main Hall",
+        replaces_booking_id: null,
+        replaced_by_booking_id: null,
       }),
     ).toMatchObject({
       rejectionNote: "Closed for resurfacing.",
@@ -133,6 +145,7 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
     times: [{ date: "2026-10-05", start: "07:00", end: "07:45" }],
     requestedBy: userAccountId("2"),
     status: "Requested",
+    replacesBookingId: null,
   };
 
   it("sends the chosen layout by name, for the database to resolve", () => {
@@ -146,6 +159,7 @@ describe("booking mapper -- submit arguments (SPM-104)", () => {
         { date: "2026-10-05", slot: "29" },
         { date: "2026-10-05", slot: "30" },
       ],
+      p_replaces_booking_id: null,
     });
   });
 
@@ -308,6 +322,7 @@ describe("booking mapper -- requested times as 15-minute slots (SPM-347)", () =>
       ],
       requestedBy: userAccountId("2"),
       status: "Requested",
+      replacesBookingId: null,
     };
 
     const slots = toSubmitBookingArgs(request)?.p_slots ?? [];

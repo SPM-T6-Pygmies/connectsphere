@@ -13,6 +13,7 @@ import {
   InvalidBookingDateError,
   InvalidBookingTimeError,
   NoBookingSlotsError,
+  ReRequestNotHoldableError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueClosedError,
@@ -62,6 +63,8 @@ export function slotTime({ date, slot }: { readonly date: string; readonly slot:
 
 /** Time some existing booking at the venue already has (SPM-324). */
 export interface OccupiedTime extends TimeRangeOnDate {
+  /** The booking that has it; a read that does not say, such as the venue calendar's, leaves it out. */
+  readonly bookingId?: string;
   readonly status: BookingStatus;
   /** When a Tentative Hold lapses; null when none is set, and for every other status. */
   readonly holdExpiresAt: Date | null;
@@ -80,6 +83,8 @@ export interface BookingRequest {
   readonly times: readonly TimeRangeOnDate[];
   readonly requestedBy: UserAccountId;
   readonly status: "Requested";
+  /** SPM-251: the flagged booking this request asks to replace; null for an ordinary request. */
+  readonly replacesBookingId: BookingId | null;
 }
 
 /**
@@ -365,6 +370,10 @@ function sharedTimes(
  * SPM-55 AC6: a Cancelled event takes no new requests, whatever else it asks
  * for. `coordinator_submit_booking_request` restates this under a lock on the
  * event, so a request racing the cancellation is refused too.
+ *
+ * SPM-251 AC5: a re-request never clashes with the booking it replaces, so
+ * asking for the same venue at an overlapping time is not refused for it.
+ * Every other booking still clashes.
  */
 export function requestVenueBooking(input: {
   readonly eventId: string;
@@ -375,7 +384,10 @@ export function requestVenueBooking(input: {
   readonly requestedBy: UserAccountId;
   readonly occupied: readonly OccupiedTime[];
   readonly now: Date;
+  /** SPM-251: the flagged booking being replaced; absent for an ordinary request. */
+  readonly replacing?: BookingId | null;
 }): BookingRequest {
+  const replacing = input.replacing ?? null;
   if (input.eventStatus === "Cancelled") {
     throw new CancelledEventBookingError();
   }
@@ -395,7 +407,12 @@ export function requestVenueBooking(input: {
   }
 
   const buffers = bufferMinutes(input.venue);
-  const clashes = paddedClashingTimes(times, input.occupied, buffers, input.now);
+  const clashes = paddedClashingTimes(
+    times,
+    input.occupied.filter((time) => replacing === null || time.bookingId !== replacing),
+    buffers,
+    input.now,
+  );
   if (clashes.length > 0) {
     throw new VenueSlotUnavailableError(clashes, buffers.setup > 0 || buffers.turnaround > 0);
   }
@@ -407,6 +424,7 @@ export function requestVenueBooking(input: {
     times,
     requestedBy: input.requestedBy,
     status: "Requested",
+    replacesBookingId: replacing,
   };
 }
 
@@ -432,6 +450,8 @@ export interface BookingForDecision {
   readonly status: BookingStatus;
   /** In date then start order. */
   readonly times: readonly TimeRangeOnDate[];
+  /** SPM-251: the flagged booking a re-request replaces; absent or null for an ordinary request. */
+  readonly replaces?: { readonly id: BookingId } | null;
 }
 
 export type BookingDecision =
@@ -469,6 +489,11 @@ export interface DecidedBooking {
  * store's call at the moment of the decision (SPM-19), not this function's.
  * Rejecting must say why -- the reason is what the coordinator acts on -- and holds
  * nothing, so it needs no clash check.
+ *
+ * SPM-251 AC10: a re-request is approved or rejected, never held. A hold would
+ * sit beside the booking it replaces, and on the same venue and time the
+ * one-booking-per-slot rule cannot allow both. Approving it replaces that
+ * booking, which the store does in the same transaction (AC6).
  */
 export function decideBooking(
   booking: BookingForDecision,
@@ -482,6 +507,9 @@ export function decideBooking(
 
   if (decision.kind === "approve" || decision.kind === "hold") {
     if (decision.kind === "hold") {
+      if ((booking.replaces ?? null) !== null) {
+        throw new ReRequestNotHoldableError();
+      }
       return {
         id: booking.id,
         status: "Tentative Hold",

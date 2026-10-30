@@ -1363,6 +1363,36 @@ export class NoFlagToClearError extends DomainError {
 }
 
 /**
+ * SPM-251 AC1: only a booking with an open flag can be re-requested. One that was never flagged,
+ * was cleared, or no longer holds its venue has nothing to replace.
+ */
+export class NoFlagToReRequestError extends DomainError {
+  readonly code = "no_flag_to_re_request";
+
+  constructor(readonly bookingId: string) {
+    super("This booking has no open flag to re-request.");
+  }
+}
+
+/** SPM-251 AC9: one re-request for a flagged booking waits for Venue Staff at a time. */
+export class ReRequestPendingError extends DomainError {
+  readonly code = "re_request_pending";
+
+  constructor(readonly bookingId: string) {
+    super("A re-request for this booking is already waiting for Venue Staff.");
+  }
+}
+
+/** SPM-251 AC10: Venue Staff approve or reject a re-request; they do not hold it. */
+export class ReRequestNotHoldableError extends DomainError {
+  readonly code = "re_request_not_holdable";
+
+  constructor() {
+    super("A re-request can only be approved or rejected, not held.");
+  }
+}
+
+/**
  * SPM-52: a change request that breaks one of its rules -- no fields, a field
  * twice, or a requested value the field cannot take. `field` is the one to
  * point at, or null when the request as a whole is wrong.
