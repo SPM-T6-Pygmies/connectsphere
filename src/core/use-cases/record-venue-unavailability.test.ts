@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
+import { InMemoryConfirmationLapses } from "@/adapters/outbound/in-memory/in-memory-confirmation-lapses";
 import {
   InMemoryVenueUnavailabilityRepository,
   type SeededBooking,
@@ -16,6 +17,7 @@ import {
 } from "../domain/errors";
 import { slotCodesFor } from "../domain/slot-grid";
 import { toMinutes } from "../domain/time-of-day";
+import { eventId } from "../domain/event";
 import { userAccountId } from "../domain/user-account";
 import { venueId, type Venue } from "../domain/venue";
 import { slotsStillBlocked } from "../domain/venue-unavailability";
@@ -59,10 +61,12 @@ function build(bookings: readonly SeededBooking[] = []) {
   const venues = new InMemoryVenueCatalogue([GRAND_HALL]);
   const clock = new FixedClock(NOW);
   const notifier = new RecordingNotifier();
+  const lapses = new InMemoryConfirmationLapses();
   return {
     unavailability,
     notifier,
-    record: new RecordVenueUnavailabilityUseCase({ unavailability, venues, clock, notifier }),
+    lapses,
+    record: new RecordVenueUnavailabilityUseCase({ unavailability, venues, clock, lapses, notifier }),
     lift: new LiftVenueUnavailabilityUseCase({ unavailability, clock }),
     list: new ListVenueUnavailabilityUseCase({ unavailability }),
   };
@@ -454,6 +458,7 @@ describe("RecordVenueUnavailabilityUseCase by time of day (SPM-321)", () => {
       unavailability,
       venues: new InMemoryVenueCatalogue([GRAND_HALL, lateOnly]),
       clock: new FixedClock(NOW),
+      lapses: new InMemoryConfirmationLapses(),
       notifier: new RecordingNotifier(),
     });
 
@@ -625,5 +630,52 @@ describe("RecordVenueUnavailabilityUseCase notifies the coordinator (SPM-71)", (
     await expect(record.execute(block(PM_ON_13))).rejects.toThrow(DuplicateUnavailabilityError);
 
     expect(notifier.bookingsFlagged).toHaveLength(1);
+  });
+});
+
+describe("RecordVenueUnavailabilityUseCase tells the Organiser of a lapsed event (SPM-111)", () => {
+  const PM_ON_13 = { startDate: "2026-10-13", endDate: "2026-10-13", startTime: "13:00", endTime: "18:00" } as const;
+
+  it("AC1, AC3: a block that takes a Confirmed event out of Confirmed tells its Organiser what lapsed", async () => {
+    const { record, notifier, lapses } = build([
+      {
+        id: "booking-1",
+        venueId: GRAND_HALL.id,
+        eventName: "Tech Summit",
+        status: "Confirmed",
+        slots: slotsOf("2026-10-13", "13:00", "18:00"),
+        eventId: "event-1",
+        coordinatorUserAccountId: "coordinator-1",
+      },
+    ]);
+    lapses.record("venue-unavailable", "unavailability-1", [
+      {
+        eventId: eventId("event-1"),
+        eventName: "Tech Summit",
+        eventRequestId: "request-1",
+        owningOrganiserUserAccountId: userAccountId("organiser-1"),
+        lapsed: [{ kind: "flagged-booking", venueLocation: "Grand Hall" }],
+      },
+    ]);
+
+    await record.execute(block({ ...PM_ON_13, reason: "Maintenance" }));
+
+    expect(notifier.eventsNoLongerConfirmed).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventId: "event-1",
+        eventRequestId: "request-1",
+        eventName: "Tech Summit",
+        lapsed: [{ kind: "flagged-booking", venueLocation: "Grand Hall" }],
+      },
+    ]);
+  });
+
+  it("a block that lapses nothing tells no Organiser", async () => {
+    const { record, notifier } = build([]);
+
+    await record.execute(block({ ...PM_ON_13, reason: "Maintenance" }));
+
+    expect(notifier.eventsNoLongerConfirmed).toEqual([]);
   });
 });

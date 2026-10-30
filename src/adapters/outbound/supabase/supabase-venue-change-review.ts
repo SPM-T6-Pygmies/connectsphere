@@ -1,9 +1,11 @@
 import { VenueMaintenanceNotPermittedError } from "@/core/domain/errors";
 import type { VenueChangeFlag } from "@/core/domain/venue-change-flag";
 import type { VenueId } from "@/core/domain/venue";
+import type { EventConfirmationLapse } from "@/core/ports/outbound/confirmation-lapses";
 import type { ReviewedBooking, VenueChangeReview } from "@/core/ports/outbound/venue-change-review";
 
 import type { SupabaseServerClient } from "./client";
+import { toEventConfirmationLapse, type ConfirmationLapseRow } from "./supabase-confirmation-lapses";
 import { toVenueChangeBooking, toVenueChangeFlagArgument, type VenueChangeBookingRow } from "./venue-change-mapper";
 
 // Raised by venue_catalogue_require_staff, which both functions call.
@@ -23,12 +25,13 @@ export class SupabaseVenueChangeReview implements VenueChangeReview {
     return ((data ?? []) as unknown as VenueChangeBookingRow[]).map(toVenueChangeBooking);
   }
 
-  async flag(venueId: VenueId, flags: readonly VenueChangeFlag[]): Promise<void> {
-    const { error } = await this.client.rpc("venue_change_flag_bookings", {
+  async flag(venueId: VenueId, flags: readonly VenueChangeFlag[]): Promise<readonly EventConfirmationLapse[]> {
+    const { data, error } = await this.client.rpc("venue_change_flag_bookings", {
       p_venue_id: Number(venueId),
       p_flags: flags.map(toVenueChangeFlagArgument),
     });
     if (error) throw translate(error, "flag the venue's bookings");
+    return ((data ?? []) as unknown as ConfirmationLapseRow[]).map(toEventConfirmationLapse);
   }
 }
 

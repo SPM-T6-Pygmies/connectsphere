@@ -8,6 +8,7 @@ import {
   createSupabaseServerClient,
 } from "@/adapters/outbound/supabase/client";
 import { SupabaseChangeRequestRepository } from "@/adapters/outbound/supabase/supabase-change-request-repository";
+import { SupabaseConfirmationLapses } from "@/adapters/outbound/supabase/supabase-confirmation-lapses";
 import { SupabaseClarificationThreadRepository } from "@/adapters/outbound/supabase/supabase-clarification-thread-repository";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
@@ -412,6 +413,7 @@ export async function buildDecideChangeRequest(): Promise<DecideChangeRequestUse
   return new DecideChangeRequestUseCase({
     changeRequests: new SupabaseChangeRequestRepository(client),
     coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+    lapses: new SupabaseConfirmationLapses(client),
     notifier: recordedNotifier(),
   });
 }
@@ -1063,6 +1065,7 @@ export async function buildRecordVenueUnavailability(): Promise<RecordVenueUnava
     unavailability: new SupabaseVenueUnavailabilityRepository(client),
     venues: new SupabaseVenueCatalogue(client),
     clock: systemClock,
+    lapses: new SupabaseConfirmationLapses(client),
     notifier: recordedNotifier(),
   });
 }
