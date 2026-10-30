@@ -6,6 +6,7 @@ import {
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import { changeRequestId, type ChangeRequest } from "@/core/domain/change-request";
+import { userAccountId } from "@/core/domain/user-account";
 
 import { ViewEventChangeRequestsUseCase } from "./view-event-change-requests";
 
@@ -35,11 +36,13 @@ const seed: SeedCoordinatorEvent = {
 const decided: ChangeRequest = {
   id: changeRequestId("3"),
   submittedAt: new Date("2026-10-20T02:00:00Z"),
+  requestedBy: userAccountId("organiser-1"),
   items: [{ change: { field: "expected_attendance", value: 320 }, decision: "Declined", reason: "Room caps at 300" }],
 };
 const open: ChangeRequest = {
   id: changeRequestId("4"),
   submittedAt: new Date("2026-10-27T02:00:00Z"),
+  requestedBy: userAccountId("organiser-1"),
   items: [{ change: { field: "venue_requirements", value: "Theatre seating" }, decision: "Pending", reason: null }],
 };
 

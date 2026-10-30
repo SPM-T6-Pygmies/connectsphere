@@ -1,8 +1,9 @@
-import type {
-  ChangeRequest,
-  ChangeRequestId,
-  ChangeRequestItem,
-  ChangeRequestTarget,
+import {
+  changeRequestId,
+  type ChangeRequest,
+  type ChangeRequestId,
+  type ChangeRequestItem,
+  type ChangeRequestTarget,
 } from "@/core/domain/change-request";
 import {
   ChangeRequestAlreadyDecidedError,
@@ -65,14 +66,14 @@ export class SupabaseChangeRequestRepository implements ChangeRequestRepository 
     return row === undefined ? null : toChangeRequestTarget(row);
   }
 
-  async submit(changeRequest: NewChangeRequest): Promise<void> {
+  async submit(changeRequest: NewChangeRequest): Promise<ChangeRequestId> {
     const requestKey = toKey(changeRequest.eventRequestId);
     const requesterKey = toKey(changeRequest.requestedBy);
     if (requestKey === null || requesterKey === null) {
       throw new EventRequestNotFoundError(changeRequest.eventRequestId);
     }
 
-    const { error } = await this.client.rpc("submit_change_request", {
+    const { data, error } = await this.client.rpc("submit_change_request", {
       p_event_request_id: requestKey,
       p_requesting_user_account_id: requesterKey,
       p_items: changeRequest.changes.map(toChangeRequestItem),
@@ -94,6 +95,8 @@ export class SupabaseChangeRequestRepository implements ChangeRequestRepository 
       }
       throw new Error(`Failed to submit the change request: ${error.message}`, { cause: error });
     }
+
+    return changeRequestId(String(data));
   }
 
   async listForEvent(coordinatorId: UserAccountId, eventId: EventId): Promise<readonly ChangeRequest[]> {

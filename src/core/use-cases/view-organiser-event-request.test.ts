@@ -262,6 +262,8 @@ describe("ViewOrganiserEventRequestUseCase change requests (SPM-52)", () => {
     status: "Confirmed",
     owningOrganiserUserAccountId: RESPONSIBLE,
     hasOpenChangeRequest: false,
+    eventName: "Annual Gala",
+    assignedCoordinatorUserAccountId: null,
   };
 
   it("AC3: offers the event's owner a change request on a Confirmed event", async () => {
