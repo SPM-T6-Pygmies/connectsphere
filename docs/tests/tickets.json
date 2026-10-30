@@ -362,6 +362,11 @@
       "parent": "SPM-47",
       "status": "In Progress"
     },
+    "SPM-111": {
+      "title": "Notify the organiser that a confirmed event is no longer confirmed",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-112": {
       "title": "Allow an Organiser to view their organisation's event requests",
       "parent": "SPM-39",
