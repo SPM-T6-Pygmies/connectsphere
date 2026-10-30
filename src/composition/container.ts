@@ -76,6 +76,8 @@ import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request
 import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
 import { SubmitChangeRequestUseCase } from "@/core/use-cases/submit-change-request";
+import { DecideChangeRequestUseCase } from "@/core/use-cases/decide-change-request";
+import { ViewEventChangeRequestsUseCase } from "@/core/use-cases/view-event-change-requests";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
 import { RequestClarificationUseCase } from "@/core/use-cases/request-clarification";
 import { ResolveClarificationThreadUseCase } from "@/core/use-cases/resolve-clarification-thread";
@@ -97,11 +99,13 @@ import { ViewAssignedEventsUseCase } from "@/core/use-cases/view-assigned-events
 import { FindAssignedEventByRequestUseCase } from "@/core/use-cases/find-assigned-event-by-request";
 import { ViewCoordinatorEventUseCase } from "@/core/use-cases/view-coordinator-event";
 import { ViewVenueCalendarUseCase } from "@/core/use-cases/view-venue-calendar";
+import { ViewVenuesOnDayUseCase } from "@/core/use-cases/view-venues-on-day";
 import { EditEquipmentRequirementUseCase } from "@/core/use-cases/edit-equipment-requirement";
 import { ListEquipmentQueueUseCase } from "@/core/use-cases/list-equipment-queue";
 import { MarkEquipmentLineUnfulfilledUseCase } from "@/core/use-cases/mark-equipment-line-unfulfilled";
 import { ListEventsAwaitingSafetyCheckUseCase } from "@/core/use-cases/list-events-awaiting-safety-check";
 import { RecordEquipmentRequirementUseCase } from "@/core/use-cases/record-equipment-requirement";
+import { ReleaseEquipmentLineUseCase } from "@/core/use-cases/release-equipment-line";
 import { RemoveEquipmentRequirementUseCase } from "@/core/use-cases/remove-equipment-requirement";
 import { ReserveEquipmentLineUseCase } from "@/core/use-cases/reserve-equipment-line";
 import { UndoEquipmentRemovalUseCase } from "@/core/use-cases/undo-equipment-removal";
@@ -390,6 +394,25 @@ export async function buildSubmitChangeRequest(): Promise<SubmitChangeRequestUse
   return new SubmitChangeRequestUseCase({ changeRequests: new SupabaseChangeRequestRepository(client) });
 }
 
+/** SPM-100 AC1: the assigned Coordinator's view of an event's change requests. */
+export async function buildViewEventChangeRequests(): Promise<ViewEventChangeRequestsUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewEventChangeRequestsUseCase({
+    changeRequests: new SupabaseChangeRequestRepository(client),
+    coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+  });
+}
+
+/** SPM-100: the assigned Coordinator accepts or declines each field of a change request. */
+export async function buildDecideChangeRequest(): Promise<DecideChangeRequestUseCase> {
+  const client = await createSupabaseServerClient();
+  return new DecideChangeRequestUseCase({
+    changeRequests: new SupabaseChangeRequestRepository(client),
+    coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+    notifier: recordedNotifier(),
+  });
+}
+
 /** SPM-33 AC5: the assigned Coordinator follows up, without returning the request again. */
 export async function buildPostCoordinatorClarificationMessage(): Promise<PostCoordinatorClarificationMessageUseCase> {
   const client = await createSupabaseServerClient();
@@ -470,6 +493,13 @@ export async function buildMarkEquipmentLineUnfulfilled(): Promise<MarkEquipment
   const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
 
   return new MarkEquipmentLineUnfulfilledUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
+}
+
+/** SPM-108: release a line the coordinator asked to remove. */
+export async function buildReleaseEquipmentLine(): Promise<ReleaseEquipmentLineUseCase> {
+  const equipment = new SupabaseTechnicalEquipmentRepository(await createSupabaseServerClient());
+
+  return new ReleaseEquipmentLineUseCase({ equipment, outcome: equipmentOutcomeAnnouncer(equipment) });
 }
 
 /**
@@ -798,7 +828,7 @@ export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
 export async function buildCancelEvent(): Promise<CancelEventUseCase> {
   const { events } = await coordinatorAdapters();
 
-  return new CancelEventUseCase({ events });
+  return new CancelEventUseCase({ events, notifier: recordedNotifier() });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */
@@ -981,6 +1011,18 @@ export async function buildSearchVenues(): Promise<SearchVenuesUseCase> {
 export async function buildViewVenueCalendar(): Promise<ViewVenueCalendarUseCase> {
   const client = await createSupabaseServerClient();
   return new ViewVenueCalendarUseCase({
+    venues: new SupabaseVenueCatalogue(client),
+    bookings: new SupabaseBookingRepository(client),
+    blocks: new SupabaseVenueUnavailabilityRepository(client),
+    clock: systemClock,
+    timeZone: "Asia/Singapore",
+  });
+}
+
+/** SPM-323: every venue's calendar for one day, side by side. */
+export async function buildViewVenuesOnDay(): Promise<ViewVenuesOnDayUseCase> {
+  const client = await createSupabaseServerClient();
+  return new ViewVenuesOnDayUseCase({
     venues: new SupabaseVenueCatalogue(client),
     bookings: new SupabaseBookingRepository(client),
     blocks: new SupabaseVenueUnavailabilityRepository(client),

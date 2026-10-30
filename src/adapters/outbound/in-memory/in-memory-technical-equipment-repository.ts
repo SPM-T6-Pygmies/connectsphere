@@ -1,8 +1,9 @@
 import type { EquipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentRequirement } from "@/core/domain/equipment-requirement";
-import { awaitsDecision, unitsAvailable, type EquipmentHold } from "@/core/domain/equipment-review";
+import { awaitsDecision, awaitsRelease, unitsAvailable, type EquipmentHold } from "@/core/domain/equipment-review";
 import {
   EquipmentLineNotAwaitingDecisionError,
+  EquipmentNothingToReleaseError,
   EquipmentRequirementNotFoundError,
   EventNotFoundError,
   NotEnoughEquipmentAvailableError,
@@ -70,6 +71,16 @@ export class InMemoryTechnicalEquipmentRepository implements TechnicalEquipmentR
   async markUnfulfilled(reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void> {
     this.awaitingLine(eventId, line);
     this.replace(eventId, line, reviewer);
+  }
+
+  async release(_reviewer: UserAccountId, eventId: EventId, line: EquipmentRequirement): Promise<void> {
+    const index = this.events.findIndex((candidate) => candidate.event.id === eventId);
+    const entry = this.events[index];
+    const stored = entry?.lines.find((candidate) => candidate.line.equipmentItemId === line.equipmentItemId);
+    if (stored === undefined || !awaitsRelease(entry.event.status, stored.line)) {
+      throw new EquipmentNothingToReleaseError();
+    }
+    this.events[index] = { ...entry, lines: entry.lines.filter((candidate) => candidate !== stored) };
   }
 
   /** The stored line `line` decides on, if it still awaits that decision as it was read. */

@@ -1,7 +1,9 @@
 import { closedPeriods } from "./opening-hours";
 import { InvalidVenueSearchError } from "./errors";
+import { paddedSpan } from "./padded-window";
 import { END_OF_DAY, fromMinutes, isOnGrid, toMinutes, type TimeRange } from "./time-of-day";
 import { STANDARD_LAYOUTS, type Venue, type VenueId } from "./venue";
+import { bufferMinutes, MAX_BUFFER_MINUTES } from "./venue-buffers";
 import { ACCESSIBILITY_OPTIONS, FACILITY_OPTIONS, parseOptionList } from "./venue-options";
 
 /**
@@ -33,11 +35,13 @@ export interface VenueSearchWindow {
   readonly end: string;
 }
 
-/** A span during which a venue is held by a live booking. */
+/** A span during which a venue is held by a live booking or an In force block. */
 export interface BusyInterval {
   readonly venueId: VenueId;
   readonly startsAt: Date;
   readonly endsAt: Date;
+  /** A booking takes its venue's setup and turnaround too (SPM-250); a block does not. */
+  readonly kind: "booking" | "block";
 }
 
 export interface VenueSearchInput {
@@ -249,6 +253,11 @@ export function isOpenFor(
  * horizon, and no live booking or In force block overlaps any of it. `busy`
  * holds both, whichever slot grid they are stored on. A venue missing its
  * opening hours or horizon cannot be shown to be open, so it is not.
+ *
+ * SPM-250: a booking is compared padded with this venue's own setup and
+ * turnaround, and so is the window, as a request is on submit (SPM-23 AC6).
+ * A block is compared with the window as searched: submitting refuses only a
+ * block over the booked times themselves.
  */
 function unavailability(
   venue: Venue,
@@ -269,18 +278,44 @@ function unavailability(
   }
 
   const { from, to } = windowInstants(window, timeZone);
-  // Half-open (SPM-322 AC2): a booking ending as the window starts, or starting
-  // as it ends, leaves the venue free.
+  const buffers = bufferMinutes(venue);
+  const searched = { startsAt: from, endsAt: to };
   const booked = busy.some(
     (interval) =>
       interval.venueId === venue.id &&
-      interval.startsAt.getTime() < to.getTime() &&
-      interval.endsAt.getTime() > from.getTime(),
+      (interval.kind === "block"
+        ? overlaps(interval, searched)
+        : overlaps(paddedSpan(interval, buffers), paddedSpan(searched, buffers))),
   );
   return booked ? "booked" : null;
 }
 
-/** The instants the searched window starts and ends, so a caller can fetch the bookings it needs. */
+/**
+ * Half-open (SPM-322 AC2): a span ending as the other starts, or starting as
+ * it ends, leaves the venue free.
+ */
+function overlaps(
+  a: { readonly startsAt: Date; readonly endsAt: Date },
+  b: { readonly startsAt: Date; readonly endsAt: Date },
+): boolean {
+  return a.startsAt.getTime() < b.endsAt.getTime() && a.endsAt.getTime() > b.startsAt.getTime();
+}
+
+/**
+ * The instants a search must read busy time for (SPM-250): the window, widened
+ * on each side by the most setup and turnaround a venue can have, since the
+ * window's padding and a booking's both reach out that far.
+ */
+export function busyTimeNeeded(
+  window: VenueSearchWindow,
+  timeZone: string,
+): { from: Date; to: Date } {
+  const { from, to } = windowInstants(window, timeZone);
+  const reach = 2 * MAX_BUFFER_MINUTES * 60_000;
+  return { from: new Date(from.getTime() - reach), to: new Date(to.getTime() + reach) };
+}
+
+/** The instants the searched window starts and ends. */
 export function windowInstants(
   window: VenueSearchWindow,
   timeZone: string,

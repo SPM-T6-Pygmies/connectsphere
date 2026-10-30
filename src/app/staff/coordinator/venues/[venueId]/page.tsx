@@ -60,7 +60,7 @@ export default async function VenueCalendarPage({
     <StaffShell role="coordinator" crumbs={[CRUMB, { label: calendar.venue.location }]}>
       <PageHeader
         title={calendar.venue.location}
-        description={`${dayHeading(calendar.from)} to ${dayHeading(calendar.to)}. Slots are Singapore time.`}
+        description={`${dayHeading(calendar.from)} to ${dayHeading(calendar.to)}. Times are Singapore time.`}
         actions={<WeekNav base={`/staff/coordinator/venues/${venueId}`} from={calendar.from} />}
       />
       <div className="mt-6 space-y-4">

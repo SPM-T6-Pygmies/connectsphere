@@ -202,6 +202,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-68": {
+      "title": "Notify the organiser of a reschedule or cancellation",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-71": {
       "title": "Notify the coordinator of a flagged venue booking",
       "parent": "SPM-47",
@@ -312,6 +317,11 @@
       "parent": "SPM-29",
       "status": "Canceled"
     },
+    "SPM-100": {
+      "title": "Decide a change request, field by field",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-101": {
       "title": "Record the withdrawal of a submitted event request",
       "parent": null,
@@ -331,6 +341,11 @@
       "title": "Resolve venue.capacity vs per-layout capacity precedence",
       "parent": null,
       "status": "Backlog"
+    },
+    "SPM-108": {
+      "title": "Release equipment on a removal request",
+      "parent": null,
+      "status": "Todo"
     },
     "SPM-109": {
       "title": "Mark an equipment line as essential",
@@ -747,6 +762,11 @@
       "parent": "SPM-45",
       "status": "In Progress"
     },
+    "SPM-250": {
+      "title": "Search venues by padded availability",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-251": {
       "title": "Re-request a flagged venue booking",
       "parent": null,
@@ -887,8 +907,18 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-312": {
+      "title": "Block confirmation while an arrangement is flagged",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-313": {
       "title": "Flag bookings when a venue is marked unavailable",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-316": {
+      "title": "Re-reserve a changed equipment line",
       "parent": null,
       "status": "In Progress"
     },
@@ -917,6 +947,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-323": {
+      "title": "View a venue's availability on the 15-minute grid",
+      "parent": "SPM-276",
+      "status": "In Progress"
+    },
     "SPM-324": {
       "title": "Request a venue booking by start and end time",
       "parent": null,
@@ -936,6 +971,11 @@
       "title": "Request an event with a preferred start and end time",
       "parent": "SPM-276",
       "status": "Todo"
+    },
+    "SPM-328": {
+      "title": "Retire the AM/PM/Night slot codes",
+      "parent": "SPM-276",
+      "status": "In Progress"
     },
     "SPM-331": {
       "title": "Store opening hours as 15-minute slots and convert existing venue slots",
@@ -1006,6 +1046,11 @@
       "title": "Test and verify approvals and holds against AC1–AC6",
       "parent": "SPM-325",
       "status": "Todo"
+    },
+    "SPM-361": {
+      "title": "Write the contract migration that removes the AM/PM/Night slot codes",
+      "parent": "SPM-328",
+      "status": "In Progress"
     },
     "SPM-450": {
       "title": "Domain: define a block by date range and start and end time",

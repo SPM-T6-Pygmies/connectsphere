@@ -5,7 +5,9 @@ import {
   coordinatorAssignedRow,
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
+  eventCancelledRow,
   eventRequestDecidedRow,
+  eventRescheduledRow,
   holdExpiredRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
@@ -337,6 +339,50 @@ describe("venueBookingFlaggedRow (SPM-71)", () => {
       related_booking_id: "31",
       message_content:
         "Grand Ballroom booking flagged for Harbour Lights Gala\nYour booking of Grand Ballroom for Harbour Lights Gala is flagged for review. Venue unavailable: Maintenance: 2026-11-16 13:00 to 18:00. Nothing has been cancelled or rebooked; open the event's Venue tab to decide what to do.",
+    });
+  });
+});
+
+describe("eventRescheduledRow (SPM-68)", () => {
+  it("AC1: records the notice as Pending against the Organiser and the event", () => {
+    expect(
+      eventRescheduledRow({
+        recipientUserAccountId: "3",
+        eventId: "7",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+        times: [{ date: "2026-11-21", start: "09:00", end: "12:00" }],
+        backToPlanning: false,
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "event-rescheduled",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      message_content:
+        "Harbour Lights Gala is rescheduled\nHarbour Lights Gala has been rescheduled. New times: Sat, 21 Nov 2026 (09:00–12:00).",
+    });
+  });
+});
+
+describe("eventCancelledRow (SPM-68)", () => {
+  it("AC1: records the notice as Pending against the Organiser and the event", () => {
+    expect(
+      eventCancelledRow({
+        recipientUserAccountId: "3",
+        eventId: "7",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "event-cancelled",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      message_content:
+        "Harbour Lights Gala is cancelled\nHarbour Lights Gala has been cancelled. Its venue bookings and equipment reservations have been released.",
     });
   });
 });

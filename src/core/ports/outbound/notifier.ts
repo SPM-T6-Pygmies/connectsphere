@@ -257,6 +257,36 @@ export interface EventConfirmedNotice {
 }
 
 /**
+ * What an Event Organiser is told when the assigned coordinator accepts a
+ * change of their event's times (SPM-68): a reschedule, now SPM-54 is
+ * cancelled. `times` are the new ones, as accepted.
+ */
+export interface EventRescheduledNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  /** In date then start order. */
+  readonly times: readonly TimeRangeOnDate[];
+  /** The same decision took the event out of Confirmed (SPM-433), which SPM-111 does not announce for a reschedule. */
+  readonly backToPlanning: boolean;
+}
+
+/**
+ * What an Event Organiser is told when the assigned coordinator cancels their
+ * event (SPM-68): everything it held at a venue, and its equipment, is
+ * released with it (SPM-55).
+ */
+export interface EventCancelledNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+}
+
+/**
  * What an event's assigned Event Coordinator is told when Venue Staff's change
  * to a venue flags one of its bookings (SPM-71): a block over it (SPM-313) or
  * an edit it no longer fits (SPM-105). One notice per booking, with every
@@ -316,6 +346,8 @@ export interface Notifier {
   holdExpired(notice: HoldExpiredNotice): Promise<void>;
   venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void>;
   eventConfirmed(notice: EventConfirmedNotice): Promise<void>;
+  eventRescheduled(notice: EventRescheduledNotice): Promise<void>;
+  eventCancelled(notice: EventCancelledNotice): Promise<void>;
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

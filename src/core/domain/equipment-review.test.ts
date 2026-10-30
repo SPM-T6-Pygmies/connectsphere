@@ -7,11 +7,14 @@ import { editEquipmentRequirement, type EquipmentRequirement } from "./equipment
 import {
   attentionReason,
   awaitsDecision,
+  awaitsRelease,
   equipmentQueueOf,
   daysShortOfService,
   finishesReview,
+  freeToReserve,
   isActiveEvent,
   markEquipmentLineUnfulfilled,
+  releaseEquipmentLine,
   reserveEquipmentLine,
   reservedAs,
   unitsAvailable,
@@ -24,6 +27,7 @@ import {
 import {
   EquipmentAvailableToReserveError,
   EquipmentLineNotAwaitingDecisionError,
+  EquipmentNothingToReleaseError,
   EventDateRequiredForEquipmentError,
   NotEnoughEquipmentAvailableError,
   UnfulfilledCommentRequiredError,
@@ -270,20 +274,21 @@ function target(held: number, overrides: Partial<EquipmentRequirement> = {}): Eq
 const unfulfilled = () =>
   target(7, { state: "Unfulfilled", decision: { by: userAccountId("support-2"), comment: "only 3 available" } });
 
+const coordinatorEvent: CoordinatorEvent = {
+  id: eventId("event-1"),
+  name: "Founders' Gala Dinner",
+  description: null,
+  status: "Planning",
+  preferredDate: "2026-11-15",
+  expectedAttendance: null,
+  statedEquipmentNeeds: null,
+  clientOrganisationId: clientOrganisationId("org-1"),
+  owningOrganiserUserAccountId: userAccountId("organiser-1"),
+  assignedCoordinatorUserAccountId: userAccountId("coordinator-1"),
+};
+
 /** A line marked unfulfilled at 5, which the coordinator then cut to 3. */
 function changedAfterUnfulfilled(held: number): EquipmentDecisionLine {
-  const coordinatorEvent: CoordinatorEvent = {
-    id: eventId("event-1"),
-    name: "Founders' Gala Dinner",
-    description: null,
-    status: "Planning",
-    preferredDate: "2026-11-15",
-    expectedAttendance: null,
-    statedEquipmentNeeds: null,
-    clientOrganisationId: clientOrganisationId("org-1"),
-    owningOrganiserUserAccountId: userAccountId("organiser-1"),
-    assignedCoordinatorUserAccountId: userAccountId("coordinator-1"),
-  };
   const edited = editEquipmentRequirement(coordinatorEvent, unfulfilled().line, {
     quantityRequested: 3,
     technicalRequirements: "HDMI input",
@@ -307,8 +312,7 @@ describe("awaitsDecision (SPM-274)", () => {
     expect(awaitsDecision("Planning", changedAfterUnfulfilled(0).line)).toBe(true);
   });
 
-  it("AC4: a changed or removal-requested line with units reserved does not", () => {
-    expect(awaitsDecision("Planning", changedLine())).toBe(false);
+  it("AC4: a removal-requested line with units reserved does not", () => {
     expect(awaitsDecision("Planning", removalRequestedLine())).toBe(false);
   });
 });
@@ -511,5 +515,169 @@ describe("finishesReview (SPM-65)", () => {
 
   it("AC2: nothing needed attention before", () => {
     expect(finishesReview([line()], [line()])).toBe(false);
+  });
+
+  it("AC1: releasing the last line needing attention finishes the review (SPM-108)", () => {
+    expect(finishesReview([line(), removalRequestedLine()], [line()])).toBe(true);
+  });
+
+  it("AC1: releasing the event's only line leaves no outcome to tell (SPM-108)", () => {
+    expect(finishesReview([removalRequestedLine()], [])).toBe(false);
+  });
+});
+
+describe("awaitsRelease (SPM-108)", () => {
+  it("AC1: a line the coordinator asked to remove awaits release on an active event", () => {
+    for (const status of ACTIVE) {
+      expect(awaitsRelease(status, removalRequestedLine())).toBe(true);
+    }
+  });
+
+  it("AC1: not on a Completed or Cancelled event", () => {
+    for (const status of INACTIVE) {
+      expect(awaitsRelease(status, removalRequestedLine())).toBe(false);
+    }
+  });
+
+  it("AC3: not once the coordinator withdrew the removal request, changed or not", () => {
+    expect(awaitsRelease("Planning", line())).toBe(false);
+    expect(awaitsRelease("Planning", changedLine())).toBe(false);
+  });
+
+  it("AC1: not a line that holds nothing", () => {
+    expect(awaitsRelease("Planning", newLine())).toBe(false);
+  });
+});
+
+describe("releaseEquipmentLine (SPM-108)", () => {
+  it("AC2: releases every unit the line holds", () => {
+    expect(releaseEquipmentLine("Confirmed", removalRequestedLine())).toBe(2);
+  });
+
+  it("AC3: refuses a line with no removal request", () => {
+    expect(() => releaseEquipmentLine("Planning", line())).toThrow(EquipmentNothingToReleaseError);
+  });
+
+  it("AC1: refuses on a Completed event", () => {
+    expect(() => releaseEquipmentLine("Completed", removalRequestedLine())).toThrow(EquipmentNothingToReleaseError);
+  });
+});
+
+/**
+ * A line reserved at 5, holding all 5, which the coordinator then edited, with
+ * 10 owned and `othersHold` reserved by an event the day before.
+ */
+function changedAfterReserved(
+  othersHold: number,
+  changes: { quantityRequested: number; technicalRequirements?: string },
+): EquipmentDecisionLine {
+  const reserved = line({ quantityRequested: 5, quantityReserved: 5, decision: { by: SUPPORT, comment: null } });
+  const edited = editEquipmentRequirement(coordinatorEvent, reserved, {
+    technicalRequirements: "HDMI input",
+    ...changes,
+  });
+  return { ...target(othersHold), line: edited.line };
+}
+
+describe("re-reserving a changed line (SPM-316)", () => {
+  it("AC1: a reserved line whose quantity was raised awaits a decision, its units still held", () => {
+    const { line: raised } = changedAfterReserved(0, { quantityRequested: 7 });
+
+    expect(raised).toMatchObject({ state: "Under review", quantityReserved: 5 });
+    expect(awaitsDecision("Planning", raised)).toBe(true);
+  });
+
+  it("AC1: so does one whose technical requirements changed", () => {
+    const { line: changed } = changedAfterReserved(0, { quantityRequested: 5, technicalRequirements: "USB-C" });
+
+    expect(awaitsDecision("Planning", changed)).toBe(true);
+  });
+
+  it("AC1: not on a Completed or Cancelled event", () => {
+    const { line: raised } = changedAfterReserved(0, { quantityRequested: 7 });
+
+    for (const status of INACTIVE) {
+      expect(awaitsDecision(status, raised)).toBe(false);
+    }
+  });
+
+  it("AC1: reserves the new quantity in full, replacing what was held, and records who did", () => {
+    const reserved = reserveEquipmentLine(dated, changedAfterReserved(0, { quantityRequested: 7 }), SUPPORT);
+
+    expect(reserved).toMatchObject({ quantityRequested: 7, quantityReserved: 7, state: "Reserved", reviewBaseline: null });
+    expect(reserved.decision).toEqual({ by: SUPPORT, comment: null });
+  });
+
+  it("AC1: reserves when exactly the new quantity is free, not counting what the line holds", () => {
+    expect(reserveEquipmentLine(dated, changedAfterReserved(3, { quantityRequested: 7 }), SUPPORT).quantityReserved).toBe(7);
+  });
+
+  it("AC1: reserves a line whose technical requirements alone changed at the same quantity", () => {
+    const changed = changedAfterReserved(0, { quantityRequested: 5, technicalRequirements: "USB-C" });
+
+    expect(reserveEquipmentLine(dated, changed, SUPPORT)).toMatchObject({
+      quantityReserved: 5,
+      technicalRequirements: "USB-C",
+      state: "Reserved",
+    });
+  });
+
+  it("AC2: reserves nothing when one fewer than the new quantity is free", () => {
+    expect(() => reserveEquipmentLine(dated, changedAfterReserved(4, { quantityRequested: 7 }), SUPPORT)).toThrow(
+      NotEnoughEquipmentAvailableError,
+    );
+  });
+
+  it("AC2: marking it unfulfilled releases every unit it held", () => {
+    const marked = markEquipmentLineUnfulfilled(
+      dated,
+      changedAfterReserved(4, { quantityRequested: 7 }),
+      SUPPORT,
+      "only 6 available",
+    );
+
+    expect(marked).toMatchObject({ state: "Unfulfilled", quantityReserved: 0, reviewBaseline: null });
+    expect(marked.decision).toEqual({ by: SUPPORT, comment: "only 6 available" });
+  });
+
+  it("AC2: refuses to mark it unfulfilled while exactly the new quantity is free", () => {
+    expect(() =>
+      markEquipmentLineUnfulfilled(dated, changedAfterReserved(3, { quantityRequested: 7 }), SUPPORT, "none spare"),
+    ).toThrow(EquipmentAvailableToReserveError);
+  });
+
+  it("AC3: a lowered quantity is not fulfilled automatically -- it is under review with every unit still held", () => {
+    const { line: lowered } = changedAfterReserved(0, { quantityRequested: 3 });
+
+    expect(lowered).toMatchObject({ state: "Under review", quantityRequested: 3, quantityReserved: 5 });
+    expect(attentionReason(lowered)).toBe("changed");
+  });
+
+  it("AC3: reserving a lowered line again holds only the new quantity, freeing the surplus", () => {
+    const reserved = reserveEquipmentLine(dated, changedAfterReserved(0, { quantityRequested: 3 }), SUPPORT);
+
+    expect(reserved).toMatchObject({ quantityReserved: 3, state: "Reserved" });
+  });
+
+  it("AC1: what the line holds counts as free for it, so a line holding 4 that needs 6 needs only 2 more", () => {
+    expect(freeToReserve(line({ quantityReserved: 4 }), 2)).toBe(6);
+    expect(freeToReserve(line({ quantityReserved: 4 }), 1)).toBe(5);
+  });
+
+  it("AC1: a line holding nothing has exactly what it shows", () => {
+    expect(freeToReserve(newLine(), 5)).toBe(5);
+  });
+
+  it("AC5: the line no longer needs attention once reserved or marked unfulfilled", () => {
+    const reserved = reserveEquipmentLine(dated, changedAfterReserved(0, { quantityRequested: 7 }), SUPPORT);
+    const marked = markEquipmentLineUnfulfilled(
+      dated,
+      changedAfterReserved(4, { quantityRequested: 7 }),
+      SUPPORT,
+      "only 6 available",
+    );
+
+    expect(attentionReason(reserved)).toBeNull();
+    expect(attentionReason(marked)).toBeNull();
   });
 });

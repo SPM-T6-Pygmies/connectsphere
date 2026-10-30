@@ -39,8 +39,8 @@ const BLOCK: VenueUnavailabilityBlock = {
   reason: "Renovation",
   note: null,
   slots: [
-    { date: "2026-10-19", slot: "AM" },
-    { date: "2026-10-19", slot: "PM" },
+    { date: "2026-10-19", slot: "28" },
+    { date: "2026-10-19", slot: "52" },
   ],
 };
 
@@ -58,8 +58,8 @@ const ROW: VenueUnavailabilityRow = {
   start_date: "2026-10-19",
   end_date: "2026-10-19",
   slots: [
-    { date: "2026-10-19", slot: "AM" },
-    { date: "2026-10-19", slot: "PM" },
+    { date: "2026-10-19", slot: "28" },
+    { date: "2026-10-19", slot: "52" },
   ],
 };
 
@@ -191,8 +191,8 @@ describe("SupabaseVenueUnavailabilityRepository.blockedBetween (SPM-154)", () =>
     const { client, calls } = fakeClient({
       venue_blocked_slots: {
         data: [
-          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Renovation", reason_note: null },
-          { venue_id: 5, date: "2026-11-02", slot: "AM", reason_category: "Other", reason_note: "Film shoot" },
+          { venue_id: 5, date: "2026-11-02", slot: "28", reason_category: "Renovation", reason_note: null },
+          { venue_id: 5, date: "2026-11-02", slot: "28", reason_category: "Other", reason_note: "Film shoot" },
         ],
         error: null,
       },
@@ -211,8 +211,8 @@ describe("SupabaseVenueUnavailabilityRepository.blockedBetween (SPM-154)", () =>
       },
     ]);
     expect(blocks).toEqual([
-      { date: "2026-11-02", slot: "AM", reason: "Renovation", note: null },
-      { date: "2026-11-02", slot: "AM", reason: "Other", note: "Film shoot" },
+      { date: "2026-11-02", slot: "28", reason: "Renovation", note: null },
+      { date: "2026-11-02", slot: "28", reason: "Other", note: "Film shoot" },
     ]);
   });
 

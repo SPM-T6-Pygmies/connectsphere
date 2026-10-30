@@ -90,6 +90,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
         available: 8,
         state: "Reserved",
         canDecide: false,
+        canRelease: false,
         decision: null,
         essential: false,
       },
@@ -104,6 +105,7 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-273)", () => {
         available: 10,
         state: "Requested",
         canDecide: true,
+        canRelease: false,
         decision: null,
         essential: false,
       },
@@ -230,6 +232,30 @@ describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-274)", () => {
       canDecide: true,
       reservedAs: { quantityRequested: 5, technicalRequirements: "HDMI input" },
     });
+  });
+});
+
+describe("ViewEventEquipmentForTechnicalSupportUseCase (SPM-108)", () => {
+  const removalRequested = line({
+    state: "Under review",
+    reviewBaseline: { quantityRequested: 2, technicalRequirements: "HDMI input" },
+    removalRequested: true,
+  });
+
+  it("AC1: a line whose removal was requested can be released, not decided on", async () => {
+    const result = await view([event([stock({ line: removalRequested }), stock()])]);
+
+    expect(result?.lines.map(({ canRelease, canDecide }) => ({ canRelease, canDecide }))).toEqual([
+      { canRelease: true, canDecide: false },
+      { canRelease: false, canDecide: false },
+    ]);
+  });
+
+  it("AC1: not on a Completed event", async () => {
+    const completed = event([stock({ line: removalRequested })]);
+    const result = await view([{ ...completed, event: { ...completed.event, status: "Completed" } }]);
+
+    expect(result?.lines[0]?.canRelease).toBe(false);
   });
 });
 

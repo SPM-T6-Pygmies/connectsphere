@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   EquipmentLineNotAwaitingDecisionError,
+  EquipmentNothingToReleaseError,
   EquipmentRequirementNotFoundError,
   EventDateRequiredForEquipmentError,
   NotEnoughEquipmentAvailableError,
@@ -174,6 +175,12 @@ describe("technical equipment mapper (SPM-274)", () => {
 
   it("AC1: reads CS043 as a line the event does not have", () => {
     expect(toTechnicalEquipmentError({ code: "CS043" }, line)).toBeInstanceOf(EquipmentRequirementNotFoundError);
+  });
+});
+
+describe("technical equipment mapper (SPM-108)", () => {
+  it("AC3: reads CS084 as a line with nothing left to release", () => {
+    expect(toTechnicalEquipmentError({ code: "CS084" })).toBeInstanceOf(EquipmentNothingToReleaseError);
   });
 });
 

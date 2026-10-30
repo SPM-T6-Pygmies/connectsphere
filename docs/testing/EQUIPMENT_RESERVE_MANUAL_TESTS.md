@@ -22,8 +22,9 @@ the day before it (collection) and on its date (return).
 
 What SPM-274 does **not** cover, so is not tested here:
 
-- **Changed or Removal requested lines that have equipment reserved**: releasing or
-  replacing a reservation is SPM-108. Those lines show no action.
+- **Changed or Removal requested lines that have equipment reserved**: releasing a
+  removal-requested line is SPM-108 ([EQUIPMENT_RELEASE_MANUAL_TESTS.md](EQUIPMENT_RELEASE_MANUAL_TESTS.md)),
+  and reserving a changed line again is SPM-316 ([EQUIPMENT_RERESERVE_MANUAL_TESTS.md](EQUIPMENT_RERESERVE_MANUAL_TESTS.md)).
 - **Telling the coordinator** of the outcome: SPM-65.
 
 The rules are unit-tested (`awaitsDecision`, `reserveEquipmentLine`,

@@ -3,6 +3,7 @@ import { equipmentItemId } from "@/core/domain/equipment-item";
 import type { EquipmentLineState, EquipmentRequirement } from "@/core/domain/equipment-requirement";
 import {
   EquipmentLineNotAwaitingDecisionError,
+  EquipmentNothingToReleaseError,
   EquipmentRequirementNotFoundError,
   EventDateRequiredForEquipmentError,
   NotEnoughEquipmentAvailableError,
@@ -131,6 +132,8 @@ export function toTechnicalEquipmentError(
       return new EquipmentLineNotAwaitingDecisionError();
     case "CS046":
       return line === undefined ? null : new NotEnoughEquipmentAvailableError(Number(error.details), line.quantityRequested);
+    case "CS084":
+      return new EquipmentNothingToReleaseError();
     default:
       return null;
   }

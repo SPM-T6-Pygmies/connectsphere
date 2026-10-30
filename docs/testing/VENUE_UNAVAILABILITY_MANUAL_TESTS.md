@@ -122,6 +122,8 @@ progress can only be tested with the day it runs. The run recorded below was on 
 
 **Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step1-form-filled.png) · [step2-saved-in-force](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step2-saved-in-force.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the count was 50 (codes 36 to 45). Screenshot: [saved-in-force](screenshots/spm-328/TC-VBLOCK-001_saved-in-force.jpg)
+
 ---
 
 ### TC-VBLOCK-002: The form refuses what the rules refuse (SPM-321 AC2; SPM-21 AC4 to AC8)
@@ -158,6 +160,8 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Screenshots:** [step1-end-date-before-start-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step1-end-date-before-start-refused.png) · [step2-ended-yesterday-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step2-ended-yesterday-refused.png) · [step3-501-character-note-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step3-501-character-note-refused.png) · [step4-no-end-time-button-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step4-no-end-time-button-disabled.png) · [step5-one-day-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step5-one-day-block-saved.png) · [step6-ends-tonight-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step6-ends-tonight-saved.png) · [step7-500-character-note-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step7-500-character-note-saved.png) · [step8-no-note-box-under-safety](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step8-no-note-box-under-safety.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the block ending tonight was on 2026-10-29. `refusals.sql` ended with "ok: all refusals held".
+
 ---
 
 ### TC-VBLOCK-003: Block a booked date and see what it overlaps (SPM-321 AC4; SPM-21 AC10)
@@ -188,6 +192,8 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step1-form-filled.png) · [step2-affected-bookings-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step2-affected-bookings-listed.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the booking read Confirmed and the event Planning. Screenshot: [affected-booking-09-30-10-30](screenshots/spm-328/TC-VBLOCK-003_affected-booking-09-30-10-30.jpg)
+
 ---
 
 ### TC-VBLOCK-004: A coordinator cannot request a blocked time (SPM-321 AC3)
@@ -212,6 +218,8 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Screenshots:** [step1-refused-naming-date-and-slot](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step1-refused-naming-date-and-slot.png) · [step2-another-slot-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step2-another-slot-accepted.png) · [step3-touching-time-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step3-touching-time-accepted.png) · [step4-day-after-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step4-day-after-accepted.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [step1-blocked-09-00-11-30-refused](screenshots/spm-328/TC-VBLOCK-004_step1-blocked-09-00-11-30-refused.jpg)
+
 ---
 
 ### TC-VBLOCK-005: Venue search leaves a blocked venue out (SPM-321 AC8; SPM-21 AC14)
@@ -233,6 +241,8 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (4/4 checks)
 
 **Screenshots:** [step1-blocked-venue-left-out](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step1-blocked-venue-left-out.png) · [step2-touching-time-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step2-touching-time-listed.png) · [step3-other-time-both-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step3-other-time-both-listed.png)
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). UAT-42 Lecture Hall (TC-VCAT-002) was also listed in step 3. Screenshot: [step1-garden-hall-left-out](screenshots/spm-328/TC-VBLOCK-005_step1-garden-hall-left-out.jpg)
 
 ---
 
@@ -258,6 +268,8 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Screenshots:** [step1-overlapping-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step1-overlapping-block-saved.png) · [step2-renovation-lifted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step2-renovation-lifted.png) · [step3-still-refused-covered-by-second-block](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step3-still-refused-covered-by-second-block.png) · [step4-freed-time-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step4-freed-time-accepted.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [renovation-lifted](screenshots/spm-328/TC-VBLOCK-006_renovation-lifted.jpg)
+
 ---
 
 ### TC-VBLOCK-007: Only Venue Staff can open the page (SPM-21 AC9)
@@ -272,6 +284,8 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (2/2 checks)
 
 **Screenshots:** [step-coordinator-access-denied](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-007_step-coordinator-access-denied.png) · [step-technical-support-access-denied](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-007_step-technical-support-access-denied.png)
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): a 403 for both accounts.
 
 ---
 
@@ -303,6 +317,8 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 **Screenshots:** none (database checks)
 
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran: 11 recorded and 1 lifted, for 11 blocks and 1 lifted; `checks.sql` ended with "ok: all 35 checks held".
+
 ---
 
 ### TC-VBLOCK-009: The form lists the opening hours and will not let closed time be picked (SPM-321 AC7)
@@ -331,6 +347,8 @@ A venue now opens once a day, so the *(closed in between)* mark on an end time c
 
 Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): Pass, 2026-10-22, Chrome via Playwright for JameszLau (7/7 checks). Screenshots: [step2-start-times-closed-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step2-start-times-closed-disabled.png) · [step3-end-times-after-start-0900](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step3-end-times-after-start-0900.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement).
+
 ---
 
 ### TC-VBLOCK-010: A block over closed time is refused, naming it (SPM-321 AC7)
@@ -354,11 +372,13 @@ Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): 
 
 Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for JameszLau (5/5 checks). Screenshots: [step1-form-filled-before-hours-change](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); no block slot was saved for 2026-12-28 and Harbour Room was put back to 07:00–24:00. Screenshot: [closed-11-00-11-30-refused](screenshots/spm-328/TC-VBLOCK-010_closed-11-00-11-30-refused.jpg)
+
 ---
 
-### TC-VBLOCK-011: A block on part of a slot blocks that slot on the calendar (SPM-321 AC8)
+### TC-VBLOCK-011: A block shows on exactly its periods of the calendar (SPM-321 AC8, SPM-323)
 
-**Scenario:** Studio is blocked 09:00 to 11:30 (Renovation) for the week of 2026-12-14. A Coordinator looking at Studio's calendar for that week should see the mornings as Blocked with the reason, and the afternoons and evenings as Available.
+**Scenario:** Studio is blocked 09:00 to 11:30 (Renovation) for the week of 2026-12-14. A Coordinator looking at Studio's calendar for that week should see 09:00 to 11:30 each weekday as Blocked with the reason, and every other period as Available.
 
 **Preconditions:** TC-VBLOCK-001 has run, and TC-VBLOCK-006 has not (it lifts the Renovation block). Signed in as `coordinator@test.com`.
 
@@ -366,11 +386,15 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 1. Open **Find a venue**, then Studio's calendar, and go to the week of Monday 2026-12-14 (or open the calendar with `?from=2026-12-14`).
 
 **Expected Result:**
-- Monday 2026-12-14 to Friday 2026-12-18: **AM** reads **Blocked** with *Renovation*. **PM** and **Night** read **Available** (the block does not reach them).
+- Monday 2026-12-14 to Friday 2026-12-18: a **Blocked** bar from exactly `09:00` to `11:30`, reading *Renovation*. The rest of each day, and the weekend, is blank, **Available** (SPM-323 reads the block's own 15-minute periods, no longer the AM slot it falls in).
 
-**Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (1/1 check)
+**Status:** [x] Pass [ ] Fail — 2026-10-27, re-run for SPM-323 in Chrome against `pnpm dev:local`, after recording TC-VBLOCK-001's Studio block. Re-run 2026-10-28 on the timeline, the same way: [x] Pass
 
-**Screenshots:** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
+**After (timeline, 2026-10-28):** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-28_SPM-323_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14-timeline.png)
+
+**Before (table, 2026-10-27):** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-27_SPM-323_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png). Earlier run on AM/PM/Night, 2026-10-22: [step1](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), before TC-VBLOCK-006. Screenshot: [studio-week-of-2026-12-14](screenshots/spm-328/TC-VBLOCK-011_studio-week-of-2026-12-14.jpg)
 
 ---
 
@@ -396,6 +420,8 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-same-block-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step1-same-block-refused.png) · [step2-other-reason-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step2-other-reason-saved.png) · [step3-shorter-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step3-shorter-block-saved.png) · [step4-other-block-saved-1](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-1.png) · [step4-other-block-saved-2](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-2.png)
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [same-block-refused-form-kept](screenshots/spm-328/TC-VBLOCK-012_same-block-refused-form-kept.jpg)
 
 ---
 
@@ -436,3 +462,5 @@ select (select count(*) from s1) as renovation_rows, (select count(*) from s2) a
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run for JameszLau against local Supabase (before and after read as above)
 
 **Screenshots:** none (database case)
+
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran. `supabase migration up` now also applies `20261029000000`, which retires AM, PM and Night: 80 Renovation and 20 Safety slots, 0 old codes, and 96 rows left in `slot`.

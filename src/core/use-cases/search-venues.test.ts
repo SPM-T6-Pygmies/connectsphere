@@ -56,6 +56,7 @@ function held(id: string, start: string, end: string): BusyInterval {
     venueId: venueId(id),
     startsAt: new Date(`2026-11-05T${start}:00+08:00`),
     endsAt: new Date(`2026-11-05T${end}:00+08:00`),
+    kind: "booking",
   };
 }
 
@@ -81,6 +82,23 @@ describe("SearchVenuesUseCase by start and end time (SPM-322)", () => {
     await expect(
       build([venue("a")]).execute(search({ ...afternoon, start: "15:10" })),
     ).rejects.toBeInstanceOf(InvalidVenueSearchError);
+  });
+});
+
+describe("SearchVenuesUseCase with setup and turnaround (SPM-250)", () => {
+  // The most a venue can have: 150 minutes each, so 15:00-16:00 takes the room from 12:30 to 18:30.
+  const slowest = venue("a", { setupMinutes: 150, turnaroundMinutes: 150 });
+  const afternoon = { date: "2026-11-05", start: "15:00", end: "16:00" };
+
+  it.each([
+    ["10:00", "10:15", "turned around until 12:45, into the setup", []],
+    ["09:45", "10:00", "turned around until 12:30, as the setup begins", ["a"]],
+    ["20:45", "21:00", "set up from 18:15, into the turnaround", []],
+    ["21:00", "21:15", "set up from 18:30, as the turnaround ends", ["a"]],
+  ])("reads a booking %s-%s, hours from the time searched: %s", async (start, end, _case, listed) => {
+    const useCase = build([slowest], [held("a", start, end)]);
+
+    expect(ids(await useCase.execute(search(afternoon)))).toEqual(listed);
   });
 });
 

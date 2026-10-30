@@ -9,6 +9,7 @@ interface BusyIntervalRow {
   venue_id: number;
   starts_at: string;
   ends_at: string;
+  kind: "booking" | "block";
 }
 
 /**
@@ -32,6 +33,7 @@ export class SupabaseVenueAvailability implements VenueAvailability {
       venueId: venueId(String(row.venue_id)),
       startsAt: new Date(row.starts_at),
       endsAt: new Date(row.ends_at),
+      kind: row.kind,
     }));
   }
 }

@@ -9,10 +9,17 @@ import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 
 import { InvalidCalendarRangeError, VenueNotFoundError } from "../domain/errors";
+import { slotCodesFor } from "../domain/slot-grid";
+import { toMinutes } from "../domain/time-of-day";
 import { userAccountId } from "../domain/user-account";
 import { venueId, type Venue } from "../domain/venue";
-import type { CalendarSlotStatus } from "../domain/venue-calendar";
+import type { CalendarPeriod, CalendarPeriodStatus } from "../domain/venue-calendar";
 import { ViewVenueCalendarUseCase, type VenueCalendar } from "./view-venue-calendar";
+
+/** The 15-minute slots from `start` to `end` on `date`, as the slot tables hold them (SPM-331). */
+function slotsOf(date: string, start: string, end: string) {
+  return slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot }));
+}
 
 // 2 Nov 2026, 00:30 in Singapore -- still 1 Nov in UTC.
 const NOW = new Date("2026-11-01T16:30:00Z");
@@ -57,13 +64,17 @@ function build(bookings: StoredBooking[] = []) {
   return { useCase, blocks };
 }
 
-function statusOn(calendar: VenueCalendar, date: string, slot: "AM" | "PM" | "Night"): CalendarSlotStatus {
+function periodOn(calendar: VenueCalendar, date: string, start: string): CalendarPeriod {
   const day = calendar.days.find((d) => d.date === date);
-  const found = day?.slots.find((s) => s.slot === slot);
+  const found = day?.periods.find((p) => p.start === start);
   if (found === undefined) {
-    throw new Error(`No ${slot} on ${date} in the calendar.`);
+    throw new Error(`No period starting ${start} on ${date} in the calendar.`);
   }
-  return found.status;
+  return found;
+}
+
+function statusOn(calendar: VenueCalendar, date: string, start: string): CalendarPeriodStatus {
+  return periodOn(calendar, date, start).status;
 }
 
 describe("ViewVenueCalendarUseCase (SPM-154)", () => {
@@ -98,18 +109,18 @@ describe("ViewVenueCalendarUseCase (SPM-154)", () => {
         endDate: "2026-11-04",
         reason: "Safety",
         note: null,
-        slots: [{ date: "2026-11-04", slot: "Night" }],
+        slots: slotsOf("2026-11-04", "19:00", "24:00"),
       },
       STAFF,
     );
 
     const calendar = await useCase.execute({ venueId: "5", from: "2026-11-02" });
 
-    expect(statusOn(calendar, "2026-11-03", "AM")).toBe("booked");
-    expect(statusOn(calendar, "2026-11-03", "PM")).toBe("held");
-    expect(statusOn(calendar, "2026-11-04", "Night")).toBe("blocked");
-    expect(calendar.days[2].slots[2].reasons).toEqual(["Safety"]);
-    expect(statusOn(calendar, "2026-11-02", "AM")).toBe("available");
+    expect(statusOn(calendar, "2026-11-03", "07:00")).toBe("confirmed");
+    expect(statusOn(calendar, "2026-11-03", "13:00")).toBe("held");
+    expect(statusOn(calendar, "2026-11-04", "19:00")).toBe("blocked");
+    expect(periodOn(calendar, "2026-11-04", "19:00").reasons).toEqual(["Safety"]);
+    expect(statusOn(calendar, "2026-11-02", "07:00")).toBe("available");
   });
 
   it("ignores another venue's bookings", async () => {
@@ -117,7 +128,7 @@ describe("ViewVenueCalendarUseCase (SPM-154)", () => {
 
     const calendar = await useCase.execute({ venueId: "5", from: "2026-11-02" });
 
-    expect(statusOn(calendar, "2026-11-03", "AM")).toBe("available");
+    expect(statusOn(calendar, "2026-11-03", "07:00")).toBe("available");
   });
 
   it("refuses a venue that is not in the catalogue", async () => {
@@ -143,13 +154,13 @@ describe("ViewVenueCalendarUseCase block notes (SPM-43)", () => {
         endDate: "2026-11-03",
         reason: "Other",
         note: "Terrace closed for resurfacing",
-        slots: [{ date: "2026-11-03", slot: "PM" }],
+        slots: slotsOf("2026-11-03", "13:00", "18:00"),
       },
       STAFF,
     );
 
     const calendar = await useCase.execute({ venueId: "5", from: "2026-11-02" });
-    const pm = calendar.days[1].slots[1];
+    const pm = periodOn(calendar, "2026-11-03", "13:00");
 
     expect(pm.reasons).toEqual(["Other"]);
     expect(pm.notes).toEqual(["Terrace closed for resurfacing"]);
@@ -168,18 +179,57 @@ describe("ViewVenueCalendarUseCase reads live (SPM-43)", () => {
         endDate: "2026-11-02",
         reason: "Maintenance",
         note: null,
-        slots: [{ date: "2026-11-02", slot: "AM" }],
+        slots: slotsOf("2026-11-02", "07:00", "12:00"),
       },
       STAFF,
     );
     const after = await useCase.execute({ venueId: "5", from: "2026-11-02" });
 
-    expect(statusOn(before, "2026-11-02", "AM")).toBe("available");
-    expect(statusOn(after, "2026-11-02", "AM")).toBe("blocked");
+    expect(statusOn(before, "2026-11-02", "07:00")).toBe("available");
+    expect(statusOn(after, "2026-11-02", "07:00")).toBe("blocked");
 
     await blocks.lift({ id: recorded.id, liftedBy: STAFF, liftedAt: NOW });
     const lifted = await useCase.execute({ venueId: "5", from: "2026-11-02" });
 
-    expect(statusOn(lifted, "2026-11-02", "AM")).toBe("available");
+    expect(statusOn(lifted, "2026-11-02", "07:00")).toBe("available");
+  });
+});
+
+describe("ViewVenueCalendarUseCase on the 15-minute grid (SPM-323)", () => {
+  it("shows a Confirmed 10:15-11:45 booking on exactly its periods (AC2)", async () => {
+    const { useCase } = build([booking({ times: [{ date: "2026-11-03", start: "10:15", end: "11:45" }] })]);
+
+    const calendar = await useCase.execute({ venueId: "5", from: "2026-11-02" });
+
+    expect(statusOn(calendar, "2026-11-03", "10:00")).toBe("available");
+    expect(statusOn(calendar, "2026-11-03", "10:15")).toBe("confirmed");
+    expect(statusOn(calendar, "2026-11-03", "11:30")).toBe("confirmed");
+    expect(statusOn(calendar, "2026-11-03", "11:45")).toBe("available");
+  });
+
+  it("shows a block on 15-minute codes, with its reason, on the next read after it is recorded (AC3, AC4)", async () => {
+    const { useCase, blocks } = build();
+    const before = await useCase.execute({ venueId: "5", from: "2026-11-02" });
+
+    await blocks.record(
+      {
+        venueId: HALL.id,
+        startDate: "2026-11-02",
+        endDate: "2026-11-02",
+        reason: "Safety",
+        note: null,
+        // 09:00-09:30
+        slots: [
+          { date: "2026-11-02", slot: "36" },
+          { date: "2026-11-02", slot: "37" },
+        ],
+      },
+      STAFF,
+    );
+    const after = await useCase.execute({ venueId: "5", from: "2026-11-02" });
+
+    expect(statusOn(before, "2026-11-02", "09:00")).toBe("available");
+    expect(periodOn(after, "2026-11-02", "09:15")).toMatchObject({ status: "blocked", reasons: ["Safety"] });
+    expect(statusOn(after, "2026-11-02", "09:30")).toBe("available");
   });
 });

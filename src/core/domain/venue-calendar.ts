@@ -1,36 +1,31 @@
-import {
-  BOOKING_SLOTS,
-  holdsSlot,
-  isCalendarDate,
-  slotRange,
-  type BookingSlot,
-  type OccupiedTime,
-  type SlotOnDate,
-} from "./booking";
+import { holdsSlot, isCalendarDate, type OccupiedTime } from "./booking";
 import { InvalidCalendarRangeError } from "./errors";
-import { closedPeriods, type OpeningWindow } from "./opening-hours";
+import { closedPeriods, toRange, type OpeningWindow } from "./opening-hours";
 import { slotCodeRange, type SlotCodeOnDate } from "./slot-grid";
-import { overlaps, toMinutes } from "./time-of-day";
+import { fromMinutes, slotCodes, toMinutes, type TimeRange } from "./time-of-day";
 import type { UnavailabilityReason } from "./venue-unavailability";
 
 /**
- * What a Coordinator sees in one slot of a venue's calendar (SPM-43).
+ * What a Coordinator sees in one 15-minute period of a venue's calendar (SPM-323).
  *
  * - `available`  nothing holds it; a request may be made
- * - `booked`     a Confirmed booking holds it
+ * - `confirmed`  a Confirmed booking holds it
  * - `held`       a Tentative Hold holds it until `holdExpiresAt` (Week 7 C4)
  * - `blocked`    an In force Venue Staff block covers it (SPM-21)
- * - `closed`     the venue is closed for some of the slot's hours (SPM-320)
+ * - `closed`     the venue is closed then (SPM-320)
  */
-export type CalendarSlotStatus = "available" | "booked" | "held" | "blocked" | "closed";
+export type CalendarPeriodStatus = "available" | "confirmed" | "held" | "blocked" | "closed";
 
-export interface CalendarSlot {
-  readonly slot: BookingSlot;
-  readonly status: CalendarSlotStatus;
+export interface CalendarPeriod {
+  /** `HH:MM`, on the 15-minute grid. */
+  readonly start: string;
+  /** `HH:MM`, 15 minutes after `start`; `24:00` for the last period of the day. */
+  readonly end: string;
+  readonly status: CalendarPeriodStatus;
   /** When the hold lapses; set only when `status` is `held`, and null if the hold has no expiry. */
   readonly holdExpiresAt: Date | null;
   /**
-   * SPM-153: why the slot is blocked, once per reason, in the order the blocks
+   * SPM-153: why the period is blocked, once per reason, in the order the blocks
    * were given. Empty unless `status` is `blocked`. Overlapping blocks may give
    * more than one.
    */
@@ -45,8 +40,8 @@ export interface CalendarSlot {
 
 export interface CalendarDay {
   readonly date: string;
-  /** In `BOOKING_SLOTS` order. */
-  readonly slots: readonly CalendarSlot[];
+  /** Earliest first. Every day of one calendar has the same periods, so they line up as rows. */
+  readonly periods: readonly CalendarPeriod[];
 }
 
 /** A slot an In force block covers, with the reason and any note Venue Staff recorded. */
@@ -100,30 +95,33 @@ export function calendarDays(from: string, to: string): string[] {
   return days;
 }
 
-function slotKey({ date, slot }: SlotOnDate): string {
-  return `${date}|${slot}`;
+function periodKey(date: string, code: string): string {
+  return `${date}|${code}`;
 }
 
 /**
- * SPM-152: each slot's status on each day, from the venue's opening hours, the
- * bookings on it and the blocks over it, as of `now`.
+ * SPM-323: each day as 15-minute periods, each with its status, from the
+ * venue's opening hours, the bookings on it and the blocks over it, as of `now`.
  *
- * When more than one thing applies, the first wins:
+ * The periods run from the venue's opening to its closing (AC1). A live
+ * booking or block outside those hours widens them, so changing the hours
+ * hides nothing: its periods show it, and the rest of the widening reads
+ * closed. A venue with no hours and nothing on it has no periods.
  *
- *   blocked > booked > held > closed > available
+ * When more than one thing applies to a period, the first wins:
+ *
+ *   blocked > confirmed > held > closed > available
  *
  * - A block beats a booking: approval over a block is refused (SPM-22), so a
  *   booking under one cannot go ahead.
- * - Bookings are kept as times (SPM-324); a slot is booked or held when a
- *   live booking's time overlaps its hours at all. Should a confirmed booking
- *   and a hold both overlap one slot, it shows booked.
- * - Whether a booking holds its slot is `holdsSlot`: a Requested, Rejected,
- *   Released or Cancelled booking, or a hold past its expiry, holds nothing
- *   and leaves the slot available.
- * - A slot the venue is closed for cannot be requested, but a booking or
- *   block already on it still shows, so changing the hours hides nothing.
+ * - A period is confirmed or held only when a live booking covers it, so a
+ *   booking from 10:15 to 11:45 leaves 10:00-10:15 and 11:45-12:00 as they
+ *   were (AC2).
+ * - Whether a booking holds its time is `holdsSlot`: a Requested, Rejected,
+ *   Released or Cancelled booking, or a hold past its expiry, holds nothing.
  *
- * Setup and turnaround buffers are not counted (#123, SPM-23).
+ * Setup and turnaround are not shown: the calendar is the time booked, not
+ * the time the room is in use (SPM-19).
  */
 export function deriveVenueCalendar(input: {
   readonly days: readonly string[];
@@ -132,15 +130,14 @@ export function deriveVenueCalendar(input: {
   readonly blocked: readonly CalendarBlock[];
   readonly now: Date;
 }): CalendarDay[] {
+  const onDays = new Set(input.days);
+  const live = input.occupied.filter((o) => onDays.has(o.date) && holdsSlot(o, input.now));
+  const blocks = input.blocked.filter((b) => onDays.has(b.date));
+
   const blocked = new Map<string, { reasons: UnavailabilityReason[]; notes: string[] }>();
-  // A block is on 15-minute slots (SPM-321); a calendar slot is blocked when any of them falls in its hours.
-  for (const block of input.blocked) {
-    const covered = slotCodeRange(block.slot);
-    for (const slot of BOOKING_SLOTS) {
-      if (!overlaps(covered, slotRange(slot))) {
-        continue;
-      }
-      const key = slotKey({ date: block.date, slot });
+  for (const block of blocks) {
+    for (const code of slotCodes(slotCodeRange(block.slot))) {
+      const key = periodKey(block.date, code);
       const why = blocked.get(key) ?? { reasons: [], notes: [] };
       if (!why.reasons.includes(block.reason)) {
         why.reasons.push(block.reason);
@@ -151,37 +148,55 @@ export function deriveVenueCalendar(input: {
       blocked.set(key, why);
     }
   }
-  const live = input.occupied.filter((occupied) => holdsSlot(occupied, input.now));
-  const holding = (date: string, slot: BookingSlot): OccupiedTime | undefined => {
-    const hours = slotRange(slot);
-    const over = live.filter(
-      (o) =>
-        o.date === date &&
-        overlaps(hours, { start: toMinutes(o.start) ?? 0, end: toMinutes(o.end) ?? 0 }),
-    );
-    return over.find((o) => o.status === "Confirmed") ?? over[0];
-  };
+
+  // A confirmed booking outranks a hold on the same period, whichever comes first.
+  const booked = new Map<string, OccupiedTime>();
+  for (const booking of live) {
+    for (const code of slotCodes(timeRange(booking))) {
+      const key = periodKey(booking.date, code);
+      if (booked.get(key)?.status !== "Confirmed") {
+        booked.set(key, booking);
+      }
+    }
+  }
+
+  const spans = [
+    ...input.openingHours.map(toRange),
+    ...live.map(timeRange),
+    ...blocks.map((b) => slotCodeRange(b.slot)),
+  ];
+  const rows =
+    spans.length === 0
+      ? []
+      : slotCodes({ start: Math.min(...spans.map((s) => s.start)), end: Math.max(...spans.map((s) => s.end)) });
 
   return input.days.map((date) => ({
     date,
-    slots: BOOKING_SLOTS.map((slot): CalendarSlot => {
-      const key = slotKey({ date, slot });
-      const booking = holding(date, slot);
+    periods: rows.map((code): CalendarPeriod => {
+      const range = slotCodeRange(code);
+      const at = { start: fromMinutes(range.start), end: fromMinutes(range.end) };
+      const key = periodKey(date, code);
       const why = blocked.get(key);
+      const booking = booked.get(key);
 
       if (why !== undefined) {
-        return { slot, status: "blocked", holdExpiresAt: null, ...why };
+        return { ...at, status: "blocked", holdExpiresAt: null, ...why };
       }
       if (booking?.status === "Confirmed") {
-        return { slot, status: "booked", holdExpiresAt: null, reasons: [], notes: [] };
+        return { ...at, status: "confirmed", holdExpiresAt: null, reasons: [], notes: [] };
       }
       if (booking !== undefined) {
-        return { slot, status: "held", holdExpiresAt: booking.holdExpiresAt, reasons: [], notes: [] };
+        return { ...at, status: "held", holdExpiresAt: booking.holdExpiresAt, reasons: [], notes: [] };
       }
-      if (closedPeriods(input.openingHours, slotRange(slot)).length > 0) {
-        return { slot, status: "closed", holdExpiresAt: null, reasons: [], notes: [] };
+      if (closedPeriods(input.openingHours, range).length > 0) {
+        return { ...at, status: "closed", holdExpiresAt: null, reasons: [], notes: [] };
       }
-      return { slot, status: "available", holdExpiresAt: null, reasons: [], notes: [] };
+      return { ...at, status: "available", holdExpiresAt: null, reasons: [], notes: [] };
     }),
   }));
+}
+
+/** A booking's time as minutes after midnight. Bookings are kept on the 15-minute grid (SPM-324). */
+function timeRange({ start, end }: OccupiedTime): TimeRange {
+  return { start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 };
 }

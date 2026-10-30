@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import {
   buildViewCoordinatorEvent,
+  buildViewEventChangeRequests,
   buildViewEventEquipment,
   buildViewEventSafetyChecks,
   buildViewVenueBookingOptions,
@@ -98,6 +99,10 @@ export default async function CoordinatorEventPage({
     forbidden();
   }
 
+  // SPM-100: the event tab says when a change request is waiting, and links to it.
+  const viewEventChangeRequests = await buildViewEventChangeRequests();
+  const changeRequests = await viewEventChangeRequests.execute({ eventId: id, ...coordinator });
+
   const {
     event,
     details,
@@ -107,6 +112,7 @@ export default async function CoordinatorEventPage({
     confirmation,
     blockingArrangements,
     blockingEquipment,
+    blockingFlags,
     safetyCheckBlocker,
     canComplete,
     endsAt,
@@ -134,7 +140,14 @@ export default async function CoordinatorEventPage({
           <EventTabs
             initialTab={initialTab}
             panels={{
-              event: <EventDetailsTab event={event} details={details} readiness={readiness} />,
+              event: (
+                <EventDetailsTab
+                  event={event}
+                  details={details}
+                  readiness={readiness}
+                  changeRequestWaiting={changeRequests?.open != null}
+                />
+              ),
               venue: (
                 <VenueTab
                   readiness={readiness}
@@ -207,6 +220,25 @@ export default async function CoordinatorEventPage({
                             </li>
                           ))}
                         </ul>
+                      </AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {blockingFlags.length > 0 ? (
+                    <Alert variant="destructive">
+                      <AlertTriangleIcon />
+                      <AlertTitle>
+                        Cannot confirm -- {blockingFlags.length} venue booking
+                        {blockingFlags.length === 1 ? "" : "s"} flagged for re-checking
+                      </AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc space-y-1 pl-4">
+                          {blockingFlags.map((booking) => (
+                            <li key={booking}>
+                              <span className="font-medium">{booking}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <p>Clear the flag if the booking still fits, or re-request it.</p>
                       </AlertDescription>
                     </Alert>
                   ) : null}

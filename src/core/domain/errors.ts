@@ -667,6 +667,18 @@ export class EssentialEquipmentNotReservedError extends DomainError {
   }
 }
 
+/** SPM-312 AC1: a venue booking of the event is flagged for re-checking. Names each such booking. */
+export class BookingFlaggedError extends DomainError {
+  readonly code = "booking_flagged";
+
+  constructor(readonly bookings: readonly string[]) {
+    super(
+      `This event cannot be confirmed: the venue ${bookings.length === 1 ? "booking" : "bookings"} at ` +
+        `${bookings.join(", ")} ${bookings.length === 1 ? "is" : "are"} flagged for re-checking.`,
+    );
+  }
+}
+
 /**
  * SPM-33 AC3: a clarification request must say what needs clarifying -- by the
  * same rule that makes a rejection state its reason.
@@ -807,6 +819,18 @@ export class EquipmentLineNotAwaitingDecisionError extends DomainError {
 
   constructor() {
     super("This line is no longer waiting for a decision. Reload the page to see where it stands.");
+  }
+}
+
+/**
+ * SPM-108 AC3: the line has no removal request to release -- the coordinator
+ * withdrew it, or it was released already.
+ */
+export class EquipmentNothingToReleaseError extends DomainError {
+  readonly code = "equipment_nothing_to_release";
+
+  constructor() {
+    super("This line has nothing to release. Reload the page to see where it stands.");
   }
 }
 
@@ -1242,7 +1266,7 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
 /**
  * SPM-21 AC12, SPM-321 AC3: a Venue Staff block shares time with what the request asks for.
  * `slots` are the block's own slots that overlap it, and `times` says them as a person reads
- * them (`2026-11-02 09:00 to 11:30`), not as the AM, PM or Night the request used. Unlike a
+ * them (`2026-11-02 09:00 to 11:30`). Unlike a
  * clash with another booking, there is nothing to choose around it and no override.
  */
 export class VenueSlotBlockedError extends DomainError {
@@ -1399,5 +1423,42 @@ export class ChangeRequestAlreadyOpenError extends DomainError {
 
   constructor() {
     super("This event already has a change request waiting on its coordinator.");
+  }
+}
+
+/**
+ * SPM-100: no change request with this id on an event assigned to this
+ * Coordinator -- whether it is someone else's or does not exist (#91).
+ */
+export class ChangeRequestNotFoundError extends DomainError {
+  readonly code = "change_request_not_found";
+
+  constructor(readonly changeRequestId: string) {
+    super(`No change request ${changeRequestId} on an event assigned to you.`);
+  }
+}
+
+/** SPM-100: a change request is decided once, in one save (2026-10-18 team decision). */
+export class ChangeRequestAlreadyDecidedError extends DomainError {
+  readonly code = "change_request_already_decided";
+
+  constructor() {
+    super("This change request has already been decided.");
+  }
+}
+
+/**
+ * SPM-100: a decision that leaves an item undecided, names a field the request
+ * does not cover, or declines one without a reason (#104). `field` is the one
+ * to point at, or null when the decision as a whole is wrong.
+ */
+export class InvalidChangeRequestDecisionError extends DomainError {
+  readonly code = "invalid_change_request_decision";
+
+  constructor(
+    readonly field: string | null,
+    message: string,
+  ) {
+    super(message);
   }
 }

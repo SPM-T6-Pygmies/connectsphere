@@ -69,7 +69,7 @@ export default async function VenueStaffCalendarPage({
     >
       <PageHeader
         title={calendar.venue.location}
-        description={`${dayHeading(calendar.from)} to ${dayHeading(calendar.to)}. Slots are Singapore time.`}
+        description={`${dayHeading(calendar.from)} to ${dayHeading(calendar.to)}. Times are Singapore time.`}
         actions={<WeekNav base={base} from={calendar.from} />}
       />
       <div className="mt-6">

@@ -14,11 +14,18 @@ import { clientOrganisationId } from "@/core/domain/client-organisation";
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { eventId } from "@/core/domain/event";
 import type { ReadinessFacts } from "@/core/domain/event-readiness";
+import { slotCodesFor } from "@/core/domain/slot-grid";
+import { toMinutes } from "@/core/domain/time-of-day";
 import { userAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 import type { SafetyCheckEntry } from "@/core/ports/outbound/safety-check-repository";
 
 import { ViewCoordinatorEventUseCase } from "./view-coordinator-event";
+
+/** The 15-minute slots from `start` to `end` on `date`, as the slot tables hold them (SPM-331). */
+function slotsOf(date: string, start: string, end: string) {
+  return slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot }));
+}
 
 const COORDINATOR = userAccountId("coordinator-1");
 const OTHER_COORDINATOR = userAccountId("coordinator-2");
@@ -59,6 +66,7 @@ function seedFacts(overrides: Partial<ReadinessFacts> = {}): ReadinessFacts {
     registrationOpenDate: null,
     registrationCloseDate: null,
     essentialEquipment: [],
+    flaggedBookings: [],
     ...overrides,
   };
 }
@@ -305,7 +313,7 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
     venueId: venueId("venue-1"),
     startDate: "2026-11-06",
     endDate: "2026-11-06",
-    slots: [{ date: "2026-11-06", slot: "PM" }],
+    slots: slotsOf("2026-11-06", "13:00", "18:00"),
     reason: "Maintenance",
     note: null,
   } as const;
@@ -321,7 +329,7 @@ describe("ViewCoordinatorEventUseCase flags (SPM-313)", () => {
           venueId: "venue-1",
           eventName: "Tech Summit",
           status: "Confirmed",
-          slots: [{ date: "2026-11-06", slot: "PM" }],
+          slots: slotsOf("2026-11-06", "13:00", "18:00"),
           eventId: "event-1",
           coordinatorUserAccountId: COORDINATOR,
         },
@@ -423,6 +431,35 @@ describe("ViewCoordinatorEventUseCase essential equipment (SPM-318)", () => {
     const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
 
     expect(result?.blockingEquipment).toEqual([]);
+  });
+});
+
+describe("ViewCoordinatorEventUseCase flagged bookings (SPM-312)", () => {
+  it("AC1: blocks confirmation and names each flagged booking by venue and time", async () => {
+    const useCase = buildUseCase(
+      [seedEvent()],
+      [
+        seedFacts({
+          flaggedBookings: [
+            { bookingId: "812", venueLocation: "Main Hall", bookedFor: "2026-11-16 13:00 to 18:00" },
+            { bookingId: "813", venueLocation: "Studio", bookedFor: "2026-11-16 13:00 to 18:00" },
+          ],
+        }),
+      ],
+    );
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.confirmation).toBe("blocked");
+    expect(result?.blockingFlags).toEqual(["Main Hall (2026-11-16 13:00 to 18:00)", "Studio (2026-11-16 13:00 to 18:00)"]);
+  });
+
+  it("AC2: names nothing once no booking is flagged", async () => {
+    const useCase = buildUseCase([seedEvent()], [seedFacts({ flaggedBookings: [] })]);
+
+    const result = await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(result?.blockingFlags).toEqual([]);
   });
 });
 

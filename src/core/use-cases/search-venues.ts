@@ -1,8 +1,8 @@
 import {
+  busyTimeNeeded,
   calendarDate,
   defineVenueSearch,
   searchVenues,
-  windowInstants,
   type BusyInterval,
   type VenueSearchInput,
   type VenueSearchOutcome,
@@ -39,7 +39,7 @@ export class SearchVenuesUseCase {
 
     let busy: readonly BusyInterval[] = [];
     if (criteria.window !== null) {
-      const { from, to } = windowInstants(criteria.window, timeZone);
+      const { from, to } = busyTimeNeeded(criteria.window, timeZone);
       busy = await availability.busyIntervals(from, to);
     }
 
