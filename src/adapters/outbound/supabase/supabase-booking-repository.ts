@@ -13,6 +13,8 @@ import {
   CoordinatorEventNotFoundError,
   InvalidBookingDateError,
   NoBookingSlotsError,
+  NoFlagToReRequestError,
+  ReRequestPendingError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueNotFoundError,
@@ -53,6 +55,10 @@ const PADDED_SLOT_TAKEN = "CS088";
 const SLOT_BLOCKED = "CS028";
 // The event was cancelled (SPM-55 AC6).
 const EVENT_CANCELLED = "CS077";
+// SPM-251: the booking a re-request replaces has no open flag, or another re-request for it is waiting.
+// CS026 (below) is its not-on-this-event.
+const NO_FLAG_TO_RE_REQUEST = "CS085";
+const RE_REQUEST_PENDING = "CS086";
 
 // SQLSTATEs raised by coordinator_change_booking_room_layout (CS022 and CS023 are shared).
 const BOOKING_NOT_FOUND = "CS026";
@@ -150,6 +156,13 @@ export class SupabaseBookingRepository implements BookingRepository {
           throw new VenueSlotBlockedError(
             await this.blockedOf(request.venueId, request.times, error.message),
           );
+        // The use case read the flag open and nothing waiting a moment ago; it moved since.
+        case BOOKING_NOT_FOUND:
+          throw new BookingNotFoundError(request.replacesBookingId ?? "");
+        case NO_FLAG_TO_RE_REQUEST:
+          throw new NoFlagToReRequestError(request.replacesBookingId ?? "");
+        case RE_REQUEST_PENDING:
+          throw new ReRequestPendingError(request.replacesBookingId ?? "");
         default:
           throw new Error(`Failed to submit the booking request: ${error.message}`, {
             cause: error,
@@ -239,7 +252,11 @@ export class SupabaseBookingRepository implements BookingRepository {
       request.venueId,
       [...new Set(request.times.map(({ date }) => date))],
     );
-    return clashingTimes(request.times, occupied, new Date());
+    return clashingTimes(
+      request.times,
+      occupied.filter(({ bookingId }) => bookingId !== request.replacesBookingId),
+      new Date(),
+    );
   }
 
   /**

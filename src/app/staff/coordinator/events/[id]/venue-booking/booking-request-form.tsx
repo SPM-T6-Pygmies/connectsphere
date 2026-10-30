@@ -2,11 +2,13 @@
 
 import { CircleAlert, CircleCheck, PlusIcon, XIcon } from "lucide-react";
 import { startTransition, useActionState, useId, useState } from "react";
+import { toast } from "sonner";
 
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { TimeRangeOnDate } from "@/core/domain/event-times";
 import { describeBuffers } from "@/core/domain/venue-buffers";
 import type { Venue, VenueLayoutSuitability } from "@/core/use-cases/view-venue-booking-options";
 
@@ -49,9 +51,17 @@ function defaultLayout(venue: Venue | undefined): string {
  * whether it fits the event's needs -- advice only, the request can still be sent. Every field is held in state, so a refused request keeps what
  * was chosen. The server decides everything -- a clash, a missing layout --
  * and this only keeps the Submit button honest.
+ *
+ * SPM-251: a re-request is this form, started from what the server worked out
+ * and naming the flagged booking it replaces. Once sent, that booking has a
+ * re-request waiting, so the page swaps back to the ordinary form; the
+ * confirmation is a toast, which outlives the swap.
  */
 export function BookingRequestForm({
   initialVenueId,
+  initialLayout,
+  initialTimes,
+  replacesBookingId,
   eventId,
   defaultDate,
   venues,
@@ -59,23 +69,41 @@ export function BookingRequestForm({
 }: {
   /** SPM-62 AC3: the venue Venue Staff suggested, when the coordinator chose to request it. */
   initialVenueId?: string;
+  /** SPM-251 AC2: a re-request starts from these; otherwise the venue's only layout and one blank date. */
+  initialLayout?: string | null;
+  initialTimes?: readonly TimeRangeOnDate[];
+  /** SPM-251: the flagged booking this re-request replaces. */
+  replacesBookingId?: string;
   eventId: string;
   defaultDate: string | null;
   venues: readonly Venue[];
   /** The server's verdict for each venue and layout, worked out from the event's needs now. */
   suitability: readonly VenueLayoutSuitability[];
 }) {
-  const [state, formAction, pending] = useActionState(submitVenueBookingRequestAction, INITIAL);
+  const [state, formAction, pending] = useActionState(
+    async (previous: SubmitVenueBookingRequestState, formData: FormData) => {
+      const next = await submitVenueBookingRequestAction(previous, formData);
+      if (next.status === "submitted" && next.replacingVenueLocation !== null) {
+        toast.success(
+          `Re-request sent for ${next.venueLocation}. Venue Staff will review it. The booking at ${next.replacingVenueLocation} stays until they approve it.`,
+        );
+      }
+      return next;
+    },
+    INITIAL,
+  );
   const idPrefix = useId();
 
   const [venueId, setVenueId] = useState(initialVenueId ?? "");
-  const [layout, setLayout] = useState(() =>
-    defaultLayout(venues.find((candidate) => candidate.id === initialVenueId)),
+  const [layout, setLayout] = useState(
+    () => initialLayout ?? defaultLayout(venues.find((candidate) => candidate.id === initialVenueId)),
   );
-  const [nextKey, setNextKey] = useState(1);
-  const [rows, setRows] = useState<readonly DateRow[]>([
-    { key: 0, date: defaultDate ?? "", start: "", end: "" },
-  ]);
+  const [nextKey, setNextKey] = useState(Math.max(initialTimes?.length ?? 0, 1));
+  const [rows, setRows] = useState<readonly DateRow[]>(() =>
+    initialTimes !== undefined && initialTimes.length > 0
+      ? initialTimes.map((time, key) => ({ key, ...time }))
+      : [{ key: 0, date: defaultDate ?? "", start: "", end: "" }],
+  );
 
   // A sent request starts the form afresh -- its row is in the list below now.
   // Adjusted while rendering rather than in an effect, so the cleared form is
@@ -138,6 +166,7 @@ export function BookingRequestForm({
     >
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="roomLayout" value={layout} />
+      <input type="hidden" name="replacesBookingId" value={replacesBookingId ?? ""} />
 
       <fieldset className="space-y-5" disabled={pending}>
         <div className="space-y-1.5">
@@ -283,7 +312,7 @@ export function BookingRequestForm({
         </Alert>
       ) : null}
 
-      {state.status === "submitted" ? (
+      {state.status === "submitted" && state.replacingVenueLocation === null ? (
         <Alert role="status">
           <CircleCheck aria-hidden />
           <AlertTitle>
@@ -293,7 +322,7 @@ export function BookingRequestForm({
       ) : null}
 
       <Button type="submit" disabled={!canSubmit || pending}>
-        {pending ? "Sending…" : "Send booking request"}
+        {pending ? "Sending…" : replacesBookingId === undefined ? "Send booking request" : "Send re-request"}
       </Button>
     </form>
   );

@@ -24,6 +24,7 @@ const row: BookingReviewRow = {
   hold_expires_at: null,
   rejection_note: null,
   suggested_alternative_location: null,
+  replaces: null,
   event: {
     event_id: 12,
     event_request_id: 6,

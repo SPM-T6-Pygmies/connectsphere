@@ -1,8 +1,9 @@
 import { holdsSlot, type BookingStatus } from "./booking";
-import { NoFlagToClearError } from "./errors";
+import { NoFlagToClearError, NoFlagToReRequestError, ReRequestPendingError } from "./errors";
 import { joinSlotCodes, slotCodeRange, type SlotCodeOnDate } from "./slot-grid";
+import type { TimeRangeOnDate } from "./event-times";
 import { fromMinutes } from "./time-of-day";
-import type { VenueId } from "./venue";
+import type { Venue, VenueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
 /** The reason code for a booking flagged because a block covers it (SPM-313). */
@@ -146,4 +147,68 @@ export function flagsToClear<F extends { readonly bookingId: string }>(
     throw new NoFlagToClearError(bookingId);
   }
   return clearing;
+}
+
+/** A booking as the re-request rule sees it: its status, and the flagged booking it asks to replace. */
+export interface ReRequestingBooking {
+  readonly status: BookingStatus;
+  readonly replacesBookingId: string | null;
+}
+
+/**
+ * SPM-251 AC9: whether a re-request for `bookingId` is still waiting for Venue Staff. Once one
+ * is decided it is not: a rejected one leaves the booking to be re-requested again (AC7).
+ */
+export function reRequestPending(bookings: readonly ReRequestingBooking[], bookingId: string): boolean {
+  return bookings.some((booking) => booking.replacesBookingId === bookingId && booking.status === "Requested");
+}
+
+/**
+ * SPM-251 AC1, AC9: the flagged booking a coordinator asks a venue for again. Only a booking with
+ * an open flag can be re-requested -- `openFlags` holds none for one that no longer holds its
+ * venue -- and only one re-request for it waits for Venue Staff at a time.
+ */
+export function bookingToReplace(
+  openFlags: readonly { readonly bookingId: string }[],
+  eventBookings: readonly ReRequestingBooking[],
+  bookingId: string,
+): string {
+  if (!openFlags.some((flag) => flag.bookingId === bookingId)) {
+    throw new NoFlagToReRequestError(bookingId);
+  }
+  if (reRequestPending(eventBookings, bookingId)) {
+    throw new ReRequestPendingError(bookingId);
+  }
+  return bookingId;
+}
+
+/** SPM-251 AC2: what the re-request form starts from. */
+export interface ReRequestDraft {
+  readonly venueId: VenueId;
+  readonly roomLayout: string | null;
+  readonly times: readonly TimeRangeOnDate[];
+}
+
+/**
+ * SPM-251 AC2: a re-request starts from the event as it is now, not as it was booked: its
+ * current times, or the booking's when the event has none, at the booking's own venue. The
+ * layout is the event's preference if that venue supports it, else the booking's layout, else
+ * the venue's only one. The coordinator can change any of it before sending (AC3).
+ */
+export function reRequestDraft(
+  event: { readonly times: readonly TimeRangeOnDate[]; readonly roomLayoutPreference: string | null },
+  flagged: { readonly venueId: VenueId; readonly roomLayoutName: string | null; readonly times: readonly TimeRangeOnDate[] },
+  venue: Pick<Venue, "layouts"> | undefined,
+): ReRequestDraft {
+  const supported = (name: string | null) =>
+    name === null
+      ? undefined
+      : venue?.layouts.find((layout) => layout.name.toLowerCase() === name.trim().toLowerCase())?.name;
+  const onlyLayout = venue?.layouts.length === 1 ? venue.layouts[0].name : undefined;
+
+  return {
+    venueId: flagged.venueId,
+    roomLayout: supported(event.roomLayoutPreference) ?? supported(flagged.roomLayoutName) ?? onlyLayout ?? null,
+    times: event.times.length > 0 ? event.times : flagged.times,
+  };
 }

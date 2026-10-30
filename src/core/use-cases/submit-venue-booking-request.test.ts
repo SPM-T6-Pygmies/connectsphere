@@ -109,6 +109,7 @@ function buildUseCase(
     events: new InMemoryCoordinatorEventRepository([EVENT, CANCELLED_EVENT]),
     venues: new InMemoryVenueCatalogue([HALL, STUDIO, PADDED_HALL]),
     bookings,
+    flags: { openForEvent: async () => [] },
     venueStaff: new InMemoryVenueStaffDirectory(venueStaff),
     notifier,
     clock: new FixedClock(NOW),
@@ -131,7 +132,12 @@ describe("SubmitVenueBookingRequestUseCase (SPM-46)", () => {
       ],
     });
 
-    expect(result).toEqual({ bookingId: "booking-1", status: "Requested", venueLocation: "Main Hall" });
+    expect(result).toEqual({
+      bookingId: "booking-1",
+      status: "Requested",
+      venueLocation: "Main Hall",
+      replacingVenueLocation: null,
+    });
     expect(bookings.all()).toEqual([
       expect.objectContaining({
         eventId: "event-1",

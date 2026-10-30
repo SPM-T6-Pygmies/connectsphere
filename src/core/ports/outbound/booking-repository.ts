@@ -26,6 +26,10 @@ export interface EventBookingSummary {
   readonly rejectionNote: string | null;
   /** The venue Venue Staff suggested instead -- informal, it books nothing (#45). */
   readonly suggestedAlternative: { readonly venueId: VenueId; readonly location: string } | null;
+  /** SPM-251: the flagged booking this one was requested to replace; null for an ordinary request. */
+  readonly replacesBookingId: string | null;
+  /** SPM-251 AC6: the re-request that replaced this booking once Venue Staff approved it; null otherwise. */
+  readonly replacedByBookingId: string | null;
 }
 
 /**
@@ -42,6 +46,11 @@ export interface BookingRepository {
   listSlotsAt(venue: VenueId, dates: readonly string[]): Promise<readonly OccupiedTime[]>;
   /** The bookings raised for one of the coordinator's events; empty if it isn't theirs. */
   listForEvent(coordinatorId: UserAccountId, eventId: string): Promise<readonly EventBookingSummary[]>;
+  /**
+   * SPM-251: a request that replaces a flagged booking is re-checked here too -- the booking is on
+   * the event, still has an open flag (`NoFlagToReRequestError`) and has no other re-request
+   * waiting (`ReRequestPendingError`) -- so two tabs sending at once save only one.
+   */
   submit(request: BookingRequest): Promise<BookingId>;
   /**
    * SPM-104: move a request that is still pending to another layout the venue
