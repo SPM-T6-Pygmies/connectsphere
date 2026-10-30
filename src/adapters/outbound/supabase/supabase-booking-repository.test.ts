@@ -38,6 +38,7 @@ const REQUEST: BookingRequest = {
   ],
   requestedBy: userAccountId("2"),
   status: "Requested",
+  replacesBookingId: null,
 };
 
 const REFUSED_BY_TRIGGER = {

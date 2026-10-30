@@ -33,6 +33,15 @@ export interface BookedEvent {
   readonly specialArrangements: string | null;
 }
 
+/** SPM-251 AC4: the flagged booking a re-request replaces, as Venue Staff read it beside the request. */
+export interface ReplacedBooking {
+  readonly id: BookingId;
+  readonly venueLocation: string;
+  /** In date then start order. */
+  readonly times: readonly TimeRangeOnDate[];
+  readonly status: BookingStatus;
+}
+
 /** One booking, as Venue Staff see it in a list or on its own page. */
 export interface BookingForReview {
   readonly id: BookingId;
@@ -51,6 +60,8 @@ export interface BookingForReview {
   readonly holdExpiresAt: string | null;
   readonly rejectionNote: string | null;
   readonly suggestedAlternativeLocation: string | null;
+  /** SPM-251: the flagged booking this re-request replaces; null for an ordinary request. */
+  readonly replaces: ReplacedBooking | null;
   readonly event: BookedEvent;
 }
 
@@ -68,6 +79,11 @@ export interface BookingReviewRepository {
    * Records a decision. The store restates the rules at its own boundary --
    * still waiting, and no slot held by another booking -- so a race the use
    * case could not see is refused with the domain's own errors.
+   *
+   * SPM-251 AC6: approving a re-request replaces the booking it names, in the
+   * same transaction: that booking's open flags close as replaced, it becomes
+   * Released and links to the re-request. One that no longer holds its venue
+   * is left as it is. A hold on a re-request is refused (AC10).
    */
   decide(decided: DecidedBooking): Promise<void>;
   /**

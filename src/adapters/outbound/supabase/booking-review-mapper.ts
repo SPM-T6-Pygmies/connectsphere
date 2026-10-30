@@ -20,6 +20,13 @@ export interface BookingReviewRow {
   hold_expires_at: string | null;
   rejection_note: string | null;
   suggested_alternative_location: string | null;
+  /** SPM-251: the flagged booking a re-request replaces; null for an ordinary request. */
+  replaces: {
+    booking_id: number;
+    venue_location: string;
+    status: string;
+    slots: readonly EventSlotTimeRow[];
+  } | null;
   event: {
     event_id: number;
     event_request_id: number | null;
@@ -53,6 +60,15 @@ export function toBookingForReview(row: BookingReviewRow): BookingForReview {
     holdExpiresAt: row.hold_expires_at,
     rejectionNote: row.rejection_note,
     suggestedAlternativeLocation: row.suggested_alternative_location,
+    replaces:
+      row.replaces == null
+        ? null
+        : {
+            id: String(row.replaces.booking_id) as BookingId,
+            venueLocation: row.replaces.venue_location,
+            times: toBookingTimes(row.replaces.slots),
+            status: toStatus(row.replaces.status),
+          },
     event: {
       id: String(row.event.event_id),
       requestId: row.event.event_request_id === null ? null : String(row.event.event_request_id),
