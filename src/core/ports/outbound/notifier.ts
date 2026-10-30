@@ -1,6 +1,6 @@
 import type { RequestedChange } from "../../domain/change-request";
 import type { Connection } from "../../domain/connection";
-import type { ConfirmedEquipmentLine } from "../../domain/event-readiness";
+import type { ConfirmedEquipmentLine, LapsedArrangement } from "../../domain/event-readiness";
 import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
@@ -301,6 +301,21 @@ export interface ChangeRequestedNotice {
   readonly changes: readonly RequestedChange[];
 }
 
+/**
+ * What an Event Organiser is told when their Confirmed event goes back to
+ * Planning because an arrangement no longer holds (SPM-111): which ones, so
+ * they stop relying on them. A reschedule is told by `EventRescheduledNotice`
+ * instead (AC4).
+ */
+export interface EventNoLongerConfirmedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  readonly lapsed: readonly LapsedArrangement[];
+}
+
 /** One field the Coordinator declined, with why (#104). */
 export interface DeclinedChange {
   readonly change: RequestedChange;
@@ -390,5 +405,6 @@ export interface Notifier {
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void>;
   changeRequested(notice: ChangeRequestedNotice): Promise<void>;
   changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void>;
+  eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

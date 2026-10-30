@@ -9,6 +9,7 @@ import { equipmentDecidedMessage } from "@/adapters/outbound/notification-conten
 import { equipmentNeedsAttentionMessage } from "@/adapters/outbound/notification-content/equipment-needs-attention";
 import { eventCancelledMessage } from "@/adapters/outbound/notification-content/event-cancelled";
 import { eventConfirmedMessage } from "@/adapters/outbound/notification-content/event-confirmed";
+import { eventNoLongerConfirmedMessage } from "@/adapters/outbound/notification-content/event-no-longer-confirmed";
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
 import { eventRescheduledMessage } from "@/adapters/outbound/notification-content/event-rescheduled";
 import { holdExpiredMessage } from "@/adapters/outbound/notification-content/hold-expired";
@@ -28,6 +29,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCancelledNotice,
   EventConfirmedNotice,
+  EventNoLongerConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -297,6 +299,19 @@ export function changeRequestDecidedRow(notice: ChangeRequestDecidedNotice): Not
     status: "Pending",
     related_event_id: notice.eventId,
     related_change_request_id: notice.changeRequestId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling an Organiser their event is no longer confirmed (SPM-111). */
+export function eventNoLongerConfirmedRow(notice: EventNoLongerConfirmedNotice): NotificationRow {
+  const { subject, body } = eventNoLongerConfirmedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "event-no-longer-confirmed",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
     message_content: `${subject}\n${body}`,
   };
 }

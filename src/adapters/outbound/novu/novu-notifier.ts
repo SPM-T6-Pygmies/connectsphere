@@ -10,6 +10,7 @@ import { EQUIPMENT_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflow
 import { EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
 import { EVENT_CANCELLED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-cancelled";
 import { EVENT_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-confirmed";
+import { EVENT_NO_LONGER_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-no-longer-confirmed";
 import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { EVENT_RESCHEDULED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-rescheduled";
 import { HOLD_EXPIRED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/hold-expired";
@@ -31,6 +32,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCancelledNotice,
   EventConfirmedNotice,
+  EventNoLongerConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -160,6 +162,10 @@ export class NovuNotifier implements Notifier {
 
   changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
     return this.trigger(CHANGE_REQUEST_DECIDED_WORKFLOW_ID, notice);
+  }
+
+  eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void> {
+    return this.trigger(EVENT_NO_LONGER_CONFIRMED_WORKFLOW_ID, notice);
   }
 
   /**

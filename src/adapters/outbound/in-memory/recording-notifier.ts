@@ -7,6 +7,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCancelledNotice,
   EventConfirmedNotice,
+  EventNoLongerConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -44,6 +45,7 @@ export class RecordingNotifier implements Notifier {
   readonly bookingsFlagged: VenueBookingFlaggedNotice[] = [];
   readonly changesRequested: ChangeRequestedNotice[] = [];
   readonly changeRequestsDecided: ChangeRequestDecidedNotice[] = [];
+  readonly eventsNoLongerConfirmed: EventNoLongerConfirmedNotice[] = [];
   readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
@@ -124,6 +126,10 @@ export class RecordingNotifier implements Notifier {
 
   async changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
     this.changeRequestsDecided.push(notice);
+  }
+
+  async eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void> {
+    this.eventsNoLongerConfirmed.push(notice);
   }
 
   async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
