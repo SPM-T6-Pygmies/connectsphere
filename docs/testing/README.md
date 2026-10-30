@@ -743,7 +743,7 @@ supabase db query --file scripts/seed-venues/seed.sql --local
 
 - Create the *TC-REG test event*: run the SQL block in the doc's [Setup](EVENT_REGISTRATION_MANUAL_TESTS.md#a-confirmed-event-that-is-open-for-registration).
 
-**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as no login (private window), password `TestPass123!`.
+**Run the app:** `pnpm dev:local`, then open the public pages signed out, in a private window.
 
 **Cases:** [EVENT_REGISTRATION_MANUAL_TESTS.md](EVENT_REGISTRATION_MANUAL_TESTS.md) (TC-REG-001–TC-REGWD-003)
 
@@ -768,7 +768,7 @@ supabase db query --file scripts/seed-venues/seed.sql --local
 
 - Create the *TC-REG test event* as in [EVENT_REGISTRATION_MANUAL_TESTS.md](EVENT_REGISTRATION_MANUAL_TESTS.md#a-confirmed-event-that-is-open-for-registration). Start with Novu set and have an inbox you can read.
 
-**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as no login (private window), password `TestPass123!`.
+**Run the app:** `pnpm dev:local`, then open the public pages signed out, in a private window.
 
 **Cases:** [REGISTRATION_EMAIL_MANUAL_TESTS.md](REGISTRATION_EMAIL_MANUAL_TESTS.md) (TC-REGEMAIL-001–004)
 
@@ -1323,7 +1323,7 @@ supabase db reset
 
 - Run the queries in the doc with `supabase db query --local "<sql>"`. Cases on pre-migration data start from `supabase db reset --version 20261028010000`.
 
-**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as no login (database checks only), password `TestPass123!`.
+**Run the app:** not needed; these are database checks.
 
 **Cases:** [SLOT_CODES_MANUAL_TESTS.md](SLOT_CODES_MANUAL_TESTS.md) (TC-SLOTCODE-001)
 
