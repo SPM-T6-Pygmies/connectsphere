@@ -22,6 +22,7 @@ import {
   confirmationState,
   confirmedArrangements,
   confirmEvent,
+  lapseConfirmation,
   type ArrangementReadiness,
   type EquipmentLineReadiness,
   type EventReadiness,
@@ -603,5 +604,63 @@ describe("confirmedArrangements (SPM-66)", () => {
 
   it("lists nothing for an event with no essential arrangements", () => {
     expect(confirmedArrangements(facts())).toEqual({ venueLocation: null, equipment: [] });
+  });
+});
+
+describe("lapseConfirmation (SPM-111)", () => {
+  const confirmed = event({ status: "Confirmed" });
+  const venue: ReadinessFacts = facts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall" });
+
+  it("AC1, AC2: a Confirmed event whose venue booking is no longer confirmed goes back to Planning, naming the venue", () => {
+    const assessed = assessReadiness(facts({ essentialTypes: ["venue"], confirmedVenueLocation: null }));
+
+    expect(lapseConfirmation(confirmed, assessed, APPROVED)).toEqual({
+      next: "Planning",
+      lapsed: [{ kind: "arrangement", type: "venue" }],
+    });
+  });
+
+  it("AC1, AC2: a Confirmed event whose safety check is no longer Approved lapses, naming the safety check", () => {
+    expect(lapseConfirmation(confirmed, assessReadiness(venue), REJECTED)).toEqual({
+      next: "Planning",
+      lapsed: [{ kind: "safety-check" }],
+    });
+  });
+
+  it("AC3: a flagged booking lapses it, each flagged venue named once", () => {
+    const flagged = { bookingId: "812", venueLocation: "Main Hall", bookedFor: "2026-11-16 13:00 to 18:00" };
+    const again = { ...flagged, bookingId: "813", bookedFor: "2026-11-17 13:00 to 18:00" };
+    const assessed = assessReadiness({ ...venue, flaggedBookings: [flagged, again] });
+
+    expect(lapseConfirmation(confirmed, assessed, APPROVED)?.lapsed).toEqual([
+      { kind: "flagged-booking", venueLocation: "Main Hall" },
+    ]);
+  });
+
+  it("AC3: an essential equipment line no longer reserved in full lapses it, by type", () => {
+    const assessed = assessReadiness({
+      ...venue,
+      essentialEquipment: [{ equipmentType: "Projector", state: "Under review", quantityRequested: 2, quantityReserved: 2 }],
+    });
+
+    expect(lapseConfirmation(confirmed, assessed, APPROVED)?.lapsed).toEqual([
+      { kind: "equipment", equipmentType: "Projector" },
+    ]);
+  });
+
+  it("a Planning event never lapses", () => {
+    const assessed = assessReadiness(facts({ essentialTypes: ["venue"] }));
+
+    expect(lapseConfirmation(event({ status: "Planning" }), assessed, null)).toBeNull();
+  });
+
+  it("a Confirmed event that still passes the gate does not lapse", () => {
+    expect(lapseConfirmation(confirmed, assessReadiness(venue), APPROVED)).toBeNull();
+  });
+
+  it("an arrangement Not applicable to the event cannot lapse", () => {
+    const assessed = assessReadiness(facts({ essentialTypes: [], registrationEnabled: false }));
+
+    expect(lapseConfirmation(confirmed, assessed, APPROVED)).toBeNull();
   });
 });
