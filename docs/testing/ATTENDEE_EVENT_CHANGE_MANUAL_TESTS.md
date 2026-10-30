@@ -149,7 +149,7 @@ Run the cases in order.
   registration. Nothing about why, and no other attendee.
 - `<you+b@…>` (withdrawn) gets no reschedule email.
 
-**Status:** [ ] Pass [ ] Fail — not run yet
+**Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
 
 ### TC-ATTCHANGE-002: Cancelling emails every Registered attendee (AC1, AC3)
 
@@ -167,7 +167,7 @@ Run the cases in order.
   the registration link. No reason, nothing internal.
 - `<you+b@…>` (withdrawn) gets nothing.
 
-**Status:** [ ] Pass [ ] Fail — not run yet
+**Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
 
 ### TC-ATTCHANGE-003: A change that is not a reschedule emails no attendee (AC1)
 
@@ -183,4 +183,4 @@ in TC-ATTCHANGE-001 step 1.
 **Expected Result:**
 - Step 3: no new email after the registration confirmation.
 
-**Status:** [ ] Pass [ ] Fail — not run yet
+**Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
