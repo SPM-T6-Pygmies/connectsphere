@@ -2,6 +2,7 @@ import {
   assertCanDecideChangeRequest,
   changeRequestId,
   decideChangeRequest,
+  type ChangeRequest,
   type ChangeRequestItem,
   type ItemDecision,
   type Revalidation,
@@ -26,8 +27,11 @@ export interface DecideChangeRequestCommand {
 export interface DecideChangeRequestDeps {
   readonly changeRequests: ChangeRequestRepository;
   readonly coordinatorEvents: CoordinatorEventRepository;
-  /** SPM-68: tells the event's Organiser it is rescheduled. */
-  readonly notifier: Pick<Notifier, "eventRescheduled">;
+  /**
+   * SPM-68: tells the event's Organiser it is rescheduled. SPM-110: tells the
+   * Organiser who asked each field's outcome.
+   */
+  readonly notifier: Pick<Notifier, "eventRescheduled" | "changeRequestDecided">;
 }
 
 /**
@@ -50,6 +54,9 @@ export interface ChangeRequestOutcome {
  *
  * Who may decide is checked before what is decided, so a caller the event is
  * not assigned to learns nothing from a validation message (#91).
+ *
+ * SPM-110: once the decision is stored, the Organiser who asked is told every
+ * field's outcome in one notice.
  *
  * SPM-68: an accepted change of times is a reschedule, so the event's
  * Organiser is told the new times once the decision is stored.
@@ -77,10 +84,31 @@ export class DecideChangeRequestUseCase {
       revalidation: decision.revalidation,
       lapsed: false,
     };
+    if (event !== null) {
+      await this.announceOutcome(event, request, outcome);
+    }
     if (event !== null && outcome.rescheduled) {
       await this.announceReschedule(coordinator, event, outcome);
     }
     return outcome;
+  }
+
+  private async announceOutcome(
+    event: CoordinatorEventDetails,
+    request: ChangeRequest,
+    outcome: ChangeRequestOutcome,
+  ): Promise<void> {
+    await this.deps.notifier.changeRequestDecided({
+      recipientUserAccountId: request.requestedBy,
+      eventId: event.id,
+      changeRequestId: request.id,
+      eventRequestId: event.eventRequestId,
+      eventName: event.name,
+      accepted: outcome.items.flatMap((item) => (item.decision === "Accepted" ? [item.change] : [])),
+      declined: outcome.items.flatMap((item) =>
+        item.decision === "Declined" ? [{ change: item.change, reason: item.reason }] : [],
+      ),
+    });
   }
 
   private async announceReschedule(

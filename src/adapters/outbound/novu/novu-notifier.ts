@@ -2,6 +2,7 @@ import type { Novu } from "@novu/api";
 import type { TriggerEventRequestDto, TriggerEventResponseDto } from "@novu/api/models/components";
 
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
+import { CHANGE_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-request-decided";
 import { CHANGE_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-requested";
 import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/clarification-requested";
 import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
@@ -23,6 +24,7 @@ import { VENUE_BOOKING_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/work
 import { VENUE_BOOKING_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestDecidedNotice,
   ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
@@ -154,6 +156,10 @@ export class NovuNotifier implements Notifier {
 
   changeRequested(notice: ChangeRequestedNotice): Promise<void> {
     return this.trigger(CHANGE_REQUESTED_WORKFLOW_ID, notice);
+  }
+
+  changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
+    return this.trigger(CHANGE_REQUEST_DECIDED_WORKFLOW_ID, notice);
   }
 
   /**

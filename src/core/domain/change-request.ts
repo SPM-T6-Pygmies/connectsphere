@@ -206,16 +206,16 @@ export function changeRequestId(raw: string): ChangeRequestId {
 /** Where one field stands. The store spells "Declined" `Rejected`. */
 export type ItemDecisionState = "Pending" | "Accepted" | "Declined";
 
-export interface ChangeRequestItem {
-  readonly change: RequestedChange;
-  readonly decision: ItemDecisionState;
-  /** Why it was declined; null unless it was. */
-  readonly reason: string | null;
-}
+/** A Declined item always says why (#104); no other item has a reason. */
+export type ChangeRequestItem =
+  | { readonly change: RequestedChange; readonly decision: "Pending" | "Accepted"; readonly reason: null }
+  | { readonly change: RequestedChange; readonly decision: "Declined"; readonly reason: string };
 
 export interface ChangeRequest {
   readonly id: ChangeRequestId;
   readonly submittedAt: Date;
+  /** The Organiser who asked, who is told the outcome (SPM-110). */
+  readonly requestedBy: UserAccountId;
   readonly items: readonly ChangeRequestItem[];
 }
 

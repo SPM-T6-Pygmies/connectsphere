@@ -279,3 +279,15 @@ describe("notificationItem (SPM-67)", () => {
     expect(item.href).toBe("/staff/coordinator/events/7/change-request")
   })
 })
+
+describe("notificationItem (SPM-110)", () => {
+  it("names a decided change request's notice and opens the request in the inbox", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["change-request-decided"] }),
+    )
+
+    expect(item.status).toBe("Change request decided")
+    expect(item.href).toBe("/staff/requester/notifications/10")
+  })
+})

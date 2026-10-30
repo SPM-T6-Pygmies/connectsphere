@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  changeRequestDecidedRow,
   changeRequestedRow,
   clarificationRequestedRow,
   coordinatorAssignedRow,
@@ -407,6 +408,31 @@ describe("changeRequestedRow (SPM-67)", () => {
       related_change_request_id: "41",
       message_content:
         "Change requested for Harbour Lights Gala\nThe Organiser of Harbour Lights Gala asks to change: Expected attendance → 320. Open the change request to accept or decline each change.",
+    });
+  });
+});
+
+describe("changeRequestDecidedRow (SPM-110)", () => {
+  it("AC1: records the notice as Pending against the Organiser, the event and the change request", () => {
+    expect(
+      changeRequestDecidedRow({
+        recipientUserAccountId: "6",
+        eventId: "7",
+        changeRequestId: "41",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+        accepted: [{ field: "expected_attendance", value: 320 }],
+        declined: [{ change: { field: "venue_requirements", value: "Step-free access" }, reason: "No such venue free" }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "6",
+      trigger_scenario: "change-request-decided",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      related_change_request_id: "41",
+      message_content:
+        "Your change request for Harbour Lights Gala is decided\nAccepted: Expected attendance → 320. Declined: Venue requirements → Step-free access (No such venue free).",
     });
   });
 });
