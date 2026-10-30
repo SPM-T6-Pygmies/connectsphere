@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryConfirmationLapses } from "@/adapters/outbound/in-memory/in-memory-confirmation-lapses";
+import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
+import { InMemoryRegistrationRepository } from "@/adapters/outbound/in-memory/in-memory-registration-repository";
+import { attendeeEmail, attendeeName } from "@/core/domain/attendee";
+import { registerAttendee, registrationId } from "@/core/domain/registration";
 import { InMemoryChangeRequestRepository } from "@/adapters/outbound/in-memory/in-memory-change-request-repository";
 import {
   InMemoryCoordinatorEventRepository,
@@ -23,6 +27,7 @@ import { eventId } from "@/core/domain/event";
 import { eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
+import { AttendeeChangeAnnouncer } from "./announce-event-change-to-attendees";
 import { DecideChangeRequestUseCase } from "./decide-change-request";
 
 const COORDINATOR = "coordinator-1";
@@ -76,11 +81,37 @@ function build(seed: SeedCoordinatorEvent = event(), pending: ChangeRequest = re
   const coordinatorEvents = new InMemoryCoordinatorEventRepository([seed]);
   const notifier = new RecordingNotifier();
   const lapses = new InMemoryConfirmationLapses();
+  const registrations = new InMemoryRegistrationRepository();
+  const attendees = new AttendeeChangeAnnouncer({ registrations, notifier });
+  const readiness = new InMemoryEventReadinessRepository(
+    [
+      {
+        eventId: eventId(EVENT),
+        essentialTypes: ["venue"],
+        confirmedVenueLocation: "Main Hall",
+        programmeAgenda: null,
+        registrationEnabled: false,
+        registrationOpenDate: null,
+        registrationCloseDate: null,
+        essentialEquipment: [],
+        flaggedBookings: [],
+      },
+    ],
+    new Map([[EVENT, COORDINATOR]]),
+  );
   return {
     changeRequests,
     notifier,
     lapses,
-    useCase: new DecideChangeRequestUseCase({ changeRequests, coordinatorEvents, lapses, notifier }),
+    registrations,
+    useCase: new DecideChangeRequestUseCase({
+      changeRequests,
+      coordinatorEvents,
+      lapses,
+      notifier,
+      attendees,
+      readiness,
+    }),
   };
 }
 
@@ -411,5 +442,56 @@ describe("DecideChangeRequestUseCase tells the Organiser of a lapse (SPM-111)", 
 
     expect(outcome.lapsed).toBe(false);
     expect(notifier.eventsNoLongerConfirmed).toEqual([]);
+  });
+});
+
+describe("DecideChangeRequestUseCase emails the attendees of a reschedule (SPM-69)", () => {
+  const decide = (useCase: DecideChangeRequestUseCase, decisions: readonly ItemDecision[]) =>
+    useCase.execute({ eventId: EVENT, changeRequestId: "4", userAccountId: COORDINATOR, decisions });
+  const attendee = (id: string) =>
+    registerAttendee({
+      id: registrationId(id),
+      eventId: eventId(EVENT),
+      attendeeName: attendeeName(`Attendee ${id}`),
+      attendeeEmail: attendeeEmail(`${id}@example.com`),
+      registeredAt: new Date("2026-10-20T02:00:00Z"),
+    });
+
+  it("AC1, AC2: an accepted time change emails each Registered attendee the new times and the venue", async () => {
+    const { useCase, notifier, registrations } = build(event(), request(times));
+    await registrations.save(attendee("a"));
+    await registrations.save(attendee("b"));
+
+    await decide(useCase, [{ field: "times", outcome: "Accepted" }]);
+
+    expect(notifier.attendeesToldRescheduled).toEqual([
+      {
+        registrationId: "a",
+        recipientEmail: "a@example.com",
+        attendeeName: "Attendee a",
+        eventName: "Annual Conference",
+        times: [{ date: "2026-11-21", start: "09:00", end: "12:00" }],
+        venueName: "Main Hall",
+      },
+      expect.objectContaining({ registrationId: "b" }),
+    ]);
+  });
+
+  it("AC1: an accepted attendance-only change emails no attendee", async () => {
+    const { useCase, notifier, registrations } = build(event(), request(attendance));
+    await registrations.save(attendee("a"));
+
+    await decide(useCase, [{ field: "expected_attendance", outcome: "Accepted" }]);
+
+    expect(notifier.attendeesToldRescheduled).toEqual([]);
+  });
+
+  it("AC1: a declined time change emails no attendee", async () => {
+    const { useCase, notifier, registrations } = build(event(), request(times));
+    await registrations.save(attendee("a"));
+
+    await decide(useCase, [{ field: "times", outcome: "Declined", reason: "The hall is booked" }]);
+
+    expect(notifier.attendeesToldRescheduled).toEqual([]);
   });
 });

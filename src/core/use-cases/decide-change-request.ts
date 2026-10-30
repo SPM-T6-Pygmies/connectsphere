@@ -15,7 +15,9 @@ import type {
   CoordinatorEventDetails,
   CoordinatorEventRepository,
 } from "../ports/outbound/coordinator-event-repository";
+import type { EventReadinessRepository } from "../ports/outbound/event-readiness-repository";
 import type { Notifier } from "../ports/outbound/notifier";
+import type { AttendeeChangeAnnouncer } from "./announce-event-change-to-attendees";
 
 export interface DecideChangeRequestCommand {
   readonly eventId: string;
@@ -36,6 +38,9 @@ export interface DecideChangeRequestDeps {
    * Organiser it is no longer confirmed.
    */
   readonly notifier: Pick<Notifier, "eventRescheduled" | "changeRequestDecided" | "eventNoLongerConfirmed">;
+  /** SPM-69: emails every Registered attendee of a reschedule, with the venue it now holds. */
+  readonly attendees: Pick<AttendeeChangeAnnouncer, "announce">;
+  readonly readiness: Pick<EventReadinessRepository, "factsFor">;
 }
 
 /**
@@ -63,7 +68,8 @@ export interface ChangeRequestOutcome {
  * field's outcome in one notice.
  *
  * SPM-68: an accepted change of times is a reschedule, so the event's
- * Organiser is told the new times once the decision is stored.
+ * Organiser is told the new times once the decision is stored. SPM-69: so is
+ * every Registered attendee, by email, with the venue.
  *
  * SPM-111: the store lapses a Confirmed event the decision leaves short of the
  * confirm gate, in the same transaction. Its Organiser is told, unless the
@@ -147,6 +153,13 @@ export class DecideChangeRequestUseCase {
       eventName: event.name,
       times: times.change.value,
       backToPlanning: outcome.lapsed,
+    });
+
+    const facts = await this.deps.readiness.factsFor(coordinator, eventId(event.id));
+    await this.deps.attendees.announce(eventId(event.id), event.name, {
+      kind: "rescheduled",
+      times: times.change.value,
+      venueName: facts?.confirmedVenueLocation ?? null,
     });
   }
 }
