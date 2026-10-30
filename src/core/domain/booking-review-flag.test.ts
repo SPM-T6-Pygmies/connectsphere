@@ -12,12 +12,19 @@ import {
   type FlaggableBooking,
 } from "./booking-review-flag";
 import { NoFlagToClearError } from "./errors";
+import { slotCodesFor } from "./slot-grid";
+import { toMinutes } from "./time-of-day";
 import { venueId } from "./venue";
 import type { VenueUnavailabilityEntry } from "./venue-unavailability";
 
 const MAIN_HALL = venueId("5");
 const STUDIO = venueId("6");
 const NOW = new Date("2026-10-20T10:15:00+08:00");
+
+/** The 15-minute slots from `start` to `end` on `date`, as a booking or block holds them (SPM-331). */
+function slotsOf(date: string, start: string, end: string) {
+  return slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot }));
+}
 
 function block(overrides: Partial<VenueUnavailabilityEntry> = {}): VenueUnavailabilityEntry {
   return {
@@ -28,7 +35,7 @@ function block(overrides: Partial<VenueUnavailabilityEntry> = {}): VenueUnavaila
     endDate: "2026-11-06",
     reason: "Maintenance",
     note: null,
-    slots: [{ date: "2026-11-06", slot: "PM" }],
+    slots: slotsOf("2026-11-06", "13:00", "18:00"),
     status: "In force",
     recordedByName: "Test Venue Staff",
     recordedAt: "2026-10-20T02:15:00.000Z",
@@ -44,7 +51,7 @@ function booking(overrides: Partial<FlaggableBooking> = {}): FlaggableBooking {
     venueId: MAIN_HALL,
     status: "Confirmed",
     holdExpiresAt: null,
-    slots: [{ date: "2026-11-06", slot: "PM" }],
+    slots: slotsOf("2026-11-06", "13:00", "18:00"),
     ...overrides,
   };
 }
@@ -82,9 +89,9 @@ describe("bookingsToFlagForBlock (SPM-313)", () => {
 
   it("AC2: leaves other slots on the same day, other days and other venues alone", () => {
     const others = [
-      booking({ id: "1", slots: [{ date: "2026-11-06", slot: "AM" }] }),
-      booking({ id: "2", slots: [{ date: "2026-11-06", slot: "Night" }] }),
-      booking({ id: "3", slots: [{ date: "2026-11-07", slot: "PM" }] }),
+      booking({ id: "1", slots: slotsOf("2026-11-06", "07:00", "12:00") }),
+      booking({ id: "2", slots: slotsOf("2026-11-06", "19:00", "24:00") }),
+      booking({ id: "3", slots: slotsOf("2026-11-07", "13:00", "18:00") }),
       booking({ id: "4", venueId: STUDIO }),
     ];
 
@@ -93,10 +100,7 @@ describe("bookingsToFlagForBlock (SPM-313)", () => {
 
   it("AC2: a booking over only some of its slots is flagged for those, naming them", () => {
     const twoDays = booking({
-      slots: [
-        { date: "2026-11-05", slot: "PM" },
-        { date: "2026-11-06", slot: "PM" },
-      ],
+      slots: [...slotsOf("2026-11-05", "13:00", "18:00"), ...slotsOf("2026-11-06", "13:00", "18:00")],
     });
 
     const [flagged] = bookingsToFlagForBlock(block(), [twoDays], NOW);
@@ -139,10 +143,10 @@ describe("bookingsToFlagForBlock (SPM-313)", () => {
 });
 
 describe("blockFlagDetail (SPM-313)", () => {
-  it("AC1: gives the Night slot's hours as the slot table does, ending at 24:00", () => {
-    const night = block({ slots: [{ date: "2026-11-06", slot: "Night" }] });
+  it("AC1: gives a block's hours as the slot table does, ending at 24:00", () => {
+    const night = block({ slots: slotsOf("2026-11-06", "19:00", "24:00") });
 
-    expect(blockFlagDetail(night, [{ date: "2026-11-06", slot: "Night" }])).toBe(
+    expect(blockFlagDetail(night, slotsOf("2026-11-06", "19:00", "24:00"))).toBe(
       "Maintenance: 2026-11-06 19:00 to 24:00",
     );
   });
@@ -150,7 +154,7 @@ describe("blockFlagDetail (SPM-313)", () => {
   it("AC6: leaves a lift out of the text: the page shows it from the block, so it can stand out", () => {
     const lifted = block({ status: "Lifted", liftedAt: "2026-10-21T01:00:00.000Z" });
 
-    expect(blockFlagDetail(lifted, [{ date: "2026-11-06", slot: "PM" }])).toBe(
+    expect(blockFlagDetail(lifted, slotsOf("2026-11-06", "13:00", "18:00"))).toBe(
       "Maintenance: 2026-11-06 13:00 to 18:00",
     );
   });
@@ -172,12 +176,12 @@ describe("windowsOverlap (SPM-313)", () => {
   });
 
   it("a booking window is the slot's own hours until padding is defined (SPM-23)", () => {
-    expect(bookingWindow({ date: "2026-11-06", slot: "PM" })).toEqual(at("13:00", "18:00"));
+    expect(bookingWindow({ date: "2026-11-06", slot: "52" })).toEqual(at("13:00", "13:15"));
   });
 });
 
-/** Slot codes '52' to '71' are the PM slot's twenty 15-minute slots, 13:00 to 18:00 (SPM-331). */
-const PM_IN_QUARTERS = Array.from({ length: 20 }, (_, i) => ({ date: "2026-11-06", slot: String(52 + i) }));
+/** Slot codes '52' to '71': twenty 15-minute slots, 13:00 to 18:00 (SPM-331). */
+const AFTERNOON = slotsOf("2026-11-06", "13:00", "18:00");
 
 function quarterBlock(...codes: string[]): FlaggingBlock {
   return {
@@ -193,54 +197,47 @@ describe("flagging on the 15-minute grid (SPM-313, SPM-331)", () => {
   it("AC1: flags a booking of twenty 15-minute slots for a block inside it, naming the block's own time", () => {
     const [flagged] = bookingsToFlagForBlock(
       quarterBlock("60", "61"),
-      [booking({ slots: PM_IN_QUARTERS })],
+      [booking({ slots: AFTERNOON })],
       NOW,
     );
 
     expect(flagged?.reason.detail).toBe("Maintenance: 2026-11-06 15:00 to 15:30");
   });
 
-  it("AC1: flags a booking still on the PM slot for a block on 15-minute slots inside it", () => {
-    const [flagged] = bookingsToFlagForBlock(quarterBlock("60"), [booking()], NOW);
-
-    expect(flagged?.reason.detail).toBe("Maintenance: 2026-11-06 15:00 to 15:15");
-  });
-
-  it("AC1: flags a booking on 15-minute slots for a block still on the PM slot", () => {
+  it("AC1: flags a booking inside a longer block, naming only the part of the block it falls in", () => {
     const [flagged] = bookingsToFlagForBlock(
       block(),
       [booking({ slots: [{ date: "2026-11-06", slot: "60" }] })],
       NOW,
     );
 
-    expect(flagged?.reason.detail).toBe("Maintenance: 2026-11-06 13:00 to 18:00");
+    expect(flagged?.reason.detail).toBe("Maintenance: 2026-11-06 15:00 to 15:15");
   });
 
   it("AC2: leaves a booking alone when the block starts the moment it ends, or ends the moment it starts", () => {
-    expect(bookingsToFlagForBlock(quarterBlock("72"), [booking({ slots: PM_IN_QUARTERS })], NOW)).toEqual([]);
-    expect(bookingsToFlagForBlock(quarterBlock("51"), [booking({ slots: PM_IN_QUARTERS })], NOW)).toEqual([]);
+    expect(bookingsToFlagForBlock(quarterBlock("72"), [booking({ slots: AFTERNOON })], NOW)).toEqual([]);
+    expect(bookingsToFlagForBlock(quarterBlock("51"), [booking({ slots: AFTERNOON })], NOW)).toEqual([]);
   });
 
   it("AC2: leaves a booking alone when the block is on another date's slot of the same code", () => {
     const otherDay = { ...quarterBlock("60"), slots: [{ date: "2026-11-07", slot: "60" }] };
 
-    expect(bookingsToFlagForBlock(otherDay, [booking({ slots: PM_IN_QUARTERS })], NOW)).toEqual([]);
+    expect(bookingsToFlagForBlock(otherDay, [booking({ slots: AFTERNOON })], NOW)).toEqual([]);
   });
 
 });
 
 describe("timeSpans (SPM-313, SPM-331)", () => {
-  it("reads twenty 15-minute slots as one span, the same as the PM slot", () => {
-    expect(timeSpans(PM_IN_QUARTERS)).toBe("2026-11-06 13:00 to 18:00");
-    expect(timeSpans([{ date: "2026-11-06", slot: "PM" }])).toBe("2026-11-06 13:00 to 18:00");
+  it("reads twenty 15-minute slots as one span", () => {
+    expect(timeSpans(AFTERNOON)).toBe("2026-11-06 13:00 to 18:00");
   });
 
   it("keeps separate spans apart, in date and time order", () => {
     expect(
       timeSpans([
-        { date: "2026-11-07", slot: "AM" },
-        { date: "2026-11-06", slot: "Night" },
-        { date: "2026-11-06", slot: "AM" },
+        ...slotsOf("2026-11-07", "07:00", "12:00"),
+        ...slotsOf("2026-11-06", "19:00", "24:00"),
+        ...slotsOf("2026-11-06", "07:00", "12:00"),
       ]),
     ).toBe("2026-11-06 07:00 to 12:00, 2026-11-06 19:00 to 24:00, 2026-11-07 07:00 to 12:00");
   });
@@ -248,7 +245,7 @@ describe("timeSpans (SPM-313, SPM-331)", () => {
   it("joins slots that run into each other and counts a slot inside another once", () => {
     expect(
       timeSpans([
-        { date: "2026-11-06", slot: "PM" },
+        ...AFTERNOON,
         { date: "2026-11-06", slot: "60" },
         { date: "2026-11-06", slot: "72" },
       ]),

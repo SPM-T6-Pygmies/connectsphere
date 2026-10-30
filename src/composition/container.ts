@@ -409,6 +409,7 @@ export async function buildDecideChangeRequest(): Promise<DecideChangeRequestUse
   return new DecideChangeRequestUseCase({
     changeRequests: new SupabaseChangeRequestRepository(client),
     coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+    notifier: recordedNotifier(),
   });
 }
 
@@ -824,7 +825,7 @@ export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
 export async function buildCancelEvent(): Promise<CancelEventUseCase> {
   const { events } = await coordinatorAdapters();
 
-  return new CancelEventUseCase({ events });
+  return new CancelEventUseCase({ events, notifier: recordedNotifier() });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */

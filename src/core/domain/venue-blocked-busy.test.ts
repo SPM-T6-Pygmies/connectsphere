@@ -16,7 +16,7 @@ function entry(overrides: Partial<VenueUnavailabilityEntry> = {}): VenueUnavaila
     endDate: "2026-10-20",
     reason: "Renovation",
     note: null,
-    slots: [{ date: "2026-10-20", slot: "AM" }],
+    slots: [{ date: "2026-10-20", slot: "28" }],
     status: "In force",
     recordedByName: "Test Venue Staff",
     recordedAt: "2026-10-05T04:00:00.000Z",
@@ -39,7 +39,7 @@ describe("blocked slots as busy time (SPM-268)", () => {
       {
         venueId: HALL,
         startsAt: new Date("2026-10-20T07:00:00+08:00"),
-        endsAt: new Date("2026-10-20T12:00:00+08:00"),
+        endsAt: new Date("2026-10-20T07:15:00+08:00"),
         kind: "block",
       },
     ]);
@@ -49,7 +49,7 @@ describe("blocked slots as busy time (SPM-268)", () => {
     const availability = new InMemoryVenueAvailability(blockedBusyIntervals([entry()]));
 
     expect(await availability.busyIntervals(DAY_END, new Date("2026-10-22T00:00:00+08:00"))).toEqual([]);
-    const busy = await availability.busyIntervals(new Date("2026-10-20T12:00:00+08:00"), DAY_END);
+    const busy = await availability.busyIntervals(new Date("2026-10-20T07:15:00+08:00"), DAY_END);
     expect(busy).toEqual([]);
   });
 

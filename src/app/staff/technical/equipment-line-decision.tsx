@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { freeToReserve } from "@/core/domain/equipment-review";
 
 import { markEquipmentLineUnfulfilledAction, reserveEquipmentLineAction, type EquipmentFormState } from "./actions";
 
@@ -13,6 +14,8 @@ export interface DecidableLine {
   readonly equipmentItemId: string;
   readonly equipmentType: string;
   readonly quantityRequested: number;
+  /** SPM-316: what a changed line still holds, which reserving replaces. */
+  readonly quantityReserved: number;
   /** Null while the event has no date. */
   readonly available: number | null;
 }
@@ -33,7 +36,9 @@ function Message({ state }: { state: EquipmentFormState }) {
  * With enough free, reserve it in full (AC1); with too few, mark it
  * unfulfilled with a comment (AC3); with no date, nothing yet (AC2). The
  * server judges what is free again when they act (AC6) and, if that changed,
- * says so here as the page refreshes to show the other choice.
+ * says so here as the page refreshes to show the other choice. SPM-316: the
+ * same choice on a reserved line the coordinator changed, where what it holds
+ * counts as free for it.
  */
 export function EquipmentLineDecision({ eventId, line }: { eventId: string; line: DecidableLine }) {
   const [reserveState, reserveAction, reserving] = useActionState(reserveEquipmentLineAction, INITIAL);
@@ -43,7 +48,8 @@ export function EquipmentLineDecision({ eventId, line }: { eventId: string; line
     return <p className="text-muted-foreground text-xs">Needs a date before equipment can be reserved.</p>;
   }
 
-  const enough = line.available >= line.quantityRequested;
+  const free = freeToReserve(line, line.available);
+  const enough = free >= line.quantityRequested;
   const ids = (
     <>
       <input type="hidden" name="eventId" value={eventId} />
@@ -68,7 +74,7 @@ export function EquipmentLineDecision({ eventId, line }: { eventId: string; line
             name="comment"
             rows={2}
             aria-label={`Why ${line.equipmentType} cannot be fulfilled`}
-            placeholder={`e.g. only ${Math.max(line.available, 0)} available`}
+            placeholder={`e.g. only ${Math.max(free, 0)} available`}
             defaultValue={markState.status === "error" ? markState.values?.comment : undefined}
             className="min-h-14 text-sm"
             disabled={marking}

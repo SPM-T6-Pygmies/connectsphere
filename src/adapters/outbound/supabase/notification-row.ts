@@ -5,8 +5,10 @@ import {
 import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
 import { equipmentDecidedMessage } from "@/adapters/outbound/notification-content/equipment-decided";
 import { equipmentNeedsAttentionMessage } from "@/adapters/outbound/notification-content/equipment-needs-attention";
+import { eventCancelledMessage } from "@/adapters/outbound/notification-content/event-cancelled";
 import { eventConfirmedMessage } from "@/adapters/outbound/notification-content/event-confirmed";
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
+import { eventRescheduledMessage } from "@/adapters/outbound/notification-content/event-rescheduled";
 import { holdExpiredMessage } from "@/adapters/outbound/notification-content/hold-expired";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import { organiserMessagePostedMessage } from "@/adapters/outbound/notification-content/organiser-message-posted";
@@ -20,9 +22,11 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
@@ -218,6 +222,32 @@ export function eventConfirmedRow(notice: EventConfirmedNotice): NotificationRow
   return {
     recipient_user_account_id: notice.recipientUserAccountId,
     trigger_scenario: "event-confirmed",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling an Organiser their event is rescheduled (SPM-68). */
+export function eventRescheduledRow(notice: EventRescheduledNotice): NotificationRow {
+  const { subject, body } = eventRescheduledMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "event-rescheduled",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling an Organiser their event is cancelled (SPM-68). */
+export function eventCancelledRow(notice: EventCancelledNotice): NotificationRow {
+  const { subject, body } = eventCancelledMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "event-cancelled",
     channel: "in_app",
     status: "Pending",
     related_event_id: notice.eventId,

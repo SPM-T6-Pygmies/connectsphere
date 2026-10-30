@@ -6,6 +6,7 @@ import {
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { CoordinatorEventNotFoundError, EventNotCancellableError } from "@/core/domain/errors";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { userAccountId } from "@/core/domain/user-account";
 
 import { CancelEventUseCase } from "./cancel-event";
@@ -32,8 +33,9 @@ function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinat
 
 function buildUseCase(events: readonly SeedCoordinatorEvent[]) {
   const eventsRepo = new InMemoryCoordinatorEventRepository(events);
-  const useCase = new CancelEventUseCase({ events: eventsRepo });
-  return { useCase, eventsRepo };
+  const notifier = new RecordingNotifier();
+  const useCase = new CancelEventUseCase({ events: eventsRepo, notifier });
+  return { useCase, eventsRepo, notifier };
 }
 
 describe("CancelEventUseCase (SPM-55)", () => {
@@ -88,5 +90,61 @@ describe("CancelEventUseCase (SPM-55)", () => {
     await expect(useCase.execute({ id: "event-404", userAccountId: COORDINATOR })).rejects.toBeInstanceOf(
       CoordinatorEventNotFoundError,
     );
+  });
+});
+
+describe("CancelEventUseCase notifies the Organiser (SPM-68)", () => {
+  it("AC1, AC3, AC4: tells the event's Organiser it is cancelled, with the request to open", async () => {
+    const { useCase, notifier } = buildUseCase([seedEvent({ status: "Confirmed" })]);
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.eventsCancelled).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventId: "event-1",
+        eventRequestId: "request-1",
+        eventName: "Founders' Day",
+      },
+    ]);
+  });
+
+  it("AC4: still tells the Organiser when the request the event came from is gone", async () => {
+    const { useCase, notifier } = buildUseCase([seedEvent({ eventRequestId: null })]);
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.eventsCancelled).toEqual([expect.objectContaining({ eventRequestId: null })]);
+  });
+
+  it.each<CoordinatorEventStatus>(["Completed", "Cancelled"])(
+    "AC1: sends nothing when a %s event is refused",
+    async (status) => {
+      const { useCase, notifier } = buildUseCase([seedEvent({ status })]);
+
+      await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toThrow();
+      expect(notifier.eventsCancelled).toEqual([]);
+    },
+  );
+
+  it("access: sends nothing when another coordinator is refused", async () => {
+    const { useCase, notifier } = buildUseCase([seedEvent()]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: OTHER_COORDINATOR })).rejects.toThrow();
+    expect(notifier.eventsCancelled).toEqual([]);
+  });
+
+  it("race: sends nothing when the store refuses the cancellation, as CS076 does for the second of two", async () => {
+    const eventsRepo = new InMemoryCoordinatorEventRepository([seedEvent()]);
+    eventsRepo.cancelEvent = async () => {
+      throw new EventNotCancellableError("Cancelled");
+    };
+    const notifier = new RecordingNotifier();
+    const useCase = new CancelEventUseCase({ events: eventsRepo, notifier });
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toThrow(
+      EventNotCancellableError,
+    );
+    expect(notifier.eventsCancelled).toEqual([]);
   });
 });

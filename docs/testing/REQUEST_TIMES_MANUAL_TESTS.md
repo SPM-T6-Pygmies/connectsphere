@@ -75,6 +75,8 @@ AM; AM and PM; AM and Night (a Draft); Night; none (a Draft); AM, PM and Night.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran, with `supabase migration up` (which prints no notices), now through `20261029000000`: 20, 44, 68, 20 and 68 rows as above, `preferred_time` one span each and null for the request with none, 96 rows in `slot`.
+
 ---
 
 ### TC-REQTIME-002: Request an event by start and end time
@@ -99,6 +101,8 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset`; date 18/11/2026, request 1, slots `'37'`–`'70'`. Screenshots: [step2-form-09-15-17-45](screenshots/spm-328/TC-REQTIME-002_step2-form-09-15-17-45.jpg) · [step3-acknowledgement](screenshots/spm-328/TC-REQTIME-002_step3-acknowledgement.jpg)
+
 ---
 
 ### TC-REQTIME-003: An end time not after the start is named
@@ -116,6 +120,8 @@ as `organiser@test.com`.
   needs fixing.
 
 **Status:** [x] Pass [ ] Fail
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [end-not-after-start](screenshots/spm-328/TC-REQTIME-003_end-not-after-start.jpg)
 
 ---
 
@@ -138,6 +144,8 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the name-only draft was stored with no date, no `preferred_time` and no slots. Screenshot: [step3-draft-13-30-24-00](screenshots/spm-328/TC-REQTIME-004_step3-draft-13-30-24-00.jpg)
+
 ---
 
 ### TC-REQTIME-005: Request pages show the preferred time in the viewer's timezone
@@ -159,6 +167,8 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, for joyceetran (local, after the AM/PM/Night retirement): the Organiser's page in Chrome via Claude in Chrome, and all three pages in headless Chrome with the timezone overridden to Asia/Singapore and Europe/London over the DevTools protocol. Request 1 was assigned by the `update`. Screenshots: [london-requester](screenshots/spm-328/TC-REQTIME-005_london-requester.jpg) · [london-lead](screenshots/spm-328/TC-REQTIME-005_london-lead.jpg) · [london-coordinator](screenshots/spm-328/TC-REQTIME-005_london-coordinator.jpg)
+
 ---
 
 ### TC-REQTIME-006: Approval gives the event the requested times
@@ -175,3 +185,5 @@ as `organiser@test.com`.
   17:45.
 
 **Status:** [x] Pass [ ] Fail
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "18 Nov 9:15 am – 5:45 pm", and 34 `event_slot` rows on 2026-11-18, codes 37 to 70. Screenshot: [organiser-event-times](screenshots/spm-328/TC-REQTIME-006_organiser-event-times.jpg)

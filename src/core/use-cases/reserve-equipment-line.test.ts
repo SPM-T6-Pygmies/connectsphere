@@ -168,6 +168,71 @@ describe("ReserveEquipmentLineUseCase (SPM-274)", () => {
   });
 });
 
+/** A projector line reserved at `held`, which the coordinator then changed to `quantityRequested`. */
+function changedAfterReserved(held: number, quantityRequested: number): EquipmentRequirement {
+  return projector(quantityRequested, {
+    quantityReserved: held,
+    state: "Under review",
+    reviewBaseline: { quantityRequested: held, technicalRequirements: null },
+    decision: { by: userAccountId(OTHER_SUPPORT), comment: null },
+  });
+}
+
+describe("ReserveEquipmentLineUseCase (SPM-316)", () => {
+  it("AC1: offers a decision on a reserved line the coordinator raised, then reserves its new quantity in full", async () => {
+    const { reserve, view } = setup([event("A", "2026-11-15", [changedAfterReserved(4, 6)])]);
+    expect((await view("A"))?.lines[0]).toMatchObject({ attention: "changed", canDecide: true, quantityReserved: 4 });
+
+    expect(await reserve("A")).toMatchObject({ state: "Reserved", quantityReserved: 6 });
+  });
+
+  it("AC5: the line no longer needs attention, and the event leaves Needs review", async () => {
+    const { reserve, view, needsReview } = setup([event("A", "2026-11-15", [changedAfterReserved(4, 6)])]);
+    expect(await needsReview()).toEqual(["A"]);
+
+    await reserve("A");
+
+    expect((await view("A"))?.lines[0]).toMatchObject({ attention: null, canDecide: false });
+    expect(await needsReview()).toEqual([]);
+  });
+
+  it("AC2: refuses when fewer are free than the new quantity, its units still held", async () => {
+    const { reserve, view } = setup([
+      event("held", "2026-11-15", [projector(5, { quantityReserved: 5, state: "Reserved" })]),
+      event("A", "2026-11-15", [changedAfterReserved(4, 6)]),
+    ]);
+
+    await expect(reserve("A")).rejects.toThrow(NotEnoughEquipmentAvailableError);
+    expect((await view("A"))?.lines[0]).toMatchObject({ attention: "changed", quantityReserved: 4 });
+  });
+
+  it("AC3: reserving a lowered line again frees the surplus for another event at once", async () => {
+    const { reserve, view } = setup([
+      event("A", "2026-11-15", [changedAfterReserved(8, 5)]),
+      event("B", "2026-11-15", [projector(5)]),
+    ]);
+    expect((await view("B"))?.lines[0]?.available).toBe(2);
+
+    await reserve("A");
+
+    expect((await view("B"))?.lines[0]?.available).toBe(5);
+  });
+
+  it("AC4: re-checks what is free when saving, refusing if another reservation took the units since the page was read", async () => {
+    const { equipment, reserve, view } = setup([
+      event("A", "2026-11-15", [changedAfterReserved(4, 6)]),
+      event("B", "2026-11-15", [projector(5)]),
+    ]);
+    const openedBeforeB = await equipment.eventEquipment(userAccountId(SUPPORT), eventId("A"));
+
+    await reserve("B", OTHER_SUPPORT);
+    vi.spyOn(equipment, "eventEquipment").mockResolvedValueOnce(openedBeforeB);
+
+    await expect(reserve("A")).rejects.toThrow(NotEnoughEquipmentAvailableError);
+    expect((await view("A"))?.lines[0]).toMatchObject({ attention: "changed", quantityReserved: 4 });
+  });
+});
+
 describe("ReserveEquipmentLineUseCase (SPM-275)", () => {
   it("AC1: reserves for an event between two others that are never out on the same day", async () => {
     const { reserve } = setup([

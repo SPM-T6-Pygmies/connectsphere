@@ -1,12 +1,7 @@
 import { slotTime } from "./booking";
 import { END_OF_DAY, fromMinutes, GRID_MINUTES, isOnGrid, overlaps, toMinutes, type TimeRange } from "./time-of-day";
 
-/**
- * A slot code on a date. The code is any the `slot` table holds: AM, PM and Night while
- * bookings and blocks are still on them, or the 15-minute codes '0' to '95' they are
- * moving to (SPM-276, SPM-331). Nothing that works with this type assumes which, so a
- * rule written for one grid keeps working while the tables move across.
- */
+/** A slot code on a date: one of the `slot` table's 15-minute codes, '0' to '95' (SPM-276, SPM-331). */
 export interface SlotCodeOnDate {
   readonly date: string;
   readonly slot: string;
@@ -38,7 +33,7 @@ export function slotCodesFor(range: TimeRange): string[] {
 
 /**
  * The spans a day's slots run together as, earliest first: twenty 15-minute slots from 13:00
- * are one span 13:00-18:00, the same as the PM slot. Slots that overlap or touch join.
+ * are one span 13:00-18:00. Slots that overlap or touch join.
  */
 export function joinSlotCodes(codes: readonly string[]): TimeRange[] {
   const spans: TimeRange[] = [];
@@ -54,10 +49,10 @@ export function joinSlotCodes(codes: readonly string[]): TimeRange[] {
 }
 
 /**
- * The `slots` that share time with any of `others` on the same date. A booking's AM slot
- * (07:00-12:00) is covered by a block on codes '36' to '45' (09:00-11:30), and a block on
- * '28' (07:00-07:15) covers it too; a slot that only touches a block (12:00 against an end
- * of 12:00) is not covered. Order follows `slots`.
+ * The `slots` that share time with any of `others` on the same date. A booking's slots
+ * '28' to '47' (07:00-12:00) are covered where a block on codes '36' to '45' (09:00-11:30)
+ * sits; a slot that only touches a block (12:00 against an end of 12:00) is not covered.
+ * Order follows `slots`.
  */
 export function slotsOverlapping<T extends SlotCodeOnDate>(slots: readonly T[], others: readonly SlotCodeOnDate[]): T[] {
   const byDate = new Map<string, TimeRange[]>();

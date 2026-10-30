@@ -85,6 +85,8 @@ them, tick the boxes below **and** report each in the PR description's
 Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the one-window form.
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), on the Add venue form. Screenshot: [closes-24-offers-only-00](screenshots/spm-328/TC-VHOURS-001_closes-24-offers-only-00.jpg)
+
 ### TC-VHOURS-002 A window must end after it starts
 
 **Steps**
@@ -100,6 +102,8 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 
 **Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step1-13-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-002_step1-13-00-12-00-refused.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [13-00-12-00-refused](screenshots/spm-328/TC-VHOURS-002_13-00-12-00-refused.jpg)
 
 ### TC-VHOURS-004 A request over closed time is refused
 
@@ -128,12 +132,16 @@ yet.
 Screenshots: [step1-07-00-12-00-refused](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step1-07-00-12-00-refused.jpg) · [step2-12-45-13-30-names-12-45-13-00](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step2-12-45-13-30-names-12-45-13-00.jpg) · [step3-13-00-24-00-requested](../screenshots/2026-10-25_SPM-320_TC-VHOURS-004_step3-13-00-24-00-requested.jpg)
 Earlier run on slots: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); then cleaned up. Screenshots: [step1-07-00-12-00-refused](screenshots/spm-328/TC-VHOURS-004_step1-07-00-12-00-refused.jpg) · [step2-names-12-45-13-00](screenshots/spm-328/TC-VHOURS-004_step2-names-12-45-13-00.jpg) · [step3-13-00-24-00-requested](screenshots/spm-328/TC-VHOURS-004_step3-13-00-24-00-requested.jpg)
+
 ### TC-VHOURS-005 AM, PM and Night convert to the slots they cover
 
 The conversion is the first block of
 `supabase/migrations/20261020010000_venue_opening_hours_fifteen_minute_slots.sql`.
 Run it against a venue that offered AM and Night, inside a transaction that is
-rolled back, so the local data is untouched.
+rolled back, so the local data is untouched. Since SPM-328 `slot` no longer
+holds AM, PM or Night, so run it on a database reset to the last version that
+does: `supabase db reset --version 20261028010000`.
 
 **Steps** — in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
 1. ```sql
@@ -164,7 +172,10 @@ rolled back, so the local data is untouched.
 - [x] The catalogue reads the venue as `07:00–12:00` and `19:00–24:00`.
 - [x] Step 4 returns 0: `venue_slot` holds only 15-minute codes.
 
-**Run:** Pass, 20/10/2026, local Supabase, by Claude Code for joyceetran. The
+**Run:** Pass, 29/10/2026, local Supabase after `supabase db reset --version
+20261028010000`, by Claude Code for joyceetran (SPM-328). On a fully migrated
+database step 1 is refused by the foreign key to `slot`.
+Earlier run: Pass, 20/10/2026, local Supabase, by Claude Code for joyceetran. The
 migration's own run on the two converted seed venues also kept their open time
 (900 and 600 minutes).
 
@@ -193,13 +204,17 @@ Screenshots: [step1-catalogue-one-window-each](../screenshots/2026-10-25_SPM-320
 Earlier run on slots and two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hours](../screenshots/2026-10-21_SPM-320_TC-VHOURS-006_step1-catalogue-opening-hours.png)
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), with `seed-venues` and `seed-venue-search-uat` loaded. Screenshots: [step1-catalogue-opening-hours](screenshots/spm-328/TC-VHOURS-006_step1-catalogue-opening-hours.jpg) · [step3-19-00-24-00-search](screenshots/spm-328/TC-VHOURS-006_step3-19-00-24-00-search.jpg)
+
 ### TC-VHOURS-007 Every venue's hours become one window
 
 SPM-331 AC4, under the one-window rule: each venue opens from its earliest
 opening to its latest closing, so neighbouring slots join and a break closes up.
 The conversion is `20261020010000` (AM, PM and Night to 15-minute slots) then
 `20261026020000` (one window). Run both against one venue of each kind inside a
-transaction that is rolled back, so the local data is untouched.
+transaction that is rolled back, so the local data is untouched. Since SPM-328
+`slot` no longer holds AM, PM or Night, so run it on a database reset to the
+last version that does: `supabase db reset --version 20261028010000`.
 
 **Steps** — in `psql` on the local database (`docker exec -it supabase_db_connectsphere psql -U postgres`):
 1. ```sql
@@ -226,7 +241,10 @@ transaction that is rolled back, so the local data is untouched.
       `13:00–24:00`, **AM PM Night** `07:00–24:00`, **AM Night** `07:00–24:00`
       and **AM** `07:00–12:00`.
 
-**Run:** Pass, 26/10/2026, local Supabase, by joyceetran. Step 2 printed `DO` and raised
+**Run:** Pass, 29/10/2026, local Supabase after `supabase db reset --version
+20261028010000`, by Claude Code for joyceetran (SPM-328). Step 2 raised nothing
+and step 3 read the five windows below.
+Earlier run: Pass, 26/10/2026, local Supabase, by joyceetran. Step 2 printed `DO` and raised
 nothing; step 3 read:
 
 ```
@@ -274,3 +292,5 @@ ERROR:  CS022: A venue needs one opening window
 After the rollback UAT-42 Lecture Hall was back at `07:00–18:00` (slots 28–71).
 Earlier run: Pass, 25/10/2026, local Supabase, by joyceetran, after TC-VCAT-004. Outside the
 transaction the refusal left UAT-42 Lecture Hall at `13:00–24:00` (slots 52–95).
+
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran: 32, 79, 48, then `CS022`; after the rollback UAT-42 Lecture Hall was back at slots 52–95.

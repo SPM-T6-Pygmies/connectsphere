@@ -18,8 +18,8 @@ open the page or release (AC4).
 
 What these cases do **not** cover:
 
-- **Replacing a Changed line's reservation**: SPM-316. A Changed line still shows no
-  action.
+- **Reserving a Changed line again**: SPM-316 ([EQUIPMENT_RERESERVE_MANUAL_TESTS.md](EQUIPMENT_RERESERVE_MANUAL_TESTS.md)).
+  *Wireless microphone* offers **Reserve 6** here; these cases leave it alone.
 - **The coordinator's outcome notice** (SPM-65). Releasing the last line that needs
   attention sends it, and releasing an event's only line sends nothing. Both are
   unit-tested (`finishesReview` and `ReleaseEquipmentLineUseCase`, tagged SPM-108). In

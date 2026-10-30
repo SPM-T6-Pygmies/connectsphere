@@ -541,8 +541,11 @@ describe("flagged bookings and confirmation (SPM-312)", () => {
       "This event cannot be confirmed: the venue booking at Main Hall (2026-11-16 13:00 to 18:00) " +
         "is flagged for re-checking.",
     );
-    expect(new BookingFlaggedError(["Main Hall (2026-11-16 AM)", "Studio (2026-11-16 PM)"]).message).toBe(
-      "This event cannot be confirmed: the venue bookings at Main Hall (2026-11-16 AM), Studio (2026-11-16 PM) " +
+    expect(
+      new BookingFlaggedError(["Main Hall (2026-11-16 07:00 to 12:00)", "Studio (2026-11-16 13:00 to 18:00)"]).message,
+    ).toBe(
+      "This event cannot be confirmed: the venue bookings at Main Hall (2026-11-16 07:00 to 12:00), " +
+        "Studio (2026-11-16 13:00 to 18:00) " +
         "are flagged for re-checking.",
     );
   });

@@ -3,9 +3,11 @@ import type {
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -114,6 +116,18 @@ export class LoggingNotifier implements Notifier {
   async eventConfirmed(notice: EventConfirmedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} told event ${notice.eventId} is confirmed`,
+    );
+  }
+
+  async eventRescheduled(notice: EventRescheduledNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} told event ${notice.eventId} is rescheduled`,
+    );
+  }
+
+  async eventCancelled(notice: EventCancelledNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} told event ${notice.eventId} is cancelled`,
     );
   }
 

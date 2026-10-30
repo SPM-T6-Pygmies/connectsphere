@@ -119,8 +119,6 @@ function periodKey(date: string, code: string): string {
  *   were (AC2).
  * - Whether a booking holds its time is `holdsSlot`: a Requested, Rejected,
  *   Released or Cancelled booking, or a hold past its expiry, holds nothing.
- * - A block recorded on AM, PM or Night before SPM-321 covers the 15-minute
- *   periods of those hours.
  *
  * Setup and turnaround are not shown: the calendar is the time booked, not
  * the time the room is in use (SPM-19).
