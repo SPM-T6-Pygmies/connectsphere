@@ -1,5 +1,6 @@
 import type { VenueChangeFlag } from "@/core/domain/venue-change-flag";
 import type { VenueId } from "@/core/domain/venue";
+import type { EventConfirmationLapse } from "@/core/ports/outbound/confirmation-lapses";
 import type { ReviewedBooking, VenueChangeReview } from "@/core/ports/outbound/venue-change-review";
 
 /** A flag as stored, open until a test clears it. */
@@ -13,6 +14,8 @@ export interface StoredVenueChangeFlag {
 /** An array-backed store that obeys the same contract as the Supabase one. */
 export class InMemoryVenueChangeReview implements VenueChangeReview {
   private rows: StoredVenueChangeFlag[] = [];
+  /** Test helper: what the next edit takes out of Confirmed (SPM-111). */
+  lapses: readonly EventConfirmationLapse[] = [];
 
   constructor(private readonly bookings: ReadonlyMap<VenueId, readonly ReviewedBooking[]> = new Map()) {}
 
@@ -20,7 +23,7 @@ export class InMemoryVenueChangeReview implements VenueChangeReview {
     return this.bookings.get(venueId) ?? [];
   }
 
-  async flag(_venueId: VenueId, flags: readonly VenueChangeFlag[]): Promise<void> {
+  async flag(_venueId: VenueId, flags: readonly VenueChangeFlag[]): Promise<readonly EventConfirmationLapse[]> {
     for (const { bookingId, sourceRef, detail, startsFailing } of flags) {
       const open = this.rows.find((row) => !row.cleared && row.bookingId === bookingId && row.sourceRef === sourceRef);
       if (open !== undefined) {
@@ -29,6 +32,7 @@ export class InMemoryVenueChangeReview implements VenueChangeReview {
         this.rows.push({ bookingId, sourceRef, detail, cleared: false });
       }
     }
+    return this.lapses;
   }
 
   /** Test helper: every flag stored, cleared ones included. */

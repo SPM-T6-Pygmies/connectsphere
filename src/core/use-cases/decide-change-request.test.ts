@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
+import { InMemoryConfirmationLapses } from "@/adapters/outbound/in-memory/in-memory-confirmation-lapses";
 import { InMemoryChangeRequestRepository } from "@/adapters/outbound/in-memory/in-memory-change-request-repository";
 import {
   InMemoryCoordinatorEventRepository,
@@ -74,10 +75,12 @@ function build(seed: SeedCoordinatorEvent = event(), pending: ChangeRequest = re
   );
   const coordinatorEvents = new InMemoryCoordinatorEventRepository([seed]);
   const notifier = new RecordingNotifier();
+  const lapses = new InMemoryConfirmationLapses();
   return {
     changeRequests,
     notifier,
-    useCase: new DecideChangeRequestUseCase({ changeRequests, coordinatorEvents, notifier }),
+    lapses,
+    useCase: new DecideChangeRequestUseCase({ changeRequests, coordinatorEvents, lapses, notifier }),
   };
 }
 
@@ -357,5 +360,56 @@ describe("DecideChangeRequestUseCase tells the Organiser the outcome (SPM-110)",
     );
 
     expect(notifier.changeRequestsDecided).toHaveLength(1);
+  });
+});
+
+describe("DecideChangeRequestUseCase tells the Organiser of a lapse (SPM-111)", () => {
+  const decide = (useCase: DecideChangeRequestUseCase, decisions: readonly ItemDecision[]) =>
+    useCase.execute({ eventId: EVENT, changeRequestId: "4", userAccountId: COORDINATOR, decisions });
+  const lapse = {
+    eventId: eventId(EVENT),
+    eventName: "Annual Conference",
+    eventRequestId: "request-1",
+    owningOrganiserUserAccountId: userAccountId("organiser-1"),
+    lapsed: [{ kind: "flagged-booking", venueLocation: "Main Hall" }] as const,
+  };
+
+  it("AC1, AC2, AC3: an accepted attendance increase that lapses the event sends one notice naming what lapsed", async () => {
+    const { useCase, notifier, lapses } = build(event(), request(attendance));
+    lapses.record("change-request", "4", [lapse]);
+
+    const outcome = await decide(useCase, [{ field: "expected_attendance", outcome: "Accepted" }]);
+
+    expect(outcome.lapsed).toBe(true);
+    expect(notifier.eventsNoLongerConfirmed).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventId: EVENT,
+        eventRequestId: "request-1",
+        eventName: "Annual Conference",
+        lapsed: [{ kind: "flagged-booking", venueLocation: "Main Hall" }],
+      },
+    ]);
+  });
+
+  it("AC4: an accepted time change that lapses the event sends no lapse notice; the reschedule says it", async () => {
+    const { useCase, notifier, lapses } = build(event(), request(times));
+    lapses.record("change-request", "4", [lapse]);
+
+    await decide(useCase, [{ field: "times", outcome: "Accepted" }]);
+
+    expect(notifier.eventsNoLongerConfirmed).toEqual([]);
+    expect(notifier.eventsRescheduled.map((notice) => notice.backToPlanning)).toEqual([true]);
+  });
+
+  it("a decision that lapses nothing sends no lapse notice", async () => {
+    const { useCase, notifier } = build(event(), request(attendance));
+
+    const outcome = await decide(useCase, [
+      { field: "expected_attendance", outcome: "Declined", reason: "Room caps at 300" },
+    ]);
+
+    expect(outcome.lapsed).toBe(false);
+    expect(notifier.eventsNoLongerConfirmed).toEqual([]);
   });
 });

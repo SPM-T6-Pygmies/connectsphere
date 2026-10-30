@@ -8,6 +8,7 @@ import {
   equipmentNeedsAttentionRow,
   eventCancelledRow,
   eventConfirmedRow,
+  eventNoLongerConfirmedRow,
   eventRequestDecidedRow,
   eventRescheduledRow,
   holdExpiredRow,
@@ -30,6 +31,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCancelledNotice,
   EventConfirmedNotice,
+  EventNoLongerConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -160,6 +162,10 @@ export class SupabaseRecordingNotifier implements Notifier {
 
   changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
     return this.recordAndDeliver(changeRequestDecidedRow(notice), () => this.inner.changeRequestDecided(notice));
+  }
+
+  eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void> {
+    return this.recordAndDeliver(eventNoLongerConfirmedRow(notice), () => this.inner.eventNoLongerConfirmed(notice));
   }
 
   /**

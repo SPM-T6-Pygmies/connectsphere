@@ -12,6 +12,7 @@ import {
   type VenueUnavailabilityEntry,
 } from "../domain/venue-unavailability";
 import type { Clock } from "../ports/outbound/clock";
+import type { ConfirmationLapses } from "../ports/outbound/confirmation-lapses";
 import type { Notifier } from "../ports/outbound/notifier";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 import type {
@@ -50,7 +51,9 @@ export interface RecordVenueUnavailabilityDeps {
   readonly unavailability: VenueUnavailabilityRepository;
   readonly venues: VenueCatalogue;
   readonly clock: Clock;
-  readonly notifier: Pick<Notifier, "venueBookingFlagged">;
+  /** SPM-111: the events the block took out of Confirmed. */
+  readonly lapses: ConfirmationLapses;
+  readonly notifier: Pick<Notifier, "venueBookingFlagged" | "eventNoLongerConfirmed">;
 }
 
 /**
@@ -64,6 +67,9 @@ export interface RecordVenueUnavailabilityDeps {
  * SPM-71: each flagged booking's coordinator is told, one notice per booking. A refused
  * block is never saved, so never told; a booking whose event has no coordinator has
  * nobody to tell.
+ *
+ * SPM-111: a Confirmed event with a booking the block flagged goes back to Planning in
+ * the same transaction, and its Organiser is told what lapsed.
  */
 export class RecordVenueUnavailabilityUseCase {
   constructor(private readonly deps: RecordVenueUnavailabilityDeps) {}
@@ -114,6 +120,16 @@ export class RecordVenueUnavailabilityUseCase {
         venueLocation: flagged.venueLocation,
         reasonCode: "venue-unavailable",
         reasons: [flagged.detail],
+      });
+    }
+
+    for (const lapse of await this.deps.lapses.causedBy(staff, "venue-unavailable", entry.id)) {
+      await this.deps.notifier.eventNoLongerConfirmed({
+        recipientUserAccountId: lapse.owningOrganiserUserAccountId,
+        eventId: lapse.eventId,
+        eventRequestId: lapse.eventRequestId,
+        eventName: lapse.eventName,
+        lapsed: lapse.lapsed,
       });
     }
 

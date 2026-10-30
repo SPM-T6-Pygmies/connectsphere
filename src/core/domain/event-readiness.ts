@@ -300,3 +300,46 @@ export function confirmEvent(
 
   return { ...event, status: "Confirmed" };
 }
+
+/** SPM-111: one arrangement a Confirmed event no longer has, as its Organiser is told (AC2). */
+export type LapsedArrangement =
+  | { readonly kind: "arrangement"; readonly type: ArrangementType }
+  | { readonly kind: "equipment"; readonly equipmentType: string }
+  | { readonly kind: "flagged-booking"; readonly venueLocation: string }
+  | { readonly kind: "safety-check" };
+
+/** SPM-111: a Confirmed event that would no longer pass the confirm gate goes back to Planning. */
+export interface ConfirmationLapse {
+  readonly next: "Planning";
+  readonly lapsed: readonly LapsedArrangement[];
+}
+
+/** SPM-111 AC3: what can take a Confirmed event out of Confirmed. */
+export type LapseCause = "change-request" | "venue-unavailable" | "venue-attributes";
+
+/**
+ * SPM-111: a Confirmed event lapses when it would no longer pass `confirmEvent`'s
+ * gate, naming what it now lacks; otherwise null (2026-10-18 decision: it goes
+ * back to Planning, and `Blocked` stays unused). An arrangement Not applicable to
+ * the event is never in `readiness`, so it can never lapse.
+ *
+ * `lapse_event_confirmation` restates this under the event row lock, inside the
+ * transaction of whatever caused it -- a change here must be made there too.
+ */
+export function lapseConfirmation(
+  event: Pick<CoordinatorEvent, "status">,
+  readiness: EventReadiness,
+  latestSafetyCheck: LatestSafetyCheck | null,
+): ConfirmationLapse | null {
+  if (event.status !== "Confirmed") {
+    return null;
+  }
+  const flaggedVenues = [...new Set(readiness.flaggedBookings.map((booking) => booking.venueLocation))];
+  const lapsed: LapsedArrangement[] = [
+    ...blockingArrangements(readiness).map((type): LapsedArrangement => ({ kind: "arrangement", type })),
+    ...blockingEquipment(readiness).map((equipmentType): LapsedArrangement => ({ kind: "equipment", equipmentType })),
+    ...flaggedVenues.map((venueLocation): LapsedArrangement => ({ kind: "flagged-booking", venueLocation })),
+    ...(safetyCheckBlocker(latestSafetyCheck) === null ? [] : [{ kind: "safety-check" } as const]),
+  ];
+  return lapsed.length === 0 ? null : { next: "Planning", lapsed };
+}

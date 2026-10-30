@@ -7,6 +7,7 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCancelledNotice,
   EventConfirmedNotice,
+  EventNoLongerConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -148,6 +149,12 @@ export class LoggingNotifier implements Notifier {
   async changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
     console.info(
       `[notifier] organiser ${notice.recipientUserAccountId} told the change request on event ${notice.eventId} is decided (${notice.accepted.length} accepted, ${notice.declined.length} declined)`,
+    );
+  }
+
+  async eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void> {
+    console.info(
+      `[notifier] organiser ${notice.recipientUserAccountId} told event ${notice.eventId} is no longer confirmed (${notice.lapsed.map((lapsed) => lapsed.kind).join(", ")})`,
     );
   }
 
