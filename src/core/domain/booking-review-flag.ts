@@ -34,8 +34,8 @@ export function windowsOverlap(a: TimeWindow, b: TimeWindow): boolean {
 
 /**
  * Slots as the day and hours a person reads, with slots that run into each other joined:
- * a booking of twenty 15-minute slots reads `2026-11-16 13:00 to 18:00`, the same as one
- * PM slot. `merge_time_spans` in the database writes the same text.
+ * a booking of twenty 15-minute slots reads `2026-11-16 13:00 to 18:00`.
+ * `merge_time_spans` in the database writes the same text.
  */
 export function timeSpans(slots: readonly SlotCodeOnDate[]): string {
   const byDate = new Map<string, string[]>();

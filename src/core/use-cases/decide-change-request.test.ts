@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
 
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryChangeRequestRepository } from "@/adapters/outbound/in-memory/in-memory-change-request-repository";
 import {
   InMemoryCoordinatorEventRepository,
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
-import { changeRequestId, type ChangeRequest, type RequestedChange } from "@/core/domain/change-request";
+import {
+  changeRequestId,
+  type ChangeRequest,
+  type ItemDecision,
+  type RequestedChange,
+} from "@/core/domain/change-request";
 import {
   ChangeRequestAlreadyDecidedError,
   ChangeRequestClosedError,
@@ -64,7 +70,12 @@ function build(seed: SeedCoordinatorEvent = event(), pending: ChangeRequest = re
     { [EVENT]: [pending] },
   );
   const coordinatorEvents = new InMemoryCoordinatorEventRepository([seed]);
-  return { changeRequests, useCase: new DecideChangeRequestUseCase({ changeRequests, coordinatorEvents }) };
+  const notifier = new RecordingNotifier();
+  return {
+    changeRequests,
+    notifier,
+    useCase: new DecideChangeRequestUseCase({ changeRequests, coordinatorEvents, notifier }),
+  };
 }
 
 const stored = async (changeRequests: InMemoryChangeRequestRepository) =>
@@ -185,5 +196,85 @@ describe("DecideChangeRequestUseCase (SPM-100)", () => {
 
     await useCase.execute(command);
     await expect(useCase.execute(command)).rejects.toThrow(ChangeRequestAlreadyDecidedError);
+  });
+});
+
+describe("DecideChangeRequestUseCase notifies the Organiser of a reschedule (SPM-68)", () => {
+  const decide = (useCase: DecideChangeRequestUseCase, decisions: readonly ItemDecision[], by = COORDINATOR) =>
+    useCase.execute({ eventId: EVENT, changeRequestId: "4", userAccountId: by, decisions });
+
+  it("AC1, AC2, AC4: an accepted change of times tells the Organiser the new times, once", async () => {
+    const { useCase, notifier } = build();
+
+    await decide(useCase, [
+      { field: "times", outcome: "Accepted" },
+      { field: "expected_attendance", outcome: "Declined", reason: "Room caps at 300" },
+    ]);
+
+    expect(notifier.eventsRescheduled).toEqual([
+      {
+        recipientUserAccountId: "organiser-1",
+        eventId: EVENT,
+        eventRequestId: "request-1",
+        eventName: "Annual Conference",
+        times: [{ date: "2026-11-21", start: "09:00", end: "12:00" }],
+        backToPlanning: false,
+      },
+    ]);
+  });
+
+  it("AC2: carries every accepted date and time, in date then start order", async () => {
+    const several: RequestedChange = {
+      field: "times",
+      value: [
+        { date: "2026-11-21", start: "09:00", end: "12:00" },
+        { date: "2026-11-21", start: "14:00", end: "17:00" },
+        { date: "2026-11-22", start: "09:00", end: "12:00" },
+      ],
+    };
+    const { useCase, notifier } = build(event(), request(several));
+
+    await decide(useCase, [{ field: "times", outcome: "Accepted" }]);
+
+    expect(notifier.eventsRescheduled[0]?.times).toEqual(several.value);
+  });
+
+  it("AC1: a declined change of times sends no reschedule notice", async () => {
+    const { useCase, notifier } = build();
+
+    await decide(useCase, [
+      { field: "times", outcome: "Declined", reason: "The hall is booked" },
+      { field: "expected_attendance", outcome: "Accepted" },
+    ]);
+
+    expect(notifier.eventsRescheduled).toEqual([]);
+  });
+
+  it("AC1: a request that does not ask for new times sends no reschedule notice", async () => {
+    const { useCase, notifier } = build(event(), request(attendance));
+
+    await decide(useCase, [{ field: "expected_attendance", outcome: "Accepted" }]);
+
+    expect(notifier.eventsRescheduled).toEqual([]);
+  });
+
+  it("access: a refused coordinator sends nothing", async () => {
+    const { useCase, notifier } = build();
+
+    await expect(decide(useCase, [{ field: "times", outcome: "Accepted" }], OTHER_COORDINATOR)).rejects.toThrow(
+      ChangeRequestNotFoundError,
+    );
+    expect(notifier.eventsRescheduled).toEqual([]);
+  });
+
+  it("race: the second of two decisions is refused and sends no second notice", async () => {
+    const { useCase, notifier } = build(event(), request(times));
+
+    await decide(useCase, [{ field: "times", outcome: "Accepted" }]);
+    await expect(decide(useCase, [{ field: "times", outcome: "Accepted" }])).rejects.toThrow(
+      ChangeRequestAlreadyDecidedError,
+    );
+
+    expect(notifier.eventsRescheduled).toHaveLength(1);
   });
 });

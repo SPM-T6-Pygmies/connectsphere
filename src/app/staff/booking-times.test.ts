@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { roomInUse, venueBufferNote } from "./slot-label";
+import { roomInUse, venueBufferNote } from "./booking-times";
 
 describe("roomInUse (SPM-19)", () => {
   const times = [{ date: "2026-12-14", start: "10:00", end: "12:00" }];

@@ -2,14 +2,14 @@
 -- five bookings on the Founders' Gala Dinner, one in each status the Request a venue page
 -- treats differently.
 --
---   Booking  Venue                Day, slot  Status          What it is for
---   P        UAT-44 Harbour Room  C, AM      Confirmed       cancelled in TC-VCANCEL-001; its calendar cell
---                                                            turns Available
---   Q        UAT-44 Harbour Room  C, Night   Confirmed       kept in TC-VCANCEL-002, cancelled from two tabs
---                                                            in TC-VCANCEL-005
---   R        UAT-44 Garden Hall   C, AM      Requested       a pending request, cancelled in TC-VCANCEL-003
---   S        UAT-44 Garden Hall   C, PM      Tentative Hold  a hold, also cancellable (TC-VCANCEL-003)
---   U        UAT-44 Harbour Room  C + 1, AM  Rejected        holds nothing, so offers no button
+--   Booking  Venue                Day, time           Status          What it is for
+--   P        UAT-44 Harbour Room  C, 07:00-12:00      Confirmed       cancelled in TC-VCANCEL-001; its calendar
+--                                                                     cells turn Available
+--   Q        UAT-44 Harbour Room  C, 19:00-24:00      Confirmed       kept in TC-VCANCEL-002, cancelled from two
+--                                                                     tabs in TC-VCANCEL-005
+--   R        UAT-44 Garden Hall   C, 07:00-12:00      Requested       a pending request, cancelled in TC-VCANCEL-003
+--   S        UAT-44 Garden Hall   C, 13:00-18:00      Tentative Hold  a hold, also cancellable (TC-VCANCEL-003)
+--   U        UAT-44 Harbour Room  C + 1, 07:00-12:00  Rejected        holds nothing, so offers no button
 --
 -- C is 10 days from today, Singapore time: inside the UAT-44 venues' 60-day booking horizon,
 -- and clear of day D (14 days out), where seed-venue-search-uat puts its own two bookings.
@@ -52,12 +52,12 @@ begin
 
   for r in
     select * from (values
-      ('UAT-44 Harbour Room', c,     'AM',    'Confirmed'),       -- P
-      ('UAT-44 Harbour Room', c,     'Night', 'Confirmed'),       -- Q
-      ('UAT-44 Garden Hall',  c,     'AM',    'Requested'),       -- R
-      ('UAT-44 Garden Hall',  c,     'PM',    'Tentative Hold'),  -- S
-      ('UAT-44 Harbour Room', c + 1, 'AM',    'Rejected')         -- U
-    ) as v(venue, slot_date, slot, status)
+      ('UAT-44 Harbour Room', c,     28, 47, 'Confirmed'),       -- P
+      ('UAT-44 Harbour Room', c,     76, 95, 'Confirmed'),       -- Q
+      ('UAT-44 Garden Hall',  c,     28, 47, 'Requested'),       -- R
+      ('UAT-44 Garden Hall',  c,     52, 71, 'Tentative Hold'),  -- S
+      ('UAT-44 Harbour Room', c + 1, 28, 47, 'Rejected')         -- U
+    ) as v(venue, slot_date, first_slot, last_slot, status)
   loop
     v_venue := (select venue_id from public.venue where location = r.venue);
 
@@ -66,7 +66,7 @@ begin
       from public.booking b
       join public.booking_slot bs on bs.booking_id = b.booking_id
       where b.event_id = v_event and b.venue_id = v_venue
-        and bs.slot_date = r.slot_date and bs.slot = r.slot
+        and bs.slot_date = r.slot_date and bs.slot = r.first_slot::text
     ) then
       insert into public.booking (
         venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id,
@@ -80,12 +80,9 @@ begin
         case when r.status = 'Tentative Hold' then now() + interval '72 hours' end
       )
       returning booking_id into v_id;
-      -- The slot's hours as 15-minute slots (SPM-324).
+      -- One row per 15-minute slot of the time (SPM-324).
       insert into public.booking_slot (booking_id, slot_date, slot)
-      select v_id, r.slot_date, g.slot_code
-      from public.slot s
-      join public.slot g on g.slot_code ~ '^[0-9]+$' and g.start_time >= s.start_time and g.end_time <= s.end_time
-      where s.slot_code = r.slot;
+      select v_id, r.slot_date, n::text from generate_series(r.first_slot, r.last_slot) as n;
     end if;
   end loop;
 end $$;

@@ -48,8 +48,7 @@ export interface NewVenueUnavailability {
 
 /**
  * A block as it is stored: the same 15-minute slots on every day from the start date to
- * the end date, one entry per date and slot, the way a booking's slots are. A block
- * recorded before SPM-321 may still hold AM, PM or Night; they mean the same hours.
+ * the end date, one entry per date and slot, the way a booking's slots are.
  */
 export interface VenueUnavailabilityBlock {
   readonly venueId: VenueId;
