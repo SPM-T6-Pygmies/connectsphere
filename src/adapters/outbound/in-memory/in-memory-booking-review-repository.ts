@@ -7,6 +7,7 @@ import {
 import {
   BookingNotDecidableError,
   HoldNotLiveError,
+  ReRequestNotHoldableError,
   VenuePaddedClashError,
 } from "@/core/domain/errors";
 import { paddedClashes, type Buffers } from "@/core/domain/padded-window";
@@ -64,6 +65,9 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
     if (row === undefined || row.status !== "Requested") {
       throw new BookingNotDecidableError();
     }
+    if (decided.status === "Tentative Hold" && row.replaces !== null) {
+      throw new ReRequestNotHoldableError();
+    }
 
     if (decided.status === "Confirmed" || decided.status === "Tentative Hold") {
       // Both keep the slots from now on, so the booking must not overlap any other live booking's
@@ -72,11 +76,10 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
         .filter(
           (other) =>
             other.id !== row.id &&
+            // SPM-251 AC5: a re-request never clashes with the booking it replaces.
+            other.id !== row.replaces?.id &&
             other.venueId === row.venueId &&
-            holdsSlot(
-              { status: other.status, holdExpiresAt: other.holdExpiresAt === null ? null : new Date(other.holdExpiresAt) },
-              this.now(),
-            ),
+            this.holds(other),
         )
         .map((other) => ({
           eventName: other.event.name,
@@ -97,6 +100,19 @@ export class InMemoryBookingReviewRepository implements BookingReviewRepository 
         decided.suggestedAlternative === null ? null : (this.venueNames[decided.suggestedAlternative] ?? null),
       decidedByName: decided.decidedBy,
     };
+
+    // SPM-251 AC6: approving a re-request releases the booking it replaces, if that still holds.
+    const replaced = this.rows.findIndex((other) => other.id === row.replaces?.id);
+    if (decided.status === "Confirmed" && replaced !== -1 && this.holds(this.rows[replaced])) {
+      this.rows[replaced] = { ...this.rows[replaced], status: "Released" };
+    }
+  }
+
+  private holds(row: BookingForReview): boolean {
+    return holdsSlot(
+      { status: row.status, holdExpiresAt: row.holdExpiresAt === null ? null : new Date(row.holdExpiresAt) },
+      this.now(),
+    );
   }
 
   /** Checks the status only: review rows carry the expiry, but a test pins it with the clock. */

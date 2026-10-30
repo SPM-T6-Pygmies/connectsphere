@@ -660,8 +660,11 @@ export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOp
  * the coordinator may not list staff accounts themselves.
  */
 export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
+  const client = await createSupabaseServerClient();
   return new SubmitVenueBookingRequestUseCase({
     ...(await venueBookingAdapters()),
+    // SPM-251: a re-request names a flagged booking.
+    flags: new SupabaseBookingFlagRepository(client),
     venueStaff: new SupabaseVenueStaffDirectory(createSupabaseAdminClient()),
     notifier: recordedNotifier(),
     clock: systemClock,

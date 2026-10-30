@@ -69,6 +69,7 @@ function build() {
       events: new InMemoryCoordinatorEventRepository([EVENT]),
       venues,
       bookings,
+      flags: { openForEvent: async () => [] },
       venueStaff: new InMemoryVenueStaffDirectory(),
       notifier: new RecordingNotifier(),
       clock,

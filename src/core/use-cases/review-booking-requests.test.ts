@@ -27,6 +27,7 @@ function booking(status: BookingStatus, holdExpiresAt: string | null): BookingFo
     holdExpiresAt,
     rejectionNote: null,
     suggestedAlternativeLocation: null,
+    replaces: null,
     event: {
       id: "e1",
       requestId: "r1",
