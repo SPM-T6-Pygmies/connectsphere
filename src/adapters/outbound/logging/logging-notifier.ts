@@ -1,5 +1,6 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
+  AttendeeEventChangedNotice,
   ChangeRequestDecidedNotice,
   ChangeRequestedNotice,
   ClarificationRequestedNotice,
@@ -8,6 +9,7 @@ import type {
   EventCancelledNotice,
   EventConfirmedNotice,
   EventNoLongerConfirmedNotice,
+  EventRescheduledForAttendeeNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -162,5 +164,13 @@ export class LoggingNotifier implements Notifier {
     console.info(
       `[notifier] registration ${notice.registrationId} confirmed to ${notice.recipientEmail}`,
     );
+  }
+
+  async eventRescheduledForAttendee(notice: EventRescheduledForAttendeeNotice): Promise<void> {
+    console.info(`[notifier] registration ${notice.registrationId} told by email the event is rescheduled`);
+  }
+
+  async eventCancelledForAttendee(notice: AttendeeEventChangedNotice): Promise<void> {
+    console.info(`[notifier] registration ${notice.registrationId} told by email the event is cancelled`);
   }
 }
