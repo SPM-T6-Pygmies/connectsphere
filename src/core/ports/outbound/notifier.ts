@@ -378,6 +378,29 @@ export interface RegistrationConfirmedNotice {
 }
 
 /**
+ * What every Attendee holding a Registered registration is told when the event
+ * changes under them (SPM-69): addressed by email, as with
+ * `RegistrationConfirmedNotice`, since an Attendee has no account.
+ *
+ * Deliberately has no field for a reason, a note or another attendee: none of
+ * that may reach an Attendee (#91, AC3).
+ */
+export interface AttendeeEventChangedNotice {
+  readonly registrationId: string;
+  readonly recipientEmail: string;
+  readonly attendeeName: string;
+  readonly eventName: string;
+}
+
+/** SPM-69 AC2: a reschedule carries the new dates and times, and the venue. */
+export interface EventRescheduledForAttendeeNotice extends AttendeeEventChangedNotice {
+  /** In date then start order. */
+  readonly times: readonly TimeRangeOnDate[];
+  /** Null while no venue is confirmed. */
+  readonly venueName: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -407,4 +430,6 @@ export interface Notifier {
   changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void>;
   eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
+  eventRescheduledForAttendee(notice: EventRescheduledForAttendeeNotice): Promise<void>;
+  eventCancelledForAttendee(notice: AttendeeEventChangedNotice): Promise<void>;
 }

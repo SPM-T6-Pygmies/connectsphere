@@ -2,6 +2,8 @@ import type { Novu } from "@novu/api";
 import type { TriggerEventRequestDto, TriggerEventResponseDto } from "@novu/api/models/components";
 
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
+import { EVENT_CANCELLED_FOR_ATTENDEE_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/attendee-event-cancelled";
+import { EVENT_RESCHEDULED_FOR_ATTENDEE_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/attendee-event-rescheduled";
 import { CHANGE_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-request-decided";
 import { CHANGE_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-requested";
 import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/clarification-requested";
@@ -25,6 +27,7 @@ import { VENUE_BOOKING_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/work
 import { VENUE_BOOKING_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  AttendeeEventChangedNotice,
   ChangeRequestDecidedNotice,
   ChangeRequestedNotice,
   ClarificationRequestedNotice,
@@ -33,6 +36,7 @@ import type {
   EventCancelledNotice,
   EventConfirmedNotice,
   EventNoLongerConfirmedNotice,
+  EventRescheduledForAttendeeNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -175,6 +179,27 @@ export class NovuNotifier implements Notifier {
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
     return this.send(
       REGISTRATION_CONFIRMED_WORKFLOW_ID,
+      {
+        subscriberId: `${this.subscriberPrefix}registration-${notice.registrationId}`,
+        email: notice.recipientEmail,
+        firstName: notice.attendeeName,
+      },
+      { ...notice, registrationUrl: `${this.appBaseUrl}/registrations/${notice.registrationId}` },
+    );
+  }
+
+  /** SPM-69: to the same per-registration subscriber as the confirmation. */
+  eventRescheduledForAttendee(notice: EventRescheduledForAttendeeNotice): Promise<void> {
+    return this.emailAttendee(EVENT_RESCHEDULED_FOR_ATTENDEE_WORKFLOW_ID, notice);
+  }
+
+  eventCancelledForAttendee(notice: AttendeeEventChangedNotice): Promise<void> {
+    return this.emailAttendee(EVENT_CANCELLED_FOR_ATTENDEE_WORKFLOW_ID, notice);
+  }
+
+  private emailAttendee(workflowId: string, notice: AttendeeEventChangedNotice): Promise<void> {
+    return this.send(
+      workflowId,
       {
         subscriberId: `${this.subscriberPrefix}registration-${notice.registrationId}`,
         email: notice.recipientEmail,

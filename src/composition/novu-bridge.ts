@@ -1,5 +1,7 @@
 import { serve } from "@novu/framework/next";
 
+import { eventCancelledForAttendee } from "@/adapters/outbound/novu/workflows/attendee-event-cancelled";
+import { eventRescheduledForAttendee } from "@/adapters/outbound/novu/workflows/attendee-event-rescheduled";
 import { changeRequestDecided } from "@/adapters/outbound/novu/workflows/change-request-decided";
 import { changeRequested } from "@/adapters/outbound/novu/workflows/change-requested";
 import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clarification-requested";
@@ -60,6 +62,8 @@ function handlers(): Bridge {
       changeRequestDecided,
       eventNoLongerConfirmed,
       registrationConfirmed,
+      eventRescheduledForAttendee,
+      eventCancelledForAttendee,
     ],
   });
   return bridge;
