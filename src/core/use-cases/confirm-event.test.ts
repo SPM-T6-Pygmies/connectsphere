@@ -383,6 +383,18 @@ describe("ConfirmEventUseCase tells the attendees of a reschedule once it is con
     ]);
   });
 
+  it("names the booked venue even when the venue is not marked essential", async () => {
+    const { useCase, notifier, registrations } = buildUseCase(
+      [seedEvent({ times, rescheduleUnannounced: true })],
+      [seedFacts({ essentialTypes: [], confirmedVenueLocation: "Main Hall" })],
+    );
+    await registrations.save(attendee);
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.attendeesToldRescheduled).toEqual([expect.objectContaining({ venueName: "Main Hall" })]);
+  });
+
   it("emails nobody for an ordinary confirmation", async () => {
     const { useCase, notifier, registrations } = buildUseCase([seedEvent({ times })], [ready]);
     await registrations.save(attendee);

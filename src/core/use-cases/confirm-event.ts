@@ -91,7 +91,7 @@ export class ConfirmEventUseCase {
     // SPM-69: an accepted change of times is announced to attendees only now that the venue, dates
     // and times are all confirmed again.
     if (await events.takeUnannouncedReschedule(confirmedBy, id)) {
-      await attendees.announce(id, confirmed.name, { kind: "rescheduled", times: details.times, venueName: venueLocation });
+      await attendees.announce(id, confirmed.name, { kind: "rescheduled", times: details.times, venueName: facts.confirmedVenueLocation });
     }
 
     return { eventId: confirmed.id, status: confirmed.status };
