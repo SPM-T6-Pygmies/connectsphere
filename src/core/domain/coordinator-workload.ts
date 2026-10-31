@@ -1,19 +1,7 @@
-import type { CoordinatorEvent, CoordinatorEventStatus } from "./coordinator-event";
+import { isActiveEvent, type CoordinatorEvent } from "./coordinator-event";
 import { EventNotReassignableError } from "./errors";
 import { coordinatorQueueStateFor, type EventRequest, type EventRequestId } from "./event-request";
 import type { UserAccountId } from "./user-account";
-
-/** An approved event still being worked on: from Planning through Confirmed (SPM-256 AC2). */
-const ACTIVE_EVENT_STATUSES: ReadonlySet<CoordinatorEventStatus> = new Set([
-  "Planning",
-  "Blocked",
-  "Confirmed",
-]);
-
-/** Whether an event is still being worked on, so its coordinator can still change. */
-export function isActiveEvent(status: CoordinatorEventStatus): boolean {
-  return ACTIVE_EVENT_STATUSES.has(status);
-}
 
 /** One coordinator's open requests and active events. */
 export interface CoordinatorWorkload<R, E> {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { CoordinatorEventStatus } from "./coordinator-event";
-import { coordinatorWorkloads, isActiveEvent, reassignEventCoordinator } from "./coordinator-workload";
+import { isActiveEvent, type CoordinatorEventStatus } from "./coordinator-event";
+import { coordinatorWorkloads, reassignEventCoordinator } from "./coordinator-workload";
 import { EventNotReassignableError } from "./errors";
 import type { EventRequestStatus } from "./event-request";
 import { userAccountId, type UserAccountId } from "./user-account";

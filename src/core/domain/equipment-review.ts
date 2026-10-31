@@ -1,4 +1,4 @@
-import type { CoordinatorEventStatus } from "./coordinator-event";
+import { isActiveEvent, type CoordinatorEventStatus } from "./coordinator-event";
 import {
   isReserved,
   recheckReason,
@@ -44,11 +44,6 @@ export function reservedAs(line: EquipmentRequirement): EquipmentReviewBaseline 
     baseline.quantityRequested !== line.quantityRequested ||
     baseline.technicalRequirements !== line.technicalRequirements;
   return differs ? baseline : null;
-}
-
-/** AC1: an event still running its course. A Completed or Cancelled one has nothing left to prepare. */
-export function isActiveEvent(status: CoordinatorEventStatus): boolean {
-  return status === "Planning" || status === "Blocked" || status === "Confirmed";
 }
 
 /**
