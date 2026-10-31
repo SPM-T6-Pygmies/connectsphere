@@ -1,7 +1,8 @@
 -- SPM-105 manual tests (docs/testing/VENUE_CHANGE_FLAG_MANUAL_TESTS.md): a venue of its own
 -- for Venue Staff to edit, and the bookings those edits flag or leave alone. Every event is
--- named "Venue Change: ...". F is 42 days from today in Singapore time, clear of the days
--- the other seeds use (up to +38).
+-- named "Venue Change: ...". F is Thursday 10 December 2026: fixed, after the November 2026
+-- test window, and on a day no other seed of the `full` profile (pnpm e2e:data) books Studio.
+-- Past Expo is on Wednesday 28 October 2026, which stays in the past.
 --
 --   Change Test Hall: Theatre seats 300, Banquet 150. Wi-Fi, Catering area.
 --                     Step-free access, Hearing loop. Open 07:00-12:00, 13:00-18:00, 19:00-24:00.
@@ -13,7 +14,7 @@
 --   Venue Change: Video Call      50, Theatre, Video-conferencing (missing)   Change Test Hall  F + 2, PM  Confirmed
 --   Venue Change: Open Day        no attendance, Banquet                      Change Test Hall  F + 3, PM  Confirmed
 --   Venue Change: Pending Talk   120, Banquet                                 Change Test Hall  F + 4, PM  Requested
---   Venue Change: Past Expo      120, Banquet                                 Change Test Hall  3 days ago Confirmed
+--   Venue Change: Past Expo      120, Banquet                                 Change Test Hall  28 Oct     Confirmed
 --
 -- All belong to Test Coordinator. Run after supabase db reset, seed-coordinator-view and
 -- seed-venues:
@@ -21,12 +22,12 @@
 --   supabase db query --file scripts/seed-venue-change-flags/seed.sql --local
 --
 -- Re-running puts Change Test Hall back as above and replaces the events, their bookings
--- and their flags, with the dates measured from today again. List what loaded with
+-- and their flags. List what loaded with
 -- show.sql; undo with teardown.sql.
 
 do $$
 declare
-  f date := (now() at time zone 'Asia/Singapore')::date + 42;
+  f date := date '2026-12-10';
   v_staff bigint := (select user_account_id from public.user_account where name = 'Test Venue Staff');
   v_coordinator bigint := (select user_account_id from public.user_account
                             where name = 'Test Coordinator' and client_organisation_id is null);
@@ -77,7 +78,7 @@ begin
       ('Venue Change: Video Call',     50,           'Theatre', null,               'Video-conferencing', 'Change Test Hall', f + 2, 'Confirmed'),
       ('Venue Change: Open Day',     null::integer,  'Banquet', null,               null,                 'Change Test Hall', f + 3, 'Confirmed'),
       ('Venue Change: Pending Talk',  120,           'Banquet', null,               null,                 'Change Test Hall', f + 4, 'Requested'),
-      ('Venue Change: Past Expo',     120,           'Banquet', null,               null,                 'Change Test Hall', (now() at time zone 'Asia/Singapore')::date - 3, 'Confirmed')
+      ('Venue Change: Past Expo',     120,           'Banquet', null,               null,                 'Change Test Hall', date '2026-10-28', 'Confirmed')
     ) as v(event_name, attendance, layout, accessibility, facilities, venue, slot_date, status)
   loop
     select event_id into v_event
