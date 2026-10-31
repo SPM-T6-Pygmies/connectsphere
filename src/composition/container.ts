@@ -1,4 +1,5 @@
 import { Novu } from "@novu/api";
+import { cache } from "react";
 
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
 import { NovuNotifier } from "@/adapters/outbound/novu/novu-notifier";
@@ -458,8 +459,7 @@ export async function getCurrentCoordinator(): Promise<{
   readonly userAccountId: string;
   readonly name: string;
 } | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  return (await identifyStaffMember.execute())?.coordinator ?? null;
+  return (await identifyStaffMember())?.coordinator ?? null;
 }
 
 /**
@@ -471,8 +471,7 @@ export async function getCurrentCoordinator(): Promise<{
  * page rather than show their equipment lists. Same shape as `getCurrentCoordinator`.
  */
 export async function getCurrentTechnicalSupport(): Promise<{ readonly userAccountId: string } | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  return (await identifyStaffMember.execute())?.technicalSupport ?? null;
+  return (await identifyStaffMember())?.technicalSupport ?? null;
 }
 
 /** SPM-273: the events on one of Technical Support's lists -- Needs review, Reviewed or Archive. */
@@ -531,8 +530,7 @@ export async function buildReleaseEquipmentLine(): Promise<ReleaseEquipmentLineU
  * shape as `getCurrentTechnicalSupport`.
  */
 export async function getCurrentSafetyOfficer(): Promise<{ readonly userAccountId: string } | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  return (await identifyStaffMember.execute())?.safetyOfficer ?? null;
+  return (await identifyStaffMember())?.safetyOfficer ?? null;
 }
 
 /**
@@ -541,8 +539,7 @@ export async function getCurrentSafetyOfficer(): Promise<{ readonly userAccountI
  * as `getCurrentSafetyOfficer`.
  */
 export async function getCurrentCoordinatorLead(): Promise<{ readonly userAccountId: string } | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  return (await identifyStaffMember.execute())?.coordinatorLead ?? null;
+  return (await identifyStaffMember())?.coordinatorLead ?? null;
 }
 
 /** SPM-259: the events awaiting a safety check. */
@@ -736,8 +733,7 @@ export async function getCurrentVenueStaff(): Promise<{
   readonly userAccountId: string;
   readonly name: string;
 } | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  const member = await identifyStaffMember.execute();
+  const member = await identifyStaffMember();
   return member !== null && member.workspaces.includes("venue")
     ? { userAccountId: member.userAccountId, name: member.name }
     : null;
@@ -948,13 +944,21 @@ export async function buildLogout(): Promise<LogoutUseCase> {
   });
 }
 
-/** The signed-in member of staff, behind every `getCurrent*` lookup in this file. */
-async function buildIdentifyStaffMember(): Promise<IdentifyStaffMemberUseCase> {
-  return new IdentifyStaffMemberUseCase({
+/**
+ * The signed-in member of staff, behind every `getCurrent*` lookup in this file.
+ *
+ * Memoised for the request: a staff page asks who is signed in from the page,
+ * from `StaffShell` and from the sidebar's queue, and each ask is a round trip
+ * to the database. A login or logout is its own request, so it never reads a
+ * stale answer.
+ */
+const identifyStaffMember = cache(async () => {
+  const identify = new IdentifyStaffMemberUseCase({
     auth: new SupabaseAuthAdapter(await createSupabaseServerClient()),
     users: new SupabaseUserRepository(createSupabaseAdminClient()),
   });
-}
+  return identify.execute();
+});
 
 /**
  * Who the organiser screens are acting as: the signed-in Event Organiser.
@@ -969,8 +973,7 @@ export async function getCurrentOrganiser(): Promise<{
   readonly clientOrganisationId: string;
   readonly name: string;
 } | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  return (await identifyStaffMember.execute())?.organiser ?? null;
+  return (await identifyStaffMember())?.organiser ?? null;
 }
 
 /**
@@ -979,8 +982,7 @@ export async function getCurrentOrganiser(): Promise<{
  * checking its own workspace answers with access denied either way.
  */
 export async function getStaffWorkspaces(): Promise<readonly StaffWorkspace[]> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  return (await identifyStaffMember.execute())?.workspaces ?? [];
+  return (await identifyStaffMember())?.workspaces ?? [];
 }
 
 /**
@@ -999,8 +1001,7 @@ export async function getSignedInStaffMember(): Promise<{
   readonly subscriberId: string;
   readonly subscriberHash: string | null;
 } | null> {
-  const identifyStaffMember = await buildIdentifyStaffMember();
-  const member = await identifyStaffMember.execute();
+  const member = await identifyStaffMember();
   if (member === null) {
     return null;
   }
