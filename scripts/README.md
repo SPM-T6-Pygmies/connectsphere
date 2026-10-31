@@ -30,7 +30,11 @@ pnpm e2e:data verify             # check what is loaded; exits 1 on any failure
 pnpm e2e:data seed               # tear down every profile, then seed, without a reset
 pnpm e2e:data teardown           # every teardown, in reverse order, then novu:clear
 pnpm e2e:data reset venue-hold   # any command takes a profile; `full` is the default
+pnpm e2e:data seed --remote      # the linked Supabase project instead of the local one
 ```
+
+`--remote` takes `seed`, `verify` and `teardown`, not `reset`, and skips `novu:clear`. `seed` and
+`teardown` first ask you to type the linked project's ref (`supabase/.temp/project-ref`).
 
 | Profile | Loads | For |
 | --- | --- | --- |

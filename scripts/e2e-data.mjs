@@ -5,9 +5,13 @@
 //   pnpm e2e:data verify   [profile]   run its verify.sql and show.sql files; exit 1 on any failure
 //   pnpm e2e:data teardown [profile]   run its teardown.sql files in reverse order, then novu:clear
 //
-// The profile defaults to `full`. Local database only. See scripts/README.md, section 0.
+// The profile defaults to `full`. The database is the local one; add --remote for the linked
+// project, where only seed, verify and teardown run, after you type its ref. See scripts/README.md,
+// section 0.
 
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { createInterface } from "node:readline/promises";
 
 // Each step is one seed directory. `seed` files run in order; `verify` is a verify.sql whose
 // every row must read ok = true, or a show.sql with the row count it must list.
@@ -62,10 +66,15 @@ const PROFILES = {
 // the other profiles' seeds go before `full`'s.
 const EVERY_STEP = [...new Map(Object.values(PROFILES).flat().map((s) => [s.dir, s])).values()];
 
+const args = process.argv.slice(2);
+const remote = args.includes("--remote");
+const [command, profile = "full"] = args.filter((a) => a !== "--remote");
+const target = remote ? "--linked" : "--local";
+
 function query(file) {
   const r = spawnSync(
     "supabase",
-    ["db", "query", "--local", "--output-format", "json", "--file", `scripts/${file}`],
+    ["db", "query", target, "--output-format", "json", "--file", `scripts/${file}`],
     { encoding: "utf8" },
   );
   // A select prints JSON; anything else prints its command tag, such as "DO" or "DELETE 6".
@@ -134,7 +143,7 @@ function waitForSchema() {
   for (let i = 0; i < 30; i++) {
     const r = spawnSync(
       "supabase",
-      ["db", "query", "--local", "--output-format", "json", "select 1 from public.event limit 1"],
+      ["db", "query", target, "--output-format", "json", "select 1 from public.event limit 1"],
       { encoding: "utf8" },
     );
     if (r.status === 0 && !r.stdout.includes('"_tag":"Error"')) return;
@@ -143,18 +152,38 @@ function waitForSchema() {
   throw new Error("the database was not ready a minute after the reset");
 }
 
-const [command, profile = "full"] = process.argv.slice(2);
 const steps = PROFILES[profile];
 const commands = ["reset", "seed", "verify", "teardown"];
 if (!commands.includes(command) || !steps) {
   process.stderr.write(
-    `usage: pnpm e2e:data <${commands.join("|")}> [${Object.keys(PROFILES).join("|")}]\n`,
+    `usage: pnpm e2e:data <${commands.join("|")}> [${Object.keys(PROFILES).join("|")}] [--remote]\n`,
   );
   process.exit(2);
+}
+if (remote && command === "reset") {
+  process.stderr.write("error: reset is local only; --remote does not reset the linked database\n");
+  process.exit(2);
+}
+
+// Seeding and tearing down change a shared database, so the linked project's ref must be typed.
+async function confirmRemote() {
+  let ref;
+  try {
+    ref = readFileSync("supabase/.temp/project-ref", "utf8").trim();
+  } catch {
+    throw new Error("no linked project; run supabase link first");
+  }
+  if (command === "verify") return;
+  if (!process.stdin.isTTY) throw new Error(`${command} --remote needs a terminal to confirm in`);
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await rl.question(`${command} changes the linked project ${ref}. Type its ref to continue: `);
+  rl.close();
+  if (answer.trim() !== ref) throw new Error("the ref did not match; nothing was changed");
 }
 
 try {
   let ok = true;
+  if (remote) await confirmRemote();
   if (command === "reset") {
     if (!run("supabase", ["db", "reset"])) throw new Error("supabase db reset failed");
     waitForSchema();
@@ -165,7 +194,7 @@ try {
   if (command === "reset" || command === "seed") seed(steps);
   if (command === "reset" || command === "verify") ok = verify(steps);
   if (command === "teardown") teardown(steps);
-  if (command === "reset" || command === "teardown") novuClear();
+  if (!remote && (command === "reset" || command === "teardown")) novuClear();
   process.exit(ok ? 0 : 1);
 } catch (e) {
   process.stderr.write(`error: ${e.message}\n`);
