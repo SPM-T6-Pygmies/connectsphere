@@ -60,7 +60,7 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
    supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
    supabase db query --file scripts/seed-equipment/seed.sql --local
    ```
-3. Add the two holds at Main Hall on day **H**, 21 days from today (07:00–12:00 expired an hour
+3. Add the two holds at Main Hall on day **H**, Sunday 6 December 2026 (07:00–12:00 expired an hour
    ago, 14:00–18:00 expiring in thirty days). They belong to their own event, *Holds Test Event*:
    ```bash
    supabase db query --file scripts/seed-booking-holds/seed.sql --local
@@ -81,8 +81,8 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
 
 ### The days and the bookings
 
-**T** is 14 days from today and **H** is 21 days from today, both in Singapore time. Venue search
-looks 60 days ahead, so it can still see T.
+**T** is Wednesday 9 December 2026 and **H** is Sunday 6 December 2026. Venue search looks 60
+days ahead, so it can see T from 10 October 2026.
 
 | In id order | Booking | Venue | Day, times | Status | Used in |
 | --- | --- | --- | --- | --- | --- |

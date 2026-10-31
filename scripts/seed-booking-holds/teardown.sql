@@ -1,6 +1,6 @@
 -- Undoes the booking-holds seed (seed.sql in this directory): deletes "Holds Test Event";
 -- its two holds go with it, by cascade. Also deletes the Rooftop Terrace block fixture.sql
--- records (Renovation, 20 days from today) and its audit rows; fixture.sql's bookings are on
+-- records (Renovation, 15 December 2026, T + 6) and its audit rows; fixture.sql's bookings are on
 -- the Founders' Gala Dinner and go with seed-equipment's teardown.
 --
 --   supabase db query --file scripts/seed-booking-holds/teardown.sql --local
@@ -20,7 +20,7 @@ doomed as (
   where v.location = 'Rooftop Terrace' and u.reason_category = 'Renovation'
     and exists (select 1 from public.venue_unavailability_slot s
                 where s.venue_unavailability_id = u.venue_unavailability_id
-                  and s.slot_date = (now() at time zone 'Asia/Singapore')::date + 20)
+                  and s.slot_date = date '2026-12-15')
 ),
 audit as (
   delete from public.audit_record a

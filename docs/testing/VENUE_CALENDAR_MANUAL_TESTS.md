@@ -73,7 +73,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | --- | --- | --- |
 | UAT-44 Harbour Room | 07:00–24:00 | Confirmed 13:00–18:00 on D; Confirmed 10:15–11:45 on D+3 |
 | UAT-44 Garden Hall | 07:00–18:00 | Rejected 07:00–12:00 on D (holds nothing); Confirmed 18:30–19:00 on D+7, after closing |
-| Main Hall | 07:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on D+7 (07:00–12:00 expired, 14:00–18:00 lapsing in 30 days) |
+| Main Hall | 07:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on **H**, Sunday 6 December 2026 (07:00–12:00 expired, 14:00–18:00 lapsing in 30 days) |
 
 ---
 
@@ -116,11 +116,11 @@ order the blocks were recorded) and `11:30–24:00` *Maintenance*. The rest is *
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
-1. Open Main Hall's calendar and press **Next week** until D+7 is in view.
+1. Open Main Hall's calendar and press **Next week** until H is in view.
 
-**Expected:** D+7 has a **Held** bar from `14:00` to `18:00`. Hovering it shows *Until* and a
+**Expected:** H has a **Held** bar from `14:00` to `18:00`. Hovering it shows *Until* and a
 date about 30 days after the seed ran, worded as on the Venue Staff decision page (e.g.
-`14:00–18:00 Held: Until Thu, 26 Nov, 2:28 pm`). D+7 `07:00` to `12:00` is blank,
+`14:00–18:00 Held: Until Thu, 26 Nov, 2:28 pm`). H `07:00` to `12:00` is blank,
 **Available**, not Held: that hold has expired.
 
 - [x] Pass
