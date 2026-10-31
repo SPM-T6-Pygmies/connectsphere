@@ -1,4 +1,4 @@
-import type { CoordinatorEventStatus } from "./coordinator-event";
+import { isActiveEvent, type CoordinatorEventStatus } from "./coordinator-event";
 import { InvalidEventFacilitiesError } from "./errors";
 import { FACILITY_OPTIONS, formatOptionList } from "./venue-options";
 
@@ -23,5 +23,5 @@ export function chooseRequiredFacilities(selected: readonly string[]): string | 
 
 /** The facilities can change until the event is Completed or Cancelled. */
 export function eventFacilitiesEditable(status: CoordinatorEventStatus): boolean {
-  return status === "Planning" || status === "Blocked" || status === "Confirmed";
+  return isActiveEvent(status);
 }
