@@ -9,12 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewAssignedEvents, getCurrentCoordinator } from "@/composition/container";
+import { getCurrentCoordinator } from "@/composition/container";
 import type { AssignedEventSummary } from "@/core/use-cases/view-assigned-events";
 
 import { EmptyState } from "../../field-list";
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { StatusBadge } from "../../status-badge";
+import { assignedEvents } from "../../staff-queues";
 
 export const metadata = { title: "My events | ConnectSphere" };
 
@@ -79,8 +80,7 @@ export default async function CoordinatorEventsPage() {
     forbidden();
   }
 
-  const viewAssignedEvents = await buildViewAssignedEvents();
-  const { events } = await viewAssignedEvents.execute(coordinator);
+  const { events } = await assignedEvents(coordinator.userAccountId);
 
   return (
     <StaffShell role="coordinator" crumbs={[{ label: "My events" }]} coordinatorSection="events">

@@ -25,14 +25,8 @@ import {
 import {
   buildViewAllEventCoordinators,
   buildViewAllEventRequests,
-  buildViewArchivedEventRequests,
-  buildViewAssignedEventRequests,
-  buildListEquipmentQueue,
   buildListVenues,
   buildNotifyExpiredHolds,
-  buildReviewBookingRequests,
-  buildViewAssignedEvents,
-  buildViewMyEventRequests,
   getCurrentCoordinator,
   getCurrentOrganiser,
   getCurrentTechnicalSupport,
@@ -51,6 +45,14 @@ import {
 import { requestStateLabel } from "./coordinator/request-state-badge"
 import { formatHoldExpiry } from "./hold-expiry"
 import { venueBufferNote } from "./booking-times"
+import {
+  archivedEventRequests,
+  assignedEventRequests,
+  assignedEvents,
+  bookingsForReview,
+  equipmentQueue,
+  myEventRequests,
+} from "./staff-queues"
 import { queueTeaser } from "./technical/queue-teaser"
 
 export { PageHeader } from "./page-header"
@@ -66,8 +68,7 @@ async function getQueueItemsForRequester(): Promise<ListPaneItem[]> {
     return []
   }
 
-  const viewMyEventRequests = await buildViewMyEventRequests()
-  const { eventRequests } = await viewMyEventRequests.execute(organiser)
+  const { eventRequests } = await myEventRequests(organiser.userAccountId, organiser.clientOrganisationId)
 
   return eventRequests.map((request) => ({
     id: request.id,
@@ -128,8 +129,7 @@ async function getQueueItemsForCoordinatorRequests(): Promise<ListPaneItem[]> {
     return []
   }
 
-  const viewAssignedEventRequests = await buildViewAssignedEventRequests()
-  const { eventRequests } = await viewAssignedEventRequests.execute(coordinator)
+  const { eventRequests } = await assignedEventRequests(coordinator.userAccountId)
 
   return eventRequests.map((request) => ({
     id: request.id,
@@ -148,8 +148,7 @@ async function getQueueItemsForCoordinatorArchive(): Promise<ListPaneItem[]> {
     return []
   }
 
-  const viewArchivedEventRequests = await buildViewArchivedEventRequests()
-  const { eventRequests } = await viewArchivedEventRequests.execute(coordinator)
+  const { eventRequests } = await archivedEventRequests(coordinator.userAccountId)
 
   return eventRequests.map((request) => ({
     id: request.id,
@@ -168,8 +167,7 @@ async function getQueueItemsForCoordinatorEvents(): Promise<ListPaneItem[]> {
     return []
   }
 
-  const viewAssignedEvents = await buildViewAssignedEvents()
-  const { events } = await viewAssignedEvents.execute(coordinator)
+  const { events } = await assignedEvents(coordinator.userAccountId)
 
   return events.map((event) => ({
     id: event.id,
@@ -191,8 +189,7 @@ async function getQueueItemsForVenue(section: VenueSection): Promise<ListPaneIte
     return []
   }
 
-  const reviewBookingRequests = await buildReviewBookingRequests()
-  const bookings = await reviewBookingRequests.list(staff.userAccountId, section)
+  const bookings = await bookingsForReview(staff.userAccountId, section)
   const { venues } = await (await buildListVenues()).execute()
 
   return bookings.map((booking) => ({
@@ -221,8 +218,7 @@ async function getQueueItemsForTechnical(queue: EquipmentQueue): Promise<ListPan
     return []
   }
 
-  const listEquipmentQueue = await buildListEquipmentQueue()
-  const { events } = await listEquipmentQueue.execute({ ...technicalSupport, queue })
+  const { events } = await equipmentQueue(technicalSupport.userAccountId, queue)
 
   return events.map((event) => ({
     id: event.eventId,

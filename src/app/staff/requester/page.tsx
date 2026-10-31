@@ -12,12 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { buildViewMyEventRequests, getCurrentOrganiser } from "@/composition/container";
+import { getCurrentOrganiser } from "@/composition/container";
 import type { MyEventRequestSummary } from "@/core/use-cases/view-my-event-requests";
 
 import { EmptyState } from "../field-list";
 import { PageHeader, StaffShell } from "../staff-shell";
 import { StatusBadge } from "../status-badge";
+import { myEventRequests } from "../staff-queues";
 
 export const metadata = { title: "My requests | ConnectSphere" };
 
@@ -86,8 +87,7 @@ export default async function RequesterPage() {
     forbidden();
   }
 
-  const viewMyEventRequests = await buildViewMyEventRequests();
-  const { eventRequests } = await viewMyEventRequests.execute(organiser);
+  const { eventRequests } = await myEventRequests(organiser.userAccountId, organiser.clientOrganisationId);
 
   const drafts = eventRequests.filter((request) => request.status === "Draft");
   const submitted = eventRequests.filter((request) => request.status !== "Draft");

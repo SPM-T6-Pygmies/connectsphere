@@ -9,12 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { buildViewArchivedEventRequests, getCurrentCoordinator } from "@/composition/container";
+import { getCurrentCoordinator } from "@/composition/container";
 import type { AssignedEventRequestSummary } from "@/core/use-cases/view-assigned-event-requests";
 
 import { EmptyState } from "../../field-list";
 import { PageHeader, StaffShell } from "../../staff-shell";
 import { RequestStateBadge } from "../request-state-badge";
+import { archivedEventRequests } from "../../staff-queues";
 
 export const metadata = { title: "Archive | ConnectSphere" };
 
@@ -66,8 +67,7 @@ export default async function CoordinatorArchivePage() {
     forbidden();
   }
 
-  const viewArchivedEventRequests = await buildViewArchivedEventRequests();
-  const { eventRequests } = await viewArchivedEventRequests.execute(coordinator);
+  const { eventRequests } = await archivedEventRequests(coordinator.userAccountId);
 
   return (
     <StaffShell role="coordinator" crumbs={[{ label: "Archive" }]} coordinatorSection="archive">
