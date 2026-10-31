@@ -1,5 +1,10 @@
 import type { CoordinatorEventStatus } from "./coordinator-event";
-import { recheckReason, type EquipmentRequirement, type EquipmentReviewBaseline } from "./equipment-requirement";
+import {
+  isReserved,
+  recheckReason,
+  type EquipmentRequirement,
+  type EquipmentReviewBaseline,
+} from "./equipment-requirement";
 import {
   EquipmentAvailableToReserveError,
   EquipmentLineNotAwaitingDecisionError,
@@ -14,9 +19,10 @@ import type { UserAccountId } from "./user-account";
 /**
  * Why a line needs Technical Support's attention (SPM-273 AC1): nothing has
  * been reserved against it yet, the coordinator changed it after it was
- * reserved, or they asked for it to be removed.
+ * reserved, or they asked for it to be removed. SPM-311: or the event's dates
+ * changed, releasing what it held.
  */
-export type AttentionReason = "new" | "changed" | "removalRequested";
+export type AttentionReason = "new" | "changed" | "removalRequested" | "rescheduled";
 
 /** AC1: why this line needs Technical Support's attention, or null when it does not. */
 export function attentionReason(line: EquipmentRequirement): AttentionReason | null {
@@ -212,6 +218,7 @@ export function reserveEquipmentLine(
     quantityReserved: line.quantityRequested,
     state: "Reserved",
     reviewBaseline: null,
+    rescheduled: false,
     decision: { by, comment: null },
   };
 }
@@ -238,6 +245,7 @@ export function markEquipmentLineUnfulfilled(
     quantityReserved: 0,
     state: "Unfulfilled",
     reviewBaseline: null,
+    rescheduled: false,
     decision: { by, comment: validComment(comment) },
   };
 }
@@ -263,6 +271,43 @@ export function releaseEquipmentLine(status: CoordinatorEventStatus, line: Equip
     throw new EquipmentNothingToReleaseError();
   }
   return line.quantityReserved;
+}
+
+/** SPM-311: what a change of the event's dates does to one line that held units. */
+export interface RescheduledLine {
+  readonly before: EquipmentRequirement;
+  /** Null for a line whose removal was requested: with its units released, nothing is left of it. */
+  readonly after: EquipmentRequirement | null;
+}
+
+/**
+ * SPM-311 AC1-2: the event's dates changed, so every unit its lines hold is
+ * released (2026-10-18 team decision) -- they were checked against dates the
+ * event no longer has. Each line that held units goes under review as
+ * rescheduled, keeping what Technical Support last decided on as its
+ * baseline, for them to reserve again against the new date; a line whose
+ * removal was requested simply goes, as an unreserved line does (SPM-41
+ * AC10). Lines holding nothing are left out. AC4: apply this only when the
+ * set of dates changed (`Revalidation.equipmentReview`), not for a change of
+ * time alone. `reschedule_event_equipment` restates this in SQL -- change
+ * both together.
+ */
+export function rescheduleEquipment(lines: readonly EquipmentRequirement[]): RescheduledLine[] {
+  return lines.filter(isReserved).map((line) => ({
+    before: line,
+    after: line.removalRequested
+      ? null
+      : {
+          ...line,
+          quantityReserved: 0,
+          state: "Under review",
+          reviewBaseline: line.reviewBaseline ?? {
+            quantityRequested: line.quantityRequested,
+            technicalRequirements: line.technicalRequirements,
+          },
+          rescheduled: true,
+        },
+  }));
 }
 
 function availableToDecide(event: EquipmentDecisionEvent, target: EquipmentDecisionLine): number {

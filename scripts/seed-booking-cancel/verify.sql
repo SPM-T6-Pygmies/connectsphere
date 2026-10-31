@@ -12,7 +12,7 @@
 -- rows below must stay in step with seed.sql.
 
 with c as (
-  select (now() at time zone 'Asia/Singapore')::date + 10 as day
+  select date '2026-12-17' as day
 ),
 expected (booking, venue, slot_date, starts, ends, status) as (
   select 'P', 'UAT-44 Harbour Room', day,     time '07:00', time '12:00', 'Confirmed'      from c union all

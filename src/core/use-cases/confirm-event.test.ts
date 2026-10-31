@@ -4,9 +4,12 @@ import {
   InMemoryCoordinatorEventRepository,
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
+import { InMemoryRegistrationRepository } from "@/adapters/outbound/in-memory/in-memory-registration-repository";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryEventReadinessRepository } from "@/adapters/outbound/in-memory/in-memory-event-readiness-repository";
 import { safetyCheckReview, safetyCheckStore } from "@/adapters/outbound/in-memory/safety-check-fixture";
+import { attendeeEmail, attendeeName } from "@/core/domain/attendee";
+import { registerAttendee, registrationId } from "@/core/domain/registration";
 import {
   BookingFlaggedError,
   EssentialEquipmentNotReservedError,
@@ -20,6 +23,7 @@ import type { ReadinessFacts } from "@/core/domain/event-readiness";
 import { userAccountId } from "@/core/domain/user-account";
 import type { SafetyCheckEntry } from "@/core/ports/outbound/safety-check-repository";
 
+import { AttendeeChangeAnnouncer } from "./announce-event-change-to-attendees";
 import { ConfirmEventUseCase } from "./confirm-event";
 
 const COORDINATOR = userAccountId("coordinator-1");
@@ -98,13 +102,15 @@ function buildUseCase(
     ),
   );
   const notifier = new RecordingNotifier();
+  const registrations = new InMemoryRegistrationRepository();
   const useCase = new ConfirmEventUseCase({
     events: eventsRepo,
     readiness: readinessRepo,
     safetyChecks,
     notifier,
+    attendees: new AttendeeChangeAnnouncer({ registrations, notifier }),
   });
-  return { useCase, eventsRepo, notifier };
+  return { useCase, eventsRepo, notifier, registrations };
 }
 
 describe("ConfirmEventUseCase (SPM-50)", () => {
@@ -349,5 +355,65 @@ describe("ConfirmEventUseCase (SPM-66)", () => {
       EventNotFoundError,
     );
     expect(notifier.eventsConfirmed).toEqual([]);
+  });
+});
+
+describe("ConfirmEventUseCase tells the attendees of a reschedule once it is confirmed (SPM-69)", () => {
+  const ready = seedFacts({ essentialTypes: ["venue"], confirmedVenueLocation: "Main Hall" });
+  const times = [{ date: "2026-11-21", start: "09:00", end: "12:00" }];
+  const attendee = registerAttendee({
+    id: registrationId("a"),
+    eventId: eventId("event-1"),
+    attendeeName: attendeeName("Attendee a"),
+    attendeeEmail: attendeeEmail("a@example.com"),
+    registeredAt: new Date("2026-10-20T02:00:00Z"),
+  });
+
+  it("emails each Registered attendee the current times and venue when the event has an unannounced reschedule", async () => {
+    const { useCase, notifier, registrations } = buildUseCase(
+      [seedEvent({ times, rescheduleUnannounced: true })],
+      [ready],
+    );
+    await registrations.save(attendee);
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.attendeesToldRescheduled).toEqual([
+      expect.objectContaining({ registrationId: "a", eventName: "Founders' Day", times, venueName: "Main Hall" }),
+    ]);
+  });
+
+  it("names the booked venue even when the venue is not marked essential", async () => {
+    const { useCase, notifier, registrations } = buildUseCase(
+      [seedEvent({ times, rescheduleUnannounced: true })],
+      [seedFacts({ essentialTypes: [], confirmedVenueLocation: "Main Hall" })],
+    );
+    await registrations.save(attendee);
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.attendeesToldRescheduled).toEqual([expect.objectContaining({ venueName: "Main Hall" })]);
+  });
+
+  it("emails nobody for an ordinary confirmation", async () => {
+    const { useCase, notifier, registrations } = buildUseCase([seedEvent({ times })], [ready]);
+    await registrations.save(attendee);
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.attendeesToldRescheduled).toEqual([]);
+  });
+
+  it("emails nobody when the confirmation is refused, and the reschedule stays to be announced", async () => {
+    const { useCase, notifier, registrations, eventsRepo } = buildUseCase(
+      [seedEvent({ times, rescheduleUnannounced: true })],
+      [seedFacts({ essentialTypes: ["venue"] })],
+    );
+    await registrations.save(attendee);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toThrow();
+
+    expect(notifier.attendeesToldRescheduled).toEqual([]);
+    expect(await eventsRepo.takeUnannouncedReschedule(COORDINATOR, "event-1")).toBe(true);
   });
 });

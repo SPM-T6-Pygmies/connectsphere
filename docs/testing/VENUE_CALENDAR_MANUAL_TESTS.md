@@ -67,16 +67,13 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ### The seeded data
 
-**D** is 14 days after today in Singapore.
+**D** is Wednesday 9 December 2026, so D+3 is Saturday 12 December and D+7 Wednesday 16 December.
 
 | Venue | Opening hours | On the calendar |
 | --- | --- | --- |
 | UAT-44 Harbour Room | 07:00–24:00 | Confirmed 13:00–18:00 on D; Confirmed 10:15–11:45 on D+3 |
 | UAT-44 Garden Hall | 07:00–18:00 | Rejected 07:00–12:00 on D (holds nothing); Confirmed 18:30–19:00 on D+7, after closing |
-| Main Hall | 07:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on D+7 (07:00–12:00 expired, 14:00–18:00 lapsing in 30 days) |
-
-> **Seed timing.** `seed-venue-unavailability` dates its blocks from the UTC day, so a
-> run between midnight and 08:00 Singapore time puts them one day earlier than D.
+| Main Hall | 07:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on **H**, Sunday 6 December 2026 (07:00–12:00 expired, 14:00–18:00 lapsing in 30 days) |
 
 ---
 
@@ -87,7 +84,7 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 Signed in as `coordinator@test.com`.
 
 1. Open **Find a venue**, search with every filter blank, and click **UAT-44 Harbour Room**.
-2. Press **Next week** twice so D is in view.
+2. Press **Next week** until D is in view.
 3. Go back to the search and open **UAT-44 Garden Hall**; move to the week with D.
 
 **Expected:** Harbour Room reads *Open 07:00–24:00* above the timeline; its axis runs from
@@ -119,11 +116,11 @@ order the blocks were recorded) and `11:30–24:00` *Maintenance*. The rest is *
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
-1. Open Main Hall's calendar and press **Next week** until D+7 is in view.
+1. Open Main Hall's calendar and press **Next week** until H is in view.
 
-**Expected:** D+7 has a **Held** bar from `14:00` to `18:00`. Hovering it shows *Until* and a
+**Expected:** H has a **Held** bar from `14:00` to `18:00`. Hovering it shows *Until* and a
 date about 30 days after the seed ran, worded as on the Venue Staff decision page (e.g.
-`14:00–18:00 Held: Until Thu, 26 Nov, 2:28 pm`). D+7 `07:00` to `12:00` is blank,
+`14:00–18:00 Held: Until Thu, 26 Nov, 2:28 pm`). H `07:00` to `12:00` is blank,
 **Available**, not Held: that hold has expired.
 
 - [x] Pass
@@ -203,7 +200,8 @@ are blank, **Available**.
 
 ### TC-VCAL-008: Time the venue is closed reads Closed (AC1)
 
-1. Open UAT-44 Garden Hall's calendar on the week with D, then press **Next week**.
+1. Open UAT-44 Garden Hall's calendar on the week starting on D (add `?from=2026-12-09` to its
+   address), then press **Next week**.
 
 **Expected:** the week with D has its axis end at `18:00`. The next week, which starts on D+7,
 runs on past closing to `19:00`, for the booking kept from before the hall's hours: D+7 has a
@@ -223,7 +221,7 @@ Signed in as `venue@test.com`.
 1. Open `/staff/venue/catalogue/<id>/calendar`, where `<id>` is UAT-44 Harbour Room's id (the
    number in its address under **Venues**). This is the page a cancellation notification opens
    (SPM-63); nothing else links to it.
-2. Press **Next week** twice so D is in view.
+2. Press **Next week** until D is in view.
 
 **Expected:** the same timeline as the Coordinator's: the axis from `07:00` to `24:00`, a
 **Confirmed** bar on D from `13:00` to `18:00` and on D+3 from `10:15` to `11:45`, and no

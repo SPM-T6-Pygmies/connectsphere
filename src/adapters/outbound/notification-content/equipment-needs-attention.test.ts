@@ -83,3 +83,20 @@ describe("equipmentNeedsAttentionMessage (SPM-64)", () => {
     expect(equipmentNeedsAttentionMessage(notice({ preferredDate: null })).body).toBe("4 requested. No event date set yet.");
   });
 });
+
+describe("equipmentNeedsAttentionMessage (SPM-311)", () => {
+  it("AC1-2: a released line says the dates changed and to reserve it again, under the new date", () => {
+    expect(
+      equipmentNeedsAttentionMessage(notice({ change: "rescheduled", preferredDate: "2026-11-22", attention: "rescheduled" })),
+    ).toEqual({
+      subject: "Projector released on Tech Summit Keynote",
+      body: "The event's dates changed, so its reservation was released. 4 requested; reserve them again for the new date. Event date: Sun, 22 Nov 2026.",
+    });
+  });
+
+  it("AC2: a released line whose removal was requested says there is nothing to do", () => {
+    expect(equipmentNeedsAttentionMessage(notice({ change: "rescheduled", attention: null })).body).toBe(
+      "The event's dates changed, so its reservation was released. Its removal was requested, so the line is gone and there is nothing to do. Event date: Sun, 15 Nov 2026.",
+    );
+  });
+});

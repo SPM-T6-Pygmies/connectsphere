@@ -19,7 +19,7 @@ const COPY: Record<EquipmentQueue, { title: string; description: string; empty: 
   needsReview: {
     title: "Needs review",
     description:
-      "Events with an equipment line that is new, was changed after you reserved it or marked it unfulfilled, or has its removal requested.",
+      "Events with an equipment line that is new, was changed after you reserved it or marked it unfulfilled, has its removal requested, or was released when the event's dates changed.",
     empty: "Nothing needs your attention.",
   },
   reviewed: {

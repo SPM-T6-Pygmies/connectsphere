@@ -108,7 +108,7 @@ To see which blocks the cases have recorded so far:
 
 ### The days and the bookings
 
-**F** is 28 days from today in Singapore time. It is far enough out that no other seed uses it.
+**F** is Wednesday 23 December 2026. No other seed books Main Hall from F to F + 8.
 
 | Event | Coordinator | Venue | Day, slot | Status | Used in |
 | --- | --- | --- | --- | --- | --- |
@@ -413,8 +413,8 @@ carry an amber **Flagged** badge, and opening one shows the reasons. The Coordin
 **Cancel booking** button from SPM-20. P's flag should go, from that page and from the Venue tab, and be
 closed as "booking ended" in the database, while Q's flag stays.
 
-**Preconditions:** The three extra seeds from Setup. Signed in as Venue Staff, then the Coordinator. **C** is 10 days
-from today (the day the SPM-20 seed books).
+**Preconditions:** The three extra seeds from Setup. Signed in as Venue Staff, then the Coordinator. **C** is Thursday
+17 December 2026 (the day the SPM-20 seed books).
 
 **Steps:**
 1. As Venue Staff open **Unavailability**. Choose **UAT-44 Harbour Room**, start and end date **C**, start time **07:00**, end time **12:00**, reason **Renovation**, and save. Record a second block the same way for **19:00** to **24:00** (a block is one range of times, so the morning and the night are two blocks).
@@ -427,7 +427,7 @@ from today (the day the SPM-20 seed books).
    select bs.slot, f.cleared_how, f.cleared_at is not null as closed
      from booking_review_flag f join booking_slot bs using (booking_id)
      join booking b on b.booking_id = f.booking_id join event e on e.event_id = b.event_id
-    where e.name = 'Founders'' Gala Dinner' and bs.slot_date = current_date + 10 order by bs.slot;
+    where e.name = 'Founders'' Gala Dinner' and bs.slot_date = '2026-12-17' order by bs.slot;
    ```
 
 **Expected Result:**

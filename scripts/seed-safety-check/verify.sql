@@ -18,11 +18,11 @@ with organisation as (
   select client_organisation_id from public.user_account where name = 'Test Organiser'
 ),
 expected_events (name, expected) as (
-  values ('Marina Bay Gala',     '2026-11-20 Planning 220 Test Coordinator'),
+  values ('Marina Bay Gala',     '2026-12-18 Planning 220 Test Coordinator'),
          ('Canal Side Workshop', 'no date Planning no attendance Test Coordinator'),
          ('Winter Lantern Ball', '2026-12-05 Planning 90 Test Coordinator 2'),
          ('Harbour Dawn Run',    '2026-12-12 Planning 150 no coordinator'),
-         ('Lakeside Tech Expo',  '2026-11-05 Planning 300 Test Coordinator'),
+         ('Lakeside Tech Expo',  '2026-12-03 Planning 300 Test Coordinator'),
          ('Charity Book Fair',   '2026-12-19 Planning 300 Test Coordinator'),
          ('Spring Lantern Walk', '2026-12-05 Planning 120 Test Coordinator'),
          ('Rooftop Jazz Night',  'no date Planning no attendance Test Coordinator')

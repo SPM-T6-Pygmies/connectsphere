@@ -212,6 +212,11 @@
       "parent": "SPM-47",
       "status": "In Progress"
     },
+    "SPM-69": {
+      "title": "Notify attendees of a reschedule or cancellation",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-71": {
       "title": "Notify the coordinator of a flagged venue booking",
       "parent": "SPM-47",
@@ -359,6 +364,11 @@
     },
     "SPM-110": {
       "title": "Notify the organiser of the change-request outcome",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
+    "SPM-111": {
+      "title": "Notify the organiser that a confirmed event is no longer confirmed",
       "parent": "SPM-47",
       "status": "In Progress"
     },

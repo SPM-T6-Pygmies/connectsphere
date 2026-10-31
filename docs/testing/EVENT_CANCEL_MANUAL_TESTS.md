@@ -76,7 +76,7 @@ in Planning, then the last two seeds of Step 2.
 
 ### The bookings
 
-All six are on the Founders' Gala Dinner. **C** is 10 days from today, Singapore time.
+All six are on the Founders' Gala Dinner. **C** is Thursday 17 December 2026.
 
 | Booking | Venue | Day, slot | Status before | Status after cancelling |
 | --- | --- | --- | --- | --- |
@@ -236,7 +236,7 @@ and nothing is saved.
 
 **Steps:**
 1. Open the Founders' Gala Dinner's **Request a venue** page.
-2. Choose **UAT-44 Harbour Room**, the **Theatre** layout, a date 12 days from today and **PM**.
+2. Choose **UAT-44 Harbour Room**, the **Theatre** layout, Saturday 19 December 2026 and **PM**.
 3. Click **Send booking request**.
 
 **Expected Result:**

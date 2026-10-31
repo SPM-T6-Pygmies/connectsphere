@@ -6,7 +6,7 @@
 --   L        UAT-44 Garden Hall  C, 19:00-24:00  Tentative Hold  lapsed an hour before seeding; it must end
 --                                                                Expired, never Released by the cancel
 --
--- C is 10 days from today, Singapore time, the same day as seed-booking-cancel's bookings.
+-- C is Thursday 17 December 2026, the same day as seed-booking-cancel's bookings.
 -- Every staff page sweeps lapsed holds after it renders (SPM-254, staff-shell.tsx), so L reads
 -- Expired from the first page you open. Run verify.sql before signing in.
 --
@@ -26,7 +26,7 @@ declare
   v_staff bigint := (select user_account_id from public.user_account
                      where name = 'Test Venue Staff' and client_organisation_id is null);
   v_venue bigint := (select venue_id from public.venue where location = 'UAT-44 Garden Hall');
-  c date := (now() at time zone 'Asia/Singapore')::date + 10;
+  c date := date '2026-12-17';
   v_id bigint;
 begin
   if v_event is null or v_coord is null or v_staff is null or v_venue is null

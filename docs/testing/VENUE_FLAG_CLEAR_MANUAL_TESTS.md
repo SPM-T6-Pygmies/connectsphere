@@ -53,7 +53,7 @@ Run the cases in order: each starts from where the one before left off.
    supabase db query --file scripts/seed-equipment/seed.sql --local
    supabase db query --file scripts/seed-booking-cancel/seed.sql --local
    ```
-   **C** is 10 days from today. The Founders' Gala Dinner now has, among others, **P** (UAT-44 Harbour
+   **C** is Thursday 17 December 2026. The Founders' Gala Dinner now has, among others, **P** (UAT-44 Harbour
    Room, C 07:00–12:00, Confirmed), **Q** (UAT-44 Harbour Room, C 19:00–24:00, Confirmed) and two Garden
    Hall bookings on C (Requested, Tentative Hold).
 3. Record the blocks that flag P twice and Q once, as Test Venue Staff:

@@ -5,21 +5,21 @@
 -- availability count something.
 --
 -- AC4, worked: Projector, 10 owned. Tech Summit Keynote runs on
--- 15 Nov and needs 4, so its units are out on 14 and 15 Nov. Other events hold
--- 3 (14 Nov), 2 (15 Nov) and 1 (16 Nov): 5 are out on 14 Nov (the 14 and
--- 15 Nov events) and 3 on 15 Nov (the 15 and 16 Nov events), so 5 are
--- available (counted per day, SPM-275). The 5 held on 17 Nov, and the 4 a Cancelled event holds on
--- 15 Nov, do not count.
+-- 13 Dec and needs 4, so its units are out on 12 and 13 Dec. Other events hold
+-- 3 (12 Dec), 2 (13 Dec) and 1 (14 Dec): 5 are out on 12 Dec (the 12 and
+-- 13 Dec events) and 3 on 13 Dec (the 13 and 14 Dec events), so 5 are
+-- available (counted per day, SPM-275). The 5 held on 15 Dec, and the 4 a Cancelled event holds on
+-- 13 Dec, do not count.
 --
 --   Event                     Date        Status     Coordinator  List
---   Tech Summit Keynote       2026-11-15  Planning   1            Needs review (New, Changed, Removal requested)
---   Alumni Networking Night   2026-12-03  Blocked    2            Needs review (New)
+--   Tech Summit Keynote       2026-12-13  Planning   1            Needs review (New, Changed, Removal requested)
+--   Alumni Networking Night   2026-12-31  Blocked    2            Needs review (New)
 --   Partner Roadshow          no date     Confirmed  1            Needs review (New, no date for AC4)
---   Product Launch Rehearsal  2026-11-14  Planning   2            Reviewed
---   Board Strategy Day        2026-11-15  Confirmed  1            Reviewed
---   Charity Gala Setup        2026-11-16  Blocked    2            Reviewed
---   Year-End Town Hall        2026-11-17  Planning   1            Reviewed
---   Autumn Workshop           2026-11-15  Cancelled  1            Archive (still has a New line)
+--   Product Launch Rehearsal  2026-12-12  Planning   2            Reviewed
+--   Board Strategy Day        2026-12-13  Confirmed  1            Reviewed
+--   Charity Gala Setup        2026-12-14  Blocked    2            Reviewed
+--   Year-End Town Hall        2026-12-15  Planning   1            Reviewed
+--   Autumn Workshop           2026-12-13  Cancelled  1            Archive (still has a New line)
 --   Spring Conference         2026-09-20  Completed  2            Archive
 --
 -- The events are inserted directly -- there is no request behind them -- for
@@ -82,14 +82,14 @@ begin
   for v_event in
     select *
     from (values
-      ('Tech Summit Keynote',      date '2026-11-15', 'Planning',  1),
-      ('Alumni Networking Night',  date '2026-12-03', 'Blocked',   2),
+      ('Tech Summit Keynote',      date '2026-12-13', 'Planning',  1),
+      ('Alumni Networking Night',  date '2026-12-31', 'Blocked',   2),
       ('Partner Roadshow',         null::date,        'Confirmed', 1),
-      ('Product Launch Rehearsal', date '2026-11-14', 'Planning',  2),
-      ('Board Strategy Day',       date '2026-11-15', 'Confirmed', 1),
-      ('Charity Gala Setup',       date '2026-11-16', 'Blocked',   2),
-      ('Year-End Town Hall',       date '2026-11-17', 'Planning',  1),
-      ('Autumn Workshop',          date '2026-11-15', 'Cancelled', 1),
+      ('Product Launch Rehearsal', date '2026-12-12', 'Planning',  2),
+      ('Board Strategy Day',       date '2026-12-13', 'Confirmed', 1),
+      ('Charity Gala Setup',       date '2026-12-14', 'Blocked',   2),
+      ('Year-End Town Hall',       date '2026-12-15', 'Planning',  1),
+      ('Autumn Workshop',          date '2026-12-13', 'Cancelled', 1),
       ('Spring Conference',        date '2026-09-20', 'Completed', 2)
     ) as e(name, preferred_date, status, coordinator)
   loop

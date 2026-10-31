@@ -3,16 +3,16 @@
 -- line starts New, with nothing reserved.
 --
 --   Event               Date        Status     Lines (all New)
---   Design Sprint Demo  2026-11-20  Planning   Presentation laptop 6, PA speaker 3
---   Sales Kickoff       2026-11-21  Planning   Presentation laptop 3, Wireless microphone 2
---   Board Offsite       2026-11-20  Confirmed  PA speaker 3
+--   Design Sprint Demo  2026-12-18  Planning   Presentation laptop 6, PA speaker 3
+--   Sales Kickoff       2026-12-19  Planning   Presentation laptop 3, Wireless microphone 2
+--   Board Offsite       2026-12-18  Confirmed  PA speaker 3
 --   Press Briefing      no date     Planning   Projector 1
 --
 -- Design Sprint Demo and Sales Kickoff are a day apart, so they draw on the
 -- same 8 Presentation laptops: once 6 are reserved for one, 2 are left for the
 -- other (AC5), too few for its 3 (AC3). Design Sprint Demo and Board Offsite
 -- each need 3 of the 5 PA speakers on the same day: whoever reserves second is
--- refused (AC6). No other seed's event is within a day of 20 or 21 Nov, so its
+-- refused (AC6). No other seed's event is within a day of 18 or 19 Dec, so its
 -- reservations do not change these counts.
 --
 -- The events are inserted directly -- there is no request behind them -- for
@@ -68,9 +68,9 @@ begin
   for v_event in
     select *
     from (values
-      ('Design Sprint Demo', date '2026-11-20', 'Planning'),
-      ('Sales Kickoff',      date '2026-11-21', 'Planning'),
-      ('Board Offsite',      date '2026-11-20', 'Confirmed'),
+      ('Design Sprint Demo', date '2026-12-18', 'Planning'),
+      ('Sales Kickoff',      date '2026-12-19', 'Planning'),
+      ('Board Offsite',      date '2026-12-18', 'Confirmed'),
       ('Press Briefing',     null::date,        'Planning')
     ) as e(name, preferred_date, status)
   loop

@@ -40,4 +40,11 @@ export interface RegistrationRepository {
    * updates a row that must already exist.
    */
   recordWithdrawal(registration: Registration): Promise<void>;
+
+  /**
+   * SPM-69: every Registered attendee of the event, oldest first -- not a withdrawn
+   * one. The store answers only the event's assigned coordinator, since this is the
+   * attendee list (brief s8b); anyone else gets an empty list.
+   */
+  registeredFor(eventId: EventId): Promise<readonly Registration[]>;
 }
