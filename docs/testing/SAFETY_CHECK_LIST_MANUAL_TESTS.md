@@ -51,8 +51,8 @@ seven events, each in a different state against the rule, from the SQL editor
 
 | Event | State | Listed? |
 | --- | --- | --- |
-| Winter Charity Ball | Planning, 2026-10-30, 80; Confirmed at Sky Terrace; 3 of 3 projectors reserved | Yes |
-| Harbour Lights Gala | Planning, 2026-11-20, 150; Confirmed at Grand Ballroom, Confirmed at Sky Terrace on its session, Released at Old Hall; 4 of 4 reserved | Yes |
+| Winter Charity Ball | Planning, 2026-12-04, 80; Confirmed at Sky Terrace; 3 of 3 projectors reserved | Yes |
+| Harbour Lights Gala | Planning, 2026-12-25, 150; Confirmed at Grand Ballroom, Confirmed at Sky Terrace on its session, Released at Old Hall; 4 of 4 reserved | Yes |
 | Riverside Workshop | Planning, no date, no attendance; Confirmed at Grand Ballroom; no equipment lines | Yes |
 | Autumn Tech Expo | Planning; Confirmed at Grand Ballroom, **Tentative Hold** at Sky Terrace | No |
 | Lantern Festival | Planning; Confirmed; **2 of 3** projectors reserved, on a line marked essential | No |
@@ -85,7 +85,7 @@ begin
 
   -- 1. Listed: two Confirmed venues (one on a session), a Released one, a line reserved in full.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
-  values ('Harbour Lights Gala', 'Planning', '2026-11-20', 150, v_organiser, v_org) returning event_id into v_event;
+  values ('Harbour Lights Gala', 'Planning', '2026-12-25', 150, v_organiser, v_org) returning event_id into v_event;
   insert into session (event_id, sequence_no, name) values (v_event, 1, 'Reception') returning session_id into v_session;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
   values (v_ballroom, v_event, v_organiser, v_venue, 'Confirmed'),
@@ -104,7 +104,7 @@ begin
 
   -- 3. Listed, soonest: a line reserved in full.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
-  values ('Winter Charity Ball', 'Planning', '2026-10-30', 80, v_organiser, v_org) returning event_id into v_event;
+  values ('Winter Charity Ball', 'Planning', '2026-12-04', 80, v_organiser, v_org) returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
   values (v_terrace, v_event, v_organiser, v_venue, 'Confirmed');
   insert into equipment_reservation (event_id) values (v_event) returning equipment_reservation_id into v_res;
@@ -113,7 +113,7 @@ begin
 
   -- 4. Not listed: one booking still on a Tentative Hold.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
-  values ('Autumn Tech Expo', 'Planning', '2026-11-05', 300, v_organiser, v_org) returning event_id into v_event;
+  values ('Autumn Tech Expo', 'Planning', '2026-12-10', 300, v_organiser, v_org) returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
   values (v_ballroom, v_event, v_organiser, v_venue, 'Confirmed'),
          (v_terrace,  v_event, v_organiser, v_venue, 'Tentative Hold');
@@ -121,7 +121,7 @@ begin
   -- 5. Not listed: 2 of 3 projectors reserved, on an essential line (SPM-319: only an essential line
   --    keeps an event off the list).
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
-  values ('Lantern Festival', 'Planning', '2026-11-10', 200, v_organiser, v_org) returning event_id into v_event;
+  values ('Lantern Festival', 'Planning', '2026-12-15', 200, v_organiser, v_org) returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
   values (v_ballroom, v_event, v_organiser, v_venue, 'Confirmed');
   insert into equipment_reservation (event_id) values (v_event) returning equipment_reservation_id into v_res;
@@ -130,13 +130,13 @@ begin
 
   -- 6. Not listed: already Confirmed, though its venue is.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
-  values ('Founders'' Dinner', 'Confirmed', '2026-11-01', 60, v_organiser, v_org) returning event_id into v_event;
+  values ('Founders'' Dinner', 'Confirmed', '2026-12-06', 60, v_organiser, v_org) returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status)
   values (v_terrace, v_event, v_organiser, v_venue, 'Confirmed');
 
   -- 7. Not listed: no venue booking at all.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
-  values ('Community Fun Run', 'Planning', '2026-11-15', 500, v_organiser, v_org);
+  values ('Community Fun Run', 'Planning', '2026-12-20', 500, v_organiser, v_org);
 end;
 $$;
 ```
@@ -170,8 +170,8 @@ AC1, AC2, AC5.
 
   | Event | Date | Expected attendance | Venues |
   | --- | --- | --- | --- |
-  | Winter Charity Ball | 2026-10-30 | 80 | Sky Terrace |
-  | Harbour Lights Gala | 2026-11-20 | 150 | Grand Ballroom, Sky Terrace |
+  | Winter Charity Ball | 2026-12-04 | 80 | Sky Terrace |
+  | Harbour Lights Gala | 2026-12-25 | 150 | Grand Ballroom, Sky Terrace |
   | Riverside Workshop | No date yet | Not given | Grand Ballroom |
 
   Harbour Lights Gala's session booking counts, and its Released booking at
@@ -201,7 +201,7 @@ AC1, AC3, AC4.
 
 **Expected Result:**
 - Step 1: none of the four is listed.
-- Step 3: HTTP 200, and Autumn Tech Expo is listed second — 2026-11-05, 300,
+- Step 3: HTTP 200, and Autumn Tech Expo is listed second — 2026-12-10, 300,
   "Grand Ballroom, Sky Terrace". The other three are still absent.
 
 **Evidence:** [`2026-10-05_TC-SAFETYLIST-002_step3-expo-listed-once-hold-confirmed.png`](../screenshots/2026-10-05_TC-SAFETYLIST-002_step3-expo-listed-once-hold-confirmed.png)
