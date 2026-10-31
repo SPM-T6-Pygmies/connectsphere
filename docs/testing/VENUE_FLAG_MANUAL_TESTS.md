@@ -108,7 +108,7 @@ To see which blocks the cases have recorded so far:
 
 ### The days and the bookings
 
-**F** is 28 days from today in Singapore time. It is far enough out that no other seed uses it.
+**F** is Wednesday 23 December 2026. No other seed books Main Hall from F to F + 8.
 
 | Event | Coordinator | Venue | Day, slot | Status | Used in |
 | --- | --- | --- | --- | --- | --- |

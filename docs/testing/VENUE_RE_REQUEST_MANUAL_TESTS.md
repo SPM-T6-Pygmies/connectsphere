@@ -287,7 +287,7 @@ checks' own fixture, not this file's.
    select public.venue_staff_record_unavailability(
      (select user_account_id from public.user_account where name = 'Test Venue Staff'),
      (select venue_id from public.venue where location = 'Studio'), 'Renovation', null,
-     (select jsonb_agg(jsonb_build_object('date', (now() at time zone 'Asia/Singapore')::date + 28, 'slot', n::text))
+     (select jsonb_agg(jsonb_build_object('date', date '2026-12-23', 'slot', n::text))
         from generate_series(52, 71) n));
    SQL
    ```
@@ -299,7 +299,7 @@ checks' own fixture, not this file's.
      (select user_account_id from public.user_account where name = 'Test Coordinator' and client_organisation_id is null),
      (select event_id from public.event where name = 'Flag Test: Tech Summit'),
      (select venue_id from public.venue where location = :'venue'), :'layout',
-     (select jsonb_agg(jsonb_build_object('date', (now() at time zone 'Asia/Singapore')::date + 30, 'slot', n::text))
+     (select jsonb_agg(jsonb_build_object('date', date '2026-12-25', 'slot', n::text))
         from generate_series(56, 67) n),
      (select b.booking_id from public.booking b join public.event e using (event_id) join public.venue v using (venue_id)
        where e.name = 'Flag Test: Tech Summit' and v.location = 'Studio'));
