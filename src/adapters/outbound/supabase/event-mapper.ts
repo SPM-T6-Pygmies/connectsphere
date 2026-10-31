@@ -1,4 +1,4 @@
-import { eventId, type Event, type EventId, type EventStatus } from "@/core/domain/event";
+import { eventId, type Event, type EventStatus } from "@/core/domain/event";
 import { joinSlots, type TimeRangeOnDate } from "@/core/domain/event-times";
 
 import { toDate } from "./booking-mapper";
@@ -39,16 +39,6 @@ export const EVENT_COLUMNS =
   "event_id, name, description, status, event_capacity, " +
   "registration_enabled_flag, registration_open_date, registration_close_date, " +
   "booking(status, venue!booking_venue_id_fkey(location))";
-
-/**
- * The domain's `EventId` is an opaque string, which is what keeps the core from
- * knowing that this store numbers its rows. Turning it back into a key is this
- * adapter's job, and an id that was never one of ours is simply not found --
- * a hand-typed URL is a miss, not a failure.
- */
-export function toKey(id: EventId): number | null {
-  return /^\d+$/.test(id) ? Number(id) : null;
-}
 
 /** Exactly the five values `event_status_chk` allows, and nothing else. */
 const STATUSES: Readonly<Record<string, EventStatus>> = {

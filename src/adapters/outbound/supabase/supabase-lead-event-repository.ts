@@ -12,10 +12,10 @@ import type { SupabaseServerClient } from "./client";
 import {
   EVENT_SLOTS_SELECT,
   toCoordinatorEvent,
-  toKey,
   type CoordinatorEventRecordRow,
 } from "./coordinator-event-mapper";
 import { toLeadEventDetails, toLeadEventError, type LeadEventRow } from "./lead-event-mapper";
+import { toKey } from "./to-key";
 
 /**
  * SPM-256 and SPM-257, through the `lead_*` functions, not the table -- the

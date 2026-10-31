@@ -5,7 +5,7 @@ import type { UserAccountId } from "@/core/domain/user-account";
 import type { EventReadinessRepository } from "@/core/ports/outbound/event-readiness-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
+import { toKey } from "./to-key";
 
 /** The one row `event_readiness` returns. */
 export interface EventReadinessRow {

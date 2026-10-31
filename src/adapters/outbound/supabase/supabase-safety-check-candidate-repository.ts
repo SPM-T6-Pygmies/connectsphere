@@ -4,13 +4,13 @@ import type { UserAccountId } from "@/core/domain/user-account";
 import type { SafetyCheckCandidateRepository } from "@/core/ports/outbound/safety-check-candidate-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import { expireLapsedHolds } from "./expire-lapsed-holds";
 import {
   toSafetyCheckCandidate,
   toSafetyCheckCandidateError,
   type SafetyCheckCandidateRow,
 } from "./safety-check-candidate-mapper";
+import { toKey } from "./to-key";
 
 /**
  * SPM-259, through `safety_officer_safety_check_candidates`, not the tables --

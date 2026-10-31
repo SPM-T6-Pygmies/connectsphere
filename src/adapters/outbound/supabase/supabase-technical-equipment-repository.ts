@@ -9,7 +9,6 @@ import type {
 } from "@/core/ports/outbound/technical-equipment-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import {
   toEventEquipmentStock,
   toEventWithEquipment,
@@ -17,6 +16,7 @@ import {
   type TechnicalEquipmentEventRow,
   type TechnicalEventEquipmentRow,
 } from "./technical-equipment-mapper";
+import { toKey } from "./to-key";
 
 /**
  * SPM-273, through `technical_support_equipment_events` and

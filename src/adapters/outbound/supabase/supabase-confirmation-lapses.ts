@@ -4,7 +4,7 @@ import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type { ConfirmationLapses, EventConfirmationLapse } from "@/core/ports/outbound/confirmation-lapses";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
+import { toKey } from "./to-key";
 
 /** One row of `confirmation_lapses`. */
 export interface ConfirmationLapseRow {

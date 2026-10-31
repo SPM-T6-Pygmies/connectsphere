@@ -28,7 +28,7 @@ import {
   type ChangeRequestTargetRow,
 } from "./change-request-mapper";
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./event-request-mapper";
+import { toKey } from "./to-key";
 
 const NOT_OWNED = "CS090";
 const EVENT_CLOSED = "CS091";

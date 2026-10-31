@@ -9,7 +9,6 @@ import type {
 } from "@/core/ports/outbound/safety-check-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import {
   toCoordinatorSafetyCheckHistory,
   toSafetyCheckError,
@@ -17,6 +16,7 @@ import {
   type CoordinatorSafetyCheckHistoryRow,
   type SafetyCheckReviewRow,
 } from "./safety-check-mapper";
+import { toKey } from "./to-key";
 
 /**
  * SPM-260, through `safety_officer_safety_check_review` and

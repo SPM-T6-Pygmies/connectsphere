@@ -38,8 +38,8 @@ import {
   type EventBookingRow,
 } from "./booking-mapper";
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import { expireLapsedHolds } from "./expire-lapsed-holds";
+import { toKey } from "./to-key";
 
 // SQLSTATEs raised by coordinator_submit_booking_request (see its migration).
 const EVENT_NOT_FOUND = "CS020";

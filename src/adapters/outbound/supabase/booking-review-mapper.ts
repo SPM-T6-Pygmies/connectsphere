@@ -3,8 +3,8 @@ import { venueId } from "@/core/domain/venue";
 import type { BookingForReview } from "@/core/ports/outbound/booking-review-repository";
 
 import { toBookingTimes, toDate, toStatus } from "./booking-mapper";
-import { toKey } from "./coordinator-event-mapper";
 import { toEventTimes, type EventSlotTimeRow } from "./event-mapper";
+import { toKey } from "./to-key";
 
 /** One booking in the JSON `venue_staff_bookings()` returns. */
 export interface BookingReviewRow {
