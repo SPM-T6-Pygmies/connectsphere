@@ -36,6 +36,8 @@ One page to find, for every manual-test document, what it tests, who does what a
 | [SPM-52](https://linear.app/pygmies/issue/SPM-52) Submit a change request<br>[SPM-100](https://linear.app/pygmies/issue/SPM-100) Decide a change request, field by field | The Organiser asks to change an event's significant fields; the Coordinator accepts or declines each field | Organiser: the event's **Request a change** form. Coordinator: the event's **Change requests** page. **Who:** Event Organiser (owner), then the assigned Event Coordinator. **Stage:** The event is Planning or Confirmed and has no change request open | [CHANGE_REQUEST_MANUAL_TESTS.md](CHANGE_REQUEST_MANUAL_TESTS.md) (TC-CHANGE-001–009) | [reset + seeds](#spm-52-spm-100-change-requests) |
 | [SPM-309](https://linear.app/pygmies/issue/SPM-309) Flag venue bookings after an accepted change | After a Coordinator accepts a change to date/time, attendance or venue needs, the event's live venue bookings show "Event changed" | The event's **Change requests** page, then its **Venue** tab. **Who:** Event Coordinator (`coordinator@test.com`, assigned to all four fixture events). **Stage:** An event is in Planning, it has bookings, and the Organiser's change request is waiting | [EVENT_CHANGE_FLAG_MANUAL_TESTS.md](EVENT_CHANGE_FLAG_MANUAL_TESTS.md) (TC-EVCHG-001–004) | [reset + seeds](#spm-309-flag-venue-bookings-after-an-accepted-change) |
 | [SPM-68](https://linear.app/pygmies/issue/SPM-68) Notify the organiser of a reschedule or cancellation | The owning Organiser is told once when the Coordinator accepts new times or cancels the event | The Organiser's notification bell; the request page. **Who:** Assigned Event Coordinator, then the owning Event Organiser. **Stage:** A change request is decided, or an event is cancelled | [EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md](EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md) (TC-EVCHANGE-001–007) | [reset + seeds](#spm-68-notify-the-organiser-of-a-reschedule-or-cancellation) |
+| [SPM-67](https://linear.app/pygmies/issue/SPM-67) Notify the coordinator of a change request | The assigned Coordinator gets one notice listing each field asked for and the value wanted, which opens the Change requests page | Organiser: the event's **Request a change** form. Coordinator: the notification bell. **Who:** Event Organiser (owner), then the assigned Event Coordinator. **Stage:** A change request has just been submitted | [CHANGE_REQUEST_NOTIFICATION_MANUAL_TESTS.md](CHANGE_REQUEST_NOTIFICATION_MANUAL_TESTS.md) (TC-CRNOTIFY-001–004) | [reset + seeds](#spm-67-notify-the-coordinator-of-a-change-request) |
+| [SPM-110](https://linear.app/pygmies/issue/SPM-110) Notify the organiser of the change-request outcome | The Organiser gets one notice covering every field, with an Accepted and a Declined section, which opens their request | Coordinator: `/staff/coordinator/events/<id>/change-request`. Organiser: the notification bell. **Who:** Assigned Event Coordinator, then the Event Organiser who asked. **Stage:** A change request has just been decided | [CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md](CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md) (TC-CROUTCOME-001–004) | [reset + seeds](#spm-110-notify-the-organiser-of-the-change-request-outcome) |
 | [SPM-50](https://linear.app/pygmies/issue/SPM-50) Confirm an event<br>[SPM-264](https://linear.app/pygmies/issue/SPM-264) Block confirmation until the safety check is approved | Confirmation is refused until the essential arrangements are complete and the latest safety check is Approved | The **Confirmation** card of `/staff/coordinator/events/<id>`. **Who:** Assigned Event Coordinator; Safety Officer for the safety check. **Stage:** The event is Planning and the Coordinator is about to confirm | [CONFIRM_EVENT_MANUAL_TESTS.md](CONFIRM_EVENT_MANUAL_TESTS.md) (TC-CONFIRM-001–008) | [reset + seeds](#spm-50-spm-264-confirm-an-event) |
 | [SPM-318](https://linear.app/pygmies/issue/SPM-318) Block confirmation on an unfulfilled essential line | Confirmation is refused while an essential equipment line is not reserved in full, naming each such line | The **Confirmation** card on the event's page. **Who:** Assigned Event Coordinator. **Stage:** The event is Planning, equipment lines exist, and the Coordinator is about to confirm | [CONFIRM_EVENT_EQUIPMENT_MANUAL_TESTS.md](CONFIRM_EVENT_EQUIPMENT_MANUAL_TESTS.md) (TC-CONFIRM-EQUIP-001–003) | [reset + seeds](#spm-318-block-confirmation-on-an-unfulfilled-essential-line) |
 | [SPM-312](https://linear.app/pygmies/issue/SPM-312) Block confirmation while an arrangement is flagged | Confirmation is refused while any venue booking is flagged, naming each flagged booking once | The **Confirmation** card on the event's page. **Who:** Assigned Event Coordinator. **Stage:** Bookings are flagged after a venue block | [CONFIRM_EVENT_FLAG_MANUAL_TESTS.md](CONFIRM_EVENT_FLAG_MANUAL_TESTS.md) (TC-CONFIRM-FLAG-001–003) | [reset + seeds](#spm-312-block-confirmation-while-an-arrangement-is-flagged) |
@@ -64,6 +66,7 @@ One page to find, for every manual-test document, what it tests, who does what a
 | [SPM-105](https://linear.app/pygmies/issue/SPM-105) Flag bookings when venue attributes change | Venue Staff's edit to a venue flags the bookings it no longer fits | Venue Staff: the venue's edit page. Coordinator: the event's **Venue** tab. **Who:** Venue Staff, then the assigned Event Coordinator. **Stage:** Confirmed bookings or live holds exist at the venue | [VENUE_CHANGE_FLAG_MANUAL_TESTS.md](VENUE_CHANGE_FLAG_MANUAL_TESTS.md) (TC-VCHG-001–006) | [reset + seeds](#spm-105-flag-bookings-when-venue-attributes-change) |
 | [SPM-71](https://linear.app/pygmies/issue/SPM-71) Notify the coordinator of a flagged venue booking | The Coordinator is told when a venue change or block flags their booking | The Coordinator's notification bell. **Who:** Venue Staff, then the assigned Event Coordinator. **Stage:** A venue change or block flags a booking | [VENUE_FLAG_NOTIFICATION_MANUAL_TESTS.md](VENUE_FLAG_NOTIFICATION_MANUAL_TESTS.md) (TC-FLAGNOTE-001–005) | [reset + seeds](#spm-71-notify-the-coordinator-of-a-flagged-venue-booking) |
 | [SPM-310](https://linear.app/pygmies/issue/SPM-310) Clear a flag when the booking still fits | The Coordinator clears every reason on a flagged booking that still suits | **Request a venue** (Flagged badge → **Clear flag**). **Who:** Assigned Event Coordinator. **Stage:** A booking is flagged by a venue block | [VENUE_FLAG_CLEAR_MANUAL_TESTS.md](VENUE_FLAG_CLEAR_MANUAL_TESTS.md) (TC-VFCLR-001–005) | [reset + seeds](#spm-310-clear-a-flag-when-the-booking-still-fits) |
+| [SPM-251](https://linear.app/pygmies/issue/SPM-251) Re-request a flagged venue booking | The Coordinator asks for a venue again from a flagged booking; Venue Staff approve (releasing the original) or reject (leaving it flagged) | The event's **Venue** tab (amber **Flagged** card → **Re-request venue**); Venue Staff: `/staff/venue`. **Who:** Assigned Event Coordinator, then Venue Staff. **Stage:** A confirmed booking is flagged and the Coordinator wants another venue | [VENUE_RE_REQUEST_MANUAL_TESTS.md](VENUE_RE_REQUEST_MANUAL_TESTS.md) (TC-VREQ-001–007) | [reset + seeds](#spm-251-re-request-a-flagged-venue-booking) |
 | [SPM-361](https://linear.app/pygmies/issue/SPM-361) Write the contract migration that removes the AM/PM/Night slot codes | The contract migration deletes the AM, PM and Night slot rows and narrows slot codes to 0–95, on a fresh and an existing database | The database only (`supabase db query`); no app needed. **Who:** Developer (no signed-in role). **Stage:** Before and after `20261029000000_retire_am_pm_night_slots.sql` is applied | [SLOT_CODES_MANUAL_TESTS.md](SLOT_CODES_MANUAL_TESTS.md) (TC-SLOTCODE-001) | [reset only](#spm-361-write-the-contract-migration-that-removes-the-ampmnight-slot-codes) |
 | **Equipment** | | | | |
 | [SPM-40](https://linear.app/pygmies/issue/SPM-40) Maintain the equipment catalogue | Technical Support adds equipment and updates the number owned and its location | `/staff/technical/equipment`. **Who:** Technical Support Staff. **Stage:** Maintaining the catalogue | [2026-09-30-equipment-catalogue-manual-tests.md](2026-09-30-equipment-catalogue-manual-tests.md) (TC-EQCAT-001–016) | [reset only](#spm-40-maintain-the-equipment-catalogue) |
@@ -554,6 +557,60 @@ pnpm novu:clear
 **Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `coordinator@test.com`, then `organiser2@test.com`, password `TestPass123!`.
 
 **Cases:** [EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md](EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md) (TC-EVCHANGE-001–007)
+
+#### SPM-67: Notify the coordinator of a change request
+
+**Scenario in one line**
+
+An Organiser submits a change request; the assigned Coordinator is told what was asked, can open the request from the notice and mark it read.
+
+**Who, where, when**
+
+- **Who:** Event Organiser (owner), then the assigned Event Coordinator.
+- **Where:** Organiser: the event's **Request a change** form. Coordinator: the notification bell.
+- **Flow stage:** A change request has just been submitted.
+
+**Start from a clean database** (this drops all local data):
+
+```bash
+supabase db reset
+supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+pnpm novu:clear
+```
+
+- The fixture line approves *Operations Roadmap Conference* into event 1 (SPM-68's fixture, from the SPM-68 doc). Start the app with Novu: `pnpm dev:local`.
+
+**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `organiser2@test.com`, then `coordinator@test.com`, password `TestPass123!`.
+
+**Cases:** [CHANGE_REQUEST_NOTIFICATION_MANUAL_TESTS.md](CHANGE_REQUEST_NOTIFICATION_MANUAL_TESTS.md) (TC-CRNOTIFY-001–004)
+
+#### SPM-110: Notify the organiser of the change-request outcome
+
+**Scenario in one line**
+
+A Coordinator accepts some fields and declines one with a reason; the Organiser gets one notice listing both, with the decline reason.
+
+**Who, where, when**
+
+- **Who:** Assigned Event Coordinator, then the Event Organiser who asked.
+- **Where:** Coordinator: `/staff/coordinator/events/<id>/change-request`. Organiser: the notification bell.
+- **Flow stage:** A change request has just been decided.
+
+**Start from a clean database** (this drops all local data):
+
+```bash
+supabase db reset
+supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+pnpm novu:clear
+```
+
+- Same setup as the SPM-67 section above. Start the app with Novu: `pnpm dev:local`.
+
+**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `organiser2@test.com`, then `coordinator@test.com`, password `TestPass123!`.
+
+**Cases:** [CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md](CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md) (TC-CROUTCOME-001–004)
 
 #### SPM-50, SPM-264: Confirm an event
 
@@ -1199,9 +1256,11 @@ supabase db query --file scripts/seed-coordinator-view/seed.sql --local
 supabase db query --file scripts/seed-venues/seed.sql --local
 supabase db query --file scripts/seed-booking-flags/seed.sql --local
 supabase db query --file scripts/seed-booking-flags/show.sql --local
+supabase db query --file scripts/seed-booking-flags/blocks.sql --local
 ```
 
-- The blocks the cases record are in `scripts/seed-booking-flags/blocks.sql`; some cases also use the venue, equipment and cancel seeds (see the doc).
+- `show.sql` must list 9 rows and `blocks.sql` no rows (no block left over).
+- Case 010 (cancel) also needs: `supabase db query --file scripts/seed-venue-search-uat/seed.sql --local`, `supabase db query --file scripts/seed-equipment/seed.sql --local` and `supabase db query --file scripts/seed-booking-cancel/seed.sql --local`, run after the fixture.
 
 **Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `venue@test.com`, then `coordinator@test.com`, password `TestPass123!`.
 
@@ -1303,6 +1362,37 @@ supabase db query --file scripts/seed-booking-flag-clear/blocks.sql --local
 
 **Cases:** [VENUE_FLAG_CLEAR_MANUAL_TESTS.md](VENUE_FLAG_CLEAR_MANUAL_TESTS.md) (TC-VFCLR-001–005)
 
+#### SPM-251: Re-request a flagged venue booking
+
+**Scenario in one line**
+
+A booking is flagged by a block. The Coordinator re-requests with the event's current times; Venue Staff approve or reject it and can see which booking it replaces.
+
+**Who, where, when**
+
+- **Who:** Assigned Event Coordinator, then Venue Staff.
+- **Where:** The event's **Venue** tab (amber **Flagged** card → **Re-request venue**); Venue Staff: `/staff/venue`.
+- **Flow stage:** A confirmed booking is flagged and the Coordinator wants another venue.
+
+**Start from a clean database** (this drops all local data):
+
+```bash
+supabase db reset
+supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+supabase db query --file scripts/seed-venues/seed.sql --local
+supabase db query --file scripts/seed-venue-re-request/seed.sql --local
+supabase db query --file scripts/seed-venue-re-request/show.sql --local
+```
+
+- `show.sql` should list 3 bookings: A and B Confirmed with an open flag each, and the Evening Gala's with none.
+- `pnpm dev` is enough; nothing here needs Novu.
+
+**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `coordinator@test.com`, `coordinator2@test.com`, `venue@test.com`, password `TestPass123!`.
+
+**Clean up:** `supabase db query --file scripts/seed-venue-re-request/teardown.sql --local`
+
+**Cases:** [VENUE_RE_REQUEST_MANUAL_TESTS.md](VENUE_RE_REQUEST_MANUAL_TESTS.md) (TC-VREQ-001–007)
+
 #### SPM-361: Write the contract migration that removes the AM/PM/Night slot codes
 
 **Scenario in one line**
@@ -1369,6 +1459,7 @@ A Coordinator adds, edits or removes lines. Editing a reserved line warns first,
 supabase db reset
 supabase db query --file scripts/seed-coordinator-view/seed.sql --local
 supabase db query --file scripts/seed-equipment/seed.sql --local
+supabase db query --file scripts/seed-equipment/verify.sql --local
 ```
 
 **Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `coordinator@test.com`, then `support@test.com`, password `TestPass123!`.
@@ -1521,7 +1612,7 @@ supabase db query --file scripts/seed-equipment-review/seed.sql --local
 supabase db query --file scripts/seed-equipment-review/verify.sql --local
 ```
 
-- Some cases also use the coordinator seeds: the doc's Setup lists them.
+- TC-OOS-005 also needs the coordinator's event: `supabase db query --file scripts/seed-coordinator-view/seed.sql --local` and `supabase db query --file scripts/seed-equipment/seed.sql --local`.
 
 **Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `support@test.com`, password `TestPass123!`.
 
