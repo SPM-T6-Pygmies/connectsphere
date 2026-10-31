@@ -46,7 +46,8 @@ export function SafetyCheckCard({ eventId, view }: { eventId: string; view: Even
                 {check.comments === null ? null : <p className="text-sm whitespace-pre-wrap">{check.comments}</p>}
                 {check.resubmittedAt === null ? null : (
                   <p className="text-muted-foreground text-xs">
-                    Resubmitted for a safety check · {when(check.resubmittedAt)}
+                    {check.outcome === "Approved" ? "Approval withdrawn after a change" : "Resubmitted for a safety check"} ·{" "}
+                    {when(check.resubmittedAt)}
                   </p>
                 )}
               </li>
