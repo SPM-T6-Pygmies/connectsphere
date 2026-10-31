@@ -79,7 +79,8 @@ function query(file) {
     const message = out?.error?.message ?? (r.stdout + r.stderr).trim();
     throw new Error(`${file}: ${message}`);
   }
-  return out.rows ?? [];
+  // The CLI prints a bare array of rows, or wraps them in { rows } when it detects an AI agent.
+  return Array.isArray(out) ? out : (out.rows ?? []);
 }
 
 function run(cmd, args) {
