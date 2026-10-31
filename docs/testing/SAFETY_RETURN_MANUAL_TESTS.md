@@ -104,7 +104,7 @@ begin
   -- 1. Awaiting: 220 expected in a banquet layout that holds 180, two lines reserved in full.
   insert into event (name, status, preferred_date, expected_attendance, accessibility_requirements,
                      assigned_coordinator_user_account_id, owning_organiser_user_account_id, client_organisation_id)
-  values ('Marina Bay Gala', 'Planning', '2026-11-20', 220, 'Step-free route to the stage; two wheelchair spaces',
+  values ('Marina Bay Gala', 'Planning', '2026-12-18', 220, 'Step-free route to the stage; two wheelchair spaces',
           v_coord, v_organiser, v_org)
   returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, room_layout_id)
@@ -122,7 +122,7 @@ begin
   -- 3. Not awaiting: one booking still on a Tentative Hold.
   insert into event (name, status, preferred_date, expected_attendance, assigned_coordinator_user_account_id,
                      owning_organiser_user_account_id, client_organisation_id)
-  values ('Lakeside Tech Expo', 'Planning', '2026-11-05', 300, v_coord, v_organiser, v_org) returning event_id into v_event;
+  values ('Lakeside Tech Expo', 'Planning', '2026-12-03', 300, v_coord, v_organiser, v_org) returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, room_layout_id)
   values (v_hall, v_event, v_organiser, v_venue, 'Tentative Hold', v_theatre);
 
