@@ -1,5 +1,6 @@
 import { forbidden } from "next/navigation";
 
+import { formatDateTime } from "@/app/events/format-event-time";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -25,14 +26,6 @@ import { LiftButton } from "./lift-button";
 import { UnavailabilityForm } from "./unavailability-form";
 
 export const metadata = { title: "Venue unavailability | ConnectSphere" };
-
-function when(iso: string): string {
-  return new Date(iso).toLocaleString("en-SG", {
-    timeZone: "Asia/Singapore",
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
 
 function dates(entry: VenueUnavailabilityEntry): string {
   return entry.startDate === entry.endDate ? entry.startDate : `${entry.startDate} to ${entry.endDate}`;
@@ -118,7 +111,7 @@ export default async function VenueUnavailabilityPage({
                   </TableCell>
                   <TableCell>
                     {entry.recordedByName}
-                    <span className="text-muted-foreground block text-xs">{when(entry.recordedAt)}</span>
+                    <span className="text-muted-foreground block text-xs">{formatDateTime(entry.recordedAt)}</span>
                   </TableCell>
                   <TableCell>
                     {entry.liftedByName === null || entry.liftedAt === null ? (
@@ -126,7 +119,7 @@ export default async function VenueUnavailabilityPage({
                     ) : (
                       <>
                         {entry.liftedByName}
-                        <span className="text-muted-foreground block text-xs">{when(entry.liftedAt)}</span>
+                        <span className="text-muted-foreground block text-xs">{formatDateTime(entry.liftedAt)}</span>
                       </>
                     )}
                   </TableCell>

@@ -1,16 +1,9 @@
+import { formatDateTime } from "@/app/events/format-event-time";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { EventSafetyChecksView } from "@/core/use-cases/view-event-safety-checks";
 
 import { ResubmitForm } from "./resubmit-form";
-
-function when(iso: string): string {
-  return new Date(iso).toLocaleString("en-SG", {
-    timeZone: "Asia/Singapore",
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
 
 /**
  * SPM-261: what the Safety Officer said about this event, newest first (AC2),
@@ -40,14 +33,14 @@ export function SafetyCheckCard({ eventId, view }: { eventId: string; view: Even
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={check.outcome === "Approved" ? "success" : "destructive"}>{check.outcome}</Badge>
                   <span className="text-muted-foreground text-xs">
-                    {check.checkedByName} · {when(check.checkedAt)}
+                    {check.checkedByName} · {formatDateTime(check.checkedAt)}
                   </span>
                 </div>
                 {check.comments === null ? null : <p className="text-sm whitespace-pre-wrap">{check.comments}</p>}
                 {check.resubmittedAt === null ? null : (
                   <p className="text-muted-foreground text-xs">
                     {check.outcome === "Approved" ? "Approval withdrawn after a change" : "Resubmitted for a safety check"} ·{" "}
-                    {when(check.resubmittedAt)}
+                    {formatDateTime(check.resubmittedAt)}
                   </p>
                 )}
               </li>

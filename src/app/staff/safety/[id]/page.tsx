@@ -1,5 +1,6 @@
 import { forbidden, notFound } from "next/navigation";
 
+import { formatDateTime } from "@/app/events/format-event-time";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,14 +13,6 @@ import { PageHeader, StaffShell } from "../../staff-shell";
 import { SafetyCheckForm } from "./safety-check-form";
 
 export const metadata = { title: "Safety check | ConnectSphere" };
-
-function when(iso: string): string {
-  return new Date(iso).toLocaleString("en-SG", {
-    timeZone: "Asia/Singapore",
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
 
 function Muted({ children }: { children: string }) {
   return <span className="text-muted-foreground italic">{children}</span>;
@@ -171,7 +164,7 @@ export default async function SafetyCheckPage({ params }: PageProps<"/staff/safe
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge variant={entry.outcome === "Approved" ? "success" : "destructive"}>{entry.outcome}</Badge>
                         <span className="text-muted-foreground text-xs">
-                          {entry.checkedByName} · {when(entry.checkedAt)}
+                          {entry.checkedByName} · {formatDateTime(entry.checkedAt)}
                         </span>
                       </div>
                       {entry.comments === null ? null : (
