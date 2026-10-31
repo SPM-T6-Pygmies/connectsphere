@@ -5,6 +5,7 @@ automatically: not on `supabase db reset`, not in CI.
 
 | I want to… | Go to |
 | --- | --- |
+| Seed, verify or tear down everything for end-to-end testing, in one command | [0. One command](#0-one-command) |
 | Get a working local database with the test data, from scratch | [1. Set up your database](#1-set-up-your-database) |
 | Run one of the manual test documents | [2. Run a manual test document](#2-run-a-manual-test-document) |
 | Start over, or undo one seed | [3. Start over or undo](#3-start-over-or-undo) |
@@ -15,6 +16,37 @@ automatically: not on `supabase db reset`, not in CI.
 > shared or remote project. The one script that ever touches a remote database,
 > `apply-ssot`, is run there by a person, with the steps in
 > [section 6](#6-apply-ssot-a-database-that-already-has-data).
+
+---
+
+## 0. One command
+
+`pnpm e2e:data` runs the steps below for you: the seeds in dependency order, then every
+`verify.sql` and `show.sql`, failing on any row that is not `ok`.
+
+```bash
+pnpm e2e:data reset              # supabase db reset, seed, verify, novu:clear
+pnpm e2e:data verify             # check what is loaded; exits 1 on any failure
+pnpm e2e:data seed               # teardown, then seed, without a reset
+pnpm e2e:data teardown           # every teardown, in reverse order, then novu:clear
+pnpm e2e:data reset venue-hold   # any command takes a profile; `full` is the default
+```
+
+| Profile | Loads | For |
+| --- | --- | --- |
+| `full` | Every seed in [section 2](#2-run-a-manual-test-document) that can share a database, and `seed-booking-flag-clear/blocks.sql` | Every document not listed below |
+| `venue-hold` | The baseline, `seed-booking-holds` and its `fixture.sql` | Venue hold. Its bookings clash with `seed-venue-unavailability` |
+| `equipment-review` | `seed-equipment-review`, `seed-reschedule-equipment` | Equipment review, Equipment reschedule |
+| `equipment-reserve` | `seed-equipment-reserve` | Equipment reserve |
+| `venue-search` | `seed-venue-search-uat` | Venue search |
+
+`full` mixes seeds dated from today with seeds on fixed dates in November and December 2026,
+on the same venues. On some days one seed's venue block lands on another's booking and flags
+it. `verify` checks for that last (`e2e-data-stray-flags.sql`) and names the bookings; if it
+fails, load that document's seeds by hand from section 2.
+
+The `checks.sql`, `refusals.sql` and `.mjs` files are not run: they test the database, not
+the data.
 
 ---
 
