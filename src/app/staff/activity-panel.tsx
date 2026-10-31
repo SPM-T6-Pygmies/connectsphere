@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { InitialsAvatar } from "@/components/initials-avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,23 +28,7 @@ import {
   type SystemActivity,
 } from "@/lib/wireframe";
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("");
-}
-
-function Avatar({ name, className = "size-6" }: { name: string; className?: string }) {
-  return (
-    <span
-      className={`bg-muted text-muted-foreground flex shrink-0 items-center justify-center rounded-full text-[10px] font-medium ${className}`}
-    >
-      {initials(name)}
-    </span>
-  );
-}
+import { timeAgo } from "./time-ago";
 
 /** A same-size node for a system activity row, so it sits on the timeline rail beside comment avatars. */
 function ActivityIcon({ icon: Icon }: { icon: LucideIcon }) {
@@ -71,24 +56,6 @@ function activityIcon(entry: SystemActivity): LucideIcon {
   return ArrowRightIcon;
 }
 
-/** "3d ago", falling back gracefully for anything outside a day/month/year window. */
-function timeAgo(timestamp: string): string {
-  const then = new Date(timestamp.replace(" ", "T")).getTime();
-  const diffMs = Math.max(0, Date.now() - then);
-  const minute = 60_000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-  const month = 30 * day;
-  const year = 365 * day;
-
-  if (diffMs < minute) return "just now";
-  if (diffMs < hour) return `${Math.floor(diffMs / minute)}m ago`;
-  if (diffMs < day) return `${Math.floor(diffMs / hour)}h ago`;
-  if (diffMs < month) return `${Math.floor(diffMs / day)}d ago`;
-  if (diffMs < year) return `${Math.floor(diffMs / month)}mo ago`;
-  return `${Math.floor(diffMs / year)}y ago`;
-}
-
 function Timestamp({ at }: { at: string }) {
   return (
     <span className="text-muted-foreground text-xs" title={at}>
@@ -106,7 +73,7 @@ function Comment({
 }) {
   return (
     <div className="flex gap-3">
-      <Avatar name={thread.actor.name} className={reply ? "size-5" : "size-6"} />
+      <InitialsAvatar name={thread.actor.name} className={reply ? "size-5" : "size-6"} />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2">
           <span className="text-sm font-medium">{thread.actor.name}</span>
@@ -226,7 +193,7 @@ export function ActivityPanel({
         )}
 
         <div className="flex gap-3 border-t pt-4">
-          <Avatar name={actingAs.name} />
+          <InitialsAvatar name={actingAs.name} />
           <div className="min-w-0 flex-1 space-y-2">
             <Textarea placeholder="Leave a comment…" />
             <div className="flex flex-wrap items-center gap-2">
