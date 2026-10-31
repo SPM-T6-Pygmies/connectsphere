@@ -912,6 +912,11 @@
       "parent": "SPM-87",
       "status": "In Progress"
     },
+    "SPM-309": {
+      "title": "Flag venue bookings after an accepted change",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-310": {
       "title": "Clear a flag when the booking still fits",
       "parent": null,
