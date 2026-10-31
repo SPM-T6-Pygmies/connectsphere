@@ -132,3 +132,25 @@ describe("SupabaseVenueCatalogue setup and turnaround (SPM-23)", () => {
     );
   });
 });
+
+describe("SupabaseVenueCatalogue finding a venue", () => {
+  it("reads a venue by its numeric key", async () => {
+    const { client, calls } = fakeClient({ venue_catalogue: { data: [ROW], error: null } });
+
+    const venue = await new SupabaseVenueCatalogue(client).find(venueId("5"));
+
+    expect(calls).toEqual([{ name: "venue_catalogue", args: { p_venue_id: 5 } }]);
+    expect(venue).toMatchObject({ location: "Main Hall" });
+  });
+
+  // `venue_catalogue` reads a null id as "every venue", so a key that isn't one
+  // must never reach it: the first venue would come back as the answer.
+  it.each(["abc", "1e3", "5.0"])("treats %j as not found, without asking the database", async (id) => {
+    const { client, calls } = fakeClient({ venue_catalogue: { data: [ROW], error: null } });
+
+    const venue = await new SupabaseVenueCatalogue(client).find(venueId(id));
+
+    expect(venue).toBeNull();
+    expect(calls).toEqual([]);
+  });
+});
