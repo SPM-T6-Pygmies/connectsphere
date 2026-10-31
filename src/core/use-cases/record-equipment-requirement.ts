@@ -5,13 +5,13 @@ import { userAccountId } from "../domain/user-account";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type { EquipmentRequirementRepository } from "../ports/outbound/equipment-requirement-repository";
 import {
-  assignedEvent,
   catalogueItem,
   describeChange,
   type EquipmentRequirementChange,
 } from "./equipment-requirement-change";
 import type { EquipmentAttentionAnnouncer } from "./announce-equipment-attention";
 import type { SafetyCheckEntryAnnouncer } from "./announce-safety-check-entry";
+import { assignedEvent } from "./assigned-event";
 
 export interface RecordEquipmentRequirementCommand {
   readonly eventId: string;

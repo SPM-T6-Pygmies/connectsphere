@@ -5,7 +5,7 @@ import {
   type BookingTimeInput,
 } from "../domain/booking";
 import { bookingToReplace } from "../domain/booking-review-flag";
-import { CoordinatorEventNotFoundError, VenueNotFoundError } from "../domain/errors";
+import { VenueNotFoundError } from "../domain/errors";
 import { userAccountId, type UserAccountId } from "../domain/user-account";
 import { venueId } from "../domain/venue";
 import type { BookingFlagRepository } from "../ports/outbound/booking-flag-repository";
@@ -15,6 +15,8 @@ import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-e
 import type { Notifier } from "../ports/outbound/notifier";
 import type { VenueCatalogue } from "../ports/outbound/venue-catalogue";
 import type { VenueStaffDirectory } from "../ports/outbound/venue-staff-directory";
+
+import { assignedEventDetails } from "./assigned-event";
 
 export interface SubmitVenueBookingRequestCommand {
   readonly eventId: string;
@@ -73,10 +75,7 @@ export class SubmitVenueBookingRequestUseCase {
     const { events, venues, bookings, clock } = this.deps;
     const requestedBy = userAccountId(command.userAccountId);
 
-    const event = await events.findAssigned(requestedBy, command.eventId);
-    if (event === null) {
-      throw new CoordinatorEventNotFoundError(command.eventId);
-    }
+    const event = await assignedEventDetails(events, command.eventId, requestedBy);
 
     const venue = await venues.find(venueId(command.venueId));
     if (venue === null) {

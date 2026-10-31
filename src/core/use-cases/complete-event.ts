@@ -1,9 +1,10 @@
 import type { CoordinatorEventStatus } from "../domain/coordinator-event";
 import { completeEvent } from "../domain/event-completion";
-import { CoordinatorEventNotFoundError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import type { Clock } from "../ports/outbound/clock";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+
+import { assignedEventDetails } from "./assigned-event";
 
 export interface CompleteEventCommand {
   readonly id: string;
@@ -40,10 +41,7 @@ export class CompleteEventUseCase {
     const { events, clock } = this.deps;
     const completedBy = userAccountId(command.userAccountId);
 
-    const event = await events.findAssigned(completedBy, command.id);
-    if (event === null) {
-      throw new CoordinatorEventNotFoundError(command.id);
-    }
+    const event = await assignedEventDetails(events, command.id, completedBy);
 
     const completion = completeEvent(event, clock.now(), command.notes);
     await events.completeEvent(completedBy, event.id, completion.operationalNotes);

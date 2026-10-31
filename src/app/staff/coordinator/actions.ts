@@ -286,7 +286,7 @@ export async function confirmEventAction(
     // Same not-found-shaped scoping as deciding a request (#91).
     const coordinator = await getCurrentCoordinator();
     if (coordinator === null) {
-      throw new EventNotFoundError(parsed.data.id);
+      throw new CoordinatorEventNotFoundError(parsed.data.id);
     }
 
     const confirmEvent = await buildConfirmEvent();

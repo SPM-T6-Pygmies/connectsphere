@@ -3,11 +3,8 @@ import type { EquipmentCatalogueItem, EquipmentItemId } from "../domain/equipmen
 import {
   EquipmentItemNotInCatalogueError,
   EquipmentRequirementNotFoundError,
-  EventNotFoundError,
 } from "../domain/errors";
 import type { EquipmentRequirement } from "../domain/equipment-requirement";
-import type { UserAccountId } from "../domain/user-account";
-import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type {
   EquipmentReservationRef,
   EventEquipment,
@@ -42,23 +39,6 @@ export interface EquipmentRequirementChange {
   readonly underReview: boolean;
   /** This change put a line under review back to what Technical Support had, so they have nothing to re-check (AC19). */
   readonly reviewCleared: boolean;
-}
-
-/**
- * AC14: the event, if the caller is its assigned coordinator. Anyone else gets
- * the same answer as for an event that does not exist, as `ConfirmEventUseCase`
- * gives, so a guess cannot confirm an event exists (#91).
- */
-export async function assignedEvent(
-  events: CoordinatorEventRepository,
-  id: CoordinatorEvent["id"],
-  caller: UserAccountId,
-): Promise<CoordinatorEvent> {
-  const event = await events.findAssignedById(caller, id);
-  if (event === null) {
-    throw new EventNotFoundError(id);
-  }
-  return event;
 }
 
 export function catalogueItem(

@@ -16,7 +16,7 @@ import {
   buildUndoEquipmentRemoval,
   getCurrentCoordinator,
 } from "@/composition/container";
-import { DomainError, EventNotFoundError } from "@/core/domain/errors";
+import { DomainError, CoordinatorEventNotFoundError } from "@/core/domain/errors";
 
 /**
  * What a coordinator's equipment form is told (SPM-41). A refused add or edit
@@ -37,7 +37,7 @@ export type EquipmentFormState =
 async function actingCoordinator(eventId: string) {
   const coordinator = await getCurrentCoordinator();
   if (coordinator === null) {
-    throw new EventNotFoundError(eventId);
+    throw new CoordinatorEventNotFoundError(eventId);
   }
   return coordinator;
 }
