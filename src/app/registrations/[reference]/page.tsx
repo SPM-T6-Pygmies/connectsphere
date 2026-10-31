@@ -20,26 +20,28 @@ import { WithdrawPanel } from "./withdraw-panel";
 export const dynamic = "force-dynamic";
 
 /**
- * A reference that names nothing, that is malformed, or whose event has gone is
- * reported the same way: not found. The reference is the only credential this
- * page has, so distinguishing those cases would tell a guesser which of their
- * guesses was closer.
+ * A reference that names nothing or is malformed is reported as not found. A
+ * reference that names a registration whose event the attendee cannot read --
+ * back in Planning after a reschedule, or cancelled -- is not: the registration
+ * exists, and the reference is the credential, so saying "not found" would be
+ * untrue. The page says the details are not available instead (SPM-69).
  *
  * `notFound()` is left to the caller for the reason `events/[id]/page.tsx`
  * gives: throwing it inside a catch block is a good way to have it swallowed.
  */
-async function loadRegistration(reference: string): Promise<AttendeeRegistration | null> {
+async function loadRegistration(
+  reference: string,
+): Promise<AttendeeRegistration | "event-unavailable" | null> {
   const viewRegistration = await buildViewRegistration();
 
   try {
     const { registration } = await viewRegistration.execute({ reference });
     return registration;
   } catch (error) {
-    if (
-      error instanceof RegistrationNotFoundError ||
-      error instanceof InvalidRegistrationIdError ||
-      error instanceof EventNotFoundError
-    ) {
+    if (error instanceof EventNotFoundError) {
+      return "event-unavailable";
+    }
+    if (error instanceof RegistrationNotFoundError || error instanceof InvalidRegistrationIdError) {
       return null;
     }
     throw error;
@@ -54,6 +56,26 @@ export default async function RegistrationPage({
 
   if (registration === null) {
     notFound();
+  }
+
+  if (registration === "event-unavailable") {
+    return (
+      <main className="mx-auto w-full max-w-2xl px-4 py-16 sm:px-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance">
+          This event&rsquo;s details aren&rsquo;t available right now
+        </h1>
+        <p className="text-muted-foreground mt-2 text-sm">
+          Your registration is kept. The event may have changed or been cancelled, so check your inbox for the latest email about it.
+        </p>
+        <Link
+          href="/events"
+          className="text-muted-foreground hover:text-foreground mt-6 inline-flex items-center gap-1 text-sm"
+        >
+          <ChevronLeft aria-hidden className="size-4" />
+          All events
+        </Link>
+      </main>
+    );
   }
 
   return (
