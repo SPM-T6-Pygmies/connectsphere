@@ -3,8 +3,8 @@
 -- Organiser that their Coordinator has yet to decide.
 --
 --   Event                Now                     Request                 Case
---   Tech Summit Keynote  15 Nov, 09:00-12:00     22 Nov, 09:00-12:00     a new date (AC1-3)
---   Board Strategy Day   15 Nov, 09:00-12:00     15 Nov, 14:00-17:00     a new time, same date (AC4)
+--   Tech Summit Keynote  13 Dec, 09:00-12:00     20 Dec, 09:00-12:00     a new date (AC1-3)
+--   Board Strategy Day   13 Dec, 09:00-12:00     13 Dec, 14:00-17:00     a new time, same date (AC4)
 --
 -- Tech Summit Keynote's lines, from the equipment review seed: Projector 4,
 -- New, nothing reserved; Wireless microphone 6 (was 4), Changed, 4 held;
@@ -33,8 +33,8 @@ begin
   for v_event in
     select *
     from (values
-      ('Tech Summit Keynote', '[{"date":"2026-11-22","start":"09:00","end":"12:00"}]'),
-      ('Board Strategy Day',  '[{"date":"2026-11-15","start":"14:00","end":"17:00"}]')
+      ('Tech Summit Keynote', '[{"date":"2026-12-20","start":"09:00","end":"12:00"}]'),
+      ('Board Strategy Day',  '[{"date":"2026-12-13","start":"14:00","end":"17:00"}]')
     ) as e(name, requested_times)
   loop
     select event_id into v_event_id
@@ -51,9 +51,9 @@ begin
       continue;
     end if;
 
-    -- 15 Nov, 09:00-12:00, as the 15-minute slots it is stored as.
+    -- 13 Dec, 09:00-12:00, as the 15-minute slots it is stored as.
     insert into public.event_slot (event_id, slot_date, slot_code)
-    select v_event_id, date '2026-11-15', s.slot_code
+    select v_event_id, date '2026-12-13', s.slot_code
     from public.slot s
     where s.slot_code ~ '^[0-9]+$'
       and s.start_time >= time '09:00'

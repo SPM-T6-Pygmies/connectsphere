@@ -74,8 +74,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 
 | Event | Date | Line | Starts as |
 | --- | --- | --- | --- |
-| Tech Summit Keynote | 2026-11-15 | Wireless microphone 6 (*was 4*) | Reserved 4, **Changed** |
-| Tech Summit Keynote | 2026-11-15 | Projector 4 | Reserved 0, **New** |
+| Tech Summit Keynote | 2026-12-13 | Wireless microphone 6 (*was 4*) | Reserved 4, **Changed** |
+| Tech Summit Keynote | 2026-12-13 | Projector 4 | Reserved 0, **New** |
 
 30 Wireless microphones are owned, and other events have 2 out on Tech Summit Keynote's
 days. With none out of service, the microphone line shows Available **24**. Setting 22
