@@ -74,7 +74,7 @@ description's `## Manual test results` table. CI records it in
    none.
 4. Start the app: `pnpm dev`, then open <http://localhost:3000/auth/login>.
 
-**D** is 49 days from today in Singapore time, a day no other seed uses. `seed-venues` gives:
+**D** is Sunday 20 December 2026, a day no other seed books in the afternoon. `seed-venues` gives:
 
 - **Main Hall:** Theatre 300, Banquet 180, Classroom 150; 30 minutes setup, 45 turnaround;
 - **Studio:** Theatre 60;
