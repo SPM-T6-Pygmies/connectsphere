@@ -1,9 +1,10 @@
 -- Checks that, with every seed of the `full` profile loaded, no booking is flagged except the ones
 -- a seed means to flag. Read-only. Run by `pnpm e2e:data verify`.
 --
--- The seeds mix dates counted from today with fixed dates on the same venues, so on some days one
--- seed's venue block lands on another's booking and flags it. No seed fails when that happens;
--- this row does, and names the bookings. Load the affected document's own seeds instead.
+-- A seed whose venue block lands on another seed's booking flags it, and no seed fails when that
+-- happens; this row does, and names the bookings. The seeds' fixed dates keep them apart (see
+-- scripts/README.md, section 0), so a failure means a seed was moved onto another's days. The
+-- cases record blocks of their own, so run this before testing, not after.
 --
 -- Flagged on purpose: the Founders' Gala Dinner's Harbour Room bookings (seed-booking-flag-clear)
 -- and the Re-request Test events (seed-venue-re-request).

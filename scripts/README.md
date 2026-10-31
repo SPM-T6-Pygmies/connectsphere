@@ -40,10 +40,25 @@ pnpm e2e:data reset venue-hold   # any command takes a profile; `full` is the de
 | `equipment-reserve` | `seed-equipment-reserve` | Equipment reserve |
 | `venue-search` | `seed-venue-search-uat` | Venue search |
 
-`full` mixes seeds dated from today with seeds on fixed dates in November and December 2026,
-on the same venues. On some days one seed's venue block lands on another's booking and flags
-it. `verify` checks for that last (`e2e-data-stray-flags.sql`) and names the bookings; if it
-fails, load that document's seeds by hand from section 2.
+Every seed is on fixed dates in December 2026, after the November test window, so the data
+is the same whichever day you load it. In `full`, no two seeds book the same venue at the same
+time:
+
+| Days (2026) | Venue | Seed |
+| --- | --- | --- |
+| 3, 4, 7, 8 Dec | Main Hall, Studio, Rooftop Terrace, UAT-44 Harbour Room | `seed-event-change-flags` |
+| 6 Dec (H) | Main Hall | `seed-booking-holds` |
+| 9 Dec (D), 12 and 16 Dec | UAT-44 Harbour Room and Garden Hall | `seed-venue-search-uat`, `seed-venue-calendar` |
+| 9 to 13 Dec, 15 Dec | Main Hall, Studio (blocks) | `seed-venue-unavailability` |
+| 10 to 14 Dec (F) | Change Test Hall, Studio | `seed-venue-change-flags` |
+| 14 to 19 Dec | Main Hall | `seed-venue-padding` |
+| 17, 18 Dec (C) | UAT-44 Harbour Room and Garden Hall | `seed-booking-cancel`, `seed-booking-flag-clear`, `seed-event-cancel` |
+| 20 Dec | Main Hall, Studio | `seed-venue-re-request` |
+| 23 to 31 Dec (F) | Main Hall, Studio, Rooftop Terrace | `seed-booking-flags` |
+
+`verify` ends by checking that no booking is flagged except the ones a seed flags on purpose
+(`e2e-data-stray-flags.sql`), so a seed moved onto another's booking shows up. Run it before
+testing: the cases record blocks of their own, which flag more bookings.
 
 The `checks.sql`, `refusals.sql` and `.mjs` files are not run: they test the database, not
 the data.
