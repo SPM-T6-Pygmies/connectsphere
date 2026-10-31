@@ -20,17 +20,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { initials } from "@/components/initials-avatar"
 import { ROLE_LABELS, type StaffRole } from "@/lib/wireframe"
 
 import { logoutAction } from "@/app/auth/logout/actions"
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-}
 
 /**
  * Who is signed in, and the way out.
