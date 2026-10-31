@@ -5,7 +5,8 @@ One page to find, for every manual-test document, what it tests, who does what a
 ## Read this first
 
 - **Start every section from a fresh reset.** Each setup begins with `supabase db reset`, which **drops all local data**. Seeds from different sections overlap (same venues, days and accounts), so do not stack them: reset, then load only the section you are testing.
-- **Do not run every script.** Some are not safe to re-run (the "Safe to re-run" column of the [scripts README](../../scripts/README.md)), and the cases assume a known starting state.
+- **Shortcut: `pnpm e2e:data`.** To load every seed that can share a database in one go, run `pnpm e2e:data reset` (then `pnpm e2e:data verify`). It stacks the seeds on fixed December 2026 dates so they do not clash, and the Venue hold, Equipment review, Equipment reserve and Venue search documents have their own profiles (`pnpm e2e:data reset venue-hold`, and so on). See the [scripts README](../../scripts/README.md#0-one-command). The per-section commands below still work and load just one area.
+- **Do not run every script by hand.** Some are not safe to re-run (the "Safe to re-run" column of the [scripts README](../../scripts/README.md)), and the cases assume a known starting state.
 - **Where a section says "SQL in the doc"**, part of the setup is a SQL block inside the manual-test document. It is kept there, not copied here, so there is one copy to keep current. Open the linked document's Setup and run it after the commands.
 - **Notifications** need Novu: run `pnpm novu:clear` after a reset and start the app with `NOVU_BRIDGE_URL` set (root [README](../../README.md) → Notifications).
 - **Accounts:** every seeded account uses the password `TestPass123!` ([`supabase/SEED.md`](../../supabase/SEED.md)). Sign in at <http://localhost:3000/auth/login> after `pnpm dev:local`.
