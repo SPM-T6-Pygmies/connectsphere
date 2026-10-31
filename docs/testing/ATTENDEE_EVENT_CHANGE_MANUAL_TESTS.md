@@ -192,7 +192,7 @@ in TC-ATTCHANGE-001 step 1.
 
 **Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
 
-### TC-ATTCHANGE-004: A registration link for an event not yet re-confirmed says its details are unavailable (AC1)
+### TC-ATTCHANGE-004: A registration link for an event not yet re-confirmed says its details are unavailable (AC5)
 
 **Preconditions:** Setup done (a fresh run), with `<you+a@…>` registered as in
 TC-ATTCHANGE-001 step 1. Keep the confirmation email open.
