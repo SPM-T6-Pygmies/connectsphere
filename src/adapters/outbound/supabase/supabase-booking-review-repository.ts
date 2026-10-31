@@ -4,6 +4,7 @@ import {
   BookingNotFoundError,
   DecisionReasonRequiredError,
   HoldNotLiveError,
+  ReRequestNotHoldableError,
   VenuePaddedClashError,
   VenueSlotBlockedError,
 } from "@/core/domain/errors";
@@ -38,6 +39,8 @@ const PADDED_CLASH = "CS082";
 // SQLSTATE raised by venue_staff_resolve_hold (SPM-219): not a live hold. CS030 is its not-found,
 // and CS028 (above) its refusal to confirm over a block.
 const HOLD_NOT_LIVE = "CS074";
+// SPM-251 AC10: a re-request cannot be held.
+const RE_REQUEST_NOT_HOLDABLE = "CS087";
 
 /**
  * Reached through `security definer` functions, not the tables: `booking`
@@ -97,6 +100,8 @@ export class SupabaseBookingReviewRepository implements BookingReviewRepository 
         throw new VenueSlotBlockedError(await this.blockedBy(decided.id, decided.decidedBy, error.message));
       case PADDED_CLASH:
         throw new VenuePaddedClashError(toPaddedClashes(error.details));
+      case RE_REQUEST_NOT_HOLDABLE:
+        throw new ReRequestNotHoldableError();
       default:
         throw new Error(`Failed to decide the booking: ${error.message}`, { cause: error });
     }

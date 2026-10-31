@@ -6,6 +6,7 @@ import {
 import { eventRequestId } from "../domain/event-request";
 import { userAccountId } from "../domain/user-account";
 import type { ChangeRequestRepository } from "../ports/outbound/change-request-repository";
+import type { Notifier } from "../ports/outbound/notifier";
 
 export interface SubmitChangeRequestCommand {
   /** The approved event request whose event is to change. */
@@ -17,6 +18,8 @@ export interface SubmitChangeRequestCommand {
 
 export interface SubmitChangeRequestDeps {
   readonly changeRequests: ChangeRequestRepository;
+  /** SPM-67: tells the event's assigned Coordinator what is asked. */
+  readonly notifier: Pick<Notifier, "changeRequested">;
 }
 
 /**
@@ -26,6 +29,10 @@ export interface SubmitChangeRequestDeps {
  *
  * Who may ask is checked before what is asked, so a caller who does not own the
  * event learns nothing from a validation message (#91).
+ *
+ * SPM-67: then the event's assigned Coordinator is told what is asked,
+ * whatever the event's status (#8). The request is stored first, so a notice
+ * that fails to send cannot undo it.
  */
 export class SubmitChangeRequestUseCase {
   constructor(private readonly deps: SubmitChangeRequestDeps) {}
@@ -38,10 +45,21 @@ export class SubmitChangeRequestUseCase {
     const target = await this.deps.changeRequests.findTarget(id);
     assertCanSubmitChangeRequest(target, organiser, command.eventRequestId);
 
-    await this.deps.changeRequests.submit({
+    const changes = chooseRequestedChanges(command.changes);
+    const changeRequestId = await this.deps.changeRequests.submit({
       eventRequestId: id,
       requestedBy: organiser,
-      changes: chooseRequestedChanges(command.changes),
+      changes,
     });
+
+    if (target.assignedCoordinatorUserAccountId !== null) {
+      await this.deps.notifier.changeRequested({
+        recipientUserAccountId: target.assignedCoordinatorUserAccountId,
+        eventId: target.eventId,
+        changeRequestId,
+        eventName: target.eventName,
+        changes,
+      });
+    }
   }
 }

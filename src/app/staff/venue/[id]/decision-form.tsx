@@ -21,12 +21,15 @@ const INITIAL: DecideBookingRequestState = { status: "idle" };
  * `formAction`. A hold keeps the request's slots while the coordinator
  * finalises the event, and needs neither a note nor a suggestion. Confirming or
  * releasing a hold is SPM-219. On success the page re-renders showing the outcome.
+ * SPM-251 AC10: a re-request is approved or rejected, so it has no Place hold.
  */
 export function DecisionForm({
   bookingId,
+  canHold,
   alternatives,
 }: {
   bookingId: string;
+  canHold: boolean;
   alternatives: ReadonlyArray<{ id: string; location: string; capacity: number | null }>;
 }) {
   const [state, formAction, pending] = useActionState(decideBookingRequestAction, INITIAL);
@@ -82,9 +85,11 @@ export function DecisionForm({
         <Button type="submit" name="decision" value="approve" disabled={pending}>
           Approve booking
         </Button>
-        <Button type="submit" name="decision" value="hold" variant="outline" disabled={pending}>
-          Place hold
-        </Button>
+        {canHold ? (
+          <Button type="submit" name="decision" value="hold" variant="outline" disabled={pending}>
+            Place hold
+          </Button>
+        ) : null}
         <Button type="submit" name="decision" value="reject" variant="destructive" disabled={pending}>
           Reject
         </Button>

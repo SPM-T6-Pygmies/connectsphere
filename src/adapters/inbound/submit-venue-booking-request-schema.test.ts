@@ -36,3 +36,14 @@ describe("submitVenueBookingRequestSchema (SPM-348)", () => {
     expect(submitVenueBookingRequestSchema.parse({ ...VALID, times: [] }).times).toEqual([]);
   });
 });
+
+describe("submitVenueBookingRequestSchema (SPM-251)", () => {
+  it("AC1: reads the flagged booking a re-request replaces", () => {
+    expect(submitVenueBookingRequestSchema.parse({ ...VALID, replacesBookingId: " 12 " }).replacesBookingId).toBe("12");
+  });
+
+  it("AC4: reads a blank or missing one as an ordinary request", () => {
+    expect(submitVenueBookingRequestSchema.parse({ ...VALID, replacesBookingId: " " }).replacesBookingId).toBeNull();
+    expect(submitVenueBookingRequestSchema.parse(VALID).replacesBookingId).toBeNull();
+  });
+});

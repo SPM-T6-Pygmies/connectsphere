@@ -21,7 +21,13 @@ import { describeCapacity } from "../../../../booking-capacity-message";
 
 export type SubmitVenueBookingRequestState =
   | { status: "idle" }
-  | { status: "submitted"; bookingId: string; venueLocation: string }
+  | {
+      status: "submitted";
+      bookingId: string;
+      venueLocation: string;
+      /** SPM-251: the venue of the booking a re-request replaces; null for an ordinary request. */
+      replacingVenueLocation: string | null;
+    }
   | { status: "error"; message: string };
 
 /**
@@ -45,6 +51,7 @@ export async function submitVenueBookingRequestAction(
       start: String(formData.getAll("bookingStart")[index] ?? ""),
       end: String(formData.getAll("bookingEnd")[index] ?? ""),
     })),
+    replacesBookingId: String(formData.get("replacesBookingId") ?? ""),
   });
 
   if (!parsed.success) {
@@ -53,7 +60,7 @@ export async function submitVenueBookingRequestAction(
 
   const command = parsed.data;
 
-  let submitted: { bookingId: string; venueLocation: string };
+  let submitted: { bookingId: string; venueLocation: string; replacingVenueLocation: string | null };
   try {
     // Not a coordinator gets the same answer as not this event's (#91).
     const coordinator = await getCurrentCoordinator();
@@ -76,6 +83,7 @@ export async function submitVenueBookingRequestAction(
     status: "submitted",
     bookingId: submitted.bookingId,
     venueLocation: submitted.venueLocation,
+    replacingVenueLocation: submitted.replacingVenueLocation,
   };
 }
 

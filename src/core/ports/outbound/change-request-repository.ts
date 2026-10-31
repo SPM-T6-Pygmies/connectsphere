@@ -25,8 +25,8 @@ export interface NewChangeRequest {
 export interface ChangeRequestRepository {
   /** The event opened from this request, or null when it has not been approved into one. */
   findTarget(eventRequestId: EventRequestId): Promise<ChangeRequestTarget | null>;
-  /** Stores the request with every field Pending. */
-  submit(changeRequest: NewChangeRequest): Promise<void>;
+  /** Stores the request with every field Pending, and returns its id. */
+  submit(changeRequest: NewChangeRequest): Promise<ChangeRequestId>;
   /** Every request on the event, newest first; empty unless the event is assigned to this Coordinator. */
   listForEvent(coordinatorId: UserAccountId, eventId: EventId): Promise<readonly ChangeRequest[]>;
   /**

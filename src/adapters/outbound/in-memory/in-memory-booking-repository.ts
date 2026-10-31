@@ -5,10 +5,12 @@ import {
   type BookingRequest,
   type OccupiedTime,
 } from "@/core/domain/booking";
+import { reRequestPending } from "@/core/domain/booking-review-flag";
 import {
   BookingNotCancellableError,
   BookingNotFoundError,
   BookingRoomLayoutNotChangeableError,
+  ReRequestPendingError,
   VenueSlotBlockedError,
 } from "@/core/domain/errors";
 import type { UserAccountId } from "@/core/domain/user-account";
@@ -23,7 +25,12 @@ import type {
 export interface StoredBooking
   extends Omit<
     EventBookingSummary,
-    "venueId" | "holdExpiresAt" | "rejectionNote" | "suggestedAlternative"
+    | "venueId"
+    | "holdExpiresAt"
+    | "rejectionNote"
+    | "suggestedAlternative"
+    | "replacesBookingId"
+    | "replacedByBookingId"
   > {
   readonly eventId: string;
   /** Absent reads as none, as for a booking that was never rejected. */
@@ -33,6 +40,9 @@ export interface StoredBooking
   readonly requestedBy: string;
   /** A Tentative Hold's expiry; absent reads as none set. */
   readonly holdExpiresAt?: Date | null;
+  /** SPM-251: absent reads as none, as for an ordinary request. */
+  readonly replacesBookingId?: string | null;
+  readonly replacedByBookingId?: string | null;
 }
 
 /** Where the store learns which slots Venue Staff have blocked (SPM-21). */
@@ -61,6 +71,7 @@ export class InMemoryBookingRepository implements BookingRepository {
           .filter((time) => dates.includes(time.date))
           .map((time) => ({
             ...time,
+            bookingId: booking.id,
             status: booking.status,
             holdExpiresAt: booking.holdExpiresAt ?? null,
           })),
@@ -85,12 +96,16 @@ export class InMemoryBookingRepository implements BookingRepository {
         requestedAt: booking.requestedAt,
         rejectionNote: booking.rejectionNote ?? null,
         suggestedAlternative: booking.suggestedAlternative ?? null,
+        replacesBookingId: booking.replacesBookingId ?? null,
+        replacedByBookingId: booking.replacedByBookingId ?? null,
       }));
   }
 
   /**
    * Refuses a slot an In force block covers, as the `booking_slot` trigger does
-   * (SPM-21 AC12), whatever the use case checked first.
+   * (SPM-21 AC12), whatever the use case checked first. A second re-request for
+   * a booking while one waits is refused too, as the database's index does
+   * (SPM-251 AC9). Flags are not held here, so their check is the use case's.
    */
   async submit(request: BookingRequest): Promise<BookingId> {
     const refused = blockedTimes(
@@ -99,6 +114,15 @@ export class InMemoryBookingRepository implements BookingRepository {
     );
     if (refused.length > 0) {
       throw new VenueSlotBlockedError(refused);
+    }
+    if (
+      request.replacesBookingId !== null &&
+      reRequestPending(
+        this.rows.map((row) => ({ status: row.status, replacesBookingId: row.replacesBookingId ?? null })),
+        request.replacesBookingId,
+      )
+    ) {
+      throw new ReRequestPendingError(request.replacesBookingId);
     }
 
     const id = `booking-${this.nextId++}`;
@@ -112,6 +136,7 @@ export class InMemoryBookingRepository implements BookingRepository {
       times: request.times,
       requestedBy: request.requestedBy,
       requestedAt: "2026-09-28T00:00:00.000Z",
+      replacesBookingId: request.replacesBookingId,
     });
     return id as BookingId;
   }
