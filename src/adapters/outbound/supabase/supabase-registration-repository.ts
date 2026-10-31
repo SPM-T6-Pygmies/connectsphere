@@ -11,13 +11,13 @@ import { registrationId, type Registration, type RegistrationId } from "@/core/d
 import type { RegistrationRepository } from "@/core/ports/outbound/registration-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./event-mapper";
 import {
   toDomain,
   toReferenceKey,
   toRegisterArgs,
   type RegistrationRow,
 } from "./registration-mapper";
+import { toKey } from "./to-key";
 
 /**
  * Registrations are reached through database functions, not through the table.

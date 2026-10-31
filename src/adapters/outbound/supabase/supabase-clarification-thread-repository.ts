@@ -17,7 +17,7 @@ import {
   toPostArgs,
   type ClarificationMessageRow,
 } from "./clarification-message-mapper";
-import { toKey } from "./event-request-mapper";
+import { toKey } from "./to-key";
 
 /** SQLSTATEs `post_event_request_clarification_message` comes back with. See its migration. */
 const REQUEST_NOT_FOUND = "CS010";

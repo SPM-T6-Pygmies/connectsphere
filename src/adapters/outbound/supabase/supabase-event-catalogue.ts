@@ -6,10 +6,10 @@ import {
   EVENT_COLUMNS,
   timesByEvent,
   toDomain,
-  toKey,
   type EventRow,
   type EventSlotRow,
 } from "./event-mapper";
+import { toKey } from "./to-key";
 
 export class SupabaseEventCatalogue implements EventCatalogue {
   constructor(private readonly client: SupabaseServerClient) {}

@@ -8,6 +8,8 @@ import {
 import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type { MyEventRequestSummary } from "@/core/ports/outbound/event-request-repository";
 
+import { toKey } from "./to-key";
+
 /**
  * The `event_request` table's shape, named the way the database names it.
  *
@@ -43,16 +45,6 @@ export interface EventRequestRow {
   client_organisation_id: number;
   created_at: string;
   updated_at: string;
-}
-
-/**
- * The domain's ids are opaque strings, which is what keeps the core from
- * knowing that this store numbers its rows. Turning one back into a key is
- * this adapter's job, and an id that was never one of ours is simply not
- * found -- a hand-typed URL is a miss, not a failure.
- */
-export function toKey(id: string): number | null {
-  return /^\d+$/.test(id) ? Number(id) : null;
 }
 
 /** Exactly the seven values `event_request_status_chk` allows, and nothing else. */

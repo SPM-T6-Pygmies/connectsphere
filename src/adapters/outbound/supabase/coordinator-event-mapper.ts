@@ -52,11 +52,6 @@ export interface CoordinatorEventDetailsRow extends CoordinatorEventRow {
 /** Selects every column plus the `event_slots` computed field. */
 export const EVENT_SLOTS_SELECT = "*, event_slots";
 
-/** The domain's ids are opaque strings; this store numbers its rows. */
-export function toKey(id: string): number | null {
-  return /^\d+$/.test(id) ? Number(id) : null;
-}
-
 /** Exactly the five values `event_status_chk` allows, and nothing else. */
 const STATUSES: readonly CoordinatorEventStatus[] = [
   "Planning",

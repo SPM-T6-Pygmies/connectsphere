@@ -5,8 +5,8 @@ import type { UserAccountId } from "@/core/domain/user-account";
 import { venueId } from "@/core/domain/venue";
 import type { EventBookingSummary } from "@/core/ports/outbound/booking-repository";
 
-import { toKey } from "./coordinator-event-mapper";
 import type { EventSlotTimeRow } from "./event-mapper";
+import { toKey } from "./to-key";
 
 /** A row of `venue_booked_slots()`: one booking_slot row with its hours (SPM-324). */
 export interface BookedSlotRow {

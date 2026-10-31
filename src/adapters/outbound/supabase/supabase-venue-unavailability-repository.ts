@@ -22,9 +22,9 @@ import type {
 } from "@/core/ports/outbound/venue-unavailability-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import { expireLapsedHolds } from "./expire-lapsed-holds";
 import { toFlaggedBooking, type FlaggedBookingRow } from "./booking-flag-mapper";
+import { toKey } from "./to-key";
 import {
   toAffectedBookings,
   toCalendarBlock,

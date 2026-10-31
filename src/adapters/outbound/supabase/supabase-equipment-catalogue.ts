@@ -5,7 +5,6 @@ import type { UserAccountId } from "@/core/domain/user-account";
 import type { EquipmentCatalogue } from "@/core/ports/outbound/equipment-catalogue";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import {
   toEquipmentCatalogueError,
   toEquipmentItem,
@@ -13,6 +12,7 @@ import {
   type EquipmentCatalogueItemRow,
   type EquipmentReservationRow,
 } from "./equipment-catalogue-mapper";
+import { toKey } from "./to-key";
 
 /**
  * SPM-40 and SPM-17, through the Technical Support catalogue functions, not
