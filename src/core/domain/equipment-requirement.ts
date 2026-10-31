@@ -1,4 +1,4 @@
-import type { CoordinatorEvent, CoordinatorEventStatus } from "./coordinator-event";
+import { isActiveEvent, type CoordinatorEvent, type CoordinatorEventStatus } from "./coordinator-event";
 import type { EquipmentItemId } from "./equipment-item";
 import {
   DuplicateEquipmentRequirementError,
@@ -118,7 +118,7 @@ export type EquipmentRequirementRemoval =
 
 /** AC13: requirements can change until the event is Completed or Cancelled. */
 export function equipmentRequirementsEditable(status: CoordinatorEventStatus): boolean {
-  return status === "Planning" || status === "Blocked" || status === "Confirmed";
+  return isActiveEvent(status);
 }
 
 /** Why a line under review is on Technical Support's "Needs re-check" list (AC15). */

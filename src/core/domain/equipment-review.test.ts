@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { clientOrganisationId } from "./client-organisation";
-import type { CoordinatorEvent, CoordinatorEventStatus } from "./coordinator-event";
+import { isActiveEvent, type CoordinatorEvent, type CoordinatorEventStatus } from "./coordinator-event";
 import { equipmentItemId } from "./equipment-item";
 import {
   editEquipmentRequirement,
@@ -16,7 +16,6 @@ import {
   daysShortOfService,
   finishesReview,
   freeToReserve,
-  isActiveEvent,
   markEquipmentLineUnfulfilled,
   releaseEquipmentLine,
   rescheduleEquipment,

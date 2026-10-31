@@ -10,6 +10,11 @@ import type { UserAccountId } from "./user-account";
  */
 export type CoordinatorEventStatus = "Planning" | "Blocked" | "Confirmed" | "Completed" | "Cancelled";
 
+/** An approved event still running its course: from Planning through Confirmed. A Completed or Cancelled one is over. */
+export function isActiveEvent(status: CoordinatorEventStatus): boolean {
+  return status === "Planning" || status === "Blocked" || status === "Confirmed";
+}
+
 /**
  * An event as its assigned Event Coordinator is allowed to act on it (SPM-50).
  *

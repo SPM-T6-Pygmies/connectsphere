@@ -1,12 +1,12 @@
-import type { CoordinatorEventStatus } from "./coordinator-event";
+import { isActiveEvent, type CoordinatorEventStatus } from "./coordinator-event";
 import { EventNotCancellableError } from "./errors";
 
-/** SPM-55 AC2: "any stage" means any stage before the event is over. */
-const CANCELLABLE: readonly CoordinatorEventStatus[] = ["Planning", "Blocked", "Confirmed"];
-
-/** Whether the event may be cancelled -- so a screen does not decide it from the status itself. */
+/**
+ * Whether the event may be cancelled -- so a screen does not decide it from the status itself.
+ * SPM-55 AC2: "any stage" means any stage before the event is over.
+ */
 export function canCancel(event: { readonly status: CoordinatorEventStatus }): boolean {
-  return CANCELLABLE.includes(event.status);
+  return isActiveEvent(event.status);
 }
 
 /**

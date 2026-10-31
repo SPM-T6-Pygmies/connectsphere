@@ -1,5 +1,4 @@
-import type { CoordinatorEventStatus } from "../domain/coordinator-event";
-import { isActiveEvent } from "../domain/coordinator-workload";
+import { isActiveEvent, type CoordinatorEventStatus } from "../domain/coordinator-event";
 import { eventId } from "../domain/event";
 import type { TimeRangeOnDate } from "../domain/event-times";
 import { userAccountId } from "../domain/user-account";
