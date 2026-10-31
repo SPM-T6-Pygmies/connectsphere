@@ -509,8 +509,6 @@ An Event Coordinator accepts a change on the decision page. The event's live ven
 - **Where:** The event's **Change requests** page, then its **Venue** tab.
 - **Flow stage:** An event is in Planning, it has bookings, and the Organiser's change request is waiting.
 
-> **Note:** Pending: this doc and its scripts arrive with PR #190 (SPM-309); the links below work once it merges.
-
 **Start from a clean database** (this drops all local data):
 
 ```bash
