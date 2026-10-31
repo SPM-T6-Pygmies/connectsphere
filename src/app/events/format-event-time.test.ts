@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { eventTimes } from "./format-event-time";
+import { eventTimes, formatDateTime } from "./format-event-time";
 
 describe("eventTimes (SPM-326)", () => {
   it("AC2: gives a one-day event's start and end time, with no slot label", () => {
@@ -49,5 +49,12 @@ describe("eventTimes (SPM-326)", () => {
         "America/New_York",
       ),
     ).toBe("3 Nov 6:00 pm – 7:00 pm, 4 Nov 6:00 am – 7:00 am (GMT-5)");
+  });
+});
+
+describe("formatDateTime", () => {
+  it("reads a moment in Singapore, whatever zone it was written in", () => {
+    expect(formatDateTime("2026-09-10T12:00:00Z")).toBe(formatDateTime("2026-09-10T20:00:00+08:00"));
+    expect(formatDateTime("2026-09-10T12:00:00Z")).toMatch(/10 Sept? 2026, 8:00\spm/);
   });
 });

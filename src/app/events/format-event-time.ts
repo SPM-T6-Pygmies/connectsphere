@@ -49,6 +49,15 @@ export function timeOfDay(iso: string): string {
 /** The zone events are entered in and emails name: every venue is in Singapore (#36). */
 export const VENUE_TIME_ZONE = TIME_ZONE;
 
+/** A moment for staff to read, in Singapore, e.g. "10 Sept 2026, 8:00 pm". */
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-SG", {
+    timeZone: TIME_ZONE,
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
 /**
  * When the event runs, range by range, e.g. "7:00 am – 12:00 pm, 1:00 pm –
  * 6:00 pm" (SPM-326). Not one range from first start to last end: that would
