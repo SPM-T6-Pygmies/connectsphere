@@ -75,15 +75,15 @@ Every line starts **New**, with nothing reserved.
 
 | Event | Date | Status | Lines |
 | --- | --- | --- | --- |
-| Design Sprint Demo | 2026-11-20 | Planning | Presentation laptop 6 · PA speaker 3 |
-| Sales Kickoff | 2026-11-21 | Planning | Presentation laptop 3 · Wireless microphone 2 |
-| Board Offsite | 2026-11-20 | Confirmed | PA speaker 3 |
+| Design Sprint Demo | 2026-12-18 | Planning | Presentation laptop 6 · PA speaker 3 |
+| Sales Kickoff | 2026-12-19 | Planning | Presentation laptop 3 · Wireless microphone 2 |
+| Board Offsite | 2026-12-18 | Confirmed | PA speaker 3 |
 | Press Briefing | no date | Planning | Projector 1 |
 
 Owned: Presentation laptop 8, PA speaker 5, Wireless microphone 30, Projector 10 — none
 out of service. These are four of the six equipment types of the Connectsphere Data
 Single Source of Truth, with the same counts `seed-equipment` gives them, so either seed
-can be loaded first. No other seed's event is within a day of 20 or 21 Nov, so loading
+can be loaded first. No other seed's event is within a day of 18 or 19 Dec, so loading
 others alongside does not change the numbers below.
 
 ---
@@ -116,7 +116,7 @@ others alongside does not change the numbers below.
 **Preconditions:** TC-RESERVE-001 passed.
 
 **Steps:**
-1. Signed in as `support@test.com`, open *Sales Kickoff* (21 Nov, the day after
+1. Signed in as `support@test.com`, open *Sales Kickoff* (19 Dec, the day after
    *Design Sprint Demo*) and read the **Presentation laptop** row.
 
 **Expected Result:**
@@ -196,10 +196,10 @@ others alongside does not change the numbers below.
 ### TC-RESERVE-006: Availability is checked again when reserving (AC6)
 
 **Steps:**
-1. In one browser, signed in as `support@test.com`, open *Board Offsite* (20 Nov) and
+1. In one browser, signed in as `support@test.com`, open *Board Offsite* (18 Dec) and
    read the **PA speaker** row. Leave the page open.
 2. In a second browser (or a private window), sign in as `support2@test.com`, open
-   *Design Sprint Demo* (also 20 Nov) and click **Reserve 3** on **PA speaker**.
+   *Design Sprint Demo* (also 18 Dec) and click **Reserve 3** on **PA speaker**.
 3. Back in the first browser, without reloading, click **Reserve 3**.
 
 **Expected Result:**
@@ -216,7 +216,7 @@ others alongside does not change the numbers below.
 ### TC-RESERVE-007: Units out of service that leave too few list the short dates (AC7)
 
 **Preconditions:** TC-RESERVE-001 and 004 passed: 6 presentation laptops reserved for
-*Design Sprint Demo* (20 Nov) and 2 for *Sales Kickoff* (21 Nov).
+*Design Sprint Demo* (18 Dec) and 2 for *Sales Kickoff* (19 Dec).
 
 **Steps:**
 1. Signed in as `support@test.com`, open the **Equipment** page and, on the
@@ -227,11 +227,11 @@ others alongside does not change the numbers below.
 **Expected Result:**
 - Step 1: *Saved.* and *In service: 7 of 8*, with a warning *Not enough in service on these
   dates* reading:
-  - *20 Nov (8 reserved but only 7 in service): Design Sprint Demo (20 Nov) has 6 reserved,
-    Sales Kickoff (21 Nov) has 2 reserved*
+  - *18 Dec (8 reserved but only 7 in service): Design Sprint Demo (18 Dec) has 6 reserved,
+    Sales Kickoff (19 Dec) has 2 reserved*
 
-  Only 20 Nov is listed: it is the one day both events' laptops are out (Design Sprint
-  Demo's on 19–20 Nov, Sales Kickoff's on 20–21 Nov).
+  Only 18 Dec is listed: it is the one day both events' laptops are out (Design Sprint
+  Demo's on 17–18 Dec, Sales Kickoff's on 18–19 Dec).
 - Step 2: the card still shows **Out of service** `1` — the save went through — and the
   same warning is still there.
 - Step 3: *Saved.*, *In service: 8 of 8*, and no warning.
