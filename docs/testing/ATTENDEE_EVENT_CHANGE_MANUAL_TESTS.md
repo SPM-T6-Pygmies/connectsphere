@@ -29,7 +29,7 @@ decision emails no one: `AttendeeChangeAnnouncer`,
 `attendee event change workflows` and
 `SupabaseRegistrationRepository registeredFor`.
 
-These cases are registered as `TC-ATTCHANGE-001`–`TC-ATTCHANGE-003` in
+These cases are registered as `TC-ATTCHANGE-001`–`TC-ATTCHANGE-004` in
 [`../tests/manual-registry.csv`](../tests/manual-registry.csv). Report what you
 ran in the PR description's `## Manual test results` table; CI records it in
 [`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges, so do not
@@ -191,3 +191,24 @@ in TC-ATTCHANGE-001 step 1.
 - Step 3: no new email after the registration confirmation.
 
 **Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
+
+### TC-ATTCHANGE-004: A registration link for an event not yet re-confirmed says its details are unavailable (AC1)
+
+**Preconditions:** Setup done (a fresh run), with `<you+a@…>` registered as in
+TC-ATTCHANGE-001 step 1. Keep the confirmation email open.
+
+**Steps:**
+1. As `organiser2@test.com`, **Request a change**: tick **Date and times** and
+   enter 3 Dec 2026, 10:00–15:00. Submit.
+2. As `coordinator@test.com`, **Accept** it and **Save decision**. The event is
+   back in Planning.
+3. Signed out, open the link in `<you+a@…>`'s confirmation email.
+4. Open `/registrations/00000000-0000-4000-8000-000000000000`.
+
+**Expected Result:**
+- Step 3: *This event's details aren't available right now* and *Your
+  registration is kept. Any change to the event is emailed to you…*. Not *We
+  couldn't find that registration*.
+- Step 4: *We couldn't find that registration*.
+
+**Status:** [ ] Pass [ ] Fail — not run
