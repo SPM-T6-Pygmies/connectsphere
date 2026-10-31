@@ -6,8 +6,10 @@ import { subscriberHash } from "@/adapters/outbound/novu/subscriber-hash";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
+  type SupabaseServerClient,
 } from "@/adapters/outbound/supabase/client";
 import { SupabaseChangeRequestRepository } from "@/adapters/outbound/supabase/supabase-change-request-repository";
+import { SupabaseConfirmationLapses } from "@/adapters/outbound/supabase/supabase-confirmation-lapses";
 import { SupabaseClarificationThreadRepository } from "@/adapters/outbound/supabase/supabase-clarification-thread-repository";
 import { SupabaseClientOrganisationRepository } from "@/adapters/outbound/supabase/supabase-client-organisation-repository";
 import { SupabaseConnectionRepository } from "@/adapters/outbound/supabase/supabase-connection-repository";
@@ -76,6 +78,7 @@ import { DecideEventRequestUseCase } from "@/core/use-cases/decide-event-request
 import { ReviewBookingRequestsUseCase } from "@/core/use-cases/review-booking-requests";
 import { PostClarificationMessageUseCase } from "@/core/use-cases/post-clarification-message";
 import { SubmitChangeRequestUseCase } from "@/core/use-cases/submit-change-request";
+import { AttendeeChangeAnnouncer } from "@/core/use-cases/announce-event-change-to-attendees";
 import { DecideChangeRequestUseCase } from "@/core/use-cases/decide-change-request";
 import { ViewEventChangeRequestsUseCase } from "@/core/use-cases/view-event-change-requests";
 import { PostCoordinatorClarificationMessageUseCase } from "@/core/use-cases/post-coordinator-clarification-message";
@@ -412,10 +415,24 @@ export async function buildDecideChangeRequest(): Promise<DecideChangeRequestUse
   return new DecideChangeRequestUseCase({
     changeRequests: new SupabaseChangeRequestRepository(client),
     coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+    lapses: new SupabaseConfirmationLapses(client),
     notifier: recordedNotifier(),
+    attendees: attendeeAnnouncer(client),
+    readiness: new SupabaseEventReadinessRepository(client),
     // SPM-311: Technical Support hear of the equipment new dates release.
     equipment: new SupabaseEquipmentRequirementRepository(client),
     attention: equipmentAttentionAnnouncer(),
+  });
+}
+
+/**
+ * SPM-69: emails an event's Registered attendees. The list is read with the
+ * coordinator's own session, which `coordinator_event_registrants` checks.
+ */
+function attendeeAnnouncer(client: SupabaseServerClient): AttendeeChangeAnnouncer {
+  return new AttendeeChangeAnnouncer({
+    registrations: new SupabaseRegistrationRepository(client),
+    notifier: recordedNotifier(),
   });
 }
 
@@ -834,7 +851,11 @@ export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
 export async function buildCancelEvent(): Promise<CancelEventUseCase> {
   const { events } = await coordinatorAdapters();
 
-  return new CancelEventUseCase({ events, notifier: recordedNotifier() });
+  return new CancelEventUseCase({
+    events,
+    notifier: recordedNotifier(),
+    attendees: attendeeAnnouncer(await createSupabaseServerClient()),
+  });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */
@@ -1069,6 +1090,7 @@ export async function buildRecordVenueUnavailability(): Promise<RecordVenueUnava
     unavailability: new SupabaseVenueUnavailabilityRepository(client),
     venues: new SupabaseVenueCatalogue(client),
     clock: systemClock,
+    lapses: new SupabaseConfirmationLapses(client),
     notifier: recordedNotifier(),
   });
 }

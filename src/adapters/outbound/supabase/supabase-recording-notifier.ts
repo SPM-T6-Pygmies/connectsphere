@@ -8,6 +8,7 @@ import {
   equipmentNeedsAttentionRow,
   eventCancelledRow,
   eventConfirmedRow,
+  eventNoLongerConfirmedRow,
   eventRequestDecidedRow,
   eventRescheduledRow,
   holdExpiredRow,
@@ -23,6 +24,7 @@ import {
 } from "@/adapters/outbound/supabase/notification-row";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  AttendeeEventChangedNotice,
   ChangeRequestDecidedNotice,
   ChangeRequestedNotice,
   ClarificationRequestedNotice,
@@ -30,6 +32,8 @@ import type {
   EquipmentNeedsAttentionNotice,
   EventCancelledNotice,
   EventConfirmedNotice,
+  EventNoLongerConfirmedNotice,
+  EventRescheduledForAttendeeNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
   EventRescheduledNotice,
@@ -162,14 +166,31 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.recordAndDeliver(changeRequestDecidedRow(notice), () => this.inner.changeRequestDecided(notice));
   }
 
+  eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void> {
+    return this.recordAndDeliver(eventNoLongerConfirmedRow(notice), () => this.inner.eventNoLongerConfirmed(notice));
+  }
+
   /**
    * Delivered but not recorded: a `notification` row needs a recipient user
    * account, and an Attendee has none (SPM-87). Still never throws -- the
    * registration it confirms is already saved.
    */
   async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
+    await this.deliverUnrecorded(() => this.inner.registrationConfirmed(notice));
+  }
+
+  /** SPM-69: an Attendee has no account either, so delivered but not recorded. */
+  async eventRescheduledForAttendee(notice: EventRescheduledForAttendeeNotice): Promise<void> {
+    await this.deliverUnrecorded(() => this.inner.eventRescheduledForAttendee(notice));
+  }
+
+  async eventCancelledForAttendee(notice: AttendeeEventChangedNotice): Promise<void> {
+    await this.deliverUnrecorded(() => this.inner.eventCancelledForAttendee(notice));
+  }
+
+  private async deliverUnrecorded(deliver: () => Promise<void>): Promise<void> {
     try {
-      await this.inner.registrationConfirmed(notice);
+      await deliver();
     } catch (error) {
       console.error("[SupabaseRecordingNotifier] Delivery failed:", error);
     }
