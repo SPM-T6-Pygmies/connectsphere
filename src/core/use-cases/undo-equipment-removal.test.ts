@@ -9,7 +9,7 @@ import {
   seedEvent,
   watchEquipmentForSafety,
 } from "@/adapters/outbound/in-memory/equipment-fixture";
-import { EventNotFoundError } from "@/core/domain/errors";
+import { CoordinatorEventNotFoundError } from "@/core/domain/errors";
 
 import { UndoEquipmentRemovalUseCase } from "./undo-equipment-removal";
 
@@ -88,7 +88,7 @@ describe("UndoEquipmentRemovalUseCase (SPM-184)", () => {
     const { useCase, equipment } = undo();
 
     await expect(useCase.execute({ ...base, userAccountId: OTHER_COORDINATOR })).rejects.toThrow(
-      EventNotFoundError,
+      CoordinatorEventNotFoundError,
     );
     expect(equipment.stored("event-1")).toEqual(pendingRemoval["event-1"]);
   });
@@ -153,7 +153,7 @@ describe("UndoEquipmentRemovalUseCase telling Technical Support (SPM-64)", () =>
   it("AC3: a refused undo tells no one", async () => {
     const { useCase, notifier } = undo();
 
-    await expect(useCase.execute({ ...base, userAccountId: OTHER_COORDINATOR })).rejects.toThrow(EventNotFoundError);
+    await expect(useCase.execute({ ...base, userAccountId: OTHER_COORDINATOR })).rejects.toThrow(CoordinatorEventNotFoundError);
     expect(notifier.equipmentNeedingAttention).toEqual([]);
   });
 });
