@@ -71,7 +71,7 @@ SPM-255 AC1, AC2, AC3.
 
 **Expected Result:**
 - Step 1: only **Quarterly Partner Forum** is listed; its row shows
-  **2026-11-18**, **Submitted** and **Test Organisation · No coordinator
+  **2026-12-16**, **Submitted** and **Test Organisation · No coordinator
   assigned yet.**; no Draft is listed
 - Step 2: the header reads **Test Organisation · requested by account …**; the
   request's fields are shown as text, not inputs — the only control is the
