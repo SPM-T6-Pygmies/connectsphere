@@ -10,7 +10,7 @@ import {
   seededEquipment,
   watchEquipmentForSafety,
 } from "@/adapters/outbound/in-memory/equipment-fixture";
-import { EquipmentRequirementNotFoundError, EventNotFoundError } from "@/core/domain/errors";
+import { EquipmentRequirementNotFoundError, CoordinatorEventNotFoundError } from "@/core/domain/errors";
 
 import { RemoveEquipmentRequirementUseCase } from "./remove-equipment-requirement";
 
@@ -56,7 +56,7 @@ describe("RemoveEquipmentRequirementUseCase (SPM-184)", () => {
 
     await expect(
       useCase.execute({ ...base, userAccountId: OTHER_COORDINATOR, equipmentItemId: MICROPHONE }),
-    ).rejects.toThrow(EventNotFoundError);
+    ).rejects.toThrow(CoordinatorEventNotFoundError);
     expect(equipment.stored("event-1")).toEqual(seededEquipment());
   });
 });

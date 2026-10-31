@@ -8,7 +8,6 @@ import {
   EventNotCancellableError,
   EventNotCompletableError,
   EventNotConfirmableError,
-  EventNotFoundError,
   EventNotReadyForConfirmationError,
   EventNotYetEndedError,
   EventRegistrationLockedError,
@@ -329,7 +328,7 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
 
     if (error) {
       if (error.code === NOT_FOUND_OR_NOT_ASSIGNED) {
-        throw new EventNotFoundError(event.id);
+        throw new CoordinatorEventNotFoundError(event.id);
       }
       if (error.code === NOT_CONFIRMABLE) {
         // The status read before the call was Planning, or the domain would

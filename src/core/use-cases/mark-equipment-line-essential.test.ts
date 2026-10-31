@@ -12,7 +12,7 @@ import {
 import {
   EquipmentRequirementNotFoundError,
   EquipmentRequirementsLockedError,
-  EventNotFoundError,
+  CoordinatorEventNotFoundError,
 } from "@/core/domain/errors";
 
 import { MarkEquipmentLineEssentialUseCase } from "./mark-equipment-line-essential";
@@ -56,7 +56,7 @@ describe("MarkEquipmentLineEssentialUseCase (SPM-109)", () => {
   it("AC2: refuses a coordinator not assigned to the event, as if it did not exist", async () => {
     const { useCase, equipment } = mark();
 
-    await expect(useCase.execute({ ...base, userAccountId: OTHER_COORDINATOR })).rejects.toThrow(EventNotFoundError);
+    await expect(useCase.execute({ ...base, userAccountId: OTHER_COORDINATOR })).rejects.toThrow(CoordinatorEventNotFoundError);
     expect(equipment.stored("event-1").lines[0].essential).toBe(false);
   });
 

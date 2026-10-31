@@ -14,7 +14,7 @@ import {
   BookingFlaggedError,
   EssentialEquipmentNotReservedError,
   EventNotConfirmableError,
-  EventNotFoundError,
+  CoordinatorEventNotFoundError,
   EventNotReadyForConfirmationError,
   SafetyCheckNotApprovedError,
 } from "@/core/domain/errors";
@@ -197,7 +197,7 @@ describe("ConfirmEventUseCase (SPM-50)", () => {
 
       await expect(
         useCase.execute({ id: "event-1", userAccountId: COORDINATOR }),
-      ).rejects.toBeInstanceOf(EventNotFoundError);
+      ).rejects.toBeInstanceOf(CoordinatorEventNotFoundError);
       expect(eventsRepo.all()).toEqual([existing]);
     },
   );
@@ -207,7 +207,7 @@ describe("ConfirmEventUseCase (SPM-50)", () => {
 
     await expect(
       useCase.execute({ id: "missing", userAccountId: COORDINATOR }),
-    ).rejects.toBeInstanceOf(EventNotFoundError);
+    ).rejects.toBeInstanceOf(CoordinatorEventNotFoundError);
   });
 });
 
@@ -352,7 +352,7 @@ describe("ConfirmEventUseCase (SPM-66)", () => {
     const { useCase, notifier } = buildUseCase([seedEvent()], [seedFacts()]);
 
     await expect(useCase.execute({ id: "event-1", userAccountId: OTHER_COORDINATOR })).rejects.toBeInstanceOf(
-      EventNotFoundError,
+      CoordinatorEventNotFoundError,
     );
     expect(notifier.eventsConfirmed).toEqual([]);
   });

@@ -3,7 +3,7 @@ import type { EquipmentCatalogueItem, EquipmentItemId } from "../domain/equipmen
 import {
   EquipmentItemNotInCatalogueError,
   EquipmentRequirementNotFoundError,
-  EventNotFoundError,
+  CoordinatorEventNotFoundError,
 } from "../domain/errors";
 import type { EquipmentRequirement } from "../domain/equipment-requirement";
 import type { UserAccountId } from "../domain/user-account";
@@ -56,7 +56,7 @@ export async function assignedEvent(
 ): Promise<CoordinatorEvent> {
   const event = await events.findAssignedById(caller, id);
   if (event === null) {
-    throw new EventNotFoundError(id);
+    throw new CoordinatorEventNotFoundError(id);
   }
   return event;
 }

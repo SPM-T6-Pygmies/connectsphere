@@ -6,7 +6,7 @@ import {
   EquipmentRequirementConflictError,
   EquipmentRequirementNotFoundError,
   EquipmentRequirementsLockedError,
-  EventNotFoundError,
+  CoordinatorEventNotFoundError,
 } from "@/core/domain/errors";
 
 import {
@@ -112,7 +112,7 @@ describe("equipment requirement mapper (SPM-185)", () => {
   const context = { eventId: "7", equipmentItemId: "1" };
 
   it.each([
-    ["CS030", EventNotFoundError],
+    ["CS030", CoordinatorEventNotFoundError],
     ["CS031", EquipmentRequirementsLockedError],
     ["CS032", EquipmentItemNotInCatalogueError],
     ["CS033", DuplicateEquipmentRequirementError],

@@ -14,7 +14,7 @@ import {
   DuplicateEquipmentRequirementError,
   EquipmentItemNotInCatalogueError,
   EquipmentRequirementsLockedError,
-  EventNotFoundError,
+  CoordinatorEventNotFoundError,
   InvalidEquipmentRequirementQuantityError,
 } from "@/core/domain/errors";
 
@@ -110,7 +110,7 @@ describe("RecordEquipmentRequirementUseCase (SPM-184)", () => {
   ])("answers not-found for an event %s, and stores nothing", async (_label, event) => {
     const { useCase, equipment } = record(buildEquipmentDeps([event]));
 
-    await expect(useCase.execute(speaker)).rejects.toThrow(EventNotFoundError);
+    await expect(useCase.execute(speaker)).rejects.toThrow(CoordinatorEventNotFoundError);
     expect(equipment.stored("event-1")).toEqual(seededEquipment());
   });
 });

@@ -16,7 +16,7 @@ import {
 import {
   EquipmentRequirementNotFoundError,
   EquipmentRequirementsLockedError,
-  EventNotFoundError,
+  CoordinatorEventNotFoundError,
 } from "@/core/domain/errors";
 
 import { EditEquipmentRequirementUseCase } from "./edit-equipment-requirement";
@@ -114,7 +114,7 @@ describe("EditEquipmentRequirementUseCase (SPM-184)", () => {
         quantityRequested: 6,
         technicalRequirements: null,
       }),
-    ).rejects.toThrow(EventNotFoundError);
+    ).rejects.toThrow(CoordinatorEventNotFoundError);
     expect(equipment.stored("event-1")).toEqual(seededEquipment());
   });
 });

@@ -1,5 +1,5 @@
 import type { CoordinatorEventStatus } from "../domain/coordinator-event";
-import { EventNotFoundError } from "../domain/errors";
+import { CoordinatorEventNotFoundError } from "../domain/errors";
 import { eventId } from "../domain/event";
 import { assessReadiness, confirmedArrangements, confirmEvent } from "../domain/event-readiness";
 import { userAccountId } from "../domain/user-account";
@@ -53,7 +53,7 @@ export interface ConfirmEventDeps {
 export class ConfirmEventUseCase {
   constructor(private readonly deps: ConfirmEventDeps) {}
 
-  /** Throws `EventNotFoundError` both when there is no such event and when it isn't assigned to this caller (#91). */
+  /** Throws `CoordinatorEventNotFoundError` both when there is no such event and when it isn't assigned to this caller (#91). */
   async execute(command: ConfirmEventCommand): Promise<ConfirmEventResult> {
     const { events, readiness, safetyChecks, notifier, attendees } = this.deps;
     const id = eventId(command.id);
@@ -69,7 +69,7 @@ export class ConfirmEventUseCase {
             events.findAssigned(confirmedBy, id),
           ]);
     if (event === null || facts === null || history === null || details === null) {
-      throw new EventNotFoundError(command.id);
+      throw new CoordinatorEventNotFoundError(command.id);
     }
 
     const eventReadiness = assessReadiness(facts);

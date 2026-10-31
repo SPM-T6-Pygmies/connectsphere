@@ -10,7 +10,7 @@ import {
   EquipmentRequirementConflictError,
   EquipmentRequirementNotFoundError,
   EquipmentRequirementsLockedError,
-  EventNotFoundError,
+  CoordinatorEventNotFoundError,
   type DomainError,
 } from "@/core/domain/errors";
 import { userAccountId } from "@/core/domain/user-account";
@@ -118,7 +118,7 @@ export function toEquipmentRequirementError(
 ): DomainError | null {
   switch (error.code) {
     case "CS030":
-      return new EventNotFoundError(context.eventId);
+      return new CoordinatorEventNotFoundError(context.eventId);
     case "CS031":
       return new EquipmentRequirementsLockedError(error.details || "Completed or Cancelled");
     case "CS032":
