@@ -85,11 +85,11 @@ begin
   for v_event in
     select *
     from (values
-      ('Marina Bay Gala',     date '2026-11-20', 220, 'Step-free route to the stage; two wheelchair spaces', 1, true),
+      ('Marina Bay Gala',     date '2026-12-18', 220, 'Step-free route to the stage; two wheelchair spaces', 1, true),
       ('Canal Side Workshop', null::date,        null, null,                                                1, false),
       ('Winter Lantern Ball', date '2026-12-05',  90, null,                                                 2, false),
       ('Harbour Dawn Run',    date '2026-12-12', 150, null,                                                 0, false),
-      ('Lakeside Tech Expo',  date '2026-11-05', 300, null,                                                 1, false),
+      ('Lakeside Tech Expo',  date '2026-12-03', 300, null,                                                 1, false),
       ('Charity Book Fair',   date '2026-12-19', 300, null,                                                 1, true),
       ('Spring Lantern Walk', date '2026-12-05', 120, null,                                                 1, false),
       ('Rooftop Jazz Night',  null::date,        null, null,                                                1, false)

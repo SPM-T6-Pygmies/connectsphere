@@ -239,8 +239,8 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
 
 1. `supabase db reset`, then `supabase db query --file … --local` for
    `scripts/seed-coordinator-view/seed.sql`, `scripts/seed-venues/seed.sql` and
-   `scripts/seed-venue-search-uat/seed.sql`. The last prints the booking day **D**
-   (14 days from today, Singapore time).
+   `scripts/seed-venue-search-uat/seed.sql`. The last books on day **D**,
+   Wednesday 9 December 2026.
 2. `pnpm dev:local`, sign in as `coordinator@test.com`, approve an **Under Review**
    request from *My requests* and choose **Request a venue** on its event.
 

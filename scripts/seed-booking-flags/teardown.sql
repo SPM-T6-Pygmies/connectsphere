@@ -1,6 +1,6 @@
 -- Undoes the booking-flags seed (seed.sql in this directory): deletes every "Flag Test:"
 -- event (its bookings go with it, by cascade) and every block on Main Hall, Studio or Rooftop Terrace that
--- touches 27 to 38 days from today (the days the cases use), together with the audit rows
+-- touches 22 December 2026 to 2 January 2027, F - 1 to F + 10 (the days the cases use), together with the audit rows
 -- those blocks wrote. Blocks on other venues or other days are left alone.
 --
 --   supabase db query --file scripts/seed-booking-flags/teardown.sql --local
@@ -13,8 +13,8 @@ with doomed as (
   join public.venue_unavailability_slot us on us.venue_unavailability_id = u.venue_unavailability_id
   join public.venue v on v.venue_id = u.venue_id
   where v.location in ('Main Hall', 'Studio', 'Rooftop Terrace')
-    and us.slot_date between (now() at time zone 'Asia/Singapore')::date + 27
-                         and (now() at time zone 'Asia/Singapore')::date + 38
+    and us.slot_date between date '2026-12-22'
+                         and date '2027-01-02'
 ),
 audit as (
   delete from public.audit_record a

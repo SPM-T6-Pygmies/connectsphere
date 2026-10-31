@@ -73,7 +73,7 @@ request.
 **Steps:**
 1. Open Operations Roadmap Conference from `/staff/requester`.
 2. Click **Request a change**.
-3. Tick Date and times: 2026-11-26, 09:00 to 17:00. Tick Expected attendance:
+3. Tick Date and times: 2026-12-24, 09:00 to 17:00. Tick Expected attendance:
    350. Tick Equipment requirements and **Not applicable**.
 4. Click **Submit change request**.
 5. Query the items:
@@ -87,7 +87,7 @@ request.
 - After submitting, you are back on the request, whose header reads **Change
   request pending**. Nothing on the request became editable.
 - Three rows, all `Pending`: `times` holds
-  `[{"date":"2026-11-26","start":"09:00","end":"17:00"}]`,
+  `[{"date":"2026-12-24","start":"09:00","end":"17:00"}]`,
   `expected_attendance` holds `350`, and `equipment_requirements` is null.
 
 ### TC-CHANGE-002: A refused value keeps what was entered (AC1)
@@ -170,7 +170,7 @@ in as `coordinator@test.com`.
 
   | Field | Now | Requested |
   | --- | --- | --- |
-  | Date and times | — | 26 Nov 9:00 am – 5:00 pm |
+  | Date and times | — | 24 Dec 9:00 am – 5:00 pm |
   | Expected attendance | 300 | 350 |
   | Equipment requirements | Projector, stage microphones, livestream setup. | Not applicable |
 
@@ -200,14 +200,14 @@ page with the three choices made.
 - Step 1: **Save decision** becomes clickable.
 - Step 2: the page now says *No change request is waiting on you.* Below it, a
   *Decided* card lists each field with its outcome:
-  - Date and times **Accepted**, 26 Nov 9:00 am – 5:00 pm
+  - Date and times **Accepted**, 24 Dec 9:00 am – 5:00 pm
   - Expected attendance **Declined**, 350, *Reason: The hall seats 300*
   - Equipment requirements **Accepted**, Not applicable
 - Step 3: in *When and how many*, the waiting badge and **Review it** are gone,
   and a plain **Change requests** link remains. The accepted changes show and
   the declined one does not:
-  - Preferred date reads **2026-11-26**
-  - Times reads **26 Nov 9:00 am – 5:00 pm**
+  - Preferred date reads **2026-12-24**
+  - Times reads **24 Dec 9:00 am – 5:00 pm**
   - Expected attendance still reads **300**
 - Step 4: under *Stated by the Organiser* the tab reads *The Organiser did not
   state any equipment needs.*, where it used to list the projector,

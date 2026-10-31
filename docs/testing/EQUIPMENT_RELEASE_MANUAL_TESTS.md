@@ -68,11 +68,11 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 
 | Event | Date | Line | Starts as |
 | --- | --- | --- | --- |
-| Tech Summit Keynote | 2026-11-15 | PA speaker 2 | Reserved 2, **Removal requested** |
-| Product Launch Rehearsal | 2026-11-14 | — | No PA speaker line until TC-RELEASE-002 adds one |
+| Tech Summit Keynote | 2026-12-13 | PA speaker 2 | Reserved 2, **Removal requested** |
+| Product Launch Rehearsal | 2026-12-12 | — | No PA speaker line until TC-RELEASE-002 adds one |
 
-5 PA speakers are owned, none out of service. Tech Summit Keynote's 2 are out on 14 and
-15 Nov, so they count against Product Launch Rehearsal on 14 Nov.
+5 PA speakers are owned, none out of service. Tech Summit Keynote's 2 are out on 12 and
+13 Dec, so they count against Product Launch Rehearsal on 12 Dec.
 
 ---
 

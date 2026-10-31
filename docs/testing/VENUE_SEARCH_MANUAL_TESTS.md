@@ -64,7 +64,7 @@ TC-VSEARCH-014 and TC-VSEARCH-013 test the same rules by time.
 
 **Shared Pre-Conditions:** UAT data seeded (see Prerequisites); log in as
 `coordinator@test.com` and open **Find a venue** (`/staff/coordinator/venues`).
-**D** is 14 days from today, Singapore time, as the seed sets it.
+**D** is Wednesday 9 December 2026, as the seed sets it.
 
 Seeded venues (from `scripts/seed-venue-search-uat/seed.sql`):
 

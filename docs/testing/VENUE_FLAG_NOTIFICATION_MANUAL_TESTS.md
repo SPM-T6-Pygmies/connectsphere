@@ -60,7 +60,7 @@ description's `## Manual test results` table; CI records it in
 
 ### The bookings
 
-From `seed-venue-change-flags`. **F** is 42 days from today, Singapore time. Change Test Hall starts
+From `seed-venue-change-flags`. **F** is Thursday 10 December 2026. Change Test Hall starts
 with Banquet 150; Wi-Fi, Catering area; Step-free access, Hearing loop.
 
 | Booking | Event | Needs | Day, time | Used in |

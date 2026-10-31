@@ -51,7 +51,7 @@ Run the cases in order: each starts from where the one before left off. The setu
    supabase db query --file scripts/seed-equipment/seed.sql --local
    supabase db query --file scripts/seed-booking-cancel/seed.sql --local
    ```
-   **C** is 10 days from today. The Founders' Gala Dinner, in Planning with no safety check, now has
+   **C** is Thursday 17 December 2026. The Founders' Gala Dinner, in Planning with no safety check, now has
    **P** (UAT-44 Harbour Room, C 07:00–12:00, Confirmed) and **Q** (UAT-44 Harbour Room, C 19:00–24:00,
    Confirmed), among others.
 3. Record the blocks that flag P twice and Q once, as Test Venue Staff:

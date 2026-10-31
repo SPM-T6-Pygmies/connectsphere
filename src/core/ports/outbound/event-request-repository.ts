@@ -17,6 +17,10 @@ import type { UserAccountId } from "../../domain/user-account";
  */
 export interface OrganiserEventArrangements {
   readonly status: CoordinatorEventStatus;
+  /** The event's date now, which an accepted change request moves off the date first asked for. Null if it has none. */
+  readonly date: string | null;
+  /** The event's expected attendance now, likewise. Null if not set. */
+  readonly expectedAttendance: number | null;
   /** The venue of each Confirmed booking, on the event or any of its sessions, alphabetically. */
   readonly venues: readonly string[];
   /** Each equipment line with anything reserved, by type. */

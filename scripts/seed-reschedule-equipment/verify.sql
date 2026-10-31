@@ -21,8 +21,8 @@ lines as (
 )
 select check_name, ok
 from (
-  select 1 as n, 'both events dated 15 Nov, 09:00-12:00' as check_name,
-         (select count(*) = 2 from events where preferred_date = date '2026-11-15')
+  select 1 as n, 'both events dated 13 Dec, 09:00-12:00' as check_name,
+         (select count(*) = 2 from events where preferred_date = date '2026-12-13')
          and (select count(*) = 24 from public.event_slot s join events ev using (event_id)) as ok
   union all
   select 2, 'each event has one pending times request',
