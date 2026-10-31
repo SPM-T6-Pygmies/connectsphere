@@ -1,5 +1,6 @@
 import {
   blockedTimes,
+  bookingInPlay,
   holdsSlot,
   slotTime,
   type BookingId,
@@ -68,8 +69,6 @@ export interface ClearedFlag {
   readonly clearedBy: string;
   readonly clearedHow: "coordinator";
 }
-
-const LIVE: readonly BookingStatus[] = ["Requested", "Tentative Hold", "Confirmed"];
 
 /**
  * A `Map`-backed store that obeys the same contract as the Supabase one. It is also the flag
@@ -252,7 +251,7 @@ export class InMemoryVenueUnavailabilityRepository
     slots: readonly SlotCodeOnDate[],
   ): Promise<readonly AffectedBooking[]> {
     return this.bookings
-      .filter((booking) => booking.venueId === venueId && LIVE.includes(booking.status))
+      .filter((booking) => booking.venueId === venueId && bookingInPlay(booking.status))
       .flatMap((booking) =>
         blockedTimes(booking.slots.map(slotTime), slots).map(({ date, start, end }) => ({
           bookingId: booking.id as BookingId,
