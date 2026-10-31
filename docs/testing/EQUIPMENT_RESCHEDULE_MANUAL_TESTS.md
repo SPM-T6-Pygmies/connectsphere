@@ -69,12 +69,12 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 
 | Event | Now | Change request | Lines |
 | --- | --- | --- | --- |
-| Tech Summit Keynote | 15 Nov, 9:00 am – 12:00 pm | **22 Nov**, 9:00 am – 12:00 pm | Projector 4, **New**, 0 reserved; Wireless microphone 6 (*was 4*), **Changed**, 4 reserved; PA speaker 2, **Removal requested**, 2 reserved |
-| Board Strategy Day | 15 Nov, 9:00 am – 12:00 pm | 15 Nov, **2:00 pm – 5:00 pm** | Projector 2 and Wireless microphone 2, both **Reserved** in full |
+| Tech Summit Keynote | 13 Dec, 9:00 am – 12:00 pm | **20 Dec**, 9:00 am – 12:00 pm | Projector 4, **New**, 0 reserved; Wireless microphone 6 (*was 4*), **Changed**, 4 reserved; PA speaker 2, **Removal requested**, 2 reserved |
+| Board Strategy Day | 13 Dec, 9:00 am – 12:00 pm | 13 Dec, **2:00 pm – 5:00 pm** | Projector 2 and Wireless microphone 2, both **Reserved** in full |
 
 30 Wireless microphones are owned. Before the change, Board Strategy Day's microphone
 line shows Available **24**: Tech Summit Keynote has 4 out on the same days. Tech Summit
-Keynote's Projector shows Available **5**, from the other events around 15 Nov.
+Keynote's Projector shows Available **5**, from the other events around 13 Dec.
 
 ---
 
@@ -92,15 +92,15 @@ Keynote's Projector shows Available **5**, from the other events around 15 Nov.
 5. Open **Notifications**.
 
 **Expected Result:**
-- Step 1: the request reads *Date and times · Now 15 Nov 9:00 am – 12:00 pm ·
-  Requested 22 Nov 9:00 am – 12:00 pm*.
+- Step 1: the request reads *Date and times · Now 13 Dec 9:00 am – 12:00 pm ·
+  Requested 20 Dec 9:00 am – 12:00 pm*.
 - Step 2: *No change request is waiting on you.* A *Decided* card shows Date and times
-  **Accepted**, 22 Nov 9:00 am – 12:00 pm.
-- Step 3: Date **2026-11-22** · *2 lines of 2 need attention, 1 rescheduled*.
-- Step 4: the header date is **2026-11-22** and there are two lines:
+  **Accepted**, 20 Dec 9:00 am – 12:00 pm.
+- Step 3: Date **2026-12-20** · *2 lines of 2 need attention, 1 rescheduled*.
+- Step 4: the header date is **2026-12-20** and there are two lines:
   - **Projector**: Requested 4 · Reserved 0 · Available **10** · **New**, as before.
   - **Wireless microphone**: Requested 6 (*was 4*) · Reserved **0** · Available 30 ·
-    **Rescheduled** with *Reserve again for 2026-11-22* · **Reserve 6**.
+    **Rescheduled** with *Reserve again for 2026-12-20* · **Reserve 6**.
   - **PA speaker** is gone.
 - Step 5: at the top, *Wireless microphone released on Tech Summit Keynote* (*The
   event's dates changed, so its reservation was released. 6 requested; reserve them
@@ -120,7 +120,7 @@ Keynote's Projector shows Available **5**, from the other events around 15 Nov.
 3. Read *Tech Summit Keynote* on the **Needs review** list.
 
 **Expected Result:**
-- Step 1: Available **28**, where it was 24: the 4 Tech Summit Keynote held on 15 Nov
+- Step 1: Available **28**, where it was 24: the 4 Tech Summit Keynote held on 13 Dec
   are free again.
 - Step 2: the row reads Requested **6** · Reserved **6** · Available **24**, with no
   Needs attention mark and *Reserved by Test Support Staff*.
@@ -140,8 +140,8 @@ Keynote's Projector shows Available **5**, from the other events around 15 Nov.
 4. Open **Notifications**.
 
 **Expected Result:**
-- Step 1: a *Decided* card shows Date and times **Accepted**, 15 Nov 2:00 pm – 5:00 pm.
-- Step 2: *Board Strategy Day* is still on **Reviewed**: 2026-11-15 · *2 lines, all
+- Step 1: a *Decided* card shows Date and times **Accepted**, 13 Dec 2:00 pm – 5:00 pm.
+- Step 2: *Board Strategy Day* is still on **Reviewed**: 2026-12-13 · *2 lines, all
   reserved*.
 - Step 3: **Projector** 2 · Reserved 2 and **Wireless microphone** 2 · Reserved 2, both
   *Reserved*, with no Needs attention mark.

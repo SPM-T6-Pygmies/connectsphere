@@ -138,14 +138,14 @@ Truth, with the same counts `seed-equipment` gives them.
 ### TC-OOS-007: Units out of service are not counted as available (AC4)
 
 **Steps:**
-1. Open **Needs review**, open *Tech Summit Keynote* (15 Nov) and read **Available** for Projector.
+1. Open **Needs review**, open *Tech Summit Keynote* (13 Dec) and read **Available** for Projector.
 2. On the Equipment page set Projector **Out of service** to `2` and click **Update**.
 3. Open *Tech Summit Keynote* again and read **Available** for Projector.
 4. Set Projector **Out of service** back to `0`, then read **Available** once more.
 
 **Expected Result:**
-- Step 1: **5**. The event's units are out on 14 and 15 Nov, and the busier of the two is
-  14 Nov, with 5 out (3 for the event on 14 Nov and 2 for the one on 15 Nov). 10 owned,
+- Step 1: **5**. The event's units are out on 12 and 13 Dec, and the busier of the two is
+  12 Dec, with 5 out (3 for the event on 12 Dec and 2 for the one on 13 Dec). 10 owned,
   less those 5.
 - Step 3: **3** — the 2 units out of service are left out.
 - Step 4: **5** again.
@@ -193,7 +193,7 @@ it): `delete from equipment_item where type = 'Smoke machine';`.
   reload the card still shows **Owned** `5` and **Out of service** `3`. Nothing was saved.
 - Step 3: "Saved."; *In service: 0 of 3*. Owned may drop to exactly the out-of-service count.
   The card also shows the warning *Not enough in service on these dates* reading
-  *14–15 Nov (2 reserved but only 0 in service): Tech Summit Keynote (15 Nov) has 2
+  *12–13 Dec (2 reserved but only 0 in service): Tech Summit Keynote (13 Dec) has 2
   reserved* — expected (SPM-274 AC7): the save still went through.
 - Step 4: "Saved."; *In service: 5 of 5*, and no warning.
 

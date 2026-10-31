@@ -1,6 +1,6 @@
 -- Undoes the re-request seed (seed.sql in this directory): deletes every "Re-request Test:"
 -- event (its bookings, re-requests and flags go with it, by cascade) and every block on Main
--- Hall or Studio that touches D, 49 days from today, together with the audit rows those blocks
+-- Hall or Studio that touches D, 20 December 2026, together with the audit rows those blocks
 -- wrote. Blocks on other venues or other days are left alone.
 --
 --   supabase db query --file scripts/seed-venue-re-request/teardown.sql --local
@@ -13,7 +13,7 @@ with doomed as (
   join public.venue_unavailability_slot us on us.venue_unavailability_id = u.venue_unavailability_id
   join public.venue v on v.venue_id = u.venue_id
   where v.location in ('Main Hall', 'Studio')
-    and us.slot_date = (now() at time zone 'Asia/Singapore')::date + 49
+    and us.slot_date = date '2026-12-20'
 ),
 audit as (
   delete from public.audit_record a

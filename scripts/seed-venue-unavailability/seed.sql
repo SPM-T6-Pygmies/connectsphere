@@ -1,15 +1,17 @@
 -- Seeds venue unavailability blocks (SPM-21) so the Venue Staff page, the
 -- coordinator's venue search and the booking refusal can be tried in the app:
 --
---   Main Hall   Renovation   09:00-11:30 on five days, starting 14 days from today
+--   Main Hall   Renovation   09:00-11:30 on five days, Wednesday 9 to Sunday 13 December 2026
 --   Main Hall   Maintenance  every open hour (07:00-24:00) on the
 --                            middle day of that week, so 09:00-11:30 that day is covered by two blocks
---   Studio      Safety       13:00-18:00 on one day, already lifted
+--   Studio      Safety       13:00-18:00 on Tuesday 15 December, already lifted
 --
 -- Blocks are 15-minute slots (SPM-321): 09:00-11:30 is codes 36-45, 13:00-18:00 is 52-71 and
 -- 07:00-24:00 is 28-95. Needs the venues' opening hours from seed-venues.
 --
--- Dates are relative to today so the seed never goes stale. Needs the venues
+-- The dates are fixed, after the November 2026 test window, on days no other seed of the
+-- `full` profile (pnpm e2e:data) books
+-- Main Hall or Studio. The first is day D of seed-venue-search-uat. Needs the venues
 -- from seed-venues and the Venue Staff account from the base seed. Run
 -- seed-venues first; this script stops with an error if you did not.
 --
@@ -26,7 +28,7 @@ declare
   v_main_hall bigint;
   v_studio    bigint;
   v_block     bigint;
-  v_start     date := current_date + 14;
+  v_start     date := date '2026-12-09';
 begin
   select user_account_id into v_staff
     from public.user_account where name = 'Test Venue Staff' and client_organisation_id is null;

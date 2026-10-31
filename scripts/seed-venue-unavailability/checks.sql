@@ -15,7 +15,8 @@
 -- is opened 07:00-12:00, 13:00-18:00 and 19:00-24:00 for the run, and put back by the rollback.
 --
 -- Read the message, not the exit code: `supabase db query` exits 0 even when
--- the query fails. Dates are relative to today so it never goes stale.
+-- the query fails. It works on Sunday 13 December 2026 and the two days after, when no seed
+-- books UAT-44 Harbour Room.
 
 do $$
 declare
@@ -23,7 +24,7 @@ declare
   v_coord    bigint;
   v_venue    bigint;
   v_event    bigint;
-  v_day      date := (now() at time zone 'Asia/Singapore')::date + 40;
+  v_day      date := date '2026-12-13';
   v_block    bigint;
   v_second   bigint;
   v_booking  bigint;

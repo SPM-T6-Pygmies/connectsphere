@@ -80,8 +80,8 @@ them, tick the boxes below **and** report each in the PR description's
 
 | Event | Date | Lines (all New, nothing reserved) |
 | --- | --- | --- |
-| Design Sprint Demo | Fri, 20 Nov 2026 | Presentation laptop 6 · PA speaker 3 |
-| Sales Kickoff | Sat, 21 Nov 2026 | Presentation laptop 3 · Wireless microphone 2 |
+| Design Sprint Demo | Fri, 18 Dec 2026 | Presentation laptop 6 · PA speaker 3 |
+| Sales Kickoff | Sat, 19 Dec 2026 | Presentation laptop 3 · Wireless microphone 2 |
 
 Owned: Presentation laptop 8, PA speaker 5, Wireless microphone 30, Projector 10.
 
@@ -101,7 +101,7 @@ SPM-64 AC1, AC5.
 
 **Expected Result:**
 - Step 2: one `equipment-needs-attention` row each for accounts 5 and 10, both `Sent`; no row for any other account.
-- Steps 3–4: each inbox has "Projector requested for Design Sprint Demo", badged **Equipment recorded**, reading "2 requested. Event date: Fri, 20 Nov 2026."
+- Steps 3–4: each inbox has "Projector requested for Design Sprint Demo", badged **Equipment recorded**, reading "2 requested. Event date: Fri, 18 Dec 2026."
 
 **Evidence:**
 - [`TC-EQUIPNOTE-001_step3-support-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-001_step3-support-inbox.png)
@@ -150,7 +150,7 @@ SPM-65 AC1, AC3.
 **Expected Result:**
 - Step 1: no `equipment-decided` row — the projector still needs attention.
 - Step 2: one `equipment-decided` row, for account 2 only, `Sent`.
-- Step 3: "Equipment reserved for Design Sprint Demo", badged **Equipment decided**, reading "PA speaker: 3 reserved by Test Support Staff. Presentation laptop: 6 reserved by Test Support Staff. Projector: 2 reserved by Test Support Staff. Event date: Fri, 20 Nov 2026."
+- Step 3: "Equipment reserved for Design Sprint Demo", badged **Equipment decided**, reading "PA speaker: 3 reserved by Test Support Staff. Presentation laptop: 6 reserved by Test Support Staff. Projector: 2 reserved by Test Support Staff. Event date: Fri, 18 Dec 2026."
 
 **Evidence:**
 - [`TC-EQUIPNOTE-003_step3-coordinator-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-003_step3-coordinator-inbox.png)
@@ -163,7 +163,7 @@ SPM-65 AC1, AC3.
 
 SPM-65 AC3, AC5, AC6.
 
-**Preconditions:** TC-EQUIPNOTE-003 run (*Design Sprint Demo*'s 6 laptops leave 2 free on 20 Nov).
+**Preconditions:** TC-EQUIPNOTE-003 run (*Design Sprint Demo*'s 6 laptops leave 2 free on 18 Dec).
 
 **Steps:**
 1. Sign in as `support2@test.com` and open *Sales Kickoff*.
@@ -172,7 +172,7 @@ SPM-65 AC3, AC5, AC6.
 4. Mark the Sales Kickoff notice read and reload, then click it.
 
 **Expected Result:**
-- Step 3: "Equipment for Sales Kickoff: 1 of 2 lines unfulfilled", reading "Presentation laptop: unfulfilled (only 2 available), marked by Test Support Staff 2. Wireless microphone: 2 reserved by Test Support Staff 2. Event date: Sat, 21 Nov 2026."
+- Step 3: "Equipment for Sales Kickoff: 1 of 2 lines unfulfilled", reading "Presentation laptop: unfulfilled (only 2 available), marked by Test Support Staff 2. Wireless microphone: 2 reserved by Test Support Staff 2. Event date: Sat, 19 Dec 2026."
 - Step 4: still read after the reload; clicking it opens *Sales Kickoff* on its **Equipment** tab, where **Presentation laptop** shows **Unfulfilled** with **Edit** and **Remove**.
 
 **Evidence:**
@@ -198,9 +198,9 @@ SPM-64 AC2.
 **Expected Result:**
 - Steps 1, 2 and 3: each adds two new `equipment-needs-attention` rows, for accounts 5 and 10.
 - Step 4: the inbox has:
-  - "Presentation laptop changed on Sales Kickoff" — "Now 2 requested, was 3. The earlier decision needs re-review. Event date: Sat, 21 Nov 2026."
-  - "Presentation laptop changed on Sales Kickoff" — "Now 1 requested, was 2. The earlier decision needs re-review. Event date: Sat, 21 Nov 2026."
-  - "Projector removal requested on Design Sprint Demo" — "The coordinator asked to remove this line. Its reservation needs re-review. Event date: Fri, 20 Nov 2026."
+  - "Presentation laptop changed on Sales Kickoff" — "Now 2 requested, was 3. The earlier decision needs re-review. Event date: Sat, 19 Dec 2026."
+  - "Presentation laptop changed on Sales Kickoff" — "Now 1 requested, was 2. The earlier decision needs re-review. Event date: Sat, 19 Dec 2026."
+  - "Projector removal requested on Design Sprint Demo" — "The coordinator asked to remove this line. Its reservation needs re-review. Event date: Fri, 18 Dec 2026."
 
 **Evidence:**
 - [`TC-EQUIPNOTE-005_step4-support-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-005_step4-support-inbox.png)
@@ -226,11 +226,11 @@ SPM-64 AC1, AC2.
 - Step 2: four new rows — two per save.
 - Step 3: four new rows — two for the add, two for the removal.
 - Step 4: the inbox has, newest first:
-  - "Wireless microphone removed from Design Sprint Demo" — "The coordinator removed this line. Nothing was reserved, so there is nothing to do. Event date: Fri, 20 Nov 2026."
-  - "Wireless microphone requested for Design Sprint Demo" — "4 requested. Event date: Fri, 20 Nov 2026."
-  - "Presentation laptop changed on Design Sprint Demo" — "Now 6 requested, was 5. That is what was decided, so the earlier decision stands. Event date: Fri, 20 Nov 2026."
-  - "Presentation laptop changed on Design Sprint Demo" — "Now 5 requested, was 6. The earlier decision needs re-review. Event date: Fri, 20 Nov 2026."
-  - "Projector removal withdrawn on Design Sprint Demo" — "The coordinator is keeping this line. Its reservation stands. Event date: Fri, 20 Nov 2026."
+  - "Wireless microphone removed from Design Sprint Demo" — "The coordinator removed this line. Nothing was reserved, so there is nothing to do. Event date: Fri, 18 Dec 2026."
+  - "Wireless microphone requested for Design Sprint Demo" — "4 requested. Event date: Fri, 18 Dec 2026."
+  - "Presentation laptop changed on Design Sprint Demo" — "Now 6 requested, was 5. That is what was decided, so the earlier decision stands. Event date: Fri, 18 Dec 2026."
+  - "Presentation laptop changed on Design Sprint Demo" — "Now 5 requested, was 6. The earlier decision needs re-review. Event date: Fri, 18 Dec 2026."
+  - "Projector removal withdrawn on Design Sprint Demo" — "The coordinator is keeping this line. Its reservation stands. Event date: Fri, 18 Dec 2026."
 
 **Evidence:**
 - [`TC-EQUIPNOTE-006_step4-support-inbox.png`](../screenshots/2026-10-13_TC-EQUIPNOTE-006_step4-support-inbox.png)

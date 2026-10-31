@@ -1,7 +1,8 @@
 -- SPM-251 manual tests (docs/testing/VENUE_RE_REQUEST_MANUAL_TESTS.md): an event whose two
 -- bookings are flagged, for its coordinator to re-request. Every event is named
--- "Re-request Test: ...". D is 49 days from today in Singapore time, clear of the days the other
--- seeds use (up to +46).
+-- "Re-request Test: ...". D is Sunday 20 December 2026: fixed, after the November 2026 test
+-- window, and a day no other seed of the `full` profile (pnpm e2e:data) books in the afternoon
+-- at Main Hall or Studio.
 --
 --   Event                          Coordinator          Times, needs                  Venue      D           Status
 --   Re-request Test: Tech Summit   Test Coordinator     D 14:00-17:00, 110, Banquet   Main Hall  13:00-18:00 Confirmed, Theatre (A)
@@ -19,12 +20,12 @@
 --
 --   supabase db query --file scripts/seed-venue-re-request/seed.sql --local
 --
--- Re-running replaces the events, their bookings and re-requests, and the blocks on D, with the
--- dates measured from today again. List what loaded with show.sql; undo with teardown.sql.
+-- Re-running replaces the events, their bookings and re-requests, and the blocks on D. List
+-- what loaded with show.sql; undo with teardown.sql.
 
 do $$
 declare
-  d date := (now() at time zone 'Asia/Singapore')::date + 49;
+  d date := date '2026-12-20';
   v_staff bigint := (select user_account_id from public.user_account where name = 'Test Venue Staff');
   v_organiser bigint;
   v_organisation bigint;

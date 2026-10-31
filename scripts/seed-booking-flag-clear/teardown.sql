@@ -1,4 +1,4 @@
--- Undoes the SPM-310 cases: the Harbour Room blocks on C (10 days out) and every flag row on the
+-- Undoes the SPM-310 cases: the Harbour Room blocks on C (17 December 2026) and every flag row on the
 -- Founders' Gala Dinner's bookings, so blocks.sql can be run again. Leaves the bookings to
 -- seed-booking-cancel (its teardown.sql removes them).
 --
@@ -10,7 +10,7 @@ with doomed as (
   join public.venue_unavailability_slot us on us.venue_unavailability_id = u.venue_unavailability_id
   join public.venue v on v.venue_id = u.venue_id
   where v.location = 'UAT-44 Harbour Room'
-    and us.slot_date = (now() at time zone 'Asia/Singapore')::date + 10
+    and us.slot_date = date '2026-12-17'
 ),
 audit as (
   delete from public.audit_record a
