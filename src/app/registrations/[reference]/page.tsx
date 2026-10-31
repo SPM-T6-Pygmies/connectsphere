@@ -65,7 +65,7 @@ export default async function RegistrationPage({
           This event&rsquo;s details aren&rsquo;t available right now
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          Your registration is kept. Any change to the event is emailed to you, so check your inbox for the latest.
+          Your registration is kept. The event may have changed or been cancelled, so check your inbox for the latest email about it.
         </p>
         <Link
           href="/events"

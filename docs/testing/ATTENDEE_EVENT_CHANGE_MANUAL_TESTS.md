@@ -207,7 +207,7 @@ TC-ATTCHANGE-001 step 1. Keep the confirmation email open.
 
 **Expected Result:**
 - Step 3: *This event's details aren't available right now* and *Your
-  registration is kept. Any change to the event is emailed to you…*. Not *We
+  registration is kept. The event may have changed or been cancelled…*. Not *We
   couldn't find that registration*.
 - Step 4: *We couldn't find that registration*.
 
