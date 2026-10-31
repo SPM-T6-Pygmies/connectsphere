@@ -8,6 +8,7 @@ import { venueBuffersLocked } from "@/core/domain/venue-buffers";
 import type { VenueCatalogue } from "@/core/ports/outbound/venue-catalogue";
 
 import type { SupabaseServerClient } from "./client";
+import { toKey } from "./to-key";
 import { toVenue, toVenueArgument, type VenueRow } from "./venue-mapper";
 
 // Raised by supabase/migrations/20260930000000_venue_catalogue_maintenance.sql.
@@ -40,7 +41,10 @@ export class SupabaseVenueCatalogue implements VenueCatalogue {
   }
 
   async find(id: VenueId): Promise<Venue | null> {
-    const { data, error } = await this.client.rpc("venue_catalogue", { p_venue_id: Number(id) });
+    const key = toKey(id);
+    if (key === null) return null;
+
+    const { data, error } = await this.client.rpc("venue_catalogue", { p_venue_id: key });
     if (error) throw new Error(`Failed to read venue: ${error.message}`, { cause: error });
 
     const [row] = data as VenueRow[];
