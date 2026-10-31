@@ -8,7 +8,7 @@ email (email only, no Inbox: an Attendee has no account) when:
 
 | Change | Subject | Carries |
 | --- | --- | --- |
-| The coordinator accepts new **Date and times** on a change request (a reschedule; SPM-54 is cancelled) | `Rescheduled: <event>` | the new date, times (GMT+8) and venue, and the registration link |
+| The coordinator accepts new **Date and times** on a change request (a reschedule; SPM-54 is cancelled) **and the event is Confirmed with them**: at once if it never left Confirmed, otherwise when the coordinator confirms it again | `Rescheduled: <event>` | the new date, times (GMT+8) and venue, and the registration link |
 | The coordinator cancels the event (SPM-55) | `Cancelled: <event>` | that it will not take place, and the registration link |
 
 A withdrawn registration gets nothing. Neither email carries an internal
@@ -22,7 +22,8 @@ event: a change request's times need at least one date (as in SPM-68).
 event only), that one failed send does not stop the rest, the wording and
 HTML escaping, email-only workflows, and that an attendance-only or declined
 decision emails no one: `AttendeeChangeAnnouncer`,
-`DecideChangeRequestUseCase emails the attendees of a reschedule`,
+`DecideChangeRequestUseCase tells the attendees of a reschedule once the event is Confirmed`,
+`ConfirmEventUseCase tells the attendees of a reschedule once it is confirmed`,
 `CancelEventUseCase emails the attendees`,
 `eventRescheduledForAttendeeEmail`, `eventCancelledForAttendeeEmail`,
 `attendee event change workflows` and
@@ -56,7 +57,8 @@ addresses whose inboxes you can read. The steps use `<you+a@…>` and
    ```
 2. Load the fixture below. It makes Operations Roadmap Conference **Confirmed**
    and open for registration: 25 Nov 2026 09:00–17:00 at **Studio**, with an
-   Approved safety check (so accepting new times does not also lapse it).
+   Approved safety check. Accepting new times flags its booking and sends it back
+   to Planning, so attendees are told when you confirm it again (TC-ATTCHANGE-001).
    ```bash
    awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md \
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
@@ -125,7 +127,7 @@ Run the cases in order.
 
 ## Test Cases
 
-### TC-ATTCHANGE-001: Accepting new times emails every Registered attendee the new date, time and venue (AC1, AC2, AC3)
+### TC-ATTCHANGE-001: Confirming a rescheduled event emails every Registered attendee the new date, time and venue (AC1, AC2, AC3)
 
 **Preconditions:** Setup done. Signed out, in a private window.
 
@@ -139,17 +141,22 @@ Run the cases in order.
 4. Sign in as `coordinator@test.com`, open
    `/staff/coordinator/events/1/change-request`, **Accept** Date and times
    and **Save decision**.
-5. Open both inboxes.
+5. Open both inboxes: nothing yet. The event is back in Planning, so its
+   public page no longer lists it.
+6. As the coordinator, clear the flag on the Studio booking, then **Confirm**
+   the event.
+7. Open both inboxes.
 
 **Expected Result:**
-- Step 5: `<you+a@…>` gets *Rescheduled: Operations Roadmap Conference*:
+- Step 5: neither inbox has a reschedule email.
+- Step 7: `<you+a@…>` gets *Rescheduled: Operations Roadmap Conference*:
   *Hi Mei Lin*, *…has been rescheduled. Your registration still stands.*,
   *Date: Thursday, 3 December 2026*, *Time: 10:00 am – 3:00 pm (GMT+8)*,
   *Venue: Studio*, and a `/registrations/<reference>` link that opens Mei's
   registration. Nothing about why, and no other attendee.
 - `<you+b@…>` (withdrawn) gets no reschedule email.
 
-**Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
+**Status:** [ ] Pass [ ] Fail — to re-run: the email now goes out on confirmation (previously run 30/10/2026 with the email sent on acceptance)
 
 ### TC-ATTCHANGE-002: Cancelling emails every Registered attendee (AC1, AC3)
 

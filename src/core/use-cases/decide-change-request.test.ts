@@ -551,7 +551,7 @@ describe("DecideChangeRequestUseCase tells the Organiser of a lapse (SPM-111)", 
   });
 });
 
-describe("DecideChangeRequestUseCase emails the attendees of a reschedule (SPM-69)", () => {
+describe("DecideChangeRequestUseCase tells the attendees of a reschedule once the event is Confirmed (SPM-69)", () => {
   const decide = (useCase: DecideChangeRequestUseCase, decisions: readonly ItemDecision[]) =>
     useCase.execute({ eventId: EVENT, changeRequestId: "4", userAccountId: COORDINATOR, decisions });
   const attendee = (id: string) =>
@@ -562,9 +562,18 @@ describe("DecideChangeRequestUseCase emails the attendees of a reschedule (SPM-6
       attendeeEmail: attendeeEmail(`${id}@example.com`),
       registeredAt: new Date("2026-10-20T02:00:00Z"),
     });
+  /** The decision marks the reschedule in the store; the in-memory store is told here. */
+  const marked = (overrides: Partial<SeedCoordinatorEvent> = {}) => event({ rescheduleUnannounced: true, ...overrides });
+  const lapse = {
+    eventId: eventId(EVENT),
+    eventName: "Annual Conference",
+    eventRequestId: "request-1",
+    owningOrganiserUserAccountId: userAccountId("organiser-1"),
+    lapsed: [{ kind: "flagged-booking", venueLocation: "Main Hall" }] as const,
+  };
 
-  it("AC1, AC2: an accepted time change emails each Registered attendee the new times and the venue", async () => {
-    const { useCase, notifier, registrations } = build(event(), request(times));
+  it("AC1, AC2: an accepted time change that leaves the event Confirmed emails each Registered attendee the new times and the venue", async () => {
+    const { useCase, notifier, registrations } = build(marked(), request(times));
     await registrations.save(attendee("a"));
     await registrations.save(attendee("b"));
 
@@ -581,6 +590,26 @@ describe("DecideChangeRequestUseCase emails the attendees of a reschedule (SPM-6
       },
       expect.objectContaining({ registrationId: "b" }),
     ]);
+  });
+
+  it("an accepted time change that lapses the event emails no attendee: they are told once it is confirmed again", async () => {
+    const { useCase, notifier, registrations, lapses } = build(marked(), request(times));
+    lapses.record("change-request", "4", [lapse]);
+    await registrations.save(attendee("a"));
+
+    const outcome = await decide(useCase, [{ field: "times", outcome: "Accepted" }]);
+
+    expect(outcome.lapsed).toBe(true);
+    expect(notifier.attendeesToldRescheduled).toEqual([]);
+  });
+
+  it("an accepted time change on an event still in Planning emails no attendee", async () => {
+    const { useCase, notifier, registrations } = build(marked({ status: "Planning" }), request(times));
+    await registrations.save(attendee("a"));
+
+    await decide(useCase, [{ field: "times", outcome: "Accepted" }]);
+
+    expect(notifier.attendeesToldRescheduled).toEqual([]);
   });
 
   it("AC1: an accepted attendance-only change emails no attendee", async () => {

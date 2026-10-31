@@ -837,7 +837,13 @@ export async function buildViewCoordinatorEvent(): Promise<ViewCoordinatorEventU
 export async function buildConfirmEvent(): Promise<ConfirmEventUseCase> {
   const { events, readiness, safetyChecks } = await coordinatorAdapters();
 
-  return new ConfirmEventUseCase({ events, readiness, safetyChecks, notifier: recordedNotifier() });
+  return new ConfirmEventUseCase({
+    events,
+    readiness,
+    safetyChecks,
+    notifier: recordedNotifier(),
+    attendees: attendeeAnnouncer(await createSupabaseServerClient()),
+  });
 }
 
 /** SPM-51: the assigned coordinator marks a Confirmed event completed once it has ended. */
