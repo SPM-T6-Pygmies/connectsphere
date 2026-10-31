@@ -1,4 +1,4 @@
-import type { BookingStatus } from "./booking";
+import { bookingInPlay, type BookingStatus } from "./booking";
 import type { CoordinatorEventStatus } from "./coordinator-event";
 import { isReservedInFull, type EquipmentRequirement } from "./equipment-requirement";
 import { EventNotAwaitingSafetyCheckError, SafetyCheckCommentsRequiredError } from "./errors";
@@ -34,7 +34,7 @@ export interface SafetyCheckCandidate {
 
 /** A booking still in play. A rejected, released or cancelled one says nothing about the venue any more. */
 function isLive(booking: SafetyCheckBooking): boolean {
-  return booking.status === "Requested" || booking.status === "Tentative Hold" || booking.status === "Confirmed";
+  return bookingInPlay(booking.status);
 }
 
 /**

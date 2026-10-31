@@ -1,4 +1,4 @@
-import { checkLayoutCapacity, type BookingStatus } from "./booking";
+import { bookingInPlay, checkLayoutCapacity, type BookingStatus } from "./booking";
 import type { Venue } from "./venue";
 import { parseOptionList } from "./venue-options";
 
@@ -95,5 +95,5 @@ function listRow(
  * Rejected, Released or Cancelled one is over, so a verdict on it would only mislead.
  */
 export function suitabilityApplies(status: BookingStatus): boolean {
-  return status === "Requested" || status === "Tentative Hold" || status === "Confirmed";
+  return bookingInPlay(status);
 }

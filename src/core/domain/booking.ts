@@ -587,13 +587,17 @@ export function resolveHold(
 }
 
 /**
- * SPM-20: whether the assigned coordinator can still cancel a booking -- one
- * that holds its slots, or may yet: a pending request, a hold or a confirmed
- * booking. A rejected, released, cancelled or expired one holds nothing, so
- * there is nothing left to free.
+ * A booking still in play: one that holds its slots, or may yet -- a pending
+ * request, a hold or a confirmed booking. A rejected, released, cancelled or
+ * expired one holds nothing.
  */
-export function bookingCancellable(status: BookingStatus): boolean {
+export function bookingInPlay(status: BookingStatus): boolean {
   return status === "Requested" || status === "Tentative Hold" || status === "Confirmed";
+}
+
+/** SPM-20: the assigned coordinator can cancel a booking still in play. Any other has nothing left to free. */
+export function bookingCancellable(status: BookingStatus): boolean {
+  return bookingInPlay(status);
 }
 
 /**
