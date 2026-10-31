@@ -13,6 +13,7 @@ import {
   InvalidBookingDateError,
   InvalidBookingTimeError,
   NoBookingSlotsError,
+  ReRequestNotHoldableError,
   RoomLayoutRequiredError,
   UnsupportedRoomLayoutError,
   VenueClosedError,
@@ -35,47 +36,6 @@ import type { UserAccountId } from "./user-account";
 import type { Venue, VenueId } from "./venue";
 import { bufferMinutes } from "./venue-buffers";
 
-/** `booking_slot_value_chk`: venues are booked in three fixed slots a day (#50). */
-export type BookingSlot = "AM" | "PM" | "Night";
-
-/** In the order they fall in a day, which is also the order a request is shown in. */
-export const BOOKING_SLOTS: readonly BookingSlot[] = ["AM", "PM", "Night"];
-
-/**
- * Each slot's span as `HH:MM` wall-clock time in Singapore, as the `slot` table
- * holds it. Night ends at midnight, written `24:00` so it falls after its start.
- */
-export const SLOT_HOURS: Readonly<Record<BookingSlot, { start: string; end: string }>> = {
-  AM: { start: "07:00", end: "12:00" },
-  PM: { start: "13:00", end: "18:00" },
-  Night: { start: "19:00", end: "24:00" },
-};
-
-/**
- * The instant `slot` starts on its date. Singapore observes no daylight
- * saving, so its +08:00 offset is exact (#36).
- */
-export function slotStartsAt({ date, slot }: SlotOnDate): Date {
-  return new Date(`${date}T${SLOT_HOURS[slot].start}:00+08:00`);
-}
-
-/** The instant `slot` ends on its date, on the same +08:00 footing as `slotStartsAt`. */
-export function slotEndsAt({ date, slot }: SlotOnDate): Date {
-  return new Date(`${date}T${SLOT_HOURS[slot].end}:00+08:00`);
-}
-
-/**
- * `slot`'s hours as a time of day, so a slot booking can be compared with
- * opening hours until bookings move to times (SPM-320, SPM-324).
- */
-export function slotRange(slot: BookingSlot): TimeRange {
-  return { start: toMinutes(SLOT_HOURS[slot].start) ?? 0, end: toMinutes(SLOT_HOURS[slot].end) ?? 0 };
-}
-
-export function isBookingSlot(raw: string): raw is BookingSlot {
-  return (BOOKING_SLOTS as readonly string[]).includes(raw);
-}
-
 /** `booking_status_chk`. */
 export type BookingStatus =
   | "Requested"
@@ -89,21 +49,11 @@ export type BookingStatus =
 
 export type BookingId = Brand<string, "BookingId">;
 
-/** One slot on one calendar day. `date` is `YYYY-MM-DD`, Singapore time (#36). */
-export interface SlotOnDate {
-  readonly date: string;
-  readonly slot: BookingSlot;
-}
-
 /**
  * The hours `slot` covers on its date, so a block's slot can be compared with a booking's time.
- * A slot is AM, PM or Night, or a 15-minute code '0' to '95' (SPM-331): a block recorded since
- * SPM-321 is on the codes, and a booking's own slots are too once converted (SPM-324).
+ * A slot is a 15-minute code, '0' (00:00-00:15) to '95' (23:45-24:00) (SPM-331).
  */
 export function slotTime({ date, slot }: { readonly date: string; readonly slot: string }): TimeRangeOnDate {
-  if (isBookingSlot(slot)) {
-    return { date, ...SLOT_HOURS[slot] };
-  }
   const n = Number(slot);
   if (!Number.isInteger(n) || String(n) !== slot || n < 0 || n >= END_OF_DAY / GRID_MINUTES) {
     throw new Error(`Unknown slot code "${slot}"`);
@@ -113,6 +63,8 @@ export function slotTime({ date, slot }: { readonly date: string; readonly slot:
 
 /** Time some existing booking at the venue already has (SPM-324). */
 export interface OccupiedTime extends TimeRangeOnDate {
+  /** The booking that has it; a read that does not say, such as the venue calendar's, leaves it out. */
+  readonly bookingId?: string;
   readonly status: BookingStatus;
   /** When a Tentative Hold lapses; null when none is set, and for every other status. */
   readonly holdExpiresAt: Date | null;
@@ -131,6 +83,8 @@ export interface BookingRequest {
   readonly times: readonly TimeRangeOnDate[];
   readonly requestedBy: UserAccountId;
   readonly status: "Requested";
+  /** SPM-251: the flagged booking this request asks to replace; null for an ordinary request. */
+  readonly replacesBookingId: BookingId | null;
 }
 
 /**
@@ -367,8 +321,7 @@ export function clashDates(dates: readonly string[]): string[] {
 
 /**
  * SPM-21 AC12, SPM-324: the parts of `times` that blocks over these slots
- * cover, joined into ranges. Blocks are compared by their hours, whether they are on
- * AM, PM and Night or on the 15-minute codes (SPM-321).
+ * cover, joined into ranges. Blocks are compared by their hours (SPM-321).
  */
 export function blockedTimes(
   times: readonly TimeRangeOnDate[],
@@ -417,6 +370,10 @@ function sharedTimes(
  * SPM-55 AC6: a Cancelled event takes no new requests, whatever else it asks
  * for. `coordinator_submit_booking_request` restates this under a lock on the
  * event, so a request racing the cancellation is refused too.
+ *
+ * SPM-251 AC5: a re-request never clashes with the booking it replaces, so
+ * asking for the same venue at an overlapping time is not refused for it.
+ * Every other booking still clashes.
  */
 export function requestVenueBooking(input: {
   readonly eventId: string;
@@ -427,7 +384,10 @@ export function requestVenueBooking(input: {
   readonly requestedBy: UserAccountId;
   readonly occupied: readonly OccupiedTime[];
   readonly now: Date;
+  /** SPM-251: the flagged booking being replaced; absent for an ordinary request. */
+  readonly replacing?: BookingId | null;
 }): BookingRequest {
+  const replacing = input.replacing ?? null;
   if (input.eventStatus === "Cancelled") {
     throw new CancelledEventBookingError();
   }
@@ -447,7 +407,12 @@ export function requestVenueBooking(input: {
   }
 
   const buffers = bufferMinutes(input.venue);
-  const clashes = paddedClashingTimes(times, input.occupied, buffers, input.now);
+  const clashes = paddedClashingTimes(
+    times,
+    input.occupied.filter((time) => replacing === null || time.bookingId !== replacing),
+    buffers,
+    input.now,
+  );
   if (clashes.length > 0) {
     throw new VenueSlotUnavailableError(clashes, buffers.setup > 0 || buffers.turnaround > 0);
   }
@@ -459,6 +424,7 @@ export function requestVenueBooking(input: {
     times,
     requestedBy: input.requestedBy,
     status: "Requested",
+    replacesBookingId: replacing,
   };
 }
 
@@ -484,6 +450,8 @@ export interface BookingForDecision {
   readonly status: BookingStatus;
   /** In date then start order. */
   readonly times: readonly TimeRangeOnDate[];
+  /** SPM-251: the flagged booking a re-request replaces; absent or null for an ordinary request. */
+  readonly replaces?: { readonly id: BookingId } | null;
 }
 
 export type BookingDecision =
@@ -521,6 +489,11 @@ export interface DecidedBooking {
  * store's call at the moment of the decision (SPM-19), not this function's.
  * Rejecting must say why -- the reason is what the coordinator acts on -- and holds
  * nothing, so it needs no clash check.
+ *
+ * SPM-251 AC10: a re-request is approved or rejected, never held. A hold would
+ * sit beside the booking it replaces, and on the same venue and time the
+ * one-booking-per-slot rule cannot allow both. Approving it replaces that
+ * booking, which the store does in the same transaction (AC6).
  */
 export function decideBooking(
   booking: BookingForDecision,
@@ -534,6 +507,9 @@ export function decideBooking(
 
   if (decision.kind === "approve" || decision.kind === "hold") {
     if (decision.kind === "hold") {
+      if ((booking.replaces ?? null) !== null) {
+        throw new ReRequestNotHoldableError();
+      }
       return {
         id: booking.id,
         status: "Tentative Hold",

@@ -2,12 +2,16 @@ import type { Novu } from "@novu/api";
 import type { TriggerEventRequestDto, TriggerEventResponseDto } from "@novu/api/models/components";
 
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
+import { CHANGE_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-request-decided";
+import { CHANGE_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-requested";
 import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/clarification-requested";
 import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { EQUIPMENT_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-decided";
 import { EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
+import { EVENT_CANCELLED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-cancelled";
 import { EVENT_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-confirmed";
 import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
+import { EVENT_RESCHEDULED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-rescheduled";
 import { HOLD_EXPIRED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/hold-expired";
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { ORGANISER_MESSAGE_POSTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
@@ -20,12 +24,16 @@ import { VENUE_BOOKING_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/work
 import { VENUE_BOOKING_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-requested";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestDecidedNotice,
+  ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -134,8 +142,24 @@ export class NovuNotifier implements Notifier {
     return this.trigger(EVENT_CONFIRMED_WORKFLOW_ID, notice);
   }
 
+  eventRescheduled(notice: EventRescheduledNotice): Promise<void> {
+    return this.trigger(EVENT_RESCHEDULED_WORKFLOW_ID, notice);
+  }
+
+  eventCancelled(notice: EventCancelledNotice): Promise<void> {
+    return this.trigger(EVENT_CANCELLED_WORKFLOW_ID, notice);
+  }
+
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
     return this.trigger(VENUE_BOOKING_FLAGGED_WORKFLOW_ID, notice);
+  }
+
+  changeRequested(notice: ChangeRequestedNotice): Promise<void> {
+    return this.trigger(CHANGE_REQUESTED_WORKFLOW_ID, notice);
+  }
+
+  changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
+    return this.trigger(CHANGE_REQUEST_DECIDED_WORKFLOW_ID, notice);
   }
 
   /**

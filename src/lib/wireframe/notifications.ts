@@ -20,7 +20,9 @@ export type NotificationTrigger =
   | "Equipment decided"
   | "Event confirmed"
   | "Change requested"
+  | "Change request decided"
   | "Event rescheduled"
+  | "Event cancelled"
   | "Registration opened"
   | "Capacity reached"
   | "Availability changed";

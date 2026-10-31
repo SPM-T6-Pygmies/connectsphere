@@ -32,11 +32,34 @@ function fakeClient(answers: Record<string, RpcResult>) {
   return { client, calls };
 }
 
+describe("SupabaseChangeRequestRepository submit id (SPM-67)", () => {
+  it("returns the stored request's id, so the coordinator's notice can name it", async () => {
+    const { client } = fakeClient({ submit_change_request: { data: 11, error: null } });
+
+    const id = await new SupabaseChangeRequestRepository(client).submit({
+      eventRequestId: eventRequestId("7"),
+      requestedBy: userAccountId("6"),
+      changes: [{ field: "expected_attendance", value: 150 }],
+    });
+
+    expect(id).toBe("11");
+  });
+});
+
 describe("SupabaseChangeRequestRepository (SPM-52)", () => {
   it("reads the event opened from the request through organiser_change_request_target", async () => {
     const { client, calls } = fakeClient({
       organiser_change_request_target: {
-        data: [{ event_id: 2, status: "Confirmed", owning_organiser_user_account_id: 6, has_open_change_request: true }],
+        data: [
+          {
+            event_id: 2,
+            status: "Confirmed",
+            owning_organiser_user_account_id: 6,
+            has_open_change_request: true,
+            event_name: "Marina Bay Gala",
+            assigned_coordinator_user_account_id: 4,
+          },
+        ],
         error: null,
       },
     });
@@ -48,6 +71,8 @@ describe("SupabaseChangeRequestRepository (SPM-52)", () => {
       status: "Confirmed",
       owningOrganiserUserAccountId: "6",
       hasOpenChangeRequest: true,
+      eventName: "Marina Bay Gala",
+      assignedCoordinatorUserAccountId: "4",
     });
     expect(calls).toEqual([{ name: "organiser_change_request_target", args: { p_event_request_id: 7 } }]);
   });
@@ -122,6 +147,7 @@ describe("SupabaseChangeRequestRepository decisions (SPM-100)", () => {
           {
             change_request_id: 4,
             created_at: "2026-10-27T02:00:00+00:00",
+            requesting_user_account_id: 6,
             items: [
               { field_name: "expected_attendance", requested_value: "350", decision: "Rejected", decision_reason: "Too many" },
               { field_name: "equipment_requirements", requested_value: null, decision: "Accepted", decision_reason: null },
@@ -138,6 +164,7 @@ describe("SupabaseChangeRequestRepository decisions (SPM-100)", () => {
       {
         id: "4",
         submittedAt: new Date("2026-10-27T02:00:00Z"),
+        requestedBy: "6",
         items: [
           { change: { field: "expected_attendance", value: 350 }, decision: "Declined", reason: "Too many" },
           { change: { field: "equipment_requirements", value: null }, decision: "Accepted", reason: null },

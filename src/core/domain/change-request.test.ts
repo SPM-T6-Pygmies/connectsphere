@@ -35,6 +35,8 @@ function target(overrides: Partial<ChangeRequestTarget> = {}): ChangeRequestTarg
     status: "Confirmed",
     owningOrganiserUserAccountId: owner,
     hasOpenChangeRequest: false,
+    eventName: "Marina Bay Gala",
+    assignedCoordinatorUserAccountId: null,
     ...overrides,
   };
 }
@@ -215,6 +217,7 @@ function pending(...changes: RequestedChange[]): ChangeRequest {
   return {
     id: changeRequestId("4"),
     submittedAt: new Date("2026-10-27T02:00:00Z"),
+    requestedBy: userAccountId("organiser-1"),
     items: changes.map((change) => ({ change, decision: "Pending", reason: null })),
   };
 }
@@ -234,7 +237,7 @@ describe("changeRequestStatus (SPM-100)", () => {
     const request = pending(timesChange, venueChange);
     expect(changeRequestStatus(request)).toBe("Pending");
     expect(
-      changeRequestStatus({ ...request, items: [{ ...request.items[0], decision: "Accepted" }, request.items[1]] }),
+      changeRequestStatus({ ...request, items: [{ change: request.items[0].change, decision: "Accepted", reason: null }, request.items[1]] }),
     ).toBe("Pending");
   });
 

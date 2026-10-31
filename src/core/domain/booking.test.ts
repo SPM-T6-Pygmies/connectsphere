@@ -17,13 +17,11 @@ import {
   paddedClashingTimes,
   requestVenueBooking,
   resolveHold,
-  slotTime,
   type BookingForDecision,
   type BookingForHoldResolution,
   type BookingId,
   type BookingStatus,
   type OccupiedTime,
-  type SlotOnDate,
 } from "./booking";
 import {
   BookingNotCancellableError,
@@ -44,7 +42,10 @@ import {
   VenueSlotUnavailableError,
 } from "./errors";
 import type { CoordinatorEventStatus } from "./coordinator-event";
+import type { TimeRangeOnDate } from "./event-times";
 import type { OpeningWindow } from "./opening-hours";
+import { slotCodesFor } from "./slot-grid";
+import { toMinutes } from "./time-of-day";
 import { userAccountId } from "./user-account";
 import { venueId, type Venue } from "./venue";
 
@@ -70,17 +71,22 @@ const NOW = new Date("2026-10-01T09:00:00+08:00");
 const BEFORE_NOW = new Date("2026-10-01T08:59:59+08:00");
 const AFTER_NOW = new Date("2026-10-01T09:00:01+08:00");
 
+/** Three times of day the cases ask for: a morning, an afternoon and an evening that ends at 24:00. */
+const MORNING = { start: "07:00", end: "12:00" };
+const AFTERNOON = { start: "13:00", end: "18:00" };
+const EVENING = { start: "19:00", end: "24:00" };
+
 function occupied(
   date: string,
-  slot: SlotOnDate["slot"],
+  time: { start: string; end: string },
   status: BookingStatus,
   holdExpiresAt: Date | null = null,
 ): OccupiedTime {
-  return { ...slotTime({ date, slot }), status, holdExpiresAt };
+  return { date, ...time, status, holdExpiresAt };
 }
 
 function request(
-  slots: readonly SlotOnDate[],
+  times: readonly TimeRangeOnDate[],
   existing: readonly OccupiedTime[] = [],
   layout: string | null = THEATRE,
   eventStatus: CoordinatorEventStatus = "Planning",
@@ -90,8 +96,7 @@ function request(
     eventStatus,
     venue: venue(),
     roomLayout: layout,
-    // Each slot asked for as its hours (SPM-324).
-    times: slots.map(slotTime),
+    times,
     requestedBy: userAccountId("coordinator-1"),
     occupied: existing,
     now: NOW,
@@ -100,20 +105,21 @@ function request(
 
 describe("requestVenueBooking (SPM-46)", () => {
   it("records one venue, one time and the event as a Requested booking (AC1)", () => {
-    expect(request([{ date: "2026-10-05", slot: "AM" }])).toEqual({
+    expect(request([{ date: "2026-10-05", ...MORNING }])).toEqual({
       eventId: "event-1",
       venueId: "venue-1",
       roomLayout: THEATRE,
       times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       requestedBy: "coordinator-1",
       status: "Requested",
+      replacesBookingId: null,
     });
   });
 
   it("takes a time on each of several days, in date order (AC1)", () => {
     const booking = request([
-      { date: "2026-10-06", slot: "AM" },
-      { date: "2026-10-05", slot: "Night" },
+      { date: "2026-10-06", ...MORNING },
+      { date: "2026-10-05", ...EVENING },
     ]);
 
     expect(booking.times).toEqual([
@@ -129,8 +135,8 @@ describe("requestVenueBooking (SPM-46)", () => {
   it("refuses the same day twice", () => {
     expect(() =>
       request([
-        { date: "2026-10-05", slot: "PM" },
-        { date: "2026-10-05", slot: "PM" },
+        { date: "2026-10-05", ...AFTERNOON },
+        { date: "2026-10-05", ...AFTERNOON },
       ]),
     ).toThrow(DuplicateBookingDateError);
   });
@@ -138,13 +144,13 @@ describe("requestVenueBooking (SPM-46)", () => {
   it.each(["2026-02-30", "2026-13-01", "05/10/2026"])(
     "refuses %j, which is not a calendar date",
     (date) => {
-      expect(() => request([{ date, slot: "AM" }])).toThrow(InvalidBookingDateError);
+      expect(() => request([{ date, ...MORNING }])).toThrow(InvalidBookingDateError);
     },
   );
 
   it("blocks outright a slot that already carries a Confirmed booking at the venue (AC4)", () => {
     expect(() =>
-      request([{ date: "2026-10-05", slot: "PM" }], [occupied("2026-10-05", "PM", "Confirmed")]),
+      request([{ date: "2026-10-05", ...AFTERNOON }], [occupied("2026-10-05", AFTERNOON, "Confirmed")]),
     ).toThrow(VenueSlotUnavailableError);
   });
 
@@ -153,11 +159,11 @@ describe("requestVenueBooking (SPM-46)", () => {
     try {
       request(
         [
-          { date: "2026-10-04", slot: "AM" },
-          { date: "2026-10-05", slot: "PM" },
-          { date: "2026-10-06", slot: "AM" },
+          { date: "2026-10-04", ...MORNING },
+          { date: "2026-10-05", ...AFTERNOON },
+          { date: "2026-10-06", ...MORNING },
         ],
-        [occupied("2026-10-05", "PM", "Confirmed"), occupied("2026-10-06", "AM", "Confirmed")],
+        [occupied("2026-10-05", AFTERNOON, "Confirmed"), occupied("2026-10-06", MORNING, "Confirmed")],
       );
     } catch (error) {
       caught = error;
@@ -173,8 +179,8 @@ describe("requestVenueBooking (SPM-46)", () => {
   it("blocks a slot on tentative hold too -- one hold or booking per slot (#41)", () => {
     expect(() =>
       request(
-        [{ date: "2026-10-05", slot: "AM" }],
-        [occupied("2026-10-05", "AM", "Tentative Hold", AFTER_NOW)],
+        [{ date: "2026-10-05", ...MORNING }],
+        [occupied("2026-10-05", MORNING, "Tentative Hold", AFTER_NOW)],
       ),
     ).toThrow(VenueSlotUnavailableError);
   });
@@ -182,8 +188,8 @@ describe("requestVenueBooking (SPM-46)", () => {
   it("does not block on a hold that expired before now (AC4)", () => {
     expect(
       request(
-        [{ date: "2026-10-05", slot: "AM" }],
-        [occupied("2026-10-05", "AM", "Tentative Hold", BEFORE_NOW)],
+        [{ date: "2026-10-05", ...MORNING }],
+        [occupied("2026-10-05", MORNING, "Tentative Hold", BEFORE_NOW)],
       ).status,
     ).toBe("Requested");
   });
@@ -191,15 +197,15 @@ describe("requestVenueBooking (SPM-46)", () => {
   it("does not block on a hold expiring exactly now -- it holds only while expiry is later (AC4)", () => {
     expect(
       request(
-        [{ date: "2026-10-05", slot: "AM" }],
-        [occupied("2026-10-05", "AM", "Tentative Hold", NOW)],
+        [{ date: "2026-10-05", ...MORNING }],
+        [occupied("2026-10-05", MORNING, "Tentative Hold", NOW)],
       ).status,
     ).toBe("Requested");
   });
 
   it("blocks on a hold with no expiry, which counts as live (AC4)", () => {
     expect(() =>
-      request([{ date: "2026-10-05", slot: "AM" }], [occupied("2026-10-05", "AM", "Tentative Hold", null)]),
+      request([{ date: "2026-10-05", ...MORNING }], [occupied("2026-10-05", MORNING, "Tentative Hold", null)]),
     ).toThrow(VenueSlotUnavailableError);
   });
 
@@ -207,27 +213,27 @@ describe("requestVenueBooking (SPM-46)", () => {
     "does not block on a %s booking of the same slot -- it holds nothing",
     (status) => {
       expect(
-        request([{ date: "2026-10-05", slot: "AM" }], [occupied("2026-10-05", "AM", status)]).status,
+        request([{ date: "2026-10-05", ...MORNING }], [occupied("2026-10-05", MORNING, status)]).status,
       ).toBe("Requested");
     },
   );
 
   it("allows the adjacent slot to a Confirmed booking at a venue with no setup or turnaround", () => {
     expect(
-      request([{ date: "2026-10-05", slot: "PM" }], [occupied("2026-10-05", "AM", "Confirmed")])
+      request([{ date: "2026-10-05", ...AFTERNOON }], [occupied("2026-10-05", MORNING, "Confirmed")])
         .times,
     ).toEqual([{ date: "2026-10-05", start: "13:00", end: "18:00" }]);
   });
 
   it("allows the same slot on a different day", () => {
     expect(
-      request([{ date: "2026-10-06", slot: "AM" }], [occupied("2026-10-05", "AM", "Confirmed")])
+      request([{ date: "2026-10-06", ...MORNING }], [occupied("2026-10-05", MORNING, "Confirmed")])
         .status,
     ).toBe("Requested");
   });
 
   it("needs a layout when the venue supports more than one (AC2)", () => {
-    expect(() => request([{ date: "2026-10-05", slot: "AM" }], [], null)).toThrow(
+    expect(() => request([{ date: "2026-10-05", ...MORNING }], [], null)).toThrow(
       RoomLayoutRequiredError,
     );
   });
@@ -240,13 +246,13 @@ describe("requestVenueBooking over closed time (SPM-334)", () => {
     { start: "19:00", end: "24:00" },
   ];
 
-  function requestAt(openingHours: readonly OpeningWindow[], slots: readonly SlotOnDate[]) {
+  function requestAt(openingHours: readonly OpeningWindow[], times: readonly TimeRangeOnDate[]) {
     return requestVenueBooking({
       eventId: "event-1",
       eventStatus: "Planning",
       venue: { ...venue(), openingHours },
       roomLayout: THEATRE,
-      times: slots.map(slotTime),
+      times,
       requestedBy: userAccountId("coordinator-1"),
       occupied: [],
       now: NOW,
@@ -255,36 +261,36 @@ describe("requestVenueBooking over closed time (SPM-334)", () => {
 
   it("accepts times that fall exactly within the opening windows, ending at 24:00", () => {
     const booking = requestAt(AM_AND_NIGHT, [
-      { date: "2026-10-05", slot: "AM" },
-      { date: "2026-10-06", slot: "Night" },
+      { date: "2026-10-05", ...MORNING },
+      { date: "2026-10-06", ...EVENING },
     ]);
 
     expect(booking.status).toBe("Requested");
   });
 
   it("refuses a slot in the closed gap between windows, naming the closed time", () => {
-    expect(() => requestAt(AM_AND_NIGHT, [{ date: "2026-10-05", slot: "PM" }])).toThrow(
+    expect(() => requestAt(AM_AND_NIGHT, [{ date: "2026-10-05", ...AFTERNOON }])).toThrow(
       "The venue is closed 2026-10-05 13:00–18:00.",
     );
   });
 
   it("refuses a slot the venue is closed for only part of, naming just that part", () => {
     expect(() =>
-      requestAt([{ start: "08:00", end: "11:45" }], [{ date: "2026-10-05", slot: "AM" }]),
+      requestAt([{ start: "08:00", end: "11:45" }], [{ date: "2026-10-05", ...MORNING }]),
     ).toThrow("The venue is closed 2026-10-05 07:00–08:00, 2026-10-05 11:45–12:00.");
   });
 
   it("refuses the whole request when any one slot includes closed time", () => {
     expect(() =>
       requestAt(AM_AND_NIGHT, [
-        { date: "2026-10-05", slot: "AM" },
-        { date: "2026-10-06", slot: "PM" },
+        { date: "2026-10-05", ...MORNING },
+        { date: "2026-10-06", ...AFTERNOON },
       ]),
     ).toThrow(VenueClosedError);
   });
 
   it("refuses a venue with no opening hours", () => {
-    expect(() => requestAt([], [{ date: "2026-10-05", slot: "AM" }])).toThrow(
+    expect(() => requestAt([], [{ date: "2026-10-05", ...MORNING }])).toThrow(
       "The venue is closed 2026-10-05 07:00–12:00.",
     );
   });
@@ -292,7 +298,7 @@ describe("requestVenueBooking over closed time (SPM-334)", () => {
 
 describe("requestVenueBooking on a cancelled event (SPM-55)", () => {
   it("refuses a Cancelled event (AC6)", () => {
-    expect(() => request([{ date: "2026-10-05", slot: "AM" }], [], THEATRE, "Cancelled")).toThrow(
+    expect(() => request([{ date: "2026-10-05", ...MORNING }], [], THEATRE, "Cancelled")).toThrow(
       CancelledEventBookingError,
     );
   });
@@ -300,7 +306,7 @@ describe("requestVenueBooking on a cancelled event (SPM-55)", () => {
   it.each<CoordinatorEventStatus>(["Planning", "Blocked", "Confirmed", "Completed"])(
     "still takes a request for a %s event (AC6)",
     (status) => {
-      expect(request([{ date: "2026-10-05", slot: "AM" }], [], THEATRE, status).status).toBe(
+      expect(request([{ date: "2026-10-05", ...MORNING }], [], THEATRE, status).status).toBe(
         "Requested",
       );
     },
@@ -604,31 +610,31 @@ describe("resolveHold confirming or releasing a hold (SPM-219)", () => {
 describe("decideBooking capping a hold at its slot (SPM-253)", () => {
   const staff = userAccountId("staff-1");
   const hold = { kind: "hold" } as const;
-  const waitingOn = (...slots: SlotOnDate[]): BookingForDecision => ({
+  const waitingOn = (...times: TimeRangeOnDate[]): BookingForDecision => ({
     id: "booking-1" as BookingId,
     venueId: venueId("v1"),
     status: "Requested",
-    times: slots.map(slotTime),
+    times,
   });
-  // NOW is 2026-10-01 09:00 in Singapore. AM starts at 07:00, PM at 13:00.
+  // NOW is 2026-10-01 09:00 in Singapore. MORNING starts at 07:00, AFTERNOON at 13:00.
   const SEVENTY_TWO_HOURS = DEFAULT_HOLD_HOURS * 60 * 60 * 1000;
 
   it("expires at the slot's start when that is sooner than 72 hours (AC7)", () => {
-    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), hold, staff, NOW);
+    const decided = decideBooking(waitingOn({ date: "2026-10-02", ...MORNING }), hold, staff, NOW);
 
     expect(decided.holdExpiresAt).toEqual(new Date("2026-10-02T07:00:00+08:00"));
   });
 
   it("keeps the 72-hour default when the slot starts later than that (AC7)", () => {
-    const decided = decideBooking(waitingOn({ date: "2026-10-22", slot: "AM" }), hold, staff, NOW);
+    const decided = decideBooking(waitingOn({ date: "2026-10-22", ...MORNING }), hold, staff, NOW);
 
     expect(decided.holdExpiresAt!.getTime() - NOW.getTime()).toBe(SEVENTY_TWO_HOURS);
   });
 
   it("is capped at the slot's start when the slot starts exactly 72 hours out (AC7 boundary)", () => {
-    // 2026-10-04 09:00 is exactly 72 hours after NOW; no slot starts then, so use a PM-before and an AM-after.
-    const justBefore = decideBooking(waitingOn({ date: "2026-10-04", slot: "AM" }), hold, staff, NOW);
-    const justAfter = decideBooking(waitingOn({ date: "2026-10-04", slot: "PM" }), hold, staff, NOW);
+    // 2026-10-04 09:00 is exactly 72 hours after NOW; no time starts then, so use one starting before it and one after.
+    const justBefore = decideBooking(waitingOn({ date: "2026-10-04", ...MORNING }), hold, staff, NOW);
+    const justAfter = decideBooking(waitingOn({ date: "2026-10-04", ...AFTERNOON }), hold, staff, NOW);
 
     expect(justBefore.holdExpiresAt).toEqual(new Date("2026-10-04T07:00:00+08:00"));
     expect(justAfter.holdExpiresAt).toEqual(new Date("2026-10-04T09:00:00+08:00"));
@@ -636,7 +642,7 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
 
   it("takes the earliest slot when the booking holds several (AC7)", () => {
     const decided = decideBooking(
-      waitingOn({ date: "2026-10-03", slot: "PM" }, { date: "2026-10-02", slot: "PM" }),
+      waitingOn({ date: "2026-10-03", ...AFTERNOON }, { date: "2026-10-02", ...AFTERNOON }),
       hold,
       staff, NOW,
     );
@@ -645,11 +651,11 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
   });
 
   it("refuses a hold on a slot that has started, or starts this instant (AC7)", () => {
-    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "AM" }), hold, staff, NOW)).toThrow(
+    expect(() => decideBooking(waitingOn({ date: "2026-10-01", ...MORNING }), hold, staff, NOW)).toThrow(
       HoldSlotStartedError,
     );
     const startsNow = new Date("2026-10-01T13:00:00+08:00");
-    expect(() => decideBooking(waitingOn({ date: "2026-10-01", slot: "PM" }), hold, staff, startsNow)).toThrow(
+    expect(() => decideBooking(waitingOn({ date: "2026-10-01", ...AFTERNOON }), hold, staff, startsNow)).toThrow(
       HoldSlotStartedError,
     );
   });
@@ -657,7 +663,7 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
   it("refuses the whole hold when any one of its slots has started (AC7)", () => {
     expect(() =>
       decideBooking(
-        waitingOn({ date: "2026-10-01", slot: "AM" }, { date: "2026-10-05", slot: "AM" }),
+        waitingOn({ date: "2026-10-01", ...MORNING }, { date: "2026-10-05", ...MORNING }),
         hold,
         staff, NOW,
       ),
@@ -665,7 +671,7 @@ describe("decideBooking capping a hold at its slot (SPM-253)", () => {
   });
 
   it("does not cap or refuse an approval: only a hold lapses (AC7)", () => {
-    const decided = decideBooking(waitingOn({ date: "2026-10-02", slot: "AM" }), { kind: "approve" }, staff, NOW);
+    const decided = decideBooking(waitingOn({ date: "2026-10-02", ...MORNING }), { kind: "approve" }, staff, NOW);
 
     expect(decided.status).toBe("Confirmed");
     expect(decided.holdExpiresAt).toBeUndefined();
@@ -958,13 +964,12 @@ describe("clashDates (SPM-475)", () => {
 
 describe("blockedTimes (SPM-347)", () => {
   const D = "2026-11-04";
+  const blockOver = (start: string, end: string) =>
+    slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date: D, slot }));
 
-  it("names the part of a time an AM, PM or Night block covers, by its hours", () => {
+  it("names the part of a time a block covers, by its hours", () => {
     expect(
-      blockedTimes([{ date: D, start: "11:00", end: "14:00" }], [
-        { date: D, slot: "AM" },
-        { date: D, slot: "PM" },
-      ]),
+      blockedTimes([{ date: D, start: "11:00", end: "14:00" }], [...blockOver("07:00", "12:00"), ...blockOver("13:00", "18:00")]),
     ).toEqual([
       { date: D, start: "11:00", end: "12:00" },
       { date: D, start: "13:00", end: "14:00" },
@@ -978,7 +983,7 @@ describe("blockedTimes (SPM-347)", () => {
           { date: D, start: "12:00", end: "13:00" },
           { date: "2026-11-05", start: "07:00", end: "08:00" },
         ],
-        [{ date: D, slot: "AM" }],
+        blockOver("07:00", "12:00"),
       ),
     ).toEqual([]);
   });

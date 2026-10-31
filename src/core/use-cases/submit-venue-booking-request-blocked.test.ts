@@ -10,7 +10,6 @@ import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-
 import { InMemoryVenueStaffDirectory } from "@/adapters/outbound/in-memory/in-memory-venue-staff-directory";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
-import { slotTime } from "@/core/domain/booking";
 import { VenueSlotBlockedError } from "@/core/domain/errors";
 import { venueId, type Venue } from "@/core/domain/venue";
 
@@ -63,6 +62,7 @@ function build() {
       events: new InMemoryCoordinatorEventRepository([EVENT]),
       venues,
       bookings,
+      flags: { openForEvent: async () => [] },
       venueStaff: new InMemoryVenueStaffDirectory(),
       notifier: new RecordingNotifier(),
       clock,
@@ -70,14 +70,17 @@ function build() {
   };
 }
 
-/** A request for each slot's hours, so it reads against the AM, PM and Night blocks. */
-function request(slots: ReadonlyArray<{ date: string; slot: "AM" | "PM" | "Night" }>) {
+const MORNING = { start: "07:00", end: "12:00" };
+const AFTERNOON = { start: "13:00", end: "18:00" };
+const EVENING = { start: "19:00", end: "24:00" };
+
+function request(times: ReadonlyArray<{ date: string; start: string; end: string }>) {
   return {
     eventId: "event-1",
     userAccountId: COORDINATOR,
     venueId: "venue-hall",
     roomLayout: "Theatre",
-    times: slots.map(slotTime),
+    times,
   };
 }
 
@@ -97,7 +100,7 @@ describe("a booking request over a venue block (SPM-270)", () => {
     const { record, submit, bookings } = build();
     await record.execute(BLOCK);
 
-    await expect(submit.execute(request([{ date: "2026-10-19", slot: "AM" }]))).rejects.toBeInstanceOf(
+    await expect(submit.execute(request([{ date: "2026-10-19", ...MORNING }]))).rejects.toBeInstanceOf(
       VenueSlotBlockedError,
     );
     expect(bookings.all()).toEqual([]);
@@ -108,7 +111,7 @@ describe("a booking request over a venue block (SPM-270)", () => {
     await record.execute(BLOCK);
 
     // The booking form returns the domain error's message as it is.
-    const error = await submit.execute(request([{ date: "2026-10-19", slot: "AM" }])).catch((e: unknown) => e);
+    const error = await submit.execute(request([{ date: "2026-10-19", ...MORNING }])).catch((e: unknown) => e);
 
     expect((error as VenueSlotBlockedError).message).toBe(
       "The venue is unavailable for 2026-10-19 09:00–11:30. Choose other times or another venue.",
@@ -119,7 +122,7 @@ describe("a booking request over a venue block (SPM-270)", () => {
     const { record, submit } = build();
     await record.execute(BLOCK);
 
-    const result = await submit.execute(request([{ date: "2026-10-20", slot: "AM" }]));
+    const result = await submit.execute(request([{ date: "2026-10-20", ...MORNING }]));
 
     expect(result.status).toBe("Requested");
   });
@@ -128,29 +131,29 @@ describe("a booking request over a venue block (SPM-270)", () => {
     const { record, submit } = build();
     await record.execute(BLOCK);
 
-    // The block is 09:00-11:30: PM (13:00-18:00) and Night (19:00-24:00) are clear of it.
-    expect((await submit.execute(request([{ date: "2026-10-19", slot: "PM" }]))).status).toBe("Requested");
-    expect((await submit.execute(request([{ date: "2026-10-19", slot: "Night" }]))).status).toBe("Requested");
+    // The block is 09:00-11:30: 13:00-18:00 and 19:00-24:00 are clear of it.
+    expect((await submit.execute(request([{ date: "2026-10-19", ...AFTERNOON }]))).status).toBe("Requested");
+    expect((await submit.execute(request([{ date: "2026-10-19", ...EVENING }]))).status).toBe("Requested");
   });
 
-  it("refuses AM for a block that covers only a quarter hour of it, at either end", async () => {
-    // AM is 07:00-12:00. 07:00-07:15 and 11:45-12:00 each clip one quarter hour of it.
+  it("refuses 07:00-12:00 for a block that covers only a quarter hour of it, at either end", async () => {
+    // 07:00-07:15 and 11:45-12:00 each clip one quarter hour of it.
     for (const [startTime, endTime] of [["07:00", "07:15"], ["11:45", "12:00"]]) {
       const { record, submit, bookings } = build();
       await record.execute({ ...BLOCK, startTime, endTime });
 
-      await expect(submit.execute(request([{ date: "2026-10-19", slot: "AM" }]))).rejects.toBeInstanceOf(
+      await expect(submit.execute(request([{ date: "2026-10-19", ...MORNING }]))).rejects.toBeInstanceOf(
         VenueSlotBlockedError,
       );
       expect(bookings.all()).toEqual([]);
     }
   });
 
-  it("accepts AM when the block starts exactly as AM ends", async () => {
+  it("accepts 07:00-12:00 when the block starts exactly as it ends", async () => {
     const { record, submit } = build();
     await record.execute({ ...BLOCK, startTime: "12:00", endTime: "13:00" });
 
-    expect((await submit.execute(request([{ date: "2026-10-19", slot: "AM" }]))).status).toBe("Requested");
+    expect((await submit.execute(request([{ date: "2026-10-19", ...MORNING }]))).status).toBe("Requested");
   });
 
   it("AC15: accepts a request once the block is lifted", async () => {
@@ -158,7 +161,7 @@ describe("a booking request over a venue block (SPM-270)", () => {
     const { entry } = await record.execute(BLOCK);
     await lift.execute({ ...STAFF, unavailabilityId: entry.id });
 
-    const result = await submit.execute(request([{ date: "2026-10-19", slot: "AM" }]));
+    const result = await submit.execute(request([{ date: "2026-10-19", ...MORNING }]));
 
     expect(result.status).toBe("Requested");
   });

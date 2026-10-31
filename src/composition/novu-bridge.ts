@@ -1,11 +1,15 @@
 import { serve } from "@novu/framework/next";
 
+import { changeRequestDecided } from "@/adapters/outbound/novu/workflows/change-request-decided";
+import { changeRequested } from "@/adapters/outbound/novu/workflows/change-requested";
 import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clarification-requested";
 import { coordinatorAssigned } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { equipmentDecided } from "@/adapters/outbound/novu/workflows/equipment-decided";
 import { equipmentNeedsAttention } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
+import { eventCancelled } from "@/adapters/outbound/novu/workflows/event-cancelled";
 import { eventConfirmed } from "@/adapters/outbound/novu/workflows/event-confirmed";
 import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-request-decided";
+import { eventRescheduled } from "@/adapters/outbound/novu/workflows/event-rescheduled";
 import { holdExpired } from "@/adapters/outbound/novu/workflows/hold-expired";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { organiserMessagePosted } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
@@ -48,7 +52,11 @@ function handlers(): Bridge {
       holdExpired,
       venueBookingCancelled,
       eventConfirmed,
+      eventRescheduled,
+      eventCancelled,
       venueBookingFlagged,
+      changeRequested,
+      changeRequestDecided,
       registrationConfirmed,
     ],
   });

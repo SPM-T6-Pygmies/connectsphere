@@ -1,10 +1,4 @@
-import {
-  BOOKING_SLOTS,
-  type BookingRequest,
-  type BookingSlot,
-  type BookingStatus,
-  type OccupiedTime,
-} from "@/core/domain/booking";
+import type { BookingRequest, BookingStatus, OccupiedTime } from "@/core/domain/booking";
 import { joinSlots, type TimeRangeOnDate } from "@/core/domain/event-times";
 import { slotCodes, toMinutes } from "@/core/domain/time-of-day";
 import type { UserAccountId } from "@/core/domain/user-account";
@@ -16,6 +10,8 @@ import type { EventSlotTimeRow } from "./event-mapper";
 
 /** A row of `venue_booked_slots()`: one booking_slot row with its hours (SPM-324). */
 export interface BookedSlotRow {
+  /** SPM-251: which booking holds it. */
+  booking_id: number;
   slot_date: string;
   /** `HH:MM:SS`; the last slot of a day ends `24:00:00`. */
   start_time: string;
@@ -37,6 +33,8 @@ export interface EventBookingRow {
   rejection_note: string | null;
   suggested_alternative_venue_id: number | null;
   suggested_alternative_location: string | null;
+  replaces_booking_id: number | null;
+  replaced_by_booking_id: number | null;
 }
 
 /** Exactly the seven values `booking_status_chk` allows. */
@@ -57,14 +55,6 @@ export function toStatus(raw: string): BookingStatus {
     throw new Error(`Unknown booking status "${raw}" in the booking table.`);
   }
   return status;
-}
-
-export function toSlot(raw: string): BookingSlot {
-  const slot = BOOKING_SLOTS.find((candidate) => candidate === raw);
-  if (slot === undefined) {
-    throw new Error(`Unknown booking slot "${raw}" in the booking_slot table.`);
-  }
-  return slot;
 }
 
 /** `date` columns arrive as `YYYY-MM-DD`; keep only that, whatever else comes with it. */
@@ -89,6 +79,7 @@ export function toBookingTimes(rows: readonly EventSlotTimeRow[]): TimeRangeOnDa
 
 export function toOccupiedTime(row: BookedSlotRow): OccupiedTime {
   return {
+    bookingId: String(row.booking_id),
     date: toDate(row.slot_date),
     start: toTimeOfDay(row.start_time),
     end: toTimeOfDay(row.end_time),
@@ -115,6 +106,8 @@ export function toEventBookingSummary(row: EventBookingRow): EventBookingSummary
             venueId: venueId(String(row.suggested_alternative_venue_id)),
             location: row.suggested_alternative_location,
           },
+    replacesBookingId: row.replaces_booking_id === null ? null : String(row.replaces_booking_id),
+    replacedByBookingId: row.replaced_by_booking_id === null ? null : String(row.replaced_by_booking_id),
   };
 }
 
@@ -126,6 +119,8 @@ export interface SubmitBookingArgs {
   p_room_layout: string | null;
   /** One entry per 15-minute slot the times cover, coded '0' to '95' (SPM-324). */
   p_slots: ReadonlyArray<{ date: string; slot: string }>;
+  /** SPM-251: the flagged booking a re-request replaces; null for an ordinary request. */
+  p_replaces_booking_id: number | null;
 }
 
 /** Null when an id is not one this store could have issued. */
@@ -133,8 +128,12 @@ export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs 
   const coordinator = toKey(request.requestedBy);
   const event = toKey(request.eventId);
   const venue = toKey(request.venueId);
+  const replaces = request.replacesBookingId === null ? null : toKey(request.replacesBookingId);
 
   if (coordinator === null || event === null || venue === null) {
+    return null;
+  }
+  if (request.replacesBookingId !== null && replaces === null) {
     return null;
   }
 
@@ -146,6 +145,7 @@ export function toSubmitBookingArgs(request: BookingRequest): SubmitBookingArgs 
     p_slots: request.times.flatMap(({ date, start, end }) =>
       slotCodes({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot })),
     ),
+    p_replaces_booking_id: replaces,
   };
 }
 

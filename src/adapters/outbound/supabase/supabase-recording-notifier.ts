@@ -1,11 +1,15 @@
 import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import {
+  changeRequestDecidedRow,
+  changeRequestedRow,
   clarificationRequestedRow,
   coordinatorAssignedRow,
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
+  eventCancelledRow,
   eventConfirmedRow,
   eventRequestDecidedRow,
+  eventRescheduledRow,
   holdExpiredRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
@@ -19,12 +23,16 @@ import {
 } from "@/adapters/outbound/supabase/notification-row";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestDecidedNotice,
+  ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -134,8 +142,24 @@ export class SupabaseRecordingNotifier implements Notifier {
     return this.recordAndDeliver(eventConfirmedRow(notice), () => this.inner.eventConfirmed(notice));
   }
 
+  eventRescheduled(notice: EventRescheduledNotice): Promise<void> {
+    return this.recordAndDeliver(eventRescheduledRow(notice), () => this.inner.eventRescheduled(notice));
+  }
+
+  eventCancelled(notice: EventCancelledNotice): Promise<void> {
+    return this.recordAndDeliver(eventCancelledRow(notice), () => this.inner.eventCancelled(notice));
+  }
+
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
     return this.recordAndDeliver(venueBookingFlaggedRow(notice), () => this.inner.venueBookingFlagged(notice));
+  }
+
+  changeRequested(notice: ChangeRequestedNotice): Promise<void> {
+    return this.recordAndDeliver(changeRequestedRow(notice), () => this.inner.changeRequested(notice));
+  }
+
+  changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
+    return this.recordAndDeliver(changeRequestDecidedRow(notice), () => this.inner.changeRequestDecided(notice));
   }
 
   /**

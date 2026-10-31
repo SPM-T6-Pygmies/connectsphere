@@ -341,25 +341,21 @@ create unique index booking_slot_no_double_booking_uidx
   where status in ('Tentative Hold', 'Confirmed');
 
 -- ---------------------------------------------------------------------------
--- 10b. Day slots  (slot-based timing, 2026-10-06)
---      Venues, events, sessions and event requests are scheduled in three
---      fixed slots a day, in Singapore time. `slot` is the reference table;
---      each junction holds one row per slot taken.
+-- 10b. Day slots  (15-minute grid, SPM-276)
+--      Venues, bookings, blocks, events, sessions and event requests are
+--      scheduled in 15-minute slots, in Singapore time. `slot` is the
+--      reference table; each junction holds one row per date per slot taken.
 -- ---------------------------------------------------------------------------
 create table slot (
   slot_code  text primary key,
   start_time time not null,
   end_time   time not null,
-  constraint slot_code_chk check (
-    slot_code in ('AM', 'PM', 'Night')
-    or slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$'
-  ),
+  constraint slot_code_chk check (slot_code ~ '^([0-9]|[1-8][0-9]|9[0-5])$'),
   constraint slot_time_order_chk check (end_time > start_time)
 );
--- Seeded: AM 07:00-12:00, PM 13:00-18:00, Night 19:00-24:00 (2026-10-15),
--- and the 15-minute grid: '0' (00:00-00:15) to '95' (23:45-24:00)
--- (SPM-331, 2026-10-20). The slot tables move from AM/PM/Night to the
--- 15-minute codes one story at a time; SPM-328 then drops the three codes.
+-- Seeded: the 15-minute grid, '0' (00:00-00:15) to '95' (23:45-24:00)
+-- (SPM-331). Order slots by start_time, never by code. The AM, PM and Night
+-- codes were retired once every slot table had moved to the grid (SPM-328).
 
 -- A venue's opening hours, the same every day: one row per open 15-minute
 -- slot ('0'-'95'), joined into windows for display (SPM-320).

@@ -1,8 +1,15 @@
+import Link from "next/link";
+
 import { EventTimes } from "@/app/events/event-times";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { eventFacilitiesEditable } from "@/core/domain/event-facilities";
 import type { ViewCoordinatorEventResult } from "@/core/use-cases/view-coordinator-event";
-import type { ViewVenueBookingOptionsResult } from "@/core/use-cases/view-venue-booking-options";
+import type {
+  CoordinatorEventDetails,
+  ReRequestStart,
+  ViewVenueBookingOptionsResult,
+} from "@/core/use-cases/view-venue-booking-options";
 
 import { FieldList } from "../../../../field-list";
 import { BookingRequestForm } from "../venue-booking/booking-request-form";
@@ -31,7 +38,7 @@ export function VenueTab({
   /** SPM-62 AC3: the suggested venue to start a fresh request for (`?venue=`). */
   requestedVenueId: string | undefined;
 }) {
-  const { event, venues, bookings, venueSuitability, bookingSuitability } = booking;
+  const { event, venues, bookings, venueSuitability, bookingSuitability, reRequest } = booking;
   // "Request <venue>" on a rejected booking starts a fresh request for it; a
   // venue id that is not one on offer is ignored.
   const initialVenueId = venues.find((venue) => venue.id === requestedVenueId)?.id;
@@ -78,19 +85,26 @@ export function VenueTab({
       </Card>
 
       <Card id="new-request" className="scroll-mt-16">
-        <CardHeader>
-          <CardTitle>New booking request</CardTitle>
-          <CardDescription>
-            Venues are booked by start and end time, on the quarter hour. Time another event
-            already holds cannot be requested. Venue Staff review the request and approve or
-            reject it.
-          </CardDescription>
-        </CardHeader>
+        {reRequest === null ? (
+          <CardHeader>
+            <CardTitle>New booking request</CardTitle>
+            <CardDescription>
+              Venues are booked by start and end time, on the quarter hour. Time another event
+              already holds cannot be requested. Venue Staff review the request and approve or
+              reject it.
+            </CardDescription>
+          </CardHeader>
+        ) : (
+          <ReRequestHeader reRequest={reRequest} event={event} />
+        )}
         <CardContent>
           <BookingRequestForm
-            // Remount when a suggestion is picked, so the form starts from it.
-            key={initialVenueId ?? ""}
-            initialVenueId={initialVenueId}
+            // Remount when a suggestion or a re-request is picked, so the form starts from it.
+            key={reRequest === null ? (initialVenueId ?? "") : `re-request-${reRequest.bookingId}`}
+            initialVenueId={reRequest?.venueId ?? initialVenueId}
+            initialLayout={reRequest?.roomLayout}
+            initialTimes={reRequest?.times}
+            replacesBookingId={reRequest?.bookingId}
             eventId={event.id}
             defaultDate={event.preferredDate}
             venues={venues}
@@ -106,6 +120,7 @@ export function VenueTab({
         <CardContent>
           <BookingsTable
             flags={booking.flaggedBookings}
+            reRequestsWaiting={booking.reRequestsWaiting}
             bookings={bookings}
             venues={venues}
             event={event}
@@ -115,5 +130,45 @@ export function VenueTab({
         </CardContent>
       </Card>
     </>
+  );
+}
+
+/**
+ * SPM-251 AC2: the re-request names the flagged booking it replaces, and offers the venue search
+ * with the event's details filled in -- the first date's times, attendance and layout -- for a
+ * coordinator who wants to look wider than the list below.
+ */
+function ReRequestHeader({ reRequest, event }: { reRequest: ReRequestStart; event: CoordinatorEventDetails }) {
+  const [first] = reRequest.times;
+  const search = new URLSearchParams();
+  if (first !== undefined) {
+    search.set("date", first.date);
+    search.set("start", first.start);
+    search.set("end", first.end);
+  }
+  if (event.expectedAttendance !== null) {
+    search.set("attendance", String(event.expectedAttendance));
+  }
+  if (reRequest.roomLayout !== null) {
+    search.set("layout", reRequest.roomLayout);
+  }
+
+  return (
+    <CardHeader>
+      <CardTitle>Re-request a venue</CardTitle>
+      <CardDescription>
+        Replacing {reRequest.venueLocation}, booked for {reRequest.bookedFor}. The form starts from
+        the event as it is now. Choose the same venue or another; the booking stays until Venue
+        Staff approve this one.
+      </CardDescription>
+      <div className="flex flex-wrap gap-2 pt-2">
+        <Button asChild size="sm" variant="outline">
+          <Link href={`/staff/coordinator/venues?${search}`}>Search venues with these details</Link>
+        </Button>
+        <Button asChild size="sm" variant="ghost">
+          <Link href={`/staff/coordinator/events/${event.id}?tab=venue#new-request`}>Cancel re-request</Link>
+        </Button>
+      </div>
+    </CardHeader>
   );
 }

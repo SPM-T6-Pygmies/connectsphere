@@ -2,11 +2,15 @@ import {
   coordinatorAssignedMessage,
   type NotificationMessage,
 } from "@/adapters/outbound/notification-content/coordinator-assigned";
+import { changeRequestDecidedMessage } from "@/adapters/outbound/notification-content/change-request-decided";
+import { changeRequestedMessage } from "@/adapters/outbound/notification-content/change-requested";
 import { clarificationRequestedMessage } from "@/adapters/outbound/notification-content/clarification-requested";
 import { equipmentDecidedMessage } from "@/adapters/outbound/notification-content/equipment-decided";
 import { equipmentNeedsAttentionMessage } from "@/adapters/outbound/notification-content/equipment-needs-attention";
+import { eventCancelledMessage } from "@/adapters/outbound/notification-content/event-cancelled";
 import { eventConfirmedMessage } from "@/adapters/outbound/notification-content/event-confirmed";
 import { eventRequestDecidedMessage } from "@/adapters/outbound/notification-content/event-request-decided";
+import { eventRescheduledMessage } from "@/adapters/outbound/notification-content/event-rescheduled";
 import { holdExpiredMessage } from "@/adapters/outbound/notification-content/hold-expired";
 import { organiserCoordinatorAssignedMessage } from "@/adapters/outbound/notification-content/organiser-coordinator-assigned";
 import { organiserMessagePostedMessage } from "@/adapters/outbound/notification-content/organiser-message-posted";
@@ -17,12 +21,16 @@ import { venueBookingFlaggedMessage } from "@/adapters/outbound/notification-con
 import { venueBookingDecidedMessage } from "@/adapters/outbound/notification-content/venue-booking-decided";
 import { venueBookingRequestedMessage } from "@/adapters/outbound/notification-content/venue-booking-requested";
 import type {
+  ChangeRequestDecidedNotice,
+  ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   OrganiserCoordinatorAssignedNotice,
   OrganiserMessagePostedNotice,
@@ -43,6 +51,7 @@ export interface NotificationRow {
   readonly related_event_request_id?: string;
   readonly related_event_id?: string;
   readonly related_booking_id?: string;
+  readonly related_change_request_id?: string;
   readonly message_content: string;
 }
 
@@ -225,6 +234,32 @@ export function eventConfirmedRow(notice: EventConfirmedNotice): NotificationRow
   };
 }
 
+/** The `notification` row telling an Organiser their event is rescheduled (SPM-68). */
+export function eventRescheduledRow(notice: EventRescheduledNotice): NotificationRow {
+  const { subject, body } = eventRescheduledMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "event-rescheduled",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling an Organiser their event is cancelled (SPM-68). */
+export function eventCancelledRow(notice: EventCancelledNotice): NotificationRow {
+  const { subject, body } = eventCancelledMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "event-cancelled",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
 /** The `notification` row telling a coordinator one of their bookings was flagged (SPM-71). */
 export function venueBookingFlaggedRow(notice: VenueBookingFlaggedNotice): NotificationRow {
   const { subject, body } = venueBookingFlaggedMessage(notice);
@@ -234,6 +269,34 @@ export function venueBookingFlaggedRow(notice: VenueBookingFlaggedNotice): Notif
     channel: "in_app",
     status: "Pending",
     related_booking_id: notice.bookingId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling a coordinator an Organiser asked to change their event (SPM-67). */
+export function changeRequestedRow(notice: ChangeRequestedNotice): NotificationRow {
+  const { subject, body } = changeRequestedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "change-requested",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    related_change_request_id: notice.changeRequestId,
+    message_content: `${subject}\n${body}`,
+  };
+}
+
+/** The `notification` row telling an Organiser their change request is decided (SPM-110). */
+export function changeRequestDecidedRow(notice: ChangeRequestDecidedNotice): NotificationRow {
+  const { subject, body } = changeRequestDecidedMessage(notice);
+  return {
+    recipient_user_account_id: notice.recipientUserAccountId,
+    trigger_scenario: "change-request-decided",
+    channel: "in_app",
+    status: "Pending",
+    related_event_id: notice.eventId,
+    related_change_request_id: notice.changeRequestId,
     message_content: `${subject}\n${body}`,
   };
 }

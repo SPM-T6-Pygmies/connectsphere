@@ -1,11 +1,15 @@
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestDecidedNotice,
+  ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
+  EventCancelledNotice,
   EventConfirmedNotice,
   EventCoordinatorAssignedNotice,
   EventRequestDecidedNotice,
+  EventRescheduledNotice,
   HoldExpiredNotice,
   Notifier,
   OrganiserCoordinatorAssignedNotice,
@@ -35,7 +39,11 @@ export class RecordingNotifier implements Notifier {
   readonly holdsExpired: HoldExpiredNotice[] = [];
   readonly bookingsCancelled: VenueBookingCancelledNotice[] = [];
   readonly eventsConfirmed: EventConfirmedNotice[] = [];
+  readonly eventsRescheduled: EventRescheduledNotice[] = [];
+  readonly eventsCancelled: EventCancelledNotice[] = [];
   readonly bookingsFlagged: VenueBookingFlaggedNotice[] = [];
+  readonly changesRequested: ChangeRequestedNotice[] = [];
+  readonly changeRequestsDecided: ChangeRequestDecidedNotice[] = [];
   readonly registrationsConfirmed: RegistrationConfirmedNotice[] = [];
 
   async connectionRequested(connection: Connection): Promise<void> {
@@ -98,8 +106,24 @@ export class RecordingNotifier implements Notifier {
     this.eventsConfirmed.push(notice);
   }
 
+  async eventRescheduled(notice: EventRescheduledNotice): Promise<void> {
+    this.eventsRescheduled.push(notice);
+  }
+
+  async eventCancelled(notice: EventCancelledNotice): Promise<void> {
+    this.eventsCancelled.push(notice);
+  }
+
   async venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
     this.bookingsFlagged.push(notice);
+  }
+
+  async changeRequested(notice: ChangeRequestedNotice): Promise<void> {
+    this.changesRequested.push(notice);
+  }
+
+  async changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
+    this.changeRequestsDecided.push(notice);
   }
 
   async registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {

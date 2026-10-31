@@ -5,12 +5,19 @@ import { InMemoryCoordinatorEventRepository } from "@/adapters/outbound/in-memor
 import { FixedClock } from "@/adapters/outbound/in-memory/fixed-clock";
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
+import { slotCodesFor } from "@/core/domain/slot-grid";
+import { toMinutes } from "@/core/domain/time-of-day";
 import { userAccountId } from "@/core/domain/user-account";
 import { venueId, type Venue } from "@/core/domain/venue";
 import type { BookingStatus } from "@/core/domain/booking";
 import type { SeedCoordinatorEvent } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 
 import { ViewVenueBookingOptionsUseCase } from "./view-venue-booking-options";
+
+/** The 15-minute slots from `start` to `end` on `date`, as the slot tables hold them (SPM-331). */
+function slotsOf(date: string, start: string, end: string) {
+  return slotCodesFor({ start: toMinutes(start) ?? 0, end: toMinutes(end) ?? 0 }).map((slot) => ({ date, slot }));
+}
 
 const HALL: Venue = {
   id: venueId("venue-hall"),
@@ -280,14 +287,14 @@ describe("ViewVenueBookingOptionsUseCase suitability (SPM-248)", () => {
           venueId: STUDIO.id,
           eventName: "Annual Conference",
           status: "Confirmed",
-          slots: [{ date: "2026-10-05", slot: "AM" }],
+          slots: slotsOf("2026-10-05", "07:00", "12:00"),
           eventId: "event-1",
           coordinatorUserAccountId: "coordinator-1",
         },
       ],
     );
     await flags.record(
-      { venueId: STUDIO.id, startDate: "2026-10-05", endDate: "2026-10-05", slots: [{ date: "2026-10-05", slot: "AM" }], reason: "Maintenance", note: null },
+      { venueId: STUDIO.id, startDate: "2026-10-05", endDate: "2026-10-05", slots: slotsOf("2026-10-05", "07:00", "12:00"), reason: "Maintenance", note: null },
       userAccountId("staff-1"),
     );
 

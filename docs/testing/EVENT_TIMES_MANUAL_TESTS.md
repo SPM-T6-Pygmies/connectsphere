@@ -110,6 +110,8 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran. `supabase migration up` now also applies `20261029000000`: 40 rows (07:00–18:00) and 20 rows (19:00–24:00) for the event, 40 for the session, no old codes, 96 rows in `slot`.
+
 ---
 
 ### TC-EVTIME-002: Attendee pages show start and end times with no slot labels
@@ -129,6 +131,8 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after the setup above (the conference on 2026-11-12). Screenshots: [step1-catalogue](screenshots/spm-328/TC-EVTIME-002_step1-catalogue.jpg) · [step2-confirmation](screenshots/spm-328/TC-EVTIME-002_step2-confirmation.jpg) · [step3-registration](screenshots/spm-328/TC-EVTIME-002_step3-registration.jpg)
+
 ---
 
 ### TC-EVTIME-003: Times follow the viewer's timezone
@@ -145,6 +149,8 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, headless Chrome with its timezone overridden to Europe/London over the DevTools protocol, for joyceetran (local, after the AM/PM/Night retirement): "11 Nov 11:00 pm – 4:00 am, 12 Nov 5:00 am – 10:00 am (GMT)". Screenshot: [london-gmt](screenshots/spm-328/TC-EVTIME-003_london-gmt.jpg)
+
 ---
 
 ### TC-EVTIME-004: The coordinator sees each date's times
@@ -160,6 +166,8 @@ and a session with AM and Night rows.
   changes go through a change request."
 
 **Status:** [x] Pass [ ] Fail
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "12 Nov 7:00 am – 12:00 pm, 12 Nov 1:00 pm – 6:00 pm". Screenshot: [coordinator-times-completion-locked](screenshots/spm-328/TC-EVTIME-004-005_coordinator-times-completion-locked.jpg)
 
 ---
 
@@ -179,6 +187,8 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "Available after 12 Nov 2026, 6:00 pm." under a disabled **Mark completed**. Screenshots: [coordinator-times-completion-locked](screenshots/spm-328/TC-EVTIME-004-005_coordinator-times-completion-locked.jpg) · [step2-vendor-completed](screenshots/spm-328/TC-EVTIME-005_step2-vendor-completed.jpg)
+
 ---
 
 ### TC-EVTIME-006: The Lead sees each date's times
@@ -193,6 +203,8 @@ and a session with AM and Night rows.
   – 6:00 pm" under **Date**.
 
 **Status:** [x] Pass [ ] Fail
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [lead-times](screenshots/spm-328/TC-EVTIME-006_lead-times.jpg)
 
 ---
 
@@ -209,3 +221,5 @@ and a session with AM and Night rows.
 - A request not yet approved shows no **Event times** row.
 
 **Status:** [x] Pass [ ] Fail
+
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); Quarterly Partner Forum, still Submitted, had no **Event times** row. Screenshot: [organiser-event-times](screenshots/spm-328/TC-EVTIME-007_organiser-event-times.jpg)

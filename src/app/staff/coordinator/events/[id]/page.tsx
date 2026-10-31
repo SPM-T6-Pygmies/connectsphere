@@ -60,7 +60,7 @@ export default async function CoordinatorEventPage({
   searchParams,
 }: PageProps<"/staff/coordinator/events/[id]">) {
   const { id } = await params;
-  const { tab, booking: openedBookingId, venue: requestedVenueId } = await searchParams;
+  const { tab, booking: openedBookingId, venue: requestedVenueId, replace } = await searchParams;
   const initialTab: EventTab = EVENT_TABS.find((candidate) => candidate === tab) ?? "event";
 
   // An event that is not theirs, or does not exist, gets the same access-denied
@@ -89,7 +89,12 @@ export default async function CoordinatorEventPage({
   }
 
   const viewVenueBookingOptions = await buildViewVenueBookingOptions();
-  const venueBooking = await viewVenueBookingOptions.execute({ eventId: id, ...coordinator });
+  const venueBooking = await viewVenueBookingOptions.execute({
+    eventId: id,
+    ...coordinator,
+    // SPM-251: Re-request on a flagged booking opens the form on it.
+    reRequesting: typeof replace === "string" ? replace : undefined,
+  });
   if (venueBooking === null) {
     forbidden();
   }

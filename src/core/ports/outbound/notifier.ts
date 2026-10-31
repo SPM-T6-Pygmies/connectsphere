@@ -1,3 +1,4 @@
+import type { RequestedChange } from "../../domain/change-request";
 import type { Connection } from "../../domain/connection";
 import type { ConfirmedEquipmentLine } from "../../domain/event-readiness";
 import type { TimeRangeOnDate } from "../../domain/event-times";
@@ -257,6 +258,74 @@ export interface EventConfirmedNotice {
 }
 
 /**
+ * What an Event Organiser is told when the assigned coordinator accepts a
+ * change of their event's times (SPM-68): a reschedule, now SPM-54 is
+ * cancelled. `times` are the new ones, as accepted.
+ */
+export interface EventRescheduledNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  /** In date then start order. */
+  readonly times: readonly TimeRangeOnDate[];
+  /** The same decision took the event out of Confirmed (SPM-433), which SPM-111 does not announce for a reschedule. */
+  readonly backToPlanning: boolean;
+}
+
+/**
+ * What an Event Organiser is told when the assigned coordinator cancels their
+ * event (SPM-68): everything it held at a venue, and its equipment, is
+ * released with it (SPM-55).
+ */
+export interface EventCancelledNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+}
+
+/**
+ * What an event's assigned Event Coordinator is told when its Organiser
+ * submits a change request (SPM-67): every field asked for, with the value
+ * wanted, so they know what to re-check. `null` is "Not applicable".
+ */
+export interface ChangeRequestedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly changeRequestId: string;
+  readonly eventName: string;
+  /** In the request's order, each field at most once. */
+  readonly changes: readonly RequestedChange[];
+}
+
+/** One field the Coordinator declined, with why (#104). */
+export interface DeclinedChange {
+  readonly change: RequestedChange;
+  /** Required: a decline with no reason cannot be sent (SPM-110 AC3). */
+  readonly reason: string;
+}
+
+/**
+ * What the Organiser who asked is told once the Coordinator decides their
+ * change request (SPM-110): one notice with every field's outcome, accepted
+ * and declined, each decline with its reason.
+ */
+export interface ChangeRequestDecidedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  readonly changeRequestId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  /** In the request's order. */
+  readonly accepted: readonly RequestedChange[];
+  readonly declined: readonly DeclinedChange[];
+}
+
+/**
  * What an event's assigned Event Coordinator is told when Venue Staff's change
  * to a venue flags one of its bookings (SPM-71): a block over it (SPM-313) or
  * an edit it no longer fits (SPM-105). One notice per booking, with every
@@ -316,6 +385,10 @@ export interface Notifier {
   holdExpired(notice: HoldExpiredNotice): Promise<void>;
   venueBookingCancelled(notice: VenueBookingCancelledNotice): Promise<void>;
   eventConfirmed(notice: EventConfirmedNotice): Promise<void>;
+  eventRescheduled(notice: EventRescheduledNotice): Promise<void>;
+  eventCancelled(notice: EventCancelledNotice): Promise<void>;
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void>;
+  changeRequested(notice: ChangeRequestedNotice): Promise<void>;
+  changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
 }

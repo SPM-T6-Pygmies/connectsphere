@@ -52,6 +52,7 @@ const BOOKING_ROW: BookingReviewRow = {
   hold_expires_at: null,
   rejection_note: null,
   suggested_alternative_location: null,
+  replaces: null,
   event: {
     event_id: 1,
     event_request_id: 1,
@@ -82,7 +83,7 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
       venue_staff_decide_booking: REFUSED_OVER_BLOCK,
       venue_staff_bookings: { data: [BOOKING_ROW], error: null },
       venue_blocked_slots: {
-        data: [{ venue_id: 5, date: "2026-10-22", slot: "PM", reason_category: "Safety" }],
+        data: [{ venue_id: 5, date: "2026-10-22", slot: "52", reason_category: "Safety" }],
         error: null,
       },
     });
@@ -93,9 +94,9 @@ describe("SupabaseBookingReviewRepository, approval over a block (SPM-22)", () =
 
     expect(error).toBeInstanceOf(VenueSlotBlockedError);
     expect((error as VenueSlotBlockedError).times).toEqual([
-      { date: "2026-10-22", start: "13:00", end: "18:00" },
+      { date: "2026-10-22", start: "13:00", end: "13:15" },
     ]);
-    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 13:00–18:00");
+    expect((error as VenueSlotBlockedError).message).toContain("2026-10-22 13:00–13:15");
   });
 
   it("falls back to the time the function named when a lift landed in between", async () => {
@@ -158,7 +159,7 @@ describe("SupabaseBookingReviewRepository, placing a hold (SPM-218)", () => {
       ).decide(HELD),
     ).rejects.toBeInstanceOf(VenuePaddedClashError);
     await expect(
-      new SupabaseBookingReviewRepository(refuse("CS028", "Venue 5 is blocked for 2026-10-22 PM").client).decide(HELD),
+      new SupabaseBookingReviewRepository(refuse("CS028", "Venue 5 is blocked for 2026-10-22 13:00–13:15").client).decide(HELD),
     ).rejects.toBeInstanceOf(VenueSlotBlockedError);
     await expect(
       new SupabaseBookingReviewRepository(refuse("CS031", "Booking 12 is already Confirmed").client).decide(HELD),
@@ -195,7 +196,7 @@ describe("SupabaseBookingReviewRepository, confirming or releasing a hold (SPM-2
 
   it("maps CS028 to a blocked-slot error naming the slot, for a confirmation over a block (AC7)", async () => {
     const { client } = fakeClient({
-      venue_staff_resolve_hold: { data: null, error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 PM" } },
+      venue_staff_resolve_hold: { data: null, error: { code: "CS028", message: "Venue 5 is blocked for 2026-10-22 13:00–13:15" } },
       venue_staff_bookings: { data: [BOOKING_ROW], error: null },
     });
 

@@ -5,7 +5,7 @@ import { InMemoryBookingReviewRepository } from "@/adapters/outbound/in-memory/i
 import { InMemorySafetyCheckWatch } from "@/adapters/outbound/in-memory/in-memory-safety-check-watch";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 
-import { slotTime, type BookingId, type BookingStatus } from "../domain/booking";
+import type { BookingId, BookingStatus } from "../domain/booking";
 import {
   BookingNotDecidableError,
   BookingNotFoundError,
@@ -24,11 +24,13 @@ import { DecideBookingRequestUseCase } from "./decide-booking-request";
 
 const STAFF = "staff-1";
 const COORDINATOR = "coord-1";
+const MORNING = { start: "07:00", end: "12:00" };
+const AFTERNOON = { start: "13:00", end: "18:00" };
 
 function booking(
   id: string,
   status: BookingStatus,
-  slot: "AM" | "PM" = "AM",
+  time: { start: string; end: string } = MORNING,
   venue = "v1",
   coordinator: string | null = COORDINATOR,
 ): BookingForReview {
@@ -38,13 +40,14 @@ function booking(
     venueId: venueId(venue),
     venueLocation: `Venue ${venue}`,
     roomLayoutName: "Theatre",
-    times: [slotTime({ date: "2026-10-22", slot })],
+    times: [{ date: "2026-10-22", ...time }],
     requestedByName: "Coordinator",
     requestedAt: "2026-10-01T00:00:00.000Z",
     decidedByName: null,
     holdExpiresAt: null,
     rejectionNote: null,
     suggestedAlternativeLocation: null,
+    replaces: null,
     event: {
       id: "e1",
       requestId: "r1",
@@ -69,7 +72,7 @@ const NOW = new Date("2026-10-01T09:00:00+08:00");
 
 /** A Tentative Hold on b1's slot, raised for another event, that lapses at `holdExpiresAt`. */
 function holdOnSlot(holdExpiresAt: Date | null): BookingForReview {
-  const base = booking("hold-1", "Tentative Hold", "AM", "v1");
+  const base = booking("hold-1", "Tentative Hold", MORNING, "v1");
   return {
     ...base,
     holdExpiresAt: holdExpiresAt === null ? null : holdExpiresAt.toISOString(),
@@ -171,8 +174,8 @@ describe("DecideBookingRequestUseCase (SPM-22)", () => {
 
   it("approves a slot the same event already holds at another venue -- each request is decided on its own (AC4)", async () => {
     const { useCase, reviews } = build([
-      booking("b1", "Requested", "AM", "v1"),
-      booking("b2", "Confirmed", "AM", "v2"),
+      booking("b1", "Requested", MORNING, "v1"),
+      booking("b2", "Confirmed", MORNING, "v2"),
     ]);
 
     await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
@@ -447,8 +450,8 @@ describe("DecideBookingRequestUseCase telling the coordinator (SPM-62)", () => {
 
   it("AC1: each of an event's bookings, decided in turn, is its own notice naming its own venue", async () => {
     const { useCase, notifier } = build([
-      booking("b1", "Requested", "AM", "v1"),
-      booking("b2", "Requested", "AM", "v2"),
+      booking("b1", "Requested", MORNING, "v1"),
+      booking("b2", "Requested", MORNING, "v2"),
     ]);
 
     await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
@@ -467,7 +470,7 @@ describe("DecideBookingRequestUseCase telling the coordinator (SPM-62)", () => {
   });
 
   it("an event with no assigned coordinator is still decided, and nobody is told", async () => {
-    const { useCase, notifier, reviews } = build([booking("b1", "Requested", "AM", "v1", null)]);
+    const { useCase, notifier, reviews } = build([booking("b1", "Requested", MORNING, "v1", null)]);
 
     await useCase.execute({ bookingId: "b1", userAccountId: STAFF, decision: "approve" });
 
@@ -479,7 +482,7 @@ describe("DecideBookingRequestUseCase telling the coordinator (SPM-62)", () => {
     const { useCase, notifier } = build([
       booking("b1", "Requested"),
       booking("b2", "Confirmed"),
-      booking("b3", "Rejected", "PM"),
+      booking("b3", "Rejected", AFTERNOON),
     ]);
 
     await expect(
@@ -653,8 +656,8 @@ describe("DecideBookingRequestUseCase, setup and turnaround (SPM-19)", () => {
     existing: { status: BookingStatus; start: string; end: string },
     request: { start: string; end: string },
   ) {
-    const asked = booking("b1", "Requested", "AM", "v1");
-    const there = booking("b2", existing.status, "AM", "v1");
+    const asked = booking("b1", "Requested", MORNING, "v1");
+    const there = booking("b2", existing.status, MORNING, "v1");
     const rows = [
       { ...asked, times: [{ date: DAY, ...request }] },
       {

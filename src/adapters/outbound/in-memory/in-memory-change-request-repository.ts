@@ -1,4 +1,5 @@
 import {
+  changeRequestId,
   changeRequestStatus,
   type ChangeRequest,
   type ChangeRequestId,
@@ -32,12 +33,13 @@ export class InMemoryChangeRequestRepository implements ChangeRequestRepository 
   }
 
   /** A stored request is open until it is decided, as `organiser_change_request_target` reads it. */
-  async submit(changeRequest: NewChangeRequest): Promise<void> {
+  async submit(changeRequest: NewChangeRequest): Promise<ChangeRequestId> {
     this.submitted.push(changeRequest);
     const target = this.targets.get(changeRequest.eventRequestId);
     if (target !== undefined) {
       this.targets.set(changeRequest.eventRequestId, { ...target, hasOpenChangeRequest: true });
     }
+    return changeRequestId(`change-request-${this.submitted.length}`);
   }
 
   async listForEvent(_coordinatorId: UserAccountId, eventId: EventId): Promise<readonly ChangeRequest[]> {

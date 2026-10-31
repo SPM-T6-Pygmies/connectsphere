@@ -391,7 +391,10 @@ export async function buildPostClarificationMessage(): Promise<PostClarification
 /** SPM-52: the event's owning Organiser asks for significant fields to change. */
 export async function buildSubmitChangeRequest(): Promise<SubmitChangeRequestUseCase> {
   const client = await createSupabaseServerClient();
-  return new SubmitChangeRequestUseCase({ changeRequests: new SupabaseChangeRequestRepository(client) });
+  return new SubmitChangeRequestUseCase({
+    changeRequests: new SupabaseChangeRequestRepository(client),
+    notifier: recordedNotifier(),
+  });
 }
 
 /** SPM-100 AC1: the assigned Coordinator's view of an event's change requests. */
@@ -409,6 +412,7 @@ export async function buildDecideChangeRequest(): Promise<DecideChangeRequestUse
   return new DecideChangeRequestUseCase({
     changeRequests: new SupabaseChangeRequestRepository(client),
     coordinatorEvents: new SupabaseCoordinatorEventRepository(client),
+    notifier: recordedNotifier(),
     // SPM-311: Technical Support hear of the equipment new dates release.
     equipment: new SupabaseEquipmentRequirementRepository(client),
     attention: equipmentAttentionAnnouncer(),
@@ -657,8 +661,11 @@ export async function buildViewVenueBookingOptions(): Promise<ViewVenueBookingOp
  * the coordinator may not list staff accounts themselves.
  */
 export async function buildSubmitVenueBookingRequest(): Promise<SubmitVenueBookingRequestUseCase> {
+  const client = await createSupabaseServerClient();
   return new SubmitVenueBookingRequestUseCase({
     ...(await venueBookingAdapters()),
+    // SPM-251: a re-request names a flagged booking.
+    flags: new SupabaseBookingFlagRepository(client),
     venueStaff: new SupabaseVenueStaffDirectory(createSupabaseAdminClient()),
     notifier: recordedNotifier(),
     clock: systemClock,
@@ -827,7 +834,7 @@ export async function buildCompleteEvent(): Promise<CompleteEventUseCase> {
 export async function buildCancelEvent(): Promise<CancelEventUseCase> {
   const { events } = await coordinatorAdapters();
 
-  return new CancelEventUseCase({ events });
+  return new CancelEventUseCase({ events, notifier: recordedNotifier() });
 }
 
 /** SPM-41: an event's equipment requirement lines, to the coordinator it is assigned to. */

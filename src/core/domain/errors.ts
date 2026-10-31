@@ -1266,7 +1266,7 @@ export class UnavailabilityAlreadyLiftedError extends DomainError {
 /**
  * SPM-21 AC12, SPM-321 AC3: a Venue Staff block shares time with what the request asks for.
  * `slots` are the block's own slots that overlap it, and `times` says them as a person reads
- * them (`2026-11-02 09:00 to 11:30`), not as the AM, PM or Night the request used. Unlike a
+ * them (`2026-11-02 09:00 to 11:30`). Unlike a
  * clash with another booking, there is nothing to choose around it and no override.
  */
 export class VenueSlotBlockedError extends DomainError {
@@ -1359,6 +1359,36 @@ export class NoFlagToClearError extends DomainError {
 
   constructor(readonly bookingId: string) {
     super("This booking has no open flag to clear.");
+  }
+}
+
+/**
+ * SPM-251 AC1: only a booking with an open flag can be re-requested. One that was never flagged,
+ * was cleared, or no longer holds its venue has nothing to replace.
+ */
+export class NoFlagToReRequestError extends DomainError {
+  readonly code = "no_flag_to_re_request";
+
+  constructor(readonly bookingId: string) {
+    super("This booking has no open flag to re-request.");
+  }
+}
+
+/** SPM-251 AC9: one re-request for a flagged booking waits for Venue Staff at a time. */
+export class ReRequestPendingError extends DomainError {
+  readonly code = "re_request_pending";
+
+  constructor(readonly bookingId: string) {
+    super("A re-request for this booking is already waiting for Venue Staff.");
+  }
+}
+
+/** SPM-251 AC10: Venue Staff approve or reject a re-request; they do not hold it. */
+export class ReRequestNotHoldableError extends DomainError {
+  readonly code = "re_request_not_holdable";
+
+  constructor() {
+    super("A re-request can only be approved or rejected, not held.");
   }
 }
 

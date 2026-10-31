@@ -202,6 +202,16 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-67": {
+      "title": "Notify the coordinator of a change request",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
+    "SPM-68": {
+      "title": "Notify the organiser of a reschedule or cancellation",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-71": {
       "title": "Notify the coordinator of a flagged venue booking",
       "parent": "SPM-47",
@@ -346,6 +356,11 @@
       "title": "Mark an equipment line as essential",
       "parent": null,
       "status": "Backlog"
+    },
+    "SPM-110": {
+      "title": "Notify the organiser of the change-request outcome",
+      "parent": "SPM-47",
+      "status": "In Progress"
     },
     "SPM-112": {
       "title": "Allow an Organiser to view their organisation's event requests",
@@ -762,6 +777,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-251": {
+      "title": "Re-request a flagged venue booking",
+      "parent": null,
+      "status": "In Progress"
+    },
     "SPM-254": {
       "title": "Warn the coordinator of hold expiry",
       "parent": "SPM-47",
@@ -967,6 +987,11 @@
       "parent": "SPM-276",
       "status": "Todo"
     },
+    "SPM-328": {
+      "title": "Retire the AM/PM/Night slot codes",
+      "parent": "SPM-276",
+      "status": "In Progress"
+    },
     "SPM-331": {
       "title": "Store opening hours as 15-minute slots and convert existing venue slots",
       "parent": "SPM-320",
@@ -1036,6 +1061,11 @@
       "title": "Test and verify approvals and holds against AC1–AC6",
       "parent": "SPM-325",
       "status": "Todo"
+    },
+    "SPM-361": {
+      "title": "Write the contract migration that removes the AM/PM/Night slot codes",
+      "parent": "SPM-328",
+      "status": "In Progress"
     },
     "SPM-450": {
       "title": "Domain: define a block by date range and start and end time",

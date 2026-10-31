@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  changeRequestDecidedRow,
+  changeRequestedRow,
   clarificationRequestedRow,
   coordinatorAssignedRow,
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
+  eventCancelledRow,
   eventRequestDecidedRow,
+  eventRescheduledRow,
   holdExpiredRow,
   organiserCoordinatorAssignedRow,
   organiserMessagePostedRow,
@@ -337,6 +341,98 @@ describe("venueBookingFlaggedRow (SPM-71)", () => {
       related_booking_id: "31",
       message_content:
         "Grand Ballroom booking flagged for Harbour Lights Gala\nYour booking of Grand Ballroom for Harbour Lights Gala is flagged for review. Venue unavailable: Maintenance: 2026-11-16 13:00 to 18:00. Nothing has been cancelled or rebooked; open the event's Venue tab to decide what to do.",
+    });
+  });
+});
+
+describe("eventRescheduledRow (SPM-68)", () => {
+  it("AC1: records the notice as Pending against the Organiser and the event", () => {
+    expect(
+      eventRescheduledRow({
+        recipientUserAccountId: "3",
+        eventId: "7",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+        times: [{ date: "2026-11-21", start: "09:00", end: "12:00" }],
+        backToPlanning: false,
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "event-rescheduled",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      message_content:
+        "Harbour Lights Gala is rescheduled\nHarbour Lights Gala has been rescheduled. New times: Sat, 21 Nov 2026 (09:00–12:00).",
+    });
+  });
+});
+
+describe("eventCancelledRow (SPM-68)", () => {
+  it("AC1: records the notice as Pending against the Organiser and the event", () => {
+    expect(
+      eventCancelledRow({
+        recipientUserAccountId: "3",
+        eventId: "7",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+      }),
+    ).toEqual({
+      recipient_user_account_id: "3",
+      trigger_scenario: "event-cancelled",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      message_content:
+        "Harbour Lights Gala is cancelled\nHarbour Lights Gala has been cancelled. Its venue bookings and equipment reservations have been released.",
+    });
+  });
+});
+
+describe("changeRequestedRow (SPM-67)", () => {
+  it("AC1: records the notice as Pending against the coordinator, the event and the change request", () => {
+    expect(
+      changeRequestedRow({
+        recipientUserAccountId: "4",
+        eventId: "7",
+        changeRequestId: "41",
+        eventName: "Harbour Lights Gala",
+        changes: [{ field: "expected_attendance", value: 320 }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "4",
+      trigger_scenario: "change-requested",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      related_change_request_id: "41",
+      message_content:
+        "Change requested for Harbour Lights Gala\nThe Organiser of Harbour Lights Gala asks to change: Expected attendance → 320. Open the change request to accept or decline each change.",
+    });
+  });
+});
+
+describe("changeRequestDecidedRow (SPM-110)", () => {
+  it("AC1: records the notice as Pending against the Organiser, the event and the change request", () => {
+    expect(
+      changeRequestDecidedRow({
+        recipientUserAccountId: "6",
+        eventId: "7",
+        changeRequestId: "41",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+        accepted: [{ field: "expected_attendance", value: 320 }],
+        declined: [{ change: { field: "venue_requirements", value: "Step-free access" }, reason: "No such venue free" }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "6",
+      trigger_scenario: "change-request-decided",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      related_change_request_id: "41",
+      message_content:
+        "Your change request for Harbour Lights Gala is decided\nAccepted: Expected attendance → 320. Declined: Venue requirements → Step-free access (No such venue free).",
     });
   });
 });
