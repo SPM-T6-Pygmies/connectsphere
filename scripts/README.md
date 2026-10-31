@@ -27,7 +27,7 @@ automatically: not on `supabase db reset`, not in CI.
 ```bash
 pnpm e2e:data reset              # supabase db reset, seed, verify, novu:clear
 pnpm e2e:data verify             # check what is loaded; exits 1 on any failure
-pnpm e2e:data seed               # teardown, then seed, without a reset
+pnpm e2e:data seed               # tear down every profile, then seed, without a reset
 pnpm e2e:data teardown           # every teardown, in reverse order, then novu:clear
 pnpm e2e:data reset venue-hold   # any command takes a profile; `full` is the default
 ```

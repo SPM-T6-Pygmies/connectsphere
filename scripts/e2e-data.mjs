@@ -1,7 +1,7 @@
 // Seeds, verifies and tears down the local test data in one command, for end-to-end testing.
 //
 //   pnpm e2e:data reset    [profile]   supabase db reset, then seed, verify and novu:clear
-//   pnpm e2e:data seed     [profile]   tear the profile down, then load its seeds in order
+//   pnpm e2e:data seed     [profile]   tear down every profile, then load this one's seeds in order
 //   pnpm e2e:data verify   [profile]   run its verify.sql and show.sql files; exit 1 on any failure
 //   pnpm e2e:data teardown [profile]   run its teardown.sql files in reverse order, then novu:clear
 //
@@ -57,6 +57,10 @@ const PROFILES = {
   "equipment-reserve": [step("seed-equipment-reserve", { verify: "verify.sql" })],
   "venue-search": [step("seed-venue-search-uat")],
 };
+
+// Each seed directory any profile loads, once, in the order profiles list them: undone in reverse,
+// the other profiles' seeds go before `full`'s.
+const EVERY_STEP = [...new Map(Object.values(PROFILES).flat().map((s) => [s.dir, s])).values()];
 
 function query(file) {
   const r = spawnSync(
@@ -154,8 +158,9 @@ try {
     if (!run("supabase", ["db", "reset"])) throw new Error("supabase db reset failed");
     waitForSchema();
   }
-  // Not every seed is safe to re-run on top of the others, so `seed` starts from a teardown.
-  if (command === "seed") teardown(steps);
+  // Not every seed is safe to re-run on top of the others, and another profile's bookings can
+  // hold on to this one's venues, so `seed` starts by tearing down every profile.
+  if (command === "seed") teardown(EVERY_STEP);
   if (command === "reset" || command === "seed") seed(steps);
   if (command === "reset" || command === "verify") ok = verify(steps);
   if (command === "teardown") teardown(steps);
