@@ -7,6 +7,7 @@ import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-e
 import type { EventReadinessRepository } from "../ports/outbound/event-readiness-repository";
 import type { Notifier } from "../ports/outbound/notifier";
 import type { SafetyCheckRepository } from "../ports/outbound/safety-check-repository";
+import type { AttendeeChangeAnnouncer } from "./announce-event-change-to-attendees";
 
 export interface ConfirmEventCommand {
   readonly id: string;
@@ -26,6 +27,8 @@ export interface ConfirmEventDeps {
   readonly safetyChecks: Pick<SafetyCheckRepository, "history">;
   /** SPM-66: tells the event's Organiser it is confirmed. */
   readonly notifier: Pick<Notifier, "eventConfirmed">;
+  /** SPM-69: emails the attendees of a reschedule once the event is confirmed with its new times. */
+  readonly attendees: Pick<AttendeeChangeAnnouncer, "announce">;
 }
 
 /**
@@ -43,13 +46,16 @@ export interface ConfirmEventDeps {
  * arrangements. The confirmation is stored first, so a notice that fails to
  * send cannot undo it; composition's notifier records a failure rather than
  * throwing.
+ *
+ * SPM-69: if an accepted change of times is still unannounced, the event's
+ * Registered attendees are emailed the new times and venue.
  */
 export class ConfirmEventUseCase {
   constructor(private readonly deps: ConfirmEventDeps) {}
 
   /** Throws `EventNotFoundError` both when there is no such event and when it isn't assigned to this caller (#91). */
   async execute(command: ConfirmEventCommand): Promise<ConfirmEventResult> {
-    const { events, readiness, safetyChecks, notifier } = this.deps;
+    const { events, readiness, safetyChecks, notifier, attendees } = this.deps;
     const id = eventId(command.id);
     const confirmedBy = userAccountId(command.userAccountId);
 
@@ -81,6 +87,12 @@ export class ConfirmEventUseCase {
       venueLocation,
       equipment,
     });
+
+    // SPM-69: an accepted change of times is announced to attendees only now that the venue, dates
+    // and times are all confirmed again.
+    if (await events.takeUnannouncedReschedule(confirmedBy, id)) {
+      await attendees.announce(id, confirmed.name, { kind: "rescheduled", times: details.times, venueName: venueLocation });
+    }
 
     return { eventId: confirmed.id, status: confirmed.status };
   }

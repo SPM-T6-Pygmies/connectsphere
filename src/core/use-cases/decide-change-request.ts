@@ -78,8 +78,10 @@ export interface ChangeRequestOutcome {
  * field's outcome in one notice.
  *
  * SPM-68: an accepted change of times is a reschedule, so the event's
- * Organiser is told the new times once the decision is stored. SPM-69: so is
- * every Registered attendee, by email, with the venue.
+ * Organiser is told the new times once the decision is stored. SPM-69: every
+ * Registered attendee is emailed too, with the venue, but only once the event
+ * is Confirmed with them: now if it never left Confirmed, otherwise when the
+ * coordinator confirms it again.
  *
  * SPM-111: the store lapses a Confirmed event the decision leaves short of the
  * confirm gate, in the same transaction. Its Organiser is told, unless the
@@ -126,6 +128,11 @@ export class DecideChangeRequestUseCase {
     }
     if (event !== null && outcome.rescheduled) {
       await this.announceReschedule(coordinator, event, outcome);
+      // The event is still Confirmed, so nothing is left to re-confirm: its attendees are told now.
+      // Otherwise they are told when the coordinator confirms it again (ConfirmEventUseCase).
+      if (event.status === "Confirmed" && lapse === undefined) {
+        await this.announceToAttendees(coordinator, event, outcome);
+      }
     }
     if (lapse !== undefined && !outcome.rescheduled) {
       await this.deps.notifier.eventNoLongerConfirmed({
@@ -175,7 +182,18 @@ export class DecideChangeRequestUseCase {
       times: times.change.value,
       backToPlanning: outcome.lapsed,
     });
+  }
 
+  /** SPM-69: every Registered attendee, with the venue the event now holds. */
+  private async announceToAttendees(
+    coordinator: UserAccountId,
+    event: CoordinatorEventDetails,
+    outcome: ChangeRequestOutcome,
+  ): Promise<void> {
+    const times = outcome.items.find((item) => item.decision === "Accepted" && item.change.field === "times");
+    if (times?.change.field !== "times" || !(await this.deps.coordinatorEvents.takeUnannouncedReschedule(coordinator, event.id))) {
+      return;
+    }
     const facts = await this.deps.readiness.factsFor(coordinator, eventId(event.id));
     await this.deps.attendees.announce(eventId(event.id), event.name, {
       kind: "rescheduled",
