@@ -75,9 +75,6 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 | UAT-44 Garden Hall | 07:00–18:00 | Rejected 07:00–12:00 on D (holds nothing); Confirmed 18:30–19:00 on D+7, after closing |
 | Main Hall | 07:00–24:00 | Renovation block 09:00–11:30 for D to D+4; Maintenance block over every open hour of D+2; holds on D+7 (07:00–12:00 expired, 14:00–18:00 lapsing in 30 days) |
 
-> **Seed timing.** `seed-venue-unavailability` dates its blocks from the UTC day, so a
-> run between midnight and 08:00 Singapore time puts them one day earlier than D.
-
 ---
 
 ## Test Cases

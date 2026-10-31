@@ -20,13 +20,13 @@ with block (venue, reason, expected) as (
          ('Main Hall', 'Maintenance', '68 slots, In force'),
          ('Studio',    'Safety',      '20 slots, Lifted')
 ),
--- seed.sql's blocks fall from 14 to 20 days from today; other seeds block these venues on other days.
+-- seed.sql's blocks fall from 9 to 15 December 2026; other seeds block these venues on other days.
 seeded as (
   select u.venue_unavailability_id
   from public.venue_unavailability u
   where exists (select 1 from public.venue_unavailability_slot s
                 where s.venue_unavailability_id = u.venue_unavailability_id
-                  and s.slot_date between current_date + 14 and current_date + 20)
+                  and s.slot_date between date '2026-12-09' and date '2026-12-15')
 ),
 checks as (
   select 'block ' || b.venue || ' ' || b.reason as check_name, b.expected,
