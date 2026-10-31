@@ -1,4 +1,4 @@
-import { CoordinatorEventNotFoundError, EventRegistrationLockedError } from "../domain/errors";
+import { EventRegistrationLockedError } from "../domain/errors";
 import {
   chooseRegistrationSettings,
   eventRegistrationEditable,
@@ -7,6 +7,8 @@ import {
 } from "../domain/event-registration-settings";
 import { userAccountId } from "../domain/user-account";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+
+import { assignedEventDetails } from "./assigned-event";
 
 export interface SetEventRegistrationCommand {
   readonly eventId: string;
@@ -43,10 +45,7 @@ export class SetEventRegistrationUseCase {
     const { events } = this.deps;
     const coordinatorId = userAccountId(command.userAccountId);
 
-    const event = await events.findAssigned(coordinatorId, command.eventId);
-    if (event === null) {
-      throw new CoordinatorEventNotFoundError(command.eventId);
-    }
+    const event = await assignedEventDetails(events, command.eventId, coordinatorId);
     if (!eventRegistrationEditable(event.status)) {
       throw new EventRegistrationLockedError(event.status);
     }

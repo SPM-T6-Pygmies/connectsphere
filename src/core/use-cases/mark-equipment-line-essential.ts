@@ -2,7 +2,8 @@ import { equipmentItemId } from "../domain/equipment-item";
 import { markEquipmentLineEssential } from "../domain/equipment-requirement";
 import { eventId } from "../domain/event";
 import { userAccountId } from "../domain/user-account";
-import { assignedEvent, existingLine } from "./equipment-requirement-change";
+import { assignedEvent } from "./assigned-event";
+import { existingLine } from "./equipment-requirement-change";
 import type { EquipmentRequirementDeps } from "./record-equipment-requirement";
 
 export interface MarkEquipmentLineEssentialCommand {

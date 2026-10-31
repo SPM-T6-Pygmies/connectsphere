@@ -2,8 +2,8 @@ import { equipmentItemId } from "../domain/equipment-item";
 import { removeEquipmentRequirement } from "../domain/equipment-requirement";
 import { eventId } from "../domain/event";
 import { userAccountId } from "../domain/user-account";
+import { assignedEvent } from "./assigned-event";
 import {
-  assignedEvent,
   catalogueItem,
   describeChange,
   existingLine,

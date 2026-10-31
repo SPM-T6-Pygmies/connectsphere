@@ -1,7 +1,9 @@
-import { CoordinatorEventNotFoundError, EventFacilitiesLockedError } from "../domain/errors";
+import { EventFacilitiesLockedError } from "../domain/errors";
 import { chooseRequiredFacilities, eventFacilitiesEditable } from "../domain/event-facilities";
 import { userAccountId } from "../domain/user-account";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+
+import { assignedEventDetails } from "./assigned-event";
 
 export interface SetEventRequiredFacilitiesCommand {
   readonly eventId: string;
@@ -36,10 +38,7 @@ export class SetEventRequiredFacilitiesUseCase {
     const { events } = this.deps;
     const coordinatorId = userAccountId(command.userAccountId);
 
-    const event = await events.findAssigned(coordinatorId, command.eventId);
-    if (event === null) {
-      throw new CoordinatorEventNotFoundError(command.eventId);
-    }
+    const event = await assignedEventDetails(events, command.eventId, coordinatorId);
     if (!eventFacilitiesEditable(event.status)) {
       throw new EventFacilitiesLockedError(event.status);
     }

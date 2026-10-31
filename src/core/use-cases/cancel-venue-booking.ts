@@ -1,10 +1,12 @@
 import { cancelBooking, cancellationNotifiesVenueStaff } from "../domain/booking";
-import { BookingNotFoundError, CoordinatorEventNotFoundError } from "../domain/errors";
+import { BookingNotFoundError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import type { BookingRepository } from "../ports/outbound/booking-repository";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type { Notifier } from "../ports/outbound/notifier";
 import type { VenueStaffDirectory } from "../ports/outbound/venue-staff-directory";
+
+import { assignedEventDetails } from "./assigned-event";
 
 export interface CancelVenueBookingCommand {
   readonly eventId: string;
@@ -44,10 +46,7 @@ export class CancelVenueBookingUseCase {
     const { events, bookings } = this.deps;
     const coordinatorId = userAccountId(command.userAccountId);
 
-    const event = await events.findAssigned(coordinatorId, command.eventId);
-    if (event === null) {
-      throw new CoordinatorEventNotFoundError(command.eventId);
-    }
+    const event = await assignedEventDetails(events, command.eventId, coordinatorId);
 
     const booking = (await bookings.listForEvent(coordinatorId, event.id)).find(
       ({ id }) => id === command.bookingId,

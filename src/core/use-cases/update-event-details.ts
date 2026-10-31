@@ -1,4 +1,4 @@
-import { CoordinatorEventNotFoundError, EventDetailsLockedError } from "../domain/errors";
+import { EventDetailsLockedError } from "../domain/errors";
 import {
   eventDetailsEditable,
   ORDINARY_EVENT_FIELDS,
@@ -8,6 +8,8 @@ import {
 } from "../domain/event-details-edit";
 import { userAccountId } from "../domain/user-account";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+
+import { assignedEventDetails } from "./assigned-event";
 
 export interface UpdateEventDetailsCommand {
   readonly eventId: string;
@@ -43,10 +45,7 @@ export class UpdateEventDetailsUseCase {
     const { events } = this.deps;
     const coordinatorId = userAccountId(command.userAccountId);
 
-    const event = await events.findAssigned(coordinatorId, command.eventId);
-    if (event === null) {
-      throw new CoordinatorEventNotFoundError(command.eventId);
-    }
+    const event = await assignedEventDetails(events, command.eventId, coordinatorId);
     if (!eventDetailsEditable(event.status)) {
       throw new EventDetailsLockedError(event.status);
     }

@@ -1,9 +1,10 @@
 import type { BookingStatus } from "../domain/booking";
 import { flagsToClear } from "../domain/booking-review-flag";
-import { CoordinatorEventNotFoundError } from "../domain/errors";
 import { userAccountId } from "../domain/user-account";
 import type { BookingFlagRepository } from "../ports/outbound/booking-flag-repository";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
+
+import { assignedEventDetails } from "./assigned-event";
 
 export interface ClearBookingFlagCommand {
   readonly eventId: string;
@@ -38,10 +39,7 @@ export class ClearBookingFlagUseCase {
     const { events, flags } = this.deps;
     const coordinatorId = userAccountId(command.userAccountId);
 
-    const event = await events.findAssigned(coordinatorId, command.eventId);
-    if (event === null) {
-      throw new CoordinatorEventNotFoundError(command.eventId);
-    }
+    const event = await assignedEventDetails(events, command.eventId, coordinatorId);
 
     const clearing = flagsToClear(await flags.openForEvent(coordinatorId, event.id), command.bookingId);
     const [{ bookingId, venueLocation, status }] = clearing;
