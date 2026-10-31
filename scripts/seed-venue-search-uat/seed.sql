@@ -7,8 +7,9 @@
 -- Every name starts with "UAT-44" so the data is easy to spot and teardown.sql
 -- removes exactly it. Safe to run more than once: each insert is guarded.
 --
--- D below is the booking day: 14 days after today in Singapore, so it is
--- inside both venues' 60-day booking horizon whenever the cases are run.
+-- D below is the booking day: Wednesday 9 December 2026, a fixed date after the
+-- November 2026 test window, and inside both venues' 60-day booking horizon
+-- from 10 October 2026 onwards.
 --
 --   UAT-44 Harbour Room  open 07:00-24:00 (once AM, PM and Night); horizon 60,
 --                        venue capacity 250
@@ -30,7 +31,7 @@ declare
   v_organisation bigint;
   v_organiser    bigint;
   v_coordinator  bigint;
-  v_day          date := (now() at time zone 'Asia/Singapore')::date + 14;
+  v_day          date := date '2026-12-09';
   v_harbour      bigint;
   v_garden       bigint;
   v_event        bigint;
