@@ -1,3 +1,4 @@
+import { reRequestDraft, reRequestPending, type ReRequestDraft } from "../domain/booking-review-flag";
 import { userAccountId } from "../domain/user-account";
 import {
   checkVenueSuitability,
@@ -21,6 +22,16 @@ export type { Venue } from "../domain/venue";
 export interface ViewVenueBookingOptionsCommand {
   readonly eventId: string;
   readonly userAccountId: string;
+  /** SPM-251: the flagged booking the coordinator chose to re-request, if any. */
+  readonly reRequesting?: string;
+}
+
+/** SPM-251 AC2: a re-request the form starts from, and the flagged booking it replaces. */
+export interface ReRequestStart extends ReRequestDraft {
+  readonly bookingId: string;
+  readonly venueLocation: string;
+  /** The day and hours the flagged booking holds, e.g. `2026-11-16 13:00 to 18:00`. */
+  readonly bookedFor: string;
 }
 
 /** SPM-45: how well one layout of one venue fits the event (a venue with no layouts has one entry, on no layout). */
@@ -40,6 +51,13 @@ export interface ViewVenueBookingOptionsResult {
   readonly bookingSuitability: Readonly<Record<string, VenueSuitability>>;
   /** SPM-313: each open reason a booking of this event is flagged for, oldest first. Match them to a row by `bookingId`. */
   readonly flaggedBookings: readonly EventBookingFlag[];
+  /** SPM-251 AC9: the flagged bookings with a re-request waiting for Venue Staff. */
+  readonly reRequestsWaiting: readonly string[];
+  /**
+   * SPM-251 AC1, AC2: the re-request asked for, if that booking has an open flag and none
+   * waiting; null otherwise, and the form is the ordinary one.
+   */
+  readonly reRequest: ReRequestStart | null;
 }
 
 export interface ViewVenueBookingOptionsDeps {
@@ -63,6 +81,9 @@ export interface ViewVenueBookingOptionsDeps {
  * SPM-45: it also works out how well each venue and layout, and each booking
  * still in play, fits the event's needs. Worked out on every read and never
  * stored, so a changed attendance or need shows the next time the page opens.
+ *
+ * SPM-251: and, when the coordinator asked to re-request a flagged booking,
+ * what the form starts from (`reRequestDraft`).
  */
 export class ViewVenueBookingOptionsUseCase {
   constructor(private readonly deps: ViewVenueBookingOptionsDeps) {}
@@ -99,7 +120,40 @@ export class ViewVenueBookingOptionsUseCase {
       }
     }
 
-    return { event, venues, bookings, venueSuitability, bookingSuitability, flaggedBookings };
+    const flaggedIds = [...new Set(flaggedBookings.map((flag) => flag.bookingId as string))];
+    const reRequestsWaiting = flaggedIds.filter((id) => reRequestPending(bookings, id));
+
+    return {
+      event,
+      venues,
+      bookings,
+      venueSuitability,
+      bookingSuitability,
+      flaggedBookings,
+      reRequestsWaiting,
+      reRequest: this.reRequestStart(command.reRequesting, event, venues, bookings, flaggedBookings, reRequestsWaiting),
+    };
+  }
+
+  private reRequestStart(
+    bookingId: string | undefined,
+    event: CoordinatorEventDetails,
+    venues: readonly Venue[],
+    bookings: readonly EventBookingSummary[],
+    flags: readonly EventBookingFlag[],
+    waiting: readonly string[],
+  ): ReRequestStart | null {
+    const flag = flags.find((candidate) => candidate.bookingId === bookingId);
+    const flagged = bookings.find((booking) => booking.id === bookingId);
+    if (flag === undefined || flagged === undefined || waiting.includes(flagged.id)) {
+      return null;
+    }
+    return {
+      bookingId: flagged.id,
+      venueLocation: flagged.venueLocation,
+      bookedFor: flag.bookedFor,
+      ...reRequestDraft(event, flagged, venues.find((venue) => venue.id === flagged.venueId)),
+    };
   }
 }
 

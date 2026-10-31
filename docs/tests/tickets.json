@@ -202,6 +202,11 @@
       "parent": null,
       "status": "In Progress"
     },
+    "SPM-67": {
+      "title": "Notify the coordinator of a change request",
+      "parent": "SPM-47",
+      "status": "In Progress"
+    },
     "SPM-68": {
       "title": "Notify the organiser of a reschedule or cancellation",
       "parent": "SPM-47",
@@ -351,6 +356,11 @@
       "title": "Mark an equipment line as essential",
       "parent": null,
       "status": "Backlog"
+    },
+    "SPM-110": {
+      "title": "Notify the organiser of the change-request outcome",
+      "parent": "SPM-47",
+      "status": "In Progress"
     },
     "SPM-112": {
       "title": "Allow an Organiser to view their organisation's event requests",
@@ -764,6 +774,11 @@
     },
     "SPM-250": {
       "title": "Search venues by padded availability",
+      "parent": null,
+      "status": "In Progress"
+    },
+    "SPM-251": {
+      "title": "Re-request a flagged venue booking",
       "parent": null,
       "status": "In Progress"
     },

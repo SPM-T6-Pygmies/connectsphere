@@ -19,6 +19,11 @@ export const submitVenueBookingRequestSchema = z.object({
     .trim()
     .transform((value) => (value === "" ? null : value)),
   times: z.array(z.object({ date: z.string(), start: z.string(), end: z.string() })),
+  /** SPM-251: the flagged booking a re-request replaces; blank or absent for an ordinary request. */
+  replacesBookingId: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || null),
 });
 
 export type SubmitVenueBookingRequestInput = z.infer<typeof submitVenueBookingRequestSchema>;

@@ -18,6 +18,8 @@ export interface ChangeRequestTargetRow {
   readonly status: string;
   readonly owning_organiser_user_account_id: number;
   readonly has_open_change_request: boolean;
+  readonly event_name: string;
+  readonly assigned_coordinator_user_account_id: number | null;
 }
 
 /** One element of `submit_change_request`'s `p_items`. */
@@ -32,6 +34,11 @@ export function toChangeRequestTarget(row: ChangeRequestTargetRow): ChangeReques
     status: toStatus(row.status),
     owningOrganiserUserAccountId: userAccountId(String(row.owning_organiser_user_account_id)),
     hasOpenChangeRequest: row.has_open_change_request,
+    eventName: row.event_name,
+    assignedCoordinatorUserAccountId:
+      row.assigned_coordinator_user_account_id === null
+        ? null
+        : userAccountId(String(row.assigned_coordinator_user_account_id)),
   };
 }
 
@@ -62,6 +69,7 @@ export interface ChangeRequestRow {
   readonly change_request_id: number;
   readonly created_at: string;
   readonly items: readonly ChangeRequestItemRow[];
+  readonly requesting_user_account_id: number;
 }
 
 export interface ChangeRequestItemRow {
@@ -89,6 +97,7 @@ export function toChangeRequest(row: ChangeRequestRow): ChangeRequest {
   return {
     id: changeRequestId(String(row.change_request_id)),
     submittedAt: new Date(row.created_at),
+    requestedBy: userAccountId(String(row.requesting_user_account_id)),
     items: row.items.map(toChangeRequestItemState),
   };
 }
@@ -98,7 +107,11 @@ function toChangeRequestItemState(row: ChangeRequestItemRow): ChangeRequestItem 
   if (decision === undefined) {
     throw new Error(`Unknown change request decision: ${row.decision}`);
   }
-  return { change: toRequestedChange(row), decision, reason: row.decision_reason };
+  const change = toRequestedChange(row);
+  // coordinator_decide_change_request refuses a Rejected item without a reason.
+  return decision === "Declined"
+    ? { change, decision, reason: row.decision_reason ?? "" }
+    : { change, decision, reason: null };
 }
 
 /** The reverse of `toChangeRequestItem`. */

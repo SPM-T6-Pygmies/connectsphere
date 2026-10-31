@@ -1,5 +1,7 @@
 import type { SupabaseAdminClient } from "@/adapters/outbound/supabase/client";
 import {
+  changeRequestDecidedRow,
+  changeRequestedRow,
   clarificationRequestedRow,
   coordinatorAssignedRow,
   equipmentDecidedRow,
@@ -21,6 +23,8 @@ import {
 } from "@/adapters/outbound/supabase/notification-row";
 import type { Connection } from "@/core/domain/connection";
 import type {
+  ChangeRequestDecidedNotice,
+  ChangeRequestedNotice,
   ClarificationRequestedNotice,
   EquipmentDecidedNotice,
   EquipmentNeedsAttentionNotice,
@@ -148,6 +152,14 @@ export class SupabaseRecordingNotifier implements Notifier {
 
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void> {
     return this.recordAndDeliver(venueBookingFlaggedRow(notice), () => this.inner.venueBookingFlagged(notice));
+  }
+
+  changeRequested(notice: ChangeRequestedNotice): Promise<void> {
+    return this.recordAndDeliver(changeRequestedRow(notice), () => this.inner.changeRequested(notice));
+  }
+
+  changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void> {
+    return this.recordAndDeliver(changeRequestDecidedRow(notice), () => this.inner.changeRequestDecided(notice));
   }
 
   /**

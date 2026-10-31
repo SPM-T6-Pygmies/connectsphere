@@ -112,6 +112,7 @@ describe("requestVenueBooking (SPM-46)", () => {
       times: [{ date: "2026-10-05", start: "07:00", end: "12:00" }],
       requestedBy: "coordinator-1",
       status: "Requested",
+      replacesBookingId: null,
     });
   });
 
