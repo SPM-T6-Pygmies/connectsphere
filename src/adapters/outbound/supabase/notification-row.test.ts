@@ -8,6 +8,7 @@ import {
   equipmentDecidedRow,
   equipmentNeedsAttentionRow,
   eventCancelledRow,
+  eventNoLongerConfirmedRow,
   eventRequestDecidedRow,
   eventRescheduledRow,
   holdExpiredRow,
@@ -433,6 +434,28 @@ describe("changeRequestDecidedRow (SPM-110)", () => {
       related_change_request_id: "41",
       message_content:
         "Your change request for Harbour Lights Gala is decided\nAccepted: Expected attendance → 320. Declined: Venue requirements → Step-free access (No such venue free).",
+    });
+  });
+});
+
+describe("eventNoLongerConfirmedRow (SPM-111)", () => {
+  it("AC1: records the notice as Pending against the Organiser and the event", () => {
+    expect(
+      eventNoLongerConfirmedRow({
+        recipientUserAccountId: "6",
+        eventId: "7",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+        lapsed: [{ kind: "flagged-booking", venueLocation: "Main Hall" }],
+      }),
+    ).toEqual({
+      recipient_user_account_id: "6",
+      trigger_scenario: "event-no-longer-confirmed",
+      channel: "in_app",
+      status: "Pending",
+      related_event_id: "7",
+      message_content:
+        "Harbour Lights Gala is no longer confirmed\nHarbour Lights Gala is back in Planning: its booking of Main Hall is being re-checked. Your coordinator will confirm it again once this is sorted out; until then, do not rely on these arrangements.",
     });
   });
 });

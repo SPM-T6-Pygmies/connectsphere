@@ -13,13 +13,16 @@ import { eventId } from "../domain/event";
 import { earliestDate } from "../domain/event-times";
 import { userAccountId, type UserAccountId } from "../domain/user-account";
 import type { ChangeRequestRepository } from "../ports/outbound/change-request-repository";
+import type { ConfirmationLapses } from "../ports/outbound/confirmation-lapses";
 import type {
   CoordinatorEventDetails,
   CoordinatorEventRepository,
 } from "../ports/outbound/coordinator-event-repository";
 import type { EquipmentRequirementRepository } from "../ports/outbound/equipment-requirement-repository";
+import type { EventReadinessRepository } from "../ports/outbound/event-readiness-repository";
 import type { Notifier } from "../ports/outbound/notifier";
 import type { EquipmentAttentionAnnouncer } from "./announce-equipment-attention";
+import type { AttendeeChangeAnnouncer } from "./announce-event-change-to-attendees";
 import { catalogueItem } from "./equipment-requirement-change";
 
 export interface DecideChangeRequestCommand {
@@ -33,15 +36,21 @@ export interface DecideChangeRequestCommand {
 export interface DecideChangeRequestDeps {
   readonly changeRequests: ChangeRequestRepository;
   readonly coordinatorEvents: CoordinatorEventRepository;
+  /** SPM-111: whether the decision took the event out of Confirmed. */
+  readonly lapses: ConfirmationLapses;
   /**
    * SPM-68: tells the event's Organiser it is rescheduled. SPM-110: tells the
-   * Organiser who asked each field's outcome.
+   * Organiser who asked each field's outcome. SPM-111: tells the event's
+   * Organiser it is no longer confirmed.
    */
-  readonly notifier: Pick<Notifier, "eventRescheduled" | "changeRequestDecided">;
+  readonly notifier: Pick<Notifier, "eventRescheduled" | "changeRequestDecided" | "eventNoLongerConfirmed">;
   /** SPM-311: the event's equipment lines, as they were before new dates released them. */
   readonly equipment: Pick<EquipmentRequirementRepository, "catalogue" | "forEvent">;
   /** SPM-311: tells Technical Support of each line new dates released. */
   readonly attention: Pick<EquipmentAttentionAnnouncer, "announce">;
+  /** SPM-69: emails every Registered attendee of a reschedule, with the venue it now holds. */
+  readonly attendees: Pick<AttendeeChangeAnnouncer, "announce">;
+  readonly readiness: Pick<EventReadinessRepository, "factsFor">;
 }
 
 /**
@@ -53,7 +62,7 @@ export interface ChangeRequestOutcome {
   readonly items: readonly ChangeRequestItem[];
   readonly rescheduled: boolean;
   readonly revalidation: Revalidation;
-  /** Always false until SPM-433 adds the lapse-confirmation step. */
+  /** SPM-111: the decision took the event from Confirmed back to Planning. */
   readonly lapsed: boolean;
 }
 
@@ -69,7 +78,13 @@ export interface ChangeRequestOutcome {
  * field's outcome in one notice.
  *
  * SPM-68: an accepted change of times is a reschedule, so the event's
- * Organiser is told the new times once the decision is stored.
+ * Organiser is told the new times once the decision is stored. SPM-69: so is
+ * every Registered attendee, by email, with the venue.
+ *
+ * SPM-111: the store lapses a Confirmed event the decision leaves short of the
+ * confirm gate, in the same transaction. Its Organiser is told, unless the
+ * decision was a reschedule: that notice already says it is back in Planning
+ * (AC4).
  *
  * SPM-311: accepting new dates releases the event's reserved equipment as the
  * decision is stored, so Technical Support are told of each line released.
@@ -94,6 +109,7 @@ export class DecideChangeRequestUseCase {
       ? await this.deps.equipment.forEvent(eventId(command.eventId))
       : null;
     await this.deps.changeRequests.decide(coordinator, id, decision.items);
+    const [lapse] = await this.deps.lapses.causedBy(coordinator, "change-request", id);
 
     if (event !== null && equipment !== null) {
       await this.announceReleasedEquipment(event, decision.items, equipment.lines);
@@ -103,13 +119,22 @@ export class DecideChangeRequestUseCase {
       items: decision.items,
       rescheduled: decision.rescheduled,
       revalidation: decision.revalidation,
-      lapsed: false,
+      lapsed: lapse !== undefined,
     };
     if (event !== null) {
       await this.announceOutcome(event, request, outcome);
     }
     if (event !== null && outcome.rescheduled) {
       await this.announceReschedule(coordinator, event, outcome);
+    }
+    if (lapse !== undefined && !outcome.rescheduled) {
+      await this.deps.notifier.eventNoLongerConfirmed({
+        recipientUserAccountId: lapse.owningOrganiserUserAccountId,
+        eventId: lapse.eventId,
+        eventRequestId: lapse.eventRequestId,
+        eventName: lapse.eventName,
+        lapsed: lapse.lapsed,
+      });
     }
     return outcome;
   }
@@ -149,6 +174,13 @@ export class DecideChangeRequestUseCase {
       eventName: event.name,
       times: times.change.value,
       backToPlanning: outcome.lapsed,
+    });
+
+    const facts = await this.deps.readiness.factsFor(coordinator, eventId(event.id));
+    await this.deps.attendees.announce(eventId(event.id), event.name, {
+      kind: "rescheduled",
+      times: times.change.value,
+      venueName: facts?.confirmedVenueLocation ?? null,
     });
   }
 
