@@ -1,9 +1,10 @@
 import { forbidden } from "next/navigation";
 
-import { buildListEquipmentQueue, getCurrentTechnicalSupport } from "@/composition/container";
+import { getCurrentTechnicalSupport } from "@/composition/container";
 
 import { StaffShell } from "../../staff-shell";
 import { EquipmentQueueCard } from "../equipment-queue-card";
+import { equipmentQueue } from "../../staff-queues";
 
 export const metadata = { title: "Archive | ConnectSphere" };
 
@@ -15,8 +16,7 @@ export default async function ArchivedReservationsPage() {
     forbidden();
   }
 
-  const listEquipmentQueue = await buildListEquipmentQueue();
-  const { events } = await listEquipmentQueue.execute({ ...technicalSupport, queue: "archive" });
+  const { events } = await equipmentQueue(technicalSupport.userAccountId, "archive");
 
   return (
     <StaffShell role="technical" crumbs={[{ label: "Archive" }]} technicalQueue="archive">

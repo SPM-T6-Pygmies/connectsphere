@@ -1,9 +1,10 @@
 import { forbidden } from "next/navigation";
 
-import { buildListEquipmentQueue, getCurrentTechnicalSupport } from "@/composition/container";
+import { getCurrentTechnicalSupport } from "@/composition/container";
 
 import { StaffShell } from "../../staff-shell";
 import { EquipmentQueueCard } from "../equipment-queue-card";
+import { equipmentQueue } from "../../staff-queues";
 
 export const metadata = { title: "Reviewed | ConnectSphere" };
 
@@ -15,8 +16,7 @@ export default async function ReviewedReservationsPage() {
     forbidden();
   }
 
-  const listEquipmentQueue = await buildListEquipmentQueue();
-  const { events } = await listEquipmentQueue.execute({ ...technicalSupport, queue: "reviewed" });
+  const { events } = await equipmentQueue(technicalSupport.userAccountId, "reviewed");
 
   return (
     <StaffShell role="technical" crumbs={[{ label: "Reviewed" }]} technicalQueue="reviewed">

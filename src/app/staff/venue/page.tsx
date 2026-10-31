@@ -1,16 +1,16 @@
-import { buildReviewBookingRequests, getCurrentVenueStaff } from "@/composition/container";
+import { getCurrentVenueStaff } from "@/composition/container";
 
 import { QueueEmptyState } from "../queue-empty-state";
 import { StaffShell } from "../staff-shell";
+import { bookingsForReview } from "../staff-queues";
 
 export const metadata = { title: "Requests | ConnectSphere" };
 
 /** SPM-22: the booking requests waiting for Venue Staff to decide. */
 export default async function VenuePage() {
   const staff = await getCurrentVenueStaff();
-  const reviewBookingRequests = await buildReviewBookingRequests();
   const requests =
-    staff === null ? [] : await reviewBookingRequests.list(staff.userAccountId, "requests");
+    staff === null ? [] : await bookingsForReview(staff.userAccountId, "requests");
 
   return (
     <StaffShell role="venue" venueSection="requests" crumbs={[{ label: "Requests" }]}>

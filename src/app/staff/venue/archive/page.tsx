@@ -1,15 +1,15 @@
-import { buildReviewBookingRequests, getCurrentVenueStaff } from "@/composition/container";
+import { getCurrentVenueStaff } from "@/composition/container";
 
 import { QueueEmptyState } from "../../queue-empty-state";
 import { StaffShell } from "../../staff-shell";
+import { bookingsForReview } from "../../staff-queues";
 
 export const metadata = { title: "Archive | ConnectSphere" };
 
 export default async function ArchivedBookingsPage() {
   const staff = await getCurrentVenueStaff();
-  const reviewBookingRequests = await buildReviewBookingRequests();
   const archived =
-    staff === null ? [] : await reviewBookingRequests.list(staff.userAccountId, "archive");
+    staff === null ? [] : await bookingsForReview(staff.userAccountId, "archive");
 
   return (
     <StaffShell role="venue" venueSection="archive" crumbs={[{ label: "Archive" }]}>
