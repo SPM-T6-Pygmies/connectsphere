@@ -41,13 +41,13 @@ import {
   toAssignedEventSummary,
   toCoordinatorEvent,
   toCoordinatorEventDetails,
-  toKey,
   toOrdinaryChangesPayload,
   toRegistrationSettingsArgs,
   type CoordinatorEventDetailsRow,
   type CoordinatorEventRecordRow,
   type CoordinatorEventRow,
 } from "./coordinator-event-mapper";
+import { toKey } from "./to-key";
 
 interface ClientOrganisationNameRow {
   client_organisation_id: number;

@@ -5,8 +5,8 @@ import { userAccountId, type UserAccountId } from "@/core/domain/user-account";
 import type { SafetyCheckWatch } from "@/core/ports/outbound/safety-check-watch";
 
 import type { SupabaseAdminClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import { toSafetyCheckCandidate, type SafetyCheckCandidateRow } from "./safety-check-candidate-mapper";
+import { toKey } from "./to-key";
 
 /**
  * SPM-262, through the service-role-only functions in

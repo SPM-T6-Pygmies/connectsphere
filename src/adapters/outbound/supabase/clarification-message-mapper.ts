@@ -6,7 +6,8 @@ import {
 import { eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
 
-import { toKey } from "./event-request-mapper";
+import { toKey } from "./to-key";
+
 
 /**
  * The `event_request_comment` table's shape, named the way the database names

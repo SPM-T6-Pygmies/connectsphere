@@ -22,9 +22,9 @@ import {
   type BookingReviewRow,
 } from "./booking-review-mapper";
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import { expireLapsedHolds } from "./expire-lapsed-holds";
 import { SupabaseBookingRepository } from "./supabase-booking-repository";
+import { toKey } from "./to-key";
 
 // SQLSTATEs raised by venue_staff_decide_booking (see its migration).
 const NOT_FOUND = "CS030";

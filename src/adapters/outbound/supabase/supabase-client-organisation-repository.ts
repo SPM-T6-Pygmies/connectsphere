@@ -2,18 +2,11 @@ import { clientOrganisationId, type ClientOrganisationId } from "@/core/domain/c
 import type { ClientOrganisationRepository } from "@/core/ports/outbound/client-organisation-repository";
 
 import type { SupabaseServerClient } from "./client";
+import { toKey } from "./to-key";
 
 interface ClientOrganisationNameRow {
   client_organisation_id: number;
   name: string;
-}
-
-/**
- * The domain's ids are opaque strings; this store numbers its rows. An id
- * that was never one of ours is simply not found, not an error.
- */
-function toKey(id: string): number | null {
-  return /^\d+$/.test(id) ? Number(id) : null;
 }
 
 /**

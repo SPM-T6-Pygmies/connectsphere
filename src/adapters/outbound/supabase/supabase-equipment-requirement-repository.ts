@@ -9,7 +9,6 @@ import type {
 } from "@/core/ports/outbound/equipment-requirement-repository";
 
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
 import {
   toCatalogueItem,
   toEquipmentRequirementError,
@@ -17,6 +16,7 @@ import {
   type EquipmentCatalogueRow,
   type EventEquipmentRow,
 } from "./equipment-requirement-mapper";
+import { toKey } from "./to-key";
 
 /**
  * SPM-41, through the `coordinator_*equipment*` functions, not the tables --

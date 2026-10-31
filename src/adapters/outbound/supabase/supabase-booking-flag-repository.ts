@@ -5,7 +5,7 @@ import type { BookingFlagRepository, EventBookingFlag } from "@/core/ports/outbo
 
 import { toEventBookingFlag, type EventBookingFlagRow } from "./booking-flag-mapper";
 import type { SupabaseServerClient } from "./client";
-import { toKey } from "./coordinator-event-mapper";
+import { toKey } from "./to-key";
 
 // SQLSTATEs raised by coordinator_clear_booking_flags (CS026 is shared with the other booking writes).
 const BOOKING_NOT_FOUND = "CS026";

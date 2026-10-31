@@ -7,6 +7,7 @@ import type {
 } from "@/core/ports/outbound/user-account-repository";
 
 import type { SupabaseServerClient } from "./client";
+import { toKey } from "./to-key";
 import { toEventCoordinatorDetails, type EventCoordinatorRow } from "./user-account-mapper";
 
 interface UserAccountNameRow {
@@ -17,14 +18,6 @@ interface UserAccountNameRow {
 interface OrganiserRow {
   user_account_id: number;
   name: string;
-}
-
-/**
- * The domain's ids are opaque strings; this store numbers its rows. An id
- * that was never one of ours is simply not found, not an error.
- */
-function toKey(id: string): number | null {
-  return /^\d+$/.test(id) ? Number(id) : null;
 }
 
 /**

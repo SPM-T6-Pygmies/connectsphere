@@ -32,7 +32,6 @@ import {
   toDecideArgs,
   toDeleteArgs,
   toDomain,
-  toKey,
   toMyEventRequestSummary,
   toReassignArgs,
   toResolveClarificationThreadArgs,
@@ -42,6 +41,7 @@ import {
   toWithdrawArgs,
   type EventRequestRow,
 } from "./event-request-mapper";
+import { toKey } from "./to-key";
 
 /** SQLSTATEs `coordinator_decide_event_request` comes back with. See its migration. */
 const NOT_FOUND_OR_NOT_ASSIGNED = "CS010";
