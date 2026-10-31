@@ -30,6 +30,8 @@ export interface TechnicalEquipmentLineRow {
   reviewed_quantity_requested: number | null;
   reviewed_technical_requirements: string | null;
   removal_requested: boolean;
+  /** SPM-311: a change of the event's dates released the line. */
+  rescheduled: boolean;
   /** SPM-274: who last reserved the line or marked it unfulfilled, their name, and why not. */
   decided_by_user_account_id: number | null;
   decided_by_name: string | null;
@@ -81,6 +83,7 @@ function toLine(row: TechnicalEquipmentLineRow): EquipmentRequirement {
     state: row.line_state,
     reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
     removalRequested: row.removal_requested,
+    rescheduled: row.rescheduled,
     decision:
       row.decided_by_user_account_id === null
         ? null

@@ -137,8 +137,8 @@ export interface EquipmentNeedsAttentionNotice {
   /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
   readonly preferredDate: string | null;
   readonly equipmentType: string;
-  /** What the coordinator did to the line (AC1). */
-  readonly change: "added" | "edited" | "deleted" | "removalRequested" | "removalWithdrawn";
+  /** What the coordinator did to the line (AC1). SPM-311: or that accepting new dates released it. */
+  readonly change: "added" | "edited" | "deleted" | "removalRequested" | "removalWithdrawn" | "rescheduled";
   /** What the line requests now -- for a deleted line, what it requested. */
   readonly quantityRequested: number;
   /** For an edit that changed the quantity, what it was just before; null otherwise. */
@@ -148,7 +148,7 @@ export interface EquipmentNeedsAttentionNotice {
    * (SPM-273 AC3); null when it needs nothing -- deleted, or back to what they
    * decided (AC2).
    */
-  readonly attention: "new" | "changed" | "removalRequested" | null;
+  readonly attention: "new" | "changed" | "removalRequested" | "rescheduled" | null;
 }
 
 /** One line of an event Technical Support have finished deciding on (SPM-65 AC3). */

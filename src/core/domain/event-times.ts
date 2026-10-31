@@ -33,6 +33,14 @@ export function joinSlots(slots: readonly TimeRangeOnDate[]): TimeRangeOnDate[] 
   return joined;
 }
 
+/** The earliest date the ranges cover, which is the event's date (SPM-100); null for none. */
+export function earliestDate(ranges: readonly TimeRangeOnDate[]): string | null {
+  return ranges.reduce<string | null>(
+    (earliest, { date }) => (earliest === null || date < earliest ? date : earliest),
+    null,
+  );
+}
+
 /**
  * The instant `range` starts. Singapore observes no daylight saving, so its
  * +08:00 offset is exact (#36).

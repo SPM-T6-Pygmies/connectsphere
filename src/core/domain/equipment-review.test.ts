@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { clientOrganisationId } from "./client-organisation";
 import type { CoordinatorEvent, CoordinatorEventStatus } from "./coordinator-event";
 import { equipmentItemId } from "./equipment-item";
-import { editEquipmentRequirement, type EquipmentRequirement } from "./equipment-requirement";
+import {
+  editEquipmentRequirement,
+  removeEquipmentRequirement,
+  type EquipmentRequirement,
+} from "./equipment-requirement";
 import {
   attentionReason,
   awaitsDecision,
@@ -15,6 +19,7 @@ import {
   isActiveEvent,
   markEquipmentLineUnfulfilled,
   releaseEquipmentLine,
+  rescheduleEquipment,
   reserveEquipmentLine,
   reservedAs,
   unitsAvailable,
@@ -48,6 +53,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     state: "Reserved",
     reviewBaseline: null,
     removalRequested: false,
+    rescheduled: false,
     decision: null,
     essential: false,
     ...overrides,
@@ -679,5 +685,116 @@ describe("re-reserving a changed line (SPM-316)", () => {
 
     expect(attentionReason(reserved)).toBeNull();
     expect(attentionReason(marked)).toBeNull();
+  });
+});
+
+/** A line for 5, all reserved by Technical Support. */
+const reservedForFive = () =>
+  line({ quantityRequested: 5, quantityReserved: 5, decision: { by: SUPPORT, comment: null } });
+
+/** What a change of the event's dates leaves of a line that stays. */
+function rescheduled(before: EquipmentRequirement): EquipmentRequirement {
+  const after = rescheduleEquipment([before])[0]?.after;
+  if (after == null) {
+    throw new Error("expected the line to stay");
+  }
+  return after;
+}
+
+describe("rescheduling an event's equipment (SPM-311)", () => {
+  it("AC1: a Reserved line goes under review as Rescheduled, remembering what was reserved", () => {
+    const after = rescheduled(reservedForFive());
+
+    expect(after).toMatchObject({
+      state: "Under review",
+      rescheduled: true,
+      reviewBaseline: { quantityRequested: 5, technicalRequirements: "HDMI input" },
+    });
+    expect(attentionReason(after)).toBe("rescheduled");
+  });
+
+  it("AC1: it is on the Needs review list, awaiting a decision", () => {
+    const after = rescheduled(reservedForFive());
+
+    expect(equipmentQueueOf("Planning", [after])).toBe("needsReview");
+    expect(awaitsDecision("Planning", after)).toBe(true);
+  });
+
+  it("AC1: the request itself did not change, so there is no earlier version to show", () => {
+    expect(reservedAs(rescheduled(reservedForFive()))).toBeNull();
+  });
+
+  it("AC2: every unit is released, down to a line holding one", () => {
+    expect(rescheduled(reservedForFive()).quantityReserved).toBe(0);
+    expect(rescheduled(line({ quantityRequested: 1, quantityReserved: 1 })).quantityReserved).toBe(0);
+  });
+
+  it("AC2: a line changed after it was reserved, its units still held, is released too and reads as Rescheduled", () => {
+    const { line: raised } = changedAfterReserved(0, { quantityRequested: 7 });
+    const after = rescheduled(raised);
+
+    expect(after).toMatchObject({
+      quantityRequested: 7,
+      quantityReserved: 0,
+      state: "Under review",
+      rescheduled: true,
+      reviewBaseline: { quantityRequested: 5 },
+    });
+    expect(attentionReason(after)).toBe("rescheduled");
+  });
+
+  it("AC2: a line whose removal was requested goes, its units released", () => {
+    const before = removalRequestedLine();
+
+    expect(rescheduleEquipment([before])).toEqual([{ before, after: null }]);
+  });
+
+  it("AC2: lines holding nothing -- new, unfulfilled, or changed after being marked unfulfilled -- are left alone", () => {
+    expect(rescheduleEquipment([newLine(), unfulfilled().line, changedAfterUnfulfilled(0).line])).toEqual([]);
+  });
+
+  it("next step: reserving it against the new date holds the full quantity and clears Rescheduled", () => {
+    const reserved = reserveEquipmentLine(dated, { ...target(5), line: rescheduled(reservedForFive()) }, SUPPORT);
+
+    expect(reserved).toMatchObject({ state: "Reserved", quantityReserved: 5, rescheduled: false, reviewBaseline: null });
+    expect(attentionReason(reserved)).toBeNull();
+  });
+
+  it("next step: with nothing held, one unit short on the new date means it is marked unfulfilled, clearing Rescheduled", () => {
+    const short = { ...target(6), line: rescheduled(reservedForFive()) };
+
+    expect(() => reserveEquipmentLine(dated, short, SUPPORT)).toThrow(NotEnoughEquipmentAvailableError);
+    expect(markEquipmentLineUnfulfilled(dated, short, SUPPORT, "only 4 free")).toMatchObject({
+      state: "Unfulfilled",
+      rescheduled: false,
+    });
+  });
+
+  it("AC3: reserved again for 20 Nov, the units are out on 19-20 Nov, not around the old date", () => {
+    const hold: EquipmentHold = { eventStatus: "Planning", eventDate: "2026-11-20", quantityReserved: 5 };
+
+    expect(unitsAvailable(10, 0, "2026-11-15", [hold])).toBe(10);
+    expect(unitsAvailable(10, 0, "2026-11-18", [hold])).toBe(10);
+    expect(unitsAvailable(10, 0, "2026-11-19", [hold])).toBe(5);
+    expect(unitsAvailable(10, 0, "2026-11-21", [hold])).toBe(5);
+    expect(unitsAvailable(10, 0, "2026-11-22", [hold])).toBe(10);
+  });
+
+  it("an edit back to what was reserved keeps it Rescheduled: nothing is held to go back to", () => {
+    const raised = editEquipmentRequirement(coordinatorEvent, rescheduled(reservedForFive()), {
+      quantityRequested: 6,
+      technicalRequirements: "HDMI input",
+    });
+    const back = editEquipmentRequirement(coordinatorEvent, raised.line, {
+      quantityRequested: 5,
+      technicalRequirements: "HDMI input",
+    });
+
+    expect(back).toMatchObject({ underReview: true, reviewCleared: false });
+    expect(back.line).toMatchObject({ state: "Under review", rescheduled: true, quantityReserved: 0 });
+  });
+
+  it("removing a Rescheduled line deletes it, since nothing is held", () => {
+    expect(removeEquipmentRequirement(coordinatorEvent, rescheduled(reservedForFive()))).toEqual({ kind: "deleted" });
   });
 });

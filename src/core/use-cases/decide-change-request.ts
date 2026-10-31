@@ -7,14 +7,20 @@ import {
   type ItemDecision,
   type Revalidation,
 } from "../domain/change-request";
+import type { EquipmentRequirement } from "../domain/equipment-requirement";
+import { rescheduleEquipment } from "../domain/equipment-review";
 import { eventId } from "../domain/event";
+import { earliestDate } from "../domain/event-times";
 import { userAccountId, type UserAccountId } from "../domain/user-account";
 import type { ChangeRequestRepository } from "../ports/outbound/change-request-repository";
 import type {
   CoordinatorEventDetails,
   CoordinatorEventRepository,
 } from "../ports/outbound/coordinator-event-repository";
+import type { EquipmentRequirementRepository } from "../ports/outbound/equipment-requirement-repository";
 import type { Notifier } from "../ports/outbound/notifier";
+import type { EquipmentAttentionAnnouncer } from "./announce-equipment-attention";
+import { catalogueItem } from "./equipment-requirement-change";
 
 export interface DecideChangeRequestCommand {
   readonly eventId: string;
@@ -32,6 +38,10 @@ export interface DecideChangeRequestDeps {
    * Organiser who asked each field's outcome.
    */
   readonly notifier: Pick<Notifier, "eventRescheduled" | "changeRequestDecided">;
+  /** SPM-311: the event's equipment lines, as they were before new dates released them. */
+  readonly equipment: Pick<EquipmentRequirementRepository, "catalogue" | "forEvent">;
+  /** SPM-311: tells Technical Support of each line new dates released. */
+  readonly attention: Pick<EquipmentAttentionAnnouncer, "announce">;
 }
 
 /**
@@ -60,6 +70,9 @@ export interface ChangeRequestOutcome {
  *
  * SPM-68: an accepted change of times is a reschedule, so the event's
  * Organiser is told the new times once the decision is stored.
+ *
+ * SPM-311: accepting new dates releases the event's reserved equipment as the
+ * decision is stored, so Technical Support are told of each line released.
  */
 export class DecideChangeRequestUseCase {
   constructor(private readonly deps: DecideChangeRequestDeps) {}
@@ -76,7 +89,15 @@ export class DecideChangeRequestUseCase {
     assertCanDecideChangeRequest(event, request, command.changeRequestId);
 
     const decision = decideChangeRequest(request, command.decisions, event?.times ?? []);
+    // Read before storing: storing the decision is what releases the units.
+    const equipment = decision.revalidation.equipmentReview
+      ? await this.deps.equipment.forEvent(eventId(command.eventId))
+      : null;
     await this.deps.changeRequests.decide(coordinator, id, decision.items);
+
+    if (event !== null && equipment !== null) {
+      await this.announceReleasedEquipment(event, decision.items, equipment.lines);
+    }
 
     const outcome: ChangeRequestOutcome = {
       items: decision.items,
@@ -129,5 +150,29 @@ export class DecideChangeRequestUseCase {
       times: times.change.value,
       backToPlanning: outcome.lapsed,
     });
+  }
+
+  /** SPM-311 AC1-2: each line the new dates released, under the event's new date. */
+  private async announceReleasedEquipment(
+    event: CoordinatorEventDetails,
+    items: readonly ChangeRequestItem[],
+    lines: readonly EquipmentRequirement[],
+  ): Promise<void> {
+    const released = rescheduleEquipment(lines);
+    const times = items.find((item) => item.decision === "Accepted" && item.change.field === "times");
+    if (released.length === 0 || times?.change.field !== "times") {
+      return;
+    }
+    const catalogue = await this.deps.equipment.catalogue();
+    const rescheduledEvent = { id: event.id, name: event.name, preferredDate: earliestDate(times.change.value) };
+    for (const { before, after } of released) {
+      await this.deps.attention.announce({
+        event: rescheduledEvent,
+        equipmentType: catalogueItem(catalogue, before.equipmentItemId).type,
+        change: "rescheduled",
+        before,
+        after,
+      });
+    }
   }
 }

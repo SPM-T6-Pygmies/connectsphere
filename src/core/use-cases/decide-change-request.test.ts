@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
+import { CATALOGUE, line, MICROPHONE, PROJECTOR } from "@/adapters/outbound/in-memory/equipment-fixture";
 import { InMemoryChangeRequestRepository } from "@/adapters/outbound/in-memory/in-memory-change-request-repository";
 import {
   InMemoryCoordinatorEventRepository,
   type SeedCoordinatorEvent,
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
+import { InMemoryEquipmentNoticeDirectory } from "@/adapters/outbound/in-memory/in-memory-equipment-notice-directory";
+import { InMemoryEquipmentRequirementRepository } from "@/adapters/outbound/in-memory/in-memory-equipment-requirement-repository";
+import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 import {
   changeRequestId,
   type ChangeRequest,
@@ -21,7 +24,9 @@ import {
 import { eventId } from "@/core/domain/event";
 import { eventRequestId } from "@/core/domain/event-request";
 import { userAccountId } from "@/core/domain/user-account";
+import type { EventEquipment } from "@/core/ports/outbound/equipment-requirement-repository";
 
+import { EquipmentAttentionAnnouncer } from "./announce-equipment-attention";
 import { DecideChangeRequestUseCase } from "./decide-change-request";
 
 const COORDINATOR = "coordinator-1";
@@ -58,7 +63,11 @@ function request(...changes: RequestedChange[]): ChangeRequest {
   };
 }
 
-function build(seed: SeedCoordinatorEvent = event(), pending: ChangeRequest = request(times, attendance)) {
+function build(
+  seed: SeedCoordinatorEvent = event(),
+  pending: ChangeRequest = request(times, attendance),
+  equipment: EventEquipment = { reservation: null, lines: [] },
+) {
   const changeRequests = new InMemoryChangeRequestRepository(
     {
       "request-1": {
@@ -74,11 +83,17 @@ function build(seed: SeedCoordinatorEvent = event(), pending: ChangeRequest = re
   );
   const coordinatorEvents = new InMemoryCoordinatorEventRepository([seed]);
   const notifier = new RecordingNotifier();
-  return {
+  const useCase = new DecideChangeRequestUseCase({
     changeRequests,
+    coordinatorEvents,
     notifier,
-    useCase: new DecideChangeRequestUseCase({ changeRequests, coordinatorEvents, notifier }),
-  };
+    equipment: new InMemoryEquipmentRequirementRepository(CATALOGUE, { [EVENT]: equipment }),
+    attention: new EquipmentAttentionAnnouncer({
+      directory: new InMemoryEquipmentNoticeDirectory(["support-1", "support-2"]),
+      notifier,
+    }),
+  });
+  return { changeRequests, notifier, useCase };
 }
 
 const stored = async (changeRequests: InMemoryChangeRequestRepository) =>
@@ -199,6 +214,103 @@ describe("DecideChangeRequestUseCase (SPM-100)", () => {
 
     await useCase.execute(command);
     await expect(useCase.execute(command)).rejects.toThrow(ChangeRequestAlreadyDecidedError);
+  });
+});
+
+/** A Projector line holding 2, and a Wireless microphone line with nothing reserved. */
+const reservedEquipment = (): EventEquipment => ({
+  reservation: { id: "reservation-10", reviewerUserAccountId: null },
+  lines: [line({ equipmentItemId: PROJECTOR, quantityRequested: 2, quantityReserved: 2 }), line()],
+});
+
+const decideTimes = (
+  useCase: DecideChangeRequestUseCase,
+  outcome: "Accepted" | "Declined" = "Accepted",
+) =>
+  useCase.execute({
+    eventId: EVENT,
+    changeRequestId: "4",
+    userAccountId: COORDINATOR,
+    decisions: [outcome === "Accepted" ? { field: "times", outcome } : { field: "times", outcome, reason: "Fully booked" }],
+  });
+
+describe("DecideChangeRequestUseCase (SPM-311)", () => {
+  it("AC1: accepting a new date tells every Technical Support member of each released line, under the new date", async () => {
+    const { notifier, useCase } = build(event(), request(times), reservedEquipment());
+
+    await decideTimes(useCase);
+
+    expect(notifier.equipmentNeedingAttention).toEqual(
+      ["support-1", "support-2"].map((recipientUserAccountId) => ({
+        recipientUserAccountId,
+        eventId: EVENT,
+        eventName: "Annual Conference",
+        preferredDate: "2026-11-21",
+        equipmentType: "Projector",
+        change: "rescheduled",
+        quantityRequested: 2,
+        quantityWas: null,
+        attention: "rescheduled",
+      })),
+    );
+  });
+
+  it("AC2: a line whose removal was requested is announced as gone, with nothing left to do", async () => {
+    const removal = line({
+      equipmentItemId: MICROPHONE,
+      quantityReserved: 4,
+      state: "Under review",
+      removalRequested: true,
+    });
+    const { notifier, useCase } = build(event(), request(times), { reservation: null, lines: [removal] });
+
+    await decideTimes(useCase);
+
+    expect(notifier.equipmentNeedingAttention.map(({ change, attention }) => ({ change, attention }))).toEqual([
+      { change: "rescheduled", attention: null },
+      { change: "rescheduled", attention: null },
+    ]);
+  });
+
+  it("AC1: new times on several dates are announced under the earliest", async () => {
+    const twoDays: RequestedChange = {
+      field: "times",
+      value: [
+        { date: "2026-11-23", start: "09:00", end: "12:00" },
+        { date: "2026-11-22", start: "09:00", end: "12:00" },
+      ],
+    };
+    const { notifier, useCase } = build(event(), request(twoDays), reservedEquipment());
+
+    await decideTimes(useCase);
+
+    expect(notifier.equipmentNeedingAttention[0]?.preferredDate).toBe("2026-11-22");
+  });
+
+  it("AC4: a new time on the same date tells Technical Support nothing", async () => {
+    const sameDate: RequestedChange = { field: "times", value: [{ date: "2026-11-20", start: "14:00", end: "18:00" }] };
+    const { notifier, useCase } = build(event(), request(sameDate), reservedEquipment());
+
+    const outcome = await decideTimes(useCase);
+
+    expect(outcome.revalidation.equipmentReview).toBe(false);
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
+  });
+
+  it("declined new dates release nothing, so Technical Support hear nothing", async () => {
+    const { notifier, useCase } = build(event(), request(times), reservedEquipment());
+
+    await decideTimes(useCase, "Declined");
+
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
+  });
+
+  it("an event holding no equipment tells Technical Support nothing", async () => {
+    const { notifier, useCase } = build(event(), request(times), { reservation: null, lines: [line()] });
+
+    await decideTimes(useCase);
+
+    expect(notifier.equipmentNeedingAttention).toEqual([]);
   });
 });
 
