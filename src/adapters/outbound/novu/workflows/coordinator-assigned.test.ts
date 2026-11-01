@@ -1,6 +1,46 @@
 import { describe, expect, it } from "vitest";
 
-import { coordinatorAssigned, coordinatorAssignedInApp } from "./coordinator-assigned";
+import {
+  coordinatorAssigned,
+  coordinatorAssignedInApp,
+  coordinatorAssignedInbox,
+  organiserCoordinatorAssignedInApp,
+} from "./coordinator-assigned";
+
+describe("organiserCoordinatorAssignedInApp (SPM-58)", () => {
+  const notice = {
+    recipientUserAccountId: "3",
+    eventRequestId: "42",
+    eventName: "Founders' Day",
+    coordinatorName: "Arjun Nair",
+  };
+
+  it("AC4: opens the event request in the organiser's workspace, in the same tab", () => {
+    const inApp = organiserCoordinatorAssignedInApp(notice);
+
+    expect(inApp.redirect).toEqual({ url: "/staff/requester/42", target: "_self" });
+  });
+
+  it("gives an organiser the organiser's notice from the shared workflow", () => {
+    expect(coordinatorAssignedInbox({ audience: "organiser", ...notice })).toEqual(organiserCoordinatorAssignedInApp(notice));
+  });
+});
+
+describe("coordinatorAssignedInbox (SPM-173)", () => {
+  it("gives a coordinator the coordinator's notice from the shared workflow", () => {
+    const notice = {
+      recipientUserAccountId: "7",
+      eventRequestId: "42",
+      eventName: "Founders' Day",
+      clientOrganisationName: "Acme Holdings",
+      preferredDate: "2026-11-04",
+      preferredStartTime: null,
+      preferredEndTime: null,
+    };
+
+    expect(coordinatorAssignedInbox({ audience: "coordinator", ...notice })).toEqual(coordinatorAssignedInApp(notice));
+  });
+});
 
 describe("coordinatorAssignedInApp (SPM-173)", () => {
   it("AC5: opens the assigned request in the coordinator workspace, in the same tab", () => {

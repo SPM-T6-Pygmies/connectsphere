@@ -13,7 +13,6 @@ import { eventNoLongerConfirmed } from "@/adapters/outbound/novu/workflows/event
 import { eventRequestDecided } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { eventRescheduled } from "@/adapters/outbound/novu/workflows/event-rescheduled";
 import { holdExpired } from "@/adapters/outbound/novu/workflows/hold-expired";
-import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { organiserMessagePosted } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
 import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { safetyCheckRecorded } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
@@ -36,7 +35,6 @@ type Bridge = ReturnType<typeof serve>;
 
 export const WORKFLOWS = [
   coordinatorAssigned,
-  organiserCoordinatorAssigned,
   clarificationRequested,
   organiserMessagePosted,
   eventRequestDecided,

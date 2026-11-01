@@ -58,6 +58,48 @@ describe("NovuNotifier (SPM-178)", () => {
   });
 });
 
+describe("NovuNotifier coordinator assigned (SPM-58)", () => {
+  it("sends an organiser's notice through the shared workflow, marked for the organiser", async () => {
+    const trigger = vi.fn().mockResolvedValue({ result: { acknowledged: true, status: "processed" } });
+    const notice = { recipientUserAccountId: "3", eventRequestId: "42", eventName: "Founders' Day", coordinatorName: "Arjun Nair" };
+
+    await new NovuNotifier({ trigger } as unknown as Novu).organiserCoordinatorAssigned(notice);
+
+    expect(trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowId: "coordinator-assigned",
+        to: "3",
+        payload: { audience: "organiser", ...notice },
+      }),
+    );
+  });
+});
+
+describe("NovuNotifier coordinator assigned (SPM-173)", () => {
+  it("sends a coordinator's notice through the shared workflow, marked for the coordinator", async () => {
+    const trigger = vi.fn().mockResolvedValue({ result: { acknowledged: true, status: "processed" } });
+    const notice = {
+      recipientUserAccountId: "2",
+      eventRequestId: "10",
+      eventName: "Quarterly Partner Forum",
+      clientOrganisationName: null,
+      preferredDate: null,
+      preferredStartTime: null,
+      preferredEndTime: null,
+    };
+
+    await new NovuNotifier({ trigger } as unknown as Novu).eventCoordinatorAssigned(notice);
+
+    expect(trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowId: "coordinator-assigned",
+        to: "2",
+        payload: { audience: "coordinator", ...notice },
+      }),
+    );
+  });
+});
+
 describe("NovuNotifier registration email (SPM-305)", () => {
   const notice = {
     registrationId: "r1",

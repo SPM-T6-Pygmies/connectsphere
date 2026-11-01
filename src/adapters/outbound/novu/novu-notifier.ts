@@ -6,7 +6,7 @@ import { ATTENDEE_EMAIL_WORKFLOW_ID, type AttendeeEmail } from "@/adapters/outbo
 import { CHANGE_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-request-decided";
 import { CHANGE_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-requested";
 import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/clarification-requested";
-import { COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
+import { COORDINATOR_ASSIGNED_WORKFLOW_ID, type CoordinatorAssignedPayload } from "@/adapters/outbound/novu/workflows/coordinator-assigned";
 import { EQUIPMENT_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-decided";
 import { EQUIPMENT_NEEDS_ATTENTION_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/equipment-needs-attention";
 import { EVENT_CANCELLED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-cancelled";
@@ -15,7 +15,6 @@ import { EVENT_NO_LONGER_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/
 import { EVENT_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-request-decided";
 import { EVENT_RESCHEDULED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/event-rescheduled";
 import { HOLD_EXPIRED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/hold-expired";
-import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { ORGANISER_MESSAGE_POSTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
 import { SAFETY_CHECK_READY_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { SAFETY_CHECK_RECORDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
@@ -91,7 +90,7 @@ export class NovuNotifier implements Notifier {
   }
 
   organiserCoordinatorAssigned(notice: OrganiserCoordinatorAssignedNotice): Promise<void> {
-    return this.trigger(ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID, notice);
+    return this.announceAssignment({ audience: "organiser", ...notice });
   }
 
   clarificationRequested(notice: ClarificationRequestedNotice): Promise<void> {
@@ -107,7 +106,7 @@ export class NovuNotifier implements Notifier {
   }
 
   eventCoordinatorAssigned(notice: EventCoordinatorAssignedNotice): Promise<void> {
-    return this.trigger(COORDINATOR_ASSIGNED_WORKFLOW_ID, notice);
+    return this.announceAssignment({ audience: "coordinator", ...notice });
   }
 
   safetyCheckReady(notice: SafetyCheckReadyNotice): Promise<void> {
@@ -197,6 +196,10 @@ export class NovuNotifier implements Notifier {
       },
       { kind, ...notice, registrationUrl: `${this.appBaseUrl}/registrations/${notice.registrationId}` },
     );
+  }
+
+  private announceAssignment(payload: CoordinatorAssignedPayload): Promise<void> {
+    return this.trigger(COORDINATOR_ASSIGNED_WORKFLOW_ID, payload);
   }
 
   private trigger(
