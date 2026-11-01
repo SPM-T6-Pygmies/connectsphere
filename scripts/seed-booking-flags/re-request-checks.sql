@@ -15,7 +15,7 @@
 
 do $$
 declare
-  f date := (now() at time zone 'Asia/Singapore')::date + 28;
+  f date := date '2026-12-23';
   v_staff bigint;
   v_coordinator bigint;
   v_coordinator_2 bigint;

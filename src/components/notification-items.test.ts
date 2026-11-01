@@ -291,3 +291,15 @@ describe("notificationItem (SPM-110)", () => {
     expect(item.href).toBe("/staff/requester/notifications/10")
   })
 })
+
+describe("notificationItem (SPM-111)", () => {
+  it("AC1: names a lapsed event's notice and opens the request in the inbox", () => {
+    const item = notificationItem(
+      "requester",
+      notification({ redirect: { url: "/staff/requester/10" }, tags: ["event-no-longer-confirmed"] }),
+    )
+
+    expect(item.status).toBe("Event no longer confirmed")
+    expect(item.href).toBe("/staff/requester/notifications/10")
+  })
+})

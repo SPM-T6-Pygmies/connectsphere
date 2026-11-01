@@ -72,6 +72,7 @@ function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRequireme
     state: "Requested",
     reviewBaseline: null,
     removalRequested: false,
+    rescheduled: false,
     decision: null,
     essential: false,
     ...overrides,
@@ -120,6 +121,7 @@ describe("recordEquipmentRequirement (SPM-182)", () => {
       state: "Requested",
       reviewBaseline: null,
       removalRequested: false,
+      rescheduled: false,
       decision: null,
       essential: false,
     });

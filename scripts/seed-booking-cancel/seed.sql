@@ -11,8 +11,9 @@
 --   S        UAT-44 Garden Hall   C, 13:00-18:00      Tentative Hold  a hold, also cancellable (TC-VCANCEL-003)
 --   U        UAT-44 Harbour Room  C + 1, 07:00-12:00  Rejected        holds nothing, so offers no button
 --
--- C is 10 days from today, Singapore time: inside the UAT-44 venues' 60-day booking horizon,
--- and clear of day D (14 days out), where seed-venue-search-uat puts its own two bookings.
+-- C is Thursday 17 December 2026: fixed, after the November 2026 test window, inside the UAT-44
+-- venues' 60-day booking horizon from 18 October 2026, and clear of day D (9 December), where
+-- seed-venue-search-uat puts its own two bookings, and of the calendar cases' days after it.
 -- The UAT-44 venues are used because they are the only ones that offer slots, so their
 -- calendar shows a freed slot as Available rather than Not offered.
 --
@@ -32,7 +33,7 @@ declare
                      where name = 'Test Coordinator' and client_organisation_id is null);
   v_staff bigint := (select user_account_id from public.user_account
                      where name = 'Test Venue Staff' and client_organisation_id is null);
-  c date := (now() at time zone 'Asia/Singapore')::date + 10;
+  c date := date '2026-12-17';
   v_venue bigint;
   v_id bigint;
   r record;

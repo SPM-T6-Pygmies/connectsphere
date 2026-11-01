@@ -96,6 +96,14 @@ export interface CoordinatorEventRepository {
     settings: RegistrationSettings,
   ): Promise<void>;
 
+  /**
+   * SPM-69: whether an accepted change of times has yet to be announced to the event's attendees
+   * (the decision marks it, in its own transaction). True at most once per mark: reading it clears
+   * it, so the caller that sees true is the one that announces. False for an event not assigned to
+   * the coordinator.
+   */
+  takeUnannouncedReschedule(coordinatorId: UserAccountId, eventId: string): Promise<boolean>;
+
   /** SPM-50: persists the event's confirmation. `confirmedBy` is who confirmed it, for the audit trail. */
   confirmEvent(event: CoordinatorEvent, confirmedBy: UserAccountId): Promise<void>;
 

@@ -123,7 +123,10 @@ export function recordSafetyCheck(
   };
 }
 
-/** SPM-261: the latest outcome on an event, and when it was sent back for a fresh check, if it was. */
+/**
+ * SPM-261: the latest outcome on an event, and when it was sent back for a fresh check, if it was. For an
+ * approval, that is when an accepted change of times, attendance or venue needs withdrew it.
+ */
 export interface LatestSafetyCheck {
   readonly outcome: SafetyCheckOutcome;
   /** ISO instant. Null until the coordinator resubmits. */
@@ -158,7 +161,8 @@ export function safetyCheckBlocker(latest: LatestSafetyCheck | null): SafetyChec
     return "no-check";
   }
   if (latest.outcome === "Approved") {
-    return null;
+    // A set `resubmittedAt` on an approval means a change withdrew it: it stands until the next outcome.
+    return latest.resubmittedAt === null ? null : "awaiting-recheck";
   }
   return latest.resubmittedAt === null ? "rejected" : "awaiting-recheck";
 }

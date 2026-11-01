@@ -5,6 +5,7 @@ automatically: not on `supabase db reset`, not in CI.
 
 | I want to… | Go to |
 | --- | --- |
+| Seed, verify or tear down everything for end-to-end testing, in one command | [0. One command](#0-one-command) |
 | Get a working local database with the test data, from scratch | [1. Set up your database](#1-set-up-your-database) |
 | Run one of the manual test documents | [2. Run a manual test document](#2-run-a-manual-test-document) |
 | Start over, or undo one seed | [3. Start over or undo](#3-start-over-or-undo) |
@@ -15,6 +16,56 @@ automatically: not on `supabase db reset`, not in CI.
 > shared or remote project. The one script that ever touches a remote database,
 > `apply-ssot`, is run there by a person, with the steps in
 > [section 6](#6-apply-ssot-a-database-that-already-has-data).
+
+---
+
+## 0. One command
+
+`pnpm e2e:data` runs the steps below for you: the seeds in dependency order, then every
+`verify.sql` and `show.sql`, failing on any row that is not `ok`.
+
+```bash
+pnpm e2e:data reset              # supabase db reset, seed, verify, novu:clear
+pnpm e2e:data verify             # check what is loaded; exits 1 on any failure
+pnpm e2e:data seed               # tear down every profile, then seed, without a reset
+pnpm e2e:data teardown           # every teardown, in reverse order, then novu:clear
+pnpm e2e:data reset venue-hold   # any command takes a profile; `full` is the default
+pnpm e2e:data seed --remote      # the linked Supabase project instead of the local one
+```
+
+`--remote` takes `seed`, `verify` and `teardown`, not `reset`, and skips `novu:clear`. `seed` and
+`teardown` first ask you to type the linked project's ref (`supabase/.temp/project-ref`).
+
+| Profile | Loads | For |
+| --- | --- | --- |
+| `full` | Every seed in [section 2](#2-run-a-manual-test-document) that can share a database, and `seed-booking-flag-clear/blocks.sql` | Every document not listed below |
+| `venue-hold` | The baseline, `seed-booking-holds` and its `fixture.sql` | Venue hold. Its bookings clash with `seed-venue-unavailability` |
+| `equipment-review` | `seed-equipment-review`, `seed-reschedule-equipment` | Equipment review, Equipment reschedule |
+| `equipment-reserve` | `seed-equipment-reserve` | Equipment reserve |
+| `venue-search` | `seed-venue-search-uat` | Venue search |
+
+Every seed is on fixed dates in December 2026, after the November test window, so the data
+is the same whichever day you load it. In `full`, no two seeds book the same venue at the same
+time:
+
+| Days (2026) | Venue | Seed |
+| --- | --- | --- |
+| 3, 4, 7, 8 Dec | Main Hall, Studio, Rooftop Terrace, UAT-44 Harbour Room | `seed-event-change-flags` |
+| 6 Dec (H) | Main Hall | `seed-booking-holds` |
+| 9 Dec (D), 12 and 16 Dec | UAT-44 Harbour Room and Garden Hall | `seed-venue-search-uat`, `seed-venue-calendar` |
+| 9 to 13 Dec, 15 Dec | Main Hall, Studio (blocks) | `seed-venue-unavailability` |
+| 10 to 14 Dec (F) | Change Test Hall, Studio | `seed-venue-change-flags` |
+| 14 to 19 Dec | Main Hall | `seed-venue-padding` |
+| 17, 18 Dec (C) | UAT-44 Harbour Room and Garden Hall | `seed-booking-cancel`, `seed-booking-flag-clear`, `seed-event-cancel` |
+| 20 Dec | Main Hall, Studio | `seed-venue-re-request` |
+| 23 to 31 Dec (F) | Main Hall, Studio, Rooftop Terrace | `seed-booking-flags` |
+
+`verify` ends by checking that no booking is flagged except the ones a seed flags on purpose
+(`e2e-data-stray-flags.sql`), so a seed moved onto another's booking shows up. Run it before
+testing: the cases record blocks of their own, which flag more bookings.
+
+The `checks.sql`, `refusals.sql` and `.mjs` files are not run: they test the database, not
+the data.
 
 ---
 
@@ -122,6 +173,7 @@ needs. This table says what that is.
 | Safety check essential lines | `seed-venues`, `seed-safety-check` (its `verify` must read 29 rows `ok = true`) |
 | Event cancel | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat`, `seed-equipment`, `seed-booking-cancel`, `seed-event-cancel` |
 | **Equipment review** | `seed-equipment-review` **only** |
+| **Equipment reschedule** | `seed-equipment-review`, `seed-reschedule-equipment` **only** |
 | **Equipment reserve** | `seed-equipment-reserve` **only** |
 | **Venue search** | `seed-venue-search-uat` **only** |
 
@@ -166,19 +218,20 @@ local subscribers and notifications stay behind otherwise.
 | `seed-equipment` | The 6 equipment types, and the *Founders' Gala Dinner* event with 2 lines | `seed-coordinator-view` | Yes | `seed`, `verify` (9 rows), `teardown` |
 | `seed-equipment-review` | 9 events across both coordinators, for Technical Support's three lists | The base logins | Yes | `seed`, `verify` (26 rows), `teardown` |
 | `seed-equipment-reserve` | 4 events whose lines are all New, for reserving | The base logins | Yes | `seed`, `verify` (14 rows), `teardown` |
+| `seed-reschedule-equipment` | Times on 13 Dec 2026 for *Tech Summit Keynote* and *Board Strategy Day*, and a pending change request on each: a new date, and a new time on the same date (SPM-311) | `seed-equipment-review` | Yes | `seed`, `verify` (5 rows), `teardown` |
 | `seed-safety-check` | 8 Planning events for the Safety Officer: 4 on the Awaiting check list, 4 one change away from it, with their bookings and lines | The base logins, `seed-venues` | Yes | `seed`, `verify` (29 rows), `teardown` |
-| `seed-venue-unavailability` | 3 venue blocks on Main Hall and Studio, on 15-minute slots (09:00–11:30, a whole open day, 13:00–18:00) | `seed-venues` | Yes | `seed`, `verify` (5 rows), `refusals`, `checks`, `teardown` |
+| `seed-venue-unavailability` | 3 venue blocks on Main Hall and Studio, on 15-minute slots: 09:00–11:30 on 9 to 13 Dec 2026, the whole open day of 11 Dec, and 13:00–18:00 on 15 Dec | `seed-venues` | Yes | `seed`, `verify` (5 rows), `refusals`, `checks`, `teardown` |
 | `seed-venue-buffers` | No data: `checks.sql` only, for a venue's setup and turnaround (SPM-23) | `seed-venues` | n/a | `checks` |
 | `seed-venue-padding` | 12 events with bookings at Main Hall on 14 to 19 December 2026 (Confirmed, Requested, a live and a lapsed hold, a Rejected one, two across midnight), for the padded approval and hold cases (SPM-19) | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat` | Yes | `seed`, `teardown`, `checks`, `same-answers.mjs`, `race.mjs` |
-| `seed-venue-calendar` | *Calendar Test Event* with 2 Confirmed bookings, 14 days from today plus 3 and 7: UAT-44 Harbour Room 10:15–11:45, and UAT-44 Garden Hall 18:30–19:00, after it closes (SPM-323) | `seed-venue-search-uat` | Yes, replaces its own event | `seed`, `teardown` |
-| `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall, 21 days from today (07:00–12:00 expired, 14:00–18:00 live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset | `seed`, `fixture`, `teardown`, `checks` |
-| `seed-booking-flags` | 7 *Flag Test:* events with 9 bookings on Main Hall, Studio and Rooftop Terrace, 28 days from today (Confirmed, Requested, a live and an expired hold), for the venue flag cases to block | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events | `seed`, `show` (9 rows), `blocks`, `checks` (40 checks), `clear-checks` (14 checks, SPM-310), `re-request-checks` (27 checks, SPM-251), `teardown` (also removes the blocks the cases recorded) |
-| `seed-venue-change-flags` | *Change Test Hall* and 6 *Venue Change:* events with 7 bookings, 42 days from today (and one 3 days ago), for the venue change flag cases to edit | `seed-coordinator-view`, `seed-venues` | Yes, puts the hall back and replaces its own events | `seed`, `show` (7 rows, no flags), `teardown` |
-| `seed-booking-cancel` | 5 bookings on the *Founders' Gala Dinner* at the two UAT-44 venues, 10 days from today: two Confirmed, one Requested, one Tentative Hold, one Rejected | `seed-equipment`, `seed-venue-search-uat` | Yes | `seed`, `verify` (7 rows), `teardown` |
-| `seed-booking-flag-clear` | 3 blocks on UAT-44 Harbour Room, 10 days from today, that flag the *Founders' Gala Dinner*'s two Confirmed bookings there (two reasons on the AM one, one on the Night one), for the flag clear cases | `seed-booking-cancel` | No: run `teardown` first | `blocks`, `reblock` (one more block, TC-VFCLR-004), `flags` (every flag row on the event), `teardown` (removes the blocks and the event's flag rows) |
+| `seed-venue-calendar` | *Calendar Test Event* with 2 Confirmed bookings, on 12 and 16 Dec 2026 (D+3 and D+7): UAT-44 Harbour Room 10:15–11:45, and UAT-44 Garden Hall 18:30–19:00, after it closes (SPM-323) | `seed-venue-search-uat` | Yes, replaces its own event | `seed`, `teardown` |
+| `seed-booking-holds` | *Holds Test Event* with 2 Tentative Holds on Main Hall on 6 Dec 2026 (07:00–12:00 expired, 14:00–18:00 live). `fixture.sql` adds the nine booking requests the venue hold cases decide on | `seed-venues`; `fixture.sql` also needs `seed-equipment` and `seed-venue-search-uat` | `seed`: yes, replaces its own event. `fixture.sql`: once per reset or `teardown` | `seed`, `fixture`, `teardown`, `checks` |
+| `seed-booking-flags` | 7 *Flag Test:* events with 9 bookings on Main Hall, Studio and Rooftop Terrace, from 23 Dec 2026 (Confirmed, Requested, a live and an expired hold), for the venue flag cases to block | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events | `seed`, `show` (9 rows), `blocks`, `checks` (40 checks), `clear-checks` (14 checks, SPM-310), `re-request-checks` (27 checks, SPM-251), `teardown` (also removes the blocks the cases recorded) |
+| `seed-venue-change-flags` | *Change Test Hall* and 6 *Venue Change:* events with 7 bookings, on 10 to 14 Dec 2026 (and one on 28 Oct, in the past), for the venue change flag cases to edit | `seed-coordinator-view`, `seed-venues` | Yes, puts the hall back and replaces its own events | `seed`, `show` (7 rows, no flags), `teardown` |
+| `seed-booking-cancel` | 5 bookings on the *Founders' Gala Dinner* at the two UAT-44 venues, on 17 Dec 2026 (and 18 Dec): two Confirmed, one Requested, one Tentative Hold, one Rejected | `seed-equipment`, `seed-venue-search-uat` | Yes | `seed`, `verify` (7 rows), `teardown` |
+| `seed-booking-flag-clear` | 3 blocks on UAT-44 Harbour Room on 17 Dec 2026 that flag the *Founders' Gala Dinner*'s two Confirmed bookings there (two reasons on the AM one, one on the Night one), for the flag clear cases | `seed-booking-cancel` | No: run `teardown` first | `blocks`, `reblock` (one more block, TC-VFCLR-004), `flags` (every flag row on the event), `teardown` (removes the blocks and the event's flag rows) |
 | `seed-event-change-flags` | 4 *Event Change:* events of Test Coordinator on 3, 4, 7 and 8 Dec 2026, each with 120 expected attendance, four bookings (Confirmed, running hold, Requested, lapsed hold) and a change request waiting, for the event change flag cases | `seed-coordinator-view`, `seed-venues`, `seed-venue-search-uat` | Yes, replaces its own events | `seed`, `show` (every booking with its open event-change reasons), `teardown`; `checks` runs the 31 database checks |
-| `seed-venue-re-request` | 2 *Re-request Test:* events, 49 days from today: the Tech Summit's Main Hall and Studio bookings (Confirmed), each flagged by a block, and an Evening Gala on Main Hall after them, for the venue re-request cases (SPM-251) | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events and blocks | `seed`, `show` (3 rows before any re-request), `teardown` (also removes the blocks on that day) |
-| `seed-event-cancel` | A lapsed Tentative Hold on the *Founders' Gala Dinner* at UAT-44 Garden Hall, 10 days from today, beside `seed-booking-cancel`'s five. `teardown` also puts the event back in Planning | `seed-booking-cancel` | Yes | `seed`, `verify` (2 rows), `teardown` |
+| `seed-venue-re-request` | 2 *Re-request Test:* events on 20 Dec 2026: the Tech Summit's Main Hall and Studio bookings (Confirmed), each flagged by a block, and an Evening Gala on Main Hall after them, for the venue re-request cases (SPM-251) | `seed-coordinator-view`, `seed-venues` | Yes, replaces its own events and blocks | `seed`, `show` (3 rows before any re-request), `teardown` (also removes the blocks on that day) |
+| `seed-event-cancel` | A lapsed Tentative Hold on the *Founders' Gala Dinner* at UAT-44 Garden Hall on 17 Dec 2026, beside `seed-booking-cancel`'s five. `teardown` also puts the event back in Planning | `seed-booking-cancel` | Yes | `seed`, `verify` (2 rows), `teardown` |
 | `apply-ssot` | Nothing: corrects venue and equipment data already there | A database that already has data | Yes | `verify` (31 rows), `apply` |
 
 "Safe to re-run" means it inserts only what is missing, so a row you have since

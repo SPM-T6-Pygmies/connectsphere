@@ -86,7 +86,7 @@ No real event has essential-arrangement rows yet (SPM-144), so set one up:
    update event
       set registration_enabled_flag = true,
           registration_open_date = date '2026-11-01',
-          registration_close_date = date '2026-11-20',
+          registration_close_date = date '2026-12-18',
           programme_agenda = null
     where event_id = <event>;
    ```
@@ -153,7 +153,7 @@ arrangement incomplete", "Programme — No agenda has been written yet.").
 **Expected Result:**
 - The table lists Programme as **Outstanding** ("No agenda has been written
   yet."), and Registration and Venue as **Done** with their detail ("Open
-  2026-11-01 to 2026-11-20.", "Confirmed at Main Hall.")
+  2026-11-01 to 2026-12-18.", "Confirmed at Main Hall.")
 - The Confirmation card reads "Cannot confirm -- 1 essential arrangement
   incomplete" and lists "Programme — No agenda has been written yet."
 - **Confirm event** is disabled

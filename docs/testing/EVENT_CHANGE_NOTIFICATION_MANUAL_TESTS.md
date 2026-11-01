@@ -139,7 +139,7 @@ Signed in as `organiser2@test.com`.
 **Steps:**
 1. In the sidebar open **Submitted** → **Operations Roadmap Conference** →
    **Request a change** (or go to `/staff/requester/6/change-request`). Tick **Date and times** and enter three times with **Add a
-   date**: 26 Nov 2026 09:00–12:00, 26 Nov 2026 14:00–17:00, 27 Nov 2026
+   date**: 24 Dec 2026 09:00–12:00, 24 Dec 2026 14:00–17:00, 25 Dec 2026
    09:00–12:00. Click **Submit change request**.
 2. Sign in as `coordinator@test.com` and open
    `/staff/coordinator/events/1/change-request`. Choose **Accept** for Date and
@@ -151,7 +151,7 @@ Signed in as `organiser2@test.com`.
 - Step 3: exactly one `event-rescheduled` row, to `organiser2@test.com`,
   `related_event_id = 1`, status `Sent`, reading
   `Operations Roadmap Conference is rescheduled` /
-  `Operations Roadmap Conference has been rescheduled. New times: Thu, 26 Nov 2026 (09:00–12:00, 14:00–17:00) and Fri, 27 Nov 2026 (09:00–12:00).`
+  `Operations Roadmap Conference has been rescheduled. New times: Thu, 24 Dec 2026 (09:00–12:00, 14:00–17:00) and Fri, 25 Dec 2026 (09:00–12:00).`
   No row for `coordinator@test.com` or `organiser@test.com`. Without Novu the
   server log prints `[notifier] organiser 6 told event 1 is rescheduled`.
 
@@ -171,7 +171,7 @@ Signed in as `organiser2@test.com`.
 - Step 1: one new unread notification, badged **Event rescheduled**, with the
   subject and body from TC-EVCHANGE-001.
 - Step 2: the request opens at `/staff/requester/notifications/6`. **Event
-  times** reads *26 Nov 9:00 am – 12:00 pm, 26 Nov 2:00 pm – 5:00 pm, 27 Nov
+  times** reads *24 Dec 9:00 am – 12:00 pm, 24 Dec 2:00 pm – 5:00 pm, 25 Dec
   9:00 am – 12:00 pm*, and **Your event** reads **Planning**.
 - Step 3: the unread dot and count follow each change.
 
@@ -196,7 +196,7 @@ Evidence: [step1-inbox-event-rescheduled](../screenshots/2026-10-29_TC-EVCHANGE-
 
 **Expected Result:**
 - Step 3: still exactly one `event-rescheduled` row (TC-EVCHANGE-001's). The
-  event's attendance is `320`, its preferred date still `2026-11-26`.
+  event's attendance is `320`, its preferred date still `2026-12-24`.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, Chromium (Playwright), no Novu
 

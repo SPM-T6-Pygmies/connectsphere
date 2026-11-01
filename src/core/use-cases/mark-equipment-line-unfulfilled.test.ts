@@ -30,6 +30,7 @@ function newLine(item: string, quantityRequested: number): EquipmentRequirement 
     state: "Requested",
     reviewBaseline: null,
     removalRequested: false,
+    rescheduled: false,
     decision: null,
     essential: false,
   };

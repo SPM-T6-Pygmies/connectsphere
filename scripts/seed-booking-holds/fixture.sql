@@ -7,9 +7,9 @@
 --
 --   supabase db query --file scripts/seed-booking-holds/fixture.sql --local
 --
--- T is 14 days from today, Singapore time, so venue search (60 days ahead) can still see it.
--- Main Hall's two bookings D and E sit on the day the holds are on: 21 days from today,
--- the same day seed.sql uses. Times are 15-minute codes, first to last: code n starts n*15
+-- T is Wednesday 9 December 2026, inside venue search's 60 days ahead from 10 October 2026.
+-- Main Hall's two bookings D and E sit on day H, Sunday 6 December 2026, the day seed.sql
+-- holds. Times are 15-minute codes, first to last: code n starts n*15
 -- minutes after midnight, so 28-47 is 07:00-12:00, 52-71 13:00-18:00, 56-71 14:00-18:00 and
 -- 76-95 19:00-24:00.
 --
@@ -22,8 +22,8 @@ declare
   v_coord bigint := (select user_account_id from public.user_account where name = 'Test Coordinator');
   v_staff bigint := (select user_account_id from public.user_account where name = 'Test Venue Staff');
   v_id bigint;
-  t date := (now() at time zone 'Asia/Singapore')::date + 14;
-  h date := (now() at time zone 'Asia/Singapore')::date + 21;
+  t date := date '2026-12-09';
+  h date := date '2026-12-06';
   r record;
 begin
   if v_event is null or v_coord is null or v_staff is null then

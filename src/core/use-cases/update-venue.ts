@@ -34,7 +34,7 @@ export interface UpdateVenueDeps {
   readonly venues: VenueCatalogue;
   readonly review: VenueChangeReview;
   readonly clock: Clock;
-  readonly notifier: Pick<Notifier, "venueBookingFlagged">;
+  readonly notifier: Pick<Notifier, "venueBookingFlagged" | "eventNoLongerConfirmed">;
 }
 
 /**
@@ -48,6 +48,9 @@ export interface UpdateVenueDeps {
  *
  * SPM-71: each booking the edit newly flags has its coordinator told, once, with every
  * reason. A booking whose event has no coordinator has nobody to tell.
+ *
+ * SPM-111: a Confirmed event with a booking just flagged goes back to Planning as the
+ * flags are written, and its Organiser is told what lapsed.
  */
 export class UpdateVenueUseCase {
   constructor(private readonly deps: UpdateVenueDeps) {}
@@ -80,9 +83,7 @@ export class UpdateVenueUseCase {
 
     const bookings = await this.deps.review.bookingsAt(id);
     const flags = flagsForVenueChange(before, venue, bookings, this.deps.clock.now());
-    if (flags.length > 0) {
-      await this.deps.review.flag(id, flags);
-    }
+    const lapses = flags.length > 0 ? await this.deps.review.flag(id, flags) : [];
 
     const reasons = newlyFlaggedReasons(flags);
     for (const booking of bookings) {
@@ -96,6 +97,16 @@ export class UpdateVenueUseCase {
         venueLocation: venue.location,
         reasonCode: VENUE_ATTRIBUTES_FLAG,
         reasons: flagged,
+      });
+    }
+
+    for (const lapse of lapses) {
+      await this.deps.notifier.eventNoLongerConfirmed({
+        recipientUserAccountId: lapse.owningOrganiserUserAccountId,
+        eventId: lapse.eventId,
+        eventRequestId: lapse.eventRequestId,
+        eventName: lapse.eventName,
+        lapsed: lapse.lapsed,
       });
     }
 

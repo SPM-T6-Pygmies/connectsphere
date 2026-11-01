@@ -29,6 +29,7 @@ function projector(quantityRequested: number, overrides: Partial<EquipmentRequir
     state: "Requested",
     reviewBaseline: null,
     removalRequested: false,
+    rescheduled: false,
     decision: null,
     essential: false,
     ...overrides,

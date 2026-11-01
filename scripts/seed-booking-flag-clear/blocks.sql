@@ -1,6 +1,6 @@
 -- SPM-310 manual cases (docs/testing/VENUE_FLAG_CLEAR_MANUAL_TESTS.md): the blocks that flag the
 -- Founders' Gala Dinner's two Harbour Room bookings, recorded as Test Venue Staff through the
--- same function the Unavailability form calls. C is 10 days from today, the day
+-- same function the Unavailability form calls. C is Thursday 17 December 2026, the day
 -- seed-booking-cancel books.
 --
 --   UAT-44 Harbour Room  C 07:00-12:00  Maintenance  }  P (C 07:00-12:00, Confirmed): two reasons
@@ -16,7 +16,7 @@
 --   supabase db query --file scripts/seed-booking-flag-clear/blocks.sql --local
 
 select public.venue_staff_record_unavailability(s.user_account_id, v.venue_id, b.reason, null,
-         (select jsonb_agg(jsonb_build_object('date', (now() at time zone 'Asia/Singapore')::date + 10, 'slot', sl.slot_code)
+         (select jsonb_agg(jsonb_build_object('date', date '2026-12-17', 'slot', sl.slot_code)
                            order by sl.start_time)
           from public.venue_slot vs
           join public.slot sl on sl.slot_code = vs.slot_code

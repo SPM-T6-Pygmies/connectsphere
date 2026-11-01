@@ -6,6 +6,8 @@ import { InMemoryVenueChangeReview } from "@/adapters/outbound/in-memory/in-memo
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
 
 import { VenueMaintenanceNotPermittedError, VenueNotFoundError } from "../domain/errors";
+import { eventId } from "../domain/event";
+import { userAccountId } from "../domain/user-account";
 import { venueId, type Venue } from "../domain/venue";
 import type { ReviewedBooking } from "../ports/outbound/venue-change-review";
 import { UpdateVenueUseCase, type UpdateVenueCommand } from "./update-venue";
@@ -188,5 +190,41 @@ describe("UpdateVenueUseCase notifies the coordinator (SPM-71)", () => {
 
     await expect(update.execute(banquetSeats(80, { roles: [] }))).rejects.toThrow(VenueMaintenanceNotPermittedError);
     expect(notifier.bookingsFlagged).toEqual([]);
+  });
+});
+
+describe("UpdateVenueUseCase tells the Organiser of a lapsed event (SPM-111)", () => {
+  const lapse = {
+    eventId: eventId("40"),
+    eventName: "Harbour Lights Gala",
+    eventRequestId: "12",
+    owningOrganiserUserAccountId: userAccountId("organiser-6"),
+    lapsed: [{ kind: "flagged-booking", venueLocation: "Main Hall" }] as const,
+  };
+
+  it("AC1, AC3: a venue edit that takes a Confirmed event out of Confirmed tells its Organiser what lapsed", async () => {
+    const { review, notifier, update } = build();
+    review.lapses = [lapse];
+
+    await update.execute(banquetSeats(80));
+
+    expect(notifier.eventsNoLongerConfirmed).toEqual([
+      {
+        recipientUserAccountId: "organiser-6",
+        eventId: "40",
+        eventRequestId: "12",
+        eventName: "Harbour Lights Gala",
+        lapsed: [{ kind: "flagged-booking", venueLocation: "Main Hall" }],
+      },
+    ]);
+  });
+
+  it("an edit that flags nothing tells no Organiser", async () => {
+    const { review, notifier, update } = build();
+    review.lapses = [lapse];
+
+    await update.execute(banquetSeats(150));
+
+    expect(notifier.eventsNoLongerConfirmed).toEqual([]);
   });
 });

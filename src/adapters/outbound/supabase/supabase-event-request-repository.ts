@@ -74,6 +74,8 @@ const THREAD_CLOSED = "CS018";
 /** What `organiser_event_request_arrangements` returns for a request with an event. */
 interface EventArrangementsRow {
   readonly status: CoordinatorEventStatus;
+  readonly date: string | null;
+  readonly expected_attendance: number | null;
   readonly venues: readonly string[];
   readonly equipment: readonly { equipment_type: string; quantity_reserved: number }[];
 }
@@ -81,6 +83,8 @@ interface EventArrangementsRow {
 function toEventArrangements(row: EventArrangementsRow): OrganiserEventArrangements {
   return {
     status: row.status,
+    date: row.date,
+    expectedAttendance: row.expected_attendance,
     venues: row.venues,
     equipment: row.equipment.map((line) => ({
       equipmentType: line.equipment_type,
@@ -149,8 +153,28 @@ export class SupabaseEventRequestRepository implements EventRequestRepository {
       });
     }
 
+    // An approved request's event may have moved off the date first asked for.
+    const { data: dates, error: datesError } = await this.client.rpc("organiser_event_dates", {
+      p_client_organisation_id: organisationKey,
+    });
+
+    if (datesError) {
+      throw new Error(`Failed to read the events' dates: ${datesError.message}`, {
+        cause: datesError,
+      });
+    }
+
+    const eventDates = new Map(
+      ((dates ?? []) as unknown as { event_request_id: number; preferred_date: string | null }[]).map(
+        (row) => [String(row.event_request_id), row.preferred_date],
+      ),
+    );
+
     const rows = (data ?? []) as unknown as EventRequestRow[];
-    return rows.map(toMyEventRequestSummary);
+    return rows.map((row) => {
+      const summary = toMyEventRequestSummary(row);
+      return { ...summary, preferredDate: eventDates.get(summary.id) ?? summary.preferredDate };
+    });
   }
 
   async listByAssignedCoordinator(coordinatorId: UserAccountId): Promise<readonly EventRequest[]> {

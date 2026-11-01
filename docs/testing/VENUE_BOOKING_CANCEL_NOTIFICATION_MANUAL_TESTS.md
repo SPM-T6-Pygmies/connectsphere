@@ -54,8 +54,8 @@ PR merges, so do not edit that file.
 
 ### The bookings
 
-From `seed-booking-cancel`, all on the Founders' Gala Dinner; **C** is 10 days from today, Singapore
-time. The coordinator cancels them on **My events** → **Founders' Gala Dinner** → **Request a venue**.
+From `seed-booking-cancel`, all on the Founders' Gala Dinner; **C** is Thursday 17 December
+2026. The coordinator cancels them on **My events** → **Founders' Gala Dinner** → **Request a venue**.
 
 | Booking | Venue | Day, slot | Status | Used in |
 | --- | --- | --- | --- | --- |

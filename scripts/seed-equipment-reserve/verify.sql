@@ -23,9 +23,9 @@ expected_items (type, expected) as (
          ('Projector',           '10 owned, 0 out of service')
 ),
 expected_events (name, expected) as (
-  values ('Design Sprint Demo', '2026-11-20 Planning'),
-         ('Sales Kickoff',      '2026-11-21 Planning'),
-         ('Board Offsite',      '2026-11-20 Confirmed'),
+  values ('Design Sprint Demo', '2026-12-18 Planning'),
+         ('Sales Kickoff',      '2026-12-19 Planning'),
+         ('Board Offsite',      '2026-12-18 Confirmed'),
          ('Press Briefing',     'no date Planning')
 ),
 expected_lines (event, type, expected) as (

@@ -74,7 +74,7 @@ begin
   insert into public.event_request (
     event_name, preferred_date, expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
-  select 'Founders'' Day Celebration', date '2026-11-04', 150, 'Draft', v_organiser, v_organisation
+  select 'Founders'' Day Celebration', date '2026-12-02', 150, 'Draft', v_organiser, v_organisation
   where not exists (
     select 1 from public.event_request
     where event_name = 'Founders'' Day Celebration' and requesting_user_account_id = v_organiser
@@ -83,7 +83,7 @@ begin
   insert into public.event_request (
     event_name, preferred_date, expected_attendance, status, requesting_user_account_id, client_organisation_id
   )
-  select 'Quarterly Partner Forum', date '2026-11-18', 80, 'Submitted', v_organiser_2, v_organisation
+  select 'Quarterly Partner Forum', date '2026-12-16', 80, 'Submitted', v_organiser_2, v_organisation
   where not exists (
     select 1 from public.event_request
     where event_name = 'Quarterly Partner Forum' and requesting_user_account_id = v_organiser_2
@@ -105,7 +105,7 @@ begin
     requesting_user_account_id, assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Venue Safety Review', 'A walkthrough of fire exits, capacity limits and accessible routes.',
-    'Annual compliance check ahead of the winter events season.', date '2026-10-14', 12,
+    'Annual compliance check ahead of the winter events season.', date '2026-12-09', 12,
     'Access to every fire exit and the main hall.', 'Step-free access required for two attendees.',
     null, 'Under Review', v_organiser, v_coordinator, v_organisation
   where not exists (
@@ -135,7 +135,7 @@ begin
     assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Operations Roadmap Conference', 'A day of talks and workshops for the operations team.',
-    'Kick off next year''s operations roadmap.', date '2026-11-25', 300, 'Projector, stage microphones, livestream setup.',
+    'Kick off next year''s operations roadmap.', date '2026-12-23', 300, 'Projector, stage microphones, livestream setup.',
     'Attendees must register in advance; no walk-ins.', 'Under Review', v_organiser_2, v_coordinator,
     v_organisation
   where not exists (
@@ -148,7 +148,7 @@ begin
     requesting_user_account_id, assigned_coordinator_user_account_id, client_organisation_id
   )
   select 'Vendor Appreciation Day', 'An informal thank-you event for this year''s vendors.',
-    'Strengthen vendor relationships ahead of contract renewals.', date '2026-11-06', 60,
+    'Strengthen vendor relationships ahead of contract renewals.', date '2026-12-04', 60,
     'Outdoor courtyard with a covered fallback.', 'Returned', v_organiser, v_coordinator, v_organisation
   where not exists (
     select 1 from public.event_request

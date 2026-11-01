@@ -27,7 +27,8 @@ import {
  * `anon` has no grant on that table at all: these five functions are the whole
  * surface, and none of them can return a row the caller did not already
  * identify -- by event and email, or by a 122-bit reference. There is no
- * request an attendee can make that yields the attendee list.
+ * request an attendee can make that yields the attendee list: the one function
+ * that lists it (SPM-69) answers only the event's signed-in coordinator.
  *
  * That the port is unchanged is the point -- the core still asks for a place at
  * an event and knows nothing about how the store defends itself.
@@ -159,5 +160,25 @@ export class SupabaseRegistrationRepository implements RegistrationRepository {
       }
       throw new Error(`Failed to withdraw registration: ${error.message}`, { cause: error });
     }
+  }
+
+  /**
+   * SPM-69: the one read that returns other attendees, so `coordinator_event_registrants`
+   * takes no caller-supplied id: it answers only when the signed-in user is the event's
+   * assigned coordinator, and `anon` cannot call it at all.
+   */
+  async registeredFor(eventId: EventId): Promise<readonly Registration[]> {
+    const key = toKey(eventId);
+    if (key === null) {
+      return [];
+    }
+
+    const { data, error } = await this.client.rpc("coordinator_event_registrants", { p_event_id: key });
+
+    if (error) {
+      throw new Error(`Failed to list the event's registrations: ${error.message}`, { cause: error });
+    }
+
+    return ((data ?? []) as unknown as RegistrationRow[]).map(toDomain);
   }
 }

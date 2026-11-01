@@ -65,7 +65,7 @@ below and replaces the events, their bookings and their flags. `teardown.sql` re
 
 **Change Test Hall** (made by the fixture, so the cases can edit it freely): Theatre seats 300,
 Banquet 150; Wi-Fi, Catering area; Step-free access, Hearing loop; open 07:00–12:00, 13:00–18:00,
-19:00–24:00. **F** is 42 days from today, Singapore time. Every booking is 13:00–18:00.
+19:00–24:00. **F** is Thursday 10 December 2026. Every booking is 13:00–18:00.
 
 | Event | Needs | Venue | Day | Status | Used in |
 | --- | --- | --- | --- | --- | --- |
@@ -75,7 +75,7 @@ Banquet 150; Wi-Fi, Catering area; Step-free access, Hearing loop; open 07:00–
 | Venue Change: Video Call | 50, Theatre, Video-conferencing (the hall lacks it) | Change Test Hall | F + 2 | Confirmed | 004 |
 | Venue Change: Open Day | no attendance, Banquet | Change Test Hall | F + 3 | Confirmed | 006 |
 | Venue Change: Pending Talk | 120, Banquet | Change Test Hall | F + 4 | Requested | 006 |
-| Venue Change: Past Expo | 120, Banquet | Change Test Hall | 3 days ago | Confirmed | 006 |
+| Venue Change: Past Expo | 120, Banquet | Change Test Hall | Wednesday 28 October 2026 (past) | Confirmed | 006 |
 
 ### Order
 

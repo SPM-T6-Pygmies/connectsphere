@@ -9,6 +9,7 @@ import {
 import { InMemoryVenueCatalogue } from "@/adapters/outbound/in-memory/in-memory-venue-catalogue";
 import { InMemoryVenueStaffDirectory } from "@/adapters/outbound/in-memory/in-memory-venue-staff-directory";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
+import { InMemoryConfirmationLapses } from "@/adapters/outbound/in-memory/in-memory-confirmation-lapses";
 import { InMemoryVenueUnavailabilityRepository } from "@/adapters/outbound/in-memory/in-memory-venue-unavailability-repository";
 import { VenueSlotBlockedError } from "@/core/domain/errors";
 import { venueId, type Venue } from "@/core/domain/venue";
@@ -56,7 +57,13 @@ function build() {
   const bookings = new InMemoryBookingRepository([], new Map(), unavailability);
   return {
     bookings,
-    record: new RecordVenueUnavailabilityUseCase({ unavailability, venues, clock, notifier: new RecordingNotifier() }),
+    record: new RecordVenueUnavailabilityUseCase({
+      unavailability,
+      venues,
+      clock,
+      lapses: new InMemoryConfirmationLapses(),
+      notifier: new RecordingNotifier(),
+    }),
     lift: new LiftVenueUnavailabilityUseCase({ unavailability, clock }),
     submit: new SubmitVenueBookingRequestUseCase({
       events: new InMemoryCoordinatorEventRepository([EVENT]),

@@ -227,6 +227,8 @@ describe("ViewOrganiserEventRequestUseCase event times (SPM-326)", () => {
 describe("ViewOrganiserEventRequestUseCase event arrangements (SPM-66)", () => {
   const CONFIRMED: OrganiserEventArrangements = {
     status: "Confirmed",
+    date: "2026-11-21",
+    expectedAttendance: 50,
     venues: ["Main Hall"],
     equipment: [{ equipmentType: "Wireless microphone", quantityReserved: 4 }],
   };

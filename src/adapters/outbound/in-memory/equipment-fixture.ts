@@ -61,6 +61,7 @@ export function line(overrides: Partial<EquipmentRequirement> = {}): EquipmentRe
     state: quantityReserved > 0 ? "Reserved" : "Requested",
     reviewBaseline: null,
     removalRequested: false,
+    rescheduled: false,
     decision: null,
     essential: false,
     ...overrides,

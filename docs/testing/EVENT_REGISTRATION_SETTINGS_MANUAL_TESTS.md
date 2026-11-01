@@ -80,7 +80,7 @@ Attendees have no account; they register by name and email, signed out.
 
    -- 15-minute slots '28'-'47' are 7:00 am-12:00 pm (SPM-326).
    insert into event_slot (event_id, slot_date, slot_code)
-   select <event>, date '2026-11-25', n::text from generate_series(28, 47) as n;
+   select <event>, date '2026-12-23', n::text from generate_series(28, 47) as n;
    ```
 
 ---

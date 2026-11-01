@@ -8,7 +8,7 @@ import type { NotificationMessage } from "./coordinator-assigned";
 // confirmation does (SPM-87 AC2). An email has no viewer timezone to follow,
 // so it stays in venue time and names the zone (SPM-326).
 const TIME_ZONE = "Asia/Singapore";
-const fullDateFormat = new Intl.DateTimeFormat("en-SG", {
+export const fullDateFormat = new Intl.DateTimeFormat("en-SG", {
   timeZone: TIME_ZONE,
   weekday: "long",
   day: "numeric",
@@ -23,7 +23,7 @@ const timeFormat = new Intl.DateTimeFormat("en-SG", {
   hour12: true,
 });
 
-function eventTimes(times: readonly TimeRangeOnDate[]): string {
+export function eventTimes(times: readonly TimeRangeOnDate[]): string {
   const multiDay = times.some((range) => range.date !== times[0].date);
   const ranges = times
     .map((range) => {
@@ -36,7 +36,7 @@ function eventTimes(times: readonly TimeRangeOnDate[]): string {
 }
 
 // Event and attendee names are typed by people, and the body is HTML.
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

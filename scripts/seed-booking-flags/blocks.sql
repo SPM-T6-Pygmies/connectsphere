@@ -1,6 +1,6 @@
--- Lists the blocks on Main Hall, Studio and Rooftop Terrace that touch 27 to 38 days from today (the days the
--- booking-flags cases use),
--- so a case can name the block it is looking at. Empty before TC-VFLAG-001. Read-only.
+-- Lists the blocks on Main Hall, Studio and Rooftop Terrace that touch 22 December 2026 to
+-- 2 January 2027, F - 1 to F + 10 (the days the booking-flags cases use), so a case can name
+-- the block it is looking at. Empty before TC-VFLAG-001. Read-only.
 --
 --   supabase db query --file scripts/seed-booking-flags/blocks.sql --local
 
@@ -14,7 +14,7 @@ from public.venue_unavailability u
 join public.venue v on v.venue_id = u.venue_id
 join public.venue_unavailability_slot us on us.venue_unavailability_id = u.venue_unavailability_id
 where v.location in ('Main Hall', 'Studio', 'Rooftop Terrace')
-  and us.slot_date between (now() at time zone 'Asia/Singapore')::date + 27
-                       and (now() at time zone 'Asia/Singapore')::date + 38
+  and us.slot_date between date '2026-12-22'
+                       and date '2027-01-02'
 group by v.location, u.venue_unavailability_id, u.reason_category, u.lifted_at
 order by u.venue_unavailability_id;

@@ -13,13 +13,12 @@
 --   supabase db query --file scripts/seed-booking-flags/checks.sql --local
 --
 -- Read the message, not the exit code: `supabase db query` exits 0 even when the query
--- fails. Dates are relative to today so it never goes stale. It records its blocks on
--- the days seed.sql books (F = 28 days out), so run teardown.sql then seed.sql first if
--- you have recorded blocks there by hand.
+-- fails. It records its blocks on the days seed.sql books (F = 23 December 2026), so run
+-- teardown.sql then seed.sql first if you have recorded blocks there by hand.
 
 do $$
 declare
-  f date := (now() at time zone 'Asia/Singapore')::date + 28;
+  f date := date '2026-12-23';
   v_staff bigint;
   v_coordinator bigint;
   v_coordinator_2 bigint;

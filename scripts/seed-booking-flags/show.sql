@@ -3,7 +3,7 @@
 --
 --   supabase db query --file scripts/seed-booking-flags/show.sql --local
 --
--- F is 28 days from today in Singapore time; `day_label` says which day each booking is on, so
+-- F is Wednesday 23 December 2026; `day_label` says which day each booking is on, so
 -- no case needs F worked out by hand. It should list 9 bookings.
 
 select e.event_id,
@@ -25,7 +25,7 @@ join public.user_account c on c.user_account_id = e.assigned_coordinator_user_ac
 join public.venue v on v.venue_id = b.venue_id
 join public.booking_slot bs on bs.booking_id = b.booking_id
 join public.slot sl on sl.slot_code = bs.slot
-cross join (select (now() at time zone 'Asia/Singapore')::date + 28 as day) f
+cross join (select date '2026-12-23' as day) f
 where e.name like 'Flag Test: %'
 group by e.event_id, e.name, b.booking_id, c.name, v.location, bs.slot_date, f.day, b.status, b.hold_expires_at
 order by e.name, bs.slot_date, min(sl.start_time);

@@ -1,5 +1,6 @@
 -- Venue hold manual tests (docs/testing/VENUE_HOLD_MANUAL_TESTS.md): two Tentative Holds at Main
--- Hall, three weeks from today, Singapore time.
+-- Hall on day H, Sunday 6 December 2026: fixed, after the November 2026 test window, on a day no
+-- other seed of the `full` profile (pnpm e2e:data) books Main Hall.
 --
 --   07:00-12:00  expired an hour ago      -- must not block (TC-VHOLD-004)
 --   14:00-18:00  expires in thirty days   -- must block    (TC-VHOLD-004, TC-VHOLD-012)
@@ -15,12 +16,12 @@
 --
 --   supabase db query --file scripts/seed-booking-holds/seed.sql --local
 --
--- Re-running replaces the two holds, with expiries and the date measured from today again.
+-- Re-running replaces the two holds, with their expiries measured from now again.
 -- Undo with teardown.sql in this directory.
 
 do $$
 declare
-  v_day date := (now() at time zone 'Asia/Singapore')::date + 21;
+  v_day date := date '2026-12-06';
   v_venue bigint := (select venue_id from public.venue where location = 'Main Hall');
   v_staff bigint := (
     select ua.user_account_id

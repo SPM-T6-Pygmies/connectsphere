@@ -70,7 +70,7 @@ To run the cases again, reset the bookings with `teardown.sql` and then `seed.sq
 
 ### The bookings
 
-All five are on the Founders' Gala Dinner. **C** is 10 days from today, Singapore time. The UAT-44
+All five are on the Founders' Gala Dinner. **C** is Thursday 17 December 2026. The UAT-44
 venues are the ones that offer slots, so their calendar shows a freed slot as **Available**.
 
 | Booking | Venue | Day, slot | Status | Used in |

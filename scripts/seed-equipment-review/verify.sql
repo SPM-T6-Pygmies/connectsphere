@@ -20,14 +20,14 @@ catalogue (type, owned) as (
   values ('Projector', 10), ('Wireless microphone', 30), ('PA speaker', 5), ('Livestream kit', 2)
 ),
 expected_events (name, expected) as (
-  values ('Tech Summit Keynote',      '2026-11-15 Planning'),
-         ('Alumni Networking Night',  '2026-12-03 Blocked'),
+  values ('Tech Summit Keynote',      '2026-12-13 Planning'),
+         ('Alumni Networking Night',  '2026-12-31 Blocked'),
          ('Partner Roadshow',         'no date Confirmed'),
-         ('Product Launch Rehearsal', '2026-11-14 Planning'),
-         ('Board Strategy Day',       '2026-11-15 Confirmed'),
-         ('Charity Gala Setup',       '2026-11-16 Blocked'),
-         ('Year-End Town Hall',       '2026-11-17 Planning'),
-         ('Autumn Workshop',          '2026-11-15 Cancelled'),
+         ('Product Launch Rehearsal', '2026-12-12 Planning'),
+         ('Board Strategy Day',       '2026-12-13 Confirmed'),
+         ('Charity Gala Setup',       '2026-12-14 Blocked'),
+         ('Year-End Town Hall',       '2026-12-15 Planning'),
+         ('Autumn Workshop',          '2026-12-13 Cancelled'),
          ('Spring Conference',        '2026-09-20 Completed')
 ),
 expected_lines (event, type, expected) as (

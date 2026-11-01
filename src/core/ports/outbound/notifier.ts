@@ -1,6 +1,6 @@
 import type { RequestedChange } from "../../domain/change-request";
 import type { Connection } from "../../domain/connection";
-import type { ConfirmedEquipmentLine } from "../../domain/event-readiness";
+import type { ConfirmedEquipmentLine, LapsedArrangement } from "../../domain/event-readiness";
 import type { TimeRangeOnDate } from "../../domain/event-times";
 import type { SafetyCheckOutcome } from "../../domain/safety-check";
 
@@ -137,8 +137,8 @@ export interface EquipmentNeedsAttentionNotice {
   /** ISO calendar date, `YYYY-MM-DD`. Null until scheduled. */
   readonly preferredDate: string | null;
   readonly equipmentType: string;
-  /** What the coordinator did to the line (AC1). */
-  readonly change: "added" | "edited" | "deleted" | "removalRequested" | "removalWithdrawn";
+  /** What the coordinator did to the line (AC1). SPM-311: or that accepting new dates released it. */
+  readonly change: "added" | "edited" | "deleted" | "removalRequested" | "removalWithdrawn" | "rescheduled";
   /** What the line requests now -- for a deleted line, what it requested. */
   readonly quantityRequested: number;
   /** For an edit that changed the quantity, what it was just before; null otherwise. */
@@ -148,7 +148,7 @@ export interface EquipmentNeedsAttentionNotice {
    * (SPM-273 AC3); null when it needs nothing -- deleted, or back to what they
    * decided (AC2).
    */
-  readonly attention: "new" | "changed" | "removalRequested" | null;
+  readonly attention: "new" | "changed" | "removalRequested" | "rescheduled" | null;
 }
 
 /** One line of an event Technical Support have finished deciding on (SPM-65 AC3). */
@@ -301,6 +301,21 @@ export interface ChangeRequestedNotice {
   readonly changes: readonly RequestedChange[];
 }
 
+/**
+ * What an Event Organiser is told when their Confirmed event goes back to
+ * Planning because an arrangement no longer holds (SPM-111): which ones, so
+ * they stop relying on them. A reschedule is told by `EventRescheduledNotice`
+ * instead (AC4).
+ */
+export interface EventNoLongerConfirmedNotice {
+  readonly recipientUserAccountId: string;
+  readonly eventId: string;
+  /** The request the Organiser raised, where they view the event; null if it has since been deleted. */
+  readonly eventRequestId: string | null;
+  readonly eventName: string;
+  readonly lapsed: readonly LapsedArrangement[];
+}
+
 /** One field the Coordinator declined, with why (#104). */
 export interface DeclinedChange {
   readonly change: RequestedChange;
@@ -363,6 +378,29 @@ export interface RegistrationConfirmedNotice {
 }
 
 /**
+ * What every Attendee holding a Registered registration is told when the event
+ * changes under them (SPM-69): addressed by email, as with
+ * `RegistrationConfirmedNotice`, since an Attendee has no account.
+ *
+ * Deliberately has no field for a reason, a note or another attendee: none of
+ * that may reach an Attendee (#91, AC3).
+ */
+export interface AttendeeEventChangedNotice {
+  readonly registrationId: string;
+  readonly recipientEmail: string;
+  readonly attendeeName: string;
+  readonly eventName: string;
+}
+
+/** SPM-69 AC2: a reschedule carries the new dates and times, and the venue. */
+export interface EventRescheduledForAttendeeNotice extends AttendeeEventChangedNotice {
+  /** In date then start order. */
+  readonly times: readonly TimeRangeOnDate[];
+  /** Null while no venue is confirmed. */
+  readonly venueName: string | null;
+}
+
+/**
  * Driven port: telling someone something happened.
  *
  * The core does not know whether this becomes an email, a push notification, a
@@ -390,5 +428,8 @@ export interface Notifier {
   venueBookingFlagged(notice: VenueBookingFlaggedNotice): Promise<void>;
   changeRequested(notice: ChangeRequestedNotice): Promise<void>;
   changeRequestDecided(notice: ChangeRequestDecidedNotice): Promise<void>;
+  eventNoLongerConfirmed(notice: EventNoLongerConfirmedNotice): Promise<void>;
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void>;
+  eventRescheduledForAttendee(notice: EventRescheduledForAttendeeNotice): Promise<void>;
+  eventCancelledForAttendee(notice: AttendeeEventChangedNotice): Promise<void>;
 }

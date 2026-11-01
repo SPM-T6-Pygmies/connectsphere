@@ -60,7 +60,7 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
    supabase db query --file scripts/seed-venue-search-uat/seed.sql --local
    supabase db query --file scripts/seed-equipment/seed.sql --local
    ```
-3. Add the two holds at Main Hall on day **H**, 21 days from today (07:00–12:00 expired an hour
+3. Add the two holds at Main Hall on day **H**, Sunday 6 December 2026 (07:00–12:00 expired an hour
    ago, 14:00–18:00 expiring in thirty days). They belong to their own event, *Holds Test Event*:
    ```bash
    supabase db query --file scripts/seed-booking-holds/seed.sql --local
@@ -81,8 +81,8 @@ Do every step, in this order. Nothing else needs to be loaded or run by hand.
 
 ### The days and the bookings
 
-**T** is 14 days from today and **H** is 21 days from today, both in Singapore time. Venue search
-looks 60 days ahead, so it can still see T.
+**T** is Wednesday 9 December 2026 and **H** is Sunday 6 December 2026. Venue search looks 60
+days ahead, so it can see T from 10 October 2026.
 
 | In id order | Booking | Venue | Day, times | Status | Used in |
 | --- | --- | --- | --- | --- | --- |
@@ -295,7 +295,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 - Step 3: booking A is listed in **Decided** as Confirmed.
 - Step 4: refused with "• Founders' Gala Dinner on <T> (07:00–12:00, incl. setup & turnaround)", with no "held" after it. The confirmed booking still owns its times (AC1).
 - Step 5: the Studio row reads **Confirmed**, with no "On hold until" line (AC1).
-- Step 6: `Confirmed` with an empty expiry; two audit rows, `hold` then `confirm hold`, the second by Test Venue Staff (AC3); one `Sent` notification for the coordinator, "Studio approved for Founders' Gala Dinner", whose text reads "Venue Staff confirmed Studio for <T, e.g. Tue, 10 Nov 2026> (07:00–12:00). The venue is secured.", the same as for an approval and with no AM, PM or Night (AC5; SPM-325 AC5).
+- Step 6: `Confirmed` with an empty expiry; two audit rows, `hold` then `confirm hold`, the second by Test Venue Staff (AC3); one `Sent` notification for the coordinator, "Studio approved for Founders' Gala Dinner", whose text reads "Venue Staff confirmed Studio for <T, Wed, 9 Dec 2026> (07:00–12:00). The venue is secured.", the same as for an approval and with no AM, PM or Night (AC5; SPM-325 AC5).
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
@@ -488,7 +488,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Expected Result:**
 - Step 2: the page loads as usual; the hold is no longer listed under **Decided**.
-- Step 3: a new notice at the top, "Main Hall hold expired for Holds Test Event", reading "The hold on Main Hall for <day H, e.g. Tue, 17 Nov 2026> (14:00–18:00) expired at <today, time> without being confirmed. The venue is no longer held; send a new request if you still need it." (AC1, AC2; SPM-325 AC5).
+- Step 3: a new notice at the top, "Main Hall hold expired for Holds Test Event", reading "The hold on Main Hall for <day H, Sun, 6 Dec 2026> (14:00–18:00) expired at <today, time> without being confirmed. The venue is no longer held; send a new request if you still need it." (AC1, AC2; SPM-325 AC5).
 - Step 4: it opens the event.
 - Step 5: one row per expired hold of the event, addressed to the Test Coordinator, `Sent`, with `expiry_notified_at` set (AC1).
 

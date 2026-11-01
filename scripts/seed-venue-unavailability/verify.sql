@@ -20,6 +20,14 @@ with block (venue, reason, expected) as (
          ('Main Hall', 'Maintenance', '68 slots, In force'),
          ('Studio',    'Safety',      '20 slots, Lifted')
 ),
+-- seed.sql's blocks fall from 9 to 15 December 2026; other seeds block these venues on other days.
+seeded as (
+  select u.venue_unavailability_id
+  from public.venue_unavailability u
+  where exists (select 1 from public.venue_unavailability_slot s
+                where s.venue_unavailability_id = u.venue_unavailability_id
+                  and s.slot_date between date '2026-12-09' and date '2026-12-15')
+),
 checks as (
   select 'block ' || b.venue || ' ' || b.reason as check_name, b.expected,
          coalesce((
@@ -30,6 +38,7 @@ checks as (
            left join public.venue_unavailability_slot s
              on s.venue_unavailability_id = u.venue_unavailability_id
            where v.location = b.venue and u.reason_category = b.reason
+             and u.venue_unavailability_id in (select venue_unavailability_id from seeded)
            group by u.venue_unavailability_id, u.lifted_at
            limit 1), 'missing') as actual
   from block b
@@ -51,6 +60,7 @@ checks as (
           join public.venue_unavailability u on u.venue_unavailability_id = a.entity_id
           join public.venue v on v.venue_id = u.venue_id
           where a.entity_type = 'venue_unavailability'
+            and u.venue_unavailability_id in (select venue_unavailability_id from seeded)
             and ((v.location = 'Main Hall' and u.reason_category in ('Renovation', 'Maintenance'))
               or (v.location = 'Studio' and u.reason_category = 'Safety')))
 )

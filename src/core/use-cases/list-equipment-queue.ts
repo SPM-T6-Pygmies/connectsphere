@@ -11,8 +11,10 @@ export interface EquipmentQueueEntry {
   readonly preferredDate: string | null;
   readonly status: CoordinatorEventStatus;
   readonly lineCount: number;
-  /** How many of its lines are new, changed or have their removal requested. */
+  /** How many of its lines are new, changed, rescheduled or have their removal requested. */
   readonly linesNeedingAttention: number;
+  /** SPM-311 AC1: how many of those a change of the event's dates released. */
+  readonly linesRescheduled: number;
   /** How many of its lines Technical Support marked unfulfilled (SPM-274 AC3). */
   readonly linesUnfulfilled: number;
 }
@@ -53,6 +55,7 @@ export class ListEquipmentQueueUseCase {
           status: event.status,
           lineCount: lines.length,
           linesNeedingAttention: lines.filter((line) => attentionReason(line) !== null).length,
+          linesRescheduled: lines.filter((line) => attentionReason(line) === "rescheduled").length,
           linesUnfulfilled: lines.filter((line) => line.state === "Unfulfilled").length,
         })),
     };

@@ -52,7 +52,7 @@ database. It is safe to run twice: the second run changes nothing. Cases 002,
 
 | Event | State | Awaiting? |
 | --- | --- | --- |
-| Marina Bay Gala | Planning, 2026-11-20, 220 expected, accessibility needs; Confirmed at Harbourfront Hall in the Banquet layout (holds 180); 4 of 4 microphones and 10 of 10 crowd barriers reserved | Yes |
+| Marina Bay Gala | Planning, 2026-12-18, 220 expected, accessibility needs; Confirmed at Harbourfront Hall in the Banquet layout (holds 180); 4 of 4 microphones and 10 of 10 crowd barriers reserved | Yes |
 | Canal Side Workshop | Planning, no date, attendance or accessibility needs; Confirmed at Canal Annex with no layout; no equipment | Yes |
 | Lakeside Tech Expo | Planning; **Tentative Hold** at Harbourfront Hall | No |
 | Winter Lantern Ball | Planning, 2026-12-05, 90; Confirmed at Harbourfront Hall in the Theatre layout (holds 300) | Yes |
@@ -89,7 +89,7 @@ begin
   -- 1. Awaiting: 220 expected in a banquet layout that holds 180, two lines reserved in full.
   insert into event (name, status, preferred_date, expected_attendance, accessibility_requirements,
                      owning_organiser_user_account_id, client_organisation_id)
-  values ('Marina Bay Gala', 'Planning', '2026-11-20', 220, 'Step-free route to the stage; two wheelchair spaces',
+  values ('Marina Bay Gala', 'Planning', '2026-12-18', 220, 'Step-free route to the stage; two wheelchair spaces',
           v_organiser, v_org)
   returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, room_layout_id)
@@ -106,7 +106,7 @@ begin
 
   -- 3. Not awaiting: one booking still on a Tentative Hold.
   insert into event (name, status, preferred_date, expected_attendance, owning_organiser_user_account_id, client_organisation_id)
-  values ('Lakeside Tech Expo', 'Planning', '2026-11-05', 300, v_organiser, v_org) returning event_id into v_event;
+  values ('Lakeside Tech Expo', 'Planning', '2026-12-03', 300, v_organiser, v_org) returning event_id into v_event;
   insert into booking (venue_id, event_id, requested_by_user_account_id, decided_by_user_account_id, status, room_layout_id)
   values (v_hall, v_event, v_organiser, v_venue, 'Tentative Hold', v_theatre);
 
@@ -136,7 +136,7 @@ AC1.
 
 **Expected Result:**
 - Step 1: `/staff/safety/<id>`, HTTP 200.
-- Step 2: date 2026-11-20; expected attendance 220; accessibility requirements
+- Step 2: date 2026-12-18; expected attendance 220; accessibility requirements
   "Step-free route to the stage; two wheelchair spaces"; one venue row —
   Harbourfront Hall, Banquet, 180, "Lift to level 2; east fire exit has three
   steps"; equipment rows Crowd barrier 10 / 10 and Wireless microphone 4 / 4;

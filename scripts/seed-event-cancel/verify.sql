@@ -12,7 +12,7 @@
 -- and exits 0 even when a query fails -- so read the rows, not the exit code.
 
 with c as (
-  select (now() at time zone 'Asia/Singapore')::date + 10 as day
+  select date '2026-12-17' as day
 ),
 lapsed as (
   select b.status, b.hold_expires_at

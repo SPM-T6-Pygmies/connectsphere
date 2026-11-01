@@ -32,9 +32,10 @@ export interface EquipmentRequirement {
    * Where the line stands with Technical Support: `Requested` until they
    * decide on it, then `Reserved`, or `Unfulfilled` when too few units were
    * free (SPM-274 AC3), and `Under review` once a coordinator's change (AC8,
-   * SPM-274 AC4) or removal request (AC11) means they must re-check it.
-   * Something is reserved exactly when the line is `Reserved`, or `Under
-   * review` after being `Reserved`.
+   * SPM-274 AC4), removal request (AC11) or a change of the event's dates
+   * (SPM-311) means they must re-check it. Something is reserved exactly when
+   * the line is `Reserved`, or `Under review` after being `Reserved` and not
+   * rescheduled.
    */
   readonly state: EquipmentLineState;
   /** What Technical Support last had reserved against. Set exactly while the line is `Under review`. */
@@ -45,6 +46,12 @@ export interface EquipmentRequirement {
    * coordinator undoes the removal (AC17).
    */
   readonly removalRequested: boolean;
+  /**
+   * SPM-311: the event's dates changed, so every unit the line held was
+   * released and it is under review until Technical Support reserve it again
+   * against the new date, or mark it unfulfilled.
+   */
+  readonly rescheduled: boolean;
   /**
    * Technical Support's last decision on the line (SPM-274): who reserved it,
    * or who marked it unfulfilled and why. Kept while the line is under review,
@@ -115,18 +122,23 @@ export function equipmentRequirementsEditable(status: CoordinatorEventStatus): b
 }
 
 /** Why a line under review is on Technical Support's "Needs re-check" list (AC15). */
-export type RecheckReason = "changed" | "removalRequested";
+export type RecheckReason = "changed" | "removalRequested" | "rescheduled";
 
 /**
  * AC15: whether Technical Support should re-check this line, and why -- null for
  * a line that is not under review. A line stays under review after an undone
- * removal (AC17), so it reads as changed.
+ * removal (AC17), so it reads as changed. SPM-311 AC1: a line released by a
+ * change of the event's dates reads as rescheduled, even if the coordinator
+ * changed it too, since nothing is held either way.
  */
 export function recheckReason(line: EquipmentRequirement): RecheckReason | null {
   if (line.state !== "Under review") {
     return null;
   }
-  return line.removalRequested ? "removalRequested" : "changed";
+  if (line.removalRequested) {
+    return "removalRequested";
+  }
+  return line.rescheduled ? "rescheduled" : "changed";
 }
 
 /**
@@ -167,6 +179,7 @@ export function recordEquipmentRequirement(
     state: "Requested",
     reviewBaseline: null,
     removalRequested: false,
+    rescheduled: false,
     decision: null,
     essential: false,
   };
@@ -182,7 +195,8 @@ export function recordEquipmentRequirement(
  * AC19: the values the line had when it was Reserved or Unfulfilled are
  * remembered, so an edit that returns to exactly them clears the review --
  * Technical Support have nothing to change. Any other edit keeps the original
- * to compare against.
+ * to compare against. SPM-311: not on a rescheduled line, which no longer
+ * holds the reservation it would return to.
  */
 export function editEquipmentRequirement(
   event: CoordinatorEvent,
@@ -200,7 +214,12 @@ export function editEquipmentRequirement(
     return { line, changed: false, underReview: false, reviewCleared: false };
   }
 
-  if (line.state === "Under review" && line.reviewBaseline !== null && isBaseline(details, line.reviewBaseline)) {
+  if (
+    line.state === "Under review" &&
+    !line.rescheduled &&
+    line.reviewBaseline !== null &&
+    isBaseline(details, line.reviewBaseline)
+  ) {
     return {
       line: { ...line, ...details, state: isReserved(line) ? "Reserved" : "Unfulfilled", reviewBaseline: null },
       changed: true,

@@ -331,4 +331,10 @@ describe("safetyCheckBlocker (SPM-264)", () => {
   it("AC4/AC5: does not block an event whose latest check is an approval", () => {
     expect(safetyCheckBlocker({ outcome: "Approved", resubmittedAt: null })).toBeNull();
   });
+
+  it("blocks an event whose approval was withdrawn after a change, until a fresh check is recorded", () => {
+    expect(safetyCheckBlocker({ outcome: "Approved", resubmittedAt: "2026-10-31T10:00:00.000Z" })).toBe(
+      "awaiting-recheck",
+    );
+  });
 });

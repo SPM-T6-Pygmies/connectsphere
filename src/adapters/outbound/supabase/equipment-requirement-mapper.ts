@@ -37,6 +37,8 @@ export interface EventEquipmentRow {
   reviewed_quantity_requested: number | null;
   reviewed_technical_requirements: string | null;
   removal_requested: boolean | null;
+  /** SPM-311: a change of the event's dates released the line. */
+  rescheduled: boolean | null;
   /** SPM-274: who last reserved the line or marked it unfulfilled, their name, and why not. */
   decided_by_user_account_id: number | null;
   decided_by_name: string | null;
@@ -83,6 +85,7 @@ export function toEventEquipment(rows: readonly EventEquipmentRow[]): EventEquip
               state: row.line_state ?? "Requested",
               reviewBaseline: toReviewBaseline(row.reviewed_quantity_requested, row.reviewed_technical_requirements),
               removalRequested: row.removal_requested ?? false,
+              rescheduled: row.rescheduled ?? false,
               decision:
                 row.decided_by_user_account_id === null
                   ? null

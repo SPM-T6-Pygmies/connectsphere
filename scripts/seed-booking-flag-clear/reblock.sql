@@ -4,7 +4,7 @@
 --   supabase db query --file scripts/seed-booking-flag-clear/reblock.sql --local
 
 select public.venue_staff_record_unavailability(s.user_account_id, v.venue_id, 'Equipment failure', null,
-         (select jsonb_agg(jsonb_build_object('date', (now() at time zone 'Asia/Singapore')::date + 10, 'slot', sl.slot_code)
+         (select jsonb_agg(jsonb_build_object('date', date '2026-12-17', 'slot', sl.slot_code)
                            order by sl.start_time)
           from public.venue_slot vs
           join public.slot sl on sl.slot_code = vs.slot_code

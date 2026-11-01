@@ -59,6 +59,11 @@ export class InMemoryRegistrationRepository implements RegistrationRepository {
     this.rows.set(registration.id, registration);
   }
 
+  /** Who may read the list is not modelled: the use cases have already checked the caller. */
+  async registeredFor(eventId: EventId): Promise<readonly Registration[]> {
+    return this.live().filter((row) => row.eventId === eventId);
+  }
+
   /** Test affordance, not part of the port. */
   all(): Registration[] {
     return [...this.rows.values()];

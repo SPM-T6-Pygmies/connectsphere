@@ -1,8 +1,8 @@
 -- SPM-313 manual tests (docs/testing/VENUE_FLAG_MANUAL_TESTS.md): the events and bookings
 -- that Venue Staff's blocks flag. Every event is named "Flag Test: ...". F is the day the
--- cases block, 28 days from today in Singapore time, so nothing here goes stale and nothing
--- lands on the days the other seeds use (seed-venue-unavailability: +14 to +20,
--- seed-booking-holds: +21).
+-- cases block, Wednesday 23 December 2026: fixed, after the November 2026 test window. No
+-- other seed of the `full` profile (pnpm e2e:data) books Main Hall from F to F + 8, the days
+-- TC-VFLAG-007 blocks, or Studio and Rooftop Terrace on the days below.
 --
 --   Event                          Coordinator          Venue            Day, time            Status
 --   Flag Test: Tech Summit         Test Coordinator     Main Hall        F, 13:00-18:00       Confirmed
@@ -19,13 +19,13 @@
 --
 --   supabase db query --file scripts/seed-booking-flags/seed.sql --local
 --
--- Re-running replaces the "Flag Test:" events and their bookings, with the dates measured
--- from today again. It does not touch blocks: the cases record those as Venue Staff, and
+-- Re-running replaces the "Flag Test:" events and their bookings, with the hold expiries
+-- measured from now again. It does not touch blocks: the cases record those as Venue Staff, and
 -- teardown.sql removes them. List what loaded with show.sql; undo with teardown.sql.
 
 do $$
 declare
-  f date := (now() at time zone 'Asia/Singapore')::date + 28;
+  f date := date '2026-12-23';
   v_staff bigint := (select user_account_id from public.user_account where name = 'Test Venue Staff');
   v_organiser bigint;
   v_organisation bigint;

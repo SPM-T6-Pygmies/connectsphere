@@ -26,6 +26,8 @@ export interface SeedCoordinatorEvent
   readonly statedEquipmentNeeds?: string | null;
   readonly clientOrganisationId: string;
   readonly owningOrganiserUserAccountId: string;
+  /** SPM-69: an accepted change of times the event's attendees have not yet been told of. */
+  readonly rescheduleUnannounced?: boolean;
 }
 
 function toDetails(event: SeedCoordinatorEvent): CoordinatorEventDetails {
@@ -211,6 +213,17 @@ export class InMemoryCoordinatorEventRepository implements CoordinatorEventRepos
   /** Test-only window on the audit trail `updateOrdinaryDetails`, `setRegistrationSettings` and `completeEvent` wrote. */
   auditTrail(): readonly AuditedEventChange[] {
     return [...this.audit];
+  }
+
+  async takeUnannouncedReschedule(coordinatorId: UserAccountId, eventId: string): Promise<boolean> {
+    const index = this.rows.findIndex(
+      (row) => row.id === eventId && row.assignedCoordinatorUserAccountId === coordinatorId,
+    );
+    if (index === -1 || this.rows[index].rescheduleUnannounced !== true) {
+      return false;
+    }
+    this.rows[index] = { ...this.rows[index], rescheduleUnannounced: false };
+    return true;
   }
 
   /** Stores the confirmed status. The audit record it writes for real is not modelled in memory. */

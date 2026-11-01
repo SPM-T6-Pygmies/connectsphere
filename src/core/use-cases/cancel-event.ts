@@ -4,6 +4,7 @@ import { eventId } from "../domain/event";
 import { userAccountId } from "../domain/user-account";
 import type { CoordinatorEventRepository } from "../ports/outbound/coordinator-event-repository";
 import type { Notifier } from "../ports/outbound/notifier";
+import type { AttendeeChangeAnnouncer } from "./announce-event-change-to-attendees";
 
 export interface CancelEventCommand {
   readonly id: string;
@@ -20,6 +21,8 @@ export interface CancelEventDeps {
   readonly events: CoordinatorEventRepository;
   /** SPM-68: tells the event's Organiser it is cancelled. */
   readonly notifier: Pick<Notifier, "eventCancelled">;
+  /** SPM-69: emails every Registered attendee it is cancelled. */
+  readonly attendees: Pick<AttendeeChangeAnnouncer, "announce">;
 }
 
 /**
@@ -30,10 +33,11 @@ export interface CancelEventDeps {
  * that does not exist (#91), as `CompleteEventUseCase` does (AC1). Whether the
  * event can still be cancelled is the domain's `cancelEvent` call (AC2); the
  * repository releases its bookings in the same transaction (AC3, AC4). Telling
- * Attendees and Venue Staff is SPM-69 and SPM-63's.
+ * Venue Staff is SPM-63's.
  *
  * SPM-68: then it tells the event's Organiser. The cancellation is stored
- * first, so a notice that fails to send cannot undo it.
+ * first, so a notice that fails to send cannot undo it. SPM-69: and emails
+ * every Registered attendee.
  */
 export class CancelEventUseCase {
   constructor(private readonly deps: CancelEventDeps) {}
@@ -59,6 +63,7 @@ export class CancelEventUseCase {
       eventRequestId: event.eventRequestId,
       eventName: event.name,
     });
+    await this.deps.attendees.announce(eventId(event.id), event.name, { kind: "cancelled" });
 
     return { eventId: event.id, status };
   }

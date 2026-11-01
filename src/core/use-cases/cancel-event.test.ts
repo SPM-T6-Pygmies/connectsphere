@@ -6,9 +6,14 @@ import {
 } from "@/adapters/outbound/in-memory/in-memory-coordinator-event-repository";
 import type { CoordinatorEventStatus } from "@/core/domain/coordinator-event";
 import { CoordinatorEventNotFoundError, EventNotCancellableError } from "@/core/domain/errors";
+import { InMemoryRegistrationRepository } from "@/adapters/outbound/in-memory/in-memory-registration-repository";
 import { RecordingNotifier } from "@/adapters/outbound/in-memory/recording-notifier";
+import { attendeeEmail, attendeeName } from "@/core/domain/attendee";
+import { eventId } from "@/core/domain/event";
+import { registerAttendee, registrationId, type Registration } from "@/core/domain/registration";
 import { userAccountId } from "@/core/domain/user-account";
 
+import { AttendeeChangeAnnouncer } from "./announce-event-change-to-attendees";
 import { CancelEventUseCase } from "./cancel-event";
 
 const COORDINATOR = userAccountId("coordinator-1");
@@ -31,12 +36,27 @@ function seedEvent(overrides: Partial<SeedCoordinatorEvent> = {}): SeedCoordinat
   };
 }
 
-function buildUseCase(events: readonly SeedCoordinatorEvent[]) {
+function buildUseCase(events: readonly SeedCoordinatorEvent[], registrations: readonly Registration[] = []) {
   const eventsRepo = new InMemoryCoordinatorEventRepository(events);
   const notifier = new RecordingNotifier();
-  const useCase = new CancelEventUseCase({ events: eventsRepo, notifier });
+  const attendees = new AttendeeChangeAnnouncer({
+    registrations: new InMemoryRegistrationRepository(registrations),
+    notifier,
+  });
+  const useCase = new CancelEventUseCase({ events: eventsRepo, notifier, attendees });
   return { useCase, eventsRepo, notifier };
 }
+
+function registered(id: string, eventIdRaw = "event-1"): Registration {
+  return registerAttendee({
+    id: registrationId(id),
+    eventId: eventId(eventIdRaw),
+    attendeeName: attendeeName(`Attendee ${id}`),
+    attendeeEmail: attendeeEmail(`${id}@example.com`),
+    registeredAt: new Date("2026-10-20T02:00:00Z"),
+  });
+}
+
 
 describe("CancelEventUseCase (SPM-55)", () => {
   it.each<CoordinatorEventStatus>(["Planning", "Blocked", "Confirmed"])(
@@ -140,11 +160,41 @@ describe("CancelEventUseCase notifies the Organiser (SPM-68)", () => {
       throw new EventNotCancellableError("Cancelled");
     };
     const notifier = new RecordingNotifier();
-    const useCase = new CancelEventUseCase({ events: eventsRepo, notifier });
+    const attendees = new AttendeeChangeAnnouncer({
+      registrations: new InMemoryRegistrationRepository([registered("a")]),
+      notifier,
+    });
+    const useCase = new CancelEventUseCase({ events: eventsRepo, notifier, attendees });
 
     await expect(useCase.execute({ id: "event-1", userAccountId: COORDINATOR })).rejects.toThrow(
       EventNotCancellableError,
     );
     expect(notifier.eventsCancelled).toEqual([]);
+    expect(notifier.attendeesToldCancelled).toEqual([]);
+  });
+});
+
+describe("CancelEventUseCase emails the attendees (SPM-69)", () => {
+  it("AC1, AC3: emails every Registered attendee of the event, and nobody else's", async () => {
+    const { useCase, notifier } = buildUseCase(
+      [seedEvent()],
+      [registered("a"), registered("b"), registered("c", "event-2")],
+    );
+
+    await useCase.execute({ id: "event-1", userAccountId: COORDINATOR });
+
+    expect(notifier.attendeesToldCancelled).toEqual([
+      { registrationId: "a", recipientEmail: "a@example.com", attendeeName: "Attendee a", eventName: "Founders' Day" },
+      { registrationId: "b", recipientEmail: "b@example.com", attendeeName: "Attendee b", eventName: "Founders' Day" },
+    ]);
+  });
+
+  it("access: a refused coordinator emails nobody", async () => {
+    const { useCase, notifier } = buildUseCase([seedEvent()], [registered("a")]);
+
+    await expect(useCase.execute({ id: "event-1", userAccountId: OTHER_COORDINATOR })).rejects.toThrow(
+      CoordinatorEventNotFoundError,
+    );
+    expect(notifier.attendeesToldCancelled).toEqual([]);
   });
 });

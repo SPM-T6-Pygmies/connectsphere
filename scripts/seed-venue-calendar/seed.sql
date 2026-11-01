@@ -6,7 +6,8 @@
 --                                                        booking kept from before its hours
 --                                                        changed (AC1, TC-VCAL-008)
 --
--- D is the booking day of seed-venue-search-uat: 14 days after today in Singapore. No other
+-- D is the booking day of seed-venue-search-uat: Wednesday 9 December 2026, so D+3 is Saturday
+-- 12 December and D+7 Wednesday 16 December. No other
 -- calendar case writes to these days, and the Garden Hall booking is a week after D, so the
 -- week with D still ends at closing. Neither venue has setup or turnaround, and the calendar
 -- shows booked time only.
@@ -15,12 +16,12 @@
 --
 --   supabase db query --file scripts/seed-venue-calendar/seed.sql --local
 --
--- Re-running replaces the bookings, dated from today again. Undo with teardown.sql in this
+-- Re-running replaces the bookings. Undo with teardown.sql in this
 -- directory.
 
 do $$
 declare
-  v_day          date := (now() at time zone 'Asia/Singapore')::date + 14;
+  v_day          date := date '2026-12-09';
   v_harbour      bigint := (select venue_id from public.venue where location = 'UAT-44 Harbour Room');
   v_garden       bigint := (select venue_id from public.venue where location = 'UAT-44 Garden Hall');
   v_coordinator  bigint := (

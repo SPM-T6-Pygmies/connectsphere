@@ -288,6 +288,25 @@ export class SupabaseCoordinatorEventRepository implements CoordinatorEventRepos
     }
   }
 
+  async takeUnannouncedReschedule(coordinatorId: UserAccountId, eventId: string): Promise<boolean> {
+    const eventKey = toKey(eventId);
+    const coordinatorKey = toKey(coordinatorId);
+    if (eventKey === null || coordinatorKey === null) {
+      return false;
+    }
+
+    const { data, error } = await this.client.rpc("coordinator_take_unannounced_reschedule", {
+      p_event_id: eventKey,
+      p_coordinator_user_account_id: coordinatorKey,
+    });
+
+    if (error) {
+      throw new Error(`Failed to read the event's reschedule notice: ${error.message}`, { cause: error });
+    }
+
+    return data === true;
+  }
+
   /**
    * SPM-50: goes through `coordinator_confirm_event`, which re-checks the
    * assignment, status, readiness, (SPM-312) booking flags and (SPM-264) the

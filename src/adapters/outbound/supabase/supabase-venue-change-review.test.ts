@@ -111,3 +111,36 @@ describe("SupabaseVenueChangeReview (SPM-71)", () => {
     expect(booking.coordinatorUserAccountId).toBeNull();
   });
 });
+
+describe("SupabaseVenueChangeReview lapses (SPM-111)", () => {
+  it("AC3: returns the events the edit took out of Confirmed, with what each lacks", async () => {
+    const { client } = fakeClient({
+      venue_change_flag_bookings: {
+        data: [
+          {
+            event_id: 1,
+            event_name: "Operations Roadmap Conference",
+            event_request_id: 6,
+            owning_organiser_user_account_id: 9,
+            lapsed: [{ kind: "flagged-booking", venue_location: "Main Hall" }],
+          },
+        ],
+        error: null,
+      },
+    });
+
+    const lapses = await new SupabaseVenueChangeReview(client).flag(venueId("5"), [
+      { bookingId: "812", sourceRef: "capacity:Banquet", detail: "Capacity: Banquet seats 80, 40 over", startsFailing: true },
+    ]);
+
+    expect(lapses).toEqual([
+      {
+        eventId: "1",
+        eventName: "Operations Roadmap Conference",
+        eventRequestId: "6",
+        owningOrganiserUserAccountId: "9",
+        lapsed: [{ kind: "flagged-booking", venueLocation: "Main Hall" }],
+      },
+    ]);
+  });
+});

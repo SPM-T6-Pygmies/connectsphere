@@ -99,14 +99,14 @@ before the seed, or after `scripts/seed-equipment-review/teardown.sql`.
 
 | Event | Date | Status | Lines | List |
 | --- | --- | --- | --- | --- |
-| Tech Summit Keynote | 2026-11-15 | Planning | Projector 4 (none reserved) · Wireless microphone 6, reserved 4, was 4 · PA speaker 2, reserved 2, removal requested | Needs review |
-| Alumni Networking Night | 2026-12-03 | Blocked | Livestream kit 1 (none reserved) | Needs review |
+| Tech Summit Keynote | 2026-12-13 | Planning | Projector 4 (none reserved) · Wireless microphone 6, reserved 4, was 4 · PA speaker 2, reserved 2, removal requested | Needs review |
+| Alumni Networking Night | 2026-12-31 | Blocked | Livestream kit 1 (none reserved) | Needs review |
 | Partner Roadshow | no date | Confirmed | Projector 2 (none reserved) | Needs review |
-| Product Launch Rehearsal | 2026-11-14 | Planning | Projector 3/3 | Reviewed |
-| Board Strategy Day | 2026-11-15 | Confirmed | Projector 2/2 · Wireless microphone 2/2 | Reviewed |
-| Charity Gala Setup | 2026-11-16 | Blocked | Projector 1/1 | Reviewed |
-| Year-End Town Hall | 2026-11-17 | Planning | Projector 5/5 | Reviewed |
-| Autumn Workshop | 2026-11-15 | Cancelled | Projector 4/4 · Livestream kit 1 (none reserved) | Archive |
+| Product Launch Rehearsal | 2026-12-12 | Planning | Projector 3/3 | Reviewed |
+| Board Strategy Day | 2026-12-13 | Confirmed | Projector 2/2 · Wireless microphone 2/2 | Reviewed |
+| Charity Gala Setup | 2026-12-14 | Blocked | Projector 1/1 | Reviewed |
+| Year-End Town Hall | 2026-12-15 | Planning | Projector 5/5 | Reviewed |
+| Autumn Workshop | 2026-12-13 | Cancelled | Projector 4/4 · Livestream kit 1 (none reserved) | Archive |
 | Spring Conference | 2026-09-20 | Completed | Wireless microphone 2/2 | Archive |
 
 Owned: Projector 10, Wireless microphone 30, PA speaker 5, Livestream kit 2. These are
@@ -128,8 +128,8 @@ events belong to both test coordinators.
 
 **Expected Result:**
 - Three rows, in this order, each with its name, date, status and count:
-  - *Tech Summit Keynote* · 2026-11-15 · Planning · *3 lines of 3 need attention*
-  - *Alumni Networking Night* · 2026-12-03 · Blocked · *1 line of 1 needs attention*
+  - *Tech Summit Keynote* · 2026-12-13 · Planning · *3 lines of 3 need attention*
+  - *Alumni Networking Night* · 2026-12-31 · Blocked · *1 line of 1 needs attention*
   - *Partner Roadshow* · No date yet · Confirmed · *1 line of 1 needs attention*
 - Events from both coordinators and of every equipment type are listed (AC2).
 - *Autumn Workshop* is **not** listed, although it has a line with nothing reserved:
@@ -215,19 +215,19 @@ or after `teardown.sql`).
 **Preconditions:** As TC-EQUIPREVIEW-001.
 
 **Steps:**
-1. Open *Tech Summit Keynote* (15 Nov) and read the **Available** column.
+1. Open *Tech Summit Keynote* (13 Dec) and read the **Available** column.
 2. Go back to **Needs review**, open *Partner Roadshow* and read **Available**.
 
 **Expected Result:**
 - Step 1:
   - *PA speaker* **3**: 5 owned, less the 2 this line already holds; no other event
     holds one.
-  - *Projector* **5**: the event's units are out on 14 and 15 Nov.
-    - 14 Nov has 5 out: Product Launch Rehearsal's 3 (14 Nov) and Board Strategy Day's 2
-      (15 Nov).
-    - 15 Nov has 3 out: Board Strategy Day's 2 and Charity Gala Setup's 1 (16 Nov).
+  - *Projector* **5**: the event's units are out on 12 and 13 Dec.
+    - 12 Dec has 5 out: Product Launch Rehearsal's 3 (12 Dec) and Board Strategy Day's 2
+      (13 Dec).
+    - 13 Dec has 3 out: Board Strategy Day's 2 and Charity Gala Setup's 1 (14 Dec).
     - 10 owned, less the busier day's 5. The line holds none itself.
-    - Year-End Town Hall's 5 (17 Nov, out on 16–17 Nov) and the Cancelled Autumn
+    - Year-End Town Hall's 5 (15 Dec, out on 14–15 Dec) and the Cancelled Autumn
       Workshop's 4 do not count.
   - *Wireless microphone* **24**: 30 owned, less Board Strategy Day's 2 and the 4 this
     line already holds. Spring Conference's 2 (September, Completed) do not count.

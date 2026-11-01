@@ -180,6 +180,8 @@ export function SubmittedRequestDetail({
               <CardContent>
                 <FieldList
                   fields={[
+                    { label: "Date", value: eventArrangements.date },
+                    { label: "Expected attendance", value: eventArrangements.expectedAttendance },
                     {
                       label: "Venue",
                       value:
