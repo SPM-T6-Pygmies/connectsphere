@@ -1,6 +1,6 @@
 -- Venue hold manual tests (docs/testing/VENUE_HOLD_MANUAL_TESTS.md): two Tentative Holds at Main
 -- Hall on day H, Sunday 6 December 2026: fixed, after the November 2026 test window, on a day no
--- other seed of the `full` profile (pnpm e2e:data) books Main Hall.
+-- other seed of the `legacy` profile (pnpm e2e:data) books Main Hall.
 --
 --   07:00-12:00  expired an hour ago      -- must not block (TC-VHOLD-004)
 --   14:00-18:00  expires in thirty days   -- must block    (TC-VHOLD-004, TC-VHOLD-012)

@@ -10,7 +10,7 @@
 -- 07:00-24:00 is 28-95. Needs the venues' opening hours from seed-venues.
 --
 -- The dates are fixed, after the November 2026 test window, on days no other seed of the
--- `full` profile (pnpm e2e:data) books
+-- `legacy` profile (pnpm e2e:data) books
 -- Main Hall or Studio. The first is day D of seed-venue-search-uat. Needs the venues
 -- from seed-venues and the Venue Staff account from the base seed. Run
 -- seed-venues first; this script stops with an error if you did not.

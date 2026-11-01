@@ -4,9 +4,10 @@
 //   pnpm e2e:data seed     [profile]   tear down every profile, then load this one's seeds in order
 //   pnpm e2e:data verify   [profile]   run its verify.sql and show.sql files; exit 1 on any failure
 //   pnpm e2e:data teardown [profile]   run its teardown.sql files in reverse order, then novu:clear
+//   pnpm e2e:data notify               clear local Novu, then send the core profile's notifications
 //
-// The profile defaults to `full`. The database is the local one; add --remote for the linked
-// project, where only seed, verify and teardown run, after you type its ref. See scripts/README.md,
+// The profile defaults to `core`. The database is the local one; add --remote for the linked
+// project, where only seed, verify, teardown and notify run, after you type its ref. See scripts/README.md,
 // section 0.
 
 import { spawnSync } from "node:child_process";
@@ -23,8 +24,9 @@ const step = (dir, { seed = ["seed.sql"], verify, teardown = "teardown.sql" } = 
 });
 
 const PROFILES = {
-  // Every seed that can share a database, in dependency order.
-  full: [
+  // Every per-ticket seed that can share a database, in dependency order, for the manual test
+  // documents that name their rows.
+  legacy: [
     step("seed-coordinator-view", { verify: "verify.sql" }),
     step("seed-venues", { teardown: null }),
     step("seed-venue-search-uat"),
@@ -60,15 +62,21 @@ const PROFILES = {
   ],
   "equipment-reserve": [step("seed-equipment-reserve", { verify: "verify.sql" })],
   "venue-search": [step("seed-venue-search-uat")],
+  // The default: one small, complete data set. Last, so that it is torn down first: the other
+  // seeds' teardowns remove venues that it books.
+  core: [
+    step("seed-e2e", { verify: "verify.sql" }),
+    step("apply-ssot", { seed: [], verify: "verify.sql", teardown: null }),
+  ],
 };
 
 // Each seed directory any profile loads, once, in the order profiles list them: undone in reverse,
-// the other profiles' seeds go before `full`'s.
+// so `core`'s go first.
 const EVERY_STEP = [...new Map(Object.values(PROFILES).flat().map((s) => [s.dir, s])).values()];
 
 const args = process.argv.slice(2);
 const remote = args.includes("--remote");
-const [command, profile = "full"] = args.filter((a) => a !== "--remote");
+const [command, profile = "core"] = args.filter((a) => a !== "--remote");
 const target = remote ? "--linked" : "--local";
 
 function query(file) {
@@ -132,6 +140,13 @@ function teardown(steps) {
   }
 }
 
+function novuSeed() {
+  const script = remote ? "novu:seed:remote" : "novu:seed";
+  if (!run("pnpm", [script])) {
+    process.stdout.write(`warning: pnpm ${script} failed; some seeded notifications did not send\n`);
+  }
+}
+
 function novuClear() {
   if (!run("pnpm", ["novu:clear"])) {
     process.stdout.write("warning: pnpm novu:clear failed; local Novu subscribers are left behind\n");
@@ -153,7 +168,7 @@ function waitForSchema() {
 }
 
 const steps = PROFILES[profile];
-const commands = ["reset", "seed", "verify", "teardown"];
+const commands = ["reset", "seed", "verify", "teardown", "notify"];
 if (!commands.includes(command) || !steps) {
   process.stderr.write(
     `usage: pnpm e2e:data <${commands.join("|")}> [${Object.keys(PROFILES).join("|")}] [--remote]\n`,
@@ -194,7 +209,11 @@ try {
   if (command === "reset" || command === "seed") seed(steps);
   if (command === "reset" || command === "verify") ok = verify(steps);
   if (command === "teardown") teardown(steps);
-  if (!remote && (command === "reset" || command === "teardown")) novuClear();
+  // Only the core profile sends notifications, and they replace whatever the inbox held.
+  // Prod's inbox is never cleared for you: novu:clear only ever touches local subscribers.
+  const notifies = steps === PROFILES.core && ok && ["reset", "seed", "notify"].includes(command);
+  if (!remote && (notifies || command === "reset" || command === "teardown")) novuClear();
+  if (notifies) novuSeed();
   process.exit(ok ? 0 : 1);
 } catch (e) {
   process.stderr.write(`error: ${e.message}\n`);
