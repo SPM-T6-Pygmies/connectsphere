@@ -28,7 +28,7 @@ than committed here.
 ### Prerequisites
 - Local Supabase stack seeded from `supabase/seed.sql`
 - Novu running locally with the bridge: `pnpm dev:local` (see the README's
-  **Notifications** section). Studio should list `organiser-coordinator-assigned`,
+  **Notifications** section). Studio should list `coordinator-assigned`,
   `clarification-requested` and `event-request-decided`.
 
 ### Test Accounts (password `TestPass123!`)
