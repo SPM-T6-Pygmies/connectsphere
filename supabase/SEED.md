@@ -53,9 +53,9 @@ logged in, run the separate script afterwards:
 supabase db query --file scripts/seed-coordinator-view/seed.sql --local
 ```
 
-To load everything the way the Single Source of Truth lists it (all six venues, all six
-equipment types, the sample events), run the commands in order from
-[Set up your database](../scripts/README.md#1-set-up-your-database).
+To load a clean, complete data set (all six venues, all six equipment types, event requests and
+events in each state), run `pnpm e2e:data reset`. See
+[One command](../scripts/README.md#0-one-command).
 
 See [scripts/README.md](../scripts/README.md).
 
