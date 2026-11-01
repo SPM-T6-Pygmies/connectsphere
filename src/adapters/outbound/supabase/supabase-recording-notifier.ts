@@ -51,6 +51,14 @@ import type {
 } from "@/core/ports/outbound/notifier";
 
 /**
+ * The message only: the Novu SDK's error carries the request it made, whose
+ * `authorization` header is the secret key, and logging the error prints it.
+ */
+function logDeliveryFailure(error: unknown): void {
+  console.error("[SupabaseRecordingNotifier] Delivery failed:", error instanceof Error ? error.message : String(error));
+}
+
+/**
  * Keeps our own copy of every notification in the `notification` table (SPM-177),
  * whichever `Notifier` actually delivers it.
  *
@@ -192,7 +200,7 @@ export class SupabaseRecordingNotifier implements Notifier {
     try {
       await deliver();
     } catch (error) {
-      console.error("[SupabaseRecordingNotifier] Delivery failed:", error);
+      logDeliveryFailure(error);
     }
   }
 
@@ -205,7 +213,7 @@ export class SupabaseRecordingNotifier implements Notifier {
     try {
       await deliver();
     } catch (error) {
-      console.error("[SupabaseRecordingNotifier] Delivery failed:", error);
+      logDeliveryFailure(error);
       await this.mark(notificationId, { status: "Failed" });
       return;
     }
