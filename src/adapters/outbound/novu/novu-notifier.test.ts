@@ -83,9 +83,13 @@ describe("NovuNotifier registration email (SPM-305)", () => {
 
     expect(trigger).toHaveBeenCalledWith(
       expect.objectContaining({
-        workflowId: "registration-confirmed",
+        workflowId: "attendee-email",
         to: { subscriberId: "registration-r1", email: "ada@example.com", firstName: "Ada Lovelace" },
-        payload: { ...notice, registrationUrl: "https://connectsphere.example/registrations/r1" },
+        payload: {
+          kind: "registration-confirmed",
+          ...notice,
+          registrationUrl: "https://connectsphere.example/registrations/r1",
+        },
       }),
     );
   });
@@ -108,6 +112,51 @@ describe("NovuNotifier registration email (SPM-305)", () => {
 
     await expect(
       new NovuNotifier({ trigger } as unknown as Novu).registrationConfirmed(notice),
-    ).rejects.toThrow(/registration-confirmed/);
+    ).rejects.toThrow(/attendee-email/);
+  });
+});
+
+describe("NovuNotifier event change emails (SPM-69)", () => {
+  const notice = {
+    registrationId: "r1",
+    recipientEmail: "ada@example.com",
+    attendeeName: "Ada Lovelace",
+    eventName: "Pygmies Product Summit",
+  };
+  const to = { subscriberId: "registration-r1", email: "ada@example.com", firstName: "Ada Lovelace" };
+  const registrationUrl = "https://connectsphere.example/registrations/r1";
+
+  function notifier() {
+    const trigger = vi.fn().mockResolvedValue({ result: { acknowledged: true, status: "processed" } });
+    return { novu: new NovuNotifier({ trigger } as unknown as Novu, undefined, "", "https://connectsphere.example"), trigger };
+  }
+
+  it("AC2: emails a reschedule to the attendee's registration subscriber", async () => {
+    const { novu, trigger } = notifier();
+    const rescheduled = { ...notice, times: [{ date: "2026-10-01", start: "07:00", end: "12:00" }], venueName: "Studio" };
+
+    await novu.eventRescheduledForAttendee(rescheduled);
+
+    expect(trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowId: "attendee-email",
+        to,
+        payload: { kind: "rescheduled", ...rescheduled, registrationUrl },
+      }),
+    );
+  });
+
+  it("AC1: emails a cancellation to the attendee's registration subscriber", async () => {
+    const { novu, trigger } = notifier();
+
+    await novu.eventCancelledForAttendee(notice);
+
+    expect(trigger).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowId: "attendee-email",
+        to,
+        payload: { kind: "cancelled", ...notice, registrationUrl },
+      }),
+    );
   });
 });

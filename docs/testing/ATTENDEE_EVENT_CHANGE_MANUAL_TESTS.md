@@ -64,7 +64,7 @@ addresses whose inboxes you can read. The steps use `<you+a@…>` and
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
    ```
 3. Start the app with Novu: `pnpm dev:local`. Studio should list
-   `attendee-event-rescheduled` and `attendee-event-cancelled`.
+   `attendee-email`.
 
 ```sql
 -- SPM-69 fixture: Operations Roadmap Conference, Confirmed and open for

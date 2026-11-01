@@ -1,7 +1,6 @@
 import { serve } from "@novu/framework/next";
 
-import { eventCancelledForAttendee } from "@/adapters/outbound/novu/workflows/attendee-event-cancelled";
-import { eventRescheduledForAttendee } from "@/adapters/outbound/novu/workflows/attendee-event-rescheduled";
+import { attendeeEmail } from "@/adapters/outbound/novu/workflows/attendee-email";
 import { changeRequestDecided } from "@/adapters/outbound/novu/workflows/change-request-decided";
 import { changeRequested } from "@/adapters/outbound/novu/workflows/change-requested";
 import { clarificationRequested } from "@/adapters/outbound/novu/workflows/clarification-requested";
@@ -16,7 +15,6 @@ import { eventRescheduled } from "@/adapters/outbound/novu/workflows/event-resch
 import { holdExpired } from "@/adapters/outbound/novu/workflows/hold-expired";
 import { organiserCoordinatorAssigned } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { organiserMessagePosted } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
-import { registrationConfirmed } from "@/adapters/outbound/novu/workflows/registration-confirmed";
 import { safetyCheckReady } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { safetyCheckRecorded } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
 import { venueBookingCancelled } from "@/adapters/outbound/novu/workflows/venue-booking-cancelled";
@@ -36,36 +34,34 @@ import { venueBookingRequested } from "@/adapters/outbound/novu/workflows/venue-
  */
 type Bridge = ReturnType<typeof serve>;
 
+export const WORKFLOWS = [
+  coordinatorAssigned,
+  organiserCoordinatorAssigned,
+  clarificationRequested,
+  organiserMessagePosted,
+  eventRequestDecided,
+  safetyCheckReady,
+  safetyCheckRecorded,
+  venueBookingRequested,
+  equipmentNeedsAttention,
+  equipmentDecided,
+  venueBookingDecided,
+  holdExpired,
+  venueBookingCancelled,
+  eventConfirmed,
+  eventRescheduled,
+  eventCancelled,
+  venueBookingFlagged,
+  changeRequested,
+  changeRequestDecided,
+  eventNoLongerConfirmed,
+  attendeeEmail,
+];
+
 let bridge: Bridge | undefined;
 
 function handlers(): Bridge {
-  bridge ??= serve({
-    workflows: [
-      coordinatorAssigned,
-      organiserCoordinatorAssigned,
-      clarificationRequested,
-      organiserMessagePosted,
-      eventRequestDecided,
-      safetyCheckReady,
-      safetyCheckRecorded,
-      venueBookingRequested,
-      equipmentNeedsAttention,
-      equipmentDecided,
-      venueBookingDecided,
-      holdExpired,
-      venueBookingCancelled,
-      eventConfirmed,
-      eventRescheduled,
-      eventCancelled,
-      venueBookingFlagged,
-      changeRequested,
-      changeRequestDecided,
-      eventNoLongerConfirmed,
-      registrationConfirmed,
-      eventRescheduledForAttendee,
-      eventCancelledForAttendee,
-    ],
-  });
+  bridge ??= serve({ workflows: WORKFLOWS });
   return bridge;
 }
 

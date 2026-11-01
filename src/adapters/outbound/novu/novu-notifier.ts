@@ -2,8 +2,7 @@ import type { Novu } from "@novu/api";
 import type { TriggerEventRequestDto, TriggerEventResponseDto } from "@novu/api/models/components";
 
 import { LoggingNotifier } from "@/adapters/outbound/logging/logging-notifier";
-import { EVENT_CANCELLED_FOR_ATTENDEE_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/attendee-event-cancelled";
-import { EVENT_RESCHEDULED_FOR_ATTENDEE_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/attendee-event-rescheduled";
+import { ATTENDEE_EMAIL_WORKFLOW_ID, type AttendeeEmail } from "@/adapters/outbound/novu/workflows/attendee-email";
 import { CHANGE_REQUEST_DECIDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-request-decided";
 import { CHANGE_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/change-requested";
 import { CLARIFICATION_REQUESTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/clarification-requested";
@@ -18,7 +17,6 @@ import { EVENT_RESCHEDULED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflow
 import { HOLD_EXPIRED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/hold-expired";
 import { ORGANISER_COORDINATOR_ASSIGNED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-coordinator-assigned";
 import { ORGANISER_MESSAGE_POSTED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/organiser-message-posted";
-import { REGISTRATION_CONFIRMED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/registration-confirmed";
 import { SAFETY_CHECK_READY_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-ready";
 import { SAFETY_CHECK_RECORDED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/safety-check-recorded";
 import { VENUE_BOOKING_CANCELLED_WORKFLOW_ID } from "@/adapters/outbound/novu/workflows/venue-booking-cancelled";
@@ -172,40 +170,32 @@ export class NovuNotifier implements Notifier {
     return this.trigger(EVENT_NO_LONGER_CONFIRMED_WORKFLOW_ID, notice);
   }
 
-  /**
-   * An Attendee has no account, so Novu gets a subscriber per registration,
-   * created on the fly from the email it is triggered with (SPM-305).
-   */
   registrationConfirmed(notice: RegistrationConfirmedNotice): Promise<void> {
-    return this.send(
-      REGISTRATION_CONFIRMED_WORKFLOW_ID,
-      {
-        subscriberId: `${this.subscriberPrefix}registration-${notice.registrationId}`,
-        email: notice.recipientEmail,
-        firstName: notice.attendeeName,
-      },
-      { ...notice, registrationUrl: `${this.appBaseUrl}/registrations/${notice.registrationId}` },
-    );
+    return this.emailAttendee("registration-confirmed", notice);
   }
 
   /** SPM-69: to the same per-registration subscriber as the confirmation. */
   eventRescheduledForAttendee(notice: EventRescheduledForAttendeeNotice): Promise<void> {
-    return this.emailAttendee(EVENT_RESCHEDULED_FOR_ATTENDEE_WORKFLOW_ID, notice);
+    return this.emailAttendee("rescheduled", notice);
   }
 
   eventCancelledForAttendee(notice: AttendeeEventChangedNotice): Promise<void> {
-    return this.emailAttendee(EVENT_CANCELLED_FOR_ATTENDEE_WORKFLOW_ID, notice);
+    return this.emailAttendee("cancelled", notice);
   }
 
-  private emailAttendee(workflowId: string, notice: AttendeeEventChangedNotice): Promise<void> {
+  /**
+   * An Attendee has no account, so Novu gets a subscriber per registration,
+   * created on the fly from the email it is triggered with (SPM-305).
+   */
+  private emailAttendee(kind: AttendeeEmail["kind"], notice: AttendeeEventChangedNotice): Promise<void> {
     return this.send(
-      workflowId,
+      ATTENDEE_EMAIL_WORKFLOW_ID,
       {
         subscriberId: `${this.subscriberPrefix}registration-${notice.registrationId}`,
         email: notice.recipientEmail,
         firstName: notice.attendeeName,
       },
-      { ...notice, registrationUrl: `${this.appBaseUrl}/registrations/${notice.registrationId}` },
+      { kind, ...notice, registrationUrl: `${this.appBaseUrl}/registrations/${notice.registrationId}` },
     );
   }
 
