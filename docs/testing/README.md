@@ -38,6 +38,8 @@ One page to find, for every manual-test document, what it tests, who does what a
 | [SPM-68](https://linear.app/pygmies/issue/SPM-68) Notify the organiser of a reschedule or cancellation | The owning Organiser is told once when the Coordinator accepts new times or cancels the event | The Organiser's notification bell; the request page. **Who:** Assigned Event Coordinator, then the owning Event Organiser. **Stage:** A change request is decided, or an event is cancelled | [EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md](EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md) (TC-EVCHANGE-001–007) | [reset + seeds](#spm-68-notify-the-organiser-of-a-reschedule-or-cancellation) |
 | [SPM-67](https://linear.app/pygmies/issue/SPM-67) Notify the coordinator of a change request | The assigned Coordinator gets one notice listing each field asked for and the value wanted, which opens the Change requests page | Organiser: the event's **Request a change** form. Coordinator: the notification bell. **Who:** Event Organiser (owner), then the assigned Event Coordinator. **Stage:** A change request has just been submitted | [CHANGE_REQUEST_NOTIFICATION_MANUAL_TESTS.md](CHANGE_REQUEST_NOTIFICATION_MANUAL_TESTS.md) (TC-CRNOTIFY-001–004) | [reset + seeds](#spm-67-notify-the-coordinator-of-a-change-request) |
 | [SPM-110](https://linear.app/pygmies/issue/SPM-110) Notify the organiser of the change-request outcome | The Organiser gets one notice covering every field, with an Accepted and a Declined section, which opens their request | Coordinator: `/staff/coordinator/events/<id>/change-request`. Organiser: the notification bell. **Who:** Assigned Event Coordinator, then the Event Organiser who asked. **Stage:** A change request has just been decided | [CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md](CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md) (TC-CROUTCOME-001–004) | [reset + seeds](#spm-110-notify-the-organiser-of-the-change-request-outcome) |
+| [SPM-69](https://linear.app/pygmies/issue/SPM-69) Notify attendees of a reschedule or cancellation | Registered attendees get an email when new times are accepted on a Confirmed event, or when the event is cancelled; withdrawn ones get nothing | The attendee's inbox (email only); Coordinator: the event's Change requests page and Confirmation card. **Who:** Assigned Event Coordinator, then Attendees (no account). **Stage:** A Confirmed event with registrations is rescheduled or cancelled | [ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md](ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md) (TC-ATTCHANGE-001–004) | [reset + seeds](#spm-69-notify-attendees-of-a-reschedule-or-cancellation) |
+| [SPM-111](https://linear.app/pygmies/issue/SPM-111) Notify the organiser that a confirmed event is no longer confirmed | The Organiser is told once when something takes a Confirmed event back to Planning | The Organiser's notification bell; Venue Staff's venue pages and the Coordinator's Confirmation card. **Who:** Venue Staff, then the owning Event Organiser. **Stage:** A Confirmed event's venue booking is blocked or no longer fits | [CONFIRMATION_LAPSE_MANUAL_TESTS.md](CONFIRMATION_LAPSE_MANUAL_TESTS.md) (TC-LAPSE-001–003) | [reset + seeds](#spm-111-notify-the-organiser-that-a-confirmed-event-is-no-longer-confirmed) |
 | [SPM-50](https://linear.app/pygmies/issue/SPM-50) Confirm an event<br>[SPM-264](https://linear.app/pygmies/issue/SPM-264) Block confirmation until the safety check is approved | Confirmation is refused until the essential arrangements are complete and the latest safety check is Approved | The **Confirmation** card of `/staff/coordinator/events/<id>`. **Who:** Assigned Event Coordinator; Safety Officer for the safety check. **Stage:** The event is Planning and the Coordinator is about to confirm | [CONFIRM_EVENT_MANUAL_TESTS.md](CONFIRM_EVENT_MANUAL_TESTS.md) (TC-CONFIRM-001–008) | [reset + seeds](#spm-50-spm-264-confirm-an-event) |
 | [SPM-318](https://linear.app/pygmies/issue/SPM-318) Block confirmation on an unfulfilled essential line | Confirmation is refused while an essential equipment line is not reserved in full, naming each such line | The **Confirmation** card on the event's page. **Who:** Assigned Event Coordinator. **Stage:** The event is Planning, equipment lines exist, and the Coordinator is about to confirm | [CONFIRM_EVENT_EQUIPMENT_MANUAL_TESTS.md](CONFIRM_EVENT_EQUIPMENT_MANUAL_TESTS.md) (TC-CONFIRM-EQUIP-001–003) | [reset + seeds](#spm-318-block-confirmation-on-an-unfulfilled-essential-line) |
 | [SPM-312](https://linear.app/pygmies/issue/SPM-312) Block confirmation while an arrangement is flagged | Confirmation is refused while any venue booking is flagged, naming each flagged booking once | The **Confirmation** card on the event's page. **Who:** Assigned Event Coordinator. **Stage:** Bookings are flagged after a venue block | [CONFIRM_EVENT_FLAG_MANUAL_TESTS.md](CONFIRM_EVENT_FLAG_MANUAL_TESTS.md) (TC-CONFIRM-FLAG-001–003) | [reset + seeds](#spm-312-block-confirmation-while-an-arrangement-is-flagged) |
@@ -75,6 +77,7 @@ One page to find, for every manual-test document, what it tests, who does what a
 | [SPM-273](https://linear.app/pygmies/issue/SPM-273) See equipment needing attention | Technical Support sees every active event with a new, changed or removal-requested line | `/staff/technical` (Needs review) and each event's page. **Who:** Technical Support Staff. **Stage:** Planning, Blocked or Confirmed events have lines needing attention | [EQUIPMENT_REVIEW_MANUAL_TESTS.md](EQUIPMENT_REVIEW_MANUAL_TESTS.md) (TC-EQUIPREVIEW-001–009) | [reset + seeds](#spm-273-see-equipment-needing-attention) |
 | [SPM-274](https://linear.app/pygmies/issue/SPM-274) Reserve equipment for events | Technical Support reserves a line in full or marks it unfulfilled with a comment | `/staff/technical/<event>` (Decision column). **Who:** Technical Support Staff. **Stage:** A line is awaiting a decision | [EQUIPMENT_RESERVE_MANUAL_TESTS.md](EQUIPMENT_RESERVE_MANUAL_TESTS.md) (TC-RESERVE-001–007) | [reset + seeds](#spm-274-reserve-equipment-for-events) |
 | [SPM-316](https://linear.app/pygmies/issue/SPM-316) Re-reserve a changed equipment line | Technical Support re-reserves a line the Coordinator changed after it was reserved, or marks it unfulfilled | `/staff/technical/<event>` (Decision column on a Changed line). **Who:** Technical Support Staff (the Coordinator changed the line). **Stage:** A reserved line is Changed and awaiting a decision | [EQUIPMENT_RERESERVE_MANUAL_TESTS.md](EQUIPMENT_RERESERVE_MANUAL_TESTS.md) (TC-RERESERVE-001–003) | [reset + seeds](#spm-316-re-reserve-a-changed-equipment-line) |
+| [SPM-311](https://linear.app/pygmies/issue/SPM-311) Put reserved equipment under review after a date change | Accepting new dates releases an event's reserved equipment and puts the lines under review as Rescheduled | Coordinator: the event's Change requests page. Technical Support: `/staff/technical` (Needs review) and the inbox. **Who:** Assigned Event Coordinator, then Technical Support Staff. **Stage:** An event with reserved lines has a change of dates waiting | [EQUIPMENT_RESCHEDULE_MANUAL_TESTS.md](EQUIPMENT_RESCHEDULE_MANUAL_TESTS.md) (TC-RESCHEDULE-001–003) | [reset + seeds](#spm-311-put-reserved-equipment-under-review-after-a-date-change) |
 | [SPM-108](https://linear.app/pygmies/issue/SPM-108) Release equipment on a removal request | Technical Support releases the units held by a line the Coordinator asked to remove | `/staff/technical/<event>` (**Release N** in the Decision column). **Who:** Assigned Event Coordinator, then Technical Support Staff. **Stage:** A reserved line has Removal requested | [EQUIPMENT_RELEASE_MANUAL_TESTS.md](EQUIPMENT_RELEASE_MANUAL_TESTS.md) (TC-RELEASE-001–005) | [reset + seeds](#spm-108-release-equipment-on-a-removal-request) |
 | [SPM-17](https://linear.app/pygmies/issue/SPM-17) Mark equipment out of service | Technical Support records how many units of a type are out of service; availability drops accordingly | `/staff/technical/equipment` cards; availability on Needs review event pages. **Who:** Technical Support Staff. **Stage:** Equipment exists and events are waiting for review | [EQUIPMENT_OUT_OF_SERVICE_MANUAL_TESTS.md](EQUIPMENT_OUT_OF_SERVICE_MANUAL_TESTS.md) (TC-OOS-001–007) | [reset + seeds](#spm-17-mark-equipment-out-of-service) |
 | [SPM-64](https://linear.app/pygmies/issue/SPM-64) Notify technical support of an equipment requirement<br>[SPM-65](https://linear.app/pygmies/issue/SPM-65) Notify the coordinator of the equipment outcome | Technical Support is told of each equipment change; the Coordinator is told of the outcome | The notification inbox of each role. **Who:** Assigned Event Coordinator and Technical Support Staff. **Stage:** Lines are added, changed, reserved or marked unfulfilled | [EQUIPMENT_NOTIFICATION_MANUAL_TESTS.md](EQUIPMENT_NOTIFICATION_MANUAL_TESTS.md) (TC-EQUIPNOTE-001–006) | [reset + seeds](#spm-64-spm-65-equipment-notifications) |
@@ -609,6 +612,63 @@ pnpm novu:clear
 **Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `organiser2@test.com`, then `coordinator@test.com`, password `TestPass123!`.
 
 **Cases:** [CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md](CHANGE_REQUEST_OUTCOME_MANUAL_TESTS.md) (TC-CROUTCOME-001–004)
+
+#### SPM-69: Notify attendees of a reschedule or cancellation
+
+**Scenario in one line**
+
+A Coordinator accepts new times on a Confirmed event, or cancels it; each Registered attendee gets one email with the new date, times and venue, or the cancellation.
+
+**Who, where, when**
+
+- **Who:** Assigned Event Coordinator, then Attendees (no account).
+- **Where:** The attendee's inbox (email only); Coordinator: the event's Change requests page and Confirmation card.
+- **Flow stage:** A Confirmed event with registrations is rescheduled or cancelled.
+
+**Start from a clean database** (this drops all local data):
+
+```bash
+supabase db reset
+supabase db query --file scripts/seed-venues/seed.sql --local
+supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+```
+
+- **These send real email** through Resend: use addresses whose inboxes you can read. Start the app with Novu: `pnpm dev:local`.
+
+**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `coordinator@test.com`, password `TestPass123!`.
+
+**Cases:** [ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md](ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md) (TC-ATTCHANGE-001–004)
+
+#### SPM-111: Notify the organiser that a confirmed event is no longer confirmed
+
+**Scenario in one line**
+
+Venue Staff block or edit the venue of a Confirmed event; it returns to Planning and the Organiser gets one "no longer confirmed" notice.
+
+**Who, where, when**
+
+- **Who:** Venue Staff, then the owning Event Organiser.
+- **Where:** The Organiser's notification bell; Venue Staff's venue pages and the Coordinator's Confirmation card.
+- **Flow stage:** A Confirmed event's venue booking is blocked or no longer fits.
+
+**Start from a clean database** (this drops all local data):
+
+```bash
+supabase db reset
+supabase db query --file scripts/seed-venues/seed.sql --local
+supabase db query --file scripts/seed-coordinator-view/seed.sql --local
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/CONFIRMATION_LAPSE_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+pnpm novu:clear
+```
+
+- The fixture makes *Operations Roadmap Conference* Confirmed at Studio with an Approved safety check. Start the app with Novu: `pnpm dev:local`.
+
+**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `venue@test.com`, then `organiser2@test.com`, password `TestPass123!`.
+
+**Cases:** [CONFIRMATION_LAPSE_MANUAL_TESTS.md](CONFIRMATION_LAPSE_MANUAL_TESTS.md) (TC-LAPSE-001–003)
 
 #### SPM-50, SPM-264: Confirm an event
 
@@ -1565,6 +1625,37 @@ supabase db query --file scripts/seed-equipment-review/verify.sql --local
 **Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `support@test.com`, `coordinator@test.com`, password `TestPass123!`.
 
 **Cases:** [EQUIPMENT_RERESERVE_MANUAL_TESTS.md](EQUIPMENT_RERESERVE_MANUAL_TESTS.md) (TC-RERESERVE-001–003)
+
+#### SPM-311: Put reserved equipment under review after a date change
+
+**Scenario in one line**
+
+A Coordinator accepts a change that moves the event to other dates; its reserved lines go Under review, Technical Support are told, and the units are free around the old date.
+
+**Who, where, when**
+
+- **Who:** Assigned Event Coordinator, then Technical Support Staff.
+- **Where:** Coordinator: the event's Change requests page. Technical Support: `/staff/technical` (Needs review) and the inbox.
+- **Flow stage:** An event with reserved lines has a change of dates waiting.
+
+**Start from a clean database** (this drops all local data):
+
+```bash
+supabase db reset
+supabase db query --file scripts/seed-equipment-review/seed.sql --local
+supabase db query --file scripts/seed-reschedule-equipment/seed.sql --local
+supabase db query --file scripts/seed-reschedule-equipment/verify.sql --local
+```
+
+- Every `verify.sql` row should read `ok = true`. Use `http://localhost:3000`, not `127.0.0.1`.
+
+**Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `coordinator@test.com`, then `support@test.com`, password `TestPass123!`.
+
+**Run again without a reset:** run both `teardown.sql` scripts (this one first), then both seeds.
+
+**Clean up:** `supabase db query --file scripts/seed-reschedule-equipment/teardown.sql --local`
+
+**Cases:** [EQUIPMENT_RESCHEDULE_MANUAL_TESTS.md](EQUIPMENT_RESCHEDULE_MANUAL_TESTS.md) (TC-RESCHEDULE-001–003)
 
 #### SPM-108: Release equipment on a removal request
 
