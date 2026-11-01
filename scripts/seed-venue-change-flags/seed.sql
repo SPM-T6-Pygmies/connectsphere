@@ -1,7 +1,7 @@
 -- SPM-105 manual tests (docs/testing/VENUE_CHANGE_FLAG_MANUAL_TESTS.md): a venue of its own
 -- for Venue Staff to edit, and the bookings those edits flag or leave alone. Every event is
 -- named "Venue Change: ...". F is Thursday 10 December 2026: fixed, after the November 2026
--- test window, and on a day no other seed of the `full` profile (pnpm e2e:data) books Studio.
+-- test window, and on a day no other seed of the `legacy` profile (pnpm e2e:data) books Studio.
 -- Past Expo is on Wednesday 28 October 2026, which stays in the past.
 --
 --   Change Test Hall: Theatre seats 300, Banquet 150. Wi-Fi, Catering area.

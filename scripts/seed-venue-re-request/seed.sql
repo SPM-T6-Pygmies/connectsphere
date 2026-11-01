@@ -1,7 +1,7 @@
 -- SPM-251 manual tests (docs/testing/VENUE_RE_REQUEST_MANUAL_TESTS.md): an event whose two
 -- bookings are flagged, for its coordinator to re-request. Every event is named
 -- "Re-request Test: ...". D is Sunday 20 December 2026: fixed, after the November 2026 test
--- window, and a day no other seed of the `full` profile (pnpm e2e:data) books in the afternoon
+-- window, and a day no other seed of the `legacy` profile (pnpm e2e:data) books in the afternoon
 -- at Main Hall or Studio.
 --
 --   Event                          Coordinator          Times, needs                  Venue      D           Status

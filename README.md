@@ -60,7 +60,25 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-`db reset` creates the test logins below — there is no separate seed step.
+`db reset` creates the test logins below, but no venues, events or requests.
+
+### Test data
+
+For a full set of data to log in to, use one command instead of `db reset`:
+
+```bash
+pnpm e2e:data reset   # drops all local data, then loads and checks the default data
+```
+
+That gives you the six standard venues, the six equipment types, and one or two
+event requests and events in each state, all filled in completely. If `pnpm dev:local`
+is running, five of the logins below also get an unread notification; if not, run
+`pnpm e2e:data notify` once it is.
+
+Manual test documents that name their rows use `pnpm e2e:data reset legacy` or their
+own setup steps. `pnpm e2e:data seed --remote` loads the same default data on the
+linked project; read its warnings first. All of it is in
+[scripts/README.md](scripts/README.md#0-one-command).
 
 ### Test Credentials
 
@@ -98,7 +116,8 @@ For comprehensive setup instructions, environment variables, Infisical integrati
 Related:
 
 - **Database setup:** [docs/DATABASE.md](docs/DATABASE.md)
-- **Test data seeding:** [supabase/SEED.md](supabase/SEED.md)
+- **Test logins:** [supabase/SEED.md](supabase/SEED.md)
+- **Test data:** [scripts/README.md](scripts/README.md)
 
 ## Notifications (Novu)
 
@@ -125,6 +144,8 @@ notifications too — they point at request ids the reset reuses:
 pnpm novu:clear   # deletes your own local subscribers and their notifications
 ```
 
+`pnpm e2e:data reset` does this for you.
+
 Attendees get one email, the registration confirmation, which is sent to
 whatever address they register with. Its link points at the production domain
 on a deployment, using the `VERCEL_PROJECT_PRODUCTION_URL` that Vercel sets
@@ -144,17 +165,18 @@ npx novu@latest sync \
 
 ## Commands
 
-| Command           | What it does                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------ |
-| `pnpm dev`        | Dev server, using `.env.local`                                                       |
-| `pnpm dev:local`  | Dev server against local Postgres and a Novu tunnel, env vars from Infisical's `dev` |
-| `pnpm dev:remote` | Dev server against the live project, via Infisical's `prod`                          |
-| `pnpm build`      | Production build                                                                     |
-| `pnpm lint`       | Next.js rules **plus architecture import boundaries**                                |
-| `pnpm typecheck`  | `tsc --noEmit`                                                                       |
-| `pnpm test`       | Vitest — core and adapters, no database needed                                       |
-| `pnpm novu:clear` | Delete your local Novu subscribers and their notifications (Infisical `dev`)         |
-| `pnpm visual-map` | Run Structurizr Lite locally, serving `visual-map/` at http://localhost:8080         |
+| Command               | What it does                                                                         |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| `pnpm dev`            | Dev server, using `.env.local`                                                       |
+| `pnpm dev:local`      | Dev server against local Postgres and a Novu tunnel, env vars from Infisical's `dev` |
+| `pnpm dev:remote`     | Dev server against the live project, via Infisical's `prod`                          |
+| `pnpm build`          | Production build                                                                     |
+| `pnpm lint`           | Next.js rules **plus architecture import boundaries**                                |
+| `pnpm typecheck`      | `tsc --noEmit`                                                                       |
+| `pnpm test`           | Vitest — core and adapters, no database needed                                       |
+| `pnpm e2e:data reset` | Rebuild the local database with the default test data ([details](scripts/README.md)) |
+| `pnpm novu:clear`     | Delete your local Novu subscribers and their notifications (Infisical `dev`)         |
+| `pnpm visual-map`     | Run Structurizr Lite locally, serving `visual-map/` at http://localhost:8080         |
 
 ## Architecture
 

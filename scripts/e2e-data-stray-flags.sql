@@ -1,4 +1,4 @@
--- Checks that, with every seed of the `full` profile loaded, no booking is flagged except the ones
+-- Checks that, with every seed of the `legacy` profile loaded, no booking is flagged except the ones
 -- a seed means to flag. Read-only. Run by `pnpm e2e:data verify`.
 --
 -- A seed whose venue block lands on another seed's booking flags it, and no seed fails when that
