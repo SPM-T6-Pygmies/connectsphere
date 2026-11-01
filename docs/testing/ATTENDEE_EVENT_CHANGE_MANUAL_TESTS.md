@@ -26,7 +26,7 @@ decision emails no one: `AttendeeChangeAnnouncer`,
 `ConfirmEventUseCase tells the attendees of a reschedule once it is confirmed`,
 `CancelEventUseCase emails the attendees`,
 `eventRescheduledForAttendeeEmail`, `eventCancelledForAttendeeEmail`,
-`attendee event change workflows` and
+`attendeeEmail` and
 `SupabaseRegistrationRepository registeredFor`.
 
 These cases are registered as `TC-ATTCHANGE-001`–`TC-ATTCHANGE-004` in
