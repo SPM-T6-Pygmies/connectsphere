@@ -149,6 +149,8 @@ Run the cases in order.
 
 Evidence: [step1-block-studio](../screenshots/2026-10-30_TC-LAPSE-001_step1-block-studio.png) · [step2-block-saved](../screenshots/2026-10-30_TC-LAPSE-001_step2-block-saved.png) · [step2-coordinator-event-planning](../screenshots/2026-10-30_TC-LAPSE-001_step2-coordinator-event-planning.png) · [step3-organiser-inbox](../screenshots/2026-10-30_TC-LAPSE-001_step3-organiser-inbox.png)
 
+**Screenshots:** [step1-block-studio](../screenshots/2026-10-31_TC-LAPSE-001_step1-block-studio.png) · [step2-coordinator-event-planning](../screenshots/2026-10-31_TC-LAPSE-001_step2-coordinator-event-planning.png) · [step3-organiser-inbox](../screenshots/2026-10-31_TC-LAPSE-001_step3-organiser-inbox.png)
+
 ### TC-LAPSE-002: The notice opens the request, showing the event in Planning, and can be marked read (AC2)
 
 **Preconditions:** State left by TC-LAPSE-001. Signed in as
@@ -168,6 +170,8 @@ Evidence: [step1-block-studio](../screenshots/2026-10-30_TC-LAPSE-001_step1-bloc
 
 Evidence: [step2-request-shows-planning](../screenshots/2026-10-30_TC-LAPSE-002_step2-request-shows-planning.png)
 
+**Screenshots:** [step2-request-shows-planning](../screenshots/2026-10-31_TC-LAPSE-002_step2-request-shows-planning.png)
+
 ### TC-LAPSE-003: A second flag on an event already back in Planning sends no second notice
 
 **Preconditions:** State left by TC-LAPSE-002.
@@ -185,3 +189,5 @@ Evidence: [step2-request-shows-planning](../screenshots/2026-10-30_TC-LAPSE-002_
 **Status:** [x] Pass [ ] Fail — 30/10/2026, Chromium (Playwright) against `pnpm dev:local` (Novu)
 
 Evidence: [step2-one-lapse-notice](../screenshots/2026-10-30_TC-LAPSE-003_step2-one-lapse-notice.png)
+
+**Screenshots:** [step2-one-lapse-notice](../screenshots/2026-10-31_TC-LAPSE-003_step2-one-lapse-notice.png)

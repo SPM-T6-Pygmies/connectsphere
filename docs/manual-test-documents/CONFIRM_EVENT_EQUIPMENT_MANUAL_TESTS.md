@@ -79,6 +79,8 @@ yet and two lines, neither essential: **Projector** 2 (Reserved, 2 held) and
 
 ---
 
+**Screenshots:** [step2-microphone-blocks](../screenshots/2026-10-19_TC-CONFIRM-EQUIP-001_step2-microphone-blocks.png)
+
 ### TC-CONFIRM-EQUIP-002: A non-essential gap does not block (AC2)
 
 **Preconditions:** TC-CONFIRM-EQUIP-001 passed.
@@ -94,6 +96,8 @@ yet and two lines, neither essential: **Projector** 2 (Reserved, 2 held) and
 
 ---
 
+**Screenshots:** [step1-non-essential-gap](../screenshots/2026-10-19_TC-CONFIRM-EQUIP-002_step1-non-essential-gap.png)
+
 ### TC-CONFIRM-EQUIP-003: Essential lines reserved in full do not block, other gates still do (AC3)
 
 **Preconditions:** TC-CONFIRM-EQUIP-002 passed.
@@ -107,3 +111,5 @@ yet and two lines, neither essential: **Projector** 2 (Reserved, 2 held) and
   shown and **Confirm event** is still disabled.
 
 **Status:** [ ] Pass [ ] Fail
+
+**Screenshots:** [step1-projector-reserved-in-full](../screenshots/2026-10-19_TC-CONFIRM-EQUIP-003_step1-projector-reserved-in-full.png)

@@ -84,3 +84,5 @@ them, tick the boxes below **and** report each in the PR description's
 **Run:** Pass, 29/10/2026, local Supabase, by Claude Code for joyceetran. Step 2
 counted 99 slot, 340 booking_slot, 384 venue_slot and 40 event_slot rows; after
 step 4, 96 slot rows and the other three unchanged.
+
+**Screenshots:** [step1-000-1-before-venue-sidebar](../screenshots/2026-10-29_TC-SLOTCODE-001_step1-000-1-before-venue-sidebar.jpg) · [step2-000-2-after-venue-sidebar](../screenshots/2026-10-29_TC-SLOTCODE-001_step2-000-2-after-venue-sidebar.jpg)

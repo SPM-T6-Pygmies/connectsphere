@@ -120,9 +120,9 @@ progress can only be tested with the day it runs. The run recorded below was on 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (6/6 checks)
 
-**Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step1-form-filled.png) · [step2-saved-in-force](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-001_step2-saved-in-force.png)
+**Screenshots:** [step1-form-filled](../screenshots/2026-10-22_TC-VBLOCK-001_step1-form-filled.png) · [step2-saved-in-force](../screenshots/2026-10-22_TC-VBLOCK-001_step2-saved-in-force.png) · [step1-form-filled](../screenshots/2026-10-05_TC-VBLOCK-001_step1-form-filled.png) · [step2-saved-in-force](../screenshots/2026-10-05_TC-VBLOCK-001_step2-saved-in-force.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the count was 50 (codes 36 to 45). Screenshot: [saved-in-force](../screenshots/spm-328_TC-VBLOCK-001_saved-in-force.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the count was 50 (codes 36 to 45). Screenshot: [saved-in-force](../screenshots/2026-10-29_TC-VBLOCK-001_step3-saved-in-force.jpg)
 
 ---
 
@@ -158,7 +158,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (9/9 checks). `refusals.sql` ended with "ok: all refusals held"
 
-**Screenshots:** [step1-end-date-before-start-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step1-end-date-before-start-refused.png) · [step2-ended-yesterday-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step2-ended-yesterday-refused.png) · [step3-501-character-note-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step3-501-character-note-refused.png) · [step4-no-end-time-button-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step4-no-end-time-button-disabled.png) · [step5-one-day-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step5-one-day-block-saved.png) · [step6-ends-tonight-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step6-ends-tonight-saved.png) · [step7-500-character-note-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step7-500-character-note-saved.png) · [step8-no-note-box-under-safety](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-002_step8-no-note-box-under-safety.png)
+**Screenshots:** [step1-end-date-before-start-refused](../screenshots/2026-10-22_TC-VBLOCK-002_step1-end-date-before-start-refused.png) · [step2-ended-yesterday-refused](../screenshots/2026-10-22_TC-VBLOCK-002_step2-ended-yesterday-refused.png) · [step3-501-character-note-refused](../screenshots/2026-10-22_TC-VBLOCK-002_step3-501-character-note-refused.png) · [step4-no-end-time-button-disabled](../screenshots/2026-10-22_TC-VBLOCK-002_step4-no-end-time-button-disabled.png) · [step5-one-day-block-saved](../screenshots/2026-10-22_TC-VBLOCK-002_step5-one-day-block-saved.png) · [step6-ends-tonight-saved](../screenshots/2026-10-22_TC-VBLOCK-002_step6-ends-tonight-saved.png) · [step7-500-character-note-saved](../screenshots/2026-10-22_TC-VBLOCK-002_step7-500-character-note-saved.png) · [step8-no-note-box-under-safety](../screenshots/2026-10-22_TC-VBLOCK-002_step8-no-note-box-under-safety.png) · [step1-end-before-start-refused](../screenshots/2026-10-05_TC-VBLOCK-002_step1-end-before-start-refused.png) · [step2-ended-yesterday-refused](../screenshots/2026-10-05_TC-VBLOCK-002_step2-ended-yesterday-refused.png) · [step3-501-character-note-refused](../screenshots/2026-10-05_TC-VBLOCK-002_step3-501-character-note-refused.png) · [step4-no-slot-button-disabled](../screenshots/2026-10-05_TC-VBLOCK-002_step4-no-slot-button-disabled.png) · [step5-one-day-block-saved](../screenshots/2026-10-05_TC-VBLOCK-002_step5-one-day-block-saved.png) · [step6-ends-today-saved](../screenshots/2026-10-05_TC-VBLOCK-002_step6-ends-today-saved.png) · [step7-500-character-note-saved](../screenshots/2026-10-05_TC-VBLOCK-002_step7-500-character-note-saved.png) · [step8-no-note-box-under-safety](../screenshots/2026-10-05_TC-VBLOCK-002_step8-no-note-box-under-safety.png)
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the block ending tonight was on 2026-10-29. `refusals.sql` ended with "ok: all refusals held".
 
@@ -190,9 +190,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (5/5 checks)
 
-**Screenshots:** [step1-form-filled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step1-form-filled.png) · [step2-affected-bookings-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-003_step2-affected-bookings-listed.png)
+**Screenshots:** [step1-form-filled](../screenshots/2026-10-22_TC-VBLOCK-003_step1-form-filled.png) · [step2-affected-bookings-listed](../screenshots/2026-10-22_TC-VBLOCK-003_step2-affected-bookings-listed.png) · [step1-affected-bookings-listed](../screenshots/2026-10-05_TC-VBLOCK-003_step1-affected-bookings-listed.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the booking read Confirmed and the event Planning. Screenshot: [affected-booking-09-30-10-30](../screenshots/spm-328_TC-VBLOCK-003_affected-booking-09-30-10-30.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the booking read Confirmed and the event Planning. Screenshot: [affected-booking-09-30-10-30](../screenshots/2026-10-29_TC-VBLOCK-003_step3-affected-booking-09-30-10-30.jpg)
 
 ---
 
@@ -216,9 +216,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (5/5 checks)
 
-**Screenshots:** [step1-refused-naming-date-and-slot](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step1-refused-naming-date-and-slot.png) · [step2-another-slot-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step2-another-slot-accepted.png) · [step3-touching-time-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step3-touching-time-accepted.png) · [step4-day-after-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-004_step4-day-after-accepted.png)
+**Screenshots:** [step1-refused-naming-date-and-slot](../screenshots/2026-10-22_TC-VBLOCK-004_step1-refused-naming-date-and-slot.png) · [step2-another-slot-accepted](../screenshots/2026-10-22_TC-VBLOCK-004_step2-another-slot-accepted.png) · [step3-touching-time-accepted](../screenshots/2026-10-22_TC-VBLOCK-004_step3-touching-time-accepted.png) · [step4-day-after-accepted](../screenshots/2026-10-22_TC-VBLOCK-004_step4-day-after-accepted.png) · [step1-refused-naming-date-and-slot](../screenshots/2026-10-05_TC-VBLOCK-004_step1-refused-naming-date-and-slot.png) · [step2-another-slot-accepted](../screenshots/2026-10-05_TC-VBLOCK-004_step2-another-slot-accepted.png) · [step3-day-after-accepted](../screenshots/2026-10-05_TC-VBLOCK-004_step3-day-after-accepted.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [step1-blocked-09-00-11-30-refused](../screenshots/spm-328_TC-VBLOCK-004_step1-blocked-09-00-11-30-refused.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [step1-blocked-09-00-11-30-refused](../screenshots/2026-10-29_TC-VBLOCK-004_step1-blocked-09-00-11-30-refused.jpg)
 
 ---
 
@@ -240,9 +240,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (4/4 checks)
 
-**Screenshots:** [step1-blocked-venue-left-out](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step1-blocked-venue-left-out.png) · [step2-touching-time-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step2-touching-time-listed.png) · [step3-other-time-both-listed](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-005_step3-other-time-both-listed.png)
+**Screenshots:** [step1-blocked-venue-left-out](../screenshots/2026-10-22_TC-VBLOCK-005_step1-blocked-venue-left-out.png) · [step2-touching-time-listed](../screenshots/2026-10-22_TC-VBLOCK-005_step2-touching-time-listed.png) · [step3-other-time-both-listed](../screenshots/2026-10-22_TC-VBLOCK-005_step3-other-time-both-listed.png) · [step1-blocked-venue-left-out](../screenshots/2026-10-05_TC-VBLOCK-005_step1-blocked-venue-left-out.png) · [step2-other-slot-both-listed](../screenshots/2026-10-05_TC-VBLOCK-005_step2-other-slot-both-listed.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). UAT-42 Lecture Hall (TC-VCAT-002) was also listed in step 3. Screenshot: [step1-garden-hall-left-out](../screenshots/spm-328_TC-VBLOCK-005_step1-garden-hall-left-out.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). UAT-42 Lecture Hall (TC-VCAT-002) was also listed in step 3. Screenshot: [step1-garden-hall-left-out](../screenshots/2026-10-29_TC-VBLOCK-005_step1-garden-hall-left-out.jpg)
 
 ---
 
@@ -266,9 +266,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (4/4 checks)
 
-**Screenshots:** [step1-overlapping-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step1-overlapping-block-saved.png) · [step2-renovation-lifted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step2-renovation-lifted.png) · [step3-still-refused-covered-by-second-block](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step3-still-refused-covered-by-second-block.png) · [step4-freed-time-accepted](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-006_step4-freed-time-accepted.png)
+**Screenshots:** [step1-overlapping-block-saved](../screenshots/2026-10-22_TC-VBLOCK-006_step1-overlapping-block-saved.png) · [step2-renovation-lifted](../screenshots/2026-10-22_TC-VBLOCK-006_step2-renovation-lifted.png) · [step3-still-refused-covered-by-second-block](../screenshots/2026-10-22_TC-VBLOCK-006_step3-still-refused-covered-by-second-block.png) · [step4-freed-time-accepted](../screenshots/2026-10-22_TC-VBLOCK-006_step4-freed-time-accepted.png) · [step1-block-lifted-and-second-in-force](../screenshots/2026-10-05_TC-VBLOCK-006_step1-block-lifted-and-second-in-force.png) · [step2-still-refused-covered-by-second-block](../screenshots/2026-10-05_TC-VBLOCK-006_step2-still-refused-covered-by-second-block.png) · [step3-freed-slot-accepted](../screenshots/2026-10-05_TC-VBLOCK-006_step3-freed-slot-accepted.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [renovation-lifted](../screenshots/spm-328_TC-VBLOCK-006_renovation-lifted.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [renovation-lifted](../screenshots/2026-10-29_TC-VBLOCK-006_step5-renovation-lifted.jpg)
 
 ---
 
@@ -283,7 +283,7 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau (2/2 checks)
 
-**Screenshots:** [step-coordinator-access-denied](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-007_step-coordinator-access-denied.png) · [step-technical-support-access-denied](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-007_step-technical-support-access-denied.png)
+**Screenshots:** [step-coordinator-access-denied](../screenshots/2026-10-22_TC-VBLOCK-007_step1-coordinator-access-denied.png) · [step-technical-support-access-denied](../screenshots/2026-10-22_TC-VBLOCK-007_step2-technical-support-access-denied.png) · [step3-coordinator-access-denied](../screenshots/2026-10-05_TC-VBLOCK-007_step3-coordinator-access-denied.png) · [step4-technical-support-access-denied](../screenshots/2026-10-05_TC-VBLOCK-007_step4-technical-support-access-denied.png)
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): a 403 for both accounts.
 
@@ -343,9 +343,9 @@ A venue now opens once a day, so the *(closed in between)* mark on an end time c
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by joyceetran, after Main Hall became one window (SPM-320)
 
-**Screenshots:** [step3-one-window-end-times-open](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-009_step3-one-window-end-times-open.jpg)
+**Screenshots:** [step3-one-window-end-times-open](../screenshots/2026-10-25_TC-VBLOCK-009_step3-one-window-end-times-open.jpg)
 
-Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): Pass, 2026-10-22, Chrome via Playwright for JameszLau (7/7 checks). Screenshots: [step2-start-times-closed-disabled](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step2-start-times-closed-disabled.png) · [step3-end-times-after-start-0900](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-009_step3-end-times-after-start-0900.png)
+Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): Pass, 2026-10-22, Chrome via Playwright for JameszLau (7/7 checks). Screenshots: [step2-start-times-closed-disabled](../screenshots/2026-10-22_TC-VBLOCK-009_step2-start-times-closed-disabled.png) · [step3-end-times-after-start-0900](../screenshots/2026-10-22_TC-VBLOCK-009_step3-end-times-after-start-0900.png)
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement).
 
@@ -368,11 +368,11 @@ Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Claude in Chrome by joyceetran, with the hours changed and restored through the venue form; no block slot was saved for 2026-12-28 and Harbour Room was back to 07:00–24:00
 
-**Screenshots:** [step3-refused-naming-11-00-11-30](../screenshots/2026-10-25_SPM-320_TC-VBLOCK-010_step3-refused-naming-11-00-11-30.jpg)
+**Screenshots:** [step3-refused-naming-11-00-11-30](../screenshots/2026-10-25_TC-VBLOCK-010_step3-refused-naming-11-00-11-30.jpg)
 
-Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for JameszLau (5/5 checks). Screenshots: [step1-form-filled-before-hours-change](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
+Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for JameszLau (5/5 checks). Screenshots: [step1-form-filled-before-hours-change](../screenshots/2026-10-22_TC-VBLOCK-010_step1-form-filled-before-hours-change.png) · [step2-refused-naming-the-closed-time](../screenshots/2026-10-22_TC-VBLOCK-010_step2-refused-naming-the-closed-time.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); no block slot was saved for 2026-12-28 and Harbour Room was put back to 07:00–24:00. Screenshot: [closed-11-00-11-30-refused](../screenshots/spm-328_TC-VBLOCK-010_closed-11-00-11-30-refused.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); no block slot was saved for 2026-12-28 and Harbour Room was put back to 07:00–24:00. Screenshot: [closed-11-00-11-30-refused](../screenshots/2026-10-29_TC-VBLOCK-010_step4-closed-11-00-11-30-refused.jpg)
 
 ---
 
@@ -390,11 +390,11 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27, re-run for SPM-323 in Chrome against `pnpm dev:local`, after recording TC-VBLOCK-001's Studio block. Re-run 2026-10-28 on the timeline, the same way: [x] Pass
 
-**After (timeline, 2026-10-28):** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-28_SPM-323_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14-timeline.png)
+**After (timeline, 2026-10-28):** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-28_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14-timeline.png)
 
-**Before (table, 2026-10-27):** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-27_SPM-323_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png). Earlier run on AM/PM/Night, 2026-10-22: [step1](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
+**Before (table, 2026-10-27):** [step1-calendar-week-of-2026-12-14](../screenshots/2026-10-27_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png). Earlier run on AM/PM/Night, 2026-10-22: [step1](../screenshots/2026-10-22_TC-VBLOCK-011_step1-calendar-week-of-2026-12-14.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), before TC-VBLOCK-006. Screenshot: [studio-week-of-2026-12-14](../screenshots/spm-328_TC-VBLOCK-011_studio-week-of-2026-12-14.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), before TC-VBLOCK-006. Screenshot: [studio-week-of-2026-12-14](../screenshots/2026-10-29_TC-VBLOCK-011_step2-studio-week-of-2026-12-14.jpg)
 
 ---
 
@@ -419,9 +419,9 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 
 **Status:** [x] Pass [ ] Fail — 2026-10-22, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-same-block-refused](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step1-same-block-refused.png) · [step2-other-reason-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step2-other-reason-saved.png) · [step3-shorter-block-saved](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step3-shorter-block-saved.png) · [step4-other-block-saved-1](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-1.png) · [step4-other-block-saved-2](../screenshots/2026-10-22_SPM-321_TC-VBLOCK-012_step4-other-block-saved-2.png)
+**Screenshots:** [step1-same-block-refused](../screenshots/2026-10-22_TC-VBLOCK-012_step1-same-block-refused.png) · [step2-other-reason-saved](../screenshots/2026-10-22_TC-VBLOCK-012_step2-other-reason-saved.png) · [step3-shorter-block-saved](../screenshots/2026-10-22_TC-VBLOCK-012_step3-shorter-block-saved.png) · [step4-other-block-saved-1](../screenshots/2026-10-22_TC-VBLOCK-012_step4-other-block-saved-1.png) · [step4-other-block-saved-2](../screenshots/2026-10-22_TC-VBLOCK-012_step4-other-block-saved-2.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [same-block-refused-form-kept](../screenshots/spm-328_TC-VBLOCK-012_same-block-refused-form-kept.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [same-block-refused-form-kept](../screenshots/2026-10-29_TC-VBLOCK-012_step5-same-block-refused-form-kept.jpg)
 
 ---
 

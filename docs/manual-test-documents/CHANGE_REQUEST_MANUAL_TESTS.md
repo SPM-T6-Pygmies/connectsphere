@@ -184,6 +184,8 @@ in as `coordinator@test.com`.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
 
+**Screenshots:** [step1-change-request-waiting](../screenshots/2026-10-29_TC-CHANGE-006_step1-change-request-waiting.png) · [step2-one-row-per-field](../screenshots/2026-10-29_TC-CHANGE-006_step2-one-row-per-field.png) · [step5-save-waits-for-a-reason](../screenshots/2026-10-29_TC-CHANGE-006_step5-save-waits-for-a-reason.png)
+
 ### TC-CHANGE-007: A mixed decision changes only what was accepted (SPM-100 AC2, AC4)
 
 **Preconditions:** State left by TC-CHANGE-006: still on the *Change requests*
@@ -214,6 +216,8 @@ page with the three choices made.
   microphones and livestream.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
+
+**Screenshots:** [step2-decided-history](../screenshots/2026-10-29_TC-CHANGE-007_step2-decided-history.png) · [step3-event-updated](../screenshots/2026-10-29_TC-CHANGE-007_step3-event-updated.png) · [step4-no-equipment-needs](../screenshots/2026-10-29_TC-CHANGE-007_step4-no-equipment-needs.png) · [step5-organiser-my-requests-after-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step5-organiser-my-requests-after-accepted-change.png) · [step6-organiser-my-requests-before-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step6-organiser-my-requests-before-accepted-change.png) · [step7-organiser-your-event-after-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step7-organiser-your-event-after-accepted-change.png) · [step8-organiser-your-event-before-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step8-organiser-your-event-before-accepted-change.png)
 
 ### TC-CHANGE-008: Accepting "registration not applicable" stops registration blocking confirmation (SPM-100 AC4)
 
@@ -253,6 +257,8 @@ insert into event_essential_arrangement values (1, 'registration', true);
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
 
+**Screenshots:** [step1-registration-blocks-confirmation](../screenshots/2026-10-29_TC-CHANGE-008_step1-registration-blocks-confirmation.png) · [step3-accept-registration-not-applicable](../screenshots/2026-10-29_TC-CHANGE-008_step3-accept-registration-not-applicable.png) · [step4-registration-no-longer-essential](../screenshots/2026-10-29_TC-CHANGE-008_step4-registration-no-longer-essential.png) · [step5-registration-tab](../screenshots/2026-10-29_TC-CHANGE-008_step5-registration-tab.png)
+
 ### TC-CHANGE-009: Only the assigned coordinator can decide, and only once (SPM-100)
 
 **Preconditions:** State left by TC-CHANGE-008. As `organiser2@test.com`,
@@ -280,3 +286,5 @@ submit one more change request: Expected attendance **400**.
   tab's decline was not applied.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chromium via Playwright
+
+**Screenshots:** [step2-other-coordinator-denied](../screenshots/2026-10-29_TC-CHANGE-009_step2-other-coordinator-denied.png) · [step4-already-decided-refused](../screenshots/2026-10-29_TC-CHANGE-009_step4-already-decided-refused.png)

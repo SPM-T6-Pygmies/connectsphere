@@ -95,9 +95,11 @@ booking holds nothing). Neither page shows AM, PM or Night.
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step2-harbour-room-confirmed](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-001_step3-garden-hall-hours.png)
+**Before (table, 2026-10-27):** [step2-harbour-room-confirmed](../screenshots/2026-10-27_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-hours](../screenshots/2026-10-27_TC-VCAL-001_step3-garden-hall-hours.png)
 
-**After (timeline, 2026-10-28):** [step2-harbour-room-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-001_step2-harbour-room-timeline.png) · [step3-garden-hall-hours-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-001_step3-garden-hall-hours-timeline.png)
+**After (timeline, 2026-10-28):** [step2-harbour-room-timeline](../screenshots/2026-10-28_TC-VCAL-001_step2-harbour-room-timeline.png) · [step3-garden-hall-hours-timeline](../screenshots/2026-10-28_TC-VCAL-001_step3-garden-hall-hours-timeline.png)
+
+**Screenshots:** [step1-search-results-link](../screenshots/2026-10-15_TC-VCAL-001_step1-search-results-link.png) · [step2-harbour-room-confirmed](../screenshots/2026-10-15_TC-VCAL-001_step2-harbour-room-confirmed.png) · [step3-garden-hall-not-offered](../screenshots/2026-10-15_TC-VCAL-001_step3-garden-hall-not-offered.png)
 
 ### TC-VCAL-002: Blocked periods give their reason (AC3)
 
@@ -110,9 +112,11 @@ order the blocks were recorded) and `11:30–24:00` *Maintenance*. The rest is *
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step1-main-hall-block-reasons](../screenshots/2026-10-27_SPM-323_TC-VCAL-002_step1-main-hall-block-reasons.png)
+**Before (table, 2026-10-27):** [step1-main-hall-block-reasons](../screenshots/2026-10-27_TC-VCAL-002_step1-main-hall-block-reasons.png)
 
-**After (timeline, 2026-10-28):** [step1-main-hall-block-reasons-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-002_step1-main-hall-block-reasons-timeline.png)
+**After (timeline, 2026-10-28):** [step1-main-hall-block-reasons-timeline](../screenshots/2026-10-28_TC-VCAL-002_step1-main-hall-block-reasons-timeline.png)
+
+**Screenshots:** [step1-main-hall-block-reasons](../screenshots/2026-10-15_TC-VCAL-002_step1-main-hall-block-reasons.png)
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
@@ -125,9 +129,11 @@ date about 30 days after the seed ran, worded as on the Venue Staff decision pag
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step1-main-hall-held](../screenshots/2026-10-27_SPM-323_TC-VCAL-003_step1-main-hall-held.png)
+**Before (table, 2026-10-27):** [step1-main-hall-held](../screenshots/2026-10-27_TC-VCAL-003_step1-main-hall-held.png)
 
-**After (timeline, 2026-10-28):** [step1-main-hall-held-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-003_step1-main-hall-held-timeline.png)
+**After (timeline, 2026-10-28):** [step1-main-hall-held-timeline](../screenshots/2026-10-28_TC-VCAL-003_step1-main-hall-held-timeline.png)
+
+**Screenshots:** [step1-main-hall-held](../screenshots/2026-10-15_TC-VCAL-003_step1-main-hall-held.png)
 
 ### TC-VCAL-004: The calendar reads live, with no refresh step (AC4)
 
@@ -145,9 +151,11 @@ side; step 4 shows it gone. There is no refresh or sync button anywhere.
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step1-available-before](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step1-available-before.png) · [step3-blocked-after-reload](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-27_SPM-323_TC-VCAL-004_step4-available-after-lift.png)
+**Before (table, 2026-10-27):** [step1-available-before](../screenshots/2026-10-27_TC-VCAL-004_step1-available-before.png) · [step3-blocked-after-reload](../screenshots/2026-10-27_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-27_TC-VCAL-004_step4-available-after-lift.png)
 
-**After (timeline, 2026-10-28):** [step1-available-before-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-004_step1-available-before-timeline.png) · [step3-blocked-after-reload-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-004_step3-blocked-after-reload-timeline.png) · [step4-available-after-lift-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-004_step4-available-after-lift-timeline.png)
+**After (timeline, 2026-10-28):** [step1-available-before-timeline](../screenshots/2026-10-28_TC-VCAL-004_step1-available-before-timeline.png) · [step3-blocked-after-reload-timeline](../screenshots/2026-10-28_TC-VCAL-004_step3-blocked-after-reload-timeline.png) · [step4-available-after-lift-timeline](../screenshots/2026-10-28_TC-VCAL-004_step4-available-after-lift-timeline.png)
+
+**Screenshots:** [step1-available-before](../screenshots/2026-10-15_TC-VCAL-004_step1-available-before.png) · [step2-staff-records-block](../screenshots/2026-10-15_TC-VCAL-004_step2-staff-records-block.png) · [step3-blocked-after-reload](../screenshots/2026-10-15_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-15_TC-VCAL-004_step4-available-after-lift.png)
 
 ### TC-VCAL-005: Moving between weeks, and a bad address
 
@@ -161,9 +169,11 @@ Step 3 shows the not-found page.
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step2-bad-date-message](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-27_SPM-323_TC-VCAL-005_step3-unknown-venue-404.png)
+**Before (table, 2026-10-27):** [step2-bad-date-message](../screenshots/2026-10-27_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-27_TC-VCAL-005_step3-unknown-venue-404.png)
 
-**After (timeline, 2026-10-28):** [step2-bad-date-message-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-005_step2-bad-date-message-timeline.png) · [step3-unknown-venue-404-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-005_step3-unknown-venue-404-timeline.png)
+**After (timeline, 2026-10-28):** [step2-bad-date-message-timeline](../screenshots/2026-10-28_TC-VCAL-005_step2-bad-date-message-timeline.png) · [step3-unknown-venue-404-timeline](../screenshots/2026-10-28_TC-VCAL-005_step3-unknown-venue-404-timeline.png)
+
+**Screenshots:** [step2-bad-date-message](../screenshots/2026-10-15_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-15_TC-VCAL-005_step3-unknown-venue-404.png)
 
 ### TC-VCAL-006: An Other block shows its note (AC3)
 
@@ -180,9 +190,11 @@ resurfacing`. From `14:00` the day is blank, **Available**. After step 3 the bar
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step2-coordinator-sees-note](../screenshots/2026-10-27_SPM-323_TC-VCAL-006_step2-coordinator-sees-note.png)
+**Before (table, 2026-10-27):** [step2-coordinator-sees-note](../screenshots/2026-10-27_TC-VCAL-006_step2-coordinator-sees-note.png)
 
-**After (timeline, 2026-10-28):** [step2-coordinator-sees-note-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-006_step2-coordinator-sees-note-timeline.png)
+**After (timeline, 2026-10-28):** [step2-coordinator-sees-note-timeline](../screenshots/2026-10-28_TC-VCAL-006_step2-coordinator-sees-note-timeline.png)
+
+**Screenshots:** [step1-other-block-with-note](../screenshots/2026-10-15_TC-VCAL-006_step1-other-block-with-note.png) · [step2-coordinator-sees-note](../screenshots/2026-10-15_TC-VCAL-006_step2-coordinator-sees-note.png)
 
 ### TC-VCAL-007: A booking shows on exactly its periods (AC2)
 
@@ -194,9 +206,9 @@ are blank, **Available**.
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step1-exact-periods](../screenshots/2026-10-27_SPM-323_TC-VCAL-007_step1-exact-periods.png)
+**Before (table, 2026-10-27):** [step1-exact-periods](../screenshots/2026-10-27_TC-VCAL-007_step1-exact-periods.png)
 
-**After (timeline, 2026-10-28):** [step1-exact-periods-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-007_step1-exact-periods-timeline.png)
+**After (timeline, 2026-10-28):** [step1-exact-periods-timeline](../screenshots/2026-10-28_TC-VCAL-007_step1-exact-periods-timeline.png)
 
 ### TC-VCAL-008: Time the venue is closed reads Closed (AC1)
 
@@ -210,9 +222,9 @@ other day has a **Closed** bar from `18:00` to `19:00`.
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step1-closed-after-hours](../screenshots/2026-10-27_SPM-323_TC-VCAL-008_step1-closed-after-hours.png)
+**Before (table, 2026-10-27):** [step1-closed-after-hours](../screenshots/2026-10-27_TC-VCAL-008_step1-closed-after-hours.png)
 
-**After (timeline, 2026-10-28):** [step1-closed-after-hours-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-008_step1-closed-after-hours-timeline.png)
+**After (timeline, 2026-10-28):** [step1-closed-after-hours-timeline](../screenshots/2026-10-28_TC-VCAL-008_step1-closed-after-hours-timeline.png)
 
 ### TC-VCAL-009: Venue Staff see the same timeline (AC1, AC5)
 
@@ -229,9 +241,9 @@ AM, PM or Night.
 
 - [x] Pass
 
-**Before (table, 2026-10-27):** [step2-venue-staff-grid](../screenshots/2026-10-27_SPM-323_TC-VCAL-009_step2-venue-staff-grid.png)
+**Before (table, 2026-10-27):** [step2-venue-staff-grid](../screenshots/2026-10-27_TC-VCAL-009_step2-venue-staff-grid.png)
 
-**After (timeline, 2026-10-28):** [step2-venue-staff-timeline](../screenshots/2026-10-28_SPM-323_TC-VCAL-009_step2-venue-staff-timeline.png)
+**After (timeline, 2026-10-28):** [step2-venue-staff-timeline](../screenshots/2026-10-28_TC-VCAL-009_step2-venue-staff-timeline.png)
 
 ### TC-VCAL-010: Every venue on one day (AC1, AC2, AC3)
 
@@ -251,4 +263,4 @@ from `09:00` to `11:30` reading *Renovation*. Step 3 shows Main Hall's row block
 
 - [x] Pass
 
-**Screenshots (new page, 2026-10-28):** [step1-today-every-venue](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step1-today-every-venue.png) · [step2-day-d](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step2-day-d.png) · [step3-day-d-plus-2](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step3-day-d-plus-2.png) · [step4-harbour-room-week](../screenshots/2026-10-28_SPM-323_TC-VCAL-010_step4-harbour-room-week.png)
+**Screenshots (new page, 2026-10-28):** [step1-today-every-venue](../screenshots/2026-10-28_TC-VCAL-010_step1-today-every-venue.png) · [step2-day-d](../screenshots/2026-10-28_TC-VCAL-010_step2-day-d.png) · [step3-day-d-plus-2](../screenshots/2026-10-28_TC-VCAL-010_step3-day-d-plus-2.png) · [step4-harbour-room-week](../screenshots/2026-10-28_TC-VCAL-010_step4-harbour-room-week.png)

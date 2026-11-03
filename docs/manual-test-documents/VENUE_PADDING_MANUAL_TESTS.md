@@ -74,7 +74,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (3/3 checks)
 
-**Screenshots:** [step1-spring-gala-request](../screenshots/2026-10-24_SPM-19_TC-VPAD-001_step1-spring-gala-request.png) · [step2-approval-refused](../screenshots/2026-10-24_SPM-19_TC-VPAD-001_step2-approval-refused.png)
+**Screenshots:** [step1-spring-gala-request](../screenshots/2026-10-25_TC-VPAD-001_step1-spring-gala-request.png) · [step2-approval-refused](../screenshots/2026-10-25_TC-VPAD-001_step2-approval-refused.png) · [step1-spring-gala-request](../screenshots/2026-10-25_TC-VPAD-001_step1-spring-gala-request.png) · [step2-approval-refused](../screenshots/2026-10-25_TC-VPAD-001_step2-approval-refused.png)
 
 ---
 
@@ -92,7 +92,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
-**Screenshots:** [step1-hold-refused](../screenshots/2026-10-24_SPM-19_TC-VPAD-002_step1-hold-refused.png)
+**Screenshots:** [step1-hold-refused](../screenshots/2026-10-25_TC-VPAD-002_step1-hold-refused.png) · [step1-hold-refused](../screenshots/2026-10-25_TC-VPAD-002_step1-hold-refused.png)
 
 ---
 
@@ -109,7 +109,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (1/1 check)
 
-**Screenshots:** [step1-book-fair-request](../screenshots/2026-10-24_SPM-19_TC-VPAD-003_step1-book-fair-request.png) · [step2-approved](../screenshots/2026-10-24_SPM-19_TC-VPAD-003_step2-approved.png)
+**Screenshots:** [step1-book-fair-request](../screenshots/2026-10-25_TC-VPAD-003_step1-book-fair-request.png) · [step2-approved](../screenshots/2026-10-25_TC-VPAD-003_step2-approved.png) · [step1-book-fair-request](../screenshots/2026-10-25_TC-VPAD-003_step1-book-fair-request.png) · [step2-approved](../screenshots/2026-10-25_TC-VPAD-003_step2-approved.png)
 
 ---
 
@@ -126,7 +126,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
-**Screenshots:** [step1-refused-by-a-hold](../screenshots/2026-10-24_SPM-19_TC-VPAD-004_step1-refused-by-a-hold.png)
+**Screenshots:** [step1-refused-by-a-hold](../screenshots/2026-10-25_TC-VPAD-004_step1-refused-by-a-hold.png) · [step1-refused-by-a-hold](../screenshots/2026-10-25_TC-VPAD-004_step1-refused-by-a-hold.png)
 
 ---
 
@@ -143,7 +143,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (1/1 check)
 
-**Screenshots:** [step1-approved-past-a-rejected-and-a-lapsed](../screenshots/2026-10-24_SPM-19_TC-VPAD-005_step1-approved-past-a-rejected-and-a-lapsed.png)
+**Screenshots:** [step1-approved-past-a-rejected-and-a-lapsed](../screenshots/2026-10-25_TC-VPAD-005_step1-approved-past-a-rejected-and-a-lapsed.png) · [step1-approved-past-a-rejected-and-a-lapsed](../screenshots/2026-10-25_TC-VPAD-005_step1-approved-past-a-rejected-and-a-lapsed.png)
 
 ---
 
@@ -160,7 +160,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
-**Screenshots:** [step1-refused-across-midnight](../screenshots/2026-10-24_SPM-19_TC-VPAD-006_step1-refused-across-midnight.png)
+**Screenshots:** [step1-refused-across-midnight](../screenshots/2026-10-25_TC-VPAD-006_step1-refused-across-midnight.png) · [step1-refused-across-midnight](../screenshots/2026-10-25_TC-VPAD-006_step1-refused-across-midnight.png)
 
 ---
 
@@ -201,7 +201,7 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 **Status:** [x] Pass [ ] Fail — 2026-10-25, run in Chrome via Playwright for JameszLau (2/2 checks)
 
-**Screenshots:** [step1-refused-in-the-booked-time](../screenshots/2026-10-25_SPM-19_TC-VPAD-008_step1-refused-in-the-booked-time.png)
+**Screenshots:** [step1-refused-in-the-booked-time](../screenshots/2026-10-25_TC-VPAD-008_step1-refused-in-the-booked-time.png)
 
 ---
 
@@ -229,4 +229,4 @@ this case can be run before or after the others.
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step2-main-hall-theatre-2000-2100](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step2-main-hall-theatre-2000-2100.png) · [step2-refused-padded-2130-2145](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step2-refused-padded-2130-2145.png) · [step3-1900-2045-accepted-requested](../screenshots/2026-10-27_SPM-325_TC-VPAD-009_step3-1900-2045-accepted-requested.png)
+**Screenshots:** [step2-main-hall-theatre-2000-2100](../screenshots/2026-10-27_TC-VPAD-009_step2-main-hall-theatre-2000-2100.png) · [step2-refused-padded-2130-2145](../screenshots/2026-10-27_TC-VPAD-009_step2-refused-padded-2130-2145.png) · [step3-1900-2045-accepted-requested](../screenshots/2026-10-27_TC-VPAD-009_step3-1900-2045-accepted-requested.png) · [step4-before-main-2000-2100-sent](../screenshots/2026-10-27_TC-VPAD-009_step4-before-main-2000-2100-sent.png)

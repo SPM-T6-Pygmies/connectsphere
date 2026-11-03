@@ -137,7 +137,7 @@ events belong to both test coordinators.
 
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-needs-review-three-rows](../screenshots/2026-10-09_TC-EQUIPREVIEW-001_step2-needs-review-three-rows.png)
+**Screenshots:** [step2-needs-review-three-rows](../screenshots/2026-10-09_TC-EQUIPREVIEW-001_step2-needs-review-three-rows.png) · [step10-before-event-page](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step10-before-event-page.png) · [step11-before-needs-review](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step11-before-needs-review.png) · [step12-before-reviewed](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step12-before-reviewed.png) · [step3-after-archive](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step3-after-archive.png) · [step4-after-event-page](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step4-after-event-page.png) · [step5-after-event-undated](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step5-after-event-undated.png) · [step6-after-needs-review](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step6-after-needs-review.png) · [step7-after-reviewed-event](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step7-after-reviewed-event.png) · [step8-after-reviewed](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step8-after-reviewed.png) · [step9-before-archive](../screenshots/2026-10-07_TC-EQUIPREVIEW-001_step9-before-archive.png) · [step13-after-per-day-available](../screenshots/2026-10-10_TC-EQUIPREVIEW-001_step13-after-per-day-available.png) · [step14-before-per-day-available](../screenshots/2026-10-10_TC-EQUIPREVIEW-001_step14-before-per-day-available.png)
 
 ---
 
@@ -234,3 +234,11 @@ or after `teardown.sql`).
 - Step 2: the line says *Event has no date yet* instead of a number.
 
 **Status:** [ ] Pass [ ] Fail
+
+---
+
+## Screenshots of cases without a section above
+
+- TC-EQUIPREVIEW-002: [step2-tech-summit-lines](../screenshots/2026-10-09_TC-EQUIPREVIEW-002_step2-tech-summit-lines.png)
+- TC-EQUIPREVIEW-003: [step1-tech-summit-available](../screenshots/2026-10-09_TC-EQUIPREVIEW-003_step1-tech-summit-available.png) · [step2-partner-roadshow-no-date](../screenshots/2026-10-09_TC-EQUIPREVIEW-003_step2-partner-roadshow-no-date.png)
+- TC-EQUIPREVIEW-005: [step1-needs-review-sidebar-vs-table](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step1-needs-review-sidebar-vs-table.png) · [step2-reviewed-sidebar-vs-table](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step2-reviewed-sidebar-vs-table.png) · [step3-archive-sidebar-vs-table](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step3-archive-sidebar-vs-table.png) · [step4-board-strategy-day](../screenshots/2026-10-09_TC-EQUIPREVIEW-005_step4-board-strategy-day.png)

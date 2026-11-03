@@ -131,9 +131,11 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after the setup above (the conference on 2026-11-12). Screenshots: [step1-catalogue](../screenshots/spm-328_TC-EVTIME-002_step1-catalogue.jpg) · [step2-confirmation](../screenshots/spm-328_TC-EVTIME-002_step2-confirmation.jpg) · [step3-registration](../screenshots/spm-328_TC-EVTIME-002_step3-registration.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after the setup above (the conference on 2026-11-12). Screenshots: [step1-catalogue](../screenshots/2026-10-29_TC-EVTIME-002_step1-catalogue.jpg) · [step2-confirmation](../screenshots/2026-10-29_TC-EVTIME-002_step2-confirmation.jpg) · [step3-registration](../screenshots/2026-10-29_TC-EVTIME-002_step3-registration.jpg)
 
 ---
+
+**Screenshots:** [step1-catalogue-sgt](../screenshots/2026-10-20_TC-EVTIME-002_step1-catalogue-sgt.png) · [step2-event-page](../screenshots/2026-10-20_TC-EVTIME-002_step2-event-page.png) · [step3-confirmation](../screenshots/2026-10-20_TC-EVTIME-002_step3-confirmation.png) · [step4-withdrawal-page](../screenshots/2026-10-20_TC-EVTIME-002_step4-withdrawal-page.png)
 
 ### TC-EVTIME-003: Times follow the viewer's timezone
 
@@ -149,9 +151,11 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, headless Chrome with its timezone overridden to Europe/London over the DevTools protocol, for joyceetran (local, after the AM/PM/Night retirement): "11 Nov 11:00 pm – 4:00 am, 12 Nov 5:00 am – 10:00 am (GMT)". Screenshot: [london-gmt](../screenshots/spm-328_TC-EVTIME-003_london-gmt.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, headless Chrome with its timezone overridden to Europe/London over the DevTools protocol, for joyceetran (local, after the AM/PM/Night retirement): "11 Nov 11:00 pm – 4:00 am, 12 Nov 5:00 am – 10:00 am (GMT)". Screenshot: [london-gmt](../screenshots/2026-10-29_TC-EVTIME-003_step2-london-gmt.jpg)
 
 ---
+
+**Screenshots:** [step1-catalogue-london](../screenshots/2026-10-20_TC-EVTIME-003_step1-catalogue-london.png)
 
 ### TC-EVTIME-004: The coordinator sees each date's times
 
@@ -167,9 +171,11 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "12 Nov 7:00 am – 12:00 pm, 12 Nov 1:00 pm – 6:00 pm". Screenshot: [coordinator-times-completion-locked](../screenshots/spm-328_TC-EVTIME-004-005_coordinator-times-completion-locked.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "12 Nov 7:00 am – 12:00 pm, 12 Nov 1:00 pm – 6:00 pm". Screenshot: [coordinator-times-completion-locked](../screenshots/2026-10-29_TC-EVTIME-004_step2-005-coordinator-times-completion-locked.jpg)
 
 ---
+
+**Screenshots:** [step1-coordinator-event-tab](../screenshots/2026-10-20_TC-EVTIME-004_step1-coordinator-event-tab.png)
 
 ### TC-EVTIME-005: Completion waits for the latest end time
 
@@ -187,9 +193,11 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "Available after 12 Nov 2026, 6:00 pm." under a disabled **Mark completed**. Screenshots: [coordinator-times-completion-locked](../screenshots/spm-328_TC-EVTIME-004-005_coordinator-times-completion-locked.jpg) · [step2-vendor-completed](../screenshots/spm-328_TC-EVTIME-005_step2-vendor-completed.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "Available after 12 Nov 2026, 6:00 pm." under a disabled **Mark completed**. Screenshots: [coordinator-times-completion-locked](../screenshots/2026-10-29_TC-EVTIME-004_step2-005-coordinator-times-completion-locked.jpg) · [step2-vendor-completed](../screenshots/2026-10-29_TC-EVTIME-005_step2-vendor-completed.jpg)
 
 ---
+
+**Screenshots:** [step1-complete-not-yet](../screenshots/2026-10-20_TC-EVTIME-005_step1-complete-not-yet.png) · [step2-complete-ended](../screenshots/2026-10-20_TC-EVTIME-005_step2-complete-ended.png) · [step3-completed](../screenshots/2026-10-20_TC-EVTIME-005_step3-completed.png)
 
 ### TC-EVTIME-006: The Lead sees each date's times
 
@@ -204,9 +212,11 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [lead-times](../screenshots/spm-328_TC-EVTIME-006_lead-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [lead-times](../screenshots/2026-10-29_TC-EVTIME-006_step2-lead-times.jpg)
 
 ---
+
+**Screenshots:** [step1-lead-event](../screenshots/2026-10-20_TC-EVTIME-006_step1-lead-event.png)
 
 ### TC-EVTIME-007: The Organiser sees the event's times on their request
 
@@ -222,4 +232,6 @@ and a session with AM and Night rows.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); Quarterly Partner Forum, still Submitted, had no **Event times** row. Screenshot: [organiser-event-times](../screenshots/spm-328_TC-EVTIME-007_organiser-event-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); Quarterly Partner Forum, still Submitted, had no **Event times** row. Screenshot: [organiser-event-times](../screenshots/2026-10-29_TC-EVTIME-007_step2-organiser-event-times.jpg)
+
+**Screenshots:** [step1-organiser-request](../screenshots/2026-10-20_TC-EVTIME-007_step1-organiser-request.png)

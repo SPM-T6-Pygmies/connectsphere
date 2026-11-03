@@ -101,7 +101,7 @@ select b.booking_id, v.location, b.status, e.name
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-requests-list](../screenshots/2026-10-14_TC-VBDECIDE-001_step1-requests-list.png) · [step2-studio-detail](../screenshots/2026-10-14_TC-VBDECIDE-001_step2-studio-detail.png)
+**Screenshots:** [step1-requests-list](../screenshots/2026-10-14_TC-VBDECIDE-001_step1-requests-list.png) · [step2-studio-detail](../screenshots/2026-10-14_TC-VBDECIDE-001_step2-studio-detail.png) · [step1-requests-list](../screenshots/2026-10-09_TC-VBDECIDE-001_step1-requests-list.png) · [step2-studio-detail](../screenshots/2026-10-09_TC-VBDECIDE-001_step2-studio-detail.png) · [step3-setup-rooftop-must-choose-layout](../screenshots/2026-10-09_TC-VBDECIDE-001_step3-setup-rooftop-must-choose-layout.png) · [step1-requests-list](../screenshots/2026-10-10_TC-VBDECIDE-001_step1-requests-list.png) · [step2-studio-detail](../screenshots/2026-10-10_TC-VBDECIDE-001_step2-studio-detail.png)
 
 ---
 
@@ -122,7 +122,7 @@ select b.booking_id, v.location, b.status, e.name
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-blank-reason-refused](../screenshots/2026-10-14_TC-VBDECIDE-002_step2-blank-reason-refused.png)
+**Screenshots:** [step2-blank-reason-refused](../screenshots/2026-10-14_TC-VBDECIDE-002_step2-blank-reason-refused.png) · [step2-reject-without-reason-refused](../screenshots/2026-10-09_TC-VBDECIDE-002_step2-reject-without-reason-refused.png) · [step3-still-requested-after-reload](../screenshots/2026-10-09_TC-VBDECIDE-002_step3-still-requested-after-reload.png) · [step2-blank-reason-refused](../screenshots/2026-10-10_TC-VBDECIDE-002_step2-blank-reason-refused.png)
 
 ---
 
@@ -146,7 +146,7 @@ select b.booking_id, v.location, b.status, e.name
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-rejected-with-reason-and-suggestion](../screenshots/2026-10-14_TC-VBDECIDE-003_step1-rejected-with-reason-and-suggestion.png) · [step2-archive-lists-it](../screenshots/2026-10-14_TC-VBDECIDE-003_step2-archive-lists-it.png) · [step3-coordinator-sees-rejected](../screenshots/2026-10-14_TC-VBDECIDE-003_step3-coordinator-sees-rejected.png)
+**Screenshots:** [step1-rejected-with-reason-and-suggestion](../screenshots/2026-10-14_TC-VBDECIDE-003_step1-rejected-with-reason-and-suggestion.png) · [step2-archive-lists-it](../screenshots/2026-10-14_TC-VBDECIDE-003_step2-archive-lists-it.png) · [step3-coordinator-sees-rejected](../screenshots/2026-10-14_TC-VBDECIDE-003_step3-coordinator-sees-rejected.png) · [step1-rejected-with-reason-and-suggestion](../screenshots/2026-10-09_TC-VBDECIDE-003_step1-rejected-with-reason-and-suggestion.png) · [step2-archive-lists-it](../screenshots/2026-10-09_TC-VBDECIDE-003_step2-archive-lists-it.png) · [step3-coordinator-sees-rejected](../screenshots/2026-10-09_TC-VBDECIDE-003_step3-coordinator-sees-rejected.png) · [step1-rejected-with-reason-and-suggestion](../screenshots/2026-10-10_TC-VBDECIDE-003_step1-rejected-with-reason-and-suggestion.png) · [step2-archive-lists-it](../screenshots/2026-10-10_TC-VBDECIDE-003_step2-archive-lists-it.png) · [step3-coordinator-sees-rejected](../screenshots/2026-10-10_TC-VBDECIDE-003_step3-coordinator-sees-rejected.png)
 
 ---
 
@@ -168,7 +168,7 @@ select b.booking_id, v.location, b.status, e.name
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-approved-confirmed](../screenshots/2026-10-14_TC-VBDECIDE-004_step1-approved-confirmed.png) · [step2-decided-lists-it](../screenshots/2026-10-14_TC-VBDECIDE-004_step2-decided-lists-it.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-14_TC-VBDECIDE-004_step3-coordinator-sees-confirmed.png)
+**Screenshots:** [step1-approved-confirmed](../screenshots/2026-10-14_TC-VBDECIDE-004_step1-approved-confirmed.png) · [step2-decided-lists-it](../screenshots/2026-10-14_TC-VBDECIDE-004_step2-decided-lists-it.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-14_TC-VBDECIDE-004_step3-coordinator-sees-confirmed.png) · [step1-approved-confirmed](../screenshots/2026-10-10_TC-VBDECIDE-004_step1-approved-confirmed.png) · [step2-decided-lists-it](../screenshots/2026-10-10_TC-VBDECIDE-004_step2-decided-lists-it.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-10_TC-VBDECIDE-004_step3-coordinator-sees-confirmed.png)
 
 ---
 
@@ -191,7 +191,7 @@ select b.booking_id, v.location, b.status, e.name
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-second-approval-refused](../screenshots/2026-10-14_TC-VBDECIDE-005_step2-second-approval-refused.png)
+**Screenshots:** [step2-second-approval-refused](../screenshots/2026-10-14_TC-VBDECIDE-005_step2-second-approval-refused.png) · [step2-second-approval-refused](../screenshots/2026-10-10_TC-VBDECIDE-005_step2-second-approval-refused.png)
 
 ---
 
@@ -210,7 +210,7 @@ select b.booking_id, v.location, b.status, e.name
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step-denied-coordinator](../screenshots/2026-10-14_TC-VBDECIDE-006_step-denied-coordinator.png) · [step-denied-lead](../screenshots/2026-10-14_TC-VBDECIDE-006_step-denied-lead.png)
+**Screenshots:** [step-denied-coordinator](../screenshots/2026-10-14_TC-VBDECIDE-006_step1-denied-coordinator.png) · [step-denied-lead](../screenshots/2026-10-14_TC-VBDECIDE-006_step2-denied-lead.png) · [step3-coordinator-staff-venue-denied](../screenshots/2026-10-04_TC-VBDECIDE-006_step3-coordinator-staff-venue-denied.png) · [step4-ops-staff-venue-denied](../screenshots/2026-10-04_TC-VBDECIDE-006_step4-ops-staff-venue-denied.png) · [step5-denied-coordinator](../screenshots/2026-10-10_TC-VBDECIDE-006_step5-denied-coordinator.png) · [step6-denied-lead](../screenshots/2026-10-10_TC-VBDECIDE-006_step6-denied-lead.png)
 
 ---
 
@@ -236,7 +236,7 @@ The request is still **Requested**: a block does not change existing bookings.
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-approval-over-block-refused](../screenshots/2026-10-14_TC-VBDECIDE-007_step1-approval-over-block-refused.png)
+**Screenshots:** [step1-approval-over-block-refused](../screenshots/2026-10-14_TC-VBDECIDE-007_step1-approval-over-block-refused.png) · [step1-approval-over-block-refused](../screenshots/2026-10-10_TC-VBDECIDE-007_step1-approval-over-block-refused.png)
 
 ---
 
@@ -256,4 +256,4 @@ The request is still **Requested**: a block does not change existing bookings.
 
 **Status:** [x] Pass [ ] Fail — 14/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step2-approved-after-lift](../screenshots/2026-10-14_TC-VBDECIDE-008_step2-approved-after-lift.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-14_TC-VBDECIDE-008_step3-coordinator-sees-confirmed.png)
+**Screenshots:** [step2-approved-after-lift](../screenshots/2026-10-14_TC-VBDECIDE-008_step2-approved-after-lift.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-14_TC-VBDECIDE-008_step3-coordinator-sees-confirmed.png) · [step2-approved-after-lift](../screenshots/2026-10-10_TC-VBDECIDE-008_step2-approved-after-lift.png) · [step3-coordinator-sees-confirmed](../screenshots/2026-10-10_TC-VBDECIDE-008_step3-coordinator-sees-confirmed.png)

@@ -76,7 +76,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (6/6 checks)
 
-**Screenshots:** [step1-create-form-filled](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step1-create-form-filled.png) · [step2-cleared-with-toast](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step2-cleared-with-toast.png) · [step3-venue-in-list](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step3-venue-in-list.png) · [step4-created-venue-locked](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-001_step4-created-venue-locked.png)
+**Screenshots:** [step1-create-form-filled](../screenshots/2026-10-23_TC-VBUFFER-001_step1-create-form-filled.png) · [step2-cleared-with-toast](../screenshots/2026-10-23_TC-VBUFFER-001_step2-cleared-with-toast.png) · [step3-venue-in-list](../screenshots/2026-10-23_TC-VBUFFER-001_step3-venue-in-list.png) · [step4-created-venue-locked](../screenshots/2026-10-23_TC-VBUFFER-001_step4-created-venue-locked.png)
 
 ---
 
@@ -96,7 +96,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (3/3 checks)
 
-**Screenshots:** [step1-undefined-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-002_step1-undefined-venue.png) · [step2-values-entered](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-002_step2-values-entered.png) · [step3-locked-after-save](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-002_step3-locked-after-save.png)
+**Screenshots:** [step1-undefined-venue](../screenshots/2026-10-23_TC-VBUFFER-002_step1-undefined-venue.png) · [step2-values-entered](../screenshots/2026-10-23_TC-VBUFFER-002_step2-values-entered.png) · [step3-locked-after-save](../screenshots/2026-10-23_TC-VBUFFER-002_step3-locked-after-save.png)
 
 ---
 
@@ -115,7 +115,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (3/3 checks)
 
-**Screenshots:** [step1-the-choices](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step1-the-choices.png) · [step2-setup-without-turnaround](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-003_step2-setup-without-turnaround.png)
+**Screenshots:** [step1-the-choices](../screenshots/2026-10-23_TC-VBUFFER-003_step1-the-choices.png) · [step2-setup-without-turnaround](../screenshots/2026-10-23_TC-VBUFFER-003_step2-setup-without-turnaround.png)
 
 ---
 
@@ -142,7 +142,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (4/4 checks)
 
-**Screenshots:** [step1-studio-zero-locked](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-004_step1-studio-zero-locked.png)
+**Screenshots:** [step1-studio-zero-locked](../screenshots/2026-10-23_TC-VBUFFER-004_step1-studio-zero-locked.png)
 
 ---
 
@@ -164,7 +164,7 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 **Status:** [x] Pass [ ] Fail — 2026-10-23, run in Chrome via Playwright for JameszLau (8/8 checks)
 
-**Screenshots:** [step1-venue-list](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step1-venue-list.png) · [step2-find-a-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step2-find-a-venue.png) · [step3-request-a-venue](../screenshots/2026-10-23_SPM-23_TC-VBUFFER-006_step3-request-a-venue.png)
+**Screenshots:** [step1-venue-list](../screenshots/2026-10-23_TC-VBUFFER-006_step1-venue-list.png) · [step2-find-a-venue](../screenshots/2026-10-23_TC-VBUFFER-006_step2-find-a-venue.png) · [step3-request-a-venue](../screenshots/2026-10-23_TC-VBUFFER-006_step3-request-a-venue.png)
 
 ---
 

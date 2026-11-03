@@ -90,6 +90,8 @@ Under Review.
 
 ---
 
+**Screenshots:** [step2-comment-posted](../screenshots/2026-10-04_TC-CLARIFY-001_step2-comment-posted.png) · [step3-still-awaiting-decision](../screenshots/2026-10-04_TC-CLARIFY-001_step3-still-awaiting-decision.png)
+
 ### TC-CLARIFY-002: "Comment & return" returns the request and records it
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: "Comment & return" moves
@@ -118,6 +120,8 @@ the request to Returned and writes an audit row; local stack).
 
 ---
 
+**Screenshots:** [step2-coordinator-clarification-returned](../screenshots/2026-09-21_TC-CLARIFY-002_step2-coordinator-clarification-returned.png) · [step3-organiser-clarification-thread](../screenshots/2026-09-21_TC-CLARIFY-002_step3-organiser-clarification-thread.png) · [step1-with-organiser-badge](../screenshots/2026-10-04_TC-CLARIFY-002_step1-with-organiser-badge.png)
+
 ### TC-CLARIFY-003: Resolving one of two open questions leaves the request Returned
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: two returns open two
@@ -141,6 +145,8 @@ organiser").
 
 ---
 
+**Screenshots:** [step1-two-open-questions](../screenshots/2026-10-04_TC-CLARIFY-003_step1-two-open-questions.png) · [step2-first-resolved-still-with-organiser](../screenshots/2026-10-04_TC-CLARIFY-003_step2-first-resolved-still-with-organiser.png)
+
 ### TC-CLARIFY-004: Resolving the last open question puts the request back to Under Review
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: resolving the last puts it
@@ -161,6 +167,8 @@ the request "Under Review").
 **Status:** [ ] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step1-coordinator-all-resolved](../screenshots/2026-10-04_TC-CLARIFY-004_step1-coordinator-all-resolved.png) · [step2-organiser-under-review](../screenshots/2026-10-04_TC-CLARIFY-004_step2-organiser-under-review.png)
 
 ### TC-CLARIFY-005: A reply inside a thread doesn't resume the request
 
@@ -188,6 +196,8 @@ doesn't resume the request; browser, both surfaces).
 
 ---
 
+**Screenshots:** [step1-coordinator-both-replies-still-with-organiser](../screenshots/2026-10-04_TC-CLARIFY-005_step1-coordinator-both-replies-still-with-organiser.png) · [step2-organiser-both-replies](../screenshots/2026-10-04_TC-CLARIFY-005_step2-organiser-both-replies.png)
+
 ### TC-CLARIFY-006: The Organiser can reply, but cannot resolve or edit (AC7)
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: Organiser at
@@ -209,6 +219,8 @@ organiser screenshot shows Reply boxes and no Resolve).
 **Status:** [ ] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step2-request-fields-read-only](../screenshots/2026-10-04_TC-CLARIFY-006_step2-request-fields-read-only.png) · [step3-reply-posted-no-resolve](../screenshots/2026-10-04_TC-CLARIFY-006_step3-reply-posted-no-resolve.png)
 
 ### TC-CLARIFY-007: A message on one side shows up on the other without a reload
 
@@ -234,6 +246,8 @@ have Venue Safety Review open, in two browsers, both tabs visible.
 
 ---
 
+**Screenshots:** [step2-organiser-sees-noted-without-reload](../screenshots/2026-10-04_TC-CLARIFY-007_step2-organiser-sees-noted-without-reload.png) · [step3-coordinator-sees-thank-you-without-reload](../screenshots/2026-10-04_TC-CLARIFY-007_step3-coordinator-sees-thank-you-without-reload.png)
+
 ### TC-CLARIFY-008: A Returned request can be approved or rejected without resolving first
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: approving or rejecting a
@@ -256,3 +270,5 @@ in as `coordinator@test.com`.
 - Neither decision asks for the open question to be resolved first
 
 **Status:** [ ] Pass [ ] Fail
+
+**Screenshots:** [step1-vendor-day-approve-refused](../screenshots/2026-10-04_TC-CLARIFY-008_step1-vendor-day-approve-refused.png) · [step2-venue-safety-review-reject-refused](../screenshots/2026-10-04_TC-CLARIFY-008_step2-venue-safety-review-reject-refused.png)

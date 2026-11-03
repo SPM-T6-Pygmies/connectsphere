@@ -128,7 +128,7 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-organiser-needs-and-lines](../screenshots/2026-10-09_TC-EQUIP-001_step1-organiser-needs-and-lines.png) · [step3-livestream-line-added](../screenshots/2026-10-09_TC-EQUIP-001_step3-livestream-line-added.png)
+**Screenshots:** [step1-organiser-needs-and-lines](../screenshots/2026-10-09_TC-EQUIP-001_step1-organiser-needs-and-lines.png) · [step3-livestream-line-added](../screenshots/2026-10-09_TC-EQUIP-001_step3-livestream-line-added.png) · [step1-organiser-needs-and-lines](../screenshots/2026-10-03_TC-EQUIP-001_step1-organiser-needs-and-lines.jpg) · [step3-livestream-line-added](../screenshots/2026-10-03_TC-EQUIP-001_step3-livestream-line-added.jpg) · [step4-my-events-sidebar-opens-event-page](../screenshots/2026-10-03_TC-EQUIP-001_step4-my-events-sidebar-opens-event-page.jpg)
 
 
 ---
@@ -157,7 +157,7 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [accepted-pa-speaker-and-laptop](../screenshots/2026-10-09_TC-EQUIP-002_accepted-pa-speaker-and-laptop.png) · [refused-1-ac2](../screenshots/2026-10-09_TC-EQUIP-002_refused-1-ac2.png) · [refused-4-ac3-text](../screenshots/2026-10-09_TC-EQUIP-002_refused-4-ac3-text.png) · [refused-6-ac5-501](../screenshots/2026-10-09_TC-EQUIP-002_refused-6-ac5-501.png)
+**Screenshots:** [accepted-pa-speaker-and-laptop](../screenshots/2026-10-09_TC-EQUIP-002_step1-accepted-pa-speaker-and-laptop.png) · [refused-1-ac2](../screenshots/2026-10-09_TC-EQUIP-002_step2-refused-1-ac2.png) · [refused-4-ac3-text](../screenshots/2026-10-09_TC-EQUIP-002_step3-refused-4-ac3-text.png) · [refused-6-ac5-501](../screenshots/2026-10-09_TC-EQUIP-002_step4-refused-6-ac5-501.png) · [step5-accepted-pa-speaker-and-laptop](../screenshots/2026-10-03_TC-EQUIP-002_step5-accepted-pa-speaker-and-laptop.jpg) · [step6-refused-1-ac2](../screenshots/2026-10-03_TC-EQUIP-002_step6-refused-1-ac2.jpg) · [step7-refused-4-ac3](../screenshots/2026-10-03_TC-EQUIP-002_step7-refused-4-ac3.jpg) · [step8-refused-6-ac5](../screenshots/2026-10-03_TC-EQUIP-002_step8-refused-6-ac5.jpg)
 
 
 ---
@@ -281,7 +281,7 @@ This is the end-to-end case across both roles.
 
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [read-only-cancelled](../screenshots/2026-10-09_TC-EQUIP-006_read-only-cancelled.png) · [read-only-completed](../screenshots/2026-10-09_TC-EQUIP-006_read-only-completed.png)
+**Screenshots:** [read-only-cancelled](../screenshots/2026-10-09_TC-EQUIP-006_step1-read-only-cancelled.png) · [read-only-completed](../screenshots/2026-10-09_TC-EQUIP-006_step2-read-only-completed.png) · [step3-read-only-cancelled](../screenshots/2026-10-03_TC-EQUIP-006_step3-read-only-cancelled.jpg) · [step4-read-only-completed](../screenshots/2026-10-03_TC-EQUIP-006_step4-read-only-completed.jpg)
 
 
 ---
@@ -311,7 +311,7 @@ This is the end-to-end case across both roles.
 
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [compare-missing-event](../screenshots/2026-10-09_TC-EQUIP-007_compare-missing-event.png) · [step2-unassigned-event](../screenshots/2026-10-09_TC-EQUIP-007_step2-unassigned-event.png)
+**Screenshots:** [compare-missing-event](../screenshots/2026-10-09_TC-EQUIP-007_step3-compare-missing-event.png) · [step2-unassigned-event](../screenshots/2026-10-09_TC-EQUIP-007_step2-unassigned-event.png) · [step2-unassigned-event](../screenshots/2026-10-03_TC-EQUIP-007_step2-unassigned-event.jpg) · [step4-compare-missing-event](../screenshots/2026-10-03_TC-EQUIP-007_step4-compare-missing-event.jpg)
 
 
 ---
@@ -463,3 +463,13 @@ Signed in as `coordinator@test.com`.
 
 **Screenshots:** [step1-removal-requested](../screenshots/2026-10-09_TC-EQUIP-017_step1-removal-requested.png) · [step2-support-removal-requested](../screenshots/2026-10-09_TC-EQUIP-017_step2-support-removal-requested.png) · [step3-undo-clears-recheck](../screenshots/2026-10-09_TC-EQUIP-017_step3-undo-clears-recheck.png) · [step4-nothing-needs-attention](../screenshots/2026-10-09_TC-EQUIP-017_step4-nothing-needs-attention.png)
 
+---
+
+## Screenshots of cases without a section above
+
+- TC-EQUIP-003: [step1-microphone-5-no-badge](../screenshots/2026-10-03_TC-EQUIP-003_step1-microphone-5-no-badge.jpg) · [step2-projector-saved-unchanged](../screenshots/2026-10-03_TC-EQUIP-003_step2-projector-saved-unchanged.jpg) · [step3-microphone-removed](../screenshots/2026-10-03_TC-EQUIP-003_step3-microphone-removed.jpg) · [step4-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-003_step4-technical-support-list-empty.jpg)
+- TC-EQUIP-004: [step2-edit-warning](../screenshots/2026-10-03_TC-EQUIP-004_step2-edit-warning.jpg) · [step3-projector-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-004_step3-projector-needs-recheck.jpg) · [step4-technical-support-list-changed](../screenshots/2026-10-03_TC-EQUIP-004_step4-technical-support-list-changed.jpg)
+- TC-EQUIP-005: [step2-remove-warning](../screenshots/2026-10-03_TC-EQUIP-005_step2-remove-warning.jpg) · [step3-removal-requested](../screenshots/2026-10-03_TC-EQUIP-005_step3-removal-requested.jpg) · [step4-technical-support-removal-requested](../screenshots/2026-10-03_TC-EQUIP-005_step4-technical-support-removal-requested.jpg) · [step5-removal-undone](../screenshots/2026-10-03_TC-EQUIP-005_step5-removal-undone.jpg) · [step6-technical-support-changed-again](../screenshots/2026-10-03_TC-EQUIP-005_step6-technical-support-changed-again.jpg)
+- TC-EQUIP-008: [step1-technical-support-sees-list](../screenshots/2026-10-03_TC-EQUIP-008_step1-technical-support-sees-list.jpg) · [step2-coordinator-access-denied](../screenshots/2026-10-03_TC-EQUIP-008_step2-coordinator-access-denied.jpg) · [step3-venue-staff-access-denied](../screenshots/2026-10-03_TC-EQUIP-008_step3-venue-staff-access-denied.jpg)
+- TC-EQUIP-010: [step1-edited-to-1-still-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-010_step1-edited-to-1-still-needs-recheck.jpg) · [step2-technical-support-list-requested-1](../screenshots/2026-10-03_TC-EQUIP-010_step2-technical-support-list-requested-1.jpg) · [step3-edited-to-3-still-needs-recheck](../screenshots/2026-10-03_TC-EQUIP-010_step3-edited-to-3-still-needs-recheck.jpg) · [step4-edited-back-to-2-recheck-cleared](../screenshots/2026-10-03_TC-EQUIP-010_step4-edited-back-to-2-recheck-cleared.jpg) · [step5-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-010_step5-technical-support-list-empty.jpg)
+- TC-EQUIP-011: [step1-removal-requested](../screenshots/2026-10-03_TC-EQUIP-011_step1-removal-requested.jpg) · [step2-technical-support-removal-requested](../screenshots/2026-10-03_TC-EQUIP-011_step2-technical-support-removal-requested.jpg) · [step3-removal-undone-flag-cleared](../screenshots/2026-10-03_TC-EQUIP-011_step3-removal-undone-flag-cleared.jpg) · [step4-technical-support-list-empty](../screenshots/2026-10-03_TC-EQUIP-011_step4-technical-support-list-empty.jpg)

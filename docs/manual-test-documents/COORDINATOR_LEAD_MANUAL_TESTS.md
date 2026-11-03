@@ -77,11 +77,13 @@ SPM-255 AC1, AC2, AC3.
   request's fields are shown as text, not inputs — the only control is the
   coordinator picker
 
-**Evidence:** [`2026-10-06_TC-LEAD-001_unassigned-row-and-detail.png`](../screenshots/2026-10-06_TC-LEAD-001_unassigned-row-and-detail.png)
+**Evidence:** [`2026-10-06_TC-LEAD-001_step1-unassigned-row-and-detail.png`](../screenshots/2026-10-06_TC-LEAD-001_step1-unassigned-row-and-detail.png)
 
 **Status:** [x] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step2-rename-lead-workspace](../screenshots/2026-10-06_TC-LEAD-001_step2-rename-lead-workspace.png)
 
 ### TC-LEAD-002: The Coordinators view lists every coordinator's open work
 
@@ -106,7 +108,7 @@ select public.coordinator_decide_event_request(6, 2, 'Approved', 'QA');
   card for **Test Coordinator 2** reading **Nothing assigned**
 - Step 2: the Completed event is no longer listed; the count reads 1 active event
 
-**Evidence:** [`2026-10-06_TC-LEAD-002_coordinators-view.png`](../screenshots/2026-10-06_TC-LEAD-002_coordinators-view.png)
+**Evidence:** [`2026-10-06_TC-LEAD-002_step1-coordinators-view.png`](../screenshots/2026-10-06_TC-LEAD-002_step1-coordinators-view.png)
 
 **Status:** [x] Pass [ ] Fail
 
@@ -153,7 +155,7 @@ Coordinator. Signed in as `lead@test.com`.
 - Step 6: the event is in My events; the inbox item "Venue Safety Review has been assigned to you … is now yours to plan" opens `/staff/coordinator/events/<id>`
 - The Organiser (`organiser@test.com`) has "Test Coordinator 2 is coordinating Venue Safety Review"
 
-**Evidence:** [`2026-10-06_TC-LEAD-004_event-reassigned.png`](../screenshots/2026-10-06_TC-LEAD-004_event-reassigned.png)
+**Evidence:** [`2026-10-06_TC-LEAD-004_step1-event-reassigned.png`](../screenshots/2026-10-06_TC-LEAD-004_step1-event-reassigned.png)
 
 **Status:** [x] Pass [ ] Fail
 
@@ -190,7 +192,7 @@ SPM-257 (replaces SPM-143's rule).
 - The coordinator options and the button are disabled, with "Approved requests
   carry on as an event. Reassign its coordinator from the Coordinators view."
 
-**Evidence:** [`2026-10-06_TC-LEAD-006_approved-request-not-reassignable.png`](../screenshots/2026-10-06_TC-LEAD-006_approved-request-not-reassignable.png)
+**Evidence:** [`2026-10-06_TC-LEAD-006_step1-approved-request-not-reassignable.png`](../screenshots/2026-10-06_TC-LEAD-006_step1-approved-request-not-reassignable.png)
 
 **Status:** [x] Pass [ ] Fail
 

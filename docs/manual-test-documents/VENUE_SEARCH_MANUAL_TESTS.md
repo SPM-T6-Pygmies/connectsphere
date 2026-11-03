@@ -95,7 +95,9 @@ with that seed loaded as well, step 2 lists it.
       because its Boardroom layout seats fewer than 100.
 - [x] Step 2: Harbour Room is listed.
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-boardroom-100](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-001_step1-boardroom-100.png) · [step2-theatre-100](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-001_step2-theatre-100.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-boardroom-100](../screenshots/2026-10-21_TC-VSEARCH-001_step1-boardroom-100.png) · [step2-theatre-100](../screenshots/2026-10-21_TC-VSEARCH-001_step2-theatre-100.png)
+
+**Screenshots:** [step1-boardroom-100-harbour-not-shown](../screenshots/2026-10-01_TC-VSEARCH-001_step1-boardroom-100-harbour-not-shown.jpg) · [step2-theatre-100-harbour-shown](../screenshots/2026-10-01_TC-VSEARCH-001_step2-theatre-100-harbour-shown.jpg) · [step1-boardroom-100](../screenshots/2026-10-09_TC-VSEARCH-001_step1-boardroom-100.png) · [step2-theatre-100](../screenshots/2026-10-09_TC-VSEARCH-001_step2-theatre-100.png)
 
 ### TC-VSEARCH-002 No fallback to the venue-wide capacity
 
@@ -106,7 +108,9 @@ with that seed loaded as well, step 2 lists it.
 - [x] No venues found. Garden Hall is not listed although its venue capacity is
       500; the summary says no layout seats 300.
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Main Hall, from another local seed, has Theatre 300 and was listed too; the case's check holds: Garden Hall was not listed, and the summary said no layout seats 300. Screenshots: [step1-attendance-300](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-002_step1-attendance-300.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Main Hall, from another local seed, has Theatre 300 and was listed too; the case's check holds: Garden Hall was not listed, and the summary said no layout seats 300. Screenshots: [step1-attendance-300](../screenshots/2026-10-21_TC-VSEARCH-002_step1-attendance-300.png)
+
+**Screenshots:** [step2-attendance-300-no-fallback-to-venue-capacity](../screenshots/2026-10-01_TC-VSEARCH-002_step2-attendance-300-no-fallback-to-venue-capacity.jpg) · [step1-attendance-300](../screenshots/2026-10-09_TC-VSEARCH-002_step1-attendance-300.png)
 
 ### TC-VSEARCH-003 Every selected facility and accessibility feature is required
 
@@ -119,7 +123,9 @@ with that seed loaded as well, step 2 lists it.
 - [x] Step 2: no venues found, since no venue has both; the summary names the
       missing facility and accessibility feature.
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Step 2 listed Seminar Room 2-1, from another local seed, which has both; neither UAT-44 venue was listed. Screenshots: [step1-video-conferencing-hearing-loop](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-003_step1-video-conferencing-hearing-loop.png) · [step2-video-conferencing-lift-access](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-003_step2-video-conferencing-lift-access.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Step 2 listed Seminar Room 2-1, from another local seed, which has both; neither UAT-44 venue was listed. Screenshots: [step1-video-conferencing-hearing-loop](../screenshots/2026-10-21_TC-VSEARCH-003_step1-video-conferencing-hearing-loop.png) · [step2-video-conferencing-lift-access](../screenshots/2026-10-21_TC-VSEARCH-003_step2-video-conferencing-lift-access.png)
+
+**Screenshots:** [step1-projector-hearing-loop-harbour-only](../screenshots/2026-10-01_TC-VSEARCH-003_step1-projector-hearing-loop-harbour-only.jpg) · [step2-projector-lift-access-none-has-both](../screenshots/2026-10-01_TC-VSEARCH-003_step2-projector-lift-access-none-has-both.jpg) · [step1-video-conferencing-hearing-loop](../screenshots/2026-10-09_TC-VSEARCH-003_step1-video-conferencing-hearing-loop.png) · [step2-video-conferencing-lift-access](../screenshots/2026-10-09_TC-VSEARCH-003_step2-video-conferencing-lift-access.png)
 
 ### TC-VSEARCH-006 A rejected booking does not block the venue
 
@@ -131,7 +137,9 @@ with that seed loaded as well, step 2 lists it.
       venue busy.
 
 **Run:** Pass, 27/10/2026, re-run for SPM-250 in Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-10; searches opened by their address, as the form sends them). Garden Hall listed with Harbour Room, as in TC-VSEARCH-013 step 1.
-Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-garden-hall-listed](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-006_step1-garden-hall-listed.png)
+Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-garden-hall-listed](../screenshots/2026-10-21_TC-VSEARCH-006_step1-garden-hall-listed.png)
+
+**Screenshots:** [step2-rejected-booking-garden-shown](../screenshots/2026-10-01_TC-VSEARCH-006_step2-rejected-booking-garden-shown.jpg) · [step1-garden-hall-listed](../screenshots/2026-10-09_TC-VSEARCH-006_step1-garden-hall-listed.png)
 
 ### TC-VSEARCH-007 A date beyond the booking horizon is excluded
 
@@ -144,7 +152,9 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
       far ahead as the searched date.
 
 **Run:** Pass, 27/10/2026, re-run for SPM-250 (as TC-VSEARCH-006; date 2026-12-27): "2 venues not shown: cannot be booked as far ahead as 2026-12-27".
-Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-61-days-ahead](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-007_step1-61-days-ahead.png)
+Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-61-days-ahead](../screenshots/2026-10-21_TC-VSEARCH-007_step1-61-days-ahead.png)
+
+**Screenshots:** [step2-date-past-horizon-not-shown](../screenshots/2026-10-01_TC-VSEARCH-007_step2-date-past-horizon-not-shown.jpg) · [step1-61-days-ahead](../screenshots/2026-10-09_TC-VSEARCH-007_step1-61-days-ahead.png)
 
 ### TC-VSEARCH-009 Attribute and date filters combine into a candidate list
 
@@ -158,7 +168,9 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
       suitability column (#83).
 
 **Run:** Pass, 27/10/2026, re-run for SPM-250 (as TC-VSEARCH-006): only Harbour Room listed; Garden Hall counted as "no Theatre layout".
-Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-combined-filters](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-009_step1-combined-filters.png)
+Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-combined-filters](../screenshots/2026-10-21_TC-VSEARCH-009_step1-combined-filters.png)
+
+**Screenshots:** [step2-combined-filters-candidate-list](../screenshots/2026-10-01_TC-VSEARCH-009_step2-combined-filters-candidate-list.jpg) · [step1-combined-filters](../screenshots/2026-10-09_TC-VSEARCH-009_step1-combined-filters.png)
 
 ### TC-VSEARCH-010 Blank filters and an empty result
 
@@ -171,7 +183,9 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
 - [x] Step 2: no venues found, with the reason (no Exhibition layout) and a tip
       to widen the search ("a different date or time").
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Rooftop Terrace (seed-venues) has Exhibition 150, as the setup warns, so step 2 as written listed it; the alternative Exhibition with attendance 200 gave no venues, the reason and the tip. Screenshots: [step1-blank-filters](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-010_step1-blank-filters.png) · [step2-alt-exhibition-attendance-200](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-010_step2-alt-exhibition-attendance-200.png) · [step2-exhibition-as-written](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-010_step2-exhibition-as-written.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Rooftop Terrace (seed-venues) has Exhibition 150, as the setup warns, so step 2 as written listed it; the alternative Exhibition with attendance 200 gave no venues, the reason and the tip. Screenshots: [step1-blank-filters](../screenshots/2026-10-21_TC-VSEARCH-010_step1-blank-filters.png) · [step2-alt-exhibition-attendance-200](../screenshots/2026-10-21_TC-VSEARCH-010_step2-alt-exhibition-attendance-200.png) · [step2-exhibition-as-written](../screenshots/2026-10-21_TC-VSEARCH-010_step2-exhibition-as-written.png)
+
+**Screenshots:** [step1-blank-filters-whole-catalogue](../screenshots/2026-10-01_TC-VSEARCH-010_step1-blank-filters-whole-catalogue.jpg) · [step2-no-match-empty-result-with-reasons](../screenshots/2026-10-01_TC-VSEARCH-010_step2-no-match-empty-result-with-reasons.jpg) · [step1-blank-filters](../screenshots/2026-10-09_TC-VSEARCH-010_step1-blank-filters.png) · [step2-alt-exhibition-attendance-200](../screenshots/2026-10-09_TC-VSEARCH-010_step2-alt-exhibition-attendance-200.png) · [step2-exhibition-as-written](../screenshots/2026-10-09_TC-VSEARCH-010_step2-exhibition-as-written.png)
 
 ### TC-VSEARCH-011 Clear empties every filter
 
@@ -187,9 +201,11 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
       blank, no facility or accessibility box is ticked, and the whole catalogue
       is listed.
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-filters-set-and-searched](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step1-filters-set-and-searched.png) · [step2-after-clear](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step2-after-clear.png) · [step3-unsearched-filters](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step3-unsearched-filters.png) · [step4-after-clear](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-011_step4-after-clear.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Screenshots: [step1-filters-set-and-searched](../screenshots/2026-10-21_TC-VSEARCH-011_step1-filters-set-and-searched.png) · [step2-after-clear](../screenshots/2026-10-21_TC-VSEARCH-011_step2-after-clear.png) · [step3-unsearched-filters](../screenshots/2026-10-21_TC-VSEARCH-011_step3-unsearched-filters.png) · [step4-after-clear](../screenshots/2026-10-21_TC-VSEARCH-011_step4-after-clear.png)
 
 ---
+
+**Screenshots:** [step1-searched-with-filters](../screenshots/2026-10-01_TC-VSEARCH-011_step1-searched-with-filters.jpg) · [step2-clear-after-search-form-empty](../screenshots/2026-10-01_TC-VSEARCH-011_step2-clear-after-search-form-empty.jpg) · [step3-ticked-not-searched](../screenshots/2026-10-01_TC-VSEARCH-011_step3-ticked-not-searched.jpg) · [step4-clear-before-search-form-empty](../screenshots/2026-10-01_TC-VSEARCH-011_step4-clear-before-search-form-empty.jpg) · [step1-filters-set-and-searched](../screenshots/2026-10-09_TC-VSEARCH-011_step1-filters-set-and-searched.png) · [step2-after-clear](../screenshots/2026-10-09_TC-VSEARCH-011_step2-after-clear.png) · [step4-after-clear](../screenshots/2026-10-09_TC-VSEARCH-011_step4-after-clear.png)
 
 ## SPM-322 — Search venues by start and end time
 
@@ -213,8 +229,10 @@ block and lifts it.
       on D+1, is listed.
 
 **Run:** Pass, 27/10/2026, re-run for SPM-250 (as TC-VSEARCH-006; D = 2026-11-10): step 2 "2 venues not shown: closed for part of 06:45–07:15"; step 3 listed Harbour Room only.
-Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-08), on the one-window build. Screenshots: [step1-07-00-12-00-both-listed](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-013_step1-07-00-12-00-both-listed.jpg) · [step2-06-45-07-15-closed](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-013_step2-06-45-07-15-closed.jpg) · [step3-17-45-18-15-garden-closed](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-013_step3-17-45-18-15-garden-closed.jpg)
-Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step1-07-00-12-00-both-listed](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-013_step1-07-00-12-00-both-listed.png) · [step2-06-45-07-15-closed](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-013_step2-06-45-07-15-closed.png) · [step3-17-45-18-15-garden-closed](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-013_step3-17-45-18-15-garden-closed.png)
+Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-08), on the one-window build. Screenshots: [step1-07-00-12-00-both-listed](../screenshots/2026-10-25_TC-VSEARCH-013_step1-07-00-12-00-both-listed.jpg) · [step2-06-45-07-15-closed](../screenshots/2026-10-25_TC-VSEARCH-013_step2-06-45-07-15-closed.jpg) · [step3-17-45-18-15-garden-closed](../screenshots/2026-10-25_TC-VSEARCH-013_step3-17-45-18-15-garden-closed.jpg)
+Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step1-07-00-12-00-both-listed](../screenshots/2026-10-22_TC-VSEARCH-013_step1-07-00-12-00-both-listed.png) · [step2-06-45-07-15-closed](../screenshots/2026-10-22_TC-VSEARCH-013_step2-06-45-07-15-closed.png) · [step3-17-45-18-15-garden-closed](../screenshots/2026-10-22_TC-VSEARCH-013_step3-17-45-18-15-garden-closed.png)
+
+**Screenshots:** [step1-07-00-12-00-both-listed](../screenshots/2026-10-21_TC-VSEARCH-013_step1-07-00-12-00-both-listed.png) · [step2-11-45-12-15-closed](../screenshots/2026-10-21_TC-VSEARCH-013_step2-11-45-12-15-closed.png) · [step3-17-00-19-30-closed](../screenshots/2026-10-21_TC-VSEARCH-013_step3-17-00-19-30-closed.png)
 
 ### TC-VSEARCH-014 An overlapping booking leaves a venue out; one that only touches does not (AC1, AC2)
 
@@ -239,9 +257,11 @@ booking on D 13:00–18:00 has open time on both sides.
 - [x] Steps 3 and 4 hold under SPM-250 too: Harbour Room has no setup or
       turnaround set (SPM-250 AC3), so its booked times alone are compared.
 
-**Run:** Pass, 27/10/2026, re-run for SPM-250 in Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-10; searches opened by their address). Step 1 also left Garden Hall out as closed; step 4 listed both venues. Screenshots: [step1-17-45-18-15-booked](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-014_step1-17-45-18-15-booked.png) · [step3-18-00-19-00-touches-end](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png) · [step4-12-00-13-00-touches-start](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-014_step4-12-00-13-00-touches-start.png)
-Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-08), on the one-window build. Step 1 also left Garden Hall out as closed; step 4 listed both venues. Screenshots: [step1-17-45-18-15-booked](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-014_step1-17-45-18-15-booked.jpg) · [step3-18-00-19-00-touches-end](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-014_step3-18-00-19-00-touches-end.jpg) · [step4-12-00-13-00-touches-start](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-014_step4-12-00-13-00-touches-start.jpg)
-Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05), on the seeded 07:00–24:00. Step 4 also listed Garden Hall, now open 12:00–13:00. Screenshot: [step3-18-00-19-00-touches-end](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png). Earlier run, 21/10/2026, with Harbour Room opened by hand: [step1](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step1-17-45-18-15-overlap.png) · [step4](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-014_step4-12-00-13-00-touches-start.png)
+**Run:** Pass, 27/10/2026, re-run for SPM-250 in Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-10; searches opened by their address). Step 1 also left Garden Hall out as closed; step 4 listed both venues. Screenshots: [step1-17-45-18-15-booked](../screenshots/2026-10-27_TC-VSEARCH-014_step1-17-45-18-15-booked.png) · [step3-18-00-19-00-touches-end](../screenshots/2026-10-27_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png) · [step4-12-00-13-00-touches-start](../screenshots/2026-10-27_TC-VSEARCH-014_step4-12-00-13-00-touches-start.png)
+Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-08), on the one-window build. Step 1 also left Garden Hall out as closed; step 4 listed both venues. Screenshots: [step1-17-45-18-15-booked](../screenshots/2026-10-25_TC-VSEARCH-014_step1-17-45-18-15-booked.jpg) · [step3-18-00-19-00-touches-end](../screenshots/2026-10-25_TC-VSEARCH-014_step3-18-00-19-00-touches-end.jpg) · [step4-12-00-13-00-touches-start](../screenshots/2026-10-25_TC-VSEARCH-014_step4-12-00-13-00-touches-start.jpg)
+Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05), on the seeded 07:00–24:00. Step 4 also listed Garden Hall, now open 12:00–13:00. Screenshot: [step3-18-00-19-00-touches-end](../screenshots/2026-10-22_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png). Earlier run, 21/10/2026, with Harbour Room opened by hand: [step1](../screenshots/2026-10-21_TC-VSEARCH-014_step1-17-45-18-15-overlap.png) · [step4](../screenshots/2026-10-21_TC-VSEARCH-014_step4-12-00-13-00-touches-start.png)
+
+**Screenshots:** [step2-13-15-13-30-inside-booking](../screenshots/2026-10-21_TC-VSEARCH-014_step2-13-15-13-30-inside-booking.png) · [step3-18-00-19-00-touches-end](../screenshots/2026-10-21_TC-VSEARCH-014_step3-18-00-19-00-touches-end.png)
 
 ### TC-VSEARCH-015 An In force block leaves a venue out until it is lifted (AC1, AC2)
 
@@ -265,9 +285,11 @@ press **Mark unavailable**.
       starts at 19:00, and this time touches both.
 - [x] Step 3: Harbour Room is listed. A lifted block holds nothing.
 
-**Run:** Pass, 27/10/2026, re-run for SPM-250 in Chrome via Claude in Chrome (local, `pnpm dev:local`; D = 2026-11-10), in one window, switching accounts. Step 3 ran after the SPM-250 seeds were added, which put nothing at Harbour Room. Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step2-18-00-19-00-between](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-015_step2-18-00-19-00-between.png) · [step3-lifted](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-015_step3-lifted.png)
-Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-08), on the one-window build, with the block recorded as 19:00–24:00 on the time form. Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-015_step1-23-45-24-00-blocked.jpg) · [step3-lifted](../screenshots/2026-10-25_SPM-320_TC-VSEARCH-015_step3-lifted.jpg)
-Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step3-lifted](../screenshots/2026-10-22_SPM-320_TC-VSEARCH-015_step3-lifted.png)
+**Run:** Pass, 27/10/2026, re-run for SPM-250 in Chrome via Claude in Chrome (local, `pnpm dev:local`; D = 2026-11-10), in one window, switching accounts. Step 3 ran after the SPM-250 seeds were added, which put nothing at Harbour Room. Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-27_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step2-18-00-19-00-between](../screenshots/2026-10-27_TC-VSEARCH-015_step2-18-00-19-00-between.png) · [step3-lifted](../screenshots/2026-10-27_TC-VSEARCH-015_step3-lifted.png)
+Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`, after `supabase db reset` with only this seed; D = 2026-11-08), on the one-window build, with the block recorded as 19:00–24:00 on the time form. Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-25_TC-VSEARCH-015_step1-23-45-24-00-blocked.jpg) · [step3-lifted](../screenshots/2026-10-25_TC-VSEARCH-015_step3-lifted.jpg)
+Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step1-23-45-24-00-blocked](../screenshots/2026-10-22_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step3-lifted](../screenshots/2026-10-22_TC-VSEARCH-015_step3-lifted.png)
+
+**Screenshots:** [step1-23-45-24-00-blocked](../screenshots/2026-10-21_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step2-18-00-19-00-touches-both](../screenshots/2026-10-21_TC-VSEARCH-015_step2-18-00-19-00-touches-both.png) · [step3-after-lift-listed](../screenshots/2026-10-21_TC-VSEARCH-015_step3-after-lift-listed.png) · [step4-hours-restored](../screenshots/2026-10-21_TC-VSEARCH-015_step4-hours-restored.png)
 
 ### TC-VSEARCH-016 A time that cannot be searched is refused, naming the problem (AC3)
 
@@ -288,7 +310,7 @@ Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local
 - [x] Step 5: "A search cannot start at 24:00." under **Start time**.
 - [x] No step lists any venue or a summary.
 
-**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Step 2 was entered through the pickers, which posted `start=14:00&end=13:00`; steps 4 and 5 arrived by link, and the pickers then show 07:00 and a blank hour while the message names 07:10 and 24:00. Screenshots: [step1-date-only](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step1-date-only.png) · [step2-end-before-start](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step2-end-before-start.png) · [step3-no-date](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step3-no-date.png) · [step4-off-grid](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step4-off-grid.png) · [step5-start-24-00](../screenshots/2026-10-21_SPM-322_TC-VSEARCH-016_step5-start-24-00.png)
+**Run:** Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`, build `1fd160b`). Step 2 was entered through the pickers, which posted `start=14:00&end=13:00`; steps 4 and 5 arrived by link, and the pickers then show 07:00 and a blank hour while the message names 07:10 and 24:00. Screenshots: [step1-date-only](../screenshots/2026-10-21_TC-VSEARCH-016_step1-date-only.png) · [step2-end-before-start](../screenshots/2026-10-21_TC-VSEARCH-016_step2-end-before-start.png) · [step3-no-date](../screenshots/2026-10-21_TC-VSEARCH-016_step3-no-date.png) · [step4-off-grid](../screenshots/2026-10-21_TC-VSEARCH-016_step4-off-grid.png) · [step5-start-24-00](../screenshots/2026-10-21_TC-VSEARCH-016_step5-start-24-00.png)
 
 ---
 
@@ -336,7 +358,9 @@ The Requested bookings it also adds hold nothing.
       Its setup begins at 10:00, as the turnaround ends.
 - [x] Every step lists the two UAT-44 venues, which have none set (AC3).
 
-**Run:** Pass, 27/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`; searches opened by their address). Screenshots: [step1-10-00-12-00-setup-in-turnaround](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-017_step1-10-00-12-00-setup-in-turnaround.png) · [step3-10-30-12-00-touches](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-017_step3-10-30-12-00-touches.png)
+**Run:** Pass, 27/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`; searches opened by their address). Screenshots: [step1-10-00-12-00-setup-in-turnaround](../screenshots/2026-10-27_TC-VSEARCH-017_step1-10-00-12-00-setup-in-turnaround.png) · [step3-10-30-12-00-touches](../screenshots/2026-10-27_TC-VSEARCH-017_step3-10-30-12-00-touches.png)
+
+**Screenshots:** [step4-before-main-lists-main-hall-10-00-12-00](../screenshots/2026-10-27_TC-VSEARCH-017_step4-before-main-lists-main-hall-10-00-12-00.png)
 
 ### TC-VSEARCH-018 A search whose turnaround runs into a booking's setup leaves the venue out (AC1, AC2)
 
@@ -350,7 +374,7 @@ The Requested bookings it also adds hold nothing.
 - [x] Step 2: Main Hall is listed. The turnaround ends at 21:30, as the setup
       begins.
 
-**Run:** Pass, 27/10/2026, as TC-VSEARCH-017. Screenshots: [step1-20-00-21-00-turnaround-in-setup](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-018_step1-20-00-21-00-turnaround-in-setup.png) · [step2-19-45-20-45-touches](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-018_step2-19-45-20-45-touches.png)
+**Run:** Pass, 27/10/2026, as TC-VSEARCH-017. Screenshots: [step1-20-00-21-00-turnaround-in-setup](../screenshots/2026-10-27_TC-VSEARCH-018_step1-20-00-21-00-turnaround-in-setup.png) · [step2-19-45-20-45-touches](../screenshots/2026-10-27_TC-VSEARCH-018_step2-19-45-20-45-touches.png)
 
 ### TC-VSEARCH-019 A live hold is padded like a Confirmed booking (AC4)
 
@@ -366,7 +390,7 @@ The Requested bookings it also adds hold nothing.
 - [x] Step 3: Main Hall is listed. A Rejected booking and a lapsed hold hold
       nothing.
 
-**Run:** Pass, 27/10/2026, as TC-VSEARCH-017. Screenshots: [step1-hold-padded](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-019_step1-hold-padded.png) · [step3-lapsed-and-rejected-hold-nothing](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-019_step3-lapsed-and-rejected-hold-nothing.png)
+**Run:** Pass, 27/10/2026, as TC-VSEARCH-017. Screenshots: [step1-hold-padded](../screenshots/2026-10-27_TC-VSEARCH-019_step1-hold-padded.png) · [step3-lapsed-and-rejected-hold-nothing](../screenshots/2026-10-27_TC-VSEARCH-019_step3-lapsed-and-rejected-hold-nothing.png)
 
 ### TC-VSEARCH-020 A block is compared with the times searched, without setup or turnaround (AC4)
 
@@ -386,4 +410,13 @@ Hall**, From and To 18 Dec 2026, Start **13:00**, End **14:00**, Reason
 - [x] Step 2: Main Hall is not listed: 13:45–14:00 is blocked.
 - [x] Step 3: Main Hall is listed, though its turnaround runs to 13:45.
 
-**Run:** Pass, 27/10/2026, as TC-VSEARCH-017; the block was left in force afterwards. Screenshots: [step1-14-00-15-00-block-unpadded](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-020_step1-14-00-15-00-block-unpadded.png) · [step2-13-45-15-00-overlaps-block](../screenshots/2026-10-27_SPM-250_TC-VSEARCH-020_step2-13-45-15-00-overlaps-block.png)
+**Run:** Pass, 27/10/2026, as TC-VSEARCH-017; the block was left in force afterwards. Screenshots: [step1-14-00-15-00-block-unpadded](../screenshots/2026-10-27_TC-VSEARCH-020_step1-14-00-15-00-block-unpadded.png) · [step2-13-45-15-00-overlaps-block](../screenshots/2026-10-27_TC-VSEARCH-020_step2-13-45-15-00-overlaps-block.png)
+
+---
+
+## Screenshots of cases without a section above
+
+- TC-VSEARCH-004: [step1-overlapping-booking-harbour-not-shown](../screenshots/2026-10-01_TC-VSEARCH-004_step1-overlapping-booking-harbour-not-shown.jpg) · [step2-touching-booking-end-harbour-shown](../screenshots/2026-10-01_TC-VSEARCH-004_step2-touching-booking-end-harbour-shown.jpg) · [step1-date-d-pm](../screenshots/2026-10-09_TC-VSEARCH-004_step1-date-d-pm.png) · [step2-date-d-am](../screenshots/2026-10-09_TC-VSEARCH-004_step2-date-d-am.png)
+- TC-VSEARCH-005: [step1-after-closing-garden-not-shown](../screenshots/2026-10-01_TC-VSEARCH-005_step1-after-closing-garden-not-shown.jpg)
+- TC-VSEARCH-008: [step1-date-without-times-refused](../screenshots/2026-10-01_TC-VSEARCH-008_step1-date-without-times-refused.jpg) · [step2-end-before-start-refused](../screenshots/2026-10-01_TC-VSEARCH-008_step2-end-before-start-refused.jpg)
+- TC-VSEARCH-012: [step1-night](../screenshots/2026-10-09_TC-VSEARCH-012_step1-night.png) · [step2-am-and-night](../screenshots/2026-10-09_TC-VSEARCH-012_step2-am-and-night.png)

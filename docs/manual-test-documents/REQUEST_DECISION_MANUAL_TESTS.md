@@ -81,6 +81,8 @@ as Planning).
 
 ---
 
+**Screenshots:** [step3-approved-outcome](../screenshots/2026-10-04_TC-DECIDE-001_step3-approved-outcome.png) · [step4-left-my-requests](../screenshots/2026-10-04_TC-DECIDE-001_step4-left-my-requests.png) · [step5-my-events-planning](../screenshots/2026-10-04_TC-DECIDE-001_step5-my-events-planning.png)
+
 ### TC-DECIDE-002: Rejecting with a blank reason is refused inline and writes nothing
 
 Origin: Backfilled 2026-10-04 from PR #33 (rejected "Year-End Awards Night"
@@ -102,6 +104,8 @@ with a blank reason: inline error, nothing written).
 
 ---
 
+**Screenshots:** [step2-blank-reason-refused](../screenshots/2026-10-04_TC-DECIDE-002_step2-blank-reason-refused.png) · [step3-still-in-my-requests](../screenshots/2026-10-04_TC-DECIDE-002_step3-still-in-my-requests.png)
+
 ### TC-DECIDE-003: Rejecting with a reason shows the outcome and the reason
 
 Origin: Backfilled 2026-10-04 from PR #33 (rejected "Year-End Awards Night"
@@ -121,6 +125,8 @@ with a reason: outcome and reason shown).
 
 ---
 
+**Screenshots:** [step1-rejected-outcome-and-reason](../screenshots/2026-10-04_TC-DECIDE-003_step1-rejected-outcome-and-reason.png)
+
 ### TC-DECIDE-004: A rejected request is listed in the Archive
 
 Origin: Backfilled 2026-10-04 from PR #33 (listed under "Not yet checked in
@@ -137,3 +143,5 @@ the browser": reject a request and find it in Archive). No run recorded.
 - It opens on its detail page showing Outcome: Rejected
 
 **Status:** [ ] Pass [ ] Fail
+
+**Screenshots:** [step1-archive-lists-it](../screenshots/2026-10-04_TC-DECIDE-004_step1-archive-lists-it.png) · [step2-detail-outcome-rejected](../screenshots/2026-10-04_TC-DECIDE-004_step2-detail-outcome-rejected.png)

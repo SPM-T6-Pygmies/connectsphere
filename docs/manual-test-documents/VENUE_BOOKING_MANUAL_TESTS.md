@@ -65,6 +65,8 @@ cases only use the four above.
 
 **Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-approved-request-venue-card](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step1-approved-request-venue-card.png) · [step3-request-a-venue-page](../screenshots/2026-10-10_TC-VENUE-BOOK-001_step3-request-a-venue-page.png)
 
+**Screenshots:** [step1-venue-card-link](../screenshots/2026-10-04_TC-VENUE-BOOK-001_step1-venue-card-link.png) · [step2-my-events-link](../screenshots/2026-10-04_TC-VENUE-BOOK-001_step2-my-events-link.png) · [step3-request-a-venue-page](../screenshots/2026-10-04_TC-VENUE-BOOK-001_step3-request-a-venue-page.png)
+
 ### TC-VENUE-BOOK-003 A single-layout venue takes its layout
 
 - [x] Choose **Studio**. No choice is offered; the page says Theatre is the
@@ -87,6 +89,8 @@ cases only use the four above.
 
 **Run:** Pass, 10/10/2026, run in Chrome via Playwright for joyceetran. Screenshots: [step1-denied-venue](../screenshots/2026-10-10_TC-VENUE-BOOK-006_step1-denied-venue.png) · [step1-denied-lead](../screenshots/2026-10-10_TC-VENUE-BOOK-006_step1-denied-lead.png)
 
+**Screenshots:** [step2-other-coordinator-not-found](../screenshots/2026-10-04_TC-VENUE-BOOK-006_step2-other-coordinator-not-found.png) · [step1-denied](../screenshots/2026-10-09_TC-VENUE-BOOK-006_step1-denied.png)
+
 ### TC-VENUE-BOOK-007 The page checks the event against the chosen layout (SPM-104)
 
 Needs an approved event with an expected attendance (for example 100) on the
@@ -106,6 +110,8 @@ right-hand card.
 
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-boardroom-over](../screenshots/2026-10-09_TC-VENUE-BOOK-007_step1-boardroom-over.png) · [step3-main-hall-fits](../screenshots/2026-10-09_TC-VENUE-BOOK-007_step3-main-hall-fits.png) · [step4-over-capacity-sent](../screenshots/2026-10-09_TC-VENUE-BOOK-007_step4-over-capacity-sent.png)
 
+**Screenshots:** [step0-page-before](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step0-page-before.png) · [step1-boardroom-over](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step1-boardroom-over.png) · [step2-classroom-5-over](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step2-classroom-5-over.png) · [step3-main-hall-fits](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step3-main-hall-fits.png) · [step4-over-capacity-row](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step4-over-capacity-row.png) · [step5-boundary-exact](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step5-boundary-exact.png)
+
 ### TC-VENUE-BOOK-008 Change the layout of a pending request (SPM-104)
 
 - [x] On a **Requested** row for a venue with several layouts, a layout picker
@@ -121,6 +127,8 @@ right-hand card.
 
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-picker-and-disabled-button](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step1-picker-and-disabled-button.png) · [step2-changed-to-classroom](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step2-changed-to-classroom.png) · [step3-studio-has-no-picker](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step3-studio-has-no-picker.png) · [step3-studio-no-picker](../screenshots/2026-10-09_TC-VENUE-BOOK-008_step3-studio-no-picker.png)
 
+**Screenshots:** [step1-picker-disabled](../screenshots/2026-10-03_TC-VENUE-BOOK-008_step1-picker-disabled.png) · [step2-after-change](../screenshots/2026-10-03_TC-VENUE-BOOK-008_step2-after-change.png) · [step3-studio-no-picker](../screenshots/2026-10-03_TC-VENUE-BOOK-008_step3-studio-no-picker.png)
+
 ### TC-VENUE-BOOK-009 A layout can no longer change once Venue Staff answer (SPM-104)
 
 - [x] Approve or reject the request as Venue Staff (SPM-22). Reload the page as
@@ -130,6 +138,8 @@ right-hand card.
       layout** on the stale page. The page answers that the layout can only be
       changed while the request is waiting for Venue Staff, and the layout is
       unchanged.
+
+**Screenshots:** [step1-answered-no-picker](../screenshots/2026-10-03_TC-VENUE-BOOK-009_step1-answered-no-picker.png) · [step2-stale-refused](../screenshots/2026-10-03_TC-VENUE-BOOK-009_step2-stale-refused.png)
 
 ## SPM-45: is the venue suitable for the event?
 
@@ -260,9 +270,9 @@ both for another event. Harbour Room is open `07:00`–`24:00` and Garden Hall
       under *Booking requests* is **Requested**, its time cell reading
       `D+1 07:00–07:15, D+2 23:45–24:00`. No AM, PM or Night anywhere on the page.
 
-**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step2-two-dates-end-24-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step2-two-dates-end-24-00.png), [step3-requested-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step3-requested-times.png)
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step2-two-dates-end-24-00](../screenshots/2026-10-22_TC-VENUE-BOOK-023_step2-two-dates-end-24-00.png), [step3-requested-times](../screenshots/2026-10-22_TC-VENUE-BOOK-023_step3-requested-times.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset` and the three seeds; D = 2026-11-12. The row read `2026-11-13 07:00–07:15, 2026-11-14 23:45–24:00`. Screenshot: [requested-times](../screenshots/spm-328_TC-VENUE-BOOK-023_requested-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset` and the three seeds; D = 2026-11-12. The row read `2026-11-13 07:00–07:15, 2026-11-14 23:45–24:00`. Screenshot: [requested-times](../screenshots/2026-10-29_TC-VENUE-BOOK-023_step4-requested-times.jpg)
 
 ### TC-VENUE-BOOK-024 A missing or impossible time is refused, naming it (SPM-349, AC1)
 
@@ -276,9 +286,9 @@ added to *Booking requests* by any of them.
 - [x] Start `09:00`, End `10:00`, add a second row also D+3 `13:00`–`14:00`:
       *D+3 is requested more than once. Give each date one start and end time.*
 
-**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step5-date-twice](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-024_step5-date-twice.png). The event still had only TC-VENUE-BOOK-023's booking afterwards.
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step5-date-twice](../screenshots/2026-10-22_TC-VENUE-BOOK-024_step5-date-twice.png). The event still had only TC-VENUE-BOOK-023's booking afterwards.
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Each refusal named 2026-11-15, and the event still had only TC-VENUE-BOOK-023's booking. Screenshot: [date-twice](../screenshots/spm-328_TC-VENUE-BOOK-024_date-twice.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Each refusal named 2026-11-15, and the event still had only TC-VENUE-BOOK-023's booking. Screenshot: [date-twice](../screenshots/2026-10-29_TC-VENUE-BOOK-024_step6-date-twice.jpg)
 
 ### TC-VENUE-BOOK-025 Overlap by any amount clashes; touching does not (SPM-350, AC2)
 
@@ -289,9 +299,9 @@ added to *Booking requests* by any of them.
 - [x] D, `18:00` to `19:00` (starts as it ends): accepted, **Requested**.
 - [x] D, `12:00` to `13:00` (ends as it starts): accepted, **Requested**.
 
-**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step1-17-45-18-15-overlap](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-025_step1-17-45-18-15-overlap.png)
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step1-17-45-18-15-overlap](../screenshots/2026-10-22_TC-VENUE-BOOK-025_step1-17-45-18-15-overlap.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Screenshot: [17-45-18-15-overlap](../screenshots/spm-328_TC-VENUE-BOOK-025_17-45-18-15-overlap.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Screenshot: [17-45-18-15-overlap](../screenshots/2026-10-29_TC-VENUE-BOOK-025_step2-17-45-18-15-overlap.jpg)
 
 ### TC-VENUE-BOOK-026 Bookings that hold nothing do not clash (SPM-350, AC3)
 
@@ -331,9 +341,9 @@ added to *Booking requests* by any of them.
 - [x] Open it. The header reads `D+1 07:00–07:15, D+2 23:45–24:00 · requested by …`.
       No AM, PM or Night anywhere on the page.
 
-**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-review-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-028_step2-review-times.png)
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-review-times](../screenshots/2026-10-22_TC-VENUE-BOOK-028_step2-review-times.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The queue read `07:00–07:15 + 23:45–24:00`. Screenshot: [review-times](../screenshots/spm-328_TC-VENUE-BOOK-028_review-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The queue read `07:00–07:15 + 23:45–24:00`. Screenshot: [review-times](../screenshots/2026-10-29_TC-VENUE-BOOK-028_step3-review-times.jpg)
 
 ### TC-VENUE-BOOK-029 Existing AM, PM and Night bookings convert (SPM-347, AC5)
 
@@ -388,6 +398,17 @@ A block is a start and end time (SPM-321); it is compared with the requested tim
       unavailable for D+6 11:45–12:00. Choose other times or another venue.*
 - [x] D+6, `12:00` to `13:00`: accepted.
 
-**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-block-11-45-12-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-030_step2-block-11-45-12-00.png)
+**Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-block-11-45-12-00](../screenshots/2026-10-22_TC-VENUE-BOOK-030_step2-block-11-45-12-00.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12, block on 2026-11-18. Screenshot: [block-11-45-12-00](../screenshots/spm-328_TC-VENUE-BOOK-030_block-11-45-12-00.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12, block on 2026-11-18. Screenshot: [block-11-45-12-00](../screenshots/2026-10-29_TC-VENUE-BOOK-030_step3-block-11-45-12-00.jpg)
+
+---
+
+## Screenshots of cases without a section above
+
+- TC-VENUE-BOOK-002: [step4-blocked-no-venues-to-choose](../screenshots/2026-10-04_TC-VENUE-BOOK-002_step4-blocked-no-venues-to-choose.png) · [step2-request-sent](../screenshots/2026-10-09_TC-VENUE-BOOK-002_step2-request-sent.png) · [step2-form-filled](../screenshots/2026-10-10_TC-VENUE-BOOK-002_step2-form-filled.png) · [step3-request-listed](../screenshots/2026-10-10_TC-VENUE-BOOK-002_step3-request-listed.png)
+- TC-VENUE-BOOK-005: [step2-confirmed-slot-refused](../screenshots/2026-10-10_TC-VENUE-BOOK-005_step2-confirmed-slot-refused.png) · [step3-adjacent-slot-accepted](../screenshots/2026-10-10_TC-VENUE-BOOK-005_step3-adjacent-slot-accepted.png)
+- TC-VENUE-BOOK-019: [step1-expired-hold-accepted](../screenshots/2026-10-10_TC-VENUE-BOOK-019_step1-expired-hold-accepted.png) · [step1-expired-hold-accepted](../screenshots/2026-10-14_TC-VENUE-BOOK-019_step1-expired-hold-accepted.png)
+- TC-VENUE-BOOK-020: [step1-live-hold-refused](../screenshots/2026-10-10_TC-VENUE-BOOK-020_step1-live-hold-refused.png) · [step1-live-hold-refused](../screenshots/2026-10-14_TC-VENUE-BOOK-020_step1-live-hold-refused.png)
+- TC-VENUE-BOOK-021: [step2-three-venues-same-slot](../screenshots/2026-10-10_TC-VENUE-BOOK-021_step2-three-venues-same-slot.png)
+- TC-VENUE-BOOK-022: [step2-event-beside-request](../screenshots/2026-10-10_TC-VENUE-BOOK-022_step2-event-beside-request.png)

@@ -157,7 +157,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-decision-card-offers-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step1-decision-card-offers-hold.png) · [step2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step2-header-tentative-hold.png) · [step2-on-hold-until-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step2-on-hold-until-confirm-release.png) · [step3-decided-lists-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step3-decided-lists-hold.png) · [step3-requests-no-longer-lists-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step3-requests-no-longer-lists-a.png) · [step4-coordinator-sees-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-001_step4-coordinator-sees-tentative-hold.png)
+**Screenshots:** [step1-decision-card-offers-hold](../screenshots/2026-10-27_TC-VHOLD-001_step1-decision-card-offers-hold.png) · [step2-header-tentative-hold](../screenshots/2026-10-27_TC-VHOLD-001_step2-header-tentative-hold.png) · [step2-on-hold-until-confirm-release](../screenshots/2026-10-27_TC-VHOLD-001_step2-on-hold-until-confirm-release.png) · [step3-decided-lists-hold](../screenshots/2026-10-27_TC-VHOLD-001_step3-decided-lists-hold.png) · [step3-requests-no-longer-lists-a](../screenshots/2026-10-27_TC-VHOLD-001_step3-requests-no-longer-lists-a.png) · [step4-coordinator-sees-tentative-hold](../screenshots/2026-10-27_TC-VHOLD-001_step4-coordinator-sees-tentative-hold.png) · [step1-decision-card-with-hold](../screenshots/2026-10-13_TC-VHOLD-001_step1-decision-card-with-hold.png) · [step2-on-hold-card](../screenshots/2026-10-13_TC-VHOLD-001_step2-on-hold-card.png) · [step3-decided-list](../screenshots/2026-10-13_TC-VHOLD-001_step3-decided-list.png) · [step4-coordinator-row](../screenshots/2026-10-13_TC-VHOLD-001_step4-coordinator-row.png)
 
 ---
 
@@ -186,7 +186,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-harbour-room-listed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step1-harbour-room-listed.png) · [step1-search-t3-0700-1200](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step1-search-t3-0700-1200.png) · [step2-harbour-room-held](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step2-harbour-room-held.png) · [step2-harbour-room-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step2-harbour-room-on-hold-until.png) · [step3-harbour-room-not-listed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step3-harbour-room-not-listed.png) · [step4-approve-b-refused-held-by-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step4-approve-b-refused-held-by-a.png) · [step4-hold-b-refused-held-by-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step4-hold-b-refused-held-by-a.png) · [step5-c-still-requested](../screenshots/2026-10-27_SPM-325_TC-VHOLD-002_step5-c-still-requested.png)
+**Screenshots:** [step1-harbour-room-listed](../screenshots/2026-10-27_TC-VHOLD-002_step1-harbour-room-listed.png) · [step1-search-t3-0700-1200](../screenshots/2026-10-27_TC-VHOLD-002_step1-search-t3-0700-1200.png) · [step2-harbour-room-held](../screenshots/2026-10-27_TC-VHOLD-002_step2-harbour-room-held.png) · [step2-harbour-room-on-hold-until](../screenshots/2026-10-27_TC-VHOLD-002_step2-harbour-room-on-hold-until.png) · [step3-harbour-room-not-listed](../screenshots/2026-10-27_TC-VHOLD-002_step3-harbour-room-not-listed.png) · [step4-approve-b-refused-held-by-a](../screenshots/2026-10-27_TC-VHOLD-002_step4-approve-b-refused-held-by-a.png) · [step4-hold-b-refused-held-by-a](../screenshots/2026-10-27_TC-VHOLD-002_step4-hold-b-refused-held-by-a.png) · [step5-c-still-requested](../screenshots/2026-10-27_TC-VHOLD-002_step5-c-still-requested.png) · [step1-search-lists-harbour-room](../screenshots/2026-10-13_TC-VHOLD-002_step1-search-lists-harbour-room.png) · [step3-search-without-harbour-room](../screenshots/2026-10-13_TC-VHOLD-002_step3-search-without-harbour-room.png) · [step4-second-hold-refused](../screenshots/2026-10-13_TC-VHOLD-002_step4-second-hold-refused.png) · [step5-other-slot-unaffected](../screenshots/2026-10-13_TC-VHOLD-002_step5-other-slot-unaffected.png)
 
 ---
 
@@ -214,7 +214,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-y-refused-padded-two-dates](../screenshots/2026-10-27_SPM-325_TC-VHOLD-003_step1-y-refused-padded-two-dates.png) · [step2-f-refused-venue-unavailable](../screenshots/2026-10-27_SPM-325_TC-VHOLD-003_step2-f-refused-venue-unavailable.png)
+**Screenshots:** [step1-y-refused-padded-two-dates](../screenshots/2026-10-27_TC-VHOLD-003_step1-y-refused-padded-two-dates.png) · [step2-f-refused-venue-unavailable](../screenshots/2026-10-27_TC-VHOLD-003_step2-f-refused-venue-unavailable.png) · [step1-clash-with-confirmed](../screenshots/2026-10-13_TC-VHOLD-003_step1-clash-with-confirmed.png) · [step2-blocked-slot](../screenshots/2026-10-13_TC-VHOLD-003_step2-blocked-slot.png)
 
 ---
 
@@ -246,7 +246,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-e-refused-live-hold-padded](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step1-e-refused-live-hold-padded.png) · [step2-d-held-room-in-use](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step2-d-held-room-in-use.png) · [step2-d-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-004_step2-d-on-hold-until.png)
+**Screenshots:** [step1-e-refused-live-hold-padded](../screenshots/2026-10-27_TC-VHOLD-004_step1-e-refused-live-hold-padded.png) · [step2-d-held-room-in-use](../screenshots/2026-10-27_TC-VHOLD-004_step2-d-held-room-in-use.png) · [step2-d-on-hold-until](../screenshots/2026-10-27_TC-VHOLD-004_step2-d-on-hold-until.png) · [step1-live-hold-refuses](../screenshots/2026-10-13_TC-VHOLD-004_step1-live-hold-refuses.png) · [step2-expired-hold-does-not-block](../screenshots/2026-10-13_TC-VHOLD-004_step2-expired-hold-does-not-block.png)
 
 ---
 
@@ -266,7 +266,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-coordinator-access-denied-403](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step1-coordinator-access-denied-403.png) · [step2-confirmed-x-offers-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step2-confirmed-x-offers-no-buttons.png) · [step2-held-a-offers-only-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-005_step2-held-a-offers-only-confirm-release.png)
+**Screenshots:** [step1-coordinator-access-denied-403](../screenshots/2026-10-27_TC-VHOLD-005_step1-coordinator-access-denied-403.png) · [step2-confirmed-x-offers-no-buttons](../screenshots/2026-10-27_TC-VHOLD-005_step2-confirmed-x-offers-no-buttons.png) · [step2-held-a-offers-only-confirm-release](../screenshots/2026-10-27_TC-VHOLD-005_step2-held-a-offers-only-confirm-release.png) · [step1-coordinator-denied](../screenshots/2026-10-13_TC-VHOLD-005_step1-coordinator-denied.png) · [step2-confirmed-booking-no-buttons](../screenshots/2026-10-13_TC-VHOLD-005_step2-confirmed-booking-no-buttons.png) · [step2-held-booking-confirm-release-only](../screenshots/2026-10-14_TC-VHOLD-005_step2-held-booking-confirm-release-only.png)
 
 ---
 
@@ -299,7 +299,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-a-on-hold-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step1-a-on-hold-confirm-release.png) · [step2-already-decided-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step2-already-decided-confirmed.png) · [step2-header-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step2-header-confirmed.png) · [step3-decided-lists-a-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step3-decided-lists-a-confirmed.png) · [step4-b-refused-by-confirmed-a](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step4-b-refused-by-confirmed-a.png) · [step5-coordinator-sees-confirmed](../screenshots/2026-10-27_SPM-325_TC-VHOLD-006_step5-coordinator-sees-confirmed.png)
+**Screenshots:** [step1-a-on-hold-confirm-release](../screenshots/2026-10-27_TC-VHOLD-006_step1-a-on-hold-confirm-release.png) · [step2-already-decided-confirmed](../screenshots/2026-10-27_TC-VHOLD-006_step2-already-decided-confirmed.png) · [step2-header-confirmed](../screenshots/2026-10-27_TC-VHOLD-006_step2-header-confirmed.png) · [step3-decided-lists-a-confirmed](../screenshots/2026-10-27_TC-VHOLD-006_step3-decided-lists-a-confirmed.png) · [step4-b-refused-by-confirmed-a](../screenshots/2026-10-27_TC-VHOLD-006_step4-b-refused-by-confirmed-a.png) · [step5-coordinator-sees-confirmed](../screenshots/2026-10-27_TC-VHOLD-006_step5-coordinator-sees-confirmed.png) · [step1-hold-offers-confirm-and-release](../screenshots/2026-10-14_TC-VHOLD-006_step1-hold-offers-confirm-and-release.png) · [step2-confirmed](../screenshots/2026-10-14_TC-VHOLD-006_step2-confirmed.png) · [step5-coordinator-row-confirmed](../screenshots/2026-10-14_TC-VHOLD-006_step5-coordinator-row-confirmed.png)
 
 ---
 
@@ -332,7 +332,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-already-decided-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step1-already-decided-released.png) · [step1-header-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step1-header-released.png) · [step2-archive-lists-g-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step2-archive-lists-g-released.png) · [step3-harbour-room-listed-again](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step3-harbour-room-listed-again.png) · [step4-g2-request-sent](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step4-g2-request-sent.png) · [step5-g2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step5-g2-header-tentative-hold.png) · [step5-g2-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-007_step5-g2-on-hold-until.png)
+**Screenshots:** [step1-already-decided-released](../screenshots/2026-10-27_TC-VHOLD-007_step1-already-decided-released.png) · [step1-header-released](../screenshots/2026-10-27_TC-VHOLD-007_step1-header-released.png) · [step2-archive-lists-g-released](../screenshots/2026-10-27_TC-VHOLD-007_step2-archive-lists-g-released.png) · [step3-harbour-room-listed-again](../screenshots/2026-10-27_TC-VHOLD-007_step3-harbour-room-listed-again.png) · [step4-g2-request-sent](../screenshots/2026-10-27_TC-VHOLD-007_step4-g2-request-sent.png) · [step5-g2-header-tentative-hold](../screenshots/2026-10-27_TC-VHOLD-007_step5-g2-header-tentative-hold.png) · [step5-g2-on-hold-until](../screenshots/2026-10-27_TC-VHOLD-007_step5-g2-on-hold-until.png) · [step1-released](../screenshots/2026-10-14_TC-VHOLD-007_step1-released.png) · [step3-search-lists-harbour-room-again](../screenshots/2026-10-14_TC-VHOLD-007_step3-search-lists-harbour-room-again.png) · [step5-new-hold-accepted](../screenshots/2026-10-14_TC-VHOLD-007_step5-new-hold-accepted.png)
 
 ---
 
@@ -367,7 +367,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step3-confirm-refused-hold-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step3-confirm-refused-hold-expired.png) · [step4-header-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step4-header-expired.png) · [step4-hold-expired-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step4-hold-expired-no-buttons.png) · [step5-a-decided-no-confirm-release](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step5-a-decided-no-confirm-release.png) · [step6-b-offers-approve-hold-reject](../screenshots/2026-10-27_SPM-325_TC-VHOLD-008_step6-b-offers-approve-hold-reject.png)
+**Screenshots:** [step3-confirm-refused-hold-expired](../screenshots/2026-10-27_TC-VHOLD-008_step3-confirm-refused-hold-expired.png) · [step4-header-expired](../screenshots/2026-10-27_TC-VHOLD-008_step4-header-expired.png) · [step4-hold-expired-no-buttons](../screenshots/2026-10-27_TC-VHOLD-008_step4-hold-expired-no-buttons.png) · [step5-a-decided-no-confirm-release](../screenshots/2026-10-27_TC-VHOLD-008_step5-a-decided-no-confirm-release.png) · [step6-b-offers-approve-hold-reject](../screenshots/2026-10-27_TC-VHOLD-008_step6-b-offers-approve-hold-reject.png) · [step3-refused-after-expiry](../screenshots/2026-10-14_TC-VHOLD-008_step3-refused-after-expiry.png) · [step4-hold-expired](../screenshots/2026-10-14_TC-VHOLD-008_step4-hold-expired.png) · [step5-confirmed-offers-neither](../screenshots/2026-10-14_TC-VHOLD-008_step5-confirmed-offers-neither.png)
 
 ---
 
@@ -396,7 +396,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-block-overlaps-d-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step1-block-overlaps-d-hold.png) · [step1-main-hall-blocked-0900-1000](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step1-main-hall-blocked-0900-1000.png) · [step2-d-still-on-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step2-d-still-on-hold.png) · [step3-confirm-refused-venue-unavailable](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step3-confirm-refused-venue-unavailable.png) · [step4-d-released](../screenshots/2026-10-27_SPM-325_TC-VHOLD-009_step4-d-released.png)
+**Screenshots:** [step1-block-overlaps-d-hold](../screenshots/2026-10-27_TC-VHOLD-009_step1-block-overlaps-d-hold.png) · [step1-main-hall-blocked-0900-1000](../screenshots/2026-10-27_TC-VHOLD-009_step1-main-hall-blocked-0900-1000.png) · [step2-d-still-on-hold](../screenshots/2026-10-27_TC-VHOLD-009_step2-d-still-on-hold.png) · [step3-confirm-refused-venue-unavailable](../screenshots/2026-10-27_TC-VHOLD-009_step3-confirm-refused-venue-unavailable.png) · [step4-d-released](../screenshots/2026-10-27_TC-VHOLD-009_step4-d-released.png) · [step3-confirm-refused-over-block](../screenshots/2026-10-14_TC-VHOLD-009_step3-confirm-refused-over-block.png) · [step4-released-over-block](../screenshots/2026-10-14_TC-VHOLD-009_step4-released-over-block.png)
 
 ---
 
@@ -428,7 +428,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-decided-does-not-list-c](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step1-decided-does-not-list-c.png) · [step2-archive-lists-c-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-archive-lists-c-expired.png) · [step2-header-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-header-expired.png) · [step2-hold-expired-no-buttons](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step2-hold-expired-no-buttons.png) · [step4-coordinator-sees-expired](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step4-coordinator-sees-expired.png) · [step5-c2-header-tentative-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-header-tentative-hold.png) · [step5-c2-on-hold-until](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-on-hold-until.png) · [step5-c2-request-sent](../screenshots/2026-10-27_SPM-325_TC-VHOLD-010_step5-c2-request-sent.png)
+**Screenshots:** [step1-decided-does-not-list-c](../screenshots/2026-10-27_TC-VHOLD-010_step1-decided-does-not-list-c.png) · [step2-archive-lists-c-expired](../screenshots/2026-10-27_TC-VHOLD-010_step2-archive-lists-c-expired.png) · [step2-header-expired](../screenshots/2026-10-27_TC-VHOLD-010_step2-header-expired.png) · [step2-hold-expired-no-buttons](../screenshots/2026-10-27_TC-VHOLD-010_step2-hold-expired-no-buttons.png) · [step4-coordinator-sees-expired](../screenshots/2026-10-27_TC-VHOLD-010_step4-coordinator-sees-expired.png) · [step5-c2-header-tentative-hold](../screenshots/2026-10-27_TC-VHOLD-010_step5-c2-header-tentative-hold.png) · [step5-c2-on-hold-until](../screenshots/2026-10-27_TC-VHOLD-010_step5-c2-on-hold-until.png) · [step5-c2-request-sent](../screenshots/2026-10-27_TC-VHOLD-010_step5-c2-request-sent.png) · [step2-expired-in-archive](../screenshots/2026-10-17_TC-VHOLD-010_step2-expired-in-archive.png) · [step4-coordinator-row-expired](../screenshots/2026-10-17_TC-VHOLD-010_step4-coordinator-row-expired.png) · [step5-new-hold-accepted](../screenshots/2026-10-17_TC-VHOLD-010_step5-new-hold-accepted.png)
 
 ---
 
@@ -458,7 +458,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step1-z-requested-tomorrow](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step1-z-requested-tomorrow.png) · [step2-z-header-hold-capped](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step2-z-header-hold-capped.png) · [step2-z-on-hold-until-1pm-tomorrow](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step2-z-on-hold-until-1pm-tomorrow.png) · [step5-e-refused-already-started](../screenshots/2026-10-27_SPM-325_TC-VHOLD-011_step5-e-refused-already-started.png)
+**Screenshots:** [step1-z-requested-tomorrow](../screenshots/2026-10-27_TC-VHOLD-011_step1-z-requested-tomorrow.png) · [step2-z-header-hold-capped](../screenshots/2026-10-27_TC-VHOLD-011_step2-z-header-hold-capped.png) · [step2-z-on-hold-until-1pm-tomorrow](../screenshots/2026-10-27_TC-VHOLD-011_step2-z-on-hold-until-1pm-tomorrow.png) · [step5-e-refused-already-started](../screenshots/2026-10-27_TC-VHOLD-011_step5-e-refused-already-started.png) · [step2-hold-capped-at-slot-start](../screenshots/2026-10-17_TC-VHOLD-011_step2-hold-capped-at-slot-start.png) · [step5-started-slot-refused](../screenshots/2026-10-17_TC-VHOLD-011_step5-started-slot-refused.png)
 
 ---
 
@@ -494,7 +494,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step2-decided-no-longer-lists-hold](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step2-decided-no-longer-lists-hold.png) · [step3-inbox-hold-expired-notice](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step3-inbox-hold-expired-notice.png) · [step4-notice-opens-event](../screenshots/2026-10-27_SPM-325_TC-VHOLD-012_step4-notice-opens-event.png)
+**Screenshots:** [step2-decided-no-longer-lists-hold](../screenshots/2026-10-27_TC-VHOLD-012_step2-decided-no-longer-lists-hold.png) · [step3-inbox-hold-expired-notice](../screenshots/2026-10-27_TC-VHOLD-012_step3-inbox-hold-expired-notice.png) · [step4-notice-opens-event](../screenshots/2026-10-27_TC-VHOLD-012_step4-notice-opens-event.png) · [step2-holds-gone-from-decided](../screenshots/2026-10-18_TC-VHOLD-012_step2-holds-gone-from-decided.png)
 
 ---
 
@@ -520,7 +520,7 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 **Status:** [x] Pass [ ] Fail — 2026-10-27
 
-**Screenshots:** [step4-inbox-no-new-notice](../screenshots/2026-10-27_SPM-325_TC-VHOLD-013_step4-inbox-no-new-notice.png)
+**Screenshots:** [step4-inbox-no-new-notice](../screenshots/2026-10-27_TC-VHOLD-013_step4-inbox-no-new-notice.png)
 
 ---
 

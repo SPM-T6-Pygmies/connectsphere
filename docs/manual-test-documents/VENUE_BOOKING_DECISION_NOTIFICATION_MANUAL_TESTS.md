@@ -96,6 +96,8 @@ AC1.
 
 ---
 
+**Screenshots:** [step3-after-booking-table](../screenshots/2026-10-13_TC-VBDECIDENOTE-001_step3-after-booking-table.png) · [step4-before-booking-table](../screenshots/2026-10-13_TC-VBDECIDENOTE-001_step4-before-booking-table.png) · [step1-venue-staff-approved](../screenshots/2026-10-14_TC-VBDECIDENOTE-001_step1-venue-staff-approved.png)
+
 ### TC-VBDECIDENOTE-002: A rejection carries the reason and the suggested venue, as a suggestion only
 
 AC1, AC2.
@@ -124,6 +126,8 @@ AC1, AC2.
 **Status:** [x] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step1-venue-staff-rejected-with-suggestion](../screenshots/2026-10-14_TC-VBDECIDENOTE-002_step1-venue-staff-rejected-with-suggestion.png)
 
 ### TC-VBDECIDENOTE-003: A rejection with no suggestion carries the reason alone
 
@@ -171,6 +175,8 @@ on `/staff/coordinator/notifications`.
 
 ---
 
+**Screenshots:** [step1-booking-with-answer](../screenshots/2026-10-14_TC-VBDECIDENOTE-004_step1-booking-with-answer.png)
+
 ### TC-VBDECIDENOTE-005: A fresh request for the suggested venue can be sent from the booking
 
 AC3.
@@ -196,6 +202,8 @@ AC3.
 **Status:** [x] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step1-form-prefilled-with-main-hall](../screenshots/2026-10-14_TC-VBDECIDENOTE-005_step1-form-prefilled-with-main-hall.png)
 
 ### TC-VBDECIDENOTE-006: The notice can be marked read
 

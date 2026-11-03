@@ -111,6 +111,8 @@ others alongside does not change the numbers below.
 
 ---
 
+**Screenshots:** [step1-after-coordinator-reserved](../screenshots/2026-10-10_TC-RESERVE-001_step1-after-coordinator-reserved.png) · [step10-before-event-page](../screenshots/2026-10-10_TC-RESERVE-001_step10-before-event-page.png) · [step2-after-coordinator-unfulfilled](../screenshots/2026-10-10_TC-RESERVE-001_step2-after-coordinator-unfulfilled.png) · [step3-after-equipment-card](../screenshots/2026-10-10_TC-RESERVE-001_step3-after-equipment-card.png) · [step4-after-event-page](../screenshots/2026-10-10_TC-RESERVE-001_step4-after-event-page.png) · [step5-after-no-date](../screenshots/2026-10-10_TC-RESERVE-001_step5-after-no-date.png) · [step6-after-refused-recheck](../screenshots/2026-10-10_TC-RESERVE-001_step6-after-refused-recheck.png) · [step7-after-unfulfilled](../screenshots/2026-10-10_TC-RESERVE-001_step7-after-unfulfilled.png) · [step8-before-coordinator](../screenshots/2026-10-10_TC-RESERVE-001_step8-before-coordinator.png) · [step9-before-equipment-card](../screenshots/2026-10-10_TC-RESERVE-001_step9-before-equipment-card.png)
+
 ### TC-RESERVE-002: Units reserved for one event are not available to another a day away (AC5)
 
 **Preconditions:** TC-RESERVE-001 passed.

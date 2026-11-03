@@ -176,8 +176,14 @@ SPM-324 AC4.
   21 Jan 2027 (19:00–24:00). Approve or reject it." No AM, PM or Night.
 
 **Evidence:**
-- [`TC-VENUENOTE-005_step3-venue-inbox.png`](../screenshots/2026-10-22_SPM-324_TC-VENUENOTE-005_step3-venue-inbox.png)
+- [`TC-VENUENOTE-005_step3-venue-inbox.png`](../screenshots/2026-10-22_TC-VENUENOTE-005_step3-venue-inbox.png)
 
 **Status:** [x] Pass [ ] Fail — 22/10/2026, Chrome via Claude in Chrome for joyceetran (`pnpm dev:local` with the Novu tunnel; the new booking was 10).
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), with the Novu tunnel; the new booking was 13, with one `Sent` row each for accounts 4 and 9. Screenshot: [venue-inbox](../screenshots/spm-328_TC-VENUENOTE-005_venue-inbox.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), with the Novu tunnel; the new booking was 13, with one `Sent` row each for accounts 4 and 9. Screenshot: [venue-inbox](../screenshots/2026-10-29_TC-VENUENOTE-005_step4-venue-inbox.jpg)
+
+---
+
+## Screenshots of cases without a section above
+
+- TC-VENUENOTE-001: [step3-venue-inbox](../screenshots/2026-10-12_TC-VENUENOTE-001_step3-venue-inbox.png) · [step4-venue2-inbox](../screenshots/2026-10-12_TC-VENUENOTE-001_step4-venue2-inbox.png)

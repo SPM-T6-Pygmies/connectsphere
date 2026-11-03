@@ -158,6 +158,8 @@ Run the cases in order.
 
 **Status:** [ ] Pass [ ] Fail — to re-run: the email now goes out on confirmation (previously run 30/10/2026 with the email sent on acceptance)
 
+**Screenshots:** [step2-withdrawn-registration](../screenshots/2026-10-30_TC-ATTCHANGE-001_step2-withdrawn-registration.jpg) · [step5-rescheduled-email-new-date-time-venue](../screenshots/2026-10-30_TC-ATTCHANGE-001_step5-rescheduled-email-new-date-time-venue.jpg)
+
 ### TC-ATTCHANGE-002: Cancelling emails every Registered attendee (AC1, AC3)
 
 **Preconditions:** State left by TC-ATTCHANGE-001. Signed in as
@@ -176,6 +178,8 @@ Run the cases in order.
 
 **Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
 
+**Screenshots:** [step1-cancel-event](../screenshots/2026-10-30_TC-ATTCHANGE-002_step1-cancel-event.jpg) · [step2-cancelled-email](../screenshots/2026-10-30_TC-ATTCHANGE-002_step2-cancelled-email.jpg) · [step2-withdrawn-inbox-no-cancellation](../screenshots/2026-10-30_TC-ATTCHANGE-002_step2-withdrawn-inbox-no-cancellation.jpg) · [step3-setup-accept-reschedule-to-4-dec](../screenshots/2026-10-30_TC-ATTCHANGE-002_step3-setup-accept-reschedule-to-4-dec.jpg) · [step4-setup-attendee-registered-4-dec](../screenshots/2026-10-30_TC-ATTCHANGE-002_step4-setup-attendee-registered-4-dec.jpg)
+
 ### TC-ATTCHANGE-003: A change that is not a reschedule emails no attendee (AC1)
 
 **Preconditions:** Setup done (a fresh run), with `<you+a@…>` registered as
@@ -191,6 +195,8 @@ in TC-ATTCHANGE-001 step 1.
 - Step 3: no new email after the registration confirmation.
 
 **Status:** [x] Pass [ ] Fail — 30/10/2026, run in the browser with real Gmail inboxes
+
+**Screenshots:** [step2-accept-attendance-250](../screenshots/2026-10-30_TC-ATTCHANGE-003_step2-accept-attendance-250.jpg) · [step2-attendance-accepted](../screenshots/2026-10-30_TC-ATTCHANGE-003_step2-attendance-accepted.jpg)
 
 ### TC-ATTCHANGE-004: A registration link for an event not yet re-confirmed says its details are unavailable (AC5)
 
@@ -212,3 +218,5 @@ TC-ATTCHANGE-001 step 1. Keep the confirmation email open.
 - Step 4: *We couldn't find that registration*.
 
 **Status:** [ ] Pass [ ] Fail — not run
+
+**Screenshots:** [step3-details-unavailable](../screenshots/2026-10-31_TC-ATTCHANGE-004_step3-details-unavailable.png) · [step4-not-found](../screenshots/2026-10-31_TC-ATTCHANGE-004_step4-not-found.png)

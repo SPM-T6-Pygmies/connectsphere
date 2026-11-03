@@ -59,7 +59,7 @@ than committed here.
 - [ ] `notification` has a row with `trigger_scenario = 'organiser-coordinator-assigned'`,
       the organiser as recipient, and `status = 'Sent'`.
 
-![Organiser's inbox with one unread Coordinator assigned notification](../screenshots/2026-10-04-spm-58-01-organiser-told-their-coordinator.png)
+![Organiser's inbox with one unread Coordinator assigned notification](../screenshots/2026-10-04_TC-ORGNOTIFY-001_step1-organiser-told-their-coordinator.png)
 
 ### TC-ORGNOTIFY-002 Opening the notification opens the request and reads it
 
@@ -71,7 +71,7 @@ than committed here.
 - [x] Back in **Notifications**, the notification is read and the unread dot on
       the rail is gone.
 
-![The request opened from the notification, showing Test Coordinator assigned](../screenshots/2026-10-04-spm-58-02-notification-opens-the-request.png)
+![The request opened from the notification, showing Test Coordinator assigned](../screenshots/2026-10-04_TC-ORGNOTIFY-002_step1-notification-opens-the-request.png)
 
 ### TC-ORGNOTIFY-003 Reassignment notifies again, naming the new coordinator
 
@@ -84,7 +84,7 @@ than committed here.
 - [x] After step 2 there is a second, unread notification naming Test Coordinator 2.
 - [ ] Step 3 adds no notification.
 
-![A second, unread notification naming Test Coordinator 2; the first is read](../screenshots/2026-10-04-spm-58-03-reassignment-notifies-again.png)
+![A second, unread notification naming Test Coordinator 2; the first is read](../screenshots/2026-10-04_TC-ORGNOTIFY-003_step1-reassignment-notifies-again.png)
 
 ## SPM-59: clarification requested
 
@@ -101,8 +101,8 @@ than committed here.
 - [x] Clicking it opens the request, showing the question and a reply box.
 - [x] The notification is now read.
 
-![Clarification requested notification quoting the question](../screenshots/2026-10-04-spm-59-01-clarification-notification.png)
-![The returned request opened from the notification, with the question and a reply box](../screenshots/2026-10-04-spm-59-02-notification-opens-the-question.png)
+![Clarification requested notification quoting the question](../screenshots/2026-10-04_TC-ORGNOTIFY-004_step1-clarification-notification.png)
+![The returned request opened from the notification, with the question and a reply box](../screenshots/2026-10-04_TC-ORGNOTIFY-004_step2-notification-opens-the-question.png)
 
 ## SPM-60: review decision
 

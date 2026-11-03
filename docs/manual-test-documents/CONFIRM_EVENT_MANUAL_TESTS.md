@@ -162,6 +162,8 @@ arrangement incomplete", "Programme — No agenda has been written yet.").
 
 ---
 
+**Screenshots:** [step2-arrangements-only](../screenshots/2026-10-14_TC-CONFIRM-001_step2-arrangements-only.png)
+
 ### TC-CONFIRM-002: Confirming succeeds once the missing arrangement is filled in
 
 Origin: Backfilled 2026-10-04 from PR #55 (ticked: live-verified in the browser
@@ -205,6 +207,8 @@ the new route redirects to `/auth/login`, matching `/staff/coordinator/events`).
 
 ---
 
+**Screenshots:** [step1-signed-out-redirects-to-login](../screenshots/2026-10-04_TC-CONFIRM-003_step1-signed-out-redirects-to-login.png)
+
 ### TC-CONFIRM-004: With no safety check yet, both blockers are shown and Confirm is disabled
 
 SPM-264 AC1, AC6.
@@ -225,6 +229,8 @@ SPM-264 AC1, AC6.
 **Status:** [ ] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step2-both-blockers](../screenshots/2026-10-14_TC-CONFIRM-004_step2-both-blockers.png) · [step3-after-blocked-without-safety-check](../screenshots/2026-10-14_TC-CONFIRM-004_step3-after-blocked-without-safety-check.png) · [step4-before-ready-without-safety-check](../screenshots/2026-10-14_TC-CONFIRM-004_step4-before-ready-without-safety-check.png)
 
 ### TC-CONFIRM-005: After a rejection, the card says to make the changes and resubmit
 
@@ -252,6 +258,8 @@ SPM-264 AC2.
 
 ---
 
+**Screenshots:** [step3-rejected](../screenshots/2026-10-14_TC-CONFIRM-005_step3-rejected.png)
+
 ### TC-CONFIRM-006: Once resubmitted, the card says it awaits a fresh check
 
 SPM-264 AC3.
@@ -271,6 +279,8 @@ SPM-264 AC3.
 **Status:** [ ] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step2-resubmitted](../screenshots/2026-10-14_TC-CONFIRM-006_step2-resubmitted.png)
 
 ### TC-CONFIRM-007: An approval after the rejection lets the event be confirmed
 
@@ -293,6 +303,8 @@ SPM-264 AC4, AC5.
 **Status:** [ ] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step3-confirmed](../screenshots/2026-10-14_TC-CONFIRM-007_step3-confirmed.png) · [step3-ready-after-approval](../screenshots/2026-10-14_TC-CONFIRM-007_step3-ready-after-approval.png)
 
 ### TC-CONFIRM-008: The database refuses to confirm an event without an approved check
 

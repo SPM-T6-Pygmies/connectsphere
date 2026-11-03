@@ -89,6 +89,8 @@ table — CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when th
 
 ---
 
+**Screenshots:** [step2-both-lines-off](../screenshots/2026-10-19_TC-ESSENTIAL-001_step2-both-lines-off.png) · [step4-projector-essential](../screenshots/2026-10-19_TC-ESSENTIAL-001_step4-projector-essential.png)
+
 ### TC-ESSENTIAL-002: Technical Support see which lines are essential (AC2)
 
 **Preconditions:** TC-ESSENTIAL-001 passed.
@@ -105,6 +107,8 @@ table — CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when th
 **Status:** [ ] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step1-support-sees-badge](../screenshots/2026-10-19_TC-ESSENTIAL-002_step1-support-sees-badge.png)
 
 ### TC-ESSENTIAL-003: Mark a line not essential again (AC1)
 

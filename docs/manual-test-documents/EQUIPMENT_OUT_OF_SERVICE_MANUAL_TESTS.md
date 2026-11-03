@@ -111,7 +111,7 @@ Truth, with the same counts `seed-equipment` gives them.
 
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
-**Screenshots:** [step1-projector-card](../screenshots/2026-10-09_TC-OOS-001_step1-projector-card.png) · [step2-two-out-of-service](../screenshots/2026-10-09_TC-OOS-001_step2-two-out-of-service.png) · [step3-returned-to-service](../screenshots/2026-10-09_TC-OOS-001_step3-returned-to-service.png)
+**Screenshots:** [step1-projector-card](../screenshots/2026-10-09_TC-OOS-001_step1-projector-card.png) · [step2-two-out-of-service](../screenshots/2026-10-09_TC-OOS-001_step2-two-out-of-service.png) · [step3-returned-to-service](../screenshots/2026-10-09_TC-OOS-001_step3-returned-to-service.png) · [step4-after-equipment-out-of-service](../screenshots/2026-10-07_TC-OOS-001_step4-after-equipment-out-of-service.png) · [step5-after-equipment-refused](../screenshots/2026-10-07_TC-OOS-001_step5-after-equipment-refused.png) · [step6-after-equipment](../screenshots/2026-10-07_TC-OOS-001_step6-after-equipment.png) · [step7-after-event-page-out-of-service](../screenshots/2026-10-07_TC-OOS-001_step7-after-event-page-out-of-service.png) · [step8-before-equipment](../screenshots/2026-10-07_TC-OOS-001_step8-before-equipment.png)
 
 ---
 
@@ -198,3 +198,10 @@ it): `delete from equipment_item where type = 'Smoke machine';`.
 - Step 4: "Saved."; *In service: 5 of 5*, and no warning.
 
 **Status:** [ ] Pass [ ] Fail
+
+---
+
+## Screenshots of cases without a section above
+
+- TC-OOS-003: [step1-three-out](../screenshots/2026-10-09_TC-OOS-003_step1-three-out.png) · [step2-owned-2-refused](../screenshots/2026-10-09_TC-OOS-003_step2-owned-2-refused.png) · [step3-owned-3](../screenshots/2026-10-09_TC-OOS-003_step3-owned-3.png) · [step4-restored](../screenshots/2026-10-09_TC-OOS-003_step4-restored.png)
+- TC-OOS-004: [step1-available-4](../screenshots/2026-10-09_TC-OOS-004_step1-available-4.png) · [step3-available-2](../screenshots/2026-10-09_TC-OOS-004_step3-available-2.png) · [step4-available-4-again](../screenshots/2026-10-09_TC-OOS-004_step4-available-4-again.png)

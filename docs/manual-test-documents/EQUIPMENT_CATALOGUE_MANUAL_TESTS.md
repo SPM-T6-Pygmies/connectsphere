@@ -222,3 +222,16 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 **Status:** [x] Pass [ ] Fail — 9/10/2026, run in Chrome via Playwright for JameszLau
 
 **Screenshots:** [step1-lead-denied](../screenshots/2026-10-09_TC-EQCAT-016_step1-lead-denied.png)
+
+---
+
+## Screenshots of cases without a section above
+
+- TC-EQCAT-001: [step1-equipment-page-empty](../screenshots/2026-10-03_TC-EQCAT-001_step1-equipment-page-empty.png)
+- TC-EQCAT-002: [step1-add-equipment-panel](../screenshots/2026-10-03_TC-EQCAT-002_step1-add-equipment-panel.png) · [step2-two-cards](../screenshots/2026-10-03_TC-EQCAT-002_step2-two-cards.png)
+- TC-EQCAT-003: [step1-invalid-add-refused](../screenshots/2026-10-03_TC-EQCAT-003_step1-invalid-add-refused.png)
+- TC-EQCAT-004: [step1-update-persists-after-reload](../screenshots/2026-10-03_TC-EQCAT-004_step1-update-persists-after-reload.png)
+- TC-EQCAT-005: [step1-invalid-update-refused](../screenshots/2026-10-03_TC-EQCAT-005_step1-invalid-update-refused.png)
+- TC-EQCAT-006: [step1-reviewed-has-no-catalogue](../screenshots/2026-10-03_TC-EQCAT-006_step1-reviewed-has-no-catalogue.png)
+- TC-EQCAT-007: [step1-equipment-on-phone-width](../screenshots/2026-10-03_TC-EQCAT-007_step1-equipment-on-phone-width.png) · [step2-add-panel-on-phone-width](../screenshots/2026-10-03_TC-EQCAT-007_step2-add-panel-on-phone-width.png)
+- TC-EQCAT-008: [step1-other-role-cannot-open-equipment](../screenshots/2026-10-03_TC-EQCAT-008_step1-other-role-cannot-open-equipment.png)

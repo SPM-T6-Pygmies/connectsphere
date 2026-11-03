@@ -88,7 +88,7 @@ bookings, by venue and time. P has two open reasons and is still named once.
 
 **Status:** [x] Pass [ ] Fail — 27/10/2026, run in Chromium via Playwright
 
-**Screenshots:** [step1-two-bookings-flagged](../screenshots/2026-10-27_SPM-312_TC-CONFIRM-FLAG-001_step1-two-bookings-flagged.png)
+**Screenshots:** [step1-two-bookings-flagged](../screenshots/2026-10-27_TC-CONFIRM-FLAG-001_step1-two-bookings-flagged.png) · [step2-before-confirm-card-ignores-flags](../screenshots/2026-10-28_TC-CONFIRM-FLAG-001_step2-before-confirm-card-ignores-flags.png)
 
 ### TC-CONFIRM-FLAG-002: Clearing one booking's flag names only the other (AC2)
 
@@ -108,7 +108,7 @@ bookings, by venue and time. P has two open reasons and is still named once.
 
 **Status:** [x] Pass [ ] Fail — 27/10/2026, run in Chromium via Playwright
 
-**Screenshots:** [step2-one-booking-flagged](../screenshots/2026-10-27_SPM-312_TC-CONFIRM-FLAG-002_step2-one-booking-flagged.png)
+**Screenshots:** [step2-one-booking-flagged](../screenshots/2026-10-27_TC-CONFIRM-FLAG-002_step2-one-booking-flagged.png)
 
 ### TC-CONFIRM-FLAG-003: With every flag cleared, only the other gates remain (AC2)
 
@@ -127,4 +127,4 @@ applies.
 
 **Status:** [x] Pass [ ] Fail — 27/10/2026, run in Chromium via Playwright
 
-**Screenshots:** [step2-only-safety-check-blocks](../screenshots/2026-10-27_SPM-312_TC-CONFIRM-FLAG-003_step2-only-safety-check-blocks.png)
+**Screenshots:** [step2-only-safety-check-blocks](../screenshots/2026-10-27_TC-CONFIRM-FLAG-003_step2-only-safety-check-blocks.png)

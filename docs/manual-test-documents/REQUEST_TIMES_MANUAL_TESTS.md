@@ -79,6 +79,8 @@ AM; AM and PM; AM and Night (a Draft); Night; none (a Draft); AM, PM and Night.
 
 ---
 
+**Screenshots:** [step1-before-request-times](../screenshots/2026-10-25_TC-REQTIME-001_step1-before-request-times.png) · [step2-after-request-times](../screenshots/2026-10-25_TC-REQTIME-001_step2-after-request-times.png)
+
 ### TC-REQTIME-002: Request an event by start and end time
 
 **Preconditions:** Environment set up; browser in Singapore time; signed in

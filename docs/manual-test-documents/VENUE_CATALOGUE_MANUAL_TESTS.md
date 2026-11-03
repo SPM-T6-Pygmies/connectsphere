@@ -73,8 +73,10 @@ catalogue (`/staff/venue/catalogue`).
 - [x] After step 3, **Add venue** is still disabled; setting the opening and
       closing times enables it.
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step3-add-venue-disabled-until-times-set](../screenshots/2026-10-25_SPM-320_TC-VCAT-001_step3-add-venue-disabled-until-times-set.jpg)
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step3-add-venue-disabled-until-times-set](../screenshots/2026-10-25_TC-VCAT-001_step3-add-venue-disabled-until-times-set.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
+
+**Screenshots:** [step4-venue-catalogue-list-after-test-run](../screenshots/2026-09-29_TC-VCAT-001_step4-venue-catalogue-list-after-test-run.jpg) · [step2-form-lists-and-slots](../screenshots/2026-10-09_TC-VCAT-001_step2-form-lists-and-slots.png) · [step3-add-venue-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-001_step3-add-venue-disabled-no-slot.png) · [step3-add-venue-enabled-after-a-slot](../screenshots/2026-10-09_TC-VCAT-001_step3-add-venue-enabled-after-a-slot.png)
 
 ### TC-VCAT-002 Create a venue
 
@@ -95,9 +97,11 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
       form is empty again (checked 2026-10-23 in TC-VBUFFER-001).
 
 **Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). The toast and the emptied form were seen again.
-Screenshot: [step3-catalogue-row-07-00-18-00](../screenshots/2026-10-25_SPM-320_TC-VCAT-002_step3-catalogue-row-07-00-18-00.jpg)
+Screenshot: [step3-catalogue-row-07-00-18-00](../screenshots/2026-10-25_TC-VCAT-002_step3-catalogue-row-07-00-18-00.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../screenshots/2026-10-09_TC-VCAT-002_step3-catalogue-row.png)).
+
+**Screenshots:** [step2-form-filled](../screenshots/2026-10-09_TC-VCAT-002_step2-form-filled.png) · [step3-venue-opened](../screenshots/2026-10-09_TC-VCAT-002_step3-venue-opened.png)
 
 ### TC-VCAT-003 Layouts each carry their own capacity
 
@@ -116,7 +120,7 @@ Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../scree
 - [x] After step 4, the save is refused with "The Theatre layout is listed more
       than once." and the venue still has one Theatre at 200.
 
-**Run:** Pass, 26/10/2026, Chromium via Playwright (local, `pnpm dev:local`), on the venue from this run's TC-VCAT-002. Screenshots: [step3-classroom-120-beside-theatre-200](../screenshots/2026-10-26_SPM-320_TC-VCAT-003_step3-classroom-120-beside-theatre-200.png) · [step4-second-theatre-refused](../screenshots/2026-10-26_SPM-320_TC-VCAT-003_step4-second-theatre-refused.png)
+**Run:** Pass, 26/10/2026, Chromium via Playwright (local, `pnpm dev:local`), on the venue from this run's TC-VCAT-002. Screenshots: [step3-classroom-120-beside-theatre-200](../screenshots/2026-10-26_TC-VCAT-003_step3-classroom-120-beside-theatre-200.png) · [step4-second-theatre-refused](../screenshots/2026-10-26_TC-VCAT-003_step4-second-theatre-refused.png)
 Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:local`), on the venue from that run's TC-VCAT-002.
 Earlier run: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step3-two-layouts-in-catalogue](../screenshots/2026-10-09_TC-VCAT-003_step3-two-layouts-in-catalogue.png) · [step4-duplicate-theatre-refused](../screenshots/2026-10-09_TC-VCAT-003_step4-duplicate-theatre-refused.png)
@@ -136,9 +140,9 @@ Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: 
       **Opens** `13:00`, **Closes** `24:00`; Classroom 100. The catalogue row
       shows **Opening hours** `13:00–24:00`.
 
-**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step3-opens-13-00-closes-24-00-after-reload](../screenshots/2026-10-25_SPM-320_TC-VCAT-004_step3-opens-13-00-closes-24-00-after-reload.jpg)
+**Run:** Pass, 25/10/2026, Chrome via Claude in Chrome by joyceetran (local, `pnpm dev:local`). Screenshot: [step3-opens-13-00-closes-24-00-after-reload](../screenshots/2026-10-25_TC-VCAT-004_step3-opens-13-00-closes-24-00-after-reload.jpg)
 Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
-Screenshots, retaken 21/10/2026 on the same build: [step3-opening-windows-after-reload](../screenshots/2026-10-21_SPM-320_TC-VCAT-004_step3-opening-windows-after-reload.png)
+Screenshots, retaken 21/10/2026 on the same build: [step3-opening-windows-after-reload](../screenshots/2026-10-21_TC-VCAT-004_step3-opening-windows-after-reload.png)
 Earlier run on slots: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-edits-before-save](../screenshots/2026-10-09_TC-VCAT-004_step2-edits-before-save.png) · [step3-after-reload](../screenshots/2026-10-09_TC-VCAT-004_step3-after-reload.png) · [step4-save-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-004_step4-save-disabled-no-slot.png)
 
 ### TC-VCAT-005 Any Venue Staff can maintain any venue
@@ -221,4 +225,15 @@ select count(*) from v;
 - [x] Step 1: refused beside **Location**: *A venue with this location already exists. Choose a different location.* No venue is added, and the form keeps what was typed.
 - [x] Step 2: refused the same way; Harbour Room keeps its name.
 
-**Run:** Pass, 23/10/2026, Chrome via Playwright for JameszLau (3/3 checks) ([step1-same-location-typed](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step1-same-location-typed.png) · [step2-refused-as-duplicate](../screenshots/2026-10-23_SPM-42_TC-VCAT-007_step2-refused-as-duplicate.png)).
+**Run:** Pass, 23/10/2026, Chrome via Playwright for JameszLau (3/3 checks) ([step1-same-location-typed](../screenshots/2026-10-23_TC-VCAT-007_step1-same-location-typed.png) · [step2-refused-as-duplicate](../screenshots/2026-10-23_TC-VCAT-007_step2-refused-as-duplicate.png)).
+
+---
+
+## Screenshots of cases without a section above
+
+- TC-VENUE-001: [step1-lists-shown-as-checkboxes](../screenshots/2026-09-29_TC-VENUE-001_step1-lists-shown-as-checkboxes.jpg)
+- TC-VENUE-002: [step1-form-filled-several-selections](../screenshots/2026-09-29_TC-VENUE-002_step1-form-filled-several-selections.jpg) · [step2-venue-created-selections-shown](../screenshots/2026-09-29_TC-VENUE-002_step2-venue-created-selections-shown.jpg)
+- TC-VENUE-003: [step1-no-facility-ticked-submit-disabled](../screenshots/2026-09-29_TC-VENUE-003_step1-no-facility-ticked-submit-disabled.jpg) · [step2-facility-ticked-submit-enabled](../screenshots/2026-09-29_TC-VENUE-003_step2-facility-ticked-submit-enabled.jpg)
+- TC-VENUE-004: [step1-layout-dropdown-select-a-layout](../screenshots/2026-09-29_TC-VENUE-004_step1-layout-dropdown-select-a-layout.jpg)
+- TC-VENUE-005: [step1-two-theatre-layouts-entered](../screenshots/2026-09-29_TC-VENUE-005_step1-two-theatre-layouts-entered.jpg) · [step2-refused-error-banner](../screenshots/2026-09-29_TC-VENUE-005_step2-refused-error-banner.jpg) · [step3-refused-inline-message](../screenshots/2026-09-29_TC-VENUE-005_step3-refused-inline-message.jpg) · [step4-reloaded-nothing-saved-one-layout](../screenshots/2026-09-29_TC-VENUE-005_step4-reloaded-nothing-saved-one-layout.jpg)
+- TC-VENUE-006: [step1-edit-projector-to-pa-system-capacity-250](../screenshots/2026-09-29_TC-VENUE-006_step1-edit-projector-to-pa-system-capacity-250.jpg) · [step2-venue-saved-toast](../screenshots/2026-09-29_TC-VENUE-006_step2-venue-saved-toast.jpg) · [step3-reopened-changes-persisted](../screenshots/2026-09-29_TC-VENUE-006_step3-reopened-changes-persisted.jpg)

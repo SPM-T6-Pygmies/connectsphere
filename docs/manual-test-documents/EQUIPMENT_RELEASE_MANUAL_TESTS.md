@@ -101,6 +101,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 
 **Status:** [ ] Pass [ ] Fail
 
+**Screenshots:** [step1-before-pa-speaker-no-decision-action](../screenshots/2026-10-26_TC-RELEASE-001_step1-before-pa-speaker-no-decision-action.png)
+
 ### TC-RELEASE-002: Held units are not available to an event the next day (AC2, before)
 
 **Steps:**
@@ -133,6 +135,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 - Step 4: the lines are Projector and Wireless microphone. There is no PA speaker line.
 
 **Status:** [ ] Pass [ ] Fail
+
+**Screenshots:** [step1-pa-speaker-release-2](../screenshots/2026-10-26_TC-RELEASE-003_step1-pa-speaker-release-2.png) · [step2-release-confirmation](../screenshots/2026-10-26_TC-RELEASE-003_step2-release-confirmation.png) · [step2-released-toast-row-gone](../screenshots/2026-10-26_TC-RELEASE-003_step2-released-toast-row-gone.png)
 
 ### TC-RELEASE-004: Released units are available again (AC2, after)
 

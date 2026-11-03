@@ -101,7 +101,7 @@ two that are not live are left alone, and nothing changes status.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chrome via Playwright
 
-**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_SPM-309_TC-EVCHG-001_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_SPM-309_TC-EVCHG-001_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_SPM-309_TC-EVCHG-001_step3-coordinator-venue-tab.png)
+**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_TC-EVCHG-001_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_TC-EVCHG-001_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_TC-EVCHG-001_step3-coordinator-venue-tab.png)
 
 ### TC-EVCHG-002: Accepted attendance and venue requirements name the field (AC2)
 
@@ -121,7 +121,7 @@ two that are not live are left alone, and nothing changes status.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chrome via Playwright
 
-**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_SPM-309_TC-EVCHG-002_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_SPM-309_TC-EVCHG-002_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_SPM-309_TC-EVCHG-002_step3-coordinator-venue-tab.png)
+**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_TC-EVCHG-002_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_TC-EVCHG-002_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_TC-EVCHG-002_step3-coordinator-venue-tab.png)
 
 ### TC-EVCHG-003: An accepted equipment change flags nothing (AC3)
 
@@ -140,7 +140,7 @@ two that are not live are left alone, and nothing changes status.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chrome via Playwright
 
-**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_SPM-309_TC-EVCHG-003_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_SPM-309_TC-EVCHG-003_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_SPM-309_TC-EVCHG-003_step3-coordinator-venue-tab.png)
+**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_TC-EVCHG-003_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_TC-EVCHG-003_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_TC-EVCHG-003_step3-coordinator-venue-tab.png)
 
 ### TC-EVCHG-004: A declined field flags nothing, an accepted one still does (AC4)
 
@@ -161,7 +161,7 @@ while accepting attendance in the same save flags for attendance only.
 
 **Status:** [x] Pass [ ] Fail — 29/10/2026, run in Chrome via Playwright
 
-**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_SPM-309_TC-EVCHG-004_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_SPM-309_TC-EVCHG-004_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_SPM-309_TC-EVCHG-004_step3-coordinator-venue-tab.png)
+**Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_TC-EVCHG-004_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_TC-EVCHG-004_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_TC-EVCHG-004_step3-coordinator-venue-tab.png)
 
 ## Run record
 

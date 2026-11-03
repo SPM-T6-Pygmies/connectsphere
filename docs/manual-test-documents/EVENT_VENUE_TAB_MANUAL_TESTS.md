@@ -90,6 +90,8 @@ SPM-46 AC1.
 
 ---
 
+**Screenshots:** [step1-venue-tab-workspace](../screenshots/2026-10-22_TC-VTAB-001_step1-venue-tab-workspace.png) · [step2-phone-width](../screenshots/2026-10-22_TC-VTAB-001_step2-phone-width.png) · [step3-before-request-a-venue-page](../screenshots/2026-10-22_TC-VTAB-001_step3-before-request-a-venue-page.png) · [step4-before-venue-tab-manage-link](../screenshots/2026-10-22_TC-VTAB-001_step4-before-venue-tab-manage-link.png)
+
 ### TC-VTAB-002: An event with no source request can be booked too
 
 SPM-46 AC1.
@@ -107,6 +109,8 @@ SPM-46 AC1.
 **Status:** [x] Pass [ ] Fail — 21/10/2026, run in Chrome via Playwright for jerricknsc
 
 ---
+
+**Screenshots:** [step1-no-request-event](../screenshots/2026-10-22_TC-VTAB-002_step1-no-request-event.png)
 
 ### TC-VTAB-003: An old booking link opens the booking on the Venue tab
 

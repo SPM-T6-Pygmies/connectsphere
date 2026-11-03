@@ -89,6 +89,8 @@ Approved request absent).
 
 ---
 
+**Screenshots:** [step2-coordinator-queue](../screenshots/2026-09-13_TC-COORDQ-001_step2-coordinator-queue.png) · [step1-queue-labels](../screenshots/2026-10-04_TC-COORDQ-001_step1-queue-labels.png)
+
 ### TC-COORDQ-002: The queue is the signed-in coordinator's own
 
 Origin: Backfilled 2026-10-04 from PR #35 (signed in as `coordinator@test.com`
@@ -121,6 +123,8 @@ account, the sidebar count matched, and an assigned request's detail opened).
 
 ---
 
+**Screenshots:** [step2-seven-rows-sidebar-7](../screenshots/2026-10-04_TC-COORDQ-002_step2-seven-rows-sidebar-7.png) · [step3-detail-opens](../screenshots/2026-10-04_TC-COORDQ-002_step3-detail-opens.png)
+
 ### TC-COORDQ-003: An assigned request's detail shows everything submitted, read-only
 
 Origin: Backfilled 2026-10-04 from PR #28 (detail screenshot of Venue Safety
@@ -147,6 +151,8 @@ supplied", time 9:00 AM – 11:00 AM).
 
 ---
 
+**Screenshots:** [step2-assigned-request-detail](../screenshots/2026-09-13_TC-COORDQ-003_step2-assigned-request-detail.png) · [step1-request-as-submitted-card](../screenshots/2026-10-04_TC-COORDQ-003_step1-request-as-submitted-card.png)
+
 ### TC-COORDQ-004: A request assigned to someone else is not shown
 
 Origin: Backfilled 2026-10-04 from PR #35 and PR #33 (a request not assigned
@@ -169,6 +175,8 @@ is unchanged.
 **Status:** [ ] Pass [ ] Fail
 
 ---
+
+**Screenshots:** [step1-not-mine-access-denied](../screenshots/2026-10-04_TC-COORDQ-004_step1-not-mine-access-denied.png)
 
 ### TC-COORDQ-005: A non-coordinator cannot open the coordinator pages
 
@@ -194,3 +202,5 @@ select event_request_id from event_request where event_name = 'Venue Safety Revi
 - No queue, event list or request details are shown
 
 **Status:** [ ] Pass [ ] Fail
+
+**Screenshots:** [step1-queue-denied](../screenshots/2026-10-04_TC-COORDQ-005_step1-queue-denied.png) · [step2-events-denied](../screenshots/2026-10-04_TC-COORDQ-005_step2-events-denied.png) · [step3-request-12-denied](../screenshots/2026-10-04_TC-COORDQ-005_step3-request-12-denied.png)

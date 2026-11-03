@@ -105,6 +105,8 @@ out of service leaves 6 free for it: the 4 it holds plus 2 more.
 
 **Status:** [x] Pass [ ] Fail — 28/10/2026, run locally by Jerrick
 
+**Screenshots:** [step2-reserve-6-with-2-more-free](../screenshots/2026-10-26_TC-RERESERVE-001_step2-reserve-6-with-2-more-free.png) · [step3-reserved-6](../screenshots/2026-10-26_TC-RERESERVE-001_step3-reserved-6.png) · [step4-one-short-mark-unfulfilled-offered](../screenshots/2026-10-26_TC-RERESERVE-001_step4-one-short-mark-unfulfilled-offered.png) · [step5-one-short-unfulfilled-held-units-released](../screenshots/2026-10-26_TC-RERESERVE-001_step5-one-short-unfulfilled-held-units-released.png)
+
 ### TC-RERESERVE-002: Mark a raised line unfulfilled when one short, releasing what it held (AC2)
 
 **Steps:**

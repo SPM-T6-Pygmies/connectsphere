@@ -46,6 +46,8 @@ them, tick the boxes below **and** report each in the PR description's
 - [ ] `audit_record` has a row with `action = 'withdraw'`, `entity_id` = the
       request, and `actor_user_account_id` = Test Coordinator.
 
+**Screenshots:** [step6-withdrawal-confirm-step](../screenshots/2026-09-29_TC-WITHDRAW-001_step6-withdrawal-confirm-step.png) · [step7-withdrawal-coordinator-archive](../screenshots/2026-09-29_TC-WITHDRAW-001_step7-withdrawal-coordinator-archive.png) · [step8-withdrawal-coordinator-queue-after](../screenshots/2026-09-29_TC-WITHDRAW-001_step8-withdrawal-coordinator-queue-after.png) · [step9-withdrawal-under-review-withdrawal-card](../screenshots/2026-09-29_TC-WITHDRAW-001_step9-withdrawal-under-review-withdrawal-card.png) · [step3-confirm-with-note](../screenshots/2026-10-04_TC-WITHDRAW-001_step3-confirm-with-note.png) · [step3b-hung-withdrawing](../screenshots/2026-10-04_TC-WITHDRAW-001_step3b-hung-withdrawing.png) · [step4-after-reload](../screenshots/2026-10-04_TC-WITHDRAW-001_step4-after-reload.png) · [step5-in-archive](../screenshots/2026-10-04_TC-WITHDRAW-001_step5-in-archive.png)
+
 ## TC-WITHDRAW-002 Cancel and blank-note withdrawal
 
 **Steps**
@@ -59,6 +61,8 @@ them, tick the boxes below **and** report each in the PR description's
 - [ ] After step 2 the request is **Withdrawn** and the Note row is empty
       (`decision_record` is null).
 
+**Screenshots:** [step1-cancel-unchanged](../screenshots/2026-10-04_TC-WITHDRAW-002_step1-cancel-unchanged.png) · [step2-after-confirm](../screenshots/2026-10-04_TC-WITHDRAW-002_step2-after-confirm.png)
+
 ## TC-WITHDRAW-003 Organiser and Operations see the withdrawal
 
 **Steps**
@@ -71,3 +75,5 @@ them, tick the boxes below **and** report each in the PR description's
 - [ ] The Organiser has no control to withdraw a request anywhere
       ([#102](https://github.com/SinYang13/IS212-2026/discussions/102)).
 - [ ] Operations lists the request under the assigned queue, not the unassigned one.
+
+**Screenshots:** [step3-withdrawal-organiser-my-requests](../screenshots/2026-09-29_TC-WITHDRAW-003_step3-withdrawal-organiser-my-requests.png) · [step4-withdrawal-organiser-withdrawn-detail](../screenshots/2026-09-29_TC-WITHDRAW-003_step4-withdrawal-organiser-withdrawn-detail.png) · [step5-withdrawal-withdrawn-outcome](../screenshots/2026-09-29_TC-WITHDRAW-003_step5-withdrawal-withdrawn-outcome.png) · [step1-organiser-list-badges](../screenshots/2026-10-04_TC-WITHDRAW-003_step1-organiser-list-badges.png) · [step1-organiser-withdrawn-detail](../screenshots/2026-10-04_TC-WITHDRAW-003_step1-organiser-withdrawn-detail.png) · [step2-ops-assigned-list](../screenshots/2026-10-04_TC-WITHDRAW-003_step2-ops-assigned-list.png)
