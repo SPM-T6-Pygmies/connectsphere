@@ -15,7 +15,7 @@ What SPM-17 does **not** cover, so is not tested here:
   Backlog ([#23](https://github.com/SinYang13/IS212-2026/discussions/23)).
 - **Logging defects on return** — Backlog ([#86](https://github.com/SinYang13/IS212-2026/discussions/86)).
 - **Adding and editing catalogue items** themselves — SPM-40
-  ([`2026-09-30-equipment-catalogue-manual-tests.md`](2026-09-30-equipment-catalogue-manual-tests.md)).
+  ([`EQUIPMENT_CATALOGUE_MANUAL_TESTS.md`](EQUIPMENT_CATALOGUE_MANUAL_TESTS.md)).
 
 The rules are unit-tested (`updateEquipmentStock (SPM-17)`, `unitsInService (SPM-17)`,
 `unitsAvailable (SPM-17)`, `UpdateEquipmentStockUseCase (SPM-17)` and the catalogue
