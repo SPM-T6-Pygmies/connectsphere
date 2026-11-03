@@ -66,14 +66,67 @@ Every test traces back to a user story: story, then acceptance criteria, then te
 
 ## Getting started
 
+### 1. Install the prerequisites
+
+The app runs against a database that lives in Docker containers on your machine,
+so you need more than Node. Check each one before you go on.
+
+| Tool | Why you need it | Install | Check |
+| --- | --- | --- | --- |
+| Node `>=22.12` (or `>=20.19`) | Runs the app. Vite 8, which Vitest 4 is built on, does not support earlier 22.x releases | [nodejs.org](https://nodejs.org) | `node --version` |
+| pnpm `9.10` | The package manager the repo is pinned to | `corepack enable` (ships with Node), or `npm i -g pnpm@9.10.0` | `pnpm --version` |
+| Docker | Supabase runs Postgres, Auth and Studio as containers, so Docker must be **running** before you start the database | [Docker Desktop](https://www.docker.com/products/docker-desktop/), or Colima on macOS | `docker info` (an error means Docker is not running) |
+| Supabase CLI | Creates and starts the local database and applies the migrations | macOS: `brew install supabase/tap/supabase`; other systems: [Supabase's install guide](https://supabase.com/docs/guides/local-development/cli/getting-started) | `supabase --version` |
+| Infisical CLI | Optional: pulls env vars so you do not manage `.env.local` by hand ([below](#secrets-with-infisical-optional)) | `brew install infisical/get-cli/infisical` | `infisical --version` |
+
+Docker notes:
+
+- The first `supabase start` downloads several images, so allow a few minutes
+  and a good connection. Later starts take seconds.
+- Give Docker enough memory. If you use Colima, its default 2 GiB VM is too
+  tight, and there is a known `vector` container error. Both are covered in
+  [docs/DATABASE.md](docs/DATABASE.md#troubleshooting-colima).
+- If `supabase start` says it cannot reach the Docker daemon, start Docker and
+  run it again.
+
+### 2. Start the database, install and run
+
 ```bash
+supabase start               # starts the local database in Docker; prints URLs and keys
+supabase db reset            # applies every migration, then creates the test logins
 pnpm install
-cp .env.example .env.local   # fill in your Supabase project credentials
-pnpm dev
+cp .env.example .env.local   # then fill in the values described in step 3
+pnpm dev                     # http://localhost:3000
 ```
 
-Requires Node `>=22.12` (or `>=20.19`) — Vite 8, which Vitest 4 is built on,
-does not support earlier 22.x releases.
+Run `supabase db reset` once on a new machine, and again whenever you want a
+clean database. After a `git pull` that brings in new files under
+`supabase/migrations/`, run `supabase migration up --local` to apply them
+without losing your data.
+
+### 3. Fill in `.env.local`
+
+`.env.example` lists every variable the app reads. You only need two to run it
+locally, both printed by `supabase start`:
+
+| Variable | Value for a local database |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | `http://127.0.0.1:54321` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The **Publishable** key from the `supabase start` output |
+
+The local values are the same on every machine and are not secret. They are
+also listed in [docs/DATABASE.md](docs/DATABASE.md#local-envlocal-values).
+
+These are optional, and without them the app still runs:
+
+| Variable | What it enables | Without it |
+| --- | --- | --- |
+| `NOVU_SECRET_KEY` | Sending notifications through Novu | Notifications are logged and recorded in the `notification` table only |
+| `NOVU_BRIDGE_URL` | Novu reaching your machine; `pnpm dev:local` prints it ([Notifications](#notifications-novu)) | Same as above |
+| `NEXT_PUBLIC_NOVU_APPLICATION_IDENTIFIER` | The notification bell and inbox in the staff pages | No bell is shown |
+
+Never commit `.env.local`. Real secrets for Novu and the live project come from
+Infisical, not from a file.
 
 ### Secrets with Infisical (optional)
 
