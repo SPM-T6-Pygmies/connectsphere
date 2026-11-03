@@ -1,7 +1,68 @@
-# connectsphere
+# ConnectSphere
+
+An event planning and venue booking system for **ConnectSphere Event Services**, a
+regional event provider with its own venues and equipment. It replaces the email,
+spreadsheets and shared calendars that currently hold one event's information in
+several places. Built by Team T6 (Pygmies) for IS212, AY2026/27 Term 1.
 
 Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/ui, on Supabase,
 built as a **Ports & Adapters** (hexagonal) application.
+
+## What it does
+
+An event goes from a client's request to a public registration page. Each step
+is done by a different person, who sees only their own screens.
+
+| Role | Does | Starts at |
+| --- | --- | --- |
+| Event Organiser | Drafts and submits an event request; asks for changes after submitting | `/staff/requester` |
+| Event Coordinator Lead | Sees every submitted request and assigns a coordinator | `/staff/lead` |
+| Event Coordinator | Approves the request, books venues, lists equipment, confirms the event, opens registration | `/staff/coordinator` |
+| Venue Staff | Keeps the venue catalogue and decides venue booking requests | `/staff/venue` |
+| Technical Support Staff | Keeps the equipment catalogue and reserves equipment for events | `/staff/technical` |
+| Safety Officer | Reviews events whose arrangements are in place, then approves or rejects them with a reason | `/staff/safety` |
+| Attendee (public) | Browses confirmed events and registers | `/events` |
+
+**The path of an event**
+
+1. The Organiser submits a request. The Lead assigns a coordinator.
+2. The coordinator approves it. The event is now **Planning**.
+3. The coordinator requests venues; Venue Staff approve, hold or reject each booking.
+4. The coordinator lists the equipment needed; Technical Support reserve it.
+5. Once the venue bookings are confirmed and the equipment reserved, the event reaches the Safety Officer, who is notified. A rejection tells the coordinator what must change; they rework it and resubmit.
+6. After the safety check is approved, the coordinator **confirms** the event. Approval is not confirmation: approving says the request holds enough to plan against, confirming says the arrangements are actually in place.
+7. The coordinator opens registration, and attendees register. The event ends Completed, or Cancelled, which gives its venue bookings back.
+
+An Organiser can ask for a significant change to a submitted event. The coordinator accepts or declines it field by field, and an accepted change flags the arrangements it affects until they are re-checked.
+
+**Not built yet:** reporting and export, check-in and attendance tracking, and a waiting list for full events.
+
+## How it is built
+
+- **Stack:** Next.js and React for the app, Supabase (Postgres and Auth) for data, with row-level security on every table and reads and writes going through database functions, Novu for notifications (in-app inbox for staff, a confirmation email for attendees), deployed on Vercel.
+- **Ports & Adapters:** business rules live in `src/core`, which imports no framework or SDK; adapters implement the core's ports; `src/composition` is the only place the two meet. ESLint fails the build if an import points the wrong way. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+- **Diagrams:** C4 maps of the system and its workflows are in [visual-map/](visual-map/), run locally with `pnpm visual-map`.
+- **Database:** every change is a migration under `supabase/migrations/`; business rules that must hold under concurrency are enforced in the database as well as in code. See [docs/DATABASE.md](docs/DATABASE.md).
+
+## How it is tested
+
+Every test traces back to a user story: story, then acceptance criteria, then test case, then code.
+
+- **Automated:** about 3,100 Vitest cases covering the domain rules, use cases and adapters. They run with no database or network, and every pull request runs them in CI along with lint and a type check.
+- **Manual:** about 500 written cases in [docs/testing/](docs/testing/), run in the browser against a seeded local database. Each pull request reports the cases it ran, and CI records the results.
+- **Registries:** [docs/tests/](docs/tests/README.md) holds the generated specification of every automated case, a record of what passed at each merge to `main`, and the same for the manual cases. CI fails a pull request whose registry is stale.
+
+## Where to find things
+
+| I want to… | Go to |
+| --- | --- |
+| Run the app locally | [Getting started](#getting-started) below |
+| Log in as each role | [Test Credentials](#test-credentials) below |
+| Load test data | [scripts/README.md](scripts/README.md) |
+| Understand the architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| See how testing is organised | [docs/tests/README.md](docs/tests/README.md) |
+| Follow a manual test | [docs/testing/](docs/testing/) |
+| See the working agreements for contributors | [CLAUDE.md](CLAUDE.md) |
 
 ## Getting started
 
