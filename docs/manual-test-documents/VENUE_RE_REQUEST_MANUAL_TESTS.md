@@ -111,6 +111,8 @@ Run them in order: each starts where the one before left off.
 
 ### TC-VREQ-001: The Flagged card starts a re-request, pre-filled from the event (AC1, AC2)
 
+SPM-251 AC1, AC2.
+
 **Preconditions:** Fixture loaded. Signed in as `coordinator@test.com`.
 
 **Steps and expected results:**
@@ -146,6 +148,8 @@ Run them in order: each starts where the one before left off.
 
 ### TC-VREQ-002: A re-request for another venue, as Venue Staff see it (AC3, AC4, AC10)
 
+SPM-251 AC3, AC4, AC10.
+
 **Preconditions:** TC-VREQ-001 done. Signed in as `coordinator@test.com`.
 
 **Steps and expected results:**
@@ -168,6 +172,8 @@ Run them in order: each starts where the one before left off.
 **Status:** [ ] Pass [ ] Fail
 
 ### TC-VREQ-003: One re-request at a time, even from two tabs (AC9)
+
+SPM-251 AC9.
 
 **Preconditions:** TC-VREQ-002 done (the Rooftop Terrace re-request is waiting). Signed in as
 `coordinator@test.com`.
@@ -192,6 +198,8 @@ Run them in order: each starts where the one before left off.
 
 ### TC-VREQ-004: A rejected re-request leaves the booking flagged (AC7)
 
+SPM-251 AC7.
+
 **Preconditions:** TC-VREQ-003 done. Two windows: `venue@test.com` and `coordinator@test.com`.
 
 **Steps and expected results:**
@@ -210,6 +218,8 @@ Run them in order: each starts where the one before left off.
 **Status:** [ ] Pass [ ] Fail
 
 ### TC-VREQ-005: Approving a same-venue re-request replaces the booking (AC3, AC5, AC6, AC8)
+
+SPM-251 AC3, AC5, AC6, AC8.
 
 **Preconditions:** TC-VREQ-004 done. Two windows: `coordinator@test.com` and `venue@test.com`.
 
@@ -236,6 +246,8 @@ Run them in order: each starts where the one before left off.
 
 ### TC-VREQ-006: Nobody else can re-request (AC1)
 
+SPM-251 AC1.
+
 **Preconditions:** Fixture loaded.
 
 **Steps and expected results:**
@@ -255,6 +267,8 @@ Run them in order: each starts where the one before left off.
 **Status:** [ ] Pass [ ] Fail
 
 ### TC-VREQ-007: The database restates every rule, and two sessions racing save one (AC1, AC4–AC10)
+
+SPM-251 AC1, AC4–AC10.
 
 **Preconditions:** Supabase reset, then `scripts/seed-coordinator-view/seed.sql`,
 `scripts/seed-venues/seed.sql` and `scripts/seed-booking-flags/seed.sql` loaded. Those are the

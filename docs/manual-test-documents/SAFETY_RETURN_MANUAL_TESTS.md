@@ -146,9 +146,9 @@ $$;
 
 ## Test Cases
 
-### TC-SAFETYRETURN-001: A rejected event stays Planning and shows its coordinator what must change
+### TC-SAFETYRETURN-001: A rejected event stays Planning and shows its coordinator what must change (AC1, AC2)
 
-AC1, AC2.
+SPM-261 AC1, AC2.
 
 **Preconditions:** Fixture loaded.
 
@@ -172,9 +172,9 @@ AC1, AC2.
 
 ---
 
-### TC-SAFETYRETURN-002: An event with no check yet says so
+### TC-SAFETYRETURN-002: An event with no check yet says so (AC2)
 
-AC2.
+SPM-261 AC2.
 
 **Preconditions:** Fixture loaded. Signed in as `coordinator@test.com`.
 
@@ -188,9 +188,9 @@ AC2.
 
 ---
 
-### TC-SAFETYRETURN-003: Resubmitting puts the event back on the list
+### TC-SAFETYRETURN-003: Resubmitting puts the event back on the list (AC3, AC4)
 
-AC3, AC4.
+SPM-261 AC3, AC4.
 
 **Preconditions:** TC-SAFETYRETURN-001 run.
 
@@ -213,9 +213,9 @@ AC3, AC4.
 
 ---
 
-### TC-SAFETYRETURN-004: A new outcome, with the earlier one kept
+### TC-SAFETYRETURN-004: A new outcome, with the earlier one kept (AC4)
 
-AC4.
+SPM-261 AC4.
 
 **Preconditions:** TC-SAFETYRETURN-003 run.
 
@@ -235,9 +235,9 @@ AC4.
 
 ---
 
-### TC-SAFETYRETURN-005: Rework that leaves a booking unconfirmed joins the list once it is confirmed
+### TC-SAFETYRETURN-005: Rework that leaves a booking unconfirmed joins the list once it is confirmed (AC4)
 
-AC4.
+SPM-261 AC4.
 
 **Preconditions:** Fixture loaded.
 
@@ -259,9 +259,9 @@ AC4.
 
 ---
 
-### TC-SAFETYRETURN-006: Another coordinator cannot open the event
+### TC-SAFETYRETURN-006: Another coordinator cannot open the event (AC5)
 
-AC5.
+SPM-261 AC5.
 
 **Preconditions:** TC-SAFETYRETURN-001 run. Signed in as `coordinator2@test.com`.
 
@@ -275,9 +275,9 @@ AC5.
 
 ---
 
-### TC-SAFETYRETURN-007: Pressing Resubmit twice — the second is refused
+### TC-SAFETYRETURN-007: Pressing Resubmit twice — the second is refused (AC3)
 
-AC3.
+SPM-261 AC3.
 
 **Preconditions:** Fixture loaded.
 
@@ -297,9 +297,9 @@ AC3.
 
 ---
 
-### TC-SAFETYRETURN-008: The database restates the rules
+### TC-SAFETYRETURN-008: The database restates the rules (AC1, AC3–AC5)
 
-AC1, AC3, AC4, AC5. Run in `psql` on a freshly reset database with the fixture
+SPM-261 AC1, AC3–AC5. Run in `psql` on a freshly reset database with the fixture
 loaded, where the gala is event 1, the workshop 2 and the ball 4; account 2 is
 Test Coordinator, 7 Test Coordinator 2, 11 Test Safety Officer. Each step says
 what to expect.

@@ -100,7 +100,9 @@ the event's owner in the SQL above.
 
 ## Test Cases
 
-### TC-REG-001: An open Confirmed event is listed with its time and venue
+### TC-REG-001: An open Confirmed event is listed with its time and venue (AC1)
+
+SPM-24 AC1.
 
 Origin: Backfilled 2026-10-04 from PR #8 (screenshot of `/events` listing the
 Confirmed test event under its date heading, with its time range and venue).
@@ -121,7 +123,9 @@ Confirmed test event under its date heading, with its time range and venue).
 
 ---
 
-### TC-REG-002: The event page shows its details and a name-and-email registration form
+### TC-REG-002: The event page shows its details and a name-and-email registration form (AC5)
+
+SPM-24 AC5.
 
 Origin: Backfilled 2026-10-04 from PR #8 (screenshot of `/events/1` showing the
 event's date, time, venue and description, and a Register form asking for Full
@@ -144,7 +148,9 @@ name and Email address with the closing date).
 
 ---
 
-### TC-REG-003: Registering the same email twice is refused and says so
+### TC-REG-003: Registering the same email twice is refused and says so (AC6)
+
+SPM-24 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #8 (screenshot of `/events/1` after
 submitting an email that was already registered: an inline error reading
@@ -168,7 +174,9 @@ still in the form).
 
 ---
 
-### TC-REGWD-002: Withdrawing shows a confirmation naming the event (SPM-86)
+### TC-REGWD-002: Withdrawing shows a confirmation naming the event (AC1, AC2)
+
+SPM-86 AC1, AC2.
 
 Origin: Backfilled 2026-10-04 from PR #9 ("withdraw, see the confirmation name
 the event", checked manually against the seeded in-memory adapters).
@@ -187,7 +195,9 @@ the emailed link as in TC-REGEMAIL-002.
 
 ---
 
-### TC-REGWD-003: A withdrawn registration reloads as withdrawn with no Withdraw control (SPM-84)
+### TC-REGWD-003: A withdrawn registration reloads as withdrawn with no Withdraw control (AC2)
+
+SPM-84 AC2.
 
 Origin: Backfilled 2026-10-04 from PR #9 ("reload and see it reported as
 withdrawn with no Withdraw control", checked manually against the seeded

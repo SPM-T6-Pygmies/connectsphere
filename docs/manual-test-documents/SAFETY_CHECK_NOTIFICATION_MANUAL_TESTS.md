@@ -151,9 +151,9 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ## Test Cases
 
-### TC-SAFETYNOTE-001: Approving the last waiting booking tells every Safety Officer, and nobody else
+### TC-SAFETYNOTE-001: Approving the last waiting booking tells every Safety Officer, and nobody else (AC1, AC3–AC6)
 
-AC1, AC3, AC4, AC5, AC6.
+SPM-262 AC1, AC3–AC6.
 
 **Preconditions:** Fixture loaded, notifications cleared.
 
@@ -180,9 +180,9 @@ AC1, AC3, AC4, AC5, AC6.
 
 ---
 
-### TC-SAFETYNOTE-002: Rejecting the last waiting booking, beside a Confirmed one, tells them too
+### TC-SAFETYNOTE-002: Rejecting the last waiting booking, beside a Confirmed one, tells them too (AC1, AC5)
 
-AC1, AC5.
+SPM-262 AC1, AC5.
 
 **Preconditions:** As TC-SAFETYNOTE-001.
 
@@ -201,9 +201,9 @@ AC1, AC5.
 
 ---
 
-### TC-SAFETYNOTE-003: Removing the last unreserved equipment line tells every Safety Officer
+### TC-SAFETYNOTE-003: Removing the last unreserved equipment line tells every Safety Officer (AC2)
 
-AC2.
+SPM-262 AC2.
 
 **Preconditions:** As TC-SAFETYNOTE-001.
 
@@ -224,9 +224,9 @@ AC2.
 
 ---
 
-### TC-SAFETYNOTE-004: The notice can be marked read, and opens the Awaiting check list
+### TC-SAFETYNOTE-004: The notice can be marked read, and opens the Awaiting check list (AC6, AC7)
 
-AC6, AC7.
+SPM-262 AC6, AC7.
 
 **Preconditions:** TC-SAFETYNOTE-001 to 003 run. Signed in as `safety2@test.com` on `/staff/safety/notifications`.
 

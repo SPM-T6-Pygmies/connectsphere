@@ -92,7 +92,9 @@ by the time you cancel. What matters is that cancelling leaves it Expired and ne
 
 ---
 
-### TC-ECANCEL-001: Cancel an event and give back its venues (AC2, AC3, AC4)
+### TC-ECANCEL-001: Cancel an event and give back its venues (AC2–AC4)
+
+SPM-55 AC2–AC4.
 
 **What this tests:** Cancelling a Planning event makes it **Cancelled** and, in the same step,
 releases its Confirmed bookings and live hold, closes its pending request, and leaves its lapsed hold
@@ -142,6 +144,8 @@ Signed in as `coordinator@test.com`.
 
 ### TC-ECANCEL-002: Keep event changes nothing (AC2)
 
+SPM-55 AC2.
+
 **What this tests:** Cancelling cannot be undone, so the button only asks. Backing out leaves the
 event and its bookings as they were.
 
@@ -165,6 +169,8 @@ event and its bookings as they were.
 
 ### TC-ECANCEL-003: Only the assigned coordinator can cancel (AC1)
 
+SPM-55 AC1.
+
 **What this tests:** Another coordinator cannot reach the event, so they cannot cancel it.
 
 **Preconditions:** Setup done. Signed in as `coordinator2@test.com` in a private window.
@@ -183,6 +189,8 @@ event and its bookings as they were.
 ---
 
 ### TC-ECANCEL-004: An event cancelled elsewhere is refused with a message (AC2)
+
+SPM-55 AC2.
 
 **What this tests:** If the event was cancelled while the page was open, the click is refused and
 nothing changes. The database re-checks the status under a lock.
@@ -207,6 +215,8 @@ event page open in **two tabs**.
 
 ### TC-ECANCEL-005: Venue Staff can no longer act on the cancelled event's bookings (AC4)
 
+SPM-55 AC4.
+
 **What this tests:** The request that was awaiting Venue Staff is closed, so they cannot approve it,
 place a hold on it or reject it. The released hold cannot be confirmed either.
 
@@ -228,6 +238,8 @@ place a hold on it or reject it. The released hold cannot be confirmed either.
 ---
 
 ### TC-ECANCEL-006: A cancelled event takes no new booking requests (AC6)
+
+SPM-55 AC6.
 
 **What this tests:** Once the event is cancelled, sending a venue booking request for it is refused,
 and nothing is saved.

@@ -120,6 +120,8 @@ events belong to both test coordinators.
 
 ### TC-EQUIPREVIEW-001: Needs review lists every active event with a line needing attention (AC1, AC2)
 
+SPM-273 AC1, AC2.
+
 **Preconditions:** Seeded as above.
 
 **Steps:**
@@ -143,6 +145,8 @@ events belong to both test coordinators.
 
 ### TC-EQUIPREVIEW-004: An empty list says nothing needs attention (AC5)
 
+SPM-273 AC5.
+
 **Preconditions:** A freshly reset database with no equipment lines (before the seed,
 or after `teardown.sql`).
 
@@ -162,6 +166,8 @@ or after `teardown.sql`).
 ---
 
 ### TC-EQUIPREVIEW-006: An event's lines are marked New, Changed or Removal requested (AC3)
+
+SPM-273 AC3.
 
 **Preconditions:** As TC-EQUIPREVIEW-001.
 
@@ -187,6 +193,8 @@ or after `teardown.sql`).
 
 ### TC-EQUIPREVIEW-007: The sidebar and every Technical Support screen show real events only (AC6)
 
+SPM-273 AC6.
+
 **Preconditions:** As TC-EQUIPREVIEW-001.
 
 **Steps:**
@@ -211,6 +219,8 @@ or after `teardown.sql`).
 ---
 
 ### TC-EQUIPREVIEW-009: Each line shows how many more units could be reserved for it, counted per day (AC4)
+
+SPM-273 AC4.
 
 **Preconditions:** As TC-EQUIPREVIEW-001.
 

@@ -154,9 +154,9 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ## Test Cases
 
-### TC-SAFETYLIST-001: The events ready for a check are listed with their details
+### TC-SAFETYLIST-001: The events ready for a check are listed with their details (AC1, AC2, AC5)
 
-AC1, AC2, AC5.
+SPM-259 AC1, AC2, AC5.
 
 **Preconditions:** Fixture loaded. Signed in as `safety@test.com`.
 
@@ -183,9 +183,9 @@ AC1, AC2, AC5.
 
 ---
 
-### TC-SAFETYLIST-002: An event not yet ready stays off the list until it is
+### TC-SAFETYLIST-002: An event not yet ready stays off the list until it is (AC1, AC3, AC4)
 
-AC1, AC3, AC4.
+SPM-259 AC1, AC3, AC4.
 
 **Preconditions:** As TC-SAFETYLIST-001, on `/staff/safety`.
 
@@ -210,9 +210,9 @@ AC1, AC3, AC4.
 
 ---
 
-### TC-SAFETYLIST-003: Nothing to check shows the empty message
+### TC-SAFETYLIST-003: Nothing to check shows the empty message (AC6)
 
-AC6.
+SPM-259 AC6.
 
 **Preconditions:** Freshly reset database, no fixture. Signed in as `safety@test.com`.
 
@@ -230,9 +230,9 @@ AC6.
 
 ---
 
-### TC-SAFETYLIST-004: Another staff role cannot see the list
+### TC-SAFETYLIST-004: Another staff role cannot see the list (AC7)
 
-AC7.
+SPM-259 AC7.
 
 **Preconditions:** Fixture loaded. Signed in as `support@test.com`.
 

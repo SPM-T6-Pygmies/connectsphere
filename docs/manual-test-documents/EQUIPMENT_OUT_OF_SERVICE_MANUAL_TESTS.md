@@ -98,6 +98,8 @@ Truth, with the same counts `seed-equipment` gives them.
 
 ### TC-OOS-001: Set units out of service, and return them (AC1, AC3)
 
+SPM-17 AC1, AC3.
+
 **Steps:**
 1. Open `/staff/technical/equipment` and read the Projector card.
 2. Set **Out of service** to `2` and click **Update**. Reload the page.
@@ -116,6 +118,8 @@ Truth, with the same counts `seed-equipment` gives them.
 ---
 
 ### TC-OOS-002: Out of service must be from 0 up to the number owned (AC2)
+
+SPM-17 AC2.
 
 **Steps:**
 1. On the Livestream kit card (Owned `2`), set **Out of service** to `3` and click **Update**.
@@ -137,6 +141,8 @@ Truth, with the same counts `seed-equipment` gives them.
 
 ### TC-OOS-007: Units out of service are not counted as available (AC4)
 
+SPM-17 AC4.
+
 **Steps:**
 1. Open **Needs review**, open *Tech Summit Keynote* (13 Dec) and read **Available** for Projector.
 2. On the Equipment page set Projector **Out of service** to `2` and click **Update**.
@@ -155,6 +161,8 @@ Truth, with the same counts `seed-equipment` gives them.
 ---
 
 ### TC-OOS-005: The Equipment page and the coordinator use the same records (AC5)
+
+SPM-17 AC5.
 
 **Steps:**
 1. On the Equipment page, add `Smoke machine`, Quantity `2`, Location `Store room D`.
@@ -179,6 +187,8 @@ it): `delete from equipment_item where type = 'Smoke machine';`.
 ---
 
 ### TC-OOS-006: Owned cannot drop below the units out of service (AC2)
+
+SPM-17 AC2.
 
 **Steps:**
 1. On the PA speaker card (Owned `5`), set **Out of service** to `3` and click **Update**.

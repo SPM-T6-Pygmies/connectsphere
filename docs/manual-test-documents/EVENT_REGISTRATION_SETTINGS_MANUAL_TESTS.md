@@ -87,7 +87,9 @@ Attendees have no account; they register by name and email, signed out.
 
 ## Test Cases
 
-### TC-REGSET-001: Enabling registration with a window lists the event and lets an Attendee register
+### TC-REGSET-001: Enabling registration with a window lists the event and lets an Attendee register (AC1, AC2)
+
+SPM-25 AC1, AC2.
 
 **Preconditions:** Event set up as above; signed in as `coordinator@test.com`.
 
@@ -122,7 +124,9 @@ Attendees have no account; they register by name and email, signed out.
 
 ---
 
-### TC-REGSET-002: Disabling registration takes the event off /events
+### TC-REGSET-002: Disabling registration takes the event off /events (AC1, AC2)
+
+SPM-25 AC1, AC2.
 
 **Preconditions:** State left by TC-REGSET-001.
 
@@ -141,7 +145,9 @@ Attendees have no account; they register by name and email, signed out.
 
 ---
 
-### TC-REGSET-003: A Completed event's registration settings are read-only
+### TC-REGSET-003: A Completed event's registration settings are read-only (AC1)
+
+SPM-25 AC1.
 
 **Preconditions:** As TC-REGSET-001, then:
 ```sql
@@ -162,7 +168,9 @@ Afterwards, put the status back to `Confirmed`.
 
 ---
 
-### TC-REGSET-004: Another coordinator cannot open the event's registration settings
+### TC-REGSET-004: Another coordinator cannot open the event's registration settings (AC1)
+
+SPM-25 AC1.
 
 **Preconditions:** Event set up as above; signed in as `coordinator2@test.com`.
 

@@ -79,7 +79,9 @@ there because the column cannot be empty.
 
 ## Test Cases
 
-### TC-ORGEV-001: Organisers in the same organisation see each other's requests
+### TC-ORGEV-001: Organisers in the same organisation see each other's requests (AC1)
+
+SPM-39 AC1.
 
 Origin: Backfilled 2026-10-04 from PR #14 ("Verified via dev server: same-org
 colleagues see each other's requests", against a seeded in-memory repository
@@ -104,7 +106,9 @@ with a "Viewing as" switcher).
 
 ---
 
-### TC-ORGEV-002: Another organisation's requests never appear
+### TC-ORGEV-002: Another organisation's requests never appear (AC4)
+
+SPM-39 AC4.
 
 Origin: Backfilled 2026-10-04 from PR #14 ("Verified via dev server: ...
 never a different org's", against a seeded in-memory repository).
@@ -122,7 +126,9 @@ never a different org's", against a seeded in-memory repository).
 
 ---
 
-### TC-ORGEV-003: Only the responsible Organiser's Draft shows Edit
+### TC-ORGEV-003: Only the responsible Organiser's Draft shows Edit (AC2, AC3)
+
+SPM-39 AC2, AC3.
 
 Origin: Backfilled 2026-10-04 from PR #14 ("Edit only appears for the
 responsible Organiser while the request is Draft", against a seeded in-memory
@@ -143,7 +149,9 @@ events**.
 
 ---
 
-### TC-ORGEV-004: The responsible Organiser's own Submitted request is View only
+### TC-ORGEV-004: The responsible Organiser's own Submitted request is View only (AC2)
+
+SPM-39 AC2.
 
 Origin: Backfilled 2026-10-04 from PR #14 ("including when that Organiser is
 the one viewing their own now-Submitted request", against a seeded in-memory

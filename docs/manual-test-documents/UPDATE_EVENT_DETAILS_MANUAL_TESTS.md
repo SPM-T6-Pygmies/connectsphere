@@ -54,7 +54,9 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ## Test Cases
 
-### TC-EVDETAILS-001: Saving ordinary details updates the event and audits each change
+### TC-EVDETAILS-001: Saving ordinary details updates the event and audits each change (AC1, AC3)
+
+SPM-49 AC1, AC3.
 
 **Preconditions:** Signed in as `coordinator@test.com`; one of their events is
 in Planning, Blocked or Confirmed.
@@ -82,7 +84,9 @@ in Planning, Blocked or Confirmed.
 
 ---
 
-### TC-EVDETAILS-002: A blank name is refused and what was typed is kept
+### TC-EVDETAILS-002: A blank name is refused and what was typed is kept (AC6)
+
+SPM-49 AC6.
 
 **Preconditions:** As TC-EVDETAILS-001.
 
@@ -98,7 +102,9 @@ in Planning, Blocked or Confirmed.
 
 ---
 
-### TC-EVDETAILS-003: Date, timeslots and attendance are locked
+### TC-EVDETAILS-003: Date, timeslots and attendance are locked (AC2, AC4)
+
+SPM-49 AC2, AC4.
 
 **Preconditions:** As TC-EVDETAILS-001.
 
@@ -116,7 +122,9 @@ in Planning, Blocked or Confirmed.
 
 ---
 
-### TC-EVDETAILS-004: A Completed event has no Edit details
+### TC-EVDETAILS-004: A Completed event has no Edit details (AC5)
+
+SPM-49 AC5.
 
 **Preconditions:** As TC-EVDETAILS-001, then:
 ```sql

@@ -61,9 +61,9 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ## Test Cases
 
-### TC-SAFETY-001: A seeded Safety Officer signs in to their own workspace
+### TC-SAFETY-001: A seeded Safety Officer signs in to their own workspace (AC2–AC4)
 
-AC2, AC3, AC4.
+SPM-258 AC2–AC4.
 
 **Preconditions:** Signed out.
 
@@ -82,9 +82,9 @@ AC2, AC3, AC4.
 
 ---
 
-### TC-SAFETY-002: The safety workspace has its own navigation
+### TC-SAFETY-002: The safety workspace has its own navigation (AC4)
 
-AC4.
+SPM-258 AC4.
 
 **Preconditions:** Signed in as `safety@test.com`, on `/staff/safety`, desktop width.
 
@@ -107,9 +107,9 @@ AC4.
 
 ---
 
-### TC-SAFETY-003: Every other staff role is refused the safety workspace
+### TC-SAFETY-003: Every other staff role is refused the safety workspace (AC5)
 
-AC5.
+SPM-258 AC5.
 
 **Preconditions:** Signed in as each account below in turn.
 
@@ -142,9 +142,9 @@ AC5.
 
 ---
 
-### TC-SAFETY-004: A Safety Officer is refused every other role's workspace
+### TC-SAFETY-004: A Safety Officer is refused every other role's workspace (AC6)
 
-AC6.
+SPM-258 AC6.
 
 **Preconditions:** Signed in as `safety@test.com`.
 
@@ -172,9 +172,9 @@ AC6.
 
 ---
 
-### TC-SAFETY-005: The safety workspace and its denial screen work on a phone
+### TC-SAFETY-005: The safety workspace and its denial screen work on a phone (AC4, AC7)
 
-AC4, AC7.
+SPM-258 AC4, AC7.
 
 **Preconditions:** Signed in as `safety@test.com`; DevTools device toolbar at
 390 × 844 (iPhone 12/13/14).
@@ -198,9 +198,9 @@ AC4, AC7.
 
 ---
 
-### TC-SAFETY-006: Signed out, the safety workspace sends you to login
+### TC-SAFETY-006: Signed out, the safety workspace sends you to login (AC5)
 
-AC5.
+SPM-258 AC5.
 
 **Preconditions:** A private window that has never signed in (no `sb-` cookies).
 

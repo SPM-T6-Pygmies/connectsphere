@@ -92,6 +92,8 @@ others alongside does not change the numbers below.
 
 ### TC-RESERVE-001: Reserve a New line in full (AC1)
 
+SPM-274 AC1.
+
 **Steps:**
 1. Signed in as `support@test.com`, open `/staff/technical` and open *Design Sprint Demo*.
 2. On **Presentation laptop**, read the row, then click **Reserve 6**.
@@ -115,6 +117,8 @@ others alongside does not change the numbers below.
 
 ### TC-RESERVE-002: Units reserved for one event are not available to another a day away (AC5)
 
+SPM-274 AC5.
+
 **Preconditions:** TC-RESERVE-001 passed.
 
 **Steps:**
@@ -131,6 +135,8 @@ others alongside does not change the numbers below.
 ---
 
 ### TC-RESERVE-003: Mark a line unfulfilled when too few are available (AC3)
+
+SPM-274 AC3.
 
 **Preconditions:** TC-RESERVE-002 passed; *Sales Kickoff* is open.
 
@@ -155,6 +161,8 @@ others alongside does not change the numbers below.
 ---
 
 ### TC-RESERVE-004: A changed unfulfilled line comes back for review (AC4)
+
+SPM-274 AC4.
 
 **Preconditions:** TC-RESERVE-003 passed.
 
@@ -183,6 +191,8 @@ others alongside does not change the numbers below.
 
 ### TC-RESERVE-005: Nothing can be reserved for an event with no date (AC2)
 
+SPM-274 AC2.
+
 **Steps:**
 1. Signed in as `support@test.com`, open *Press Briefing* and read the
    **Projector** row.
@@ -196,6 +206,8 @@ others alongside does not change the numbers below.
 ---
 
 ### TC-RESERVE-006: Availability is checked again when reserving (AC6)
+
+SPM-274 AC6.
 
 **Steps:**
 1. In one browser, signed in as `support@test.com`, open *Board Offsite* (18 Dec) and
@@ -216,6 +228,8 @@ others alongside does not change the numbers below.
 ---
 
 ### TC-RESERVE-007: Units out of service that leave too few list the short dates (AC7)
+
+SPM-274 AC7.
 
 **Preconditions:** TC-RESERVE-001 and 004 passed: 6 presentation laptops reserved for
 *Design Sprint Demo* (18 Dec) and 2 for *Sales Kickoff* (19 Dec).

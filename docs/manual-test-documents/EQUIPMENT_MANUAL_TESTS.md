@@ -106,6 +106,8 @@ below sets a known value.
 
 ### TC-EQUIP-001: Add a line, with the Organiser's stated needs beside it (AC1, AC6)
 
+SPM-41 AC1, AC6.
+
 **Preconditions:** Signed in as `coordinator@test.com`. Give the event a stated
 need to look for:
 
@@ -133,7 +135,9 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 
 ---
 
-### TC-EQUIP-002: The add form refuses what the rules refuse (AC2, AC3, AC4, AC5)
+### TC-EQUIP-002: The add form refuses what the rules refuse (AC2–AC5)
+
+SPM-41 AC2–AC5.
 
 **Preconditions:** As TC-EQUIP-001, which leaves Livestream kit on the event.
 
@@ -163,6 +167,8 @@ update event set equipment_requirements = 'Two projectors and a stage microphone
 ---
 
 ### TC-EQUIP-012: Changing an unreserved line, saving a reserved one unchanged, and removing an unreserved one (AC7, AC9, AC10)
+
+SPM-41 AC7, AC9, AC10.
 
 **Preconditions:** As TC-EQUIP-002, then remove the three lines it left with nothing reserved: **Livestream kit**,
 **PA speaker** and **Presentation laptop** (**Remove**, then **Remove line**, on each). A line nothing is reserved
@@ -194,6 +200,8 @@ against is New and keeps the event on Technical Support's list, and the checks b
 
 ### TC-EQUIP-013: A reserved line changed by the coordinator reaches Technical Support (AC1, AC8, AC12, AC15)
 
+SPM-41 AC1, AC8, AC12, AC15.
+
 This is the end-to-end case across both roles.
 
 **Preconditions:** As TC-EQUIP-012. Signed in as `coordinator@test.com`.
@@ -224,6 +232,8 @@ This is the end-to-end case across both roles.
 ---
 
 ### TC-EQUIP-014: Removing a reserved line asks Technical Support to release it, and can be undone (AC11, AC12, AC15, AC17)
+
+SPM-41 AC11, AC12, AC15, AC17.
 
 **Preconditions:** As TC-EQUIP-013. Signed in as `coordinator@test.com`.
 
@@ -260,6 +270,8 @@ This is the end-to-end case across both roles.
 
 ### TC-EQUIP-006: A Completed or Cancelled event's equipment is read-only (AC13)
 
+SPM-41 AC13.
+
 **Preconditions:** Signed in as `coordinator@test.com`.
 
 **Steps:**
@@ -287,6 +299,8 @@ This is the end-to-end case across both roles.
 ---
 
 ### TC-EQUIP-007: A coordinator the event is not assigned to cannot see or change it (AC14)
+
+SPM-41 AC14.
 
 **Preconditions:** Signed in as `coordinator@test.com`.
 
@@ -318,6 +332,8 @@ This is the end-to-end case across both roles.
 
 ### TC-EQUIP-015: Only Technical Support Staff see the Needs review list (AC15, AC16)
 
+SPM-41 AC15, AC16.
+
 **Preconditions:** At least one line is under review (after TC-EQUIP-013).
 
 **Steps:**
@@ -340,6 +356,8 @@ This is the end-to-end case across both roles.
 ---
 
 ### TC-EQUIP-009: The line's state and the audit trail are recorded (AC8, AC11, AC17, AC18)
+
+SPM-41 AC8, AC11, AC17, AC18.
 
 Checks the database after TC-EQUIP-012 to TC-EQUIP-014, so run it straight after
 them without re-seeding.
@@ -385,7 +403,9 @@ them without re-seeding.
 
 ---
 
-### TC-EQUIP-016: Editing a line back to what Technical Support reserved clears the re-check (AC19, AC15)
+### TC-EQUIP-016: Editing a line back to what Technical Support reserved clears the re-check (AC15, AC19)
+
+SPM-41 AC15, AC19.
 
 Technical Support reserved the Projector against **Requested 2**. A change puts it under
 review; changing it back to exactly that means there is nothing for them to re-check.
@@ -427,7 +447,9 @@ review; changing it back to exactly that means there is nothing for them to re-c
 
 ---
 
-### TC-EQUIP-017: Withdrawing a removal request clears the re-check when nothing else differs (AC17, AC15)
+### TC-EQUIP-017: Withdrawing a removal request clears the re-check when nothing else differs (AC15, AC17)
+
+SPM-41 AC15, AC17.
 
 **Preconditions:** After TC-EQUIP-016, the Projector is *Requested 2 · Reserved 2* with no
 badge besides **Reserved**: nothing differs from what Technical Support reserved against.

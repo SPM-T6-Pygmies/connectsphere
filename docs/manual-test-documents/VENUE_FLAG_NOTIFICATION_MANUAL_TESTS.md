@@ -76,9 +76,9 @@ Run the cases in order, 001 to 005: each one carries on from where the last left
 
 ## Test Cases
 
-### TC-FLAGNOTE-001: A venue edit that flags a booking tells its coordinator, once
+### TC-FLAGNOTE-001: A venue edit that flags a booking tells its coordinator, once (AC2–AC4)
 
-AC2, AC3, AC4.
+SPM-71 AC2–AC4.
 
 **Preconditions:** As above.
 
@@ -104,9 +104,9 @@ AC2, AC3, AC4.
 
 ---
 
-### TC-FLAGNOTE-002: The notice opens the event's Venue tab, and the booking is unchanged
+### TC-FLAGNOTE-002: The notice opens the event's Venue tab, and the booking is unchanged (AC5)
 
-AC5.
+SPM-71 AC5.
 
 **Preconditions:** TC-FLAGNOTE-001 run. Signed in as the Coordinator.
 
@@ -132,9 +132,9 @@ AC5.
 
 ---
 
-### TC-FLAGNOTE-003: A further cut that only restates the reason tells nobody again
+### TC-FLAGNOTE-003: A further cut that only restates the reason tells nobody again (AC4)
 
-AC4.
+SPM-71 AC4.
 
 **Preconditions:** TC-FLAGNOTE-002 run.
 
@@ -153,9 +153,9 @@ AC4.
 
 ---
 
-### TC-FLAGNOTE-004: An edit that breaks two checks sends one notice listing both
+### TC-FLAGNOTE-004: An edit that breaks two checks sends one notice listing both (AC3, AC4)
 
-AC3, AC4.
+SPM-71 AC3, AC4.
 
 **Preconditions:** TC-FLAGNOTE-003 run.
 
@@ -177,9 +177,9 @@ AC3, AC4.
 
 ---
 
-### TC-FLAGNOTE-005: A block over two bookings sends two notices
+### TC-FLAGNOTE-005: A block over two bookings sends two notices (AC1, AC3, AC4)
 
-AC1, AC3, AC4.
+SPM-71 AC1, AC3, AC4.
 
 **Preconditions:** TC-FLAGNOTE-004 run.
 

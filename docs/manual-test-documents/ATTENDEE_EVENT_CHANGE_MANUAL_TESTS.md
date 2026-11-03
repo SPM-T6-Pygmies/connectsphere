@@ -127,7 +127,9 @@ Run the cases in order.
 
 ## Test Cases
 
-### TC-ATTCHANGE-001: Confirming a rescheduled event emails every Registered attendee the new date, time and venue (AC1, AC2, AC3)
+### TC-ATTCHANGE-001: Confirming a rescheduled event emails every Registered attendee the new date, time and venue (AC1–AC4)
+
+SPM-69 AC1–AC4.
 
 **Preconditions:** Setup done. Signed out, in a private window.
 
@@ -162,6 +164,8 @@ Run the cases in order.
 
 ### TC-ATTCHANGE-002: Cancelling emails every Registered attendee (AC1, AC3)
 
+SPM-69 AC1, AC3.
+
 **Preconditions:** State left by TC-ATTCHANGE-001. Signed in as
 `coordinator@test.com`.
 
@@ -182,6 +186,8 @@ Run the cases in order.
 
 ### TC-ATTCHANGE-003: A change that is not a reschedule emails no attendee (AC1)
 
+SPM-69 AC1.
+
 **Preconditions:** Setup done (a fresh run), with `<you+a@…>` registered as
 in TC-ATTCHANGE-001 step 1.
 
@@ -199,6 +205,8 @@ in TC-ATTCHANGE-001 step 1.
 **Screenshots:** [step2-accept-attendance-250](../screenshots/2026-10-30_TC-ATTCHANGE-003_step2-accept-attendance-250.jpg) · [step2-attendance-accepted](../screenshots/2026-10-30_TC-ATTCHANGE-003_step2-attendance-accepted.jpg)
 
 ### TC-ATTCHANGE-004: A registration link for an event not yet re-confirmed says its details are unavailable (AC5)
+
+SPM-69 AC5.
 
 **Preconditions:** Setup done (a fresh run), with `<you+a@…>` registered as in
 TC-ATTCHANGE-001 step 1. Keep the confirmation email open.

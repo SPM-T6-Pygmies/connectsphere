@@ -78,6 +78,8 @@ them with `scripts/seed-event-change-flags/teardown.sql`.
 
 ### TC-EVCHG-001: An accepted date and time change flags every live booking (AC1, AC5, AC6)
 
+SPM-309 AC1, AC5, AC6.
+
 **What this tests:** The Gala Dinner's two live bookings are flagged "Event date/time changed", the
 two that are not live are left alone, and nothing changes status.
 
@@ -105,6 +107,8 @@ two that are not live are left alone, and nothing changes status.
 
 ### TC-EVCHG-002: Accepted attendance and venue requirements name the field (AC2)
 
+SPM-309 AC2.
+
 **What this tests:** Each accepted field gives its own reason, naming what changed.
 
 **Preconditions:** Setup done. Signed in as `coordinator@test.com`.
@@ -125,6 +129,8 @@ two that are not live are left alone, and nothing changes status.
 
 ### TC-EVCHG-003: An accepted equipment change flags nothing (AC3)
 
+SPM-309 AC3.
+
 **What this tests:** A change that cannot affect a venue booking leaves the bookings alone.
 
 **Preconditions:** Setup done. Signed in as `coordinator@test.com`.
@@ -143,6 +149,8 @@ two that are not live are left alone, and nothing changes status.
 **Screenshots:** [step1-coordinator-decision-chosen](../screenshots/2026-10-29_TC-EVCHG-003_step1-coordinator-decision-chosen.png) · [step2-coordinator-decision-saved](../screenshots/2026-10-29_TC-EVCHG-003_step2-coordinator-decision-saved.png) · [step3-coordinator-venue-tab](../screenshots/2026-10-29_TC-EVCHG-003_step3-coordinator-venue-tab.png)
 
 ### TC-EVCHG-004: A declined field flags nothing, an accepted one still does (AC4)
+
+SPM-309 AC4.
 
 **What this tests:** The decision is field by field. Declining the date and time flags nothing for it,
 while accepting attendance in the same save flags for attendance only.

@@ -93,7 +93,9 @@ progress can only be tested with the day it runs. The run recorded below was on 
 
 ## Test Cases
 
-### TC-VBLOCK-001: Record a block by time and see it In force (SPM-321 AC1, AC2)
+### TC-VBLOCK-001: Record a block by time and see it In force (AC1, AC2)
+
+SPM-321 AC1, AC2.
 
 **Scenario:** Studio's mornings need refurbishing. Venue Staff take Studio out of use from 09:00 to
 11:30 every weekday of the week of Monday 2026-12-14.
@@ -126,7 +128,9 @@ progress can only be tested with the day it runs. The run recorded below was on 
 
 ---
 
-### TC-VBLOCK-002: The form refuses what the rules refuse (SPM-321 AC2; SPM-21 AC4 to AC8)
+### TC-VBLOCK-002: The form refuses what the rules refuse (AC2)
+
+SPM-321 AC2.
 
 **Scenario:** Venue Staff mistype or try things the rules do not allow, on Rooftop Terrace.
 
@@ -164,7 +168,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ---
 
-### TC-VBLOCK-003: Block a booked date and see what it overlaps (SPM-321 AC4; SPM-21 AC10)
+### TC-VBLOCK-003: Block a booked date and see what it overlaps (AC4)
+
+SPM-321 AC4.
 
 **Scenario:** The Coordinator books Rooftop Terrace for the morning of Wednesday 2026-12-16, 07:00 to 12:00, and Venue Staff approve it, so it is Confirmed. Then Venue Staff need the terrace from 09:30 to 10:30 that day for a safety inspection. The block covers only part of the booking, and it must not move the booking.
 
@@ -196,7 +202,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ---
 
-### TC-VBLOCK-004: A coordinator cannot request a blocked time (SPM-321 AC3)
+### TC-VBLOCK-004: A coordinator cannot request a blocked time (AC3)
+
+SPM-321 AC3.
 
 **Scenario:** Studio is blocked 09:00 to 11:30 on Monday 2026-12-14 (TC-VBLOCK-001). The Coordinator tries to book Studio for 07:00 to 12:00 (it overlaps the block), then 13:00 to 18:00, then 11:30 to 12:00 (it starts exactly when the block ends), then the Saturday after the block ends.
 
@@ -222,7 +230,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ---
 
-### TC-VBLOCK-005: Venue search leaves a blocked venue out (SPM-321 AC8; SPM-21 AC14)
+### TC-VBLOCK-005: Venue search leaves a blocked venue out (AC8)
+
+SPM-321 AC8.
 
 **Scenario:** Garden Hall's projector is broken from 08:00 to 10:00 on Wednesday 2026-12-16. A Coordinator searching for 09:00 to 10:00 that day should not be offered it. A search starting at 10:00, the moment the block ends, or in the afternoon, should still offer it.
 
@@ -246,7 +256,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ---
 
-### TC-VBLOCK-006: Lift a block, overlap, and history (SPM-321 AC5; SPM-21 AC15 to AC17, AC19)
+### TC-VBLOCK-006: Lift a block, overlap, and history (AC5)
+
+SPM-321 AC5.
 
 **Scenario:** After TC-VBLOCK-001 Studio is blocked 09:00 to 11:30 (Renovation) from 2026-12-14 to 2026-12-18. Venue Staff add a Safety block over 10:00 to 12:00 on 2026-12-14 and 2026-12-15, then lift the Renovation block early. The Safety block must keep refusing the overlap, and the times only Renovation held must come free.
 
@@ -272,7 +284,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ---
 
-### TC-VBLOCK-007: Only Venue Staff can open the page (SPM-21 AC9)
+### TC-VBLOCK-007: Only Venue Staff can open the page (AC9)
+
+SPM-21 AC9.
 
 **Steps:** Sign in as each account in turn and open `/staff/venue/unavailability` directly:
 1. `coordinator@test.com`
@@ -289,7 +303,9 @@ supabase db query --file scripts/seed-venue-unavailability/refusals.sql --local
 
 ---
 
-### TC-VBLOCK-008: Audit rows and the database refusals (SPM-321 AC3, AC7; SPM-21 AC9, AC18)
+### TC-VBLOCK-008: Audit rows and the database refusals (AC3, AC7)
+
+SPM-321 AC3, AC7.
 
 **Preconditions:** TC-VBLOCK-001 to 007, 009 and 010 have run, then:
 
@@ -321,7 +337,9 @@ and the CLI words any error as "failed". A real failure reads `error: FAILED: <t
 
 ---
 
-### TC-VBLOCK-009: The form lists the opening hours and will not let closed time be picked (SPM-321 AC7)
+### TC-VBLOCK-009: The form lists the opening hours and will not let closed time be picked (AC7)
+
+SPM-321 AC7.
 
 **Scenario:** Main Hall is open 07:00–24:00, one window with no break (SPM-320). Venue Staff choosing times for it should see those hours and be unable to pick time the hall is closed.
 
@@ -351,7 +369,9 @@ Earlier run with a lunch closure (07:00–12:00, 13:00–18:00, 19:00–24:00): 
 
 ---
 
-### TC-VBLOCK-010: A block over closed time is refused, naming it (SPM-321 AC7)
+### TC-VBLOCK-010: A block over closed time is refused, naming it (AC7)
+
+SPM-321 AC7.
 
 **Scenario:** Venue Staff A opens the form for UAT-44 Harbour Room and picks 09:00–11:30 on 2026-12-28. Before A saves, a colleague changes the Harbour Room's closing time to 11:00. A's page still shows 11:00–11:30 as open, but the server knows better.
 
@@ -376,7 +396,9 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 
 ---
 
-### TC-VBLOCK-011: A block shows on exactly its periods of the calendar (SPM-321 AC8, SPM-323)
+### TC-VBLOCK-011: A block shows on exactly its periods of the calendar (AC8)
+
+SPM-321 AC8.
 
 **Scenario:** Studio is blocked 09:00 to 11:30 (Renovation) for the week of 2026-12-14. A Coordinator looking at Studio's calendar for that week should see 09:00 to 11:30 each weekday as Blocked with the reason, and every other period as Available.
 
@@ -398,7 +420,9 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 
 ---
 
-### TC-VBLOCK-012: The same block cannot be saved twice (SPM-321)
+### TC-VBLOCK-012: The same block cannot be saved twice (AC1)
+
+SPM-321 AC1.
 
 **Scenario:** Rooftop Terrace is blocked for Maintenance on 2026-12-21, 13:00–18:00 (TC-VBLOCK-002, row 5). A second member of Venue Staff, with an old page open, enters exactly the same block. It should be refused, not stacked. A different reason, or shorter times, is a different block and is allowed. **Other** is exempt: its note is free text nothing reads, so Venue Staff may record the same Other block more than once.
 
@@ -425,7 +449,9 @@ Earlier run with three windows: Pass, 2026-10-22, Chrome via Playwright for Jame
 
 ---
 
-### TC-VBLOCK-013: Existing blocks convert to 15-minute slots (SPM-321 AC6)
+### TC-VBLOCK-013: Existing blocks convert to 15-minute slots (AC6)
+
+SPM-321 AC6.
 
 **Scenario:** Before this change Studio had a Renovation block on 2026-12-21 and 2026-12-22 for AM and Night, and a Safety block on 2026-12-23 PM that Venue Staff had already lifted. After the upgrade they must cover exactly the same hours, none may be lost, and the lifted one must stay lifted.
 

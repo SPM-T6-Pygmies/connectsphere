@@ -125,6 +125,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-001: Place a hold on a request (AC1, AC3)
 
+SPM-218 AC1, AC3.
+
 **What this tests:** A hold is Venue Staff saying "keep these times for the coordinator while they finish planning". Here Venue Staff place one on a waiting request (booking A). It should turn into a Tentative Hold that lasts 72 hours, keep the booking's times, and everyone should be able to see it: Venue Staff in their lists, the coordinator on the event's booking page, and the database (who placed it, when it lapses).
 
 **Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
@@ -163,6 +165,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-002: Held times are taken (AC2, AC3)
 
+SPM-218 AC2, AC3.
+
 **What this tests:** Once times are held, nobody else can get them. After booking A holds Studio at T 07:00–12:00, a second request for those same times (booking B) must be refused, whether Venue Staff try to hold it or approve it, because only one hold or confirmed booking can own a time. The refusal names the event in the way and the date and times. The held times also disappear from venue search (the coordinator can't find them as free), while other times (booking C) are unaffected. Booking B being in the list beside A did not stop A's hold: a request that is merely waiting reserves nothing.
 
 **Preconditions:** After TC-VHOLD-001: booking A is on hold for Studio, T 07:00–12:00. The 9 fixture rows from Setup step 5 are there.
@@ -192,6 +196,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-003: A clash or a block refuses the hold and leaves nothing behind (AC2)
 
+SPM-218 AC2.
+
 **What this tests:** A hold must be refused when its times cannot be kept, and a refusal must change nothing. Two different reasons are tried. Booking Y wants times that booking X has already *Confirmed* at Main Hall, so it is refused as a clash, naming X's event and the times counting Main Hall's setup and turnaround. Booking F wants times Venue Staff *blocked* (renovation) after the request was made, so it is refused as unavailable. In both cases the request stays Requested, with no expiry and no audit record, as if nothing had been tried.
 
 **Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
@@ -219,6 +225,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 ---
 
 ### TC-VHOLD-004: An expired hold does not block, and a live one does (AC2)
+
+SPM-218 AC2.
 
 **What this tests:** Only a hold that is still running blocks its times. Main Hall has two holds on day H: the 07:00–12:00 one ran out an hour ago (expired), the 14:00–18:00 one has 30 days left (live). A new hold over the live one (booking E) must be refused. A new hold over the expired one (booking D) must be accepted, and the old expired hold is then marked Expired, with an audit record, so its times are free again. D's padded window (06:30–12:45) ends before the live hold's begins (13:30), so the live hold does not stop it.
 
@@ -252,6 +260,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-005: Only Venue Staff, and only a waiting request (AC1, AC4)
 
+SPM-218 AC1, AC4.
+
 **What this tests:** Who may place a hold, and on what. Only Venue Staff can: the coordinator is turned away with an access-denied page (403) and sees none of the booking, and nothing changes. And only a request still *waiting* can be held: a booking already on hold (booking A) or already Confirmed (booking X) shows no Place hold, Approve booking or Reject button. (A live hold does offer Confirm hold and Release hold, which TC-VHOLD-006 to 008 cover.)
 
 **Preconditions:** After TC-VHOLD-001 (booking A is on hold) and the fixture's Confirmed booking X.
@@ -271,6 +281,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 ---
 
 ### TC-VHOLD-006: Confirm a live hold (AC1, AC3, AC5)
+
+SPM-219 AC1, AC3, AC5.
 
 **What this tests:** A hold is temporary. Confirming it makes it a firm booking: the booking becomes **Confirmed**, the hold's expiry disappears, and its times stay taken. The database records who confirmed and when, and the coordinator is told, exactly as for an approval, with the venue, the date and the times. Here Venue Staff confirm booking A, the hold placed in TC-VHOLD-001.
 
@@ -305,6 +317,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-007: Release a live hold (AC2, AC3, AC6)
 
+SPM-219 AC2, AC3, AC6.
+
 **What this tests:** Releasing gives a hold up, so its times go free **at once**: the booking becomes **Released**, venue search lists the venue as available again, and another request can take the times. The database records who released and when, and the coordinator is told it was released, naming the venue, date and times, so they do not keep thinking they hold the venue. Here Venue Staff release booking G, the UAT-44 Harbour Room hold placed in TC-VHOLD-002.
 
 **Preconditions:** After TC-VHOLD-002: booking G is on hold for UAT-44 Harbour Room, T + 3 07:00–12:00, and Harbour Room is not listed by a search on those times. Signed in as `venue@test.com`.
@@ -337,6 +351,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 ---
 
 ### TC-VHOLD-008: Only a live hold can be confirmed or released (AC4)
+
+SPM-219 AC4.
 
 **What this tests:** Confirming or releasing needs a hold that is still running. If it ran out, or was already decided, the action is refused with a message and nothing changes. The sharpest case is a hold that expires **while the page is open**: Venue Staff load the page, the hold runs out, and the click then comes too late. A hold that ran out is expired, so its times no longer belong to the event.
 
@@ -373,6 +389,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-009: A block recorded after the hold stops it being confirmed (AC7)
 
+SPM-219 AC7.
+
 **What this tests:** Confirming commits the times, just as an approval does, and a venue that is blocked (maintenance, renovation) cannot be committed. So if Venue Staff block a venue **after** a hold was placed on it, confirming that hold is refused, as approving a request over a block is. The hold is left as it was. Releasing is still allowed, because giving a hold up needs nothing free. Here the hold is booking D, placed in TC-VHOLD-004 on Main Hall, day H, 07:00–12:00.
 
 **Preconditions:** After TC-VHOLD-004: booking D is on hold for Main Hall, day H, 07:00–12:00. Signed in as `venue@test.com`.
@@ -400,7 +418,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ---
 
-### TC-VHOLD-010: A hold that ran out reads Expired and moves to Archive (AC1, AC2, AC4, AC5, AC6)
+### TC-VHOLD-010: A hold that ran out reads Expired and moves to Archive (AC1, AC2, AC4–AC6)
+
+SPM-253 AC1, AC2, AC4–AC6.
 
 **What this tests:** When a hold runs out unconfirmed it stops being a hold. It reads **Expired** (not Tentative Hold), moves from **Decided** to **Archive**, and is never shown as Confirmed. Its times are free at once for someone else. Its expiry stays on record, and exactly one audit row says it **expired** (not that a person released it). There is no timer, so a hold is marked the next time it is read. Booking C, whose hold ran out in TC-VHOLD-008, is the example.
 
@@ -434,6 +454,8 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ### TC-VHOLD-011: A hold is capped at its earliest start time (AC7)
 
+SPM-253 AC7.
+
 **What this tests:** A hold lasts 72 hours or until the start of its earliest booked time, whichever comes first, because a hold that outlives its time means nothing. So a hold on times that start tomorrow at 1 pm expires at 1 pm tomorrow, not 72 hours from now, and a hold on times that have already started is refused (SPM-325 AC4).
 
 **Preconditions:** The fixture from Setup. Signed in as `venue@test.com`.
@@ -462,7 +484,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ---
 
-### TC-VHOLD-012: The coordinator is told when a hold expires (SPM-254 AC1, AC2)
+### TC-VHOLD-012: The coordinator is told when a hold expires (AC1, AC2)
+
+SPM-254 AC1, AC2.
 
 **What this tests:** When a hold runs out unconfirmed, the event's coordinator gets one Inbox notice saying so. It names the venue, the held date and times and when the hold expired, and says the venue is no longer held. There is no timer: the notice goes out after the next staff page loads, whoever loads it. The setup's live 14:00–18:00 hold on *Holds Test Event* is the example.
 
@@ -498,7 +522,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ---
 
-### TC-VHOLD-013: Each expired hold is told once (SPM-254 AC3)
+### TC-VHOLD-013: Each expired hold is told once (AC3)
+
+SPM-254 AC3.
 
 **What this tests:** However many staff pages load after a hold expires, and whoever loads them, the coordinator hears about it once. A hold that had already expired before this feature shipped is never announced.
 
@@ -524,7 +550,9 @@ placed, TC-VHOLD-006 confirms that hold, TC-VHOLD-007 releases the one TC-VHOLD-
 
 ---
 
-### TC-VHOLD-014: The database keeps the approval and hold rules by time (SPM-325 AC1, AC2, AC3)
+### TC-VHOLD-014: The database keeps the approval and hold rules by time (AC1–AC3)
+
+SPM-325 AC1–AC3.
 
 **What this tests:** The rules the pages rely on, checked straight against the database functions, so they hold however the functions are called. A refused approval leaves the request to be rejected; a request still waiting blocks no hold; confirming a hold keeps its times taken and releasing frees them at once; and a block recorded after a hold stops it being confirmed but not released. Each case is built and rolled back, so nothing is kept. The padded refusals are checked by TC-VPAD-007.
 

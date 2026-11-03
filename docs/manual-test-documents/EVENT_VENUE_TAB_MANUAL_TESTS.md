@@ -66,7 +66,7 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ## Test Cases
 
-### TC-VTAB-001: The Venue tab holds the whole booking workspace
+### TC-VTAB-001: The Venue tab holds the whole booking workspace (AC1)
 
 SPM-46 AC1.
 
@@ -92,7 +92,7 @@ SPM-46 AC1.
 
 **Screenshots:** [step1-venue-tab-workspace](../screenshots/2026-10-22_TC-VTAB-001_step1-venue-tab-workspace.png) · [step2-phone-width](../screenshots/2026-10-22_TC-VTAB-001_step2-phone-width.png) · [step3-before-request-a-venue-page](../screenshots/2026-10-22_TC-VTAB-001_step3-before-request-a-venue-page.png) · [step4-before-venue-tab-manage-link](../screenshots/2026-10-22_TC-VTAB-001_step4-before-venue-tab-manage-link.png)
 
-### TC-VTAB-002: An event with no source request can be booked too
+### TC-VTAB-002: An event with no source request can be booked too (AC1)
 
 SPM-46 AC1.
 
@@ -112,7 +112,7 @@ SPM-46 AC1.
 
 **Screenshots:** [step1-no-request-event](../screenshots/2026-10-22_TC-VTAB-002_step1-no-request-event.png)
 
-### TC-VTAB-003: An old booking link opens the booking on the Venue tab
+### TC-VTAB-003: An old booking link opens the booking on the Venue tab (AC3)
 
 SPM-62 AC3.
 
@@ -130,7 +130,7 @@ hold-expired notice sent before SPM-459 opens.
 
 ---
 
-### TC-VTAB-004: A suggested venue starts a fresh request on the Venue tab
+### TC-VTAB-004: A suggested venue starts a fresh request on the Venue tab (AC3)
 
 SPM-62 AC3.
 
@@ -151,7 +151,7 @@ SPM-62 AC3.
 
 ---
 
-### TC-VTAB-005: Someone else's event looks the same as a missing one
+### TC-VTAB-005: Someone else's event looks the same as a missing one (AC9)
 
 SPM-45 AC9.
 
@@ -169,7 +169,7 @@ SPM-45 AC9.
 
 ---
 
-### TC-VTAB-006: The links into venue booking open the Venue tab
+### TC-VTAB-006: The links into venue booking open the Venue tab (AC1)
 
 SPM-46 AC1.
 
@@ -190,7 +190,7 @@ SPM-46 AC1.
 
 ---
 
-### TC-VTAB-007: Saving from the tab refreshes it and leaves it open
+### TC-VTAB-007: Saving from the tab refreshes it and leaves it open (AC2)
 
 SPM-45 AC2.
 

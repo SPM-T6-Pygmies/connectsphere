@@ -86,6 +86,8 @@ select b.booking_id, v.location, b.status, e.name
 
 ### TC-VBDECIDE-001: Venue Staff see a coordinator's request beside the venue it asks for (AC1)
 
+SPM-22 AC1.
+
 **Preconditions:** Bookings set up as above; signed in as `venue@test.com`.
 
 **Steps:**
@@ -107,6 +109,8 @@ select b.booking_id, v.location, b.status, e.name
 
 ### TC-VBDECIDE-002: Rejecting without a reason is refused and writes nothing (AC2)
 
+SPM-22 AC2.
+
 **Preconditions:** As TC-VBDECIDE-001.
 
 **Steps:**
@@ -127,6 +131,8 @@ select b.booking_id, v.location, b.status, e.name
 ---
 
 ### TC-VBDECIDE-003: Rejecting with a reason and a suggestion records both; the coordinator sees Rejected (AC2, AC3)
+
+SPM-22 AC2, AC3.
 
 **Preconditions:** As left by TC-VBDECIDE-002.
 
@@ -152,6 +158,8 @@ select b.booking_id, v.location, b.status, e.name
 
 ### TC-VBDECIDE-004: Approving confirms the booking; the coordinator sees Confirmed (AC1, AC3)
 
+SPM-22 AC1, AC3.
+
 **Preconditions:** As TC-VBDECIDE-001; signed in as `venue@test.com`.
 
 **Steps:**
@@ -172,7 +180,9 @@ select b.booking_id, v.location, b.status, e.name
 
 ---
 
-### TC-VBDECIDE-005: Approving a slot another booking already holds is refused (business rule)
+### TC-VBDECIDE-005: Approving a slot another booking already holds is refused (AC3, business rule)
+
+SPM-22 AC3.
 
 **Preconditions:** The two Seminar Room 2-1 requests above, both
 **Requested**; signed in as `venue@test.com`.
@@ -195,7 +205,9 @@ select b.booking_id, v.location, b.status, e.name
 
 ---
 
-### TC-VBDECIDE-006: Only Venue Staff can open the booking pages
+### TC-VBDECIDE-006: Only Venue Staff can open the booking pages (AC1)
+
+SPM-22 AC1.
 
 **Preconditions:** A booking ID `<booking>` from above.
 
@@ -214,7 +226,9 @@ select b.booking_id, v.location, b.status, e.name
 
 ---
 
-### TC-VBDECIDE-007: A block recorded after the request refuses the approval
+### TC-VBDECIDE-007: A block recorded after the request refuses the approval (AC1, AC3)
+
+SPM-22 AC1, AC3.
 
 **Preconditions:** As `coordinator@test.com`, request **Studio** on
 **2026-12-08 AM** for event A. Then, as `venue@test.com`, block **Studio** for
@@ -240,7 +254,9 @@ The request is still **Requested**: a block does not change existing bookings.
 
 ---
 
-### TC-VBDECIDE-008: Lifting the block lets the approval go through
+### TC-VBDECIDE-008: Lifting the block lets the approval go through (AC1, AC3)
+
+SPM-22 AC1, AC3.
 
 **Preconditions:** As left by TC-VBDECIDE-007.
 

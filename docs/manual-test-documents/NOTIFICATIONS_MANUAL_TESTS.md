@@ -69,7 +69,9 @@ Its ID (`<qpf>` below) is in the URL of step 1.
 
 ## Test Cases
 
-### TC-NOTIFY-001: The inbox lists the coordinator's assignment notifications (SPM-174)
+### TC-NOTIFY-001: The inbox lists the coordinator's assignment notifications (AC1)
+
+SPM-57 AC1.
 
 Origin: Backfilled 2026-10-04 from PR #67 (as `coordinator@test.com` under
 `pnpm dev:local` with the Novu dev key, the list pane showed the Novu
@@ -93,6 +95,8 @@ has already been opened (read). Signed in as `coordinator@test.com`.
 
 ### TC-NOTIFY-002: Opening a notification shows the assigned request beside the list (AC5)
 
+SPM-57 AC5.
+
 Origin: Backfilled 2026-10-04 from PR #67 (opening "Quarterly Partner Forum has
 been assigned to you" showed the request under
 `/staff/coordinator/notifications/<id>`, with the list still open).
@@ -113,6 +117,8 @@ been assigned to you" showed the request under
 ---
 
 ### TC-NOTIFY-003: Opening an unread notification clears its dot and the count (AC6)
+
+SPM-57 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #67 (listed unticked: "not yet seen on an
 unread one").
@@ -137,7 +143,9 @@ unread one").
 
 ---
 
-### TC-NOTIFY-004: Assigning a coordinator delivers a notification to their inbox
+### TC-NOTIFY-004: Assigning a coordinator delivers a notification to their inbox (AC1, AC2)
+
+SPM-57 AC1, AC2.
 
 Origin: Backfilled 2026-10-04 from PR #67 (listed unticked: as `ops@test.com`,
 assign a coordinator; the notification appears in `coordinator@test.com`'s inbox
@@ -166,6 +174,8 @@ and opens the request).
 
 ### TC-NOTIFY-005: Reassigning notifies only the new coordinator (AC4)
 
+SPM-57 AC4.
+
 Origin: Backfilled 2026-10-04 from PR #63 (listed unticked, as a server-log
 check: "Reassign the request to a different coordinator. One line is logged,
 and it names the new coordinator"). Written here against the inbox, which did
@@ -193,7 +203,9 @@ Forum and has its notification). `coordinator2@test.com`'s inbox is empty.
 
 ---
 
-### TC-NOTIFY-006: "Mark as unread" brings back the dot and the count (SPM-179)
+### TC-NOTIFY-006: "Mark as unread" brings back the dot and the count (AC6)
+
+SPM-57 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #69 ("Mark as unread" brought back the dot
 and the count, "1 unread notification").
@@ -213,7 +225,9 @@ and the count, "1 unread notification").
 
 ---
 
-### TC-NOTIFY-007: "Archive" moves a notification to Archived (SPM-179)
+### TC-NOTIFY-007: "Archive" moves a notification to Archived (AC6)
+
+SPM-57 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #69 ("Archive" moved it to Archived, and
 the heading and placeholder followed).
@@ -233,7 +247,9 @@ the heading and placeholder followed).
 
 ---
 
-### TC-NOTIFY-008: "Unarchive" moves it back to the Inbox (SPM-179)
+### TC-NOTIFY-008: "Unarchive" moves it back to the Inbox (AC6)
+
+SPM-57 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #69 ("Unarchive" moved it back).
 
@@ -251,7 +267,9 @@ Origin: Backfilled 2026-10-04 from PR #69 ("Unarchive" moved it back).
 
 ---
 
-### TC-NOTIFY-009: "Mark all read" clears the unread count (SPM-179)
+### TC-NOTIFY-009: "Mark all read" clears the unread count (AC6)
+
+SPM-57 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #69 ("Mark all read" cleared the count).
 
@@ -269,7 +287,9 @@ Origin: Backfilled 2026-10-04 from PR #69 ("Mark all read" cleared the count).
 
 ---
 
-### TC-NOTIFY-010: At phone width the row actions show without hover (SPM-179)
+### TC-NOTIFY-010: At phone width the row actions show without hover (AC6)
+
+SPM-57 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #69 (at 390px wide the actions show
 without hover, and the ··· menu sits in the queue header).
@@ -289,7 +309,9 @@ notification; on `/staff/coordinator/notifications`.
 
 ---
 
-### TC-NOTIFY-011: A switched-off preference stays off after reload (SPM-180)
+### TC-NOTIFY-011: A switched-off preference stays off after reload (AC2)
+
+SPM-47 AC2.
 
 Origin: Backfilled 2026-10-04 from PR #70 (under `pnpm dev:local`, Preferences
 opened the sheet; turning a switch off, reloading and reopening showed it still
@@ -316,7 +338,9 @@ never stores our workflow), so use any other type the sheet lists. If it says
 
 ---
 
-### TC-NOTIFY-012: "Coordinator assigned" is always on (SPM-180)
+### TC-NOTIFY-012: "Coordinator assigned" is always on (AC2)
+
+SPM-47 AC2.
 
 Origin: Backfilled 2026-10-04 from PR #70 (listed unticked, to be checked after
 the Production Novu sync; it cannot appear locally).
@@ -335,7 +359,9 @@ signed in as an Event Coordinator.
 
 ---
 
-### TC-NOTIFY-013: The coordinator is told what the organiser wrote (SPM-164 AC1–AC3)
+### TC-NOTIFY-013: The coordinator is told what the organiser wrote (AC1–AC3)
+
+SPM-164 AC1–AC3.
 
 The unit tests (tagged `SPM-164`) cover who is notified, the wording and the
 redirect. This case checks that Novu really delivers the notice to the assigned

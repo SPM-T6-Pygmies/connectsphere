@@ -65,7 +65,9 @@ Run the cases in order: each starts from the state the previous one left.
 
 ## Test Cases
 
-### TC-ASSIGN-001: Operations sees every submitted request, split by whether it has a coordinator (SPM-29 AC1)
+### TC-ASSIGN-001: Operations sees every submitted request, split by whether it has a coordinator (AC1)
+
+SPM-29 AC1.
 
 **Preconditions:** Seeded as above, QA Assign Workshop submitted; signed in as
 `lead@test.com`.
@@ -89,7 +91,9 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Screenshots:** [step1-unassigned-list](../screenshots/2026-10-04_TC-ASSIGN-001_step1-unassigned-list.png) · [step2-assigned-list](../screenshots/2026-10-04_TC-ASSIGN-001_step2-assigned-list.png)
 
-### TC-ASSIGN-002: The assign card lists every Event Coordinator (SPM-130 AC1)
+### TC-ASSIGN-002: The assign card lists every Event Coordinator (AC1)
+
+SPM-130 AC1.
 
 **Preconditions:** As TC-ASSIGN-001.
 
@@ -108,7 +112,9 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Screenshots:** [step1-coordinator-options](../screenshots/2026-10-04_TC-ASSIGN-002_step1-coordinator-options.png)
 
-### TC-ASSIGN-003: Assigning a Submitted request starts its review (SPM-130 AC2)
+### TC-ASSIGN-003: Assigning a Submitted request starts its review (AC2)
+
+SPM-130 AC2.
 
 **Preconditions:** As left by TC-ASSIGN-002.
 
@@ -129,7 +135,9 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Screenshots:** [step1-assigned-message](../screenshots/2026-10-04_TC-ASSIGN-003_step1-assigned-message.png) · [step2-after-reload-under-review](../screenshots/2026-10-04_TC-ASSIGN-003_step2-after-reload-under-review.png) · [step3-assigned-list](../screenshots/2026-10-04_TC-ASSIGN-003_step3-assigned-list.png)
 
-### TC-ASSIGN-004: The request reaches the chosen coordinator's queue and no one else's (SPM-130 AC2)
+### TC-ASSIGN-004: The request reaches the chosen coordinator's queue and no one else's (AC2)
+
+SPM-130 AC2.
 
 **Preconditions:** As left by TC-ASSIGN-003.
 
@@ -150,7 +158,9 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Screenshots:** [step1-coordinator2-queue](../screenshots/2026-10-04_TC-ASSIGN-004_step1-coordinator2-queue.png) · [step2-coordinator1-queue-without-it](../screenshots/2026-10-04_TC-ASSIGN-004_step2-coordinator1-queue-without-it.png) · [step3-coordinator1-denied](../screenshots/2026-10-04_TC-ASSIGN-004_step3-coordinator1-denied.png)
 
-### TC-ASSIGN-005: Reassigning moves the request to the new coordinator and keeps its status (SPM-130 AC3)
+### TC-ASSIGN-005: Reassigning moves the request to the new coordinator and keeps its status (AC3)
+
+SPM-130 AC3.
 
 **Preconditions:** As left by TC-ASSIGN-004; signed in as `lead@test.com`.
 
@@ -173,7 +183,9 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Screenshots:** [step1-reassigned-message](../screenshots/2026-10-04_TC-ASSIGN-005_step1-reassigned-message.png) · [step2-after-reload-under-review](../screenshots/2026-10-04_TC-ASSIGN-005_step2-after-reload-under-review.png) · [step3-coordinator1-queue-has-it](../screenshots/2026-10-04_TC-ASSIGN-005_step3-coordinator1-queue-has-it.png) · [step4-coordinator2-queue-without-it](../screenshots/2026-10-04_TC-ASSIGN-005_step4-coordinator2-queue-without-it.png) · [step5-coordinator2-denied](../screenshots/2026-10-04_TC-ASSIGN-005_step5-coordinator2-denied.png)
 
-### TC-ASSIGN-006: Reassigning to the current coordinator is not offered (SPM-130 AC3, boundary)
+### TC-ASSIGN-006: Reassigning to the current coordinator is not offered (AC3, boundary)
+
+SPM-130 AC3.
 
 **Preconditions:** As left by TC-ASSIGN-005; signed in as `lead@test.com`.
 
@@ -195,7 +207,9 @@ Run the cases in order: each starts from the state the previous one left.
 
 **Screenshots:** [step1-current-selected-disabled](../screenshots/2026-10-04_TC-ASSIGN-006_step1-current-selected-disabled.png) · [step2-other-selected-enabled](../screenshots/2026-10-04_TC-ASSIGN-006_step2-other-selected-enabled.png)
 
-### TC-ASSIGN-007: A Rejected or Withdrawn request cannot take a coordinator (business rule)
+### TC-ASSIGN-007: A Rejected or Withdrawn request cannot take a coordinator (AC2, business rule)
+
+SPM-130 AC2.
 
 **Preconditions:** A request assigned to Test Coordinator has been rejected
 (e.g. Venue Safety Review after `TC-DECIDE-003`) or withdrawn (`TC-WITHDRAW-001`);
@@ -216,7 +230,9 @@ signed in as `lead@test.com`.
 
 **Screenshots:** [step1-rejected-cannot-assign](../screenshots/2026-10-04_TC-ASSIGN-007_step1-rejected-cannot-assign.png) · [step2-withdrawn-cannot-assign](../screenshots/2026-10-04_TC-ASSIGN-007_step2-withdrawn-cannot-assign.png)
 
-### TC-ASSIGN-008: With nothing awaiting assignment, Unassigned is empty (SPM-29 AC2, boundary)
+### TC-ASSIGN-008: With nothing awaiting assignment, Unassigned is empty (AC2, boundary)
+
+SPM-29 AC2.
 
 **Preconditions:** Signed in as `lead@test.com`. Every non-Draft request has a
 coordinator: assign any request still under Unassigned (on a fresh seed plus

@@ -71,6 +71,8 @@ supabase db query --file scripts/seed-booking-flag-clear/teardown.sql --local
 
 ### TC-CONFIRM-FLAG-001: Flagged bookings block confirmation, each named once (AC1)
 
+SPM-312 AC1.
+
 **What this tests:** A flagged booking stops the coordinator confirming, and the card says which
 bookings, by venue and time. P has two open reasons and is still named once.
 
@@ -92,6 +94,8 @@ bookings, by venue and time. P has two open reasons and is still named once.
 
 ### TC-CONFIRM-FLAG-002: Clearing one booking's flag names only the other (AC2)
 
+SPM-312 AC2.
+
 **What this tests:** A cleared booking stops blocking at once; a booking still flagged keeps blocking.
 
 **Preconditions:** TC-CONFIRM-FLAG-001 done.
@@ -111,6 +115,8 @@ bookings, by venue and time. P has two open reasons and is still named once.
 **Screenshots:** [step2-one-booking-flagged](../screenshots/2026-10-27_TC-CONFIRM-FLAG-002_step2-one-booking-flagged.png)
 
 ### TC-CONFIRM-FLAG-003: With every flag cleared, only the other gates remain (AC2)
+
+SPM-312 AC2.
 
 **What this tests:** Once no booking is flagged, this rule no longer blocks, and the SPM-264 gate still
 applies.

@@ -80,6 +80,8 @@ Call its ID `<not-my-event>`.
 
 ### TC-DENY-001: Wrong workspace shows the access-denied screen (AC1, AC4)
 
+SPM-16 AC1, AC4.
+
 **Preconditions:** Signed in as each account below in turn.
 
 **Steps:** For each row, open the URL.
@@ -104,6 +106,8 @@ Call its ID `<not-my-event>`.
 
 ### TC-DENY-002: A record that isn't theirs shows the access-denied screen (AC2)
 
+SPM-16 AC2.
+
 **Preconditions:** Signed in as `coordinator@test.com`; `<not-mine>` found as above.
 
 **Steps:**
@@ -118,6 +122,8 @@ Call its ID `<not-my-event>`.
 ---
 
 ### TC-DENY-003: A record that isn't theirs and a missing ID look identical (AC3)
+
+SPM-16 AC3.
 
 **Preconditions:** As TC-DENY-002.
 
@@ -143,6 +149,8 @@ Call its ID `<not-my-event>`.
 
 ### TC-DENY-004: "Go back to your workspace" opens the user's own workspace (AC5)
 
+SPM-16 AC5.
+
 **Preconditions:** On any access-denied screen from TC-DENY-001.
 
 **Steps:**
@@ -157,7 +165,9 @@ Call its ID `<not-my-event>`.
 
 ---
 
-### TC-DENY-005: An Organiser with no client organisation sees a distinct message and is signed out to login (AC5, SPM-188)
+### TC-DENY-005: An Organiser with no client organisation sees a distinct message and is signed out to login (AC5)
+
+SPM-16 AC5.
 
 **Preconditions:** Local database only. Detach the second Organiser from their
 organisation:
@@ -195,6 +205,8 @@ update user_account set client_organisation_id = null where name = 'Test Organis
 
 ### TC-DENY-006: The screen works at mobile and desktop widths (AC6)
 
+SPM-16 AC6.
+
 **Preconditions:** On any access-denied screen from TC-DENY-001.
 
 **Steps:**
@@ -211,7 +223,9 @@ update user_account set client_organisation_id = null where name = 'Test Organis
 
 ---
 
-### TC-DENY-007: Login is refused for an account with no staff role (SPM-192)
+### TC-DENY-007: Login is refused for an account with no staff role (AC1, AC2)
+
+SPM-192 AC1, AC2.
 
 Attendees are never seeded with an account (they don't get one in the real
 product — see [`supabase/SEED.md`](../../supabase/SEED.md)), so this uses a
@@ -250,7 +264,9 @@ update user_account_role
 
 ---
 
-### TC-DENY-008: A session that loses its only staff role still gets the access-denied screen (SPM-192)
+### TC-DENY-008: A session that loses its only staff role still gets the access-denied screen (AC3)
+
+SPM-192 AC3.
 
 The backstop for a session issued before a role change, since login itself
 already refuses this account (TC-DENY-007) — a role can still change after
@@ -284,6 +300,8 @@ someone is already signed in.
 
 ### TC-DENY-009: The coordinator's inner pages deny a non-coordinator too (AC1, AC5)
 
+SPM-16 AC1, AC5.
+
 TC-DENY-001 opens each workspace's home. SPM-242 found three Coordinator pages
 below the home that still answered a bare 404, so this case walks them. (The
 bug was reported against `ops@test.com`, which the seed no longer has; any
@@ -310,6 +328,8 @@ before reading anything, so the ids need not exist.
 ---
 
 ### TC-DENY-010: An event that isn't the coordinator's and a missing id look identical (AC3)
+
+SPM-16 AC3.
 
 TC-DENY-003 covers the request detail page. The event page and the venue
 booking page scope the same way, so they must give away as little.

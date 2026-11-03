@@ -36,7 +36,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ## Cases
 
-### TC-SLOTCODE-001 The contract migration on a fresh database and on existing data
+### TC-SLOTCODE-001 The contract migration on a fresh database and on existing data (AC8)
+
+SPM-276 AC8.
 
 **Steps**
 1. Fresh database: `supabase db reset`, then

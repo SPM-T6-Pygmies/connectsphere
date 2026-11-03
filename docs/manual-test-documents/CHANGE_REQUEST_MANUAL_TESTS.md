@@ -65,7 +65,9 @@ ids below are the ones a fresh reset gives; look them up if yours differ.
 
 ## Test Cases
 
-### TC-CHANGE-001: The owner submits one request covering several fields (AC1, AC2, AC5)
+### TC-CHANGE-001: The owner submits one request covering several fields (AC1, AC2)
+
+SPM-52 AC1, AC2.
 
 **Preconditions:** Signed in as `organiser2@test.com`; the event has no change
 request.
@@ -92,6 +94,8 @@ request.
 
 ### TC-CHANGE-002: A refused value keeps what was entered (AC1)
 
+SPM-52 AC1.
+
 **Preconditions:** As TC-CHANGE-001, before step 4 there. To run this on its
 own, run it first on a fresh event.
 
@@ -102,7 +106,9 @@ own, run it first on a fresh event.
 **Expected Result:** The form shows *Expected attendance must be a whole
 number, 0 or more.* The times stay as entered, and nothing is stored.
 
-### TC-CHANGE-003: A second request is refused while one is open
+### TC-CHANGE-003: A second request is refused while one is open (AC1)
+
+SPM-52 AC1.
 
 **Preconditions:** State left by TC-CHANGE-001.
 
@@ -116,6 +122,8 @@ waiting on your coordinator.* and shows no form. The SQL call is refused with
 `CS092`, "Event 1 already has an open change request".
 
 ### TC-CHANGE-004: A colleague who does not own the event cannot submit (AC4)
+
+SPM-52 AC4.
 
 **Preconditions:** Signed in as `organiser@test.com`.
 
@@ -131,7 +139,9 @@ waiting on your coordinator.* and shows no form. The SQL call is refused with
 - Step 2: 403.
 - Step 3: refused with `CS090`, "No event from request 6 owned by user 1".
 
-### TC-CHANGE-005: A Completed event takes no change request
+### TC-CHANGE-005: A Completed event takes no change request (AC3)
+
+SPM-52 AC3.
 
 **Preconditions:** Signed in as `organiser2@test.com`.
 
@@ -148,7 +158,9 @@ waiting on your coordinator.* and shows no form. The SQL call is refused with
 - Step 3: refused with `CS091`, "Event 1 is Completed and takes no change
   requests".
 
-### TC-CHANGE-006: The coordinator sees each field and cannot save a decline without a reason (SPM-100 AC1, AC3)
+### TC-CHANGE-006: The coordinator sees each field and cannot save a decline without a reason (AC1, AC3)
+
+SPM-100 AC1, AC3.
 
 **Preconditions:** State left by TC-CHANGE-005: the request from TC-CHANGE-001
 is still open, asking for new times, attendance 350 and no equipment. Signed
@@ -186,7 +198,9 @@ in as `coordinator@test.com`.
 
 **Screenshots:** [step1-change-request-waiting](../screenshots/2026-10-29_TC-CHANGE-006_step1-change-request-waiting.png) · [step2-one-row-per-field](../screenshots/2026-10-29_TC-CHANGE-006_step2-one-row-per-field.png) · [step5-save-waits-for-a-reason](../screenshots/2026-10-29_TC-CHANGE-006_step5-save-waits-for-a-reason.png)
 
-### TC-CHANGE-007: A mixed decision changes only what was accepted (SPM-100 AC2, AC4)
+### TC-CHANGE-007: A mixed decision changes only what was accepted (AC2, AC4)
+
+SPM-100 AC2, AC4.
 
 **Preconditions:** State left by TC-CHANGE-006: still on the *Change requests*
 page with the three choices made.
@@ -219,7 +233,9 @@ page with the three choices made.
 
 **Screenshots:** [step2-decided-history](../screenshots/2026-10-29_TC-CHANGE-007_step2-decided-history.png) · [step3-event-updated](../screenshots/2026-10-29_TC-CHANGE-007_step3-event-updated.png) · [step4-no-equipment-needs](../screenshots/2026-10-29_TC-CHANGE-007_step4-no-equipment-needs.png) · [step5-organiser-my-requests-after-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step5-organiser-my-requests-after-accepted-change.png) · [step6-organiser-my-requests-before-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step6-organiser-my-requests-before-accepted-change.png) · [step7-organiser-your-event-after-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step7-organiser-your-event-after-accepted-change.png) · [step8-organiser-your-event-before-accepted-change](../screenshots/2026-10-31_TC-CHANGE-007_step8-organiser-your-event-before-accepted-change.png)
 
-### TC-CHANGE-008: Accepting "registration not applicable" stops registration blocking confirmation (SPM-100 AC4)
+### TC-CHANGE-008: Accepting "registration not applicable" stops registration blocking confirmation (AC4)
+
+SPM-100 AC4.
 
 **Preconditions:** State left by TC-CHANGE-007. Registration has to be marked
 essential for this event, and no screen does that yet, so run this once in
@@ -259,7 +275,9 @@ insert into event_essential_arrangement values (1, 'registration', true);
 
 **Screenshots:** [step1-registration-blocks-confirmation](../screenshots/2026-10-29_TC-CHANGE-008_step1-registration-blocks-confirmation.png) · [step3-accept-registration-not-applicable](../screenshots/2026-10-29_TC-CHANGE-008_step3-accept-registration-not-applicable.png) · [step4-registration-no-longer-essential](../screenshots/2026-10-29_TC-CHANGE-008_step4-registration-no-longer-essential.png) · [step5-registration-tab](../screenshots/2026-10-29_TC-CHANGE-008_step5-registration-tab.png)
 
-### TC-CHANGE-009: Only the assigned coordinator can decide, and only once (SPM-100)
+### TC-CHANGE-009: Only the assigned coordinator can decide, and only once (AC4)
+
+SPM-100 AC4.
 
 **Preconditions:** State left by TC-CHANGE-008. As `organiser2@test.com`,
 submit one more change request: Expected attendance **400**.

@@ -84,7 +84,9 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ## Test Cases
 
-### TC-COMPLETE-001: Completing an ended Confirmed event records the notes and audits both
+### TC-COMPLETE-001: Completing an ended Confirmed event records the notes and audits both (AC1, AC2)
+
+SPM-51 AC1, AC2.
 
 **Preconditions:** Event set up as above; signed in as `coordinator@test.com`.
 
@@ -112,7 +114,9 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ---
 
-### TC-COMPLETE-002: Before the event ends, Mark completed is disabled
+### TC-COMPLETE-002: Before the event ends, Mark completed is disabled (AC1)
+
+SPM-51 AC1.
 
 **Preconditions:** Event set up as above, then move its times to tomorrow:
 ```sql
@@ -136,7 +140,9 @@ Afterwards, put the times back to `current_date - 1`.
 
 ---
 
-### TC-COMPLETE-003: A Planning event has no Mark completed
+### TC-COMPLETE-003: A Planning event has no Mark completed (AC1)
+
+SPM-51 AC1.
 
 **Preconditions:** Event set up as above, then:
 ```sql
@@ -156,7 +162,9 @@ Afterwards, set the status back to `Confirmed`.
 
 ---
 
-### TC-COMPLETE-004: Once completed, the event's tabs are read-only
+### TC-COMPLETE-004: Once completed, the event's tabs are read-only (AC1)
+
+SPM-51 AC1.
 
 **Preconditions:** As left by TC-COMPLETE-001 (event Completed).
 
@@ -175,7 +183,9 @@ Afterwards, set the status back to `Confirmed`.
 
 ---
 
-### TC-COMPLETE-005: Another coordinator's event is not found
+### TC-COMPLETE-005: Another coordinator's event is not found (AC1)
+
+SPM-51 AC1.
 
 **Preconditions:** Event set up as above (Confirmed, ended); signed in as
 `coordinator2@test.com`.

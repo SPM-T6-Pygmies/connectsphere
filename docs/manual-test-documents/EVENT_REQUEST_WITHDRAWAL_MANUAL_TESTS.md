@@ -31,7 +31,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-## TC-WITHDRAW-001 Coordinator records a withdrawal with a note
+## TC-WITHDRAW-001 Coordinator records a withdrawal with a note (AC1, AC3, AC4)
+
+SPM-101 AC1, AC3, AC4.
 
 **Steps**
 1. Log in as `coordinator@test.com` and open the request from "My requests".
@@ -48,7 +50,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 **Screenshots:** [step6-withdrawal-confirm-step](../screenshots/2026-09-29_TC-WITHDRAW-001_step6-withdrawal-confirm-step.png) · [step7-withdrawal-coordinator-archive](../screenshots/2026-09-29_TC-WITHDRAW-001_step7-withdrawal-coordinator-archive.png) · [step8-withdrawal-coordinator-queue-after](../screenshots/2026-09-29_TC-WITHDRAW-001_step8-withdrawal-coordinator-queue-after.png) · [step9-withdrawal-under-review-withdrawal-card](../screenshots/2026-09-29_TC-WITHDRAW-001_step9-withdrawal-under-review-withdrawal-card.png) · [step3-confirm-with-note](../screenshots/2026-10-04_TC-WITHDRAW-001_step3-confirm-with-note.png) · [step3b-hung-withdrawing](../screenshots/2026-10-04_TC-WITHDRAW-001_step3b-hung-withdrawing.png) · [step4-after-reload](../screenshots/2026-10-04_TC-WITHDRAW-001_step4-after-reload.png) · [step5-in-archive](../screenshots/2026-10-04_TC-WITHDRAW-001_step5-in-archive.png)
 
-## TC-WITHDRAW-002 Cancel and blank-note withdrawal
+## TC-WITHDRAW-002 Cancel and blank-note withdrawal (AC1)
+
+SPM-101 AC1.
 
 **Steps**
 1. On a second request that is `Returned` (ask the Organiser a question first
@@ -63,7 +67,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 **Screenshots:** [step1-cancel-unchanged](../screenshots/2026-10-04_TC-WITHDRAW-002_step1-cancel-unchanged.png) · [step2-after-confirm](../screenshots/2026-10-04_TC-WITHDRAW-002_step2-after-confirm.png)
 
-## TC-WITHDRAW-003 Organiser and Operations see the withdrawal
+## TC-WITHDRAW-003 Organiser and Operations see the withdrawal (AC2, AC3, AC5)
+
+SPM-101 AC2, AC3, AC5.
 
 **Steps**
 1. Log in as `organiser@test.com` and open "My requests", then the withdrawn request.

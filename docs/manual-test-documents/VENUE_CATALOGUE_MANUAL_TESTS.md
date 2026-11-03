@@ -51,7 +51,9 @@ TC-EVREQ in [`EVENT_REQUEST_MANUAL_TESTS.md`](EVENT_REQUEST_MANUAL_TESTS.md).
 **Shared Pre-Conditions:** log in as `venue@test.com` and open the venue
 catalogue (`/staff/venue/catalogue`).
 
-### TC-VCAT-001 The venue form offers fixed lists and opening hours
+### TC-VCAT-001 The venue form offers fixed lists and opening hours (AC1)
+
+SPM-42 AC1.
 
 **Steps**
 1. Click **Add venue**.
@@ -78,7 +80,9 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 
 **Screenshots:** [step4-venue-catalogue-list-after-test-run](../screenshots/2026-09-29_TC-VCAT-001_step4-venue-catalogue-list-after-test-run.jpg) · [step2-form-lists-and-slots](../screenshots/2026-10-09_TC-VCAT-001_step2-form-lists-and-slots.png) · [step3-add-venue-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-001_step3-add-venue-disabled-no-slot.png) · [step3-add-venue-enabled-after-a-slot](../screenshots/2026-10-09_TC-VCAT-001_step3-add-venue-enabled-after-a-slot.png)
 
-### TC-VCAT-002 Create a venue
+### TC-VCAT-002 Create a venue (AC1)
+
+SPM-42 AC1.
 
 **Steps**
 1. Click **Add venue**. Enter **Location** `UAT-42 Lecture Hall`, **Capacity**
@@ -103,7 +107,9 @@ Earlier run on slots: Pass, 9/10/2026, JameszLau ([step3-catalogue-row](../scree
 
 **Screenshots:** [step2-form-filled](../screenshots/2026-10-09_TC-VCAT-002_step2-form-filled.png) · [step3-venue-opened](../screenshots/2026-10-09_TC-VCAT-002_step3-venue-opened.png)
 
-### TC-VCAT-003 Layouts each carry their own capacity
+### TC-VCAT-003 Layouts each carry their own capacity (AC2)
+
+SPM-42 AC2.
 
 **Steps**
 1. Open `UAT-42 Lecture Hall` from TC-VCAT-002.
@@ -125,7 +131,9 @@ Earlier run: Pass, 25/10/2026, Chrome via Claude in Chrome (local, `pnpm dev:loc
 Earlier run: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev`).
 Earlier run: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step3-two-layouts-in-catalogue](../screenshots/2026-10-09_TC-VCAT-003_step3-two-layouts-in-catalogue.png) · [step4-duplicate-theatre-refused](../screenshots/2026-10-09_TC-VCAT-003_step4-duplicate-theatre-refused.png)
 
-### TC-VCAT-004 Update a venue, including a layout's capacity
+### TC-VCAT-004 Update a venue, including a layout's capacity (AC3)
+
+SPM-42 AC3.
 
 **Steps**
 1. Open `UAT-42 Lecture Hall`.
@@ -145,7 +153,9 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 Screenshots, retaken 21/10/2026 on the same build: [step3-opening-windows-after-reload](../screenshots/2026-10-21_TC-VCAT-004_step3-opening-windows-after-reload.png)
 Earlier run on slots: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step2-edits-before-save](../screenshots/2026-10-09_TC-VCAT-004_step2-edits-before-save.png) · [step3-after-reload](../screenshots/2026-10-09_TC-VCAT-004_step3-after-reload.png) · [step4-save-disabled-no-slot](../screenshots/2026-10-09_TC-VCAT-004_step4-save-disabled-no-slot.png)
 
-### TC-VCAT-005 Any Venue Staff can maintain any venue
+### TC-VCAT-005 Any Venue Staff can maintain any venue (AC4)
+
+SPM-42 AC4.
 
 **Steps**
 1. Log out, then log in as `venue2@test.com` and open the venue catalogue.
@@ -162,7 +172,9 @@ Earlier run on slots: Pass, 9/10/2026, Chrome via Playwright for JameszLau. Scre
 
 **Run:** Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step1-venue2-sees-the-venue](../screenshots/2026-10-09_TC-VCAT-005_step1-venue2-sees-the-venue.png) · [step2-venue2-saved](../screenshots/2026-10-09_TC-VCAT-005_step2-venue2-saved.png) · [step3-venue1-sees-60](../screenshots/2026-10-09_TC-VCAT-005_step3-venue1-sees-60.png)
 
-### TC-VCAT-006 A venue still holding a removed facility
+### TC-VCAT-006 A venue still holding a removed facility (AC1, AC3)
+
+SPM-42 AC1, AC3.
 
 Projector and PA system left the facilities list (they are equipment). A venue saved
 before that may still store them. Venue Staff cannot create such a venue from the form,
@@ -211,7 +223,9 @@ select count(*) from v;
 
 **Run:** Pass, 9/10/2026, Chrome via Playwright for JameszLau. Screenshots: [step1-catalogue-shows-stored-text](../screenshots/2026-10-09_TC-VCAT-006_step1-catalogue-shows-stored-text.png) · [step2-legacy-hall-nothing-ticked](../screenshots/2026-10-09_TC-VCAT-006_step2-legacy-hall-nothing-ticked.png) · [step2-save-refused](../screenshots/2026-10-09_TC-VCAT-006_step2-save-refused.png) · [step3-saved-after-ticking-wifi](../screenshots/2026-10-09_TC-VCAT-006_step3-saved-after-ticking-wifi.png) · [step4-partly-legacy-wifi-ticked](../screenshots/2026-10-09_TC-VCAT-006_step4-partly-legacy-wifi-ticked.png) · [step4-save-refused](../screenshots/2026-10-09_TC-VCAT-006_step4-save-refused.png) · [step5-saved-after-reticking](../screenshots/2026-10-09_TC-VCAT-006_step5-saved-after-reticking.png)
 
-### TC-VCAT-007 No two venues share a location
+### TC-VCAT-007 No two venues share a location (AC1)
+
+SPM-42 AC1.
 
 **Scenario:** Venue Staff try to add a second *Main Hall*, and to rename another venue to it.
 

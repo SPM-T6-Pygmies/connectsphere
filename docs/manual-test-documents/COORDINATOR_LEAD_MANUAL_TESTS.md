@@ -59,9 +59,9 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ## Test Cases
 
-### TC-LEAD-001: An unassigned row names the client, event and date, and opens read-only
+### TC-LEAD-001: An unassigned row names the client, event and date, and opens read-only (AC1–AC3)
 
-SPM-255 AC1, AC2, AC3.
+SPM-255 AC1–AC3.
 
 **Preconditions:** Signed in as `lead@test.com`.
 
@@ -85,7 +85,7 @@ SPM-255 AC1, AC2, AC3.
 
 **Screenshots:** [step2-rename-lead-workspace](../screenshots/2026-10-06_TC-LEAD-001_step2-rename-lead-workspace.png)
 
-### TC-LEAD-002: The Coordinators view lists every coordinator's open work
+### TC-LEAD-002: The Coordinators view lists every coordinator's open work (AC1, AC2)
 
 SPM-256 AC1, AC2.
 
@@ -114,7 +114,9 @@ select public.coordinator_decide_event_request(6, 2, 'Approved', 'QA');
 
 ---
 
-### TC-LEAD-003: A coordinator is refused the Coordinators view
+### TC-LEAD-003: A coordinator is refused the Coordinators view (AC1)
+
+SPM-256 AC1.
 
 SPM-256.
 
@@ -131,9 +133,9 @@ SPM-256.
 
 ---
 
-### TC-LEAD-004: Reassigning an active event moves it, its access and its notices
+### TC-LEAD-004: Reassigning an active event moves it, its access and its notices (AC1–AC5)
 
-SPM-257 AC1, AC2, AC3, AC4; SPM-256 AC3.
+SPM-257 AC1–AC5; SPM-256 AC3.
 
 **Preconditions:** As TC-LEAD-002, both events Planning and on Test
 Coordinator. Signed in as `lead@test.com`.
@@ -161,7 +163,7 @@ Coordinator. Signed in as `lead@test.com`.
 
 ---
 
-### TC-LEAD-005: A Completed event's coordinator cannot change
+### TC-LEAD-005: A Completed event's coordinator cannot change (AC1)
 
 SPM-257 AC1.
 
@@ -179,7 +181,9 @@ SPM-257 AC1.
 
 ---
 
-### TC-LEAD-006: An Approved request is no longer reassigned itself
+### TC-LEAD-006: An Approved request is no longer reassigned itself (AC1)
+
+SPM-257 AC1.
 
 SPM-257 (replaces SPM-143's rule).
 

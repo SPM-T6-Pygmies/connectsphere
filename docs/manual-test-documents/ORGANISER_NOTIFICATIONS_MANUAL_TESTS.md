@@ -46,7 +46,9 @@ than committed here.
 
 ## SPM-58: coordinator assigned
 
-### TC-ORGNOTIFY-001 Organiser is told who their coordinator is
+### TC-ORGNOTIFY-001 Organiser is told who their coordinator is (AC1, AC2)
+
+SPM-58 AC1, AC2.
 
 **Steps**
 1. As `lead@test.com`, assign the request to Test Coordinator.
@@ -61,7 +63,9 @@ than committed here.
 
 ![Organiser's inbox with one unread Coordinator assigned notification](../screenshots/2026-10-04_TC-ORGNOTIFY-001_step1-organiser-told-their-coordinator.png)
 
-### TC-ORGNOTIFY-002 Opening the notification opens the request and reads it
+### TC-ORGNOTIFY-002 Opening the notification opens the request and reads it (AC4, AC5)
+
+SPM-58 AC4, AC5.
 
 **Steps**
 1. Click the notification from TC-ORGNOTIFY-001.
@@ -73,7 +77,9 @@ than committed here.
 
 ![The request opened from the notification, showing Test Coordinator assigned](../screenshots/2026-10-04_TC-ORGNOTIFY-002_step1-notification-opens-the-request.png)
 
-### TC-ORGNOTIFY-003 Reassignment notifies again, naming the new coordinator
+### TC-ORGNOTIFY-003 Reassignment notifies again, naming the new coordinator (AC3)
+
+SPM-58 AC3.
 
 **Steps**
 1. As `lead@test.com`, reassign the same request to Test Coordinator 2.
@@ -88,7 +94,9 @@ than committed here.
 
 ## SPM-59: clarification requested
 
-### TC-ORGNOTIFY-004 Organiser is told what the coordinator asked
+### TC-ORGNOTIFY-004 Organiser is told what the coordinator asked (AC1–AC4)
+
+SPM-59 AC1–AC4.
 
 **Steps**
 1. As the assigned coordinator, open the request, type
@@ -106,7 +114,9 @@ than committed here.
 
 ## SPM-60: review decision
 
-### TC-ORGNOTIFY-005 Approval says planning may begin but nothing is committed
+### TC-ORGNOTIFY-005 Approval says planning may begin but nothing is committed (AC1, AC2, AC4, AC5)
+
+SPM-60 AC1, AC2, AC4, AC5.
 
 **Steps**
 1. As the assigned coordinator, click **Approve** on the request.
@@ -118,7 +128,9 @@ than committed here.
       committed to any arrangement.
 - [ ] Clicking it opens the request, and the notification is now read.
 
-### TC-ORGNOTIFY-006 Rejection carries the coordinator's reason
+### TC-ORGNOTIFY-006 Rejection carries the coordinator's reason (AC1, AC3–AC5)
+
+SPM-60 AC1, AC3–AC5.
 
 **Steps**
 1. Submit and assign a second request, as in the shared pre-conditions.
@@ -147,7 +159,9 @@ essential equipment line reserved in full, and an Approved safety check.
 equipment line essential. Also add a second, non-essential equipment line
 with something reserved.
 
-### TC-ORGNOTIFY-007 Organiser is told their event is Confirmed, and the coordinator is not
+### TC-ORGNOTIFY-007 Organiser is told their event is Confirmed, and the coordinator is not (AC1, AC2, AC5)
+
+SPM-66 AC1, AC2, AC5.
 
 **Steps**
 1. As `coordinator@test.com`, open the event and click **Confirm event**.
@@ -164,7 +178,9 @@ with something reserved.
 - [x] `notification` has a row with `trigger_scenario = 'event-confirmed'`,
       the organiser as recipient, and `status = 'Sent'`.
 
-### TC-ORGNOTIFY-008 Opening the notification shows the confirmed arrangements and reads it
+### TC-ORGNOTIFY-008 Opening the notification shows the confirmed arrangements and reads it (AC3, AC4)
+
+SPM-66 AC3, AC4.
 
 **Steps**
 1. As `organiser@test.com`, click the notification from TC-ORGNOTIFY-007.

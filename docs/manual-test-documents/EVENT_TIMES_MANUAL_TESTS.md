@@ -86,7 +86,9 @@ run in the PR description's `## Manual test results` table.
 
 ## Test Cases
 
-### TC-EVTIME-001: Existing AM, PM and Night rows become the 15-minute slots they cover
+### TC-EVTIME-001: Existing AM, PM and Night rows become the 15-minute slots they cover (AC4)
+
+SPM-326 AC4.
 
 **Preconditions:** Before the migration: `supabase db reset --version 20261020000000`,
 an event with `event_slot` rows AM and PM on one date and Night on another,
@@ -114,7 +116,9 @@ and a session with AM and Night rows.
 
 ---
 
-### TC-EVTIME-002: Attendee pages show start and end times with no slot labels
+### TC-EVTIME-002: Attendee pages show start and end times with no slot labels (AC2, AC5)
+
+SPM-326 AC2, AC5.
 
 **Preconditions:** Environment set up; browser in Singapore time.
 
@@ -137,7 +141,9 @@ and a session with AM and Night rows.
 
 **Screenshots:** [step1-catalogue-sgt](../screenshots/2026-10-20_TC-EVTIME-002_step1-catalogue-sgt.png) · [step2-event-page](../screenshots/2026-10-20_TC-EVTIME-002_step2-event-page.png) · [step3-confirmation](../screenshots/2026-10-20_TC-EVTIME-002_step3-confirmation.png) · [step4-withdrawal-page](../screenshots/2026-10-20_TC-EVTIME-002_step4-withdrawal-page.png)
 
-### TC-EVTIME-003: Times follow the viewer's timezone
+### TC-EVTIME-003: Times follow the viewer's timezone (AC2)
+
+SPM-326 AC2.
 
 **Preconditions:** Environment set up; browser timezone Europe/London.
 
@@ -157,7 +163,9 @@ and a session with AM and Night rows.
 
 **Screenshots:** [step1-catalogue-london](../screenshots/2026-10-20_TC-EVTIME-003_step1-catalogue-london.png)
 
-### TC-EVTIME-004: The coordinator sees each date's times
+### TC-EVTIME-004: The coordinator sees each date's times (AC1, AC5)
+
+SPM-326 AC1, AC5.
 
 **Preconditions:** Environment set up; signed in as `coordinator@test.com`.
 
@@ -177,7 +185,9 @@ and a session with AM and Night rows.
 
 **Screenshots:** [step1-coordinator-event-tab](../screenshots/2026-10-20_TC-EVTIME-004_step1-coordinator-event-tab.png)
 
-### TC-EVTIME-005: Completion waits for the latest end time
+### TC-EVTIME-005: Completion waits for the latest end time (AC3)
+
+SPM-326 AC3.
 
 **Preconditions:** Environment set up; signed in as `coordinator@test.com`.
 
@@ -199,7 +209,9 @@ and a session with AM and Night rows.
 
 **Screenshots:** [step1-complete-not-yet](../screenshots/2026-10-20_TC-EVTIME-005_step1-complete-not-yet.png) · [step2-complete-ended](../screenshots/2026-10-20_TC-EVTIME-005_step2-complete-ended.png) · [step3-completed](../screenshots/2026-10-20_TC-EVTIME-005_step3-completed.png)
 
-### TC-EVTIME-006: The Lead sees each date's times
+### TC-EVTIME-006: The Lead sees each date's times (AC1)
+
+SPM-326 AC1.
 
 **Preconditions:** Environment set up; signed in as `lead@test.com`.
 
@@ -218,7 +230,9 @@ and a session with AM and Night rows.
 
 **Screenshots:** [step1-lead-event](../screenshots/2026-10-20_TC-EVTIME-006_step1-lead-event.png)
 
-### TC-EVTIME-007: The Organiser sees the event's times on their request
+### TC-EVTIME-007: The Organiser sees the event's times on their request (AC6)
+
+SPM-326 AC6.
 
 **Preconditions:** Environment set up; signed in as `organiser2@test.com`.
 

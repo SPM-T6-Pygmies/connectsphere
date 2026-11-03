@@ -73,6 +73,8 @@ supabase db query --file scripts/seed-booking-flag-clear/teardown.sql --local
 
 ### TC-VFCLR-001: The coordinator clears every reason on one booking (AC1, AC4)
 
+SPM-310 AC1, AC4.
+
 **What this tests:** Clearing is the "it's fine" exit. It removes every reason on the booking at
 once, leaves the booking as it was, and does not touch the flag on the event's other booking.
 
@@ -101,6 +103,8 @@ once, leaves the booking as it was, and does not touch the flag on the event's o
 
 ### TC-VFCLR-002: Clearing is recorded, not deleted (AC2)
 
+SPM-310 AC2.
+
 **What this tests:** A cleared flag is history. Each reason stays, with who cleared it, when and how.
 
 **Preconditions:** TC-VFCLR-001 done.
@@ -122,6 +126,8 @@ Night row ("Renovation: C 19:00 to 24:00") has `cleared_at`, `cleared_by` and `c
 
 ### TC-VFCLR-003: Only the assigned coordinator can clear (AC3)
 
+SPM-310 AC3.
+
 **What this tests:** Clearing is the assigned coordinator's call. Another coordinator and Venue Staff
 cannot reach the card at all.
 
@@ -140,6 +146,8 @@ cannot reach the card at all.
 **Screenshots:** [step1-coordinator-2-denied](../screenshots/2026-10-23_TC-VFCLR-003_step1-coordinator-2-denied.png) · [step2-venue-staff-denied](../screenshots/2026-10-23_TC-VFCLR-003_step2-venue-staff-denied.png)
 
 ### TC-VFCLR-004: A cleared booking is flagged again by a later block (AC5)
+
+SPM-310 AC5.
 
 **What this tests:** Clearing is not an exemption. When something new changes under the booking, it
 is flagged again, with only the new reason; the cleared ones stay cleared.
@@ -161,6 +169,8 @@ is flagged again, with only the new reason; the cleared ones stay cleared.
 **Screenshots:** [step1-coordinator-flagged-again](../screenshots/2026-10-23_TC-VFCLR-004_step1-coordinator-flagged-again.png)
 
 ### TC-VFCLR-005: Nothing to clear, nothing offered (AC6)
+
+SPM-310 AC6.
 
 **What this tests:** An unflagged booking offers no Clear. A flag already cleared somewhere else (another
 tab) is refused with a message instead of pretending to succeed.

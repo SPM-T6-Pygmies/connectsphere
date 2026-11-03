@@ -60,6 +60,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ### TC-VPAD-001: Approval is refused when setup runs into another booking's turnaround (AC1)
 
+SPM-19 AC1.
+
 **Scenario:** Charity Run ends at 09:15, and Main Hall needs 45 minutes to be turned around, so the room is busy until 10:00. Spring Gala is 10:00–12:00 but its setup starts at 09:30. The booked times do not touch, but the padded times overlap by 30 minutes.
 
 **Steps:**
@@ -80,6 +82,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ### TC-VPAD-002: Placing a hold is refused the same way (AC3)
 
+SPM-19 AC3.
+
 **Scenario:** Venue Staff try to hold Spring Gala instead of approving it.
 
 **Preconditions:** After TC-VPAD-001, with Spring Gala still open. Load `seed.sql` fresh before each run: another run, or an earlier approval, may already have decided a request, and an open page then answers *This booking request has already been decided.*
@@ -98,6 +102,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ### TC-VPAD-003: Padded times that only touch are accepted (AC2)
 
+SPM-19 AC2.
+
 **Scenario:** Book Fair is 10:30–12:00, so it starts setting up at exactly 10:00, when Charity Run's turnaround ends.
 
 **Steps:**
@@ -114,6 +120,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 ---
 
 ### TC-VPAD-004: A hold is padded too (AC4)
+
+SPM-19 AC4.
 
 **Scenario:** Quiz Night holds Main Hall 07:00–09:15 on Tue 15 Dec 2026 for the Coordinator, so the room is taken until 10:00. Open Mic is 10:00–12:00 and starts setting up at 09:30.
 
@@ -132,6 +140,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ### TC-VPAD-005: Only live bookings count (AC5)
 
+SPM-19 AC5.
+
 **Scenario:** On Wed 16 Dec 2026, Old Fete was Rejected and Lapsed Fair's hold expired an hour ago. Neither holds the room, so Wine Tasting (10:00–12:00) is not in anyone's way.
 
 **Steps:**
@@ -149,6 +159,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ### TC-VPAD-006: A window that crosses midnight is checked on both dates (AC6)
 
+SPM-19 AC6.
+
 **Scenario:** Night Gala ends at midnight on Thu 17 Dec 2026 and its turnaround runs until 00:45 on Fri 18 Dec. After Party starts at 00:15 on Fri 18 Dec, so its setup begins at 23:45 on Thursday.
 
 **Steps:**
@@ -165,6 +177,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 ---
 
 ### TC-VPAD-007: The database agrees, including when two approvals race (AC7)
+
+SPM-19 AC7.
 
 **Scenario:** Two Venue Staff approve Race A (10:00–12:00) and Race B (12:15–14:00) on Sat 19 Dec 2026 at the same moment. Their booked times do not touch, but A's turnaround (to 12:45) overlaps B's setup (from 11:45), so only one may succeed.
 
@@ -190,6 +204,8 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ### TC-VPAD-008: An overlap in the booked times is refused the same way (AC1)
 
+SPM-19 AC1.
+
 **Scenario:** Early Bird is 08:00–09:00, inside Charity Run's own booked time (07:00–09:15). Venue Staff are told which event is in the way, exactly as when only the padding overlaps; there is one message for both.
 
 **Steps:**
@@ -205,7 +221,9 @@ each result; the database scripts ran TC-VPAD-007. Run 001 to 006 in order on a 
 
 ---
 
-### TC-VPAD-009: A coordinator's request is refused on submit when its padded times overlap (SPM-325 AC6)
+### TC-VPAD-009: A coordinator's request is refused on submit when its padded times overlap (AC6)
+
+SPM-325 AC6.
 
 **Scenario:** Night Gala is Confirmed at Main Hall on Thu 17 Dec 2026, 22:00–24:00, so with 30
 minutes' setup it occupies the room from 21:30. A coordinator asks for 20:00–21:00 the same evening.

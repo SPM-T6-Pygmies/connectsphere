@@ -82,6 +82,8 @@ Keynote's Projector shows Available **5**, from the other events around 13 Dec.
 
 ### TC-RESCHEDULE-001: Accepting a new date releases every held line as Rescheduled (AC1, AC2)
 
+SPM-311 AC1, AC2.
+
 **Steps:**
 1. Signed in as `coordinator@test.com`, open *Tech Summit Keynote*'s **Change
    requests** (`/staff/coordinator/events/<id>/change-request`). For **Date and times**
@@ -113,6 +115,8 @@ Keynote's Projector shows Available **5**, from the other events around 13 Dec.
 
 ### TC-RESCHEDULE-002: The old date is freed, and the line is reserved again for the new one (AC2, AC3)
 
+SPM-311 AC2, AC3.
+
 **Steps:**
 1. As `support@test.com`, open *Board Strategy Day* from **Reviewed** and read
    **Wireless microphone**.
@@ -131,6 +135,8 @@ Keynote's Projector shows Available **5**, from the other events around 13 Dec.
 **Screenshots:** [step1-old-date-freed](../screenshots/2026-10-29_TC-RESCHEDULE-002_step1-old-date-freed.png) · [step2-reserved-again](../screenshots/2026-10-29_TC-RESCHEDULE-002_step2-reserved-again.png)
 
 ### TC-RESCHEDULE-003: A new time on the same date puts nothing under review (AC4)
+
+SPM-311 AC4.
 
 **Steps:**
 1. As `coordinator@test.com`, open *Board Strategy Day*'s **Change requests**. For

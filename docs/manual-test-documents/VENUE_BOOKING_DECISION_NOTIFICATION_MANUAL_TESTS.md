@@ -69,9 +69,9 @@ results` table of the PR description. CI records the results in
 
 ## Test Cases
 
-### TC-VBDECIDENOTE-001: Approving a request tells the event's coordinator the outcome and the venue
+### TC-VBDECIDENOTE-001: Approving a request tells the event's coordinator the outcome and the venue (AC1)
 
-AC1.
+SPM-62 AC1.
 
 **Preconditions:** As above.
 
@@ -98,9 +98,9 @@ AC1.
 
 **Screenshots:** [step3-after-booking-table](../screenshots/2026-10-13_TC-VBDECIDENOTE-001_step3-after-booking-table.png) · [step4-before-booking-table](../screenshots/2026-10-13_TC-VBDECIDENOTE-001_step4-before-booking-table.png) · [step1-venue-staff-approved](../screenshots/2026-10-14_TC-VBDECIDENOTE-001_step1-venue-staff-approved.png)
 
-### TC-VBDECIDENOTE-002: A rejection carries the reason and the suggested venue, as a suggestion only
+### TC-VBDECIDENOTE-002: A rejection carries the reason and the suggested venue, as a suggestion only (AC1, AC2)
 
-AC1, AC2.
+SPM-62 AC1, AC2.
 
 **Preconditions:** TC-VBDECIDENOTE-001 run.
 
@@ -129,9 +129,9 @@ AC1, AC2.
 
 **Screenshots:** [step1-venue-staff-rejected-with-suggestion](../screenshots/2026-10-14_TC-VBDECIDENOTE-002_step1-venue-staff-rejected-with-suggestion.png)
 
-### TC-VBDECIDENOTE-003: A rejection with no suggestion carries the reason alone
+### TC-VBDECIDENOTE-003: A rejection with no suggestion carries the reason alone (AC2)
 
-AC2.
+SPM-62 AC2.
 
 **Preconditions:** TC-VBDECIDENOTE-002 run.
 
@@ -152,9 +152,9 @@ AC2.
 
 ---
 
-### TC-VBDECIDENOTE-004: The rejection notice opens the booking, picked out, with Venue Staff's answer
+### TC-VBDECIDENOTE-004: The rejection notice opens the booking, picked out, with Venue Staff's answer (AC3)
 
-AC3.
+SPM-62 AC3.
 
 **Preconditions:** TC-VBDECIDENOTE-002 run. Signed in as `coordinator@test.com`
 on `/staff/coordinator/notifications`.
@@ -177,9 +177,9 @@ on `/staff/coordinator/notifications`.
 
 **Screenshots:** [step1-booking-with-answer](../screenshots/2026-10-14_TC-VBDECIDENOTE-004_step1-booking-with-answer.png)
 
-### TC-VBDECIDENOTE-005: A fresh request for the suggested venue can be sent from the booking
+### TC-VBDECIDENOTE-005: A fresh request for the suggested venue can be sent from the booking (AC3)
 
-AC3.
+SPM-62 AC3.
 
 **Preconditions:** TC-VBDECIDENOTE-004 run.
 
@@ -205,9 +205,9 @@ AC3.
 
 **Screenshots:** [step1-form-prefilled-with-main-hall](../screenshots/2026-10-14_TC-VBDECIDENOTE-005_step1-form-prefilled-with-main-hall.png)
 
-### TC-VBDECIDENOTE-006: The notice can be marked read
+### TC-VBDECIDENOTE-006: The notice can be marked read (AC4)
 
-AC4.
+SPM-62 AC4.
 
 **Preconditions:** TC-VBDECIDENOTE-003 run. Signed in as `coordinator@test.com`
 on `/staff/coordinator/notifications`.
@@ -228,9 +228,9 @@ on `/staff/coordinator/notifications`.
 
 ---
 
-### TC-VBDECIDENOTE-007: Each of an event's bookings is notified on its own, naming its venue
+### TC-VBDECIDENOTE-007: Each of an event's bookings is notified on its own, naming its venue (AC1)
 
-AC1 (Week 7, C3).
+SPM-62 AC1 (Week 7, C3).
 
 **Preconditions:** TC-VBDECIDENOTE-001 to 003 run.
 
@@ -248,9 +248,9 @@ AC1 (Week 7, C3).
 
 ---
 
-### TC-VBDECIDENOTE-008: A decision that is refused tells nobody
+### TC-VBDECIDENOTE-008: A decision that is refused tells nobody (AC1)
 
-AC1.
+SPM-62 AC1.
 
 **Preconditions:** As above.
 
@@ -274,9 +274,9 @@ AC1.
 
 ---
 
-### TC-VBDECIDENOTE-009: After a reassignment the new coordinator is told, not the old one
+### TC-VBDECIDENOTE-009: After a reassignment the new coordinator is told, not the old one (AC1)
 
-AC1 (recipient).
+SPM-62 AC1 (recipient).
 
 **Preconditions:** As above, with a **Requested** booking for the event:
 Studio on `2027-01-27` **Night**, requested by `coordinator@test.com`.

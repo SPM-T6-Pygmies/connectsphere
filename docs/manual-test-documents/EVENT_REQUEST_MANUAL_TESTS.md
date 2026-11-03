@@ -18,7 +18,7 @@ them, tick the boxes below **and** report each in the PR description's
 
 | Case | Ticket | AC |
 | --- | --- | --- |
-| TC-EVREQ-001 | SPM-31 | AC1 — can submit once mandatory fields are in |
+| TC-EVREQ-001 | SPM-31 | AC1, AC6 — can submit once mandatory fields are in |
 | TC-EVREQ-002 | SPM-31 | AC2 — told the event has been successfully requested |
 | TC-EVREQ-003 | SPM-31 | AC3 — told exactly what is missing or invalid |
 | TC-EVREQ-004 | SPM-31 | AC4, AC5 — read-only after submit; edit controls removed |
@@ -47,7 +47,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-## TC-EVREQ-001 Submit waits for the mandatory fields; slots wait for a date
+## TC-EVREQ-001 Submit waits for the mandatory fields; slots wait for a date (AC1, AC6)
+
+SPM-31 AC1, AC6.
 
 **Steps**
 1. On the empty form, look at **Submit request** and the **Preferred slots**
@@ -70,7 +72,9 @@ them, tick the boxes below **and** report each in the PR description's
 - [ ] After step 5, clearing the date also cleared **PM**, and the slots are
       disabled again until the date is back.
 
-## TC-EVREQ-002 A complete request is submitted and acknowledged
+## TC-EVREQ-002 A complete request is submitted and acknowledged (AC2)
+
+SPM-31 AC2.
 
 **Steps**
 1. Fill **Event name** `UAT Client Forum`, **Preferred date** D, tick **PM**
@@ -90,7 +94,9 @@ them, tick the boxes below **and** report each in the PR description's
 - [ ] Its page shows PM and Night, both accessibility needs and Theatre; the
       blank optional fields show as empty, not as an error.
 
-## TC-EVREQ-003 An invalid request is told exactly what is wrong
+## TC-EVREQ-003 An invalid request is told exactly what is wrong (AC3)
+
+SPM-31 AC3.
 
 **Steps**
 1. Fill **Event name** `UAT Past Date`, **Preferred date** today, tick **AM**,
@@ -108,7 +114,9 @@ A blank mandatory field cannot be sent from the page, since **Submit request**
 stays disabled (TC-EVREQ-001). The server-side "names every missing field"
 refusal is covered by the SPM-31 AC3 unit tests.
 
-## TC-EVREQ-004 A submitted request is read-only to the Organiser
+## TC-EVREQ-004 A submitted request is read-only to the Organiser (AC4, AC5)
+
+SPM-31 AC4, AC5.
 
 **Pre-Conditions:** the request submitted in TC-EVREQ-002.
 
@@ -128,7 +136,9 @@ refusal is covered by the SPM-31 AC3 unit tests.
 - [ ] Step 3: the form opens empty. The submitted request's details are not
       loaded into it.
 
-## TC-EVREQ-005 Save a draft with incomplete fields
+## TC-EVREQ-005 Save a draft with incomplete fields (AC1)
+
+SPM-38 AC1.
 
 **Steps**
 1. Fill only **Event name** `UAT Draft`. Click **Save draft**.
@@ -142,7 +152,9 @@ refusal is covered by the SPM-31 AC3 unit tests.
 - [ ] Step 2: the form stays and says "Give the event a name before saving a
       draft." No second draft is listed.
 
-## TC-EVREQ-006 Return to a draft and continue editing
+## TC-EVREQ-006 Return to a draft and continue editing (AC2)
+
+SPM-38 AC2.
 
 **Pre-Conditions:** the `UAT Draft` from TC-EVREQ-005.
 
@@ -164,7 +176,9 @@ refusal is covered by the SPM-31 AC3 unit tests.
       longer lists it, **Submitted** lists it once, and **All** holds no second
       copy.
 
-## TC-EVREQ-007 Drafts are labelled Draft, distinct from Submitted
+## TC-EVREQ-007 Drafts are labelled Draft, distinct from Submitted (AC3)
+
+SPM-38 AC3.
 
 **Pre-Conditions:** at least one draft (save a new one as in TC-EVREQ-005) and
 one submitted request (TC-EVREQ-002).

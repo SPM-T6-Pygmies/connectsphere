@@ -68,6 +68,8 @@ screen shows the stored status.
 
 ### TC-CLARIFY-001: "Comment" posts without returning the request (AC5)
 
+SPM-33 AC5.
+
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: on an Under Review request,
 "Comment" posts and the request stays in the decision queue; checked against
 the local stack).
@@ -92,7 +94,9 @@ Under Review.
 
 **Screenshots:** [step2-comment-posted](../screenshots/2026-10-04_TC-CLARIFY-001_step2-comment-posted.png) · [step3-still-awaiting-decision](../screenshots/2026-10-04_TC-CLARIFY-001_step3-still-awaiting-decision.png)
 
-### TC-CLARIFY-002: "Comment & return" returns the request and records it
+### TC-CLARIFY-002: "Comment & return" returns the request and records it (AC1, AC2, AC4)
+
+SPM-33 AC1, AC2, AC4.
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: "Comment & return" moves
 the request to Returned and writes an audit row; local stack).
@@ -122,7 +126,9 @@ the request to Returned and writes an audit row; local stack).
 
 **Screenshots:** [step2-coordinator-clarification-returned](../screenshots/2026-09-21_TC-CLARIFY-002_step2-coordinator-clarification-returned.png) · [step3-organiser-clarification-thread](../screenshots/2026-09-21_TC-CLARIFY-002_step3-organiser-clarification-thread.png) · [step1-with-organiser-badge](../screenshots/2026-10-04_TC-CLARIFY-002_step1-with-organiser-badge.png)
 
-### TC-CLARIFY-003: Resolving one of two open questions leaves the request Returned
+### TC-CLARIFY-003: Resolving one of two open questions leaves the request Returned (AC7)
+
+SPM-33 AC7.
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: two returns open two
 questions, resolving the first leaves the request Returned; coordinator
@@ -147,7 +153,9 @@ organiser").
 
 **Screenshots:** [step1-two-open-questions](../screenshots/2026-10-04_TC-CLARIFY-003_step1-two-open-questions.png) · [step2-first-resolved-still-with-organiser](../screenshots/2026-10-04_TC-CLARIFY-003_step2-first-resolved-still-with-organiser.png)
 
-### TC-CLARIFY-004: Resolving the last open question puts the request back to Under Review
+### TC-CLARIFY-004: Resolving the last open question puts the request back to Under Review (AC7)
+
+SPM-33 AC7.
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: resolving the last puts it
 back to Under Review; organiser screenshot shows every question resolved and
@@ -170,7 +178,9 @@ the request "Under Review").
 
 **Screenshots:** [step1-coordinator-all-resolved](../screenshots/2026-10-04_TC-CLARIFY-004_step1-coordinator-all-resolved.png) · [step2-organiser-under-review](../screenshots/2026-10-04_TC-CLARIFY-004_step2-organiser-under-review.png)
 
-### TC-CLARIFY-005: A reply inside a thread doesn't resume the request
+### TC-CLARIFY-005: A reply inside a thread doesn't resume the request (AC5)
+
+SPM-33 AC5.
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: a reply inside a thread
 doesn't resume the request; browser, both surfaces).
@@ -198,7 +208,9 @@ doesn't resume the request; browser, both surfaces).
 
 **Screenshots:** [step1-coordinator-both-replies-still-with-organiser](../screenshots/2026-10-04_TC-CLARIFY-005_step1-coordinator-both-replies-still-with-organiser.png) · [step2-organiser-both-replies](../screenshots/2026-10-04_TC-CLARIFY-005_step2-organiser-both-replies.png)
 
-### TC-CLARIFY-006: The Organiser can reply, but cannot resolve or edit (AC7)
+### TC-CLARIFY-006: The Organiser can reply, but cannot resolve or edit (AC5, AC8)
+
+SPM-33 AC5, AC8.
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: Organiser at
 `/staff/requester/<id>` can reply, sees no Resolve and no editable field;
@@ -222,7 +234,9 @@ organiser screenshot shows Reply boxes and no Resolve).
 
 **Screenshots:** [step2-request-fields-read-only](../screenshots/2026-10-04_TC-CLARIFY-006_step2-request-fields-read-only.png) · [step3-reply-posted-no-resolve](../screenshots/2026-10-04_TC-CLARIFY-006_step3-reply-posted-no-resolve.png)
 
-### TC-CLARIFY-007: A message on one side shows up on the other without a reload
+### TC-CLARIFY-007: A message on one side shows up on the other without a reload (AC4)
+
+SPM-33 AC4.
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: with both roles open in two
 browsers, a message posted on one side shows up on the other within ~15s
@@ -248,7 +262,9 @@ have Venue Safety Review open, in two browsers, both tabs visible.
 
 **Screenshots:** [step2-organiser-sees-noted-without-reload](../screenshots/2026-10-04_TC-CLARIFY-007_step2-organiser-sees-noted-without-reload.png) · [step3-coordinator-sees-thank-you-without-reload](../screenshots/2026-10-04_TC-CLARIFY-007_step3-coordinator-sees-thank-you-without-reload.png)
 
-### TC-CLARIFY-008: A Returned request can be approved or rejected without resolving first
+### TC-CLARIFY-008: A Returned request can be approved or rejected without resolving first (AC6)
+
+SPM-33 AC6.
 
 Origin: Backfilled 2026-10-04 from PR #57 (ticked: approving or rejecting a
 Returned request directly works without resolving first).

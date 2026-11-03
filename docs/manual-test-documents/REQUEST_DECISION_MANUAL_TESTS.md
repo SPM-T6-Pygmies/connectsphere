@@ -55,7 +55,9 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ## Test Cases
 
-### TC-DECIDE-001: Approving keeps the note, takes the request out of the queue, and opens its event
+### TC-DECIDE-001: Approving keeps the note, takes the request out of the queue, and opens its event (AC1, AC3)
+
+SPM-34 AC1, AC3.
 
 Origin: Backfilled 2026-10-04 from PR #33 (approved "Leadership Offsite": the
 note was kept, the request left the queue, and the event appeared in My events
@@ -83,7 +85,9 @@ as Planning).
 
 **Screenshots:** [step3-approved-outcome](../screenshots/2026-10-04_TC-DECIDE-001_step3-approved-outcome.png) · [step4-left-my-requests](../screenshots/2026-10-04_TC-DECIDE-001_step4-left-my-requests.png) · [step5-my-events-planning](../screenshots/2026-10-04_TC-DECIDE-001_step5-my-events-planning.png)
 
-### TC-DECIDE-002: Rejecting with a blank reason is refused inline and writes nothing
+### TC-DECIDE-002: Rejecting with a blank reason is refused inline and writes nothing (AC5)
+
+SPM-34 AC5.
 
 Origin: Backfilled 2026-10-04 from PR #33 (rejected "Year-End Awards Night"
 with a blank reason: inline error, nothing written).
@@ -106,7 +110,9 @@ with a blank reason: inline error, nothing written).
 
 **Screenshots:** [step2-blank-reason-refused](../screenshots/2026-10-04_TC-DECIDE-002_step2-blank-reason-refused.png) · [step3-still-in-my-requests](../screenshots/2026-10-04_TC-DECIDE-002_step3-still-in-my-requests.png)
 
-### TC-DECIDE-003: Rejecting with a reason shows the outcome and the reason
+### TC-DECIDE-003: Rejecting with a reason shows the outcome and the reason (AC2, AC3)
+
+SPM-34 AC2, AC3.
 
 Origin: Backfilled 2026-10-04 from PR #33 (rejected "Year-End Awards Night"
 with a reason: outcome and reason shown).
@@ -127,7 +133,9 @@ with a reason: outcome and reason shown).
 
 **Screenshots:** [step1-rejected-outcome-and-reason](../screenshots/2026-10-04_TC-DECIDE-003_step1-rejected-outcome-and-reason.png)
 
-### TC-DECIDE-004: A rejected request is listed in the Archive
+### TC-DECIDE-004: A rejected request is listed in the Archive (AC2, AC3)
+
+SPM-34 AC2, AC3.
 
 Origin: Backfilled 2026-10-04 from PR #33 (listed under "Not yet checked in
 the browser": reject a request and find it in Archive). No run recorded.

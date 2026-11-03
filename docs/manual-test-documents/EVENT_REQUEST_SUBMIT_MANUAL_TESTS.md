@@ -51,7 +51,9 @@ future), **Preferred start time**, **Preferred end time** (after the start) and
 
 ## Test Cases
 
-### TC-SUBMIT-001: Submitting with the mandatory fields shows the acknowledgement
+### TC-SUBMIT-001: Submitting with the mandatory fields shows the acknowledgement (AC2)
+
+SPM-31 AC2.
 
 Origin: Backfilled 2026-10-04 from PR #21 (ticked: "My requests → New request →
 filled mandatory fields → submitted → acknowledgement screen").
@@ -74,7 +76,9 @@ filled mandatory fields → submitted → acknowledgement screen").
 
 ---
 
-### TC-SUBMIT-002: The new request is listed on My event requests
+### TC-SUBMIT-002: The new request is listed on My event requests (AC2)
+
+SPM-31 AC2.
 
 Origin: Backfilled 2026-10-04 from PR #21 (ticked: "back to My requests shows
 the new submission").
@@ -93,7 +97,9 @@ acknowledgement.
 
 ---
 
-### TC-SUBMIT-003: A preferred time opens the native picker and shows in 12-hour form
+### TC-SUBMIT-003: A preferred time opens the native picker and shows in 12-hour form (AC7)
+
+SPM-31 AC7.
 
 Origin: Backfilled 2026-10-04 from PR #23 (ticked: "the time fields still open
 the real native time picker and format typed values correctly (e.g. `14:15` →

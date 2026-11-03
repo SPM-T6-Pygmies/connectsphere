@@ -133,6 +133,8 @@ order by n.notification_id;"
 
 ### TC-EVCHANGE-001: Accepting new times tells the Organiser, with every new date (AC1, AC2)
 
+SPM-68 AC1, AC2.
+
 **Preconditions:** Setup done. Event 1 is Planning with no change request.
 Signed in as `organiser2@test.com`.
 
@@ -159,6 +161,8 @@ Signed in as `organiser2@test.com`.
 
 ### TC-EVCHANGE-002: The reschedule notice opens the request and can be read (AC1, AC4, AC5)
 
+SPM-68 AC1, AC4, AC5.
+
 **Preconditions:** State left by TC-EVCHANGE-001, app running with
 `pnpm dev:local` (Novu). Signed in as `organiser2@test.com`.
 
@@ -181,6 +185,8 @@ Evidence: [step1-inbox-event-rescheduled](../screenshots/2026-10-29_TC-EVCHANGE-
 
 ### TC-EVCHANGE-003: Declining the new times sends no reschedule notice (AC1)
 
+SPM-68 AC1.
+
 **Preconditions:** State left by TC-EVCHANGE-001. Signed in as
 `organiser2@test.com`.
 
@@ -202,7 +208,9 @@ Evidence: [step1-inbox-event-rescheduled](../screenshots/2026-10-29_TC-EVCHANGE-
 
 Evidence: [step1-times-declined](../screenshots/2026-10-29_TC-EVCHANGE-003_step1-times-declined.png) · [step2-decision-saved](../screenshots/2026-10-29_TC-EVCHANGE-003_step2-decision-saved.png)
 
-### TC-EVCHANGE-004: Only the assigned coordinator can reach either change (access)
+### TC-EVCHANGE-004: Only the assigned coordinator can reach either change (AC1, access)
+
+SPM-68 AC1.
 
 **Preconditions:** State left by TC-EVCHANGE-003.
 
@@ -221,6 +229,8 @@ Evidence: [step1-times-declined](../screenshots/2026-10-29_TC-EVCHANGE-003_step1
 Evidence: [step1-unassigned-coordinator-refused](../screenshots/2026-10-29_TC-EVCHANGE-004_step1-unassigned-coordinator-refused.png)
 
 ### TC-EVCHANGE-005: Cancelling in two tabs at once tells the Organiser once (AC1, AC3, concurrency)
+
+SPM-68 AC1, AC3.
 
 **Preconditions:** State left by TC-EVCHANGE-004. Signed in as
 `coordinator@test.com`.
@@ -246,6 +256,8 @@ Evidence: [step1-both-tabs-asking](../screenshots/2026-10-29_TC-EVCHANGE-005_ste
 
 ### TC-EVCHANGE-006: The cancellation notice opens the request and can be read (AC1, AC4, AC5)
 
+SPM-68 AC1, AC4, AC5.
+
 **Preconditions:** State left by TC-EVCHANGE-005, app running with
 `pnpm dev:local` (Novu). Signed in as `organiser2@test.com`.
 
@@ -265,7 +277,9 @@ Evidence: [step1-both-tabs-asking](../screenshots/2026-10-29_TC-EVCHANGE-005_ste
 
 Evidence: [step1-inbox-event-cancelled](../screenshots/2026-10-29_TC-EVCHANGE-006_step1-inbox-event-cancelled.png) · [step2-request-shows-cancelled](../screenshots/2026-10-29_TC-EVCHANGE-006_step2-request-shows-cancelled.png)
 
-### TC-EVCHANGE-007: The database refuses everyone else, and a losing racer waits then fails (database checks)
+### TC-EVCHANGE-007: The database refuses everyone else, and a losing racer waits then fails (AC1, database checks)
+
+SPM-68 AC1.
 
 **Preconditions:** State left by TC-EVCHANGE-005. User ids from a fresh
 reset: `coordinator@test.com` is 2, `coordinator2@test.com` is 7. Approve a

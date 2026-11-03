@@ -81,6 +81,8 @@ Password for all: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.m
 
 ### TC-VCAL-001: Each period shows its status, with no slot labels (AC1, AC5)
 
+SPM-323 AC1, AC5.
+
 Signed in as `coordinator@test.com`.
 
 1. Open **Find a venue**, search with every filter blank, and click **UAT-44 Harbour Room**.
@@ -103,6 +105,8 @@ booking holds nothing). Neither page shows AM, PM or Night.
 
 ### TC-VCAL-002: Blocked periods give their reason (AC3)
 
+SPM-323 AC3.
+
 1. From the search, open **Main Hall** and move to the week with D.
 
 **Expected:** on D, D+1, D+3 and D+4 a **Blocked** bar runs from `09:00` to `11:30`, reading
@@ -120,6 +124,8 @@ order the blocks were recorded) and `11:30–24:00` *Maintenance*. The rest is *
 
 ### TC-VCAL-003: A hold shows when it lapses (AC1)
 
+SPM-323 AC1.
+
 1. Open Main Hall's calendar and press **Next week** until H is in view.
 
 **Expected:** H has a **Held** bar from `14:00` to `18:00`. Hovering it shows *Until* and a
@@ -136,6 +142,8 @@ date about 30 days after the seed ran, worded as on the Venue Staff decision pag
 **Screenshots:** [step1-main-hall-held](../screenshots/2026-10-15_TC-VCAL-003_step1-main-hall-held.png)
 
 ### TC-VCAL-004: The calendar reads live, with no refresh step (AC4)
+
+SPM-323 AC4.
 
 Coordinator and Venue Staff: two browser sessions (one in a private window), or one window,
 signing out and in between steps.
@@ -157,7 +165,9 @@ side; step 4 shows it gone. There is no refresh or sync button anywhere.
 
 **Screenshots:** [step1-available-before](../screenshots/2026-10-15_TC-VCAL-004_step1-available-before.png) · [step2-staff-records-block](../screenshots/2026-10-15_TC-VCAL-004_step2-staff-records-block.png) · [step3-blocked-after-reload](../screenshots/2026-10-15_TC-VCAL-004_step3-blocked-after-reload.png) · [step4-available-after-lift](../screenshots/2026-10-15_TC-VCAL-004_step4-available-after-lift.png)
 
-### TC-VCAL-005: Moving between weeks, and a bad address
+### TC-VCAL-005: Moving between weeks, and a bad address (AC1)
+
+SPM-323 AC1.
 
 1. On any venue's calendar press **Next week**, **Previous week**, then **This week**.
 2. Change `from` in the address to `2026-13-01`.
@@ -176,6 +186,8 @@ Step 3 shows the not-found page.
 **Screenshots:** [step2-bad-date-message](../screenshots/2026-10-15_TC-VCAL-005_step2-bad-date-message.png) · [step3-unknown-venue-404](../screenshots/2026-10-15_TC-VCAL-005_step3-unknown-venue-404.png)
 
 ### TC-VCAL-006: An Other block shows its note (AC3)
+
+SPM-323 AC3.
 
 Two browser sessions, as in TC-VCAL-004.
 
@@ -198,6 +210,8 @@ resurfacing`. From `14:00` the day is blank, **Available**. After step 3 the bar
 
 ### TC-VCAL-007: A booking shows on exactly its periods (AC2)
 
+SPM-323 AC2.
+
 1. Open UAT-44 Harbour Room's calendar on the week with D, and find D+3.
 
 **Expected:** a **Confirmed** bar starts on the first dotted line after `10:00` and ends on
@@ -211,6 +225,8 @@ are blank, **Available**.
 **After (timeline, 2026-10-28):** [step1-exact-periods-timeline](../screenshots/2026-10-28_TC-VCAL-007_step1-exact-periods-timeline.png)
 
 ### TC-VCAL-008: Time the venue is closed reads Closed (AC1)
+
+SPM-323 AC1.
 
 1. Open UAT-44 Garden Hall's calendar on the week starting on D (add `?from=2026-12-09` to its
    address), then press **Next week**.
@@ -227,6 +243,8 @@ other day has a **Closed** bar from `18:00` to `19:00`.
 **After (timeline, 2026-10-28):** [step1-closed-after-hours-timeline](../screenshots/2026-10-28_TC-VCAL-008_step1-closed-after-hours-timeline.png)
 
 ### TC-VCAL-009: Venue Staff see the same timeline (AC1, AC5)
+
+SPM-323 AC1, AC5.
 
 Signed in as `venue@test.com`.
 
@@ -245,7 +263,9 @@ AM, PM or Night.
 
 **After (timeline, 2026-10-28):** [step2-venue-staff-timeline](../screenshots/2026-10-28_TC-VCAL-009_step2-venue-staff-timeline.png)
 
-### TC-VCAL-010: Every venue on one day (AC1, AC2, AC3)
+### TC-VCAL-010: Every venue on one day (AC1–AC3)
+
+SPM-323 AC1–AC3.
 
 Signed in as `coordinator@test.com`.
 

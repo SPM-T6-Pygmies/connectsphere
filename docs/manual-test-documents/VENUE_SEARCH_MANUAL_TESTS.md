@@ -84,7 +84,9 @@ Garden Hall's 500.
 Exhibition layout. Rooftop Terrace in `scripts/seed-venues` now has Exhibition 150 (SPM-277), so
 with that seed loaded as well, step 2 lists it.
 
-### TC-VSEARCH-001 Capacity is checked on the searched layout
+### TC-VSEARCH-001 Capacity is checked on the searched layout (AC1)
+
+SPM-44 AC1.
 
 **Steps**
 1. Choose **Room layout** Boardroom, **Attendance** `100`. Click **Search**.
@@ -99,7 +101,9 @@ with that seed loaded as well, step 2 lists it.
 
 **Screenshots:** [step1-boardroom-100-harbour-not-shown](../screenshots/2026-10-01_TC-VSEARCH-001_step1-boardroom-100-harbour-not-shown.jpg) · [step2-theatre-100-harbour-shown](../screenshots/2026-10-01_TC-VSEARCH-001_step2-theatre-100-harbour-shown.jpg) · [step1-boardroom-100](../screenshots/2026-10-09_TC-VSEARCH-001_step1-boardroom-100.png) · [step2-theatre-100](../screenshots/2026-10-09_TC-VSEARCH-001_step2-theatre-100.png)
 
-### TC-VSEARCH-002 No fallback to the venue-wide capacity
+### TC-VSEARCH-002 No fallback to the venue-wide capacity (AC1)
+
+SPM-44 AC1.
 
 **Steps**
 1. Leave **Room layout** as Any layout. Enter **Attendance** `300`. Click **Search**.
@@ -112,7 +116,9 @@ with that seed loaded as well, step 2 lists it.
 
 **Screenshots:** [step2-attendance-300-no-fallback-to-venue-capacity](../screenshots/2026-10-01_TC-VSEARCH-002_step2-attendance-300-no-fallback-to-venue-capacity.jpg) · [step1-attendance-300](../screenshots/2026-10-09_TC-VSEARCH-002_step1-attendance-300.png)
 
-### TC-VSEARCH-003 Every selected facility and accessibility feature is required
+### TC-VSEARCH-003 Every selected facility and accessibility feature is required (AC1)
+
+SPM-44 AC1.
 
 **Steps**
 1. Tick **Video-conferencing** and **Hearing loop**. Click **Search**.
@@ -127,7 +133,9 @@ with that seed loaded as well, step 2 lists it.
 
 **Screenshots:** [step1-projector-hearing-loop-harbour-only](../screenshots/2026-10-01_TC-VSEARCH-003_step1-projector-hearing-loop-harbour-only.jpg) · [step2-projector-lift-access-none-has-both](../screenshots/2026-10-01_TC-VSEARCH-003_step2-projector-lift-access-none-has-both.jpg) · [step1-video-conferencing-hearing-loop](../screenshots/2026-10-09_TC-VSEARCH-003_step1-video-conferencing-hearing-loop.png) · [step2-video-conferencing-lift-access](../screenshots/2026-10-09_TC-VSEARCH-003_step2-video-conferencing-lift-access.png)
 
-### TC-VSEARCH-006 A rejected booking does not block the venue
+### TC-VSEARCH-006 A rejected booking does not block the venue (AC2)
+
+SPM-44 AC2.
 
 **Steps**
 1. Enter **Date** D, **Start time** 07:00, **End time** 12:00. Click **Search**.
@@ -141,7 +149,9 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
 
 **Screenshots:** [step2-rejected-booking-garden-shown](../screenshots/2026-10-01_TC-VSEARCH-006_step2-rejected-booking-garden-shown.jpg) · [step1-garden-hall-listed](../screenshots/2026-10-09_TC-VSEARCH-006_step1-garden-hall-listed.png)
 
-### TC-VSEARCH-007 A date beyond the booking horizon is excluded
+### TC-VSEARCH-007 A date beyond the booking horizon is excluded (AC2)
+
+SPM-44 AC2.
 
 **Steps**
 1. Enter a **Date** 61 days from today, **Start time** 07:00, **End time** 12:00.
@@ -156,7 +166,9 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
 
 **Screenshots:** [step2-date-past-horizon-not-shown](../screenshots/2026-10-01_TC-VSEARCH-007_step2-date-past-horizon-not-shown.jpg) · [step1-61-days-ahead](../screenshots/2026-10-09_TC-VSEARCH-007_step1-61-days-ahead.png)
 
-### TC-VSEARCH-009 Attribute and date filters combine into a candidate list
+### TC-VSEARCH-009 Attribute and date filters combine into a candidate list (AC1, AC2)
+
+SPM-44 AC1, AC2.
 
 **Steps**
 1. Choose **Room layout** Theatre, **Attendance** `150`; tick **Video-conferencing**
@@ -172,7 +184,9 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
 
 **Screenshots:** [step2-combined-filters-candidate-list](../screenshots/2026-10-01_TC-VSEARCH-009_step2-combined-filters-candidate-list.jpg) · [step1-combined-filters](../screenshots/2026-10-09_TC-VSEARCH-009_step1-combined-filters.png)
 
-### TC-VSEARCH-010 Blank filters and an empty result
+### TC-VSEARCH-010 Blank filters and an empty result (AC1, AC2)
+
+SPM-44 AC1, AC2.
 
 **Steps**
 1. Open **Find a venue** without filling anything.
@@ -187,7 +201,9 @@ Earlier run: Pass, 21/10/2026, Chrome via Claude in Chrome for joyceetran (local
 
 **Screenshots:** [step1-blank-filters-whole-catalogue](../screenshots/2026-10-01_TC-VSEARCH-010_step1-blank-filters-whole-catalogue.jpg) · [step2-no-match-empty-result-with-reasons](../screenshots/2026-10-01_TC-VSEARCH-010_step2-no-match-empty-result-with-reasons.jpg) · [step1-blank-filters](../screenshots/2026-10-09_TC-VSEARCH-010_step1-blank-filters.png) · [step2-alt-exhibition-attendance-200](../screenshots/2026-10-09_TC-VSEARCH-010_step2-alt-exhibition-attendance-200.png) · [step2-exhibition-as-written](../screenshots/2026-10-09_TC-VSEARCH-010_step2-exhibition-as-written.png)
 
-### TC-VSEARCH-011 Clear empties every filter
+### TC-VSEARCH-011 Clear empties every filter (AC1, AC2)
+
+SPM-44 AC1, AC2.
 
 **Steps**
 1. Choose Theatre, tick **Wi-Fi** and **Hearing loop**, **Date** D, **Start time**
@@ -214,6 +230,8 @@ block and lifts it.
 
 ### TC-VSEARCH-013 A venue closed for any part of the time is left out (AC1)
 
+SPM-322 AC1.
+
 **Steps**
 1. Enter **Date** D, **Start time** 07:00, **End time** 12:00. Click **Search**.
 2. Change the times to 06:45–07:15. Click **Search**.
@@ -235,6 +253,8 @@ Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local
 **Screenshots:** [step1-07-00-12-00-both-listed](../screenshots/2026-10-21_TC-VSEARCH-013_step1-07-00-12-00-both-listed.png) · [step2-11-45-12-15-closed](../screenshots/2026-10-21_TC-VSEARCH-013_step2-11-45-12-15-closed.png) · [step3-17-00-19-30-closed](../screenshots/2026-10-21_TC-VSEARCH-013_step3-17-00-19-30-closed.png)
 
 ### TC-VSEARCH-014 An overlapping booking leaves a venue out; one that only touches does not (AC1, AC2)
+
+SPM-322 AC1, AC2.
 
 **Pre-Conditions:** Harbour Room is open 07:00–24:00 as seeded, so the Confirmed
 booking on D 13:00–18:00 has open time on both sides.
@@ -265,6 +285,8 @@ Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local
 
 ### TC-VSEARCH-015 An In force block leaves a venue out until it is lifted (AC1, AC2)
 
+SPM-322 AC1, AC2.
+
 **Pre-Conditions:** Harbour Room is open 07:00–24:00 as seeded.
 As `venue@test.com`, open **Unavailability**, choose **UAT-44 Harbour Room**,
 From and To D, Start **19:00**, End **24:00**, Reason **Equipment failure**, and
@@ -292,6 +314,8 @@ Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local
 **Screenshots:** [step1-23-45-24-00-blocked](../screenshots/2026-10-21_TC-VSEARCH-015_step1-23-45-24-00-blocked.png) · [step2-18-00-19-00-touches-both](../screenshots/2026-10-21_TC-VSEARCH-015_step2-18-00-19-00-touches-both.png) · [step3-after-lift-listed](../screenshots/2026-10-21_TC-VSEARCH-015_step3-after-lift-listed.png) · [step4-hours-restored](../screenshots/2026-10-21_TC-VSEARCH-015_step4-hours-restored.png)
 
 ### TC-VSEARCH-016 A time that cannot be searched is refused, naming the problem (AC3)
+
+SPM-322 AC3.
 
 **Steps**
 1. Enter **Date** D only. Click **Search**.
@@ -341,7 +365,9 @@ What `seed-venue-padding` puts at Main Hall (setup 30, turnaround 45, open 07:00
 
 The Requested bookings it also adds hold nothing.
 
-### TC-VSEARCH-017 A search whose setup runs into a booking's turnaround leaves the venue out (AC1, AC2, AC3)
+### TC-VSEARCH-017 A search whose setup runs into a booking's turnaround leaves the venue out (AC1–AC3)
+
+SPM-250 AC1–AC3.
 
 **Steps**
 1. Search **Date** 14 Dec 2026, **Start time** 10:00, **End time** 12:00.
@@ -364,6 +390,8 @@ The Requested bookings it also adds hold nothing.
 
 ### TC-VSEARCH-018 A search whose turnaround runs into a booking's setup leaves the venue out (AC1, AC2)
 
+SPM-250 AC1, AC2.
+
 **Steps**
 1. Search **Date** 17 Dec 2026, **Start time** 20:00, **End time** 21:00.
 2. Change the times to 19:45–20:45. Search.
@@ -377,6 +405,8 @@ The Requested bookings it also adds hold nothing.
 **Run:** Pass, 27/10/2026, as TC-VSEARCH-017. Screenshots: [step1-20-00-21-00-turnaround-in-setup](../screenshots/2026-10-27_TC-VSEARCH-018_step1-20-00-21-00-turnaround-in-setup.png) · [step2-19-45-20-45-touches](../screenshots/2026-10-27_TC-VSEARCH-018_step2-19-45-20-45-touches.png)
 
 ### TC-VSEARCH-019 A live hold is padded like a Confirmed booking (AC4)
+
+SPM-250 AC4.
 
 **Steps**
 1. Search **Date** 15 Dec 2026, **Start time** 10:00, **End time** 12:00.
@@ -393,6 +423,8 @@ The Requested bookings it also adds hold nothing.
 **Run:** Pass, 27/10/2026, as TC-VSEARCH-017. Screenshots: [step1-hold-padded](../screenshots/2026-10-27_TC-VSEARCH-019_step1-hold-padded.png) · [step3-lapsed-and-rejected-hold-nothing](../screenshots/2026-10-27_TC-VSEARCH-019_step3-lapsed-and-rejected-hold-nothing.png)
 
 ### TC-VSEARCH-020 A block is compared with the times searched, without setup or turnaround (AC4)
+
+SPM-250 AC4.
 
 **Pre-Conditions:** as `venue@test.com`, open **Unavailability**, choose **Main
 Hall**, From and To 18 Dec 2026, Start **13:00**, End **14:00**, Reason

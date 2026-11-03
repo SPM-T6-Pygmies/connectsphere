@@ -71,6 +71,8 @@ table — CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when th
 
 ### TC-ESSENTIAL-001: Mark a line essential (AC1, AC3, AC4)
 
+SPM-109 AC1, AC3, AC4.
+
 **Steps:**
 1. Signed in as `coordinator@test.com`, open **My events**, open *Founders' Gala
    Dinner* and click the **Equipment** tab.
@@ -93,6 +95,8 @@ table — CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when th
 
 ### TC-ESSENTIAL-002: Technical Support see which lines are essential (AC2)
 
+SPM-109 AC2.
+
 **Preconditions:** TC-ESSENTIAL-001 passed.
 
 **Steps:**
@@ -111,6 +115,8 @@ table — CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when th
 **Screenshots:** [step1-support-sees-badge](../screenshots/2026-10-19_TC-ESSENTIAL-002_step1-support-sees-badge.png)
 
 ### TC-ESSENTIAL-003: Mark a line not essential again (AC1)
+
+SPM-109 AC1.
 
 **Preconditions:** TC-ESSENTIAL-002 passed.
 

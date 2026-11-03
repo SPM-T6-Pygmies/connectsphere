@@ -89,7 +89,7 @@ Owned: Presentation laptop 8, PA speaker 5, Wireless microphone 30, Projector 10
 
 ## Test Cases
 
-### TC-EQUIPNOTE-001: Adding a line tells every Technical Support Staff member the event, date and line
+### TC-EQUIPNOTE-001: Adding a line tells every Technical Support Staff member the event, date and line (AC1, AC5)
 
 SPM-64 AC1, AC5.
 
@@ -111,7 +111,7 @@ SPM-64 AC1, AC5.
 
 ---
 
-### TC-EQUIPNOTE-002: The notice opens the event under Needs review, and can be marked read
+### TC-EQUIPNOTE-002: The notice opens the event under Needs review, and can be marked read (AC6, AC7)
 
 SPM-64 AC6, AC7.
 
@@ -136,7 +136,7 @@ SPM-64 AC6, AC7.
 
 ---
 
-### TC-EQUIPNOTE-003: Finishing an event tells its coordinator every line's outcome, once
+### TC-EQUIPNOTE-003: Finishing an event tells its coordinator every line's outcome, once (AC1, AC3)
 
 SPM-65 AC1, AC3.
 
@@ -159,7 +159,7 @@ SPM-65 AC1, AC3.
 
 ---
 
-### TC-EQUIPNOTE-004: An unfulfilled line is listed with why and who said so; the notice opens the Equipment tab
+### TC-EQUIPNOTE-004: An unfulfilled line is listed with why and who said so; the notice opens the Equipment tab (AC3, AC5, AC6)
 
 SPM-65 AC3, AC5, AC6.
 
@@ -183,9 +183,9 @@ SPM-65 AC3, AC5, AC6.
 
 ---
 
-### TC-EQUIPNOTE-005: Changing a decided line, or asking to remove one, needs re-review
+### TC-EQUIPNOTE-005: Changing a decided line, or asking to remove one, needs re-review (AC1, AC2)
 
-SPM-64 AC2.
+SPM-64 AC1, AC2.
 
 **Preconditions:** TC-EQUIPNOTE-004 run; signed in as `coordinator@test.com` on *Sales Kickoff*'s **Equipment** tab.
 
@@ -209,7 +209,7 @@ SPM-64 AC2.
 
 ---
 
-### TC-EQUIPNOTE-006: A change that leaves nothing to do is announced too, and says so
+### TC-EQUIPNOTE-006: A change that leaves nothing to do is announced too, and says so (AC1, AC2)
 
 SPM-64 AC1, AC2.
 

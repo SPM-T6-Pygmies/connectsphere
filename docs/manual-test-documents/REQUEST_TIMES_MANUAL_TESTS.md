@@ -44,7 +44,9 @@ run in the PR description's `## Manual test results` table.
 
 ## Test Cases
 
-### TC-REQTIME-001: Existing AM, PM and Night request slots become one span
+### TC-REQTIME-001: Existing AM, PM and Night request slots become one span (AC4)
+
+SPM-327 AC4.
 
 **Preconditions:** Before the migration: `supabase db reset --version 20261021000000`,
 then requests with these `event_request_slot` rows on their preferred date:
@@ -81,7 +83,9 @@ AM; AM and PM; AM and Night (a Draft); Night; none (a Draft); AM, PM and Night.
 
 **Screenshots:** [step1-before-request-times](../screenshots/2026-10-25_TC-REQTIME-001_step1-before-request-times.png) · [step2-after-request-times](../screenshots/2026-10-25_TC-REQTIME-001_step2-after-request-times.png)
 
-### TC-REQTIME-002: Request an event by start and end time
+### TC-REQTIME-002: Request an event by start and end time (AC1, AC5)
+
+SPM-327 AC1, AC5.
 
 **Preconditions:** Environment set up; browser in Singapore time; signed in
 as `organiser@test.com`.
@@ -103,11 +107,15 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset`; date 18/11/2026, request 1, slots `'37'`–`'70'`. Screenshots: [step2-form-09-15-17-45](../screenshots/spm-328_TC-REQTIME-002_step2-form-09-15-17-45.jpg) · [step3-acknowledgement](../screenshots/spm-328_TC-REQTIME-002_step3-acknowledgement.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset`; date 18/11/2026, request 1, slots `'37'`–`'70'`. Screenshots: [step2-form-09-15-17-45](../screenshots/2026-10-29_TC-REQTIME-002_step2-form-09-15-17-45.jpg) · [step3-acknowledgement](../screenshots/2026-10-29_TC-REQTIME-002_step3-acknowledgement.jpg)
 
 ---
 
-### TC-REQTIME-003: An end time not after the start is named
+**Screenshots:** [step1-request-form](../screenshots/2026-10-25_TC-REQTIME-002_step1-request-form.png) · [step2-acknowledgement](../screenshots/2026-10-25_TC-REQTIME-002_step2-acknowledgement.png)
+
+### TC-REQTIME-003: An end time not after the start is named (AC1)
+
+SPM-327 AC1.
 
 **Preconditions:** As TC-REQTIME-002.
 
@@ -123,11 +131,15 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [end-not-after-start](../screenshots/spm-328_TC-REQTIME-003_end-not-after-start.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [end-not-after-start](../screenshots/2026-10-29_TC-REQTIME-003_step2-end-not-after-start.jpg)
 
 ---
 
-### TC-REQTIME-004: Drafts keep their times, or have none
+**Screenshots:** [step1-end-before-start](../screenshots/2026-10-25_TC-REQTIME-003_step1-end-before-start.png)
+
+### TC-REQTIME-004: Drafts keep their times, or have none (AC2)
+
+SPM-327 AC2.
 
 **Preconditions:** As TC-REQTIME-002.
 
@@ -146,11 +158,15 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the name-only draft was stored with no date, no `preferred_time` and no slots. Screenshot: [step3-draft-13-30-24-00](../screenshots/spm-328_TC-REQTIME-004_step3-draft-13-30-24-00.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the name-only draft was stored with no date, no `preferred_time` and no slots. Screenshot: [step3-draft-13-30-24-00](../screenshots/2026-10-29_TC-REQTIME-004_step3-draft-13-30-24-00.jpg)
 
 ---
 
-### TC-REQTIME-005: Request pages show the preferred time in the viewer's timezone
+**Screenshots:** [step1-half-span-draft](../screenshots/2026-10-25_TC-REQTIME-004_step1-half-span-draft.png) · [step2-draft-reopened](../screenshots/2026-10-25_TC-REQTIME-004_step2-draft-reopened.png)
+
+### TC-REQTIME-005: Request pages show the preferred time in the viewer's timezone (AC5)
+
+SPM-327 AC5.
 
 **Preconditions:** The TC-REQTIME-002 request, assigned to
 `coordinator@test.com` (by the Lead, or
@@ -169,11 +185,15 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, for joyceetran (local, after the AM/PM/Night retirement): the Organiser's page in Chrome via Claude in Chrome, and all three pages in headless Chrome with the timezone overridden to Asia/Singapore and Europe/London over the DevTools protocol. Request 1 was assigned by the `update`. Screenshots: [london-requester](../screenshots/spm-328_TC-REQTIME-005_london-requester.jpg) · [london-lead](../screenshots/spm-328_TC-REQTIME-005_london-lead.jpg) · [london-coordinator](../screenshots/spm-328_TC-REQTIME-005_london-coordinator.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, for joyceetran (local, after the AM/PM/Night retirement): the Organiser's page in Chrome via Claude in Chrome, and all three pages in headless Chrome with the timezone overridden to Asia/Singapore and Europe/London over the DevTools protocol. Request 1 was assigned by the `update`. Screenshots: [london-requester](../screenshots/2026-10-29_TC-REQTIME-005_step5-london-requester.jpg) · [london-lead](../screenshots/2026-10-29_TC-REQTIME-005_step6-london-lead.jpg) · [london-coordinator](../screenshots/2026-10-29_TC-REQTIME-005_step7-london-coordinator.jpg)
 
 ---
 
-### TC-REQTIME-006: Approval gives the event the requested times
+**Screenshots:** [step1-organiser-request](../screenshots/2026-10-25_TC-REQTIME-005_step1-organiser-request.png) · [step2-lead-request](../screenshots/2026-10-25_TC-REQTIME-005_step2-lead-request.png) · [step3-coordinator-request](../screenshots/2026-10-25_TC-REQTIME-005_step3-coordinator-request.png) · [step4-organiser-request-london](../screenshots/2026-10-25_TC-REQTIME-005_step4-organiser-request-london.png)
+
+### TC-REQTIME-006: Approval gives the event the requested times (AC3)
+
+SPM-327 AC3.
 
 **Preconditions:** The TC-REQTIME-005 request, assigned and Under Review.
 
@@ -188,4 +208,6 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "18 Nov 9:15 am – 5:45 pm", and 34 `event_slot` rows on 2026-11-18, codes 37 to 70. Screenshot: [organiser-event-times](../screenshots/spm-328_TC-REQTIME-006_organiser-event-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "18 Nov 9:15 am – 5:45 pm", and 34 `event_slot` rows on 2026-11-18, codes 37 to 70. Screenshot: [organiser-event-times](../screenshots/2026-10-29_TC-REQTIME-006_step2-organiser-event-times.jpg)
+
+**Screenshots:** [step1-approved-event-times](../screenshots/2026-10-25_TC-REQTIME-006_step1-approved-event-times.png)

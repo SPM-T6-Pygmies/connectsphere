@@ -154,9 +154,9 @@ $$;
 
 ## Test Cases
 
-### TC-SAFETYOUTCOME-001: A rejection tells the coordinator what must change
+### TC-SAFETYOUTCOME-001: A rejection tells the coordinator what must change (AC1, AC2)
 
-AC1, AC2.
+SPM-263 AC1, AC2.
 
 **Preconditions:** Fixture loaded. Signed in as `safety@test.com`.
 
@@ -178,9 +178,9 @@ AC1, AC2.
 
 ---
 
-### TC-SAFETYOUTCOME-002: An approval without comments says it can go on to confirmation
+### TC-SAFETYOUTCOME-002: An approval without comments says it can go on to confirmation (AC1, AC3)
 
-AC1, AC3.
+SPM-263 AC1, AC3.
 
 **Preconditions:** TC-SAFETYOUTCOME-001 run. Signed in as `safety@test.com`.
 
@@ -197,9 +197,9 @@ AC1, AC3.
 
 ---
 
-### TC-SAFETYOUTCOME-003: Only the event's own coordinator is told, with the Officer's note
+### TC-SAFETYOUTCOME-003: Only the event's own coordinator is told, with the Officer's note (AC1, AC3)
 
-AC1, AC3.
+SPM-263 AC1, AC3.
 
 **Preconditions:** TC-SAFETYOUTCOME-002 run. Signed in as `safety@test.com`.
 
@@ -216,9 +216,9 @@ AC1, AC3.
 
 ---
 
-### TC-SAFETYOUTCOME-004: An event with no coordinator is still recorded, and nobody is told
+### TC-SAFETYOUTCOME-004: An event with no coordinator is still recorded, and nobody is told (AC6)
 
-AC6.
+SPM-263 AC6.
 
 **Preconditions:** Fixture loaded. Signed in as `safety@test.com`.
 
@@ -236,9 +236,9 @@ AC6.
 
 ---
 
-### TC-SAFETYOUTCOME-005: No outcome, no notice
+### TC-SAFETYOUTCOME-005: No outcome, no notice (AC6)
 
-AC6.
+SPM-263 AC6.
 
 **Preconditions:** Fixture loaded. Signed in as `safety@test.com`.
 
@@ -254,9 +254,9 @@ AC6.
 
 ---
 
-### TC-SAFETYOUTCOME-006: The notice's link opens the event for its coordinator only
+### TC-SAFETYOUTCOME-006: The notice's link opens the event for its coordinator only (AC4)
 
-AC4.
+SPM-263 AC4.
 
 **Preconditions:** TC-SAFETYOUTCOME-001 run.
 
@@ -274,9 +274,9 @@ AC4.
 
 ---
 
-### TC-SAFETYOUTCOME-007: The notice in the coordinator's inbox — open it, mark it read
+### TC-SAFETYOUTCOME-007: The notice in the coordinator's inbox — open it, mark it read (AC1, AC4, AC5)
 
-AC1, AC4, AC5. Needs `pnpm dev:local` with Novu.
+SPM-263 AC1, AC4, AC5. Needs `pnpm dev:local` with Novu.
 
 **Preconditions:** TC-SAFETYOUTCOME-001 and 002 run with Novu. Signed in as `coordinator@test.com`.
 

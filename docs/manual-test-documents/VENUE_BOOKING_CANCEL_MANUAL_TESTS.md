@@ -85,6 +85,8 @@ venues are the ones that offer slots, so their calendar shows a freed slot as **
 
 ### TC-VCANCEL-001: Cancel a Confirmed booking and free its slot (AC2)
 
+SPM-20 AC2.
+
 **What this tests:** Cancelling a Confirmed booking makes it **Released**, and the venue calendar
 shows its slot **Available** straight away, so another coordinator can book it.
 
@@ -120,6 +122,8 @@ shows its slot **Available** straight away, so another coordinator can book it.
 
 ### TC-VCANCEL-002: Keep booking changes nothing (AC2)
 
+SPM-20 AC2.
+
 **What this tests:** A cancellation cannot be undone, so the first click only asks. Backing out
 leaves the booking as it was.
 
@@ -141,6 +145,8 @@ leaves the booking as it was.
 ---
 
 ### TC-VCANCEL-003: Cancel at any stage: a pending request and a hold (AC1)
+
+SPM-20 AC1.
 
 **What this tests:** The coordinator can cancel a booking Venue Staff have not answered yet, not
 only a Confirmed one. Bookings that hold nothing offer no button.
@@ -164,6 +170,8 @@ only a Confirmed one. Bookings that hold nothing offer no button.
 
 ### TC-VCANCEL-004: Only the assigned coordinator can cancel (AC1)
 
+SPM-20 AC1.
+
 **What this tests:** Another coordinator cannot reach the event's bookings, so they cannot cancel
 one.
 
@@ -182,7 +190,9 @@ one.
 
 ---
 
-### TC-VCANCEL-005: A booking cancelled elsewhere is refused with a message
+### TC-VCANCEL-005: A booking cancelled elsewhere is refused with a message (AC1, AC2)
+
+SPM-20 AC1, AC2.
 
 **What this tests:** If the booking moved on while the page was open, the click is refused and
 nothing changes. The database re-checks the status under a lock.

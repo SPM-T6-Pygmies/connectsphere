@@ -87,6 +87,8 @@ Run the cases in order, 001 to 006: each one edits the venue from where the last
 
 ### TC-VCHG-001: A capacity cut the booking still fits flags nothing (AC2)
 
+SPM-105 AC2.
+
 **What this tests:** The boundary: attendance exactly equal to the layout's seats still fits.
 
 **Preconditions:** The fixture from Setup.
@@ -106,6 +108,8 @@ Run the cases in order, 001 to 006: each one edits the venue from where the last
 ---
 
 ### TC-VCHG-002: A capacity cut below the attendance flags that booking only (AC1, AC2, AC7, AC9)
+
+SPM-105 AC1, AC2, AC7, AC9.
 
 **What this tests:** The customer's example: Banquet drops so the 120 expected no longer fit. The
 Gala's booking at the hall is flagged and keeps its status; its other booking (Studio) and the
@@ -138,6 +142,8 @@ Board Lunch (60, still fits) are left alone.
 
 ### TC-VCHG-003: Cutting the same layout again restates its one reason (AC8)
 
+SPM-105 AC8.
+
 **Preconditions:** After TC-VCHG-002.
 
 **Steps:**
@@ -154,6 +160,8 @@ Board Lunch (60, still fits) are left alone.
 ---
 
 ### TC-VCHG-004: Dropping a facility flags who needs it, not who already lacked another (AC1, AC3)
+
+SPM-105 AC1, AC3.
 
 **What this tests:** The Gala needs Wi-Fi, so removing it adds a second reason. The Video Call needs
 Video-conferencing, which the hall never had: its facilities check already failed for that same
@@ -178,6 +186,8 @@ reason, so the edit does not flag it.
 
 ### TC-VCHG-005: Other details flag nothing (AC4)
 
+SPM-105 AC4.
+
 **Preconditions:** After TC-VCHG-004.
 
 **Steps:**
@@ -197,6 +207,8 @@ reason, so the edit does not flag it.
 ---
 
 ### TC-VCHG-006: Unknown, Requested and past bookings are never flagged (AC5, AC6)
+
+SPM-105 AC5, AC6.
 
 **What this tests:** After every cut above, the Open Day (no expected attendance, so "Check
 incomplete"), the Pending Talk (Requested) and the Past Expo (its day has passed) all sat under a

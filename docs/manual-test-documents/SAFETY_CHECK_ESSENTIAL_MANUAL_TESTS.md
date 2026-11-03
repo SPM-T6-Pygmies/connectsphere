@@ -60,6 +60,8 @@ its **Equipment** tab. The Safety Officer's list is the **Awaiting check** page,
 
 ### TC-SAFEESS-001: An essential line not reserved keeps the event off the list (AC2)
 
+SPM-319 AC2.
+
 **Preconditions:** Setup done. Signed in as `safety@test.com`.
 
 **Steps:**
@@ -76,6 +78,8 @@ its **Equipment** tab. The Safety Officer's list is the **Awaiting check** page,
 ---
 
 ### TC-SAFEESS-002: Unmarking the only gap puts the event on the list (AC1)
+
+SPM-319 AC1.
 
 **Preconditions:** After TC-SAFEESS-001.
 
@@ -96,6 +100,8 @@ its **Equipment** tab. The Safety Officer's list is the **Awaiting check** page,
 
 ### TC-SAFEESS-003: Marking the line essential again takes the event off (AC2)
 
+SPM-319 AC2.
+
 **Preconditions:** After TC-SAFEESS-002.
 
 **Steps:**
@@ -112,7 +118,9 @@ its **Equipment** tab. The Safety Officer's list is the **Awaiting check** page,
 
 ---
 
-### TC-SAFEESS-004: A new, unmarked line does not hold the event back until it is marked (AC1, AC2, AC3)
+### TC-SAFEESS-004: A new, unmarked line does not hold the event back until it is marked (AC1–AC3)
+
+SPM-319 AC1–AC3.
 
 **Preconditions:** Setup done. Marina Bay Gala is listed.
 

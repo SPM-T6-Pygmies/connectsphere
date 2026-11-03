@@ -123,9 +123,9 @@ $$;
 
 ## Test Cases
 
-### TC-SAFETYCHECK-001: The review page shows what the customer listed
+### TC-SAFETYCHECK-001: The review page shows what the customer listed (AC1)
 
-AC1.
+SPM-260 AC1.
 
 **Preconditions:** Fixture loaded. Signed in as `safety@test.com`.
 
@@ -153,9 +153,9 @@ AC1.
 
 ---
 
-### TC-SAFETYCHECK-002: A rejection needs comments, then leaves the event off the list
+### TC-SAFETYCHECK-002: A rejection needs comments, then leaves the event off the list (AC2, AC3, AC5, AC6)
 
-AC2, AC3, AC5, AC6.
+SPM-260 AC2, AC3, AC5, AC6.
 
 **Preconditions:** Fixture loaded, Marina Bay Gala not yet checked. Signed in as `safety@test.com`.
 
@@ -181,9 +181,9 @@ AC2, AC3, AC5, AC6.
 
 ---
 
-### TC-SAFETYCHECK-003: An approval needs no comments
+### TC-SAFETYCHECK-003: An approval needs no comments (AC2, AC4–AC6)
 
-AC2, AC4, AC5, AC6.
+SPM-260 AC2, AC4–AC6.
 
 **Preconditions:** Fixture loaded, Canal Side Workshop not yet checked. Signed in as `safety@test.com`.
 
@@ -203,9 +203,9 @@ AC2, AC4, AC5, AC6.
 
 ---
 
-### TC-SAFETYCHECK-004: An event not awaiting a check offers no form
+### TC-SAFETYCHECK-004: An event not awaiting a check offers no form (AC6)
 
-AC6.
+SPM-260 AC6.
 
 **Preconditions:** Fixture loaded. Signed in as `safety@test.com`.
 
@@ -222,9 +222,9 @@ AC6.
 
 ---
 
-### TC-SAFETYCHECK-005: Two Officers recording at once — the second is refused
+### TC-SAFETYCHECK-005: Two Officers recording at once — the second is refused (AC6)
 
-AC6.
+SPM-260 AC6.
 
 **Preconditions:** Fixture loaded, Winter Lantern Ball not yet checked. Window A signed in as `safety@test.com`, window B as `safety2@test.com`.
 
@@ -246,9 +246,9 @@ AC6.
 
 ---
 
-### TC-SAFETYCHECK-006: Other roles are refused; an unknown event is not found
+### TC-SAFETYCHECK-006: Other roles are refused; an unknown event is not found (AC7)
 
-AC7.
+SPM-260 AC7.
 
 **Preconditions:** Fixture loaded.
 
@@ -266,9 +266,9 @@ AC7.
 
 ---
 
-### TC-SAFETYCHECK-007: The database restates the rules
+### TC-SAFETYCHECK-007: The database restates the rules (AC3, AC6, AC7)
 
-AC3, AC6, AC7. Run in `psql` on a freshly reset database with the fixture
+SPM-260 AC3, AC6, AC7. Run in `psql` on a freshly reset database with the fixture
 loaded. Account 11 is Test Safety Officer, 12 is Test Safety Officer 2, 4 is
 Test Venue Staff; use the fixture's event ids. Show SQLSTATEs with
 `\set VERBOSITY sqlstate`.

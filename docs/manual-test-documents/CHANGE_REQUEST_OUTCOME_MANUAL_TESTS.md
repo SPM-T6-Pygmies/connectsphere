@@ -50,6 +50,8 @@ Password for all accounts: `TestPass123!`. Run the cases in order.
 
 ### TC-CROUTCOME-003: A decline with no reason cannot be saved (AC3)
 
+SPM-110 AC3.
+
 **Preconditions:** Setup done. Event 1 has no change request.
 
 **Steps:**
@@ -69,6 +71,8 @@ Password for all accounts: `TestPass123!`. Run the cases in order.
 Evidence: [step1-decline-without-reason](../screenshots/2026-10-30_TC-CROUTCOME-003_step1-decline-without-reason.png)
 
 ### TC-CROUTCOME-001: A partly accepted request sends one notice with both sections (AC1–AC4)
+
+SPM-110 AC1–AC4.
 
 **Preconditions:** State left by TC-CROUTCOME-003. Signed in as
 `coordinator@test.com` on the change request page.
@@ -93,6 +97,8 @@ Evidence: [step2-decision-saved](../screenshots/2026-10-30_TC-CROUTCOME-001_step
 
 ### TC-CROUTCOME-002: The notice opens the request and can be marked read (AC5)
 
+SPM-110 AC5.
+
 **Preconditions:** State left by TC-CROUTCOME-001. Signed in as
 `organiser2@test.com`.
 
@@ -110,6 +116,8 @@ Evidence: [step2-decision-saved](../screenshots/2026-10-30_TC-CROUTCOME-001_step
 Evidence: [step2-opens-request](../screenshots/2026-10-30_TC-CROUTCOME-002_step2-opens-request.png)
 
 ### TC-CROUTCOME-004: A fully declined request lists only declines, each with its reason (AC2, AC3)
+
+SPM-110 AC2, AC3.
 
 **Preconditions:** State left by TC-CROUTCOME-002.
 

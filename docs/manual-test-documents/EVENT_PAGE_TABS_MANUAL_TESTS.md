@@ -49,7 +49,9 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ## Test Cases
 
-### TC-EVTABS-001: Each tab shows its area, and the URL follows the open tab
+### TC-EVTABS-001: Each tab shows its area, and the URL follows the open tab (AC1, AC2, AC4–AC7)
+
+SPM-285 AC1, AC2, AC4–AC7.
 
 **Preconditions:** Signed in as `coordinator@test.com`; the coordinator has at
 least one event under **My events**.
@@ -75,7 +77,9 @@ least one event under **My events**.
 
 ---
 
-### TC-EVTABS-002: A link opens its tab, and the Venue tab holds the booking workspace
+### TC-EVTABS-002: A link opens its tab, and the Venue tab holds the booking workspace (AC2, AC5)
+
+SPM-285 AC2, AC5.
 
 **Preconditions:** As TC-EVTABS-001.
 

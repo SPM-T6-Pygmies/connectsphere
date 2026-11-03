@@ -40,7 +40,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ## Login Manual Tests
 
-### TC-LOGIN-001: Valid Credentials Login and Dashboard Access
+### TC-LOGIN-001: Valid Credentials Login and Dashboard Access (AC1)
+
+SPM-13 AC1.
 
 **Preconditions:**
 - At `/auth/login`
@@ -65,7 +67,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-### TC-LOGIN-002: Invalid Password Rejection
+### TC-LOGIN-002: Invalid Password Rejection (AC2)
+
+SPM-13 AC2.
 
 **Preconditions:**
 - At `/auth/login`
@@ -90,7 +94,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-### TC-LOGIN-003: Non-Existent Email Rejection
+### TC-LOGIN-003: Non-Existent Email Rejection (AC2)
+
+SPM-13 AC2.
 
 **Preconditions:**
 - At `/auth/login`
@@ -115,7 +121,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-### TC-LOGIN-004: Session Cookie Creation on Login
+### TC-LOGIN-004: Session Cookie Creation on Login (AC1)
+
+SPM-13 AC1.
 
 **Preconditions:**
 - Browser DevTools open (Application → Cookies tab)
@@ -139,7 +147,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-### TC-LOGIN-005: Session Persists Across Page Refresh
+### TC-LOGIN-005: Session Persists Across Page Refresh (AC1)
+
+SPM-13 AC1.
 
 **Preconditions:**
 - User logged in at `/staff/requester`
@@ -166,7 +176,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ## Logout Manual Tests
 
-### TC-LOGOUT-001: Happy Path - Successful Logout
+### TC-LOGOUT-001: Happy Path - Successful Logout (AC1–AC3)
+
+SPM-14 AC1–AC3.
 
 **Preconditions:**
 - User is logged in at `/staff/requester`
@@ -189,7 +201,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-### TC-LOGOUT-002: Browser Back Button After Logout
+### TC-LOGOUT-002: Browser Back Button After Logout (AC4)
+
+SPM-14 AC4.
 
 **Preconditions:**
 - User just completed TC-LOGOUT-001 (redirected to login)
@@ -212,7 +226,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-### TC-LOGOUT-003: Session Cookie Cleared After Logout
+### TC-LOGOUT-003: Session Cookie Cleared After Logout (AC2)
+
+SPM-14 AC2.
 
 **Preconditions:**
 - User is logged in
@@ -236,7 +252,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ---
 
-### TC-LOGOUT-004: Audit Record Created for Logout Event
+### TC-LOGOUT-004: Audit Record Created for Logout Event (AC5)
+
+SPM-14 AC5.
 
 **Preconditions:**
 - User logged in (note their `user_account_id`)
@@ -268,7 +286,9 @@ SELECT * FROM audit_record WHERE action = 'logout' ORDER BY audit_record_id DESC
 
 ---
 
-### TC-LOGOUT-005: Cannot Access Protected Routes After Logout
+### TC-LOGOUT-005: Cannot Access Protected Routes After Logout (AC2)
+
+SPM-14 AC2.
 
 **Preconditions:**
 - User logged out at `/auth/login`

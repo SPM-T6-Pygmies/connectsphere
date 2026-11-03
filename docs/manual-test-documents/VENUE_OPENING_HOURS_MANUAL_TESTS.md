@@ -35,7 +35,7 @@ them, tick the boxes below **and** report each in the PR description's
 
 | Case | Ticket | AC |
 | --- | --- | --- |
-| TC-VHOURS-001 | SPM-333 | AC1 — the picker stays on the 15-minute grid |
+| TC-VHOURS-001 | SPM-333 | AC1, AC2 — the picker stays on the 15-minute grid |
 | TC-VHOURS-002 | SPM-332 | AC2 — a window must end after it starts |
 | ~~TC-VHOURS-003~~ | SPM-332 | Retired — windows may not overlap |
 | TC-VHOURS-004 | SPM-334 | AC3 — a request over closed time is refused |
@@ -68,7 +68,9 @@ them, tick the boxes below **and** report each in the PR description's
 **Shared Pre-Conditions (001, 002):** log in as `venue@test.com` and open
 **UAT-42 Lecture Hall** from the venue catalogue (`/staff/venue/catalogue`).
 
-### TC-VHOURS-001 The picker stays on the 15-minute grid
+### TC-VHOURS-001 The picker stays on the 15-minute grid (AC1, AC2)
+
+SPM-320 AC1, AC2.
 
 **Steps**
 1. Open the **Opens** hour, **Opens** minute, **Closes** hour and **Closes**
@@ -87,7 +89,9 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), on the Add venue form. Screenshot: [closes-24-offers-only-00](../screenshots/2026-10-29_TC-VHOURS-001_step3-closes-24-offers-only-00.jpg)
 
-### TC-VHOURS-002 A window must end after it starts
+### TC-VHOURS-002 A window must end after it starts (AC2)
+
+SPM-320 AC2.
 
 **Steps**
 1. Set **Closes** to `12`:`00`. Click **Save venue**.
@@ -105,7 +109,9 @@ Earlier run with two windows: Pass, 20/10/2026, Chrome via Claude in Chrome for 
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [13-00-12-00-refused](../screenshots/2026-10-29_TC-VHOURS-002_step2-13-00-12-00-refused.jpg)
 
-### TC-VHOURS-004 A request over closed time is refused
+### TC-VHOURS-004 A request over closed time is refused (AC3)
+
+SPM-320 AC3.
 
 **Pre-Conditions:** log in as `coordinator@test.com`; open *My events* →
 *Founders' Gala Dinner* → **Request a venue**; the event has no booking request
@@ -136,7 +142,9 @@ Earlier run on slots: Pass, 20/10/2026, Chrome via Claude in Chrome for joyceetr
 
 **Screenshots:** [step1-closed-time-refused](../screenshots/2026-10-21_TC-VHOURS-004_step1-closed-time-refused.png)
 
-### TC-VHOURS-005 AM, PM and Night convert to the slots they cover
+### TC-VHOURS-005 AM, PM and Night convert to the slots they cover (AC4)
+
+SPM-320 AC4.
 
 The conversion is the first block of
 `supabase/migrations/20261020010000_venue_opening_hours_fifteen_minute_slots.sql`.
@@ -181,7 +189,9 @@ Earlier run: Pass, 20/10/2026, local Supabase, by Claude Code for joyceetran. Th
 migration's own run on the two converted seed venues also kept their open time
 (900 and 600 minutes).
 
-### TC-VHOURS-006 Opening hours show as times
+### TC-VHOURS-006 Opening hours show as times (AC5)
+
+SPM-320 AC5.
 
 **Steps**
 1. As `venue@test.com`, open the venue catalogue (`/staff/venue/catalogue`).
@@ -208,9 +218,9 @@ Screenshots, retaken 21/10/2026 on the same build: [step1-catalogue-opening-hour
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), with `seed-venues` and `seed-venue-search-uat` loaded. Screenshots: [step1-catalogue-opening-hours](../screenshots/2026-10-29_TC-VHOURS-006_step1-catalogue-opening-hours.jpg) · [step3-19-00-24-00-search](../screenshots/2026-10-29_TC-VHOURS-006_step3-19-00-24-00-search.jpg)
 
-### TC-VHOURS-007 Every venue's hours become one window
+### TC-VHOURS-007 Every venue's hours become one window (AC4)
 
-SPM-331 AC4, under the one-window rule: each venue opens from its earliest
+SPM-320 AC4, under the one-window rule: each venue opens from its earliest
 opening to its latest closing, so neighbouring slots join and a break closes up.
 The conversion is `20261020010000` (AM, PM and Night to 15-minute slots) then
 `20261026020000` (one window). Run both against one venue of each kind inside a
@@ -260,9 +270,9 @@ nothing; step 3 read:
 No `UAT-320` venue was left after the rollback.
 Earlier run: Pass, 25/10/2026, local Supabase after a fresh reset, by joyceetran. Nothing was left after the rollback.
 
-### TC-VHOURS-008 A venue opens once a day
+### TC-VHOURS-008 A venue opens once a day (AC2)
 
-SPM-332 AC2: one opening and one closing time. The form offers only one pair
+SPM-320 AC2: one opening and one closing time. The form offers only one pair
 (TC-VCAT-001); this checks the store refuses a second window from any caller.
 
 **Steps** — in `psql` on the local database:

@@ -68,9 +68,9 @@ From `seed-booking-cancel`, all on the Founders' Gala Dinner; **C** is Thursday 
 
 ## Test Cases
 
-### TC-VCANCELNOTE-001: Cancelling a Confirmed booking tells every Venue Staff member what was released
+### TC-VCANCELNOTE-001: Cancelling a Confirmed booking tells every Venue Staff member what was released (AC1, AC3)
 
-AC1, AC3.
+SPM-63 AC1, AC3.
 
 **Preconditions:** As above. Signed in as `coordinator@test.com`.
 
@@ -98,9 +98,9 @@ AC1, AC3.
 
 ---
 
-### TC-VCANCELNOTE-002: The notice opens the venue's calendar with the freed slot Available
+### TC-VCANCELNOTE-002: The notice opens the venue's calendar with the freed slot Available (AC4)
 
-AC4.
+SPM-63 AC4.
 
 **Preconditions:** TC-VCANCELNOTE-001 run.
 
@@ -124,9 +124,9 @@ AC4.
 
 ---
 
-### TC-VCANCELNOTE-003: Cancelling a pending request or a hold tells nobody
+### TC-VCANCELNOTE-003: Cancelling a pending request or a hold tells nobody (AC2)
 
-AC2.
+SPM-63 AC2.
 
 **Preconditions:** TC-VCANCELNOTE-001 run. Signed in as `coordinator@test.com`.
 
@@ -146,9 +146,9 @@ AC2.
 
 ---
 
-### TC-VCANCELNOTE-004: The notice can be marked read, and stays read
+### TC-VCANCELNOTE-004: The notice can be marked read, and stays read (AC5)
 
-AC5.
+SPM-63 AC5.
 
 **Preconditions:** TC-VCANCELNOTE-001 run. Signed in as `venue@test.com` on
 `/staff/venue/notifications`, the notice still unread (as in TC-VCANCELNOTE-001 step 2; if not,

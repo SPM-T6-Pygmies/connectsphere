@@ -56,9 +56,9 @@ them, tick the boxes below **and** report each in the PR description's
 
 ## Test Cases
 
-### TC-VENUENOTE-002: The notice opens the pending request, which can be approved there
+### TC-VENUENOTE-002: The notice opens the pending request, which can be approved there (AC3)
 
-AC3.
+SPM-61 AC3.
 
 **Preconditions:** TC-VENUENOTE-001 run. Signed in as `venue2@test.com` on `/staff/venue/notifications`.
 
@@ -78,9 +78,9 @@ AC3.
 
 ---
 
-### TC-VENUENOTE-003: A refused request tells nobody
+### TC-VENUENOTE-003: A refused request tells nobody (AC1)
 
-AC1.
+SPM-61 AC1.
 
 **Preconditions:** TC-VENUENOTE-002 run, so Studio is Confirmed on 2027-01-20 AM.
 
@@ -98,9 +98,9 @@ AC1.
 
 ---
 
-### TC-VENUENOTE-004: The notice can be marked read
+### TC-VENUENOTE-004: The notice can be marked read (AC4)
 
-AC4.
+SPM-61 AC4.
 
 **Preconditions:** TC-VENUENOTE-001 run. Signed in as `venue@test.com` on `/staff/venue/notifications`.
 
@@ -155,7 +155,7 @@ Chromium driven by Playwright at 1440 × 900. No page errors were raised.
 
 ---
 
-### TC-VENUENOTE-005: The notice names each date with its start and end time (SPM-351)
+### TC-VENUENOTE-005: The notice names each date with its start and end time (AC4)
 
 SPM-324 AC4.
 

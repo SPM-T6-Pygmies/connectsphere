@@ -89,6 +89,8 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 
 ## TC-EQCAT-009 The catalogue starts empty (AC4)
 
+SPM-40 AC4.
+
 **Steps**
 1. On a freshly reset database, log in as `support@test.com`.
 2. Click **Equipment** in the sidebar (box icon, `/staff/technical/equipment`).
@@ -104,6 +106,8 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 ---
 
 ## TC-EQCAT-010 Add equipment (AC1)
+
+SPM-40 AC1.
 
 **Steps**
 1. Click **Add equipment** (top right of the card). A panel opens on the right.
@@ -126,6 +130,8 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 
 ## TC-EQCAT-011 An invalid item is refused (AC1)
 
+SPM-40 AC1.
+
 **Steps**
 1. Open the **Add equipment** panel. Leave Type and Location blank, enter Quantity `-1`
    and Description `keep me`, and click **Add equipment** in the panel.
@@ -142,6 +148,8 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 ---
 
 ## TC-EQCAT-012 Update owned and location (AC2, AC3)
+
+SPM-40 AC2, AC3.
 
 **Steps**
 1. On the Projector (4K) card, change **Owned** to `4` and **Location** to `Store B`.
@@ -161,6 +169,8 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 
 ## TC-EQCAT-013 A bad update is refused (AC2)
 
+SPM-40 AC2.
+
 **Steps**
 1. On the Wireless microphone card, change **Owned** to `-5` and click **Update**. Reload.
 
@@ -176,6 +186,8 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 
 ## TC-EQCAT-014 The catalogue lives only on the Equipment page (AC1)
 
+SPM-40 AC1.
+
 **Steps**
 1. Open **Needs review** (`/staff/technical`), **Reviewed** and **Archive** in turn.
 
@@ -189,6 +201,8 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 ---
 
 ## TC-EQCAT-015 Usable at phone width (AC1, AC2)
+
+SPM-40 AC1, AC2.
 
 **Steps**
 1. Open `/staff/technical/equipment` in a 390px-wide window. (On a phone, **Equipment** is in the
@@ -207,7 +221,9 @@ Screenshots are in [`../screenshots/`](../screenshots), named
 
 ---
 
-## TC-EQCAT-016 Other roles cannot open the Equipment page
+## TC-EQCAT-016 Other roles cannot open the Equipment page (AC1, AC2)
+
+SPM-40 AC1, AC2.
 
 **Steps**
 1. Log in as `lead@test.com` and open `/staff/technical/equipment` directly, with the

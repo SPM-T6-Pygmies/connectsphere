@@ -59,6 +59,8 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 ### TC-VBUFFER-001: Add a venue with setup and turnaround; the form clears; the values are locked (AC1, AC3, AC10)
 
+SPM-23 AC1, AC3, AC10.
+
 **Scenario:** Venue Staff add a new studio, Lakeside Studio, that needs 30 minutes to set up and 45 to reset.
 
 **Steps:**
@@ -82,6 +84,8 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 ### TC-VBUFFER-002: Define the values on a venue that has none (AC1, AC4)
 
+SPM-23 AC1, AC4.
+
 **Scenario:** UAT-44 Garden Hall has never had setup or turnaround chosen. Venue Staff choose 15 and 30.
 
 **Steps:**
@@ -102,6 +106,8 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 ### TC-VBUFFER-003: The choices, and one without the other (AC1, AC2)
 
+SPM-23 AC1, AC2.
+
 **Scenario:** The two values are picked from a list, so a value off the 15-minute grid, a negative one or one over 150 minutes cannot be entered at all. Venue Staff can still choose one and leave the other.
 
 **Steps:**
@@ -120,6 +126,8 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 ---
 
 ### TC-VBUFFER-004: Locked, even straight against the database (AC3)
+
+SPM-23 AC3.
 
 **Scenario:** Studio is defined as 0 and 0 and Main Hall as 30 and 45. Nobody, including a direct database request, may change them.
 
@@ -148,6 +156,8 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 ### TC-VBUFFER-006: Setup and turnaround show on the venue list and to Coordinators (AC10)
 
+SPM-23 AC10.
+
 **Scenario:** Venue Staff and a Coordinator can see each venue's setup and turnaround without opening the venue form, so the Coordinator knows how much time around an event a venue needs.
 
 **Preconditions:** UAT-44 Garden Hall has 15 and 30 defined (TC-VBUFFER-002). `scripts/seed-booking-holds/seed.sql` has been run *after* the last `supabase db reset`, which creates *Holds Test Event* and assigns it to `coordinator@test.com`; without it that event does not exist.
@@ -168,7 +178,9 @@ every field is mandatory). The cases that save a venue therefore use the two UAT
 
 ---
 
-### TC-VBUFFER-005: The database refuses what the rules refuse (AC1 to AC3)
+### TC-VBUFFER-005: The database refuses what the rules refuse (AC1–AC3)
+
+SPM-23 AC1–AC3.
 
 **Steps:**
 ```bash

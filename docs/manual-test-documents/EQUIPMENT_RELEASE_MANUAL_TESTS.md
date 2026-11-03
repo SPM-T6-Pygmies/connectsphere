@@ -80,6 +80,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 
 ### TC-RELEASE-001: Nothing to release once the coordinator undoes the removal (AC3)
 
+SPM-108 AC3.
+
 **Steps:**
 1. Signed in as `support@test.com`, open *Tech Summit Keynote* from Needs review.
 2. On **PA speaker**, click **Release 2**. Leave the confirmation open.
@@ -105,6 +107,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 
 ### TC-RELEASE-002: Held units are not available to an event the next day (AC2, before)
 
+SPM-108 AC2.
+
 **Steps:**
 1. Signed in as `coordinator2@test.com`, open *Product Launch Rehearsal*, click the
    **Equipment** tab, and add a line: **PA speaker**, quantity **4**, then **Add line**.
@@ -119,6 +123,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 **Status:** [ ] Pass [ ] Fail
 
 ### TC-RELEASE-003: Release a removal-requested line (AC1)
+
+SPM-108 AC1.
 
 **Steps:**
 1. As `support@test.com`, open *Tech Summit Keynote* and read **PA speaker**.
@@ -140,6 +146,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 
 ### TC-RELEASE-004: Released units are available again (AC2, after)
 
+SPM-108 AC2.
+
 **Steps:**
 1. As `support@test.com`, open *Product Launch Rehearsal* and read **PA speaker**.
 
@@ -150,6 +158,8 @@ table. CI records it in [`manual-runs.csv`](../tests/manual-runs.csv) when the P
 **Status:** [ ] Pass [ ] Fail
 
 ### TC-RELEASE-005: Only Technical Support Staff can release (AC4)
+
+SPM-108 AC4.
 
 **Steps:**
 1. Signed in as `coordinator@test.com`, open `/staff/technical/<id>`, using the id of

@@ -136,6 +136,8 @@ commands above.
 
 ### TC-VFLAG-001: A Confirmed booking is flagged when its venue is blocked (AC1)
 
+SPM-313 AC1.
+
 **What this tests:** The moment Venue Staff block a venue over a booking, the coordinator who owns
 that booking must be able to find out. Venue Staff blocks Main Hall for the PM slot on F. The Coordinator's Tech Summit is
 Confirmed there. The Coordinator should open Tech Summit and see a flag saying the venue is unavailable, with
@@ -162,6 +164,8 @@ and not the other events booked around it.
 ---
 
 ### TC-VFLAG-002: A live hold is flagged and a lapsed one is not (AC1)
+
+SPM-313 AC1.
 
 **What this tests:** A Tentative Hold keeps a slot for the coordinator, so a block over it matters. A
 hold that has already run out keeps nothing, so a block over it matters to nobody. The Coordinator's Hold Event
@@ -191,6 +195,8 @@ should be marked **Expired** before the block is checked, so a stale hold cannot
 ---
 
 ### TC-VFLAG-003: A Requested booking is not flagged (AC1)
+
+SPM-313 AC1.
 
 **What this tests:** A Requested booking is a request Venue Staff have not answered yet, and Venue
 Staff cannot approve one over a block. The Coordinator's Second Event is Requested for Rooftop Terrace on F PM. Venue Staff
@@ -226,6 +232,8 @@ flagging leaves Requested bookings to it.
 ---
 
 ### TC-VFLAG-004: Only bookings the block overlaps are flagged (AC2)
+
+SPM-313 AC2.
 
 **What this tests:** A block must flag exactly the bookings it covers, and nothing near them. After
 TC-VFLAG-001, Main Hall is blocked for F PM. Next to Tech Summit sit three Confirmed bookings of
@@ -273,6 +281,8 @@ cases again.
 
 ### TC-VFLAG-005: A flagged booking keeps its status and its event (AC3)
 
+SPM-313 AC3.
+
 **What this tests:** A flag is a marker, not an action. After TC-VFLAG-001 Tech Summit is flagged.
 The Coordinator should still see the event in **Planning**, not cancelled, with its name and date as seeded, and
 the flagged booking should still read Confirmed. Without this check a flag could quietly turn into a
@@ -301,6 +311,8 @@ cancellation.
 
 ### TC-VFLAG-006: Only the event's coordinator sees the flag (AC4)
 
+SPM-313 AC4.
+
 **What this tests:** The flag is for the coordinator who has to act on it. The Coordinator, who is assigned to
 Tech Summit, sees it. Coordinator 2, a coordinator assigned to other events, must not: opening Tech Summit's
 address should give them the access-denied page the event already gives them, not the event and not the
@@ -323,6 +335,8 @@ flag.
 ---
 
 ### TC-VFLAG-007: Stacked blocks give a booking one reason each (AC5)
+
+SPM-313 AC5.
 
 **What this tests:** Blocks can stack. Venue Staff records a second block, an equipment failure from F to
 F + 8 on the PM slot, over the first block on F PM. Tech Summit now sits under both, so the Coordinator should
@@ -352,6 +366,8 @@ database.
 
 ### TC-VFLAG-008: Lifting a block keeps the flag and shows the lift (AC6)
 
+SPM-313 AC6.
+
 **What this tests:** Lifting a block never undoes a flag; the coordinator decides what happens to it.
 After TC-VFLAG-007 Tech Summit has two reasons. Venue Staff lifts the first block (Maintenance). The Coordinator should
 still see the flag. The Maintenance reason should now carry an amber **Block lifted** badge with the
@@ -374,6 +390,8 @@ failure reason should have no badge. Tech Summit stays Confirmed.
 ---
 
 ### TC-VFLAG-009: Only the blocked venue's booking is flagged (AC7)
+
+SPM-313 AC7.
 
 **What this tests:** Tech Summit has two venue bookings on F PM: Main Hall and Studio. The blocks so far
 cover Main Hall only. The Coordinator should see Main Hall in the flagged list and not Studio. A flag belongs to a
@@ -403,6 +421,8 @@ of them is blocked.
 ---
 
 ### TC-VFLAG-010: A flag ends with its booking, and shows on Request a venue (AC4, AC8)
+
+SPM-313 AC4, AC8.
 
 **What this tests:** A flag is there so a live booking gets looked at, and the Coordinator manages their bookings
 on **Request a venue**, so the flag has to show there. When the booking stops existing the flag has
@@ -443,7 +463,9 @@ closed as "booking ended" in the database, while Q's flag stays.
 
 ---
 
-### TC-VFLAG-011: A block over part of a booking flags it, naming the block's own hours (SPM-321)
+### TC-VFLAG-011: A block over part of a booking flags it, naming the block's own hours (AC1)
+
+SPM-313 AC1.
 
 **What this tests:** Since SPM-321 a block is a start and end time, so it can cover only part of a
 booking. Coordinator 2's Gala is Confirmed at Main Hall on F from 19:00 to 24:00 (the Night slot).

@@ -55,7 +55,9 @@ cases only use the four above.
 
 ## Cases
 
-### TC-VENUE-BOOK-001 Reach the page from an approved event
+### TC-VENUE-BOOK-001 Reach the page from an approved event (AC1)
+
+SPM-46 AC1.
 
 - [ ] On the approved request, the **Venue** card shows **Request a venue**.
 - [ ] In *My events*, the event's row has a **Request a venue** link.
@@ -67,7 +69,9 @@ cases only use the four above.
 
 **Screenshots:** [step1-venue-card-link](../screenshots/2026-10-04_TC-VENUE-BOOK-001_step1-venue-card-link.png) · [step2-my-events-link](../screenshots/2026-10-04_TC-VENUE-BOOK-001_step2-my-events-link.png) · [step3-request-a-venue-page](../screenshots/2026-10-04_TC-VENUE-BOOK-001_step3-request-a-venue-page.png)
 
-### TC-VENUE-BOOK-003 A single-layout venue takes its layout
+### TC-VENUE-BOOK-003 A single-layout venue takes its layout (AC2)
+
+SPM-104 AC2.
 
 - [x] Choose **Studio**. No choice is offered; the page says Theatre is the
       only layout.
@@ -75,12 +79,16 @@ cases only use the four above.
 
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-single-layout](../screenshots/2026-10-09_TC-VENUE-BOOK-003_step1-single-layout.png)
 
-### TC-VENUE-BOOK-004 A venue with no layouts
+### TC-VENUE-BOOK-004 A venue with no layouts (AC2)
+
+SPM-104 AC2.
 
 - [ ] Choose **Rooftop Terrace**. The page says there is no layout to choose.
 - [ ] Send one slot. The new row shows **—** for layout.
 
-### TC-VENUE-BOOK-006 Another coordinator cannot reach the page
+### TC-VENUE-BOOK-006 Another coordinator cannot reach the page (AC1)
+
+SPM-46 AC1.
 
 - [x] Sign in as anyone who is not this event's coordinator and open
       `/staff/coordinator/<request id>/venue-booking` directly. It shows
@@ -91,7 +99,9 @@ cases only use the four above.
 
 **Screenshots:** [step2-other-coordinator-not-found](../screenshots/2026-10-04_TC-VENUE-BOOK-006_step2-other-coordinator-not-found.png) · [step1-denied](../screenshots/2026-10-09_TC-VENUE-BOOK-006_step1-denied.png)
 
-### TC-VENUE-BOOK-007 The page checks the event against the chosen layout (SPM-104)
+### TC-VENUE-BOOK-007 The page checks the event against the chosen layout (AC3)
+
+SPM-104 AC3.
 
 Needs an approved event with an expected attendance (for example 100) on the
 right-hand card.
@@ -112,7 +122,9 @@ right-hand card.
 
 **Screenshots:** [step0-page-before](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step0-page-before.png) · [step1-boardroom-over](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step1-boardroom-over.png) · [step2-classroom-5-over](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step2-classroom-5-over.png) · [step3-main-hall-fits](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step3-main-hall-fits.png) · [step4-over-capacity-row](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step4-over-capacity-row.png) · [step5-boundary-exact](../screenshots/2026-10-03_TC-VENUE-BOOK-007_step5-boundary-exact.png)
 
-### TC-VENUE-BOOK-008 Change the layout of a pending request (SPM-104)
+### TC-VENUE-BOOK-008 Change the layout of a pending request (AC4)
+
+SPM-104 AC4.
 
 - [x] On a **Requested** row for a venue with several layouts, a layout picker
       and **Change layout** button appear. The button is disabled until a
@@ -129,7 +141,9 @@ right-hand card.
 
 **Screenshots:** [step1-picker-disabled](../screenshots/2026-10-03_TC-VENUE-BOOK-008_step1-picker-disabled.png) · [step2-after-change](../screenshots/2026-10-03_TC-VENUE-BOOK-008_step2-after-change.png) · [step3-studio-no-picker](../screenshots/2026-10-03_TC-VENUE-BOOK-008_step3-studio-no-picker.png)
 
-### TC-VENUE-BOOK-009 A layout can no longer change once Venue Staff answer (SPM-104)
+### TC-VENUE-BOOK-009 A layout can no longer change once Venue Staff answer (AC5)
+
+SPM-104 AC5.
 
 - [x] Approve or reject the request as Venue Staff (SPM-22). Reload the page as
       the coordinator: that row no longer offers a layout picker.
@@ -148,6 +162,8 @@ advises: none of these cases stops a request being sent (AC3).
 
 ### TC-VENUE-BOOK-010 The event's needs, and recording its facilities (AC1, AC2)
 
+SPM-45 AC1, AC2.
+
 - [x] The **Event needs** card shows the expected attendance (50), layout preference (Theatre),
       accessibility (Step-free access) and the Organiser's venue requirements.
 - [x] **Facilities needed** offers exactly Wi-Fi, Breakout rooms, Catering area and
@@ -165,6 +181,8 @@ advises: none of these cases stops a request being sent (AC3).
 
 ### TC-VENUE-BOOK-011 A venue that fits the event is Suitable (AC3, AC4, AC7)
 
+SPM-45 AC3, AC4, AC7.
+
 - [x] Choose **Studio**. The only layout is Theatre, so the checklist appears straight away,
       reading **Suitable**: Layout *Offers Theatre*; Capacity *Theatre seats 60 · fits the 50
       expected*; Accessibility *Has Step-free access*; Facilities *Has Video-conferencing*.
@@ -174,6 +192,8 @@ advises: none of these cases stops a request being sent (AC3).
 
 ### TC-VENUE-BOOK-012 A missing facility makes it Not suitable, and does not block (AC3, AC6, AC7)
 
+SPM-45 AC3, AC6, AC7.
+
 - [x] Choose **Main Hall** and **Theatre**. The checklist reads *Not suitable: facilities*:
       Facilities *Missing: Video-conferencing*, the other three rows fit.
 - [x] Tick a slot and send. The request is **not** blocked, and its row in *Booking requests for this
@@ -182,6 +202,8 @@ advises: none of these cases stops a request being sent (AC3).
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-main-hall-not-suitable](../screenshots/2026-10-09_TC-VENUE-BOOK-012_step1-main-hall-not-suitable.png) · [step2-request-sent-row](../screenshots/2026-10-09_TC-VENUE-BOOK-012_step2-request-sent-row.png)
 
 ### TC-VENUE-BOOK-013 A missing accessibility feature makes it Not suitable (AC6, AC7)
+
+SPM-45 AC6, AC7.
 
 Set the event to need Classroom, 30 people, Step-free access and Video-conferencing:
 
@@ -197,6 +219,8 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
 
 ### TC-VENUE-BOOK-014 Capacity is checked on the layout, at the boundary (AC5)
 
+SPM-45 AC5.
+
 - [x] **Studio**, 60 expected (`update event set expected_attendance = 60 …`): Capacity reads *Theatre seats
       60 · fits the 60 expected*, with a green tick.
 - [x] 61 expected: Capacity reads *Theatre seats 60, 1 over*, with a red cross.
@@ -207,6 +231,8 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
 
 ### TC-VENUE-BOOK-015 Check incomplete when something is not known yet (AC4, AC5, AC7)
 
+SPM-45 AC4, AC5, AC7.
+
 - [x] With no expected attendance (`update event set expected_attendance = null …`), **Studio** reads
       *Check incomplete*: Capacity *Not known yet*, the other rows fit.
 - [x] With no layout preference (`room_layout_preference = null`) and attendance 50, **Studio**'s Layout row
@@ -215,6 +241,8 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-no-attendance](../screenshots/2026-10-09_TC-VENUE-BOOK-015_step1-no-attendance.png) · [step2-no-layout-preference](../screenshots/2026-10-09_TC-VENUE-BOOK-015_step2-no-layout-preference.png)
 
 ### TC-VENUE-BOOK-016 A sent request is re-checked when the event changes (AC8)
+
+SPM-45 AC8.
 
 - [x] Send a request for **Studio** (attendance 50). Its row reads *Suitable*.
 - [x] Raise the attendance by hand (`update event set expected_attendance = 80 …`) and re-open the page. The
@@ -227,6 +255,8 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
 
 ### TC-VENUE-BOOK-017 A request that is over has no verdict (AC8)
 
+SPM-45 AC8.
+
 - [x] With a request sent for **Studio**, reject it by hand (`update booking set status = 'Rejected',
       decided_by_user_account_id = requested_by_user_account_id where …`, as in TC-VENUE-BOOK-005, since
       deciding is SPM-22) and re-open the page. Its Suitability cell reads **—**.
@@ -235,6 +265,8 @@ update event set expected_attendance = 30, room_layout_preference = 'Classroom'
 **Run:** Pass, 9/10/2026, run in Chrome via Playwright for JameszLau. Screenshots: [step1-rejected-has-no-verdict](../screenshots/2026-10-09_TC-VENUE-BOOK-017_step1-rejected-has-no-verdict.png)
 
 ### TC-VENUE-BOOK-018 Another coordinator sees nothing of it (AC9)
+
+SPM-45 AC9.
 
 - [x] Sign in as `coordinator2@test.com` and open `/staff/coordinator/<request id>/venue-booking` directly. It
       answers exactly as it does for an event that does not exist (open
@@ -259,7 +291,9 @@ D `13:00`–`18:00` and a **Rejected** one at **UAT-44 Garden Hall** on D `07:00
 both for another event. Harbour Room is open `07:00`–`24:00` and Garden Hall
 `07:00`–`18:00`, as the seed sets them (SPM-320 AC4).
 
-### TC-VENUE-BOOK-023 Request a venue by start and end time (SPM-348, AC1)
+### TC-VENUE-BOOK-023 Request a venue by start and end time (AC1)
+
+SPM-324 AC1.
 
 - [x] Open a **Start** hour picker, then an **End** hour picker. Start offers `00`–`23`,
       End `00`–`24`; both minute pickers offer only `00`, `15`, `30`, `45`, and End hour
@@ -274,7 +308,9 @@ both for another event. Harbour Room is open `07:00`–`24:00` and Garden Hall
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset` and the three seeds; D = 2026-11-12. The row read `2026-11-13 07:00–07:15, 2026-11-14 23:45–24:00`. Screenshot: [requested-times](../screenshots/2026-10-29_TC-VENUE-BOOK-023_step4-requested-times.jpg)
 
-### TC-VENUE-BOOK-024 A missing or impossible time is refused, naming it (SPM-349, AC1)
+### TC-VENUE-BOOK-024 A missing or impossible time is refused, naming it (AC1)
+
+SPM-324 AC1.
 
 Each step uses **UAT-44 Harbour Room** on D+3 and changes only what it says; nothing is
 added to *Booking requests* by any of them.
@@ -290,7 +326,9 @@ added to *Booking requests* by any of them.
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Each refusal named 2026-11-15, and the event still had only TC-VENUE-BOOK-023's booking. Screenshot: [date-twice](../screenshots/2026-10-29_TC-VENUE-BOOK-024_step6-date-twice.jpg)
 
-### TC-VENUE-BOOK-025 Overlap by any amount clashes; touching does not (SPM-350, AC2)
+### TC-VENUE-BOOK-025 Overlap by any amount clashes; touching does not (AC2)
+
+SPM-324 AC2.
 
 - [x] Request **UAT-44 Harbour Room** on D, `17:45` to `18:15`: refused with *The venue is
       already booked for D 17:45–18:00. Choose other times or another venue.* The form
@@ -303,7 +341,9 @@ added to *Booking requests* by any of them.
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Screenshot: [17-45-18-15-overlap](../screenshots/2026-10-29_TC-VENUE-BOOK-025_step2-17-45-18-15-overlap.jpg)
 
-### TC-VENUE-BOOK-026 Bookings that hold nothing do not clash (SPM-350, AC3)
+### TC-VENUE-BOOK-026 Bookings that hold nothing do not clash (AC3)
+
+SPM-324 AC3.
 
 - [x] Request **UAT-44 Garden Hall** on D, `07:00` to `12:00`, the time of its
       **Rejected** booking: accepted.
@@ -323,7 +363,9 @@ added to *Booking requests* by any of them.
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The hold was booking 4. Loading the page after step 2 expired the lapsed hold (`expire_lapsed_holds`, SPM-253), so step 3 also set `status = 'Tentative Hold'` with the new `hold_expires_at` to make it live again; it then refused *2026-11-12 18:00–19:00*, and once Released the time was accepted.
 
-### TC-VENUE-BOOK-027 The same event at another venue is no clash (SPM-350, AC3)
+### TC-VENUE-BOOK-027 The same event at another venue is no clash (AC3)
+
+SPM-324 AC3.
 
 - [x] Request **UAT-44 Garden Hall** on D+5, `09:00` to `10:00`. As `venue@test.com`
       approve it.
@@ -334,7 +376,9 @@ added to *Booking requests* by any of them.
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Garden Hall on 2026-11-17 was approved, and Harbour Room at the same time was accepted with both rows listed.
 
-### TC-VENUE-BOOK-028 Venue Staff read the requested times (SPM-351, AC4)
+### TC-VENUE-BOOK-028 Venue Staff read the requested times (AC4)
+
+SPM-324 AC4.
 
 - [x] As `venue@test.com`, open **Booking requests**. TC-VENUE-BOOK-023's request reads
       `… · 07:00–07:15 + 23:45–24:00`.
@@ -345,7 +389,9 @@ added to *Booking requests* by any of them.
 
 **Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The queue read `07:00–07:15 + 23:45–24:00`. Screenshot: [review-times](../screenshots/2026-10-29_TC-VENUE-BOOK-028_step3-review-times.jpg)
 
-### TC-VENUE-BOOK-029 Existing AM, PM and Night bookings convert (SPM-347, AC5)
+### TC-VENUE-BOOK-029 Existing AM, PM and Night bookings convert (AC5)
+
+SPM-324 AC5.
 
 The conversion is the `do` block under `-- 1. Convert the rows` in
 `supabase/migrations/20261022010100_booking_fifteen_minute_slots.sql`. Run it inside a
@@ -389,7 +435,9 @@ setup above reset to the last version that does:
 **Run:** Pass, 29/10/2026, local Supabase after `supabase db reset --version 20261028010000` and the three seeds, by Claude Code for joyceetran (SPM-328). Run in `psql`; each step's output matched. On a fully migrated database step 2 raises *lost rows*, as `slot` no longer has AM, PM or Night to join to.
 Earlier run: Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Run in `psql`; each step's output matched.
 
-### TC-VENUE-BOOK-030 A block still refuses the time it covers (SPM-347)
+### TC-VENUE-BOOK-030 A block still refuses the time it covers (AC5)
+
+SPM-324 AC5.
 
 A block is a start and end time (SPM-321); it is compared with the requested times by the time they share.
 

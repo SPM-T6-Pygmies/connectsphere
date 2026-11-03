@@ -42,7 +42,9 @@ Password: `TestPass123!` (see [`supabase/SEED.md`](../../supabase/SEED.md)).
 
 ## Test Cases
 
-### TC-DRAFT-001: A resumed draft keeps its preferred date and both times
+### TC-DRAFT-001: A resumed draft keeps its preferred date and both times (AC2)
+
+SPM-38 AC2.
 
 Origin: Backfilled 2026-10-04 from PR #23 (ticked: "picked a date + two times,
 saved as a draft, reopened it, and all three fields restored correctly").

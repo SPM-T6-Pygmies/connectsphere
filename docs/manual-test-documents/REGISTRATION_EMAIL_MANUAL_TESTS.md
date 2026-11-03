@@ -58,6 +58,8 @@ None. Attendees register by name and email with no login.
 
 ### TC-REGEMAIL-001: Registering emails the event's details and a link (AC1, AC2)
 
+SPM-87 AC1, AC2.
+
 **Preconditions:** The setup event exists; the test address has no live
 registration for it; signed out.
 
@@ -83,6 +85,8 @@ registration for it; signed out.
 
 ### TC-REGEMAIL-002: The emailed link opens the registration, where it can be withdrawn (AC3)
 
+SPM-87 AC3.
+
 **Preconditions:** The email from TC-REGEMAIL-001.
 
 **Steps:**
@@ -100,7 +104,9 @@ registration for it; signed out.
 
 ---
 
-### TC-REGEMAIL-003: The confirmation says where the link was sent and does not show it
+### TC-REGEMAIL-003: The confirmation says where the link was sent and does not show it (AC1)
+
+SPM-87 AC1.
 
 **Preconditions:** As TC-REGEMAIL-001.
 
@@ -120,7 +126,9 @@ registration for it; signed out.
 
 ---
 
-### TC-REGEMAIL-004: A refused registration sends no email
+### TC-REGEMAIL-004: A refused registration sends no email (AC1)
+
+SPM-87 AC1.
 
 **Preconditions:** The test address already holds a live registration for the
 event, as after TC-REGEMAIL-001.

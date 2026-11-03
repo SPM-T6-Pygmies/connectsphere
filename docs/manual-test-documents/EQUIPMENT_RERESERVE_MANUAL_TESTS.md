@@ -87,6 +87,8 @@ out of service leaves 6 free for it: the 4 it holds plus 2 more.
 
 ### TC-RERESERVE-001: Reserve a raised line when exactly enough are free (AC1, AC5)
 
+SPM-316 AC1, AC5.
+
 **Steps:**
 1. Signed in as `support@test.com`, open `/staff/technical/equipment`. On the
    **Wireless microphone** card, set **Out of service** to `22` and click **Update**.
@@ -109,6 +111,8 @@ out of service leaves 6 free for it: the 4 it holds plus 2 more.
 
 ### TC-RERESERVE-002: Mark a raised line unfulfilled when one short, releasing what it held (AC2)
 
+SPM-316 AC2.
+
 **Steps:**
 1. Signed in as `coordinator@test.com`, open *Tech Summit Keynote*, click the
    **Equipment** tab. On **Wireless microphone**, press **Edit**, change the quantity to
@@ -130,6 +134,8 @@ out of service leaves 6 free for it: the 4 it holds plus 2 more.
 **Status:** [x] Pass [ ] Fail — 28/10/2026, run locally by Jerrick
 
 ### TC-RERESERVE-003: A lowered line waits for Technical Support, then frees the surplus (AC3)
+
+SPM-316 AC3.
 
 **Steps:**
 1. As `support@test.com`, open *Tech Summit Keynote* and click **Reserve 4** on

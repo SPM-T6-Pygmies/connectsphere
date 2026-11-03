@@ -75,6 +75,8 @@ Run the cases in order: each starts from the state the previous one left.
 
 ### TC-CRNOTIFY-001: Submitting a change request tells the assigned coordinator what is asked (AC1, AC2)
 
+SPM-67 AC1, AC2.
+
 **Preconditions:** Setup done. Event 1 is Planning with no change request.
 
 **Steps:**
@@ -98,6 +100,8 @@ Evidence: [step2-coordinator-inbox](../screenshots/2026-10-30_TC-CRNOTIFY-001_st
 
 ### TC-CRNOTIFY-002: The notice opens the change request and can be marked read (AC4, AC5)
 
+SPM-67 AC4, AC5.
+
 **Preconditions:** State left by TC-CRNOTIFY-001. Signed in as
 `coordinator@test.com`.
 
@@ -118,6 +122,8 @@ Evidence: [step2-coordinator-inbox](../screenshots/2026-10-30_TC-CRNOTIFY-001_st
 Evidence: [step2-opens-change-request](../screenshots/2026-10-30_TC-CRNOTIFY-002_step2-opens-change-request.png) · [step3-marked-read](../screenshots/2026-10-30_TC-CRNOTIFY-002_step3-marked-read.png)
 
 ### TC-CRNOTIFY-003: A change request against a Confirmed event still tells the coordinator (AC3)
+
+SPM-67 AC3.
 
 **Preconditions:** State left by TC-CRNOTIFY-002. As `coordinator@test.com`,
 **Accept** all three changes and click **Save decision**. Then mark the event
@@ -144,6 +150,8 @@ docker exec -i supabase_db_connectsphere psql -U postgres -d postgres \
 Evidence: [step1-confirmed-event](../screenshots/2026-10-30_TC-CRNOTIFY-003_step1-confirmed-event.png) · [step2-inbox-confirmed-event](../screenshots/2026-10-30_TC-CRNOTIFY-003_step2-inbox-confirmed-event.png)
 
 ### TC-CRNOTIFY-004: Only the assigned coordinator is told, and a refused request tells no one (AC1)
+
+SPM-67 AC1.
 
 **Preconditions:** State left by TC-CRNOTIFY-003.
 

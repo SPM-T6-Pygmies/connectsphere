@@ -64,6 +64,8 @@ yet and two lines, neither essential: **Projector** 2 (Reserved, 2 held) and
 
 ### TC-CONFIRM-EQUIP-001: An unreserved essential line blocks confirmation (AC1)
 
+SPM-318 AC1.
+
 **Steps:**
 1. Signed in as `coordinator@test.com`, open **My events**, open *Founders' Gala
    Dinner* and click the **Equipment** tab. Read the **Confirmation** card.
@@ -83,6 +85,8 @@ yet and two lines, neither essential: **Projector** 2 (Reserved, 2 held) and
 
 ### TC-CONFIRM-EQUIP-002: A non-essential gap does not block (AC2)
 
+SPM-318 AC2.
+
 **Preconditions:** TC-CONFIRM-EQUIP-001 passed.
 
 **Steps:**
@@ -99,6 +103,8 @@ yet and two lines, neither essential: **Projector** 2 (Reserved, 2 held) and
 **Screenshots:** [step1-non-essential-gap](../screenshots/2026-10-19_TC-CONFIRM-EQUIP-002_step1-non-essential-gap.png)
 
 ### TC-CONFIRM-EQUIP-003: Essential lines reserved in full do not block, other gates still do (AC3)
+
+SPM-318 AC3.
 
 **Preconditions:** TC-CONFIRM-EQUIP-002 passed.
 
