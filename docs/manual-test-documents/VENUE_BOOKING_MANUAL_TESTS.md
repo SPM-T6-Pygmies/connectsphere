@@ -262,7 +262,7 @@ both for another event. Harbour Room is open `07:00`–`24:00` and Garden Hall
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshots: [step2-two-dates-end-24-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step2-two-dates-end-24-00.png), [step3-requested-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-023_step3-requested-times.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset` and the three seeds; D = 2026-11-12. The row read `2026-11-13 07:00–07:15, 2026-11-14 23:45–24:00`. Screenshot: [requested-times](screenshots/spm-328/TC-VENUE-BOOK-023_requested-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset` and the three seeds; D = 2026-11-12. The row read `2026-11-13 07:00–07:15, 2026-11-14 23:45–24:00`. Screenshot: [requested-times](../screenshots/spm-328_TC-VENUE-BOOK-023_requested-times.jpg)
 
 ### TC-VENUE-BOOK-024 A missing or impossible time is refused, naming it (SPM-349, AC1)
 
@@ -278,7 +278,7 @@ added to *Booking requests* by any of them.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step5-date-twice](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-024_step5-date-twice.png). The event still had only TC-VENUE-BOOK-023's booking afterwards.
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Each refusal named 2026-11-15, and the event still had only TC-VENUE-BOOK-023's booking. Screenshot: [date-twice](screenshots/spm-328/TC-VENUE-BOOK-024_date-twice.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Each refusal named 2026-11-15, and the event still had only TC-VENUE-BOOK-023's booking. Screenshot: [date-twice](../screenshots/spm-328_TC-VENUE-BOOK-024_date-twice.jpg)
 
 ### TC-VENUE-BOOK-025 Overlap by any amount clashes; touching does not (SPM-350, AC2)
 
@@ -291,7 +291,7 @@ added to *Booking requests* by any of them.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step1-17-45-18-15-overlap](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-025_step1-17-45-18-15-overlap.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Screenshot: [17-45-18-15-overlap](screenshots/spm-328/TC-VENUE-BOOK-025_17-45-18-15-overlap.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. Screenshot: [17-45-18-15-overlap](../screenshots/spm-328_TC-VENUE-BOOK-025_17-45-18-15-overlap.jpg)
 
 ### TC-VENUE-BOOK-026 Bookings that hold nothing do not clash (SPM-350, AC3)
 
@@ -333,7 +333,7 @@ added to *Booking requests* by any of them.
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-review-times](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-028_step2-review-times.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The queue read `07:00–07:15 + 23:45–24:00`. Screenshot: [review-times](screenshots/spm-328/TC-VENUE-BOOK-028_review-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12. The queue read `07:00–07:15 + 23:45–24:00`. Screenshot: [review-times](../screenshots/spm-328_TC-VENUE-BOOK-028_review-times.jpg)
 
 ### TC-VENUE-BOOK-029 Existing AM, PM and Night bookings convert (SPM-347, AC5)
 
@@ -390,4 +390,4 @@ A block is a start and end time (SPM-321); it is compared with the requested tim
 
 **Run:** Pass, 22/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after `supabase db reset`; D = 2026-11-05). Screenshot: [step2-block-11-45-12-00](../screenshots/2026-10-22_SPM-324_TC-VENUE-BOOK-030_step2-block-11-45-12-00.png)
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12, block on 2026-11-18. Screenshot: [block-11-45-12-00](screenshots/spm-328/TC-VENUE-BOOK-030_block-11-45-12-00.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); D = 2026-11-12, block on 2026-11-18. Screenshot: [block-11-45-12-00](../screenshots/spm-328_TC-VENUE-BOOK-030_block-11-45-12-00.jpg)

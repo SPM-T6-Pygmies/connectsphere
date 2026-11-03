@@ -59,7 +59,7 @@ edit that file.
    Roadmap Conference into an event only if it has none, and clears earlier
    reschedule and cancellation notices so counts start at zero.
    ```bash
-   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
+   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
    ```
 3. For the Inbox cases (TC-EVCHANGE-002, TC-EVCHANGE-006), clear Novu and

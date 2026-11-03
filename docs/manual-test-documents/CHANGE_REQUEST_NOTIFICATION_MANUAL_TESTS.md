@@ -48,7 +48,7 @@ edit that file.
    event `1`, owned by `organiser2@test.com` and assigned to
    `coordinator@test.com`:
    ```bash
-   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
+   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
    ```
 3. Clear Novu and start the app with it: `pnpm novu:clear`, then

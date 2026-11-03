@@ -74,7 +74,7 @@ the cases again, reset and reload.
 To load it without `psql` installed:
 
 ```bash
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/SAFETY_OUTCOME_NOTIFICATION_MANUAL_TESTS.md \
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/SAFETY_OUTCOME_NOTIFICATION_MANUAL_TESTS.md \
   | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
 ```
 

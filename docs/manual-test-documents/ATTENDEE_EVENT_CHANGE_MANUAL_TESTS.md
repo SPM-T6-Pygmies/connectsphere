@@ -52,7 +52,7 @@ addresses whose inboxes you can read. The steps use `<you+a@…>` and
    supabase db reset
    supabase db query --file scripts/seed-venues/seed.sql --local
    supabase db query --file scripts/seed-coordinator-view/seed.sql --local
-   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
+   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
    ```
 2. Load the fixture below. It makes Operations Roadmap Conference **Confirmed**
@@ -60,7 +60,7 @@ addresses whose inboxes you can read. The steps use `<you+a@…>` and
    Approved safety check. Accepting new times flags its booking and sends it back
    to Planning, so attendees are told when you confirm it again (TC-ATTCHANGE-001).
    ```bash
-   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md \
+   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md \
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
    ```
 3. Start the app with Novu: `pnpm dev:local`. Studio should list

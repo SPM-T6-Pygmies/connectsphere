@@ -553,7 +553,7 @@ supabase db query --file scripts/seed-coordinator-view/seed.sql --local
 pnpm novu:clear
 ```
 
-- Load the fixture: `awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres` (it approves *Operations Roadmap Conference* into an event and clears earlier notices).
+- Load the fixture: `awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres` (it approves *Operations Roadmap Conference* into an event and clears earlier notices).
 - The Inbox cases (TC-EVCHANGE-002 and 006) need Novu: start with `pnpm dev:local`; the others only need `pnpm dev`.
 
 **Run the app:** `pnpm dev:local`, sign in at <http://localhost:3000/auth/login> as `coordinator@test.com`, then `organiser2@test.com`, password `TestPass123!`.
@@ -577,7 +577,7 @@ An Organiser submits a change request; the assigned Coordinator is told what was
 ```bash
 supabase db reset
 supabase db query --file scripts/seed-coordinator-view/seed.sql --local
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
 pnpm novu:clear
 ```
 
@@ -604,7 +604,7 @@ A Coordinator accepts some fields and declines one with a reason; the Organiser 
 ```bash
 supabase db reset
 supabase db query --file scripts/seed-coordinator-view/seed.sql --local
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
 pnpm novu:clear
 ```
 
@@ -632,8 +632,8 @@ A Coordinator accepts new times on a Confirmed event, or cancels it; each Regist
 supabase db reset
 supabase db query --file scripts/seed-venues/seed.sql --local
 supabase db query --file scripts/seed-coordinator-view/seed.sql --local
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/ATTENDEE_EVENT_CHANGE_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
 ```
 
 - **These send real email** through Resend: use addresses whose inboxes you can read. Start the app with Novu: `pnpm dev:local`.
@@ -660,8 +660,8 @@ Venue Staff block or edit the venue of a Confirmed event; it returns to Planning
 supabase db reset
 supabase db query --file scripts/seed-venues/seed.sql --local
 supabase db query --file scripts/seed-coordinator-view/seed.sql --local
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
-awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/CONFIRMATION_LAPSE_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
+awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/CONFIRMATION_LAPSE_MANUAL_TESTS.md | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
 pnpm novu:clear
 ```
 

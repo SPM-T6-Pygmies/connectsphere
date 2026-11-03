@@ -131,7 +131,7 @@ a named person, so they follow the same two-file split with different writers.
 Add a row by hand when you write a manual case, once. The columns are the
 specification half of the template: `CaseID`, `Scenario`, `Preconditions`,
 `TestSteps`, `TestData`, `ExpectedResult`, plus `Ticket`, `AC`, `Domain` and a
-`StepsDoc` pointing at the write-up in [`../testing/`](../testing) when there is
+`StepsDoc` pointing at the write-up in [`../manual-test-documents/`](../manual-test-documents) when there is
 one. `CaseID` is the `TC-<AREA>-NNN` id used in that document, so it is unique
 within the feature you are writing and means the same case forever. `Status` is
 `Active`, or `Retired` once the case is gone. `--update` refills

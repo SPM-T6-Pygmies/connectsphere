@@ -101,7 +101,7 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset`; date 18/11/2026, request 1, slots `'37'`–`'70'`. Screenshots: [step2-form-09-15-17-45](screenshots/spm-328/TC-REQTIME-002_step2-form-09-15-17-45.jpg) · [step3-acknowledgement](screenshots/spm-328/TC-REQTIME-002_step3-acknowledgement.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement), after `supabase db reset`; date 18/11/2026, request 1, slots `'37'`–`'70'`. Screenshots: [step2-form-09-15-17-45](../screenshots/spm-328_TC-REQTIME-002_step2-form-09-15-17-45.jpg) · [step3-acknowledgement](../screenshots/spm-328_TC-REQTIME-002_step3-acknowledgement.jpg)
 
 ---
 
@@ -121,7 +121,7 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [end-not-after-start](screenshots/spm-328/TC-REQTIME-003_end-not-after-start.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement). Screenshot: [end-not-after-start](../screenshots/spm-328_TC-REQTIME-003_end-not-after-start.jpg)
 
 ---
 
@@ -144,7 +144,7 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the name-only draft was stored with no date, no `preferred_time` and no slots. Screenshot: [step3-draft-13-30-24-00](screenshots/spm-328/TC-REQTIME-004_step3-draft-13-30-24-00.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement); the name-only draft was stored with no date, no `preferred_time` and no slots. Screenshot: [step3-draft-13-30-24-00](../screenshots/spm-328_TC-REQTIME-004_step3-draft-13-30-24-00.jpg)
 
 ---
 
@@ -167,7 +167,7 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, for joyceetran (local, after the AM/PM/Night retirement): the Organiser's page in Chrome via Claude in Chrome, and all three pages in headless Chrome with the timezone overridden to Asia/Singapore and Europe/London over the DevTools protocol. Request 1 was assigned by the `update`. Screenshots: [london-requester](screenshots/spm-328/TC-REQTIME-005_london-requester.jpg) · [london-lead](screenshots/spm-328/TC-REQTIME-005_london-lead.jpg) · [london-coordinator](screenshots/spm-328/TC-REQTIME-005_london-coordinator.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, for joyceetran (local, after the AM/PM/Night retirement): the Organiser's page in Chrome via Claude in Chrome, and all three pages in headless Chrome with the timezone overridden to Asia/Singapore and Europe/London over the DevTools protocol. Request 1 was assigned by the `update`. Screenshots: [london-requester](../screenshots/spm-328_TC-REQTIME-005_london-requester.jpg) · [london-lead](../screenshots/spm-328_TC-REQTIME-005_london-lead.jpg) · [london-coordinator](../screenshots/spm-328_TC-REQTIME-005_london-coordinator.jpg)
 
 ---
 
@@ -186,4 +186,4 @@ as `organiser@test.com`.
 
 **Status:** [x] Pass [ ] Fail
 
-**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "18 Nov 9:15 am – 5:45 pm", and 34 `event_slot` rows on 2026-11-18, codes 37 to 70. Screenshot: [organiser-event-times](screenshots/spm-328/TC-REQTIME-006_organiser-event-times.jpg)
+**Run (SPM-328):** Pass, 29/10/2026, Chrome via Claude in Chrome for joyceetran (local, `pnpm dev:local`, after the AM/PM/Night retirement): "18 Nov 9:15 am – 5:45 pm", and 34 `event_slot` rows on 2026-11-18, codes 37 to 70. Screenshot: [organiser-event-times](../screenshots/spm-328_TC-REQTIME-006_organiser-event-times.jpg)

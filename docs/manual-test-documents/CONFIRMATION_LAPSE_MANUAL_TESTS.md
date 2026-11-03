@@ -57,7 +57,7 @@ edit that file.
    supabase db reset
    supabase db query --file scripts/seed-venues/seed.sql --local
    supabase db query --file scripts/seed-coordinator-view/seed.sql --local
-   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
+   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/EVENT_CHANGE_NOTIFICATION_MANUAL_TESTS.md \
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
    ```
 2. Load the fixture below. Confirming an event in the browser needs a venue
@@ -66,7 +66,7 @@ edit that file.
    25 Nov 2026, 09:00–17:00, and an **Approved** safety check, and is marked
    **Confirmed**.
    ```bash
-   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/testing/CONFIRMATION_LAPSE_MANUAL_TESTS.md \
+   awk '/^```sql/{f=1;next} /^```/{if(f){exit}} f' docs/manual-test-documents/CONFIRMATION_LAPSE_MANUAL_TESTS.md \
      | docker exec -i supabase_db_connectsphere psql -U postgres -d postgres
    ```
 3. Clear Novu and start the app with it: `pnpm novu:clear`, then

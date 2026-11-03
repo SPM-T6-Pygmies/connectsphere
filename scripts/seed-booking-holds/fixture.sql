@@ -1,4 +1,4 @@
--- SPM-218 manual tests (docs/testing/VENUE_HOLD_MANUAL_TESTS.md): the nine booking
+-- SPM-218 manual tests (docs/manual-test-documents/VENUE_HOLD_MANUAL_TESTS.md): the nine booking
 -- requests the cases decide on, for the Founders' Gala Dinner event, and a venue block
 -- on Rooftop Terrace recorded after its request.
 --

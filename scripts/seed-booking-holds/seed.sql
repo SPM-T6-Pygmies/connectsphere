@@ -1,4 +1,4 @@
--- Venue hold manual tests (docs/testing/VENUE_HOLD_MANUAL_TESTS.md): two Tentative Holds at Main
+-- Venue hold manual tests (docs/manual-test-documents/VENUE_HOLD_MANUAL_TESTS.md): two Tentative Holds at Main
 -- Hall on day H, Sunday 6 December 2026: fixed, after the November 2026 test window, on a day no
 -- other seed of the `legacy` profile (pnpm e2e:data) books Main Hall.
 --
