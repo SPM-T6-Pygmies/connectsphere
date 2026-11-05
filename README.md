@@ -95,7 +95,6 @@ visual-map/         C4 model
 Run the tests with `pnpm test`.
 
 - **Automated tests:** 3,114 passing at the last recorded run (1 Nov 2026)
-- **Coverage:** <X>% (<reason for any gaps>)
 - **Traceability:** test names carry their Linear ticket, which links them to
   the user story and acceptance criteria
 
