@@ -28,8 +28,8 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
     #  - The Operations Manager role is now the Event Coordinator Lead (staff-member.ts,
     #    supabase/seed.sql); its pages moved from src/app/staff/ops to src/app/staff/lead.
     #  - Notifications are delivered through Novu (in-app inbox for staff, email for
-    #    Attendees). Nothing in src or package.json names an email provider, so the
-    #    provider behind Novu is unverified [?].
+    #    Attendees). Novu is the only delivery system drawn: the separate Email Delivery
+    #    Service of 05 is gone, because email now leaves through Novu.
     #  - Venues, Equipment, Safety checks and Change requests exist as modules. Reporting
     #    is still a placeholder.
     #
@@ -59,9 +59,8 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
     #  - "Authentication Service" is Supabase Auth with email + password, as built for
     #    SPM-13/14. The customer has still not chosen a method (#62), so only the
     #    mechanism carries [?], not the container.
-    #  - The email external system keeps its L1 edge and gains no container edge: no adapter
-    #    sends email yet. The Notifier port's only implementation logs (see Notifications).
-    #    An email edge at L2 today would claim a delivery path that does not exist.
+    #  - Novu Cloud is the one notification system, carrying in-app and email. There is no
+    #    separate email system at L1 or L2.
     #
     # L3 modelling decisions
     #  - Components are the Ports & Adapters rings from docs/ARCHITECTURE.md: driving
@@ -105,6 +104,8 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
             # reassignment). The [?] was dropped on 2026-09-27: it is a distinct system role,
             # a row in the role table seeded as "Event Operations Manager" (supabase/seed.sql)
             # with its own operations_* RPCs.
+            safety_officer = person "Safety Officer" "Checks each event's venues and equipment before it can be confirmed, and records Approved or Rejected. Added in week 7; not in 05."
+
             ops_manager = person "Event Coordinator Lead" "Assigns and reassigns Event Coordinators, and sees their workload. Was the Event Operations Manager in 05; renamed in staff-member.ts. SOP kept outside the system."
         }
 
@@ -674,6 +675,24 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
                         tags "Placeholder"
                     }
                 }
+
+                # =============================================================
+                # DOMAIN MAP — one box per module, for the `components-domains` view.
+                # A grouping, not a new layer: each arrow below is the union of the
+                # component-level relationships it folds in (checked by script). The
+                # module views stay the way to zoom in. Excluded from `components`.
+                # =============================================================
+
+                dom_identity = component "Identity & Access" "Staff log in and out; each role is sent to its own workspace and shown only its own pages. 3 use cases." "domain map (grouping)" "Domain Capability"
+                dom_requests = component "Event Requests" "Organisers draft, submit, view and hand over requests and answer clarifications. The Operations Manager assigns a Coordinator and the Lead reassigns events. The Coordinator reviews, decides, asks for clarification and sees their events. 27 use cases." "domain map (grouping)" "Domain Capability"
+                dom_events = component "Events" "The Coordinator confirms, cancels and completes an event, edits its details, and sets its registration and required facilities. 6 use cases." "domain map (grouping)" "Domain Capability"
+                dom_registration = component "Registration" "An Attendee browses the events open for registration, registers, views and withdraws a registration by its reference. 5 use cases." "domain map (grouping)" "Domain Capability"
+                dom_venues = component "Venues" "Venue Staff maintain the catalogue, decide booking requests and block venues. A Coordinator searches venues and requests, changes and cancels bookings. Weekly and daily calendars. 17 use cases." "domain map (grouping)" "Domain Capability"
+                dom_safety = component "Safety Checks" "A Safety Officer sees the events awaiting a check and records Approved or Rejected. The Coordinator reads the checks and resubmits a rejected event. 5 use cases." "domain map (grouping)" "Domain Capability"
+                dom_changes = component "Change Requests" "An Organiser files a change request on a confirmed event. The Coordinator decides it field by field. 3 use cases." "domain map (grouping)" "Domain Capability"
+                dom_equipment = component "Equipment" "Technical Support maintain the equipment catalogue and reserve or decline each line. The Coordinator records, edits and removes an event's equipment lines. 16 use cases." "domain map (grouping)" "Domain Capability"
+                dom_notifications = component "Notifications" "Announces to each role what it needs to know, through the Notifier and Novu. 5 use cases." "domain map (grouping)" "Domain Capability"
+                dom_reporting = component "Reporting [?]" "Not designed. Brief step 14 plus event, venue-usage and registration reports. No ticket yet." "domain map (grouping)" "Domain Capability,Placeholder"
             }
 
             # Row-level security is on for every table with no policies, so callers get in
@@ -692,12 +711,6 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
         # EXTERNALS
         # ---------------------------------------------------------------------
 
-        # [?] Existence is confirmed — notifications go out over in-app AND email,
-        # configurable per notification type (#37) — but no provider is chosen, and #79
-        # frames email as a notification-channel requirement, not a general integration.
-        email = softwareSystem "Email Delivery Service [?]" "Carries outbound email to Attendees, reached only through Novu. The provider behind Novu is not named in the code [?]." "External"
-
-
         # Novu Cloud: runs the notification workflows. Added since 05. In-app for staff,
         # and the only route to email, for Attendees.
         novu = softwareSystem "Novu Cloud" "Delivers in-app notifications and attendee emails, and hosts each staff member's inbox." "External,Week7"
@@ -712,6 +725,7 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
         venue_staff -> epvbs "Approves or rejects venue bookings, maintains the catalogue, blocks venues."
         tech_staff  -> epvbs "Checks and reserves equipment, records defects, supports events."
         ops_manager -> epvbs "Assigns and reassigns Event Coordinators."
+        safety_officer -> epvbs "Reviews an event's venues and equipment and records Approved or Rejected."
 
         # In-app notifications back to the actors. These carry the workflow handoffs, so
         # they are modelled — but excluded from the "context" view below to keep L1 legible.
@@ -720,13 +734,12 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
         epvbs -> coordinator "Notifies of assignment, venue and equipment decisions, and readiness gaps. Event-driven." "In-app" "Notification"
         epvbs -> venue_staff "Notifies of booking requests and changes affecting a venue. Event-driven." "In-app" "Notification"
         epvbs -> tech_staff  "Notifies of equipment requirements and changes affecting a reservation. Event-driven." "In-app" "Notification"
+        epvbs -> safety_officer "Notifies when an event joins their Awaiting check list. Event-driven." "In-app" "Notification"
         epvbs -> attendee    "Notifies of registration confirmation and event changes. Event-driven." "Email" "Notification"
 
-        # Only the email channel crosses the system boundary, so only email is drawn at L1.
-        epvbs -> email "Sends notifications and reminders. Event-driven." "Email"
-
-
-        epvbs -> novu "Sends notifications; serves its workflows. Event-driven." "HTTPS" "Week7"
+        # Novu carries both channels (in-app for staff, email for Attendees), so it is the
+        # only delivery system that crosses the boundary at L1.
+        epvbs -> novu "Sends in-app and email notifications; serves its workflows. Event-driven." "HTTPS" "Week7"
         novu  -> epvbs "Fetches the workflow definitions." "HTTPS" "Week7"
 
         # ---------------------------------------------------------------------
@@ -739,6 +752,7 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
         venue_staff -> epvbs.web "Decides booking requests and maintains the venue catalogue." "HTTPS"
         tech_staff  -> epvbs.web "Checks and reserves equipment, records defects." "HTTPS"
         ops_manager -> epvbs.web "Assigns and reassigns Event Coordinators." "HTTPS"
+        safety_officer -> epvbs.web "Reviews an event's venues and equipment and records the check." "HTTPS"
 
         epvbs.web -> epvbs.db   "Reads and writes events, accounts and registrations." "PostgREST"
         epvbs.web -> epvbs.auth "Verifies credentials and refreshes sessions." "Supabase Auth"
@@ -1495,6 +1509,70 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
         epvbs.web.supabase_coord_events_ad    -> epvbs.db   "Reads the Coordinator's events." "PostgREST RPC"
         epvbs.web.supabase_event_catalogue_ad -> epvbs.db   "Reads Confirmed events." "PostgREST"
         epvbs.web.supabase_registrations_ad   -> epvbs.db   "Reads and writes registrations." "PostgREST RPC"
+
+        # ---------------------------------------------------------------------
+        # L3 — Domain map (view: components-domains). One arrow per pair; the label
+        # lists every interaction folded into it. Role arrows are curated from the
+        # driving adapters' descriptions: the model has no person-to-adapter edges.
+        # ---------------------------------------------------------------------
+
+        safety_officer -> epvbs.web.dom_safety "Sees the events awaiting a check; records Approved or Rejected."
+        organiser -> epvbs.web.dom_requests "Drafts, submits, tracks and hands over requests; answers clarifications."
+        organiser -> epvbs.web.dom_changes "Files change requests on a confirmed event."
+        ops_manager -> epvbs.web.dom_requests "Assigns Event Coordinators; reassigns an active event."
+        coordinator -> epvbs.web.dom_requests "Reviews, decides and asks for clarification on assigned requests."
+        coordinator -> epvbs.web.dom_events "Confirms, cancels and completes events; edits details, registration and facilities."
+        coordinator -> epvbs.web.dom_venues "Searches venues; requests, changes and cancels bookings."
+        coordinator -> epvbs.web.dom_equipment "Records, edits and removes an event's equipment lines."
+        coordinator -> epvbs.web.dom_safety "Reads an event's checks and resubmits a rejected one."
+        coordinator -> epvbs.web.dom_changes "Decides an Organiser's change requests."
+        venue_staff -> epvbs.web.dom_venues "Maintains the catalogue, decides booking requests, blocks venues."
+        tech_staff -> epvbs.web.dom_equipment "Maintains the equipment catalogue; reserves or declines each line."
+        attendee -> epvbs.web.dom_registration "Browses open events; registers and withdraws by reference."
+
+        epvbs.web.dom_changes -> epvbs.web.dom_equipment "Reads the event's equipment requirements."
+        epvbs.web.dom_changes -> epvbs.web.dom_requests "Reads the event's current values."
+        epvbs.web.dom_changes -> epvbs.web.dom_events "Reads the event's readiness facts."
+        epvbs.web.dom_changes -> epvbs.web.dom_notifications "Tells the Coordinator what was asked, the Organiser the outcome, Technical Support the lines released, and attendees of a reschedule."
+        epvbs.web.dom_changes -> epvbs.web.dom_venues "Finds what a decision took out of Confirmed."
+        epvbs.web.dom_equipment -> epvbs.web.dom_notifications "Tells Technical Support a line needs attention, tells the Coordinator each line's outcome, and announces a safety-check entry."
+        epvbs.web.dom_requests -> epvbs.web.dom_changes "Shows the event's change requests."
+        epvbs.web.dom_requests -> epvbs.web.dom_safety "Shows an event's safety checks and resubmits a rejected event."
+        epvbs.web.dom_requests -> epvbs.web.dom_venues "Shows the event's booking flags and venue booking options."
+        epvbs.web.dom_events -> epvbs.web.dom_equipment "Asks whether every requirement is reserved in full."
+        epvbs.web.dom_events -> epvbs.web.dom_requests "Finds the event and saves its facilities."
+        epvbs.web.dom_events -> epvbs.web.dom_notifications "Tells attendees of a confirmation or cancellation."
+        epvbs.web.dom_events -> epvbs.web.dom_safety "Asks whether a safety check blocks confirmation."
+        epvbs.web.dom_events -> epvbs.web.dom_venues "Checks a registration date is a calendar date."
+        epvbs.web.dom_identity -> epvbs.web.dom_requests "The staff shell reads each role's request queue for its sidebar."
+        epvbs.web.dom_identity -> epvbs.web.dom_equipment "The staff shell fills Technical Support's queue pane."
+        epvbs.web.dom_equipment -> epvbs.web.dom_requests "Finds the event for its assigned Coordinator."
+        epvbs.web.dom_equipment -> epvbs.web.dom_venues "Reads today's calendar date."
+        epvbs.web.dom_registration -> epvbs.web.dom_events "Orders events by their first start."
+        epvbs.web.dom_registration -> epvbs.web.dom_notifications "Confirms the registration to the Attendee."
+        epvbs.web.dom_requests -> epvbs.web.dom_events "The Coordinator's pages confirm, cancel, complete and edit an event."
+        epvbs.web.dom_requests -> epvbs.web.dom_notifications "Tells the Coordinator and the Organiser of an assignment, reassignment or decision."
+        epvbs.web.dom_identity -> epvbs.web.dom_notifications "The staff shell mounts the inbox and sweeps expired holds after each page view."
+        epvbs.web.dom_identity -> epvbs.web.dom_venues "The staff shell lists booking requests in the Venue Staff sidebar."
+        epvbs.web.dom_notifications -> epvbs.web.dom_equipment "Reads an event's equipment to report each line's outcome."
+        epvbs.web.dom_notifications -> epvbs.web.dom_registration "Lists the event's Registered attendees."
+        epvbs.web.dom_notifications -> epvbs.web.dom_safety "Lists the Safety Officers and asks whether an event is on their list."
+        epvbs.web.dom_safety -> epvbs.web.dom_notifications "Tells the Coordinator the outcome and the Safety Officers a rejected event is back."
+        epvbs.web.dom_venues -> epvbs.web.dom_requests "Finds the Coordinator's event for a booking."
+        epvbs.web.dom_venues -> epvbs.web.dom_events "Saves the facilities an event needs."
+        epvbs.web.dom_venues -> epvbs.web.dom_notifications "Wraps a booking decision with the safety-check announcement."
+
+        epvbs.web.dom_identity -> epvbs.auth "Signs users in, reads claims and signs them out."
+        epvbs.web.dom_identity -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_requests -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_events -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_registration -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_venues -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_safety -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_changes -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_equipment -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_notifications -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_notifications -> novu "Sends notifications and drives the staff inbox."
     }
 
     views {
@@ -1503,7 +1581,7 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
             include *
             # Notification return edges live in the model for the journey workspaces; at L1
             # they only add noise, so the context view keeps just the actor -> system edges.
-            exclude "epvbs -> organiser" "epvbs -> coordinator" "epvbs -> venue_staff" "epvbs -> tech_staff" "epvbs -> attendee"
+            exclude "epvbs -> organiser" "epvbs -> coordinator" "epvbs -> venue_staff" "epvbs -> tech_staff" "epvbs -> safety_officer" "epvbs -> attendee"
             autoLayout lr
             default
         }
@@ -1519,6 +1597,12 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
             # the sprint lenses, where there is room for them.
             exclude "epvbs.web.composition_root -> *"
             exclude "epvbs.web.in_memory_ad -> *"
+            exclude epvbs.web.dom_identity epvbs.web.dom_requests epvbs.web.dom_events epvbs.web.dom_registration epvbs.web.dom_venues epvbs.web.dom_safety epvbs.web.dom_changes epvbs.web.dom_equipment epvbs.web.dom_notifications epvbs.web.dom_reporting
+            autoLayout lr
+        }
+
+        component epvbs.web "components-domains" "The domain map: one box per module, who uses it, and how the modules depend on each other. Open a module view for its use cases." {
+            include epvbs.web.dom_identity epvbs.web.dom_requests epvbs.web.dom_events epvbs.web.dom_registration epvbs.web.dom_venues epvbs.web.dom_safety epvbs.web.dom_changes epvbs.web.dom_equipment epvbs.web.dom_notifications epvbs.web.dom_reporting attendee coordinator ops_manager organiser safety_officer tech_staff venue_staff epvbs.auth novu
             autoLayout lr
         }
 
@@ -1778,6 +1862,15 @@ workspace "ConnectSphere — After Week 7 (main @ a8fa311a)" "Snapshot lens. The
             }
 
             # A module named by the brief with no ticket and no design behind it.
+            element "Domain Capability" {
+                background "#1f3864"
+                stroke "#0f1f3d"
+                color "#ffffff"
+                width 520
+                height 380
+                fontSize 26
+            }
+
             element "Placeholder" {
                 background "#f5f5f5"
                 stroke "#b3b3b3"

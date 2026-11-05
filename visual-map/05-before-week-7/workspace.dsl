@@ -389,6 +389,21 @@ workspace "ConnectSphere — Before Week 7 (as of 2026-10-01)" "Snapshot lens. T
                         tags "Placeholder"
                     }
                 }
+
+                # =============================================================
+                # DOMAIN MAP — one box per module, for the `components-domains` view.
+                # A grouping, not a new layer: each arrow below is the union of the
+                # component-level relationships it folds in (checked by script). The
+                # module views stay the way to zoom in. Excluded from `components`.
+                # =============================================================
+
+                dom_identity = component "Identity & Access" "Staff log in and out; each role is sent to its own workspace and shown only its own pages. 3 use cases." "domain map (grouping)" "Domain Capability"
+                dom_requests = component "Event Requests" "Organisers draft, submit, view and hand over requests and answer clarifications. The Operations Manager assigns a Coordinator. The Coordinator reviews, decides, asks for clarification and sees their events. 22 use cases." "domain map (grouping)" "Domain Capability"
+                dom_registration = component "Registration" "An Attendee browses the events open for registration, registers, views and withdraws a registration by its reference. 5 use cases." "domain map (grouping)" "Domain Capability"
+                dom_venues = component "Venues" "Venue Staff maintain the catalogue. A Coordinator searches venues against what is already booked. 5 use cases." "domain map (grouping)" "Domain Capability"
+                dom_notifications = component "Notifications [?]" "Not built. A Notifier port that only logs; every staff inbox is a wireframe with fixture data." "domain map (grouping)" "Domain Capability,Placeholder"
+                dom_equipment = component "Equipment [?]" "Wireframe pages only. Brief step 8: availability, reservation, technical support." "domain map (grouping)" "Domain Capability,Placeholder"
+                dom_reporting = component "Reporting [?]" "Not designed. Brief step 14 plus event, venue-usage and registration reports. No ticket yet." "domain map (grouping)" "Domain Capability,Placeholder"
             }
 
             # Row-level security is on for every table with no policies, so callers get in
@@ -741,6 +756,27 @@ workspace "ConnectSphere — Before Week 7 (as of 2026-10-01)" "Snapshot lens. T
         epvbs.web.supabase_coord_events_ad    -> epvbs.db   "Reads the Coordinator's events." "PostgREST RPC"
         epvbs.web.supabase_event_catalogue_ad -> epvbs.db   "Reads Confirmed events." "PostgREST"
         epvbs.web.supabase_registrations_ad   -> epvbs.db   "Reads and writes registrations." "PostgREST RPC"
+
+        # ---------------------------------------------------------------------
+        # L3 — Domain map (view: components-domains). One arrow per pair; the label
+        # lists every interaction folded into it. Role arrows are curated from the
+        # driving adapters' descriptions: the model has no person-to-adapter edges.
+        # ---------------------------------------------------------------------
+
+        organiser -> epvbs.web.dom_requests "Drafts, submits, tracks and hands over requests; answers clarifications."
+        ops_manager -> epvbs.web.dom_requests "Assigns an Event Coordinator."
+        coordinator -> epvbs.web.dom_requests "Reviews, decides and asks for clarification on assigned requests."
+        coordinator -> epvbs.web.dom_venues "Searches the catalogue against what is already booked."
+        venue_staff -> epvbs.web.dom_venues "Maintains the venue catalogue."
+        attendee -> epvbs.web.dom_registration "Browses open events; registers and withdraws by reference."
+
+        epvbs.web.dom_identity -> epvbs.web.dom_requests "The staff shell reads each role's request queue for its sidebar."
+
+        epvbs.web.dom_identity -> epvbs.auth "Signs users in, reads claims and signs them out."
+        epvbs.web.dom_identity -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_requests -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_registration -> epvbs.db "Reads and writes through its repository adapters."
+        epvbs.web.dom_venues -> epvbs.db "Reads and writes through its repository adapters."
     }
 
     views {
@@ -765,6 +801,12 @@ workspace "ConnectSphere — Before Week 7 (as of 2026-10-01)" "Snapshot lens. T
             # the sprint lenses, where there is room for them.
             exclude "epvbs.web.composition_root -> *"
             exclude "epvbs.web.in_memory_ad -> *"
+            exclude epvbs.web.dom_identity epvbs.web.dom_requests epvbs.web.dom_registration epvbs.web.dom_venues epvbs.web.dom_notifications epvbs.web.dom_equipment epvbs.web.dom_reporting
+            autoLayout lr
+        }
+
+        component epvbs.web "components-domains" "The domain map: one box per module, who uses it, and how the modules depend on each other. Open a module view for its use cases." {
+            include epvbs.web.dom_identity epvbs.web.dom_requests epvbs.web.dom_registration epvbs.web.dom_venues epvbs.web.dom_notifications epvbs.web.dom_equipment epvbs.web.dom_reporting attendee coordinator ops_manager organiser venue_staff epvbs.auth
             autoLayout lr
         }
 
@@ -945,6 +987,15 @@ workspace "ConnectSphere — Before Week 7 (as of 2026-10-01)" "Snapshot lens. T
             }
 
             # A module named by the brief with no ticket and no design behind it.
+            element "Domain Capability" {
+                background "#1f3864"
+                stroke "#0f1f3d"
+                color "#ffffff"
+                width 520
+                height 380
+                fontSize 26
+            }
+
             element "Placeholder" {
                 background "#f5f5f5"
                 stroke "#b3b3b3"
