@@ -1,5 +1,5 @@
 -- Seeds the lines Technical Support reserve or mark unfulfilled in the
--- SPM-274 manual tests (docs/testing/EQUIPMENT_RESERVE_MANUAL_TESTS.md). Every
+-- SPM-274 manual tests (docs/manual-test-documents/EQUIPMENT_RESERVE_MANUAL_TESTS.md). Every
 -- line starts New, with nothing reserved.
 --
 --   Event               Date        Status     Lines (all New)

@@ -235,7 +235,7 @@ families need a different starting point: read on.
 
 ## 2. Run a manual test document
 
-Open the document in [`docs/testing/`](../docs/testing) and follow its **Setup**
+Open the document in [`docs/manual-test-documents/`](../docs/manual-test-documents) and follow its **Setup**
 section. Every document starts with `supabase db reset` and then loads what it
 needs. This table says what that is.
 

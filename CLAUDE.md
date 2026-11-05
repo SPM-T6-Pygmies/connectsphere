@@ -203,7 +203,7 @@ The rules in short:
   merges to `main` are recorded; failing runs never are.
 - **Manual and UAT cases have their own registry**, `docs/tests/manual-registry.csv`,
   one row per case keyed by its `TC-` id and pointing at its steps in
-  `docs/testing/`. CI cannot verify one for you: report what you ran in the PR
+  `docs/manual-test-documents/`. CI cannot verify one for you: report what you ran in the PR
   description's `## Manual test results` table, and CI appends it to
   `docs/tests/manual-runs.csv` on merge with the PR number. Never edit that
   ledger by hand; re-run a case only in a PR that changes its feature.
