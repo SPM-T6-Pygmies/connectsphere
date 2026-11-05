@@ -1,4 +1,4 @@
--- SPM-105 manual tests (docs/testing/VENUE_CHANGE_FLAG_MANUAL_TESTS.md): a venue of its own
+-- SPM-105 manual tests (docs/manual-test-documents/VENUE_CHANGE_FLAG_MANUAL_TESTS.md): a venue of its own
 -- for Venue Staff to edit, and the bookings those edits flag or leave alone. Every event is
 -- named "Venue Change: ...". F is Thursday 10 December 2026: fixed, after the November 2026
 -- test window, and on a day no other seed of the `legacy` profile (pnpm e2e:data) books Studio.

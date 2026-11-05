@@ -1,4 +1,4 @@
--- Seeds the venue booking cancel cases (SPM-20, docs/testing/VENUE_BOOKING_CANCEL_MANUAL_TESTS.md):
+-- Seeds the venue booking cancel cases (SPM-20, docs/manual-test-documents/VENUE_BOOKING_CANCEL_MANUAL_TESTS.md):
 -- five bookings on the Founders' Gala Dinner, one in each status the Request a venue page
 -- treats differently.
 --

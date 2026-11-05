@@ -1,4 +1,4 @@
--- SPM-313 manual tests (docs/testing/VENUE_FLAG_MANUAL_TESTS.md): the events and bookings
+-- SPM-313 manual tests (docs/manual-test-documents/VENUE_FLAG_MANUAL_TESTS.md): the events and bookings
 -- that Venue Staff's blocks flag. Every event is named "Flag Test: ...". F is the day the
 -- cases block, Wednesday 23 December 2026: fixed, after the November 2026 test window. No
 -- other seed of the `legacy` profile (pnpm e2e:data) books Main Hall from F to F + 8, the days

@@ -1,0 +1,192 @@
+# Organiser Notifications Manual Tests (SPM-58, SPM-59, SPM-60, SPM-66)
+
+## Overview
+Manual browser tests for the in-app notifications the Event Organiser receives
+when their request gets a coordinator (SPM-58), is returned with a
+clarification question (SPM-59), or is approved or rejected (SPM-60), and
+when the event it became is confirmed (SPM-66).
+
+The inbox is a client component fed by Novu, which vitest does not exercise,
+so delivery, opening and read state are checked here. Wording and routing are
+covered by the automated `(SPM-58)`, `(SPM-59)`, `(SPM-60)` and `(SPM-66)` tests.
+
+These cases are registered as `TC-ORGNOTIFY-001`–`TC-ORGNOTIFY-008` in
+[`../tests/manual-registry.csv`](../tests/manual-registry.csv). When you run
+them, tick the boxes below **and** report each in the PR description's
+`## Manual test results` table. CI records them in
+[`manual-runs.csv`](../tests/manual-runs.csv) when the PR merges.
+
+**Last run:** 2026-10-04, local (`pnpm dev:local`, Novu Development), by Isaiah
+Chia. All six cases were run. A box left unticked below means that check was
+not observed in the run. The SPM-60 screenshots are attached to PR #96 rather
+than committed here.
+
+---
+
+## Test Environment Setup
+
+### Prerequisites
+- Local Supabase stack seeded from `supabase/seed.sql`
+- Novu running locally with the bridge: `pnpm dev:local` (see the README's
+  **Notifications** section). Studio should list `coordinator-assigned`,
+  `clarification-requested` and `event-request-decided`.
+
+### Test Accounts (password `TestPass123!`)
+- `organiser@test.com` (Event Organiser)
+- `lead@test.com` (Event Coordinator Lead)
+- `coordinator@test.com` (Event Coordinator, "Test Coordinator")
+- `coordinator2@test.com` (Event Coordinator, "Test Coordinator 2"), for TC-ORGNOTIFY-003
+
+### Shared Pre-Conditions
+1. As `organiser@test.com`, submit a complete event request. Note its name.
+2. Open **Notifications** in the organiser's rail and archive or read anything
+   already there, so the unread count starts at zero.
+
+---
+
+## SPM-58: coordinator assigned
+
+### TC-ORGNOTIFY-001 Organiser is told who their coordinator is (AC1, AC2)
+
+SPM-58 AC1, AC2.
+
+**Steps**
+1. As `lead@test.com`, assign the request to Test Coordinator.
+2. As `organiser@test.com`, open **Notifications**.
+
+**Expected Result**
+- [x] One new unread notification, badged **Coordinator assigned**, reading
+      "Test Coordinator is coordinating <event>" and "Test Coordinator is now
+      your point of contact at ConnectSphere for <event>."
+- [ ] `notification` has a row with `trigger_scenario = 'organiser-coordinator-assigned'`,
+      the organiser as recipient, and `status = 'Sent'`.
+
+![Organiser's inbox with one unread Coordinator assigned notification](../screenshots/2026-10-04_TC-ORGNOTIFY-001_step1-organiser-told-their-coordinator.png)
+
+### TC-ORGNOTIFY-002 Opening the notification opens the request and reads it (AC4, AC5)
+
+SPM-58 AC4, AC5.
+
+**Steps**
+1. Click the notification from TC-ORGNOTIFY-001.
+
+**Expected Result**
+- [x] The organiser's request detail (`/staff/requester/<id>`) opens.
+- [x] Back in **Notifications**, the notification is read and the unread dot on
+      the rail is gone.
+
+![The request opened from the notification, showing Test Coordinator assigned](../screenshots/2026-10-04_TC-ORGNOTIFY-002_step1-notification-opens-the-request.png)
+
+### TC-ORGNOTIFY-003 Reassignment notifies again, naming the new coordinator (AC3)
+
+SPM-58 AC3.
+
+**Steps**
+1. As `lead@test.com`, reassign the same request to Test Coordinator 2.
+2. As `organiser@test.com`, open **Notifications**.
+3. As `lead@test.com`, assign Test Coordinator 2 again (no change).
+
+**Expected Result**
+- [x] After step 2 there is a second, unread notification naming Test Coordinator 2.
+- [ ] Step 3 adds no notification.
+
+![A second, unread notification naming Test Coordinator 2; the first is read](../screenshots/2026-10-04_TC-ORGNOTIFY-003_step1-reassignment-notifies-again.png)
+
+## SPM-59: clarification requested
+
+### TC-ORGNOTIFY-004 Organiser is told what the coordinator asked (AC1–AC4)
+
+SPM-59 AC1–AC4.
+
+**Steps**
+1. As the assigned coordinator, open the request, type
+   `How many guests need step-free access?` and click **Comment & return**.
+2. As `organiser@test.com`, open **Notifications** and click the new notification.
+
+**Expected Result**
+- [x] The notification is badged **Clarification requested**, reads
+      "<event> needs clarification", and quotes the question.
+- [x] Clicking it opens the request, showing the question and a reply box.
+- [x] The notification is now read.
+
+![Clarification requested notification quoting the question](../screenshots/2026-10-04_TC-ORGNOTIFY-004_step1-clarification-notification.png)
+![The returned request opened from the notification, with the question and a reply box](../screenshots/2026-10-04_TC-ORGNOTIFY-004_step2-notification-opens-the-question.png)
+
+## SPM-60: review decision
+
+### TC-ORGNOTIFY-005 Approval says planning may begin but nothing is committed (AC1, AC2, AC4, AC5)
+
+SPM-60 AC1, AC2, AC4, AC5.
+
+**Steps**
+1. As the assigned coordinator, click **Approve** on the request.
+2. As `organiser@test.com`, open **Notifications** and click the new notification.
+
+**Expected Result**
+- [x] The notification is badged **Request decided**, reads "<event> was
+      approved", and says planning can begin but ConnectSphere is not yet
+      committed to any arrangement.
+- [ ] Clicking it opens the request, and the notification is now read.
+
+### TC-ORGNOTIFY-006 Rejection carries the coordinator's reason (AC1, AC3–AC5)
+
+SPM-60 AC1, AC3–AC5.
+
+**Steps**
+1. Submit and assign a second request, as in the shared pre-conditions.
+2. As the assigned coordinator, click **Reject** with the reason
+   `The date clashes with a venue closure.`
+3. As `organiser@test.com`, open **Notifications** and click the new notification.
+
+**Expected Result**
+- [x] The notification reads "<event> was rejected" and gives the reason.
+- [x] It does not suggest resubmitting.
+- [ ] Clicking it opens the request, and the notification is now read.
+
+---
+
+## SPM-66: event confirmed
+
+Last run 2026-10-24, local (`pnpm dev:local`, Novu Development), by Isaiah
+Chia, on Operations Roadmap Conference (`organiser2@test.com`). The first run
+found no **Event confirmed** badge; the badge was added and checked again.
+Screenshots are attached to PR #175. Studio should also list `event-confirmed`.
+
+**Pre-conditions:** an approved request whose event is ready to confirm,
+assigned to `coordinator@test.com`: a Confirmed venue booking, every
+essential equipment line reserved in full, and an Approved safety check.
+`CONFIRM_EVENT_MANUAL_TESTS.md` sets one up. Mark the venue and one
+equipment line essential. Also add a second, non-essential equipment line
+with something reserved.
+
+### TC-ORGNOTIFY-007 Organiser is told their event is Confirmed, and the coordinator is not (AC1, AC2, AC5)
+
+SPM-66 AC1, AC2, AC5.
+
+**Steps**
+1. As `coordinator@test.com`, open the event and click **Confirm event**.
+2. As `organiser@test.com`, open **Notifications**.
+3. As `coordinator@test.com`, open **Notifications**.
+
+**Expected Result**
+- [x] One new unread notification for the organiser, badged **Event
+      confirmed**, reading "<event> is confirmed". It says the event is now
+      Confirmed and ConnectSphere is committed to delivering it, then gives
+      the times, the venue and the essential equipment line.
+- [x] The non-essential equipment line is not mentioned.
+- [x] The coordinator has no new notification for the confirmation.
+- [x] `notification` has a row with `trigger_scenario = 'event-confirmed'`,
+      the organiser as recipient, and `status = 'Sent'`.
+
+### TC-ORGNOTIFY-008 Opening the notification shows the confirmed arrangements and reads it (AC3, AC4)
+
+SPM-66 AC3, AC4.
+
+**Steps**
+1. As `organiser@test.com`, click the notification from TC-ORGNOTIFY-007.
+
+**Expected Result**
+- [x] The request opens. Its **Your event** card shows **Confirmed**, the
+      venue and every reserved equipment line (both lines, with their
+      quantities), and **Event times** shows the event's dates and times.
+- [x] The notification is now read, and the unread count drops by one.

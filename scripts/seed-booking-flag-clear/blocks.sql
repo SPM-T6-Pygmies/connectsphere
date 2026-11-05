@@ -1,4 +1,4 @@
--- SPM-310 manual cases (docs/testing/VENUE_FLAG_CLEAR_MANUAL_TESTS.md): the blocks that flag the
+-- SPM-310 manual cases (docs/manual-test-documents/VENUE_FLAG_CLEAR_MANUAL_TESTS.md): the blocks that flag the
 -- Founders' Gala Dinner's two Harbour Room bookings, recorded as Test Venue Staff through the
 -- same function the Unavailability form calls. C is Thursday 17 December 2026, the day
 -- seed-booking-cancel books.

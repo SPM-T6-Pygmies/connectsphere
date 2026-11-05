@@ -1,4 +1,4 @@
--- SPM-309 manual tests (docs/testing/EVENT_CHANGE_FLAG_MANUAL_TESTS.md): four events of Test
+-- SPM-309 manual tests (docs/manual-test-documents/EVENT_CHANGE_FLAG_MANUAL_TESTS.md): four events of Test
 -- Coordinator, each with a change request waiting and the same four bookings on one day,
 -- on fixed dates in December 2026.
 --

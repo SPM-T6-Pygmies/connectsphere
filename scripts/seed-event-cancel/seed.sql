@@ -1,4 +1,4 @@
--- Seeds the event cancel cases (SPM-55, docs/testing/EVENT_CANCEL_MANUAL_TESTS.md): on top of
+-- Seeds the event cancel cases (SPM-55, docs/manual-test-documents/EVENT_CANCEL_MANUAL_TESTS.md): on top of
 -- seed-booking-cancel's five bookings on the Founders' Gala Dinner, one Tentative Hold whose
 -- expiry has already passed but which nothing has marked Expired yet.
 --

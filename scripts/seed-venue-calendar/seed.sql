@@ -1,4 +1,4 @@
--- Venue calendar manual tests (docs/testing/VENUE_CALENDAR_MANUAL_TESTS.md): two Confirmed
+-- Venue calendar manual tests (docs/manual-test-documents/VENUE_CALENDAR_MANUAL_TESTS.md): two Confirmed
 -- bookings on the 15-minute grid (SPM-323).
 --
 --   UAT-44 Harbour Room  D+3  10:15-11:45 (codes 41-46)  exactly those periods (AC2, TC-VCAL-007)
