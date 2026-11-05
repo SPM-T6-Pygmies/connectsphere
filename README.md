@@ -127,10 +127,18 @@ Run the check command for each one to confirm it is installed.
    For other options, see the
    [Supabase CLI guide](https://supabase.com/docs/guides/local-development/cli/getting-started).
 
-Ensure that the `.env.local` file is inside the project root. It is a hidden
-file, so use `ls -a` to see it.
+### 1. Clone the repo
 
-### 1. Start the app
+```bash
+git clone https://github.com/SPM-T6-Pygmies/connectsphere.git
+cd connectsphere
+```
+
+Ensure that the `.env.local` file is inside the project root. It is a hidden
+file, so use `ls -a` to see it. Cloning does not include it, so copy it from
+folder `6. Software Release`.
+
+### 2. Start the app
 
 Run these from the project root:
 
@@ -144,7 +152,7 @@ npx novu@latest dev --port 3000 --headless --run "pnpm dev"
 `pnpm e2e:data reset` replaces any existing local data with sample data. It
 may show Infisical or Novu warnings, which are safe to ignore.
 
-### 2. Turn on notifications
+### 3. Turn on notifications
 
 The last command prints a line like this:
 
@@ -161,7 +169,7 @@ The last command prints a line like this:
    node scripts/seed-e2e/notify.mjs
    ```
 
-### 3. Sign in
+### 4. Sign in
 
 Open http://localhost:3000 and sign in with the accounts listed
 [above](#try-it-now-recommended).
