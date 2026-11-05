@@ -127,8 +127,8 @@ Run the check command for each one to confirm it is installed.
    For other options, see the
    [Supabase CLI guide](https://supabase.com/docs/guides/local-development/cli/getting-started).
 
-`.env.local` is already in the project root. It is a hidden file, so use
-`ls -a` to see it.
+Ensure that the `.env.local` file is inside the project root. It is a hidden
+file, so use `ls -a` to see it.
 
 ### 1. Start the app
 
