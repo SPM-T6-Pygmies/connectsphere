@@ -105,8 +105,27 @@ push to `main`. Passing runs on `main` are recorded in the test run history.
 
 Only use these steps if the deployed app is unavailable.
 
-**Requirements:** Node 20.19+ or 22.12+, pnpm 9, Docker (running) and the
-[Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started).
+### Requirements
+
+Run the check command for each one to confirm it is installed.
+
+1. **Node 20.19+ or 22.12+.** Check with `node --version`.
+2. **pnpm 9.** Check with `pnpm --version`.
+3. **Docker, running.** Check with `docker info`. An error means Docker is not
+   installed or not running.
+4. **Supabase CLI.** Check with `supabase --version`. To install it:
+
+   ```bash
+   # macOS or Linux (requires Homebrew)
+   brew install supabase/tap/supabase
+
+   # Windows (requires Scoop)
+   scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+   scoop install supabase
+   ```
+
+   For other options, see the
+   [Supabase CLI guide](https://supabase.com/docs/guides/local-development/cli/getting-started).
 
 `.env.local` is already in the project root. It is a hidden file, so use
 `ls -a` to see it.
