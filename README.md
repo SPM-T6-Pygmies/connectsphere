@@ -84,8 +84,9 @@ visual-map/         C4 model
 | C4 model | `visual-map/` (view with `pnpm visual-map`, requires Docker) |
 | Automated test cases and traceability | `docs/tests/test-registry.csv` |
 | Automated test run history | `docs/tests/test-runs.csv` |
-| Manual test cases | `docs/tests/manual-registry.csv`, `docs/testing/` |
+| Manual test cases | `docs/tests/manual-registry.csv`, `docs/manual-test-documents/` |
 | Manual test run history | `docs/tests/manual-runs.csv` |
+| Manual test screenshots | `docs/screenshots/` (search by case ID, e.g. `TC-VCAT-004`) |
 | Unit tests | Beside the code, as `*.test.ts` |
 | CI pipeline | `.github/workflows/ci.yml` |
 
