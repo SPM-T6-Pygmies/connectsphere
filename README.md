@@ -149,8 +149,22 @@ pnpm e2e:data reset
 npx novu@latest dev --port 3000 --headless --run "pnpm dev"
 ```
 
-`pnpm e2e:data reset` replaces any existing local data with sample data. It
-may show Infisical or Novu warnings, which are safe to ignore.
+`pnpm e2e:data reset` replaces any existing local data with sample data.
+
+**Expected errors.** This command ends with Infisical or Novu errors, and their
+wording may differ between machines. This is expected. Those steps need secrets
+the team keeps in Infisical, and step 3 sends the sample notifications instead.
+
+Setup worked if you see both of these lines, even with errors below them:
+
+```text
+ok        seed-e2e/verify.sql (20 rows)
+ok        apply-ssot/verify.sql (31 rows)
+```
+
+![Terminal output of pnpm e2e:data reset. A red box marks the two ok lines, followed by the expected Infisical errors and two warning lines.](docs/screenshots/readme-expected-e2e-data-errors.png)
+
+Stop and investigate if any migration fails, or if either `ok` line is missing.
 
 ### 3. Turn on notifications
 
