@@ -11,7 +11,7 @@
 --
 -- Read the message, not the exit code: `supabase db query` exits 0 even when the query fails.
 -- Two sessions racing cannot be shown inside one transaction; TC-VREQ-006 in
--- docs/testing/VENUE_RE_REQUEST_MANUAL_TESTS.md does that.
+-- docs/manual-test-documents/VENUE_RE_REQUEST_MANUAL_TESTS.md does that.
 
 do $$
 declare

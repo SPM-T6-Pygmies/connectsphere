@@ -1,196 +1,189 @@
-# connectsphere
+# ConnectSphere
 
-Next.js 16 (App Router) + React 19 + Tailwind 4 + shadcn/ui, on Supabase,
-built as a **Ports & Adapters** (hexagonal) application.
+Event management platform covering event requests, review, venue booking,
+equipment reservation, attendee registration and notifications.
 
-## Getting started
+IS212 Software Project Management, Team T6 (Pygmies).
+Repository: https://github.com/SPM-T6-Pygmies/connectsphere
+
+## Try it now (recommended)
+
+**Live app: https://connectsphere-one-azure.vercel.app**
+
+Please use the deployed app to test. It is already loaded with sample data.
+Only [run it locally](#run-locally-fallback-only) if it is unavailable.
+
+All accounts use the password `TestPass123!`
+
+| Role | Email |
+|---|---|
+| Event Organiser | organiser@test.com |
+| Event Coordinator | coordinator@test.com |
+| Event Coordinator Lead | lead@test.com |
+| Venue Staff | venue@test.com |
+| Technical Support Staff | support@test.com |
+| Safety Officer | safety@test.com |
+
+Each role has a second account (e.g. `organiser2@test.com`) for testing
+access between users. Attendees have no login: as confirmed by the customer,
+they register with a name and email at
+https://connectsphere-one-azure.vercel.app/events.
+
+## Suggested walkthrough
+
+1. **Organiser:** create a draft event request, then submit it
+2. **Coordinator Lead:** assign a coordinator
+3. **Coordinator:** approve the request, then request a venue booking
+4. **Venue Staff:** approve the booking
+5. **Coordinator:** list the equipment needed
+6. **Technical Support:** reserve the equipment
+7. **Safety Officer:** approve the safety check
+8. **Coordinator:** confirm the event and open registration
+9. **Attendee:** register on the public events page
+
+Check the notification bell after each step.
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend and server | Next.js 16, React 19, TypeScript |
+| UI | Tailwind CSS 4, shadcn/ui (Radix) |
+| Database and auth | Supabase (PostgreSQL, Auth) |
+| Notifications | Novu |
+| Testing | Vitest |
+| CI | GitHub Actions |
+| Hosting | Vercel |
+
+## Project structure
+
+Built with Ports & Adapters: business logic never depends on external systems.
+
+```text
+src/
+├── app/            Pages and routes (staff views in app/staff/<role>)
+├── components/     Shared UI
+├── core/
+│   ├── domain/     Business rules
+│   ├── use-cases/  Application workflows
+│   └── ports/      Interfaces to external systems
+├── adapters/       Implementations of those interfaces
+└── composition/    Wiring between ports and adapters
+supabase/           Migrations, schema and seed data
+scripts/            Test data and helper scripts
+docs/               Architecture, database and test documents
+visual-map/         C4 model
+.github/workflows/  CI pipelines
+```
+
+## Where to find things
+
+| Looking for | Go to |
+|---|---|
+| Architecture decisions | `docs/ARCHITECTURE.md` |
+| C4 model | `visual-map/` (view with `pnpm visual-map`, requires Docker) |
+| Automated test cases and traceability | `docs/tests/test-registry.csv` |
+| Automated test run history | `docs/tests/test-runs.csv` |
+| Manual test cases | `docs/tests/manual-registry.csv`, `docs/manual-test-documents/` |
+| Manual test run history | `docs/tests/manual-runs.csv` |
+| Manual test screenshots | `docs/screenshots/` (search by case ID, e.g. `TC-VCAT-004`) |
+| Unit tests | Beside the code, as `*.test.ts` |
+| CI pipeline | `.github/workflows/ci.yml` |
+
+## Testing and CI
+
+Run the tests with `pnpm test`.
+
+- **Automated tests:** 3,114 passing at the last recorded run (1 Nov 2026)
+- **Traceability:** test names carry their Linear ticket, which links them to
+  the user story and acceptance criteria
+
+CI runs type checks, linting, tests and a build on every pull request and every
+push to `main`. Passing runs on `main` are recorded in the test run history.
+
+## Run locally (fallback only)
+
+Only use these steps if the deployed app is unavailable.
+
+### Requirements
+
+Run the check command for each one to confirm it is installed.
+
+1. **Node 20.19+ or 22.12+.** Check with `node --version`.
+2. **pnpm 9.** Check with `pnpm --version`.
+3. **Docker, running.** Check with `docker info`. An error means Docker is not
+   installed or not running.
+4. **Supabase CLI.** Check with `supabase --version`. To install it:
+
+   ```bash
+   # macOS or Linux (requires Homebrew)
+   brew install supabase/tap/supabase
+
+   # Windows (requires Scoop)
+   scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+   scoop install supabase
+   ```
+
+   For other options, see the
+   [Supabase CLI guide](https://supabase.com/docs/guides/local-development/cli/getting-started).
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/SPM-T6-Pygmies/connectsphere.git
+cd connectsphere
+```
+
+Ensure that the `.env.local` file is inside the project root. It is a hidden
+file, so use `ls -a` to see it. Cloning does not include it, so copy it from
+folder `6. Software Release`.
+
+### 2. Start the app
+
+Run these from the project root:
 
 ```bash
 pnpm install
-cp .env.example .env.local   # fill in your Supabase project credentials
-pnpm dev
-```
-
-Requires Node `>=22.12` (or `>=20.19`) — Vite 8, which Vitest 4 is built on,
-does not support earlier 22.x releases.
-
-### Secrets with Infisical (optional)
-
-If you'd rather pull env vars from Infisical than manage `.env.local` by
-hand:
-
-```bash
-# macOS
-brew install infisical/get-cli/infisical
-# or via pnpm
-pnpm add -g @infisical/cli
-
-infisical login          # authenticate this machine — choose "US Cloud" when prompted
-infisical init           # link this repo to an Infisical project
-pnpm dev:local           # supabase start, then pnpm dev behind a Novu tunnel, env from Infisical dev
-pnpm dev:remote          # shortcut for: infisical run --env=prod -- pnpm dev
-```
-
-`dev:local` also starts the local Supabase stack — see
-[docs/DATABASE.md](docs/DATABASE.md) if that's new to you. `dev:remote` runs
-against the live project — use it deliberately.
-
-See the [Infisical CLI docs](https://infisical.com/docs/cli/usage) for
-`--path`/`--recursive` flags and CI usage.
-
-Apply `supabase/schema.sql` to your Supabase project before using
-`/connections` — or, for a local Postgres instead of a hosted project, see
-[docs/DATABASE.md](docs/DATABASE.md).
-
-## Login Feature (SPM-13) — Local Setup
-
-Staff-only authentication with role-based access control is enabled locally via Supabase Auth.
-
-### Quick Start (Local Testing)
-
-```bash
-# Terminal 1: Start local Supabase, then build and seed the database
 supabase start
-supabase db reset   # replays the migrations, then runs supabase/seed.sql
-# Copy the credentials from the `supabase start` output
-
-# Terminal 2: Start dev server
-cp .env.example .env.local
-# Add Supabase credentials from Terminal 1 to .env.local
-pnpm dev
+pnpm e2e:data reset
+npx novu@latest dev --port 3000 --headless --run "pnpm dev"
 ```
 
-`db reset` creates the test logins below, but no venues, events or requests.
+`pnpm e2e:data reset` replaces any existing local data with sample data.
 
-### Test data
+**Expected errors.** This command ends with Infisical or Novu errors, and their
+wording may differ between machines. This is expected. Those steps need secrets
+the team keeps in Infisical, and step 3 sends the sample notifications instead.
 
-For a full set of data to log in to, use one command instead of `db reset`:
+Setup worked if you see both of these lines, even with errors below them:
 
-```bash
-pnpm e2e:data reset   # drops all local data, then loads and checks the default data
+```text
+ok        seed-e2e/verify.sql (20 rows)
+ok        apply-ssot/verify.sql (31 rows)
 ```
 
-That gives you the six standard venues, the six equipment types, and one or two
-event requests and events in each state, all filled in completely. If `pnpm dev:local`
-is running, five of the logins below also get an unread notification; if not, run
-`pnpm e2e:data notify` once it is.
+![Terminal output of pnpm e2e:data reset. A red box marks the two ok lines, followed by the expected Infisical errors and two warning lines.](docs/screenshots/readme-expected-e2e-data-errors.png)
 
-Manual test documents that name their rows use `pnpm e2e:data reset legacy` or their
-own setup steps. `pnpm e2e:data seed --remote` loads the same default data on the
-linked project; read its warnings first. All of it is in
-[scripts/README.md](scripts/README.md#0-one-command).
+Stop and investigate if any migration fails, or if either `ok` line is missing.
 
-### Test Credentials
+### 3. Turn on notifications
 
-| Role                                        | Email                  | Password       |
-| ------------------------------------------- | ---------------------- | -------------- |
-| Event Organiser                             | `organiser@test.com`   | `TestPass123!` |
-| Event Organiser (second, same organisation) | `organiser2@test.com`  | `TestPass123!` |
-| Event Coordinator                           | `coordinator@test.com` | `TestPass123!` |
-| Event Coordinator Lead                      | `lead@test.com`        | `TestPass123!` |
-| Venue Staff                                 | `venue@test.com`       | `TestPass123!` |
-| Technical Support Staff                     | `support@test.com`     | `TestPass123!` |
-| Safety Officer                              | `safety@test.com`      | `TestPass123!` |
+The last command prints a line like this:
 
-### Access Control
-
-- **Protected:** `/staff/*` (requires login, redirects to login if not authenticated)
-- **Public:** `/events`, `/auth`, `/` (no authentication required)
-
-### Routes After Login
-
-Staff members are redirected to their role-specific landing view:
-
-- Organiser → `/staff/requester`
-- Coordinator → `/staff/coordinator`
-- Event Coordinator Lead → `/staff/lead`
-- Venue Staff → `/staff/venue`
-- Technical Support Staff → `/staff/technical`
-- Safety Officer → `/staff/safety`
-
-### Detailed Setup Guide
-
-For comprehensive setup instructions, environment variables, Infisical integration, troubleshooting, architecture, and testing, see:
-**[docs/LOGIN_FEATURE_SETUP_GUIDE.md](docs/LOGIN_FEATURE_SETUP_GUIDE.md)**
-
-Related:
-
-- **Database setup:** [docs/DATABASE.md](docs/DATABASE.md)
-- **Test logins:** [supabase/SEED.md](supabase/SEED.md)
-- **Test data:** [scripts/README.md](scripts/README.md)
-
-## Notifications (Novu)
-
-Notifications are code-first [Novu](https://novu.co) workflows under
-`src/adapters/outbound/novu/workflows`, served to Novu Cloud from `/api/novu`.
-A deployment triggers them whenever it has `NOVU_SECRET_KEY` (Infisical `prod`
-for Production). Otherwise notifications are logged instead. Either way each
-one is recorded in the `notification` table.
-
-Locally, the key alone is not enough: our workflows are only synced to Novu
-from Production, so Novu can run them from your machine only through a tunnel.
-`pnpm dev:local` opens one for you (`novu dev`) and prints its URL
-(`https://….novu.sh/api/novu`). Put that URL in `.env.local` as
-`NOVU_BRIDGE_URL`; it stays the same on your machine between runs, so this is a
-one-off. Without `NOVU_BRIDGE_URL`, notifications are logged instead.
-
-Every local session shares Novu's Development environment, so locally the app
-sends to `<your username>-<user_account_id>` rather than the bare id: your
-inbox is yours, not every teammate's coordinator's. Postgres cannot cascade
-into Novu, so after `supabase db reset` or a `teardown.sql`, clear your old
-notifications too — they point at request ids the reset reuses:
-
-```bash
-pnpm novu:clear   # deletes your own local subscribers and their notifications
+```text
+🛣️  Tunnel    → https://<your-tunnel-address>/api/novu
 ```
 
-`pnpm e2e:data reset` does this for you.
+1. Copy the full URL into `NOVU_BRIDGE_URL` in `.env.local`.
+2. Press Ctrl+C, then run the `npx novu@latest dev` command again.
+3. Leave it running. In a second terminal, run this from the project root
+   to load the sample notifications:
 
-Attendees get one email, the registration confirmation, which is sent to
-whatever address they register with. Its link points at the production domain
-on a deployment, using the `VERCEL_PROJECT_PRODUCTION_URL` that Vercel sets
-automatically, and at `http://localhost:3000` locally. Novu sends it through
-Resend, from `connectsphere@notify.isaidchia.com` (SPM-308), so any address
-receives it, in local runs too.
+   ```bash
+   node scripts/seed-e2e/notify.mjs
+   ```
 
-Production syncs itself: `.github/workflows/novu-sync.yml` runs after every
-successful Vercel Production deployment. To sync by hand, run the workflow from
-the Actions tab, or:
+### 4. Sign in
 
-```bash
-npx novu@latest sync \
-  --bridge-url https://connectsphere-one-azure.vercel.app/api/novu \
-  --secret-key <prod NOVU_SECRET_KEY>
-```
-
-## Commands
-
-| Command               | What it does                                                                         |
-| --------------------- | ------------------------------------------------------------------------------------ |
-| `pnpm dev`            | Dev server, using `.env.local`                                                       |
-| `pnpm dev:local`      | Dev server against local Postgres and a Novu tunnel, env vars from Infisical's `dev` |
-| `pnpm dev:remote`     | Dev server against the live project, via Infisical's `prod`                          |
-| `pnpm build`          | Production build                                                                     |
-| `pnpm lint`           | Next.js rules **plus architecture import boundaries**                                |
-| `pnpm typecheck`      | `tsc --noEmit`                                                                       |
-| `pnpm test`           | Vitest — core and adapters, no database needed                                       |
-| `pnpm e2e:data reset` | Rebuild the local database with the default test data ([details](scripts/README.md)) |
-| `pnpm novu:clear`     | Delete your local Novu subscribers and their notifications (Infisical `dev`)         |
-| `pnpm visual-map`     | Run Structurizr Lite locally, serving `visual-map/` at http://localhost:8080         |
-
-## Architecture
-
-**Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before adding code that
-touches an external system.** The short version:
-
-```
-src/core/         the hexagon — domain + use cases. No framework, no SDK, no I/O.
-src/adapters/     implementations of the core's ports (Supabase, in-memory, …)
-src/composition/  the only module that wires the two together
-src/app/          Next.js — driving adapters only
-```
-
-Imports point inward, and `pnpm lint` fails if they don't.
-
-`src/core/use-cases/send-connection-request.ts` is the worked reference
-implementation the document is written against.
+Open http://localhost:3000 and sign in with the accounts listed
+[above](#try-it-now-recommended).
